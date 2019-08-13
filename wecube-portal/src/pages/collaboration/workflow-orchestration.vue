@@ -404,6 +404,8 @@ export default {
       if (index > -1) {
         this.serviceTaskBindInfos.splice(index, 1);
       }
+
+      let found = this.allPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
       this.serviceTaskBindInfos.push({
         version: 0,
         ...this.pluginForm,
@@ -413,9 +415,7 @@ export default {
           this.pluginForm.rules.cmdbColumnCriteria.routine
         ),
         ciRoutineRaw: JSON.stringify(this.pluginForm.rules.cmdbColumnSource),
-        serviceName:
-          this.allPlugins.find(_ => _.id === this.pluginForm.serviceId)
-            .serviceName || ""
+        serviceName:found && found.serviceName || ""
       });
       this.serviceTaskBindInfos.forEach(_ => {
         delete _.rules;
