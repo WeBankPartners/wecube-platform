@@ -1,0 +1,82 @@
+server:
+  port: 8080
+  address: localhost
+
+spring:
+  profiles:
+    active: dev
+
+  banner:
+    location: classpath:/banner.txt
+
+  jpa:
+    database: mysql
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+      use-new-id-generator-mappings: false
+    open-in-view: false
+
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
+
+camunda:
+  bpm:
+    application:
+      delete-upon-undeploy: false
+      scan-for-process-definitions: false
+      deploy-changed-only: true
+      resume-previous-versions: true
+      resume-previous-by: a value
+    history-level: full
+    admin-user:
+      id: demo
+      password: demo
+      first-name: Kermit
+    filter:
+      create: All tasks
+    job-execution:
+      enabled: true
+    auto-deployment-enabled: false
+    generate-unique-process-application-name: true
+    generate-unique-process-engine-name: true
+
+wecube:
+  core:
+    max-file-size: 64KB
+    httpclient:
+      max-total-connections: 200
+
+    plugin:
+      plugin-deploy-path: /home/app/
+      plugin-hosts: 10.255.18.23, 127.0.0.1, 10.0.0.1, 10.0.0.2, 10.0.0.3
+      plugin-package-bucket-name: wecube-plugin-package-bucket
+      register-file: register.xml
+      default-host-ssh-user: app
+      default-host-ssh-***REMOVED***
+      default-host-ssh-port: 36000
+      configPath: /home/app/wecube-plugins/conf
+      logPath: /home/app/wecube-plugins/logs
+
+    s3:
+      endpoint: http://127.0.0.1:9000
+      access-key: access_key
+      secret-key: secret_key
+
+    cmdb-data:
+      enum-category-type-system: 1
+      enum-category-type-common: 2
+      enum-category-ci-type-layer: ci_layer
+      enum-category-ci-type-catalog: ci_catalog
+      enum-category-ci-type-zoom-levels: ci_zoom_level
+
+      business-key-attribute-name: biz_key
+      status-attribute-name: state
+
+
+
+
+
+
