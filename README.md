@@ -1,0 +1,2 @@
+# wecube-platform
+WeCube Platform
