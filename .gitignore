@@ -1,0 +1,42 @@
+*/target/
+*/bin/
+*/node_modules/
+*/dist/
+*.log
+*.log.*.gz
+*/package-lock.json
+
+# Ignore the generated front-end resource
+**/resources/static/
+# Ignore the generated index.html
+**/resources/templates/index.html
+
+**/resources/application-dev.yml
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode/
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*dist
+*dist.zip
+
+.DS_Store
+
