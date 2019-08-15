@@ -102,5 +102,5 @@ WeCube是基于 Apache License 2.0 协议， 详情请参考
 
 ## 社区
 - 如果您想得到最快的响应，请给我们提issue，或者关注微信公众号： ，或者您也可以扫码进群：
-- 联系我们：***REMOVED***
+- 联系我们：fintech@webank.com
 
