@@ -6,6 +6,12 @@ spring:
   profiles:
     active: dev
 
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://db-server:3306/wecube_core_04?characterEncoding=utf8&serverTimezone=UTC
+    username: db-user
+    ***REMOVED***
+
   banner:
     location: classpath:/banner.txt
 
@@ -45,23 +51,26 @@ camunda:
 
 wecube:
   core:
+    cas-server-url: http://cas-server-ip:8080/cas
+    cmdb-server-url: http://cmdb-server-ip:37000/cmdb
+    security-enabled: true
     max-file-size: 64KB
     httpclient:
       max-total-connections: 200
 
     plugin:
       plugin-deploy-path: /home/app/
-      plugin-hosts: ***REMOVED***, 127.0.0.1, 10.0.0.1, 10.0.0.2, 10.0.0.3
+      plugin-hosts: 10.0.0.1, 10.0.0.2, 10.0.0.3
       plugin-package-bucket-name: wecube-plugin-package-bucket
       register-file: register.xml
-      default-host-ssh-user: app
-      default-host-ssh-***REMOVED***
-      default-host-ssh-port: 36000
+      default-host-ssh-user: ssh-user
+      default-host-ssh-password: ssh-password
+      default-host-ssh-port: 22
       configPath: /home/app/wecube-plugins/conf
       logPath: /home/app/wecube-plugins/logs
 
     s3:
-      endpoint: http://127.0.0.1:9000
+      endpoint: http://s3-server:9000
       access-key: access_key
       secret-key: secret_key
 
