@@ -65,7 +65,7 @@ wecube:
       register-file: register.xml
       default-host-ssh-user: ssh-user
       default-host-ssh-password: ssh-password
-      default-host-ssh-port: ssh-port
+      default-host-ssh-port: 22
       configPath: /home/app/wecube-plugins/conf
       logPath: /home/app/wecube-plugins/logs
 
