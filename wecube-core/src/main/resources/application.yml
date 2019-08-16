@@ -11,7 +11,7 @@ spring:
     url: jdbc:mysql://db-server:3306/wecube_core_04?characterEncoding=utf8&serverTimezone=UTC
     username: db-user
     password: db-password
-  
+
   banner:
     location: classpath:/banner.txt
 
