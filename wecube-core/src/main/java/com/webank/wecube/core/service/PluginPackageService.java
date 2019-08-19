@@ -10,6 +10,8 @@ import com.webank.wecube.core.jpa.PluginPackageRepository;
 import com.webank.wecube.core.parser.PluginConfigXmlParser;
 import com.webank.wecube.core.service.plugin.PluginConfigCopyHelper;
 import com.webank.wecube.core.support.s3.S3Client;
+import com.webank.wecube.core.utils.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +59,9 @@ public class PluginPackageService {
         byte[] pluginConfigFile = FileUtils.readFileToByteArray(new File(tmpFilePath + pluginProperties.getRegisterFile()));
 
         PluginPackage pluginPackage = PluginConfigXmlParser.newInstance(new ByteArrayInputStream(pluginConfigFile)).parsePluginPackage();
+		if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
+			throw new WecubeCoreException("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ");
+		}
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.", pluginPackage.getName(), pluginPackage.getVersion()));
         }
