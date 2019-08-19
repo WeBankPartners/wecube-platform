@@ -7,7 +7,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({ApplicationProperties.class, HttpClientProperties.class, CmdbDataProperties.class, PluginProperties.class, S3Properties.class})
+@EnableConfigurationProperties({
+	ApplicationProperties.class, 
+	HttpClientProperties.class, 
+	CmdbDataProperties.class, 
+	PluginProperties.class, 
+	S3Properties.class,
+	ApiProxyProperties.class
+})
 @ComponentScan({"com.webank.wecube.core.service"})
 public class SpringAppConfig {
 
