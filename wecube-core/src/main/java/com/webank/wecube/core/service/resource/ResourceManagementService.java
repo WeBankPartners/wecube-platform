@@ -86,11 +86,13 @@ public class ResourceManagementService {
     private Iterable<ResourceItem> enrichItemsFullInfo(Iterable<ResourceItem> items) {
         List<ResourceItem> enrichedItems = new ArrayList<>();
         for (ResourceItem item : items) {
-            Optional<ResourceItem> enrichedItemOpt = resourceItemRepository.findById(item.getId());
-            if (enrichedItemOpt.isPresent()) {
-                ResourceItem enrichedItem = enrichedItemOpt.get();
-                enrichedItem.setResourceServer(getResourceServerById(enrichedItem.getResourceServerId()));
-                enrichedItems.add(enrichedItem);
+            if (item.getId() != null) {
+                Optional<ResourceItem> enrichedItemOpt = resourceItemRepository.findById(item.getId());
+                if (enrichedItemOpt.isPresent()) {
+                    ResourceItem enrichedItem = enrichedItemOpt.get();
+                    enrichedItem.setResourceServer(getResourceServerById(enrichedItem.getResourceServerId()));
+                    enrichedItems.add(enrichedItem);
+                }
             }
         }
         return enrichedItems;
