@@ -1,4 +1,4 @@
-from platten/alpine-oracle-jre8-docker
+from platten/alpine-oracle-jre8-docker:latest
 LABEL maintainer = "Webank CTB Team"
 ADD build/init_cmdb  /home/init_cmdb
 ADD wecube-core/target/wecube-core-1.0-SNAPSHOT.jar  /home/wecube-core.jar
