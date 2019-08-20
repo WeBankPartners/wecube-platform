@@ -735,7 +735,7 @@ public class PluginInstanceService {
                 }
             }
         }
-        return null;
+        return value;
     }
 
     // Use random selection as a short term solution of load-balancing.
