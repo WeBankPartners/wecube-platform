@@ -1,6 +1,9 @@
 package com.webank.wecube.core.domain;
 
+import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,6 +12,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.webank.wecube.core.commons.WecubeCoreException;
+import com.webank.wecube.core.utils.JsonUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -61,4 +67,19 @@ public class ResourceItem {
 
     @Column(name = "updated_date")
     private Timestamp updatedDate;
+
+    public Map<String, String> getAdditionalPropertiesMap() {
+        if (additionalProperties != null) {
+            return convertToMap(additionalProperties);
+        }
+        return new HashMap<String, String>();
+    }
+
+    private Map<String, String> convertToMap(String additionalProperties) {
+        try {
+            return JsonUtils.toObject(additionalProperties, Map.class);
+        } catch (IOException e) {
+            throw new WecubeCoreException(String.format("Failed to parse resource_item.additional_properties [%s] : Invalid json format.", additionalProperties), e);
+        }
+    }
 }

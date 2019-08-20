@@ -1,6 +1,8 @@
 package com.webank.wecube.core.dto;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -8,6 +10,7 @@ import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
 import com.webank.wecube.core.interceptor.UsernameStorage;
 import com.webank.wecube.core.service.resource.ResourceItemType;
+import com.webank.wecube.core.utils.JsonUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,7 +26,7 @@ public class ResourceItemDto {
     private String type;
     private String additionalProperties;
     private Integer resourceServerId;
-    private Boolean isAllocated;
+    private Boolean isAllocated = true;
     private String purpose;
     private ResourceServerDto resourceServer;
 
@@ -77,12 +80,20 @@ public class ResourceItemDto {
             resourceItem.setPurpose(resourceItemDto.getPurpose());
         }
 
-        updateSystemFields(resourceItem);
+        updateSystemFieldsWithDefaultValues(resourceItem);
 
         return resourceItem;
     }
 
-    private static void updateSystemFields(ResourceItem resourceItem) {
+    private static void updateSystemFieldsWithDefaultValues(ResourceItem resourceItem) {
+        if (resourceItem.getAdditionalProperties() == null) {
+            String defaultAdditionalProperties = null;
+            if (ResourceItemType.fromCode(resourceItem.getType()) == ResourceItemType.MYSQL_DATABASE) {
+                defaultAdditionalProperties = generateMysqlDatabaseDefaultAccount(resourceItem);
+            }
+            resourceItem.setAdditionalProperties(defaultAdditionalProperties);
+        }
+
         if (resourceItem.getCreatedBy() == null) {
             resourceItem.setCreatedBy(UsernameStorage.getIntance().get());
         }
@@ -93,6 +104,15 @@ public class ResourceItemDto {
 
         resourceItem.setUpdatedBy(UsernameStorage.getIntance().get());
         resourceItem.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
+    }
+
+    private static String generateMysqlDatabaseDefaultAccount(ResourceItem resourceItem) {
+        String defaultAdditionalProperties;
+        Map<Object, Object> map = new HashMap<>();
+        map.put("username", resourceItem.getName());
+        map.put("password", resourceItem.getName());
+        defaultAdditionalProperties = JsonUtils.toJsonString(map);
+        return defaultAdditionalProperties;
     }
 
     private static void validateItemType(String itemType) {
