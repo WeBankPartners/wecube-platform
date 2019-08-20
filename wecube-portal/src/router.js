@@ -5,21 +5,21 @@ Vue.use(Router);
 let router = new Router({
   routes: [
     {
-      path: "homepage",
+      path: "/homepage",
       name: "homepage",
       component: () => import("@/pages/home-page"),
       params: {},
       props: true
     },
     {
-      path: "404",
+      path: "/404",
       name: "404",
       component: () => import("@/pages/404"),
       params: {},
       props: true
     },
     {
-      path: "coming-soon",
+      path: "/coming-soon",
       name: "comingsoon",
       component: () => import("@/pages/coming-soon"),
       params: {},
