@@ -40,7 +40,7 @@ export default {
         this.isShowBreadcrum = false;
         return;
       }
-      if (this.$route.path === "/comingsoon") {
+      if (this.$route.path === "/coming-soon") {
         this.parentBreadcrumb = "-";
         this.childBreadcrumb = "Coming Soon";
         return;
