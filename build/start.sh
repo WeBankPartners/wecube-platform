@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/bash
 mkdir -p /data/
 chmod +x  /home/init_cmdb
 /home/init_cmdb
