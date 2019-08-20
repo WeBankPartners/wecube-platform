@@ -4,7 +4,6 @@ public enum ResourceItemType {
     NONE("none"),
     S3_BUCKET("s3_bucket"),
     MYSQL_DATABASE("mysql_database"),
-    MYSQL_ACCOUNT("mysql_account"),
     DOCKER_CONTAINER("docker_container"),
     DOCKER_IMAGE("docker_image");
 
