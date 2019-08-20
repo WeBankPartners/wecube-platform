@@ -1,16 +1,14 @@
 package com.webank.wecube.core.jpa.impl;
 
-import com.google.common.collect.ImmutableSet;
-import com.webank.wecube.core.domain.OperationLog;
-import com.webank.wecube.core.dto.FilterRelationship;
-import com.webank.wecube.core.dto.PageInfo;
-import com.webank.wecube.core.dto.QueryRequest;
-import com.webank.wecube.core.dto.QueryResponse;
-import com.webank.wecube.core.jpa.EntityRepository;
-import com.webank.wecube.core.utils.JpaQueryUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import static java.lang.reflect.Modifier.isStatic;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -18,10 +16,17 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Root;
-import java.lang.reflect.Field;
-import java.util.*;
 
-import static java.lang.reflect.Modifier.isStatic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import com.google.common.collect.ImmutableSet;
+import com.webank.wecube.core.dto.FilterRelationship;
+import com.webank.wecube.core.dto.PageInfo;
+import com.webank.wecube.core.dto.QueryRequest;
+import com.webank.wecube.core.dto.QueryResponse;
+import com.webank.wecube.core.jpa.EntityRepository;
+import com.webank.wecube.core.utils.JpaQueryUtils;
 
 @Repository
 public class EntityRepositoryImpl implements EntityRepository {
@@ -31,15 +36,15 @@ public class EntityRepositoryImpl implements EntityRepository {
 
     @Override
     public <T> QueryResponse query(Class<T> domainClzz, QueryRequest queryRequest) {
-        List<Field> fieldList = getDomainAttrFields(OperationLog.class);
-        List<Object> resultObjs = doQuery(OperationLog.class, queryRequest, false, fieldList);
+        List<Field> fieldList = getDomainAttrFields(domainClzz);
+        List<Object> resultObjs = doQuery(domainClzz, queryRequest, false, fieldList);
         int totalRow = resultObjs.size();
 
         List<Object> domainObjs = new LinkedList<>();
 
         resultObjs.forEach(x -> domainObjs.add(x));
 
-        QueryResponse queryResp = new QueryResponse<OperationLog>();
+        QueryResponse queryResp = new QueryResponse<T>();
         queryResp.setContents(domainObjs);
 
         if (queryRequest != null && queryRequest.getPageable() != null) {
