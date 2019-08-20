@@ -29,12 +29,7 @@ sed -i "s~{{S3_ENDPOINT}}~$s3_endpoint~" docker-compose.yml
 sed -i "s~{{S3_ACCESS_KEY}}~$s3_access_key~" docker-compose.yml
 sed -i "s~{{S3_SECRET_KEY}}~$s3_secret_key~" docker-compose.yml
 
-
-
 docker-compose  -f docker-compose.yml  up -d
-
-
-
 
 
 
