@@ -414,7 +414,7 @@ export default {
         ),
         ciRoutineRaw: JSON.stringify(this.pluginForm.rules.cmdbColumnSource),
         serviceName:
-          this.allPlugins.find(_ => _.id === this.pluginForm.serviceId)
+          this.allPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
             .serviceName || ""
       });
       this.serviceTaskBindInfos.forEach(_ => {
