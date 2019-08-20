@@ -92,12 +92,12 @@ public class ResourceServerDto {
             resourceServer.setPurpose(resourceServerDto.getPurpose());
         }
 
-        updateSystemFields(resourceServer);
+        updateSystemFieldsWithDefaultValues(resourceServer);
 
         return resourceServer;
     }
 
-    private static void updateSystemFields(ResourceServer resourceServer) {
+    private static void updateSystemFieldsWithDefaultValues(ResourceServer resourceServer) {
         if (resourceServer.getCreatedBy() == null) {
             resourceServer.setCreatedBy(UsernameStorage.getIntance().get());
         }
