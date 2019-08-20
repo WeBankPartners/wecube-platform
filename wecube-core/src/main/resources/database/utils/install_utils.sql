@@ -10,9 +10,9 @@ BEGIN
   
   SET _count = (SELECT COUNT(1)  FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = _tablename AND COLUMN_NAME = _columnname AND TABLE_SCHEMA = _dbname);
   IF _count = 0 THEN
-	  SET @ddl = CONCAT('alter table ', _tablename, ' add column (', _columnname, ' ', _datatype, ')');
-	  PREPARE STMT FROM @ddl;
-	  EXECUTE STMT;
+    SET @ddl = CONCAT('alter table ', _tablename, ' add column (', _columnname, ' ', _datatype, ')');
+    PREPARE STMT FROM @ddl;
+    EXECUTE STMT;
   END IF;
 END$$
 DELIMITER ;
