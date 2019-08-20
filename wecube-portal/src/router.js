@@ -4,12 +4,6 @@ import Router from "vue-router";
 Vue.use(Router);
 let router = new Router({
   routes: [
-    // {
-    //   path: "/",
-    //   name: "IndexPage",
-    //   redirect: "/homepage",
-    //   component: () => import("@/pages/index"),
-    //   children: [
     {
       path: "homepage",
       name: "homepage",
@@ -132,18 +126,6 @@ let router = new Router({
       component: () => import("@/pages/implementation/workflow-execution")
     }
   ]
-  // }
-  // ]
 });
-
-// TODO: get plugins url by axios.
-// let pluginURLs = [{
-//   path: "/plugin1/home",
-//   name: "plugin1",
-//   component: () => import("@/pages/container"),
-//   props: { src: 'dsadsadsad' }
-// }]
-
-// router.addRoutes(pluginURLs)
 
 export default router;
