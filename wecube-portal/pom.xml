@@ -21,13 +21,13 @@
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>exec-wnpm-install</id>
+            <id>exec-npm-install</id>
             <phase>prepare-package</phase>
             <goals>
               <goal>exec</goal>
             </goals>
             <configuration>
-              <executable>wnpm</executable>
+              <executable>npm</executable>
               <arguments>
                 <argument>install</argument>
               </arguments>
