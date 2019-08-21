@@ -710,7 +710,7 @@ public class PluginInstanceService {
                         String.format("Column %s not found in ci data [%s].", cmdbColumnName, data));
             }
 
-            value = getValueInMap(value);
+            value = getValueByKeyIfMap(value, "code");
             if (value == null) {
                 log.warn("value from cmdb is null,column name:{} plugin column name:{}", cmdbColumnName,
                         pluginColumnName);
@@ -725,18 +725,17 @@ public class PluginInstanceService {
         return convertedData;
     }
 
-    private Object getValueInMap(Object value) {
-        if (value != null) {
-            if (Map.class.isAssignableFrom(value.getClass())) {
-                Map<String, Object> valueMap = (Map<String, Object>) value;
-                Object valueInMap = valueMap.get("code");
-                if (valueInMap != null) {
-                    return valueInMap;
-                }
-            }
-        }
-        return value;
-    }
+	@SuppressWarnings("unchecked")
+	private Object getValueByKeyIfMap(Object map, String key) {
+		if (map != null && map instanceof Map) {
+			Map<String, Object> valueMap = (Map<String, Object>) map;
+			Object valueOfCode = valueMap.get(key);
+			if (valueOfCode != null) {
+				return valueOfCode;
+			}
+		}
+		return map;
+	}
 
     // Use random selection as a short term solution of load-balancing.
     // This can be enhanced once the health check function is ready.
