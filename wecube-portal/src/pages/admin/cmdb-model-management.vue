@@ -978,7 +978,7 @@ export default {
       nodeName: "",
       g: null,
       statusList: [],
-      selectedStatus: ["created"],
+      selectedStatus: ["notCreated", "created"],
       allStatus: STATUS_LIST.map(_ => _.value),
       newLayer: {
         addNewLayerCode: "",
@@ -1068,10 +1068,10 @@ export default {
 
         this.graph.graphviz = graph
           .graphviz()
-          .zoom(false)
-          // .scale(1.2)
-          // .width(window.innerWidth * 0.8)
-          // .height(window.innerHeight * 0.9)
+          .zoom(true)
+          .scale(1.2)
+          .width(window.innerWidth * 0.8)
+          .height(window.innerHeight * 0.75)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               var keys = d.key.split("->");
@@ -1137,11 +1137,6 @@ export default {
           initEvent();
           this.renderGraph(ciResponse.data);
         }
-      } else {
-        this.$Notice.warning({
-          title: "Error",
-          desc: "Failed to load layers."
-        });
       }
     },
     genDOT(data) {
@@ -1172,15 +1167,14 @@ export default {
         nodes.length > 0 &&
           nodes.forEach((node, nodeIndex) => {
             if (node.layerId === _.layerId) {
+              let fontcolor =
+                node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                '"' +
-                  node.name +
-                  '"[id=' +
-                  node.ciTypeId +
-                  ',image="' +
-                  node.form.imgSource +
-                  ".png" +
-                  '", labelloc="b"];'
+                `"${node.name}"[id="${
+                  node.ciTypeId
+                }",fontcolor="${fontcolor}", image="${
+                  node.form.imgSource
+                }.png", labelloc="b"]`
               );
             }
             if (nodeIndex === nodes.length - 1) {
