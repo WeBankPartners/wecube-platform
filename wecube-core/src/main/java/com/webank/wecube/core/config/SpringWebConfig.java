@@ -134,7 +134,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     }
 
     private String getServerUrl() {
-        return String.format("http://%s:%d", serverProperties.getAddress().getHostAddress(), serverProperties.getPort());
+        return String.format("http://%s", applicationProperties.getCasRedirectAppAddr());
     }
 
     @Override
