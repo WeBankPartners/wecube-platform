@@ -17,7 +17,7 @@ source wecube.cfg
 sed  "s~{{WECUBE_DATABASE_IMAGE_NAME}}~$database_image_name~" docker-compose.tpl >  docker-compose.yml  
 sed -i "s~{{WECUBE_IMAGE_NAME}}~$wecube_image_name~" docker-compose.yml  
 sed -i "s~{{WECUBE_SERVER_PORT}}~$wecube_server_port~" docker-compose.yml 
-sed -i "s~{{MYSQL_ROOT_PASSWORD}}~$database_user_password~" docker-compose.yml 
+sed -i "s~{{MYSQL_ROOT_PASSWORD}}~$database_init_password~" docker-compose.yml 
 sed -i "s~{{CAS_SERVER_URL}}~$cas_url~" docker-compose.yml 
 sed -i "s~{{CMDB_SERVER_URL}}~$cmdb_url~" docker-compose.yml 
 sed -i "s~{{WECUBE_SERVER_IP}}~$wecube_server_ip~" docker-compose.yml
