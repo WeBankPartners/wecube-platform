@@ -24,6 +24,8 @@ services:
             '--collation-server=utf8mb4_unicode_ci',
             '--default-time-zone=+8:00'
     ]
+    ports:
+      - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD={{MYSQL_ROOT_PASSWORD}}
     volumes:
@@ -37,8 +39,6 @@ services:
     volumes:
       - /data/wecube/log:/log/ 
       - /etc/localtime:/etc/localtime
-    networks:
-      - wecube-core
     ports:
       - {{WECUBE_SERVER_PORT}}:8080
     environment:

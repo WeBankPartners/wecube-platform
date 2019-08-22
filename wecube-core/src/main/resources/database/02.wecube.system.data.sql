@@ -1,4 +1,4 @@
-use wecube;
+
 delete from menu_items;
 insert into menu_items (id,parent_id,code,description) values
 (1,null,'JOBS','')
