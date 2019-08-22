@@ -1,7 +1,3 @@
-SET NAMES utf8;
-create database wecube charset = utf8;
-use wecube;
-
 drop table if exists blob_data;
 create table blob_data (
   id int auto_increment primary key,
