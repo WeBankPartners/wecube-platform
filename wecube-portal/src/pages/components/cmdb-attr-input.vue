@@ -59,6 +59,7 @@ export default {
     paramData: {
       handler(val) {
         this.mappingType = val.mappingType;
+        this.cmdbEnumCode = val.cmdbEnumCode;
       },
       immediate: true
     }
