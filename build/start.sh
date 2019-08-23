@@ -1,8 +1,8 @@
 #!/bin/sh
-mkdir -p /data/
-chmod +x  /home/init_cmdb
-/home/init_cmdb
-java -jar /home/wecube-core.jar  --server.address=0.0.0.0 --server.port=8080 \
+mkdir -p /log
+chmod +x /application/init_cmdb
+/application/init_cmdb
+java -jar /application/wecube-core.jar  --server.address=0.0.0.0 --server.port=8080 \
 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver \
 --spring.datasource.url=jdbc:mysql://${MYSQL_SERVER_ADDR}:${MYSQL_SERVER_PORT}/${MYSQL_SERVER_DATABASE_NAME}?characterEncoding=utf8 \
 --spring.datasource.username=${MYSQL_USER_NAME} \
@@ -20,4 +20,4 @@ java -jar /home/wecube-core.jar  --server.address=0.0.0.0 --server.port=8080 \
 --wecube.core.cmdb-data.enum-category-ci-type-layer=ci_layer \
 --wecube.core.cmdb-data.enum-category-ci-type-catalog=ci_catalog \
 --wecube.core.plugin.plugin-package-name-of-deploy=salt-stack-deployment \
---wecube.core.cmdb-data.enum-category-ci-type-zoom-levels=ci_zoom_level >>/data/wecube-core.log 
+--wecube.core.cmdb-data.enum-category-ci-type-zoom-levels=ci_zoom_level >>/log/wecube-core.log 
