@@ -32,79 +32,79 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @Slf4j
 public class ApiProxyController {
-	private static final String API_PROXY_PATH = "/api-proxy";
+    private static final String API_PROXY_PATH = "/api-proxy";
 
-	@Autowired
-	private ApiProxyProperties apiProxyProperties;
+    @Autowired
+    private ApiProxyProperties apiProxyProperties;
 
-	@Autowired
-	private PluginInstanceService pluginInstanceService;
+    @Autowired
+    private PluginInstanceService pluginInstanceService;
 
-	@Autowired
-	private RestTemplate restTemplate;
+    @Autowired
+    private RestTemplate restTemplate;
 
-	@RequestMapping(value = API_PROXY_PATH + "/**", method = { GET, DELETE, OPTIONS, HEAD })
-	public void pluginApiProxy(HttpServletRequest request, HttpServletResponse response) {
-		proxy(createProxyExchange(request, response), request);
-	}
+    @RequestMapping(value = API_PROXY_PATH + "/**", method = { GET, DELETE, OPTIONS, HEAD })
+    public void pluginApiProxy(HttpServletRequest request, HttpServletResponse response) {
+        proxy(createProxyExchange(request, response), request);
+    }
 
-	@RequestMapping(value = API_PROXY_PATH + "/**", method = { POST, PUT, PATCH })
-	public void pluginApiProxy(HttpServletRequest request, HttpServletResponse response, @RequestBody Object body) {
-		proxy(createProxyExchange(request, response).body(body), request);
-	}
+    @RequestMapping(value = API_PROXY_PATH + "/**", method = { POST, PUT, PATCH })
+    public void pluginApiProxy(HttpServletRequest request, HttpServletResponse response, @RequestBody Object body) {
+        proxy(createProxyExchange(request, response).body(body), request);
+    }
 
-	private ProxyExchange createProxyExchange(HttpServletRequest request, HttpServletResponse response) {
-		ProxyExchange proxyExchange = new ProxyExchange(restTemplate, request, response);
-		proxyExchange.customHttpHeaders(apiProxyProperties.getCustomHeaders());
-		proxyExchange.sensitiveHeaders(apiProxyProperties.getSensitiveHeaders());
-		return proxyExchange;
-	}
+    private ProxyExchange createProxyExchange(HttpServletRequest request, HttpServletResponse response) {
+        ProxyExchange proxyExchange = new ProxyExchange(restTemplate, request, response);
+        proxyExchange.customHttpHeaders(apiProxyProperties.getCustomHeaders());
+        proxyExchange.sensitiveHeaders(apiProxyProperties.getSensitiveHeaders());
+        return proxyExchange;
+    }
 
-	private void proxy(ProxyExchange proxyExchange, HttpServletRequest request) {
-		log.info("http {} request comes: {}", request.getMethod(), proxyExchange.path());
-		routing(proxyExchange, request);
+    private void proxy(ProxyExchange proxyExchange, HttpServletRequest request) {
+        log.info("http {} request comes: {}", request.getMethod(), proxyExchange.path());
+        routing(proxyExchange, request);
 
-		proxyExchange.exchange();
-	}
+        proxyExchange.exchange();
+    }
 
-	private void routing(ProxyExchange proxyExchange, HttpServletRequest request) {
-		String path = proxyExchange.path(API_PROXY_PATH);
-		String pluginName = resolvePluginName(path);
-		String apiUrl = path.substring(pluginName.length() + 1);
+    private void routing(ProxyExchange proxyExchange, HttpServletRequest request) {
+        String path = proxyExchange.path(API_PROXY_PATH);
+        String pluginName = resolvePluginName(path);
+        String apiUrl = path.substring(pluginName.length() + 1);
 
-		List<PluginInstance> runningPluginInstances = pluginInstanceService.getRunningPluginInstances(pluginName);
-		PluginInstance runningPluginInstance = pluginInstanceService.chooseOne(runningPluginInstances);
-		if (runningPluginInstance == null)
-			throw new WecubeCoreException("No running plugin instance found for plugin name: " + pluginName);
+        List<PluginInstance> runningPluginInstances = pluginInstanceService.getRunningPluginInstances(pluginName);
+        PluginInstance runningPluginInstance = pluginInstanceService.chooseOne(runningPluginInstances);
+        if (runningPluginInstance == null)
+            throw new WecubeCoreException("No running plugin instance found for plugin name: " + pluginName);
 
-		String targetUri = deriveTargetUrl(request.getScheme(), runningPluginInstance, apiUrl);
-		
-		log.info("routing to : " + targetUri);
+        String targetUri = deriveTargetUrl(request.getScheme(), runningPluginInstance, apiUrl);
 
-		authorize(request.getUserPrincipal(), pluginName);
+        log.info("routing to : " + targetUri);
 
-		proxyExchange.targetUri(targetUri);
-	}
+        authorize(request.getUserPrincipal(), pluginName);
 
-	private String resolvePluginName(String path) {
-		int beginIndex = 1;
-		int endIndex = path.indexOf("/", 1);
-		if (endIndex == -1 || (endIndex - beginIndex) < 1)
-			throw new WecubeCoreException("Can not resolve Plugin Name due to invalid url path: " + path);
-		String pluginName = path.substring(beginIndex, endIndex);
-		if (isEmpty(pluginName))
-			throw new WecubeCoreException("Can not resolve Plugin Name due to invalid url path: " + path);
-		return pluginName;
-	}
+        proxyExchange.targetUri(targetUri);
+    }
 
-	private String deriveTargetUrl(String scheme, PluginInstance instance, String path) {
-		String instanceAddress = pluginInstanceService.getInstanceAddress(instance);
-		return scheme + "://" + instanceAddress + path;
-	}
+    private String resolvePluginName(String path) {
+        int beginIndex = 1;
+        int endIndex = path.indexOf("/", 1);
+        if (endIndex == -1 || (endIndex - beginIndex) < 1)
+            throw new WecubeCoreException("Can not resolve Plugin Name due to invalid url path: " + path);
+        String pluginName = path.substring(beginIndex, endIndex);
+        if (isEmpty(pluginName))
+            throw new WecubeCoreException("Can not resolve Plugin Name due to invalid url path: " + path);
+        return pluginName;
+    }
 
-	// TODO:
-	private void authorize(Principal principal, String pluginName) {
-		log.info("//TODO: no authorization rule implemented, will be treated as ALL PERMITTED.");
-	}
+    private String deriveTargetUrl(String scheme, PluginInstance instance, String path) {
+        String instanceAddress = pluginInstanceService.getInstanceAddress(instance);
+        return scheme + "://" + instanceAddress + path;
+    }
+
+    // TODO:
+    private void authorize(Principal principal, String pluginName) {
+        log.info("//TODO: no authorization rule implemented, will be treated as ALL PERMITTED.");
+    }
 
 }
