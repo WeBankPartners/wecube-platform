@@ -1,15 +1,17 @@
 package com.webank.wecube.core.controller.helper;
 
-import com.webank.wecube.core.commons.WecubeCoreException;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+
+import com.webank.wecube.core.commons.WecubeCoreException;
 
 public class HttpServletResponseWriter {
 
@@ -20,6 +22,7 @@ public class HttpServletResponseWriter {
     }
 
     public void writeHttpResponse(ResponseEntity<byte[]> responseEntity) {
+        response.setStatus(responseEntity.getStatusCodeValue());
         writeHeaders(responseEntity.getHeaders());
         writeBody(responseEntity.getBody());
     }
