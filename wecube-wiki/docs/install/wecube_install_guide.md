@@ -12,6 +12,7 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(提�
 
 ## 配置
 1. 建立执行目录和相关文件
+   
    在部署机器上建立安装目录，新建以下三个文件:
 
    [wecube.cfg](../../../build/wecube.cfg)
