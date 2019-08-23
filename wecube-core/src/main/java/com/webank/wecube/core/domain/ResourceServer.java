@@ -60,6 +60,9 @@ public class ResourceServer {
     @Column(name = "purpose")
     private String purpose;
 
+    @Column(name = "status")
+    private String status;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "resourceServer", fetch = FetchType.EAGER)

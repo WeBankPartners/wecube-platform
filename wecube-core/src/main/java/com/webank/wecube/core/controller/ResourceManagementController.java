@@ -6,18 +6,23 @@ import static com.webank.wecube.core.domain.JsonResponse.okayWithData;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.common.collect.Lists;
 import com.webank.wecube.core.commons.ApplicationProperties.CmdbDataProperties;
 import com.webank.wecube.core.domain.JsonResponse;
 import com.webank.wecube.core.dto.QueryRequest;
 import com.webank.wecube.core.dto.ResourceItemDto;
 import com.webank.wecube.core.dto.ResourceServerDto;
+import com.webank.wecube.core.service.resource.ResourceAvaliableStatus;
+import com.webank.wecube.core.service.resource.ResourceItemType;
 import com.webank.wecube.core.service.resource.ResourceManagementService;
+import com.webank.wecube.core.service.resource.ResourceServerType;
 
 @RestController
 @RequestMapping("/resource")
@@ -77,5 +82,44 @@ public class ResourceManagementController {
     public JsonResponse deleteItems(@RequestBody List<ResourceItemDto> resourceItems) {
         resourceService.deleteItems(resourceItems);
         return okay();
+    }
+
+    @GetMapping("/constants/resource-server-types")
+    @ResponseBody
+    public JsonResponse getResourceServerType() {
+        List<String> resourceServerTypes = Lists.newLinkedList();
+        for (ResourceServerType type : ResourceServerType.values()) {
+            if (ResourceServerType.NONE.equals(type))
+                continue;
+
+            resourceServerTypes.add(type.getCode());
+        }
+        return okayWithData(resourceServerTypes);
+    }
+
+    @GetMapping("/constants/resource-item-types")
+    @ResponseBody
+    public JsonResponse getResourceItemType() {
+        List<String> resourceItemTypes = Lists.newLinkedList();
+        for (ResourceItemType type : ResourceItemType.values()) {
+            if (ResourceItemType.NONE.equals(type))
+                continue;
+
+            resourceItemTypes.add(type.getCode());
+        }
+        return okayWithData(resourceItemTypes);
+    }
+
+    @GetMapping("/constants/resource-item-status")
+    @ResponseBody
+    public JsonResponse getResourceItemStatus() {
+        List<String> resourceItemStatus = Lists.newLinkedList();
+        for (ResourceAvaliableStatus type : ResourceAvaliableStatus.values()) {
+            if (ResourceAvaliableStatus.NONE.equals(type))
+                continue;
+
+            resourceItemStatus.add(type.getCode());
+        }
+        return okayWithData(resourceItemStatus);
     }
 }

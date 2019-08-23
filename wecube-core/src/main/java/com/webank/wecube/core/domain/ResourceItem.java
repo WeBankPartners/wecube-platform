@@ -56,6 +56,9 @@ public class ResourceItem {
     @Column(name = "purpose")
     private String purpose;
 
+    @Column(name = "status")
+    private String status;
+
     @Column(name = "created_by")
     private String createdBy;
 

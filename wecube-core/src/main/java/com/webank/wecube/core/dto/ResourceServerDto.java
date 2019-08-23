@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceServer;
 import com.webank.wecube.core.interceptor.UsernameStorage;
+import com.webank.wecube.core.service.resource.ResourceAvaliableStatus;
 import com.webank.wecube.core.service.resource.ResourceServerType;
 
 import lombok.AllArgsConstructor;
@@ -30,6 +31,7 @@ public class ResourceServerDto {
     private String type;
     private Boolean isAllocated = true;
     private String purpose;
+    private String status;
     @JsonIgnore
     private List<ResourceItemDto> resourceItemDtos;
 
@@ -44,6 +46,7 @@ public class ResourceServerDto {
         resourceServerDto.setType(resourceServer.getType());
         resourceServerDto.setIsAllocated(resourceServer.getIsAllocated() != null && resourceServer.getIsAllocated() == 1 ? true : false);
         resourceServerDto.setPurpose(resourceServer.getPurpose());
+        resourceServerDto.setStatus(resourceServer.getStatus());
         if (resourceServer.getResourceItems() != null) {
             resourceServerDto.setResourceItemDtos(Lists.transform(resourceServer.getResourceItems(), x -> ResourceItemDto.fromDomain(x)));
         }
@@ -92,12 +95,21 @@ public class ResourceServerDto {
             resourceServer.setPurpose(resourceServerDto.getPurpose());
         }
 
+        if (resourceServerDto.getStatus() != null) {
+            validateItemStatus(resourceServerDto.getStatus());
+            resourceServer.setStatus(resourceServerDto.getStatus());
+        }
+
         updateSystemFieldsWithDefaultValues(resourceServer);
 
         return resourceServer;
     }
 
     private static void updateSystemFieldsWithDefaultValues(ResourceServer resourceServer) {
+        if (resourceServer.getStatus() == null) {
+            resourceServer.setStatus(ResourceAvaliableStatus.CREATED.getCode());
+        }
+
         if (resourceServer.getCreatedBy() == null) {
             resourceServer.setCreatedBy(UsernameStorage.getIntance().get());
         }
@@ -113,6 +125,12 @@ public class ResourceServerDto {
     private static void validateServerType(String serverType) {
         if (ResourceServerType.fromCode(serverType) == ResourceServerType.NONE) {
             throw new WecubeCoreException(String.format("Unsupported resource server type [%s].", serverType));
+        }
+    }
+
+    private static void validateItemStatus(String status) {
+        if (ResourceAvaliableStatus.fromCode(status) == ResourceAvaliableStatus.NONE) {
+            throw new WecubeCoreException(String.format("Unsupported resource item status [%s].", status));
         }
     }
 }
