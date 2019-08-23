@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
 import com.webank.wecube.core.interceptor.UsernameStorage;
+import com.webank.wecube.core.service.resource.ResourceAvaliableStatus;
 import com.webank.wecube.core.service.resource.ResourceItemType;
 import com.webank.wecube.core.utils.JsonUtils;
 
@@ -28,6 +29,7 @@ public class ResourceItemDto {
     private Integer resourceServerId;
     private Boolean isAllocated = true;
     private String purpose;
+    private String status;
     private ResourceServerDto resourceServer;
 
     public static ResourceItemDto fromDomain(ResourceItem resourceItem) {
@@ -42,6 +44,7 @@ public class ResourceItemDto {
         }
         resourceItemDto.setIsAllocated(resourceItem.getIsAllocated() != null && resourceItem.getIsAllocated() == 1 ? true : false);
         resourceItemDto.setPurpose(resourceItem.getPurpose());
+        resourceItemDto.setStatus(resourceItem.getStatus());
         return resourceItemDto;
     }
 
@@ -80,6 +83,11 @@ public class ResourceItemDto {
             resourceItem.setPurpose(resourceItemDto.getPurpose());
         }
 
+        if (resourceItemDto.getStatus() != null) {
+            validateItemStatus(resourceItemDto.getStatus());
+            resourceItem.setStatus(resourceItemDto.getStatus());
+        }
+
         updateSystemFieldsWithDefaultValues(resourceItem);
 
         return resourceItem;
@@ -92,6 +100,10 @@ public class ResourceItemDto {
                 defaultAdditionalProperties = generateMysqlDatabaseDefaultAccount(resourceItem);
             }
             resourceItem.setAdditionalProperties(defaultAdditionalProperties);
+        }
+
+        if (resourceItem.getStatus() == null) {
+            resourceItem.setStatus(ResourceAvaliableStatus.CREATED.getCode());
         }
 
         if (resourceItem.getCreatedBy() == null) {
@@ -118,6 +130,12 @@ public class ResourceItemDto {
     private static void validateItemType(String itemType) {
         if (ResourceItemType.fromCode(itemType) == ResourceItemType.NONE) {
             throw new WecubeCoreException(String.format("Unsupported resource item type [%s].", itemType));
+        }
+    }
+
+    private static void validateItemStatus(String status) {
+        if (ResourceAvaliableStatus.fromCode(status) == ResourceAvaliableStatus.NONE) {
+            throw new WecubeCoreException(String.format("Unsupported resource item status [%s].", status));
         }
     }
 }
