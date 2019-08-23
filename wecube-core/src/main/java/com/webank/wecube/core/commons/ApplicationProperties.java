@@ -94,4 +94,10 @@ public class ApplicationProperties {
         private String accessKey;
         private String secretKey;
     }
+
+    @Data
+    @ConfigurationProperties(prefix = "wecube.core.resource")
+    public class ResourceProperties {
+        private Integer dockerPullImageTimeout = 300;
+    }
 }
