@@ -10,6 +10,7 @@ public class ApplicationProperties {
 
     private String casServerUrl = "";
     private String cmdbServerUrl = "";
+    private String casRedirectAppAddr = "";
     private DataSize maxFileSize = DataSize.ofKilobytes(64);
     private boolean securityEnabled = true;
 
