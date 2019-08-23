@@ -61,7 +61,8 @@ public class ApplicationProperties {
         private String enumCategoryCiStateOfCreate = "ci_state_create";
         private String enumCodeChangeOfCiStateOfCreate = "update";
         private String enumCodeDestroyedOfCiStateOfCreate = "delete";
-
+        private String enumCategorySecurity = "security";
+        private String enumCodeOfSeed = "seed";
 
         private String statusAttributeName = "status";
         private String businessKeyAttributeName = "bizKey";
