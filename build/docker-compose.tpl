@@ -1,6 +1,6 @@
 version: '2'
 services:
-  minio:
+  wecube-minio:
     image: minio/minio
     restart: always
     command: [
@@ -16,7 +16,7 @@ services:
     environment:
       - MINIO_ACCESS_KEY={{S3_ACCESS_KEY}}
       - MINIO_SECRET_KEY={{S3_SECRET_KEY}}
-  mysql:
+  wecube-mysql:
     image: {{WECUBE_DATABASE_IMAGE_NAME}}
     restart: always
     command: [
@@ -31,11 +31,12 @@ services:
     volumes:
       - /data/wecube/db:/var/lib/mysql
       - /etc/localtime:/etc/localtime
-  wecube:
+  wecube-app:
     image: {{WECUBE_IMAGE_NAME}}
     restart: always
     depends_on:
-      - mysql
+      - wecube-minio
+      - wecube-mysql
     volumes:
       - /data/wecube/log:/log/ 
       - /etc/localtime:/etc/localtime
@@ -43,7 +44,7 @@ services:
       - {{WECUBE_SERVER_PORT}}:8080
     environment:
       - TZ=Asia/Shanghai
-      - MYSQL_SERVER_ADDR=mysql
+      - MYSQL_SERVER_ADDR=wecube-mysql
       - MYSQL_SERVER_PORT=3306
       - MYSQL_SERVER_DATABASE_NAME=wecube
       - MYSQL_USER_NAME=root
