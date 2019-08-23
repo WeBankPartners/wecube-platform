@@ -425,7 +425,6 @@ export default {
         /* ********END COMMENT *********/
       });
       this.pluginModalVisible = false;
-      console.log("this.serviceTaskBindInfos.", this.serviceTaskBindInfos);
     },
     openPluginModal() {
       if (!this.selectedCI.value) {
