@@ -124,7 +124,9 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	```
 
 3. docker-compose.tpl文件
+	
 	此文件中配置了要安装的服务:wecube、mysql和minio。
+	
 	如果已有minio和mysql，在文件中将这两段注释掉,在wecube的environment配置中,手动修改s3和数据库配置即可。
 	
 	详细代码如下:
