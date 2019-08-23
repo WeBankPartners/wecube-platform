@@ -241,9 +241,18 @@
                     </Col>
                     <Col span="18">
                       <FormItem :label-width="0">
-                        <AttrInput
+                        <!-- <AttrInput
                           :allCiTypes="ciTypes"
                           :cmdbColumnSource="param.cmdbColumnSource"
+                          :rootCiType="selectedCiType"
+                          v-model="param.cmdbAttr"
+                          :ciTypesObj="ciTypesObj"
+                          :ciTypeAttributeObj="ciTypeAttributeObj"
+                        /> -->
+                        <CmdbAttrInput
+                          :allCodes="allCodes"
+                          :allCiTypes="ciTypes"
+                          :paramData="param"
                           :rootCiType="selectedCiType"
                           v-model="param.cmdbAttr"
                           :ciTypesObj="ciTypesObj"
@@ -341,6 +350,7 @@
 <script>
 import AttrSelect from "../components/attr-select";
 import AttrInput from "../components/attr-input";
+import CmdbAttrInput from "../components/cmdb-attr-input";
 import {
   getAllCITypesByLayerWithAttr,
   getAllPluginPkgs,
@@ -382,10 +392,12 @@ export default {
   components: {
     AttrSelect,
     AttrInput,
-    refPayloadModal
+    refPayloadModal,
+    CmdbAttrInput
   },
   data() {
     return {
+      allCodes: [],
       ciTypesObj: {},
       ciTypeAttributeObj: {},
       allAvailiableHosts: [],
@@ -545,6 +557,27 @@ export default {
         });
       }
     },
+    async getAllCodes() {
+      // getAllSystemEnumCodes
+      const payload = {
+        filters: [],
+        paging: false
+      };
+      let { data, status, message } = await getAllSystemEnumCodes(payload);
+      if (status === "OK") {
+        this.allCodes = data.contents
+          .map(_ => {
+            return {
+              codeId: _.codeId,
+              value: _.codeId,
+              label: _.value || "",
+              catName: _.cat.catName
+            };
+          })
+          .filter(i => i.catName != "tab_query_of_architecture_design")
+          .filter(j => j.catName != "tab_query_of_deploy_design");
+      }
+    },
     async getLogDetail(logData) {
       const payload = {
         inputs: [
@@ -595,17 +628,23 @@ export default {
             ? i.resultStatus.toString()
             : "",
           inputParameterMappings: i.inputParameters.map(inp => {
-            const routine = inp.cmdbAttr.cmdbColumnCriteria.routine.slice(
-              0,
-              -1
-            );
+            const routine = inp.cmdbAttr.cmdbColumnCriteria
+              ? inp.cmdbAttr.cmdbColumnCriteria.routine.slice(0, -1)
+              : null;
             return {
               routine: routine,
-              cmdbAttributeId: inp.cmdbAttr.cmdbColumnCriteria.attribute.attrId,
+              mappingType: inp.cmdbAttr.mappingType,
+              cmdbEnumCode: inp.cmdbAttr.cmdbEnumCode,
+              cmdbAttributeId: inp.cmdbAttr.cmdbColumnCriteria
+                ? inp.cmdbAttr.cmdbColumnCriteria.attribute.attrId
+                : null,
               cmdbCiTypeId:
+                routine &&
                 routine[routine.length - 1] &&
                 routine[routine.length - 1].ciTypeId,
-              cmdbColumnSource: JSON.stringify(inp.cmdbAttr.cmdbColumnSource),
+              cmdbColumnSource: inp.cmdbAttr.cmdbColumnSource
+                ? JSON.stringify(inp.cmdbAttr.cmdbColumnSource)
+                : null,
               parameterId: inp.id
             };
           }),
@@ -960,6 +999,9 @@ export default {
     this.getAllCITypesByLayerWithAttr();
     this.getAllPluginPkgs();
     this.getAllCiTypesByCatalog();
+  },
+  mounted() {
+    this.getAllCodes();
   },
   computed: {
     setUploadActionHeader() {
