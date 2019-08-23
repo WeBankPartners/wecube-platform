@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
+import com.webank.wecube.core.service.CmdbResourceService;
+import com.webank.wecube.core.utils.EncryptionUtils;
 
 @Service
 public class ResourceImplementationService {
@@ -20,6 +22,9 @@ public class ResourceImplementationService {
 
     @Autowired
     private DockerManagementService dockerManagementService;
+
+    @Autowired
+    private CmdbResourceService cmdbResourceService;
 
     public void createItems(Iterable<ResourceItem> items) {
         for (ResourceItem item : items) {
@@ -62,11 +67,12 @@ public class ResourceImplementationService {
 
     private void createMySQLDatabaseWithAccount(ResourceItem item) {
         try {
+            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
             mysqlManagementService.newMysqlClient(
                     item.getResourceServer().getHost(),
                     item.getResourceServer().getPort(),
                     item.getResourceServer().getLoginUsername(),
-                    item.getResourceServer().getLoginPassword());
+                    password);
             mysqlManagementService.connect();
             mysqlManagementService.createSchema(item.getName());
             Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
@@ -80,12 +86,17 @@ public class ResourceImplementationService {
     }
 
     public void createS3Bucket(ResourceItem item) {
-        s3ManagementService.newS3Client(
-                item.getResourceServer().getHost(),
-                item.getResourceServer().getPort(),
-                item.getResourceServer().getLoginUsername(),
-                item.getResourceServer().getLoginPassword())
-                .createBucket(item.getName());
+        try {
+            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
+            s3ManagementService.newS3Client(
+                    item.getResourceServer().getHost(),
+                    item.getResourceServer().getPort(),
+                    item.getResourceServer().getLoginUsername(),
+                    password)
+                    .createBucket(item.getName());
+        } catch (Exception e) {
+            throw new WecubeCoreException(String.format("Failed to create s3 bucket [%s] from server [%s].", item.getName(), item.getResourceServer()), e);
+        }
     }
 
     public void updateItems(Iterable<ResourceItem> items) {
@@ -152,11 +163,12 @@ public class ResourceImplementationService {
 
     private void deleteMysqlDatabaseWithAccount(ResourceItem item) {
         try {
+            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
             mysqlManagementService.newMysqlClient(
                     item.getResourceServer().getHost(),
                     item.getResourceServer().getPort(),
                     item.getResourceServer().getLoginUsername(),
-                    item.getResourceServer().getLoginPassword());
+                    password);
             mysqlManagementService.connect();
             if (mysqlManagementService.hasTables(item.getName())) {
                 throw new WecubeCoreException(String.format("Can not delete database [%s] : Database is not empty.", item.getName()));
@@ -173,11 +185,16 @@ public class ResourceImplementationService {
     }
 
     private void deleteS3Bucket(ResourceItem item) {
-        s3ManagementService.newS3Client(
-                item.getResourceServer().getHost(),
-                item.getResourceServer().getPort(),
-                item.getResourceServer().getLoginUsername(),
-                item.getResourceServer().getLoginPassword())
-                .deleteBucket(item.getName());
+        try {
+            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
+            s3ManagementService.newS3Client(
+                    item.getResourceServer().getHost(),
+                    item.getResourceServer().getPort(),
+                    item.getResourceServer().getLoginUsername(),
+                    password)
+                    .deleteBucket(item.getName());
+        } catch (Exception e) {
+            throw new WecubeCoreException(String.format("Failed to delete s3 bucket [%s] from server [%s].", item.getName(), item.getResourceServer()), e);
+        }
     }
 }
