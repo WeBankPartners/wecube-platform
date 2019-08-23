@@ -26,11 +26,13 @@
 
 	根据提示输入github账号密码， 即可拉取代码到本地。
 	拉取完成后， 可以在本地目录上看到wecube-platform目录， 进入目录，结构如下：
+	
 	![wecube-platform_dir](images/wecube-platform_dir.png)
 
 2. 编译
 
 	maven配置文件在build目录下的maven_setting.xml文件,默认配置如下:
+	
 	![wecube-platform_maven_settings](images/wecube-platform_maven_settings.png)
 
 	编译过程中会从外网拉取maven包和npm包，如果有更快的maven源，可修改该文件中的配置。
@@ -54,6 +56,7 @@
 	```
 	
 	可查看镜像列表
+	
 	![wecube-platform_images](images/wecube-platform_images.png)
 	
 4. 镜像保存
