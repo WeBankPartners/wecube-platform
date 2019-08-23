@@ -1,22 +1,33 @@
 package com.webank.wecube.core.controller;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.HEAD;
+import static org.springframework.web.bind.annotation.RequestMethod.OPTIONS;
+import static org.springframework.web.bind.annotation.RequestMethod.PATCH;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+
+import java.security.Principal;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
 import com.webank.wecube.core.commons.ApplicationProperties.ApiProxyProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.controller.helper.ProxyExchange;
 import com.webank.wecube.core.domain.plugin.PluginInstance;
 import com.webank.wecube.core.service.PluginInstanceService;
+
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.security.Principal;
-import java.util.List;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
 @Slf4j
@@ -50,6 +61,7 @@ public class ApiProxyController {
 	}
 
 	private void proxy(ProxyExchange proxyExchange, HttpServletRequest request) {
+		log.info("http {} request comes: {}", request.getMethod(), proxyExchange.path());
 		routing(proxyExchange, request);
 
 		proxyExchange.exchange();
@@ -66,6 +78,8 @@ public class ApiProxyController {
 			throw new WecubeCoreException("No running plugin instance found for plugin name: " + pluginName);
 
 		String targetUri = deriveTargetUrl(request.getScheme(), runningPluginInstance, apiUrl);
+		
+		log.info("routing to : " + targetUri);
 
 		authorize(request.getUserPrincipal(), pluginName);
 
@@ -88,8 +102,9 @@ public class ApiProxyController {
 		return scheme + "://" + instanceAddress + path;
 	}
 
+	// TODO:
 	private void authorize(Principal principal, String pluginName) {
-		// TODO:
+		log.info("//TODO: no authorization rule implemented, will be treated as ALL PERMITTED.");
 	}
 
 }
