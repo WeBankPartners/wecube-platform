@@ -658,7 +658,7 @@ public class PluginInstanceService {
         return inputParameters;
     }
 
-    public List<Map<String, Object>> queryCmdb(PluginConfigInterface pluginConfigInterface, String bizKey) {
+    private List<Map<String, Object>> queryCmdb(PluginConfigInterface pluginConfigInterface, String bizKey) {
         Set<PluginConfigInterfaceParameter> fullInputParameters = pluginConfigInterface.getInputParameters();
         Set<PluginConfigInterfaceParameter> intQryInputParameters = filterPluginConfigInterfaceParameter(fullInputParameters, "CMDB_CI_TYPE");
         Set<PluginConfigInterfaceParameter> enumKindInputParameters = filterPluginConfigInterfaceParameter(fullInputParameters, "CMDB_ENUM_CODE");
