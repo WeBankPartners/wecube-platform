@@ -8,6 +8,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import java.net.URI;
@@ -50,6 +51,7 @@ public class ApiProxyControllerTest extends AbstractControllerTest {
                 .andRespond(withSuccess("Mock message from plugin service.", MediaType.APPLICATION_JSON));
 
         mockMvc.perform(get(testApi).contentType(MediaType.APPLICATION_JSON).content("Mock message from front-end."))
+                .andExpect(status().isOk())
                 .andExpect(content().string("Mock message from plugin service."));
 
         mockPluginRunningServer.verify();
