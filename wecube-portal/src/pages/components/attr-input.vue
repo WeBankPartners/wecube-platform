@@ -4,7 +4,7 @@
       <div class="input_in">
         <textarea
           ref="textarea"
-          :rows="2"
+          :rows="1.5"
           @input="inputHandler"
           :value="inputVal"
         ></textarea>
@@ -159,6 +159,7 @@ export default {
         });
         this.inputVal = val;
         this.$emit("input", this.getValue(this.routine));
+        this.$emit("change", this.getValue(this.routine));
       } else {
         if (this.rootCiType) {
           const ci = this.allCi.find(_ => _.ciTypeId === this.rootCiType);
@@ -168,6 +169,7 @@ export default {
           });
           this.inputVal = ci.name + " ";
           this.$emit("input", this.getValue(this.routine));
+          this.$emit("change", this.getValue(this.routine));
         }
       }
     },
@@ -242,10 +244,12 @@ export default {
           this.inputVal = val;
           this.routine.splice(-1, 1);
           this.$emit("input", this.getValue(this.routine));
+          this.$emit("change", this.getValue(this.routine));
         } else if (valList.length <= 2 && this.canReSelectCiType) {
           this.inputVal = "";
           this.routine = [];
           this.$emit("input", this.getValue(this.routine));
+          this.$emit("change", this.getValue(this.routine));
           this.$emit("handleRootCiTypeChange", "");
         }
         this.$refs.textarea.value = this.inputVal;
@@ -283,6 +287,7 @@ export default {
       });
       this.options = [];
       this.$emit("input", this.getValue(this.routine));
+      this.$emit("change", this.getValue(this.routine));
     },
     getValue(data) {
       let val = {
@@ -361,8 +366,9 @@ export default {
 }
 .input_in textarea {
   font-size: 11px;
-  line-height: 20px;
+  line-height: 28px;
   width: 100%;
+  border-radius: 5px;
 }
 .attr-ul ul {
   width: 100%;
