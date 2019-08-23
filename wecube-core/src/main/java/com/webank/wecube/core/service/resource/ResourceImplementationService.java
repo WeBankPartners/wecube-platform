@@ -1,5 +1,6 @@
 package com.webank.wecube.core.service.resource;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,8 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 public class ResourceImplementationService {
@@ -18,6 +17,9 @@ public class ResourceImplementationService {
 
     @Autowired
     private S3ManagementService s3ManagementService;
+
+    @Autowired
+    private DockerManagementService dockerManagementService;
 
     public void createItems(Iterable<ResourceItem> items) {
         for (ResourceItem item : items) {
@@ -32,10 +34,30 @@ public class ResourceImplementationService {
             case MYSQL_DATABASE:
                 createMySQLDatabaseWithAccount(item);
                 break;
+            case DOCKER_CONTAINER:
+                createDockerContainer(item);
+                break;
+            case DOCKER_IMAGE:
+                createDockerImage(item);
+                break;
             default:
                 throw new WecubeCoreException(String.format("Doesn't support creation of resource type [%s].", item.getType()));
             }
         }
+    }
+
+    private void createDockerImage(ResourceItem item) {
+        Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
+        dockerManagementService.newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort())
+                .pullImage(additionalProperties.get("repository"), additionalProperties.get("tag"));
+    }
+
+    private void createDockerContainer(ResourceItem item) {
+        Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
+        dockerManagementService.newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort())
+                .createContainerWithBindings(item.getName(), additionalProperties.get("imageName"),
+                        Arrays.asList(additionalProperties.get("portBindings").split(",")),
+                        Arrays.asList(additionalProperties.get("volumeBindings").split(",")));
     }
 
     private void createMySQLDatabaseWithAccount(ResourceItem item) {
@@ -76,9 +98,25 @@ public class ResourceImplementationService {
                 break;
             case MYSQL_DATABASE:
                 break;
+            case DOCKER_CONTAINER:
+                updateDockerContainer(item);
+                break;
             default:
                 throw new WecubeCoreException(String.format("Doesn't support update of resource type [%s].", item.getType()));
             }
+        }
+    }
+
+    private void updateDockerContainer(ResourceItem item) {
+        switch (ResourceAvaliableStatus.fromCode(item.getStatus())) {
+        case RUNNING:
+            dockerManagementService.startContainer(item.getName());
+            break;
+        case STOPPED:
+            dockerManagementService.stopContainer(item.getName());
+            break;
+        default:
+            break;
         }
     }
 
@@ -94,10 +132,22 @@ public class ResourceImplementationService {
             case MYSQL_DATABASE:
                 deleteMysqlDatabaseWithAccount(item);
                 break;
+            case DOCKER_CONTAINER:
+                dockerManagementService.deleteContainer(item.getName());
+                break;
+            case DOCKER_IMAGE:
+                deleteDockerImage(item);
+                break;
             default:
                 throw new WecubeCoreException(String.format("Doesn't support deletion of resource type [%s].", item.getType()));
             }
         }
+    }
+
+    private void deleteDockerImage(ResourceItem item) {
+        Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
+        dockerManagementService.newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort())
+                .deleteImage(additionalProperties.get("repository"), additionalProperties.get("tag"));
     }
 
     private void deleteMysqlDatabaseWithAccount(ResourceItem item) {
