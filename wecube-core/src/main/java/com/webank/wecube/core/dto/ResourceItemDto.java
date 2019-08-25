@@ -1,5 +1,6 @@
 package com.webank.wecube.core.dto;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
@@ -136,6 +137,21 @@ public class ResourceItemDto {
     private static void validateItemStatus(String status) {
         if (ResourceAvaliableStatus.fromCode(status) == ResourceAvaliableStatus.NONE) {
             throw new WecubeCoreException(String.format("Unsupported resource item status [%s].", status));
+        }
+    }
+
+    public Map<String, String> getAdditionalPropertiesMap() {
+        if (additionalProperties != null) {
+            return convertToMap(additionalProperties);
+        }
+        return new HashMap<String, String>();
+    }
+
+    private Map<String, String> convertToMap(String additionalProperties) {
+        try {
+            return JsonUtils.toObject(additionalProperties, Map.class);
+        } catch (IOException e) {
+            throw new WecubeCoreException(String.format("Failed to parse resource_item.additional_properties [%s] : Invalid json format.", additionalProperties), e);
         }
     }
 }
