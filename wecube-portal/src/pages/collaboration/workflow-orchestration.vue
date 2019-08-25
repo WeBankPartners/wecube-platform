@@ -22,8 +22,6 @@
       <Col span="6" ofset="1">
         <span style="margin-right: 10px">选择CI类型</span>
         <Select
-          filterable
-          clearable
           @on-change="onCISelect"
           label-in-value
           v-model="selectedCI.value"
@@ -67,7 +65,7 @@
         label-position="left"
         :label-width="100"
       >
-        <FormItem label="节点类型" prop="nodeType">
+        <FormItem label="节点类型" prop="nodeType" style="display: none">
           <Select filterable clearable v-model="pluginForm.nodeType">
             <Option
               v-for="item in allNodeTypes"
@@ -294,7 +292,7 @@ export default {
 
     onCISelect(v) {
       this.selectedCI = v;
-      //TODO:
+      if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
       this.pluginForm = {};
     },
     resetZoom() {
@@ -404,6 +402,10 @@ export default {
       if (index > -1) {
         this.serviceTaskBindInfos.splice(index, 1);
       }
+
+      let found = this.allPlugins.find(
+        _ => _.serviceName === this.pluginForm.serviceId
+      );
       this.serviceTaskBindInfos.push({
         version: 0,
         ...this.pluginForm,
@@ -413,9 +415,7 @@ export default {
           this.pluginForm.rules.cmdbColumnCriteria.routine
         ),
         ciRoutineRaw: JSON.stringify(this.pluginForm.rules.cmdbColumnSource),
-        serviceName:
-          this.allPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
-            .serviceName || ""
+        serviceName: (found && found.serviceName) || ""
       });
       this.serviceTaskBindInfos.forEach(_ => {
         delete _.rules;

@@ -853,22 +853,24 @@ public class CmdbResourceService {
             return;
         }
 
+        boolean findBelongCi = false;
         for (Object ciData : ciDatas) {
             Map ciDataMap = (Map) ((Map) ciData).get("data");
             List<CiTypeAttrDto> childrenCiTypeRelativeAttributes = findChildrenCiTypeRelativeAttributes(ciTypeId, cmdbDataProperties.getReferenceNameOfBelong());
             if (childrenCiTypeRelativeAttributes.size() != 0) {
-                getBottomChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
-                continue;
+                findBelongCi = getBottomChildrenDataByRelativeAttributes(childrenCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
             }
 
-            List<CiTypeAttrDto> runningCiTypeRelativeAttributes = findRealizeCiAttributesByCiTypeId(ciTypeId);
-            if (runningCiTypeRelativeAttributes.size() != 0) {
-                getBottomChildrenDataByRunningAttributes(childrenCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
+            if (!findBelongCi) {
+                List<CiTypeAttrDto> realizeCiTypeRelativeAttributes = findRealizeCiAttributesByCiTypeId(ciTypeId);
+                if (realizeCiTypeRelativeAttributes.size() != 0) {
+                    getBottomChildrenDataByRealizeAttributes(realizeCiTypeRelativeAttributes, limitedCiTypeIds, ciDataMap.get("guid").toString(), bottomChildrenData, bottomCiTypeId, subsystemFilters);
+                }
             }
         }
     }
 
-    private void getBottomChildrenDataByRelativeAttributes(List<CiTypeAttrDto> childrenCiTypeRelativeAttributes, List<Integer> limitedCiTypeIds, String guid, List<ResourceTreeDto> bottomChildrenData, Integer bottomCiTypeId, Map<String, Object> subsystemFilters) {
+    private boolean getBottomChildrenDataByRelativeAttributes(List<CiTypeAttrDto> childrenCiTypeRelativeAttributes, List<Integer> limitedCiTypeIds, String guid, List<ResourceTreeDto> bottomChildrenData, Integer bottomCiTypeId, Map<String, Object> subsystemFilters) {
         for (CiTypeAttrDto childrenCiTypeRelativeAttribute : childrenCiTypeRelativeAttributes) {
             Map<String, Object> filter = new HashMap<>();
             if (!limitedCiTypeIds.contains(childrenCiTypeRelativeAttribute.getCiTypeId())) {
@@ -880,17 +882,19 @@ public class CmdbResourceService {
             filter.put(childrenCiTypeRelativeAttribute.getPropertyName(), guid);
 
             getBottomChildrenDataByBottomCiTypeId(childrenCiTypeRelativeAttribute.getCiTypeId(), bottomCiTypeId, bottomChildrenData, limitedCiTypeIds, filter, subsystemFilters);
+            return true;
         }
+        return false;
     }
 
-    private void getBottomChildrenDataByRunningAttributes(List<CiTypeAttrDto> runningCiTypeRelativeAttributes, List<Integer> limitedCiTypeIds, String guid, List<ResourceTreeDto> bottomChildrenData, Integer bottomCiTypeId, Map<String, Object> subsystemFilters) {
-        for (CiTypeAttrDto runningCiTypeRelativeAttribute : runningCiTypeRelativeAttributes) {
+    private void getBottomChildrenDataByRealizeAttributes(List<CiTypeAttrDto> realizeCiTypeRelativeAttributes, List<Integer> limitedCiTypeIds, String guid, List<ResourceTreeDto> bottomChildrenData, Integer bottomCiTypeId, Map<String, Object> subsystemFilters) {
+        for (CiTypeAttrDto realizeCiTypeRelativeAttribute : realizeCiTypeRelativeAttributes) {
             Map<String, Object> filter = new HashMap<>();
-            if (!limitedCiTypeIds.contains(runningCiTypeRelativeAttribute.getCiTypeId())) {
+            if (!limitedCiTypeIds.contains(realizeCiTypeRelativeAttribute.getCiTypeId())) {
                 continue;
             }
-            filter.put(runningCiTypeRelativeAttribute.getPropertyName(), guid);
-            getBottomChildrenDataByBottomCiTypeId(runningCiTypeRelativeAttribute.getCiTypeId(), bottomCiTypeId, bottomChildrenData, limitedCiTypeIds, filter, subsystemFilters);
+            filter.put(realizeCiTypeRelativeAttribute.getPropertyName(), guid);
+            getBottomChildrenDataByBottomCiTypeId(realizeCiTypeRelativeAttribute.getCiTypeId(), bottomCiTypeId, bottomChildrenData, limitedCiTypeIds, filter, subsystemFilters);
         }
     }
 
