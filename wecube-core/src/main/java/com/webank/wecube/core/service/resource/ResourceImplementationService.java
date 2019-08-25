@@ -1,30 +1,40 @@
 package com.webank.wecube.core.service.resource;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
-import com.webank.wecube.core.service.CmdbResourceService;
-import com.webank.wecube.core.utils.EncryptionUtils;
 
 @Service
 public class ResourceImplementationService {
 
     @Autowired
-    private MysqlManagementService mysqlManagementService;
+    private MysqlDatabaseManagementService mysqlDatabaseManagementService;
 
     @Autowired
-    private S3ManagementService s3ManagementService;
+    private S3BucketManagementService s3BucketManagementService;
 
     @Autowired
-    private DockerManagementService dockerManagementService;
+    private DockerContainerManagementService dockerContainerManagementService;
 
     @Autowired
-    private CmdbResourceService cmdbResourceService;
+    private DockerImageManagementService dockerImageManagementService;
+
+    private Map<ResourceItemType, ResourceItemService> itemServices = new HashMap<>();
+
+    @PostConstruct
+    public void registerService() {
+        itemServices.put(ResourceItemType.S3_BUCKET, s3BucketManagementService);
+        itemServices.put(ResourceItemType.MYSQL_DATABASE, mysqlDatabaseManagementService);
+        itemServices.put(ResourceItemType.DOCKER_CONTAINER, dockerContainerManagementService);
+        itemServices.put(ResourceItemType.DOCKER_IMAGE, dockerImageManagementService);
+    }
 
     public void createItems(Iterable<ResourceItem> items) {
         for (ResourceItem item : items) {
@@ -32,70 +42,11 @@ public class ResourceImplementationService {
                 throw new WecubeCoreException(String.format("Failed to create resource item [%s] as resource server is missing.", item));
             }
 
-            switch (ResourceItemType.fromCode(item.getType())) {
-            case S3_BUCKET:
-                createS3Bucket(item);
-                break;
-            case MYSQL_DATABASE:
-                createMySQLDatabaseWithAccount(item);
-                break;
-            case DOCKER_CONTAINER:
-                createDockerContainer(item);
-                break;
-            case DOCKER_IMAGE:
-                createDockerImage(item);
-                break;
-            default:
-                throw new WecubeCoreException(String.format("Doesn't support creation of resource type [%s].", item.getType()));
+            ResourceItemService service = itemServices.get(ResourceItemType.fromCode(item.getType()));
+            if (service == null) {
+                throw new WecubeCoreException(String.format("No service for the creating of resource type [%s].", item.getType()));
             }
-        }
-    }
-
-    private void createDockerImage(ResourceItem item) {
-        Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
-        dockerManagementService.newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort())
-                .pullImage(additionalProperties.get("repository"), additionalProperties.get("tag"));
-    }
-
-    private void createDockerContainer(ResourceItem item) {
-        Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
-        dockerManagementService.newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort())
-                .createContainerWithBindings(item.getName(), additionalProperties.get("imageName"),
-                        Arrays.asList(additionalProperties.get("portBindings").split(",")),
-                        Arrays.asList(additionalProperties.get("volumeBindings").split(",")));
-    }
-
-    private void createMySQLDatabaseWithAccount(ResourceItem item) {
-        try {
-            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
-            mysqlManagementService.newMysqlClient(
-                    item.getResourceServer().getHost(),
-                    item.getResourceServer().getPort(),
-                    item.getResourceServer().getLoginUsername(),
-                    password);
-            mysqlManagementService.connect();
-            mysqlManagementService.createSchema(item.getName());
-            Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
-            if (additionalProperties.get("username") != null && additionalProperties.get("password") != null) {
-                mysqlManagementService.createAccount(additionalProperties.get("username"), additionalProperties.get("password"), item.getName());
-            }
-            mysqlManagementService.disconnect();
-        } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to create mysql database [%s] from server [%s].", item.getName(), item.getResourceServer()), e);
-        }
-    }
-
-    public void createS3Bucket(ResourceItem item) {
-        try {
-            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
-            s3ManagementService.newS3Client(
-                    item.getResourceServer().getHost(),
-                    item.getResourceServer().getPort(),
-                    item.getResourceServer().getLoginUsername(),
-                    password)
-                    .createBucket(item.getName());
-        } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to create s3 bucket [%s] from server [%s].", item.getName(), item.getResourceServer()), e);
+            service.createItem(item);
         }
     }
 
@@ -104,97 +55,26 @@ public class ResourceImplementationService {
             if (item.getResourceServer() == null) {
                 throw new WecubeCoreException(String.format("Failed to update resource item [%s] as resource server is missing.", item));
             }
-            switch (ResourceItemType.fromCode(item.getType())) {
-            case S3_BUCKET:
-                break;
-            case MYSQL_DATABASE:
-                break;
-            case DOCKER_CONTAINER:
-                updateDockerContainer(item);
-                break;
-            default:
-                throw new WecubeCoreException(String.format("Doesn't support update of resource type [%s].", item.getType()));
-            }
-        }
-    }
 
-    private void updateDockerContainer(ResourceItem item) {
-        switch (ResourceAvaliableStatus.fromCode(item.getStatus())) {
-        case RUNNING:
-            dockerManagementService.startContainer(item.getName());
-            break;
-        case STOPPED:
-            dockerManagementService.stopContainer(item.getName());
-            break;
-        default:
-            break;
+            ResourceItemService service = itemServices.get(ResourceItemType.fromCode(item.getType()));
+            if (service == null) {
+                throw new WecubeCoreException(String.format("No service for the updating of resource type [%s].", item.getType()));
+            }
+            service.updateItem(item);
         }
     }
 
     public void deleteItems(Iterable<ResourceItem> items) {
         for (ResourceItem item : items) {
             if (item.getResourceServer() == null) {
-                throw new WecubeCoreException(String.format("Failed to delete resource item [%s] as resource server is missing.", item));
+                throw new WecubeCoreException(String.format("Failed to update resource item [%s] as resource server is missing.", item));
             }
-            switch (ResourceItemType.fromCode(item.getType())) {
-            case S3_BUCKET:
-                deleteS3Bucket(item);
-                break;
-            case MYSQL_DATABASE:
-                deleteMysqlDatabaseWithAccount(item);
-                break;
-            case DOCKER_CONTAINER:
-                dockerManagementService.deleteContainer(item.getName());
-                break;
-            case DOCKER_IMAGE:
-                deleteDockerImage(item);
-                break;
-            default:
-                throw new WecubeCoreException(String.format("Doesn't support deletion of resource type [%s].", item.getType()));
-            }
-        }
-    }
 
-    private void deleteDockerImage(ResourceItem item) {
-        Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
-        dockerManagementService.newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort())
-                .deleteImage(additionalProperties.get("repository"), additionalProperties.get("tag"));
-    }
-
-    private void deleteMysqlDatabaseWithAccount(ResourceItem item) {
-        try {
-            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
-            mysqlManagementService.newMysqlClient(
-                    item.getResourceServer().getHost(),
-                    item.getResourceServer().getPort(),
-                    item.getResourceServer().getLoginUsername(),
-                    password);
-            mysqlManagementService.connect();
-            if (mysqlManagementService.hasTables(item.getName())) {
-                throw new WecubeCoreException(String.format("Can not delete database [%s] : Database is not empty.", item.getName()));
+            ResourceItemService service = itemServices.get(ResourceItemType.fromCode(item.getType()));
+            if (service == null) {
+                throw new WecubeCoreException(String.format("No service for the deleting of resource type [%s].", item.getType()));
             }
-            Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
-            if (additionalProperties.get("username") != null) {
-                mysqlManagementService.deleteAccount(additionalProperties.get("username"));
-            }
-            mysqlManagementService.deleteSchema(item.getName());
-            mysqlManagementService.disconnect();
-        } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to delete mysql database [%s] from server [%s].", item.getName(), item.getResourceServer()), e);
-        }
-    }
-
-    private void deleteS3Bucket(ResourceItem item) {
-        try {
-            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
-            s3ManagementService.newS3Client(
-                    item.getResourceServer().getHost(),
-                    item.getResourceServer().getPort(),
-                    item.getResourceServer().getLoginUsername(),
-                    password)
-                    .deleteBucket(item.getName());
-        } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to delete s3 bucket [%s] from server [%s].", item.getName(), item.getResourceServer()), e);
+            service.deleteItem(item);
         }
     }
 }
