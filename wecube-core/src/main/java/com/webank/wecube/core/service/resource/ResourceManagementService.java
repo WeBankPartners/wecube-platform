@@ -147,30 +147,30 @@ public class ResourceManagementService {
                     existedServer = existedServerOpt.get();
                 }
             }
+            handlePasswordEncryption(dto);
             ResourceServer domain = ResourceServerDto.toDomain(dto, existedServer);
-            handlePasswordEncryption(domain);
             domains.add(domain);
         });
         return domains;
     }
 
-    private void handlePasswordEncryption(ResourceServer domain) {
-        if (domain.getLoginPassword() != null) {
+    private void handlePasswordEncryption(ResourceServerDto dto) {
+        if (dto.getLoginPassword() != null) {
             try {
-                domain.setLoginPassword(EncryptionUtils.encryptWithAes(domain.getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), domain.getName()));
+                dto.setLoginPassword(EncryptionUtils.encryptWithAes(dto.getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), dto.getName()));
             } catch (Exception e) {
                 throw new WecubeCoreException(String.format("Failed to encrypt password, meet error [%s]", e.getMessage()), e);
             }
         }
     }
 
-    private void handlePasswordEncryption(ResourceItem domain) {
-        Map<String, String> additionalProperties = domain.getAdditionalPropertiesMap();
+    private void handlePasswordEncryption(ResourceItemDto dto) {
+        Map<String, String> additionalProperties = dto.getAdditionalPropertiesMap();
         if (additionalProperties.get("password") != null) {
             try {
-                String encryptedPassword = EncryptionUtils.encryptWithAes(additionalProperties.get("password"), cmdbResourceService.getSeedFromSystemEnum(), domain.getName());
+                String encryptedPassword = EncryptionUtils.encryptWithAes(additionalProperties.get("password"), cmdbResourceService.getSeedFromSystemEnum(), dto.getName());
                 additionalProperties.put("password", encryptedPassword);
-                domain.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
+                dto.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
             } catch (Exception e) {
                 throw new WecubeCoreException(String.format("Failed to encrypt password, meet error [%s]", e.getMessage()), e);
             }
@@ -193,8 +193,8 @@ public class ResourceManagementService {
                     existedItem = existedItemOpt.get();
                 }
             }
+            handlePasswordEncryption(dto);
             ResourceItem domain = ResourceItemDto.toDomain(dto, existedItem);
-            handlePasswordEncryption(domain);
             domains.add(domain);
         });
         return domains;
