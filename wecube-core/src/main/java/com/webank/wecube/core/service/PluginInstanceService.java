@@ -1,30 +1,5 @@
 package com.webank.wecube.core.service;
 
-import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.ONLINE;
-import static com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery.defaultQueryObject;
-import static com.webank.wecube.core.utils.CollectionUtils.pickRandomOne;
-import static com.webank.wecube.core.utils.SystemUtils.getTempFolderPath;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.trim;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -32,33 +7,16 @@ import com.webank.wecube.core.commons.ApplicationProperties;
 import com.webank.wecube.core.commons.ApplicationProperties.CmdbDataProperties;
 import com.webank.wecube.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
-import com.webank.wecube.core.domain.plugin.PluginConfig;
-import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
-import com.webank.wecube.core.domain.plugin.PluginInstance;
-import com.webank.wecube.core.domain.plugin.PluginPackage;
-import com.webank.wecube.core.domain.plugin.PluginTriggerCommand;
+import com.webank.wecube.core.domain.plugin.*;
 import com.webank.wecube.core.domain.workflow.ProcessDefinitionTaskServiceEntity;
 import com.webank.wecube.core.domain.workflow.ProcessTaskEntity;
 import com.webank.wecube.core.domain.workflow.TaskNodeExecLogEntity;
 import com.webank.wecube.core.domain.workflow.TaskNodeExecVariableEntity;
 import com.webank.wecube.core.interceptor.UsernameStorage;
-import com.webank.wecube.core.jpa.PluginConfigRepository;
-import com.webank.wecube.core.jpa.PluginInstanceRepository;
-import com.webank.wecube.core.jpa.PluginPackageRepository;
-import com.webank.wecube.core.jpa.ProcessDefinitionEntityRepository;
-import com.webank.wecube.core.jpa.ProcessDefinitionTaskServiceEntityRepository;
-import com.webank.wecube.core.jpa.ProcessTaskEntityRepository;
-import com.webank.wecube.core.jpa.TaskNodeExecLogEntityRepository;
-import com.webank.wecube.core.jpa.TaskNodeExecVariableEntityRepository;
+import com.webank.wecube.core.jpa.*;
 import com.webank.wecube.core.service.workflow.PluginWorkService;
 import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
-import com.webank.wecube.core.support.cmdb.dto.v2.CatCodeDto;
-import com.webank.wecube.core.support.cmdb.dto.v2.CatTypeDto;
-import com.webank.wecube.core.support.cmdb.dto.v2.CategoryDto;
-import com.webank.wecube.core.support.cmdb.dto.v2.OperateCiDto;
-import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery;
-import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQueryResult;
+import com.webank.wecube.core.support.cmdb.dto.v2.*;
 import com.webank.wecube.core.support.plugin.PluginInterfaceInvoker;
 import com.webank.wecube.core.support.plugin.PluginInterfaceInvoker.InvocationResult;
 import com.webank.wecube.core.support.plugin.PluginServiceStub;
@@ -66,8 +24,24 @@ import com.webank.wecube.core.support.plugin.dto.PluginRequest.PluginLoggingInfo
 import com.webank.wecube.core.support.plugin.dto.PluginRequest.PluginLoggingInfoSearchDetailRequest;
 import com.webank.wecube.core.support.plugin.dto.PortalRequestBody.SearchPluginLogRequest;
 import com.webank.wecube.core.support.s3.S3Client;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.ONLINE;
+import static com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery.defaultQueryObject;
+import static com.webank.wecube.core.utils.CollectionUtils.pickRandomOne;
+import static com.webank.wecube.core.utils.SystemUtils.getTempFolderPath;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.trim;
 
 @Service
 @Slf4j
@@ -75,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PluginInstanceService {
 
     private static final String CONSTANT_RUN_COMMAND = "Run command: ";
+    private static final String CONSTANT_CAT_CAT_TYPE = "cat.catType";
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -400,6 +375,14 @@ public class PluginInstanceService {
                 inf.getPath(), inf, cmd, pluginParameters, pluginServiceStub, this::handlePluginResponse)).start();
     }
 
+    private String getPluginSeedCodeById(Integer id) {
+        CatCodeDto catCode = cmdbServiceV2Stub.getEnumCodeById(id);
+        if (catCode == null) {
+            return null;
+        }
+        return catCode.getCode();
+    }
+
     private int getCiTypeIdAndSetOperator(String processInstanceBizKey) {
         List<ProcessTaskEntity> taskInstanceEntities = processTaskEntityRepository
                 .findTaskByProcessInstanceKey(processInstanceBizKey);
@@ -665,9 +648,22 @@ public class PluginInstanceService {
         return reqItems;
     }
 
+    private Set<PluginConfigInterfaceParameter> filterPluginConfigInterfaceParameter(Set<PluginConfigInterfaceParameter> srcInputParameters, String mappingType){
+        Set<PluginConfigInterfaceParameter> inputParameters = new HashSet<>();
+        srcInputParameters.forEach(p -> {
+            if(mappingType.equals(p.getMappingType())){
+                inputParameters.add(p);
+            }
+        });
+        return inputParameters;
+    }
+
     private List<Map<String, Object>> queryCmdb(PluginConfigInterface pluginConfigInterface, String bizKey) {
-        Set<PluginConfigInterfaceParameter> inputParameters = pluginConfigInterface.getInputParameters();
-        List<String> resultColumns = inputParameters.stream().map(PluginConfigInterfaceParameter::getCmdbColumnName)
+        Set<PluginConfigInterfaceParameter> fullInputParameters = pluginConfigInterface.getInputParameters();
+        Set<PluginConfigInterfaceParameter> intQryInputParameters = filterPluginConfigInterfaceParameter(fullInputParameters, "CMDB_CI_TYPE");
+        Set<PluginConfigInterfaceParameter> enumKindInputParameters = filterPluginConfigInterfaceParameter(fullInputParameters, "CMDB_ENUM_CODE");
+
+        List<String> resultColumns = intQryInputParameters.stream().map(PluginConfigInterfaceParameter::getCmdbColumnName)
                 .collect(Collectors.toList());
 
         Map<String, Object> equalsFilters = new LinkedHashMap<>();
@@ -684,13 +680,25 @@ public class PluginInstanceService {
 
         List<Map<String, Object>> ciDataList = cmdbServiceV2Stub.executeIntegratedQueryTemplate(
                 pluginConfigInterface.getCmdbQueryTemplateId(), equalsFilters, inFilters, resultColumns);
-        log.info("Ci data list is " + ciDataList);
-
         List<Map<String, Object>> convertedCiDataList = ciDataList.stream()
-                .map(m -> convertCmdbColumnNamesToPluginParameterNames(inputParameters, m))
+                .map(m -> convertCmdbColumnNamesToPluginParameterNames(intQryInputParameters, m))
                 .collect(Collectors.toList());
         log.info("Converted Ci data list is " + convertedCiDataList);
 
+        convertedCiDataList.forEach(m ->
+            enumKindInputParameters.forEach(p -> {
+                Integer enumCodeId = p.getCmdbEnumCode();
+                if(enumCodeId != null){
+                    String enumCodeValue = getPluginSeedCodeById(enumCodeId);
+                    if(StringUtils.isNotBlank(enumCodeValue)){
+                        m.put(p.getName(), enumCodeValue);
+                    }
+                }
+
+            })
+        );
+
+        log.info("Ci data list is " + convertedCiDataList);
         return convertedCiDataList;
     }
 
