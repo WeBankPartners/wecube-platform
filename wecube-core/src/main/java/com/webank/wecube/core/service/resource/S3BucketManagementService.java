@@ -10,9 +10,9 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.webank.wecube.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
-import com.webank.wecube.core.service.CmdbResourceService;
 import com.webank.wecube.core.utils.EncryptionUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class S3BucketManagementService implements ResourceItemService {
 
     @Autowired
-    private CmdbResourceService cmdbResourceService;
+    private ResourceProperties resourceProperties;
 
     public AmazonS3 newS3Client(String host, String port, String username, String password) {
         String endPoint = String.format("http://%s:%s", host, port);
@@ -37,7 +37,7 @@ public class S3BucketManagementService implements ResourceItemService {
 
     @Override
     public ResourceItem createItem(ResourceItem item) {
-        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         AmazonS3 amazonS3 = newS3Client(
                 item.getResourceServer().getHost(),
                 item.getResourceServer().getPort(),
@@ -55,7 +55,7 @@ public class S3BucketManagementService implements ResourceItemService {
 
     @Override
     public void deleteItem(ResourceItem item) {
-        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         AmazonS3 amazonS3 = newS3Client(
                 item.getResourceServer().getHost(),
                 item.getResourceServer().getPort(),
