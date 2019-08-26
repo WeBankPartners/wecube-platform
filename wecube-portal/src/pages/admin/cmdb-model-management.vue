@@ -1262,10 +1262,8 @@ export default {
     },
     renderGraph(data) {
       let nodesString = this.genDOT(data);
-      console.log(1, nodesString);
-      console.log(nodesString.replace(/]/g, "]\n"));
+      console.log("nodesString", nodesString.replace(/]/g, "]\n"));
       this.loadImage(nodesString);
-
       this.graph.graphviz.renderDot(nodesString);
       addEvent("svg", "click", e => {
         e.preventDefault();
