@@ -1012,6 +1012,14 @@ public class CmdbResourceService {
         return getDataTreesByCiTypeIdAndGuid(cmdbDataProperties.getCiTypeIdOfIdc(), guids);
     }
 
+    public String getSeedFromSystemEnum() {
+        List<CatCodeDto> codes = cmdbServiceV2Stub.getEnumCodeByCodeAndCategoryName(cmdbDataProperties.getEnumCodeOfSeed(), cmdbDataProperties.getEnumCategorySecurity());
+        if (codes == null || codes.isEmpty()) {
+            throw new WecubeCoreException(String.format("No seed found in system enum, please config it with [code = %s, catName = %s].", cmdbDataProperties.getEnumCodeOfSeed(), cmdbDataProperties.getEnumCategorySecurity()));
+        }
+        return codes.get(0).getValue();
+    }
+
     private List<ResourceTreeDto> getDataTreesByCiTypeIdAndGuid(int ciTypeId, List<String> guids) {
         List<Integer> sameLayerCiTypes = getSameCiTypesByCiTypeId(ciTypeId);
         List<ResourceTreeDto> resourceTrees = new ArrayList<>();
@@ -1046,6 +1054,7 @@ public class CmdbResourceService {
     void setCmdbServiceV2Stub(CmdbServiceV2Stub cmdbServiceV2Stub) {
         this.cmdbServiceV2Stub = cmdbServiceV2Stub;
     }
+
 }
 
 
