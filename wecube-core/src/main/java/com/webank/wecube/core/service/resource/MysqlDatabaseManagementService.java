@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
-import com.webank.wecube.core.service.CmdbResourceService;
 import com.webank.wecube.core.utils.EncryptionUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MysqlDatabaseManagementService implements ResourceItemService {
 
     @Autowired
-    private CmdbResourceService cmdbResourceService;
+    private ResourceProperties resourceProperties;
 
     @Autowired
     private MysqlAccountManagementService mysqlAccountManagementService;
@@ -50,7 +50,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     }
 
     private DriverManagerDataSource newDatasource(ResourceItem item) {
-        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         DriverManagerDataSource dataSource = newMysqlDatasource(
                 item.getResourceServer().getHost(),
                 item.getResourceServer().getPort(),

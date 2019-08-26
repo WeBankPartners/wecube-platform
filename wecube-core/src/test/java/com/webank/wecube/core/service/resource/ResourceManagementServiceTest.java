@@ -39,11 +39,6 @@ public class ResourceManagementServiceTest extends DatabaseBasedTest {
     @Autowired
     RestTemplate restTemplate;
 
-    @Before
-    public void initMock() throws URISyntaxException {
-        initMockCmdb();
-    }
-
     @Test
     public void whenCreateS3ServerWithValidValuesShouldSuccess() {
         List<ResourceServerDto> resourceServers = new ArrayList<>();
@@ -123,16 +118,5 @@ public class ResourceManagementServiceTest extends DatabaseBasedTest {
         dto.setPurpose("wecube testing s3 server");
         dto.setType(ResourceServerType.S3.getCode());
         return dto;
-    }
-
-    private void initMockCmdb() throws URISyntaxException {
-        MockRestServiceServer mockCmdbRunningServer = MockRestServiceServer.bindTo(restTemplate).build();
-        mockCmdbRunningServer.expect(manyTimes(), requestTo(new URI("http://cmdb-server-ip:37000/cmdb/api/v2/enum/cats/retrieve")))
-                .andExpect(method(HttpMethod.POST))
-                .andRespond(withSuccess("{\"statusCode\": \"OK\",\"data\": {\"contents\":[{\"catId\":\"81\",\"catName\":\"security\"}]}}", MediaType.APPLICATION_JSON));
-
-        mockCmdbRunningServer.expect(manyTimes(), requestTo(new URI("http://cmdb-server-ip:37000/cmdb/api/v2/enum/codes/retrieve")))
-                .andExpect(method(HttpMethod.POST))
-                .andRespond(withSuccess("{\"statusCode\": \"OK\",\"data\": {\"contents\":[{\"code\":\"seed\",\"value\":\"seed123456\"}]}}", MediaType.APPLICATION_JSON));
     }
 }

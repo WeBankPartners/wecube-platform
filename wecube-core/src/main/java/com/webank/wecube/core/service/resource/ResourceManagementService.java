@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
+import com.webank.wecube.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
 import com.webank.wecube.core.domain.ResourceServer;
@@ -22,7 +23,6 @@ import com.webank.wecube.core.dto.ResourceServerDto;
 import com.webank.wecube.core.jpa.EntityRepository;
 import com.webank.wecube.core.jpa.ResourceItemRepository;
 import com.webank.wecube.core.jpa.ResourceServerRepository;
-import com.webank.wecube.core.service.CmdbResourceService;
 import com.webank.wecube.core.utils.EncryptionUtils;
 import com.webank.wecube.core.utils.JsonUtils;
 
@@ -39,10 +39,10 @@ public class ResourceManagementService {
     private ResourceItemRepository resourceItemRepository;
 
     @Autowired
-    private ResourceImplementationService resourceImplementationService;
+    private ResourceProperties resourceProperties;
 
     @Autowired
-    private CmdbResourceService cmdbResourceService;
+    private ResourceImplementationService resourceImplementationService;
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequest queryRequest) {
         QueryResponse<ResourceServer> queryResponse = entityRepository.query(ResourceServer.class, queryRequest);
@@ -186,13 +186,13 @@ public class ResourceManagementService {
 
     private void handleServerPasswordEncryption(ResourceServerDto dto) {
         if (dto.getLoginPassword() != null) {
-            dto.setLoginPassword(EncryptionUtils.encryptWithAes(dto.getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), dto.getName()));
+            dto.setLoginPassword(EncryptionUtils.encryptWithAes(dto.getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), dto.getName()));
         }
     }
 
     private String generateMysqlDatabaseDefaultAccount(ResourceItemDto dto) {
         String defaultAdditionalProperties;
-        String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(), cmdbResourceService.getSeedFromSystemEnum(), dto.getName());
+        String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(), resourceProperties.getPasswordEncryptionSeed(), dto.getName());
         Map<Object, Object> map = new HashMap<>();
         map.put("username", dto.getName());
         map.put("password", encryptedPassword);
@@ -210,7 +210,7 @@ public class ResourceManagementService {
             dto.setAdditionalProperties(defaultAdditionalProperties);
         } else {
             if (additionalProperties.get("password") != null) {
-                String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(), cmdbResourceService.getSeedFromSystemEnum(), dto.getName());
+                String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(), resourceProperties.getPasswordEncryptionSeed(), dto.getName());
                 additionalProperties.put("password", encryptedPassword);
                 dto.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
             }
