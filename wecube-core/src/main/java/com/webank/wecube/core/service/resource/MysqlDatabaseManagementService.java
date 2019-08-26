@@ -50,13 +50,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     }
 
     private DriverManagerDataSource newDatasource(ResourceItem item) {
-        String password;
-        try {
-            password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
-        } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to decrypt the login password of server [%s].", item.getResourceServer()), e);
-        }
-
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
         DriverManagerDataSource dataSource = newMysqlDatasource(
                 item.getResourceServer().getHost(),
                 item.getResourceServer().getPort(),

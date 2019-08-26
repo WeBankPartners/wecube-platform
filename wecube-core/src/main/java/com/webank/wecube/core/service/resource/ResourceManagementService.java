@@ -1,6 +1,7 @@
 package com.webank.wecube.core.service.resource;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,14 +64,23 @@ public class ResourceManagementService {
 
     @Transactional
     public void deleteServers(List<ResourceServerDto> resourceServers) {
+        validateIfServersAreExists(resourceServers);
         List<ResourceServer> domains = convertServerDtoToDomain(resourceServers);
         validateIfServerAllocated(domains);
         resourceServerRepository.deleteAll(convertServerDtoToDomain(resourceServers));
     }
 
+    private void validateIfServersAreExists(List<ResourceServerDto> resourceServers) {
+        resourceServers.forEach(server -> {
+            if (server.getId() == null || !resourceServerRepository.existsById(server.getId())) {
+                throw new WecubeCoreException(String.format("Can not find server with id [%s].", server.getId()));
+            }
+        });
+    }
+
     private void validateIfServerAllocated(List<ResourceServer> resourceServers) {
         resourceServers.forEach(server -> {
-            if (server.getIsAllocated() == 1) {
+            if (server.getIsAllocated() != null && server.getIsAllocated() == 1) {
                 throw new WecubeCoreException(String.format("Can not delete resource server [%s] as it has been allocated for [%s].", server.getName(), server.getPurpose()));
             }
         });
@@ -118,6 +128,7 @@ public class ResourceManagementService {
 
     @Transactional
     public List<ResourceItemDto> updateItems(List<ResourceItemDto> resourceItems) {
+        validateIfItemsAreExists(resourceItems);
         List<ResourceItem> convertedDomains = convertItemDtoToDomain(resourceItems);
         resourceItemRepository.saveAll(convertedDomains);
         Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertedDomains);
@@ -127,9 +138,27 @@ public class ResourceManagementService {
 
     @Transactional
     public void deleteItems(List<ResourceItemDto> resourceItems) {
+        validateIfItemsAreExists(resourceItems);
         Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
+        validateIfItemAllocated(enrichedItems);
         resourceImplementationService.deleteItems(enrichedItems);
         resourceItemRepository.deleteAll(enrichedItems);
+    }
+
+    private void validateIfItemsAreExists(List<ResourceItemDto> resourceItems) {
+        resourceItems.forEach(item -> {
+            if (item.getId() == null && !resourceItemRepository.existsById(item.getId())) {
+                throw new WecubeCoreException(String.format("Can not find item with id [%s].", item.getId()));
+            }
+        });
+    }
+
+    private void validateIfItemAllocated(Iterable<ResourceItem> items) {
+        items.forEach(item -> {
+            if (item.getIsAllocated() != null && item.getIsAllocated() == 1) {
+                throw new WecubeCoreException(String.format("Can not delete resource item [%s] as it has been allocated for [%s].", item.getName(), item.getPurpose()));
+            }
+        });
     }
 
     private List<ResourceServerDto> convertServerDomainToDto(Iterable<ResourceServer> savedDomains) {
@@ -148,32 +177,42 @@ public class ResourceManagementService {
                     existedServer = existedServerOpt.get();
                 }
             }
-            handlePasswordEncryption(dto);
+            handleServerPasswordEncryption(dto);
             ResourceServer domain = ResourceServerDto.toDomain(dto, existedServer);
             domains.add(domain);
         });
         return domains;
     }
 
-    private void handlePasswordEncryption(ResourceServerDto dto) {
+    private void handleServerPasswordEncryption(ResourceServerDto dto) {
         if (dto.getLoginPassword() != null) {
-            try {
-                dto.setLoginPassword(EncryptionUtils.encryptWithAes(dto.getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), dto.getName()));
-            } catch (Exception e) {
-                throw new WecubeCoreException(String.format("Failed to encrypt password, meet error [%s]", e.getMessage()), e);
-            }
+            dto.setLoginPassword(EncryptionUtils.encryptWithAes(dto.getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), dto.getName()));
         }
     }
 
-    private void handlePasswordEncryption(ResourceItemDto dto) {
+    private String generateMysqlDatabaseDefaultAccount(ResourceItemDto dto) {
+        String defaultAdditionalProperties;
+        String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(), cmdbResourceService.getSeedFromSystemEnum(), dto.getName());
+        Map<Object, Object> map = new HashMap<>();
+        map.put("username", dto.getName());
+        map.put("password", encryptedPassword);
+        defaultAdditionalProperties = JsonUtils.toJsonString(map);
+        return defaultAdditionalProperties;
+    }
+
+    private void handleItemPasswordEncryption(ResourceItemDto dto) {
         Map<String, String> additionalProperties = dto.getAdditionalPropertiesMap();
-        if (additionalProperties.get("password") != null) {
-            try {
-                String encryptedPassword = EncryptionUtils.encryptWithAes(additionalProperties.get("password"), cmdbResourceService.getSeedFromSystemEnum(), dto.getName());
+        if (additionalProperties == null || additionalProperties.isEmpty()) {
+            String defaultAdditionalProperties = null;
+            if (ResourceItemType.fromCode(dto.getType()) == ResourceItemType.MYSQL_DATABASE) {
+                defaultAdditionalProperties = generateMysqlDatabaseDefaultAccount(dto);
+            }
+            dto.setAdditionalProperties(defaultAdditionalProperties);
+        } else {
+            if (additionalProperties.get("password") != null) {
+                String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(), cmdbResourceService.getSeedFromSystemEnum(), dto.getName());
                 additionalProperties.put("password", encryptedPassword);
                 dto.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
-            } catch (Exception e) {
-                throw new WecubeCoreException(String.format("Failed to encrypt password, meet error [%s]", e.getMessage()), e);
             }
         }
     }
@@ -194,7 +233,7 @@ public class ResourceManagementService {
                     existedItem = existedItemOpt.get();
                 }
             }
-            handlePasswordEncryption(dto);
+            handleItemPasswordEncryption(dto);
             ResourceItem domain = ResourceItemDto.toDomain(dto, existedItem);
             domains.add(domain);
         });

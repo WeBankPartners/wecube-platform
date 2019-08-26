@@ -95,14 +95,6 @@ public class ResourceItemDto {
     }
 
     private static void updateSystemFieldsWithDefaultValues(ResourceItem resourceItem) {
-        if (resourceItem.getAdditionalProperties() == null) {
-            String defaultAdditionalProperties = null;
-            if (ResourceItemType.fromCode(resourceItem.getType()) == ResourceItemType.MYSQL_DATABASE) {
-                defaultAdditionalProperties = generateMysqlDatabaseDefaultAccount(resourceItem);
-            }
-            resourceItem.setAdditionalProperties(defaultAdditionalProperties);
-        }
-
         if (resourceItem.getStatus() == null) {
             resourceItem.setStatus(ResourceAvaliableStatus.CREATED.getCode());
         }
@@ -117,15 +109,6 @@ public class ResourceItemDto {
 
         resourceItem.setUpdatedBy(UsernameStorage.getIntance().get());
         resourceItem.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
-    }
-
-    private static String generateMysqlDatabaseDefaultAccount(ResourceItem resourceItem) {
-        String defaultAdditionalProperties;
-        Map<Object, Object> map = new HashMap<>();
-        map.put("username", resourceItem.getName());
-        map.put("password", resourceItem.getName());
-        defaultAdditionalProperties = JsonUtils.toJsonString(map);
-        return defaultAdditionalProperties;
     }
 
     private static void validateItemType(String itemType) {
