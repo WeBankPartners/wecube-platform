@@ -1213,9 +1213,9 @@ export default {
         '"->' +
         '"' +
         target.name.trim() +
-        '"[label="' +
+        '"[taillabel="' +
         labels +
-        '"];'
+        '", labeldistance=3];'
       );
     },
     shadeAll() {
@@ -1262,6 +1262,7 @@ export default {
     },
     renderGraph(data) {
       let nodesString = this.genDOT(data);
+      console.log("nodesString", nodesString.replace(/]/g, "]\n"));
       this.loadImage(nodesString);
       this.graph.graphviz.renderDot(nodesString);
       addEvent("svg", "click", e => {
