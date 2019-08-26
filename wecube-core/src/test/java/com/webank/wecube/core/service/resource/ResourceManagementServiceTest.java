@@ -12,12 +12,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 
 import com.webank.wecube.core.DatabaseBasedTest;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.dto.QueryRequest;
 import com.webank.wecube.core.dto.QueryResponse;
-import com.webank.wecube.core.dto.ResourceItemDto;
 import com.webank.wecube.core.dto.ResourceServerDto;
 
 @RunWith(SpringRunner.class)
@@ -41,6 +41,7 @@ public class ResourceManagementServiceTest extends DatabaseBasedTest {
     public void whenDeleteUnAllocatedAS3ServerShouldSuccess() {
         List<ResourceServerDto> resourceServers = new ArrayList<>();
         resourceServers.add(newValidServer());
+
         List<ResourceServerDto> servers = service.createServers(resourceServers);
 
         QueryResponse<ResourceServerDto> response = service.retrieveServers(new QueryRequest());
@@ -51,7 +52,11 @@ public class ResourceManagementServiceTest extends DatabaseBasedTest {
             server.setIsAllocated(false);
         });
 
+        service.updateServers(servers);
         service.deleteServers(servers);
+
+        response = service.retrieveServers(new QueryRequest());
+        assertEquals(response.getContents().size(), 0);
     }
 
     @Test(expected = WecubeCoreException.class)
@@ -64,6 +69,11 @@ public class ResourceManagementServiceTest extends DatabaseBasedTest {
         assertEquals(response.getContents().size(), 1);
         assertEquals(response.getContents().get(0).getName(), "wecube_s3_testing_server");
 
+        servers.forEach(server -> {
+            server.setIsAllocated(true);
+        });
+
+        service.updateServers(servers);
         service.deleteServers(servers);
     }
 

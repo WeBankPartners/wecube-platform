@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
-import com.webank.wecube.core.service.CmdbResourceService;
 import com.webank.wecube.core.utils.EncryptionUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MysqlDatabaseManagementService implements ResourceItemService {
 
     @Autowired
-    private CmdbResourceService cmdbResourceService;
+    private ResourceProperties resourceProperties;
 
     @Autowired
     private MysqlAccountManagementService mysqlAccountManagementService;
@@ -50,13 +50,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     }
 
     private DriverManagerDataSource newDatasource(ResourceItem item) {
-        String password;
-        try {
-            password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
-        } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to decrypt the login password of server [%s].", item.getResourceServer()), e);
-        }
-
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         DriverManagerDataSource dataSource = newMysqlDatasource(
                 item.getResourceServer().getHost(),
                 item.getResourceServer().getPort(),
@@ -66,7 +60,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     }
 
     @Override
-    public int deleteItem(ResourceItem item) {
+    public void deleteItem(ResourceItem item) {
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             if (hasTables(connection, item.getName())) {
@@ -79,7 +73,6 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
             log.error(errorMessage);
             throw new WecubeCoreException(errorMessage, e);
         }
-        return 1;
     }
 
     private boolean hasTables(Connection connection, String dbName) {
@@ -90,7 +83,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to query tables, meet error [%s].", e.getMessage());
             log.error(errorMessage);
-            throw new WecubeCoreException(errorMessage);
+            throw new WecubeCoreException(errorMessage, e);
         }
         return hasTable;
     }

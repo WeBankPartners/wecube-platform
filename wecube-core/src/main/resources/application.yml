@@ -86,9 +86,4 @@ wecube:
 
     resource:
       dockerPullImageTimeout: 300
-
-
-
-
-
-
+      passwordEncryptionSeed: defaultSeed
