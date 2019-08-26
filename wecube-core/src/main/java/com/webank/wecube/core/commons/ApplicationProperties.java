@@ -67,7 +67,8 @@ public class ApplicationProperties {
         private String enumCategoryCiStateOfCreate = "ci_state_create";
         private String enumCodeChangeOfCiStateOfCreate = "update";
         private String enumCodeDestroyedOfCiStateOfCreate = "delete";
-
+        private String enumCategorySecurity = "security";
+        private String enumCodeOfSeed = "seed";
 
         private String statusAttributeName = "status";
         private String businessKeyAttributeName = "bizKey";
@@ -106,5 +107,11 @@ public class ApplicationProperties {
         private String endpoint;
         private String accessKey;
         private String secretKey;
+    }
+
+    @Data
+    @ConfigurationProperties(prefix = "wecube.core.resource")
+    public class ResourceProperties {
+        private Integer dockerPullImageTimeout = 300;
     }
 }
