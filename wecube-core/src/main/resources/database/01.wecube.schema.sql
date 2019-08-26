@@ -253,3 +253,43 @@ CREATE TABLE `operation_log` (
  INDEX `idx_operation` (`operation`),
  INDEX `idx_result` (`result`)
 );
+
+DROP TABLE IF EXISTS `resource_server`;
+CREATE TABLE `resource_server` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`name` VARCHAR(100) NULL DEFAULT NULL,
+	`host` VARCHAR(50) NULL DEFAULT NULL,
+	`port` VARCHAR(10) NULL DEFAULT NULL,
+	`login_username` VARCHAR(50) NULL DEFAULT NULL,
+	`login_password` VARCHAR(100) NULL DEFAULT NULL,
+	`type` VARCHAR(20) NULL DEFAULT NULL,
+	`is_allocated` INT(1) NULL DEFAULT 0,
+	`purpose` VARCHAR(255) NULL DEFAULT NULL,
+	`status` VARCHAR(20) NULL DEFAULT NULL,
+	`created_by` VARCHAR(50) NULL DEFAULT NULL,
+	`created_date` DATETIME NULL DEFAULT NULL,
+	`updated_by` VARCHAR(50) NULL DEFAULT NULL,
+	`updated_date` DATETIME NULL DEFAULT NULL,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `uk_resource_server` (`name`)
+);
+
+DROP TABLE IF EXISTS `resource_item`;
+CREATE TABLE `resource_item` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`name` VARCHAR(100) NULL DEFAULT NULL,
+	`type` VARCHAR(20) NULL DEFAULT NULL,
+	`additional_properties` LONGTEXT NULL,
+	`resource_server_id` INT(11) NULL DEFAULT NULL,
+	`is_allocated` INT(1) NULL DEFAULT 0,
+	`purpose` VARCHAR(255) NULL DEFAULT NULL,
+	`status` VARCHAR(20) NULL DEFAULT NULL,
+	`created_by` VARCHAR(50) NULL DEFAULT NULL,
+	`created_date` DATETIME NULL DEFAULT NULL,
+	`updated_by` VARCHAR(50) NULL DEFAULT NULL,
+	`updated_date` DATETIME NULL DEFAULT NULL,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `uk_name_resource_server_id` (`name`, `resource_server_id`),
+	INDEX `fk_resource_server_id` (`resource_server_id`),
+	CONSTRAINT `fk_resource_server_id` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
+);
