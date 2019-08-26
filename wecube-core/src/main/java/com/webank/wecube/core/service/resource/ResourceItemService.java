@@ -9,5 +9,5 @@ public interface ResourceItemService {
 
     ResourceItem updateItem(ResourceItem item);
 
-    int deleteItem(ResourceItem item);
+    void deleteItem(ResourceItem item);
 }
