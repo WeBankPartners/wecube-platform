@@ -10,9 +10,9 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.webank.wecube.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
-import com.webank.wecube.core.service.CmdbResourceService;
 import com.webank.wecube.core.utils.EncryptionUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class S3BucketManagementService implements ResourceItemService {
 
     @Autowired
-    private CmdbResourceService cmdbResourceService;
+    private ResourceProperties resourceProperties;
 
     public AmazonS3 newS3Client(String host, String port, String username, String password) {
         String endPoint = String.format("http://%s:%s", host, port);
@@ -37,51 +37,41 @@ public class S3BucketManagementService implements ResourceItemService {
 
     @Override
     public ResourceItem createItem(ResourceItem item) {
-        try {
-            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
-            AmazonS3 amazonS3 = newS3Client(
-                    item.getResourceServer().getHost(),
-                    item.getResourceServer().getPort(),
-                    item.getResourceServer().getLoginUsername(),
-                    password);
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        AmazonS3 amazonS3 = newS3Client(
+                item.getResourceServer().getHost(),
+                item.getResourceServer().getPort(),
+                item.getResourceServer().getLoginUsername(),
+                password);
 
-            if (amazonS3 != null) {
-                if (amazonS3.doesBucketExist(item.getName())) {
-                    throw new WecubeCoreException(String.format("Can not create bucket [%s] : Bucket exists.", item.getName()));
-                }
-                amazonS3.createBucket(item.getName());
+        if (amazonS3 != null) {
+            if (amazonS3.doesBucketExist(item.getName())) {
+                throw new WecubeCoreException(String.format("Can not create bucket [%s] : Bucket exists.", item.getName()));
             }
-        } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to create s3 bucket [%s]", item.getName()), e);
+            amazonS3.createBucket(item.getName());
         }
         return item;
     }
 
     @Override
-    public int deleteItem(ResourceItem item) {
-        try {
-            String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
-            AmazonS3 amazonS3 = newS3Client(
-                    item.getResourceServer().getHost(),
-                    item.getResourceServer().getPort(),
-                    item.getResourceServer().getLoginUsername(),
-                    password);
+    public void deleteItem(ResourceItem item) {
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        AmazonS3 amazonS3 = newS3Client(
+                item.getResourceServer().getHost(),
+                item.getResourceServer().getPort(),
+                item.getResourceServer().getLoginUsername(),
+                password);
 
-            if (amazonS3 != null) {
-                if (amazonS3.doesBucketExist(item.getName())) {
-                    if (!amazonS3.listObjects(item.getName()).getObjectSummaries().isEmpty()) {
-                        throw new WecubeCoreException(String.format("Can not delete bucket [%s] : Bucket have [%s] amount of objects", item.getName(), amazonS3.listObjects(item.getName()).getObjectSummaries().size()));
-                    }
-                    amazonS3.deleteBucket(item.getName());
-                } else {
-                    log.warn("To be delete bucket {%s} does not exists.", item.getName());
+        if (amazonS3 != null) {
+            if (amazonS3.doesBucketExist(item.getName())) {
+                if (!amazonS3.listObjects(item.getName()).getObjectSummaries().isEmpty()) {
+                    throw new WecubeCoreException(String.format("Can not delete bucket [%s] : Bucket have [%s] amount of objects", item.getName(), amazonS3.listObjects(item.getName()).getObjectSummaries().size()));
                 }
+                amazonS3.deleteBucket(item.getName());
+            } else {
+                log.warn("To be delete bucket {%s} does not exists.", item.getName());
             }
-        } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to delete s3 bucket [%s]", item.getName()), e);
         }
-
-        return 1;
     }
 
     @Override
