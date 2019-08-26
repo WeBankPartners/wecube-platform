@@ -1,27 +1,17 @@
 package com.webank.wecube.core.service.resource;
 
 import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.client.ExpectedCount.manyTimes;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.ConstraintViolationException;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import com.webank.wecube.core.DatabaseBasedTest;
@@ -36,9 +26,6 @@ public class ResourceManagementServiceTest extends DatabaseBasedTest {
     @Autowired
     private ResourceManagementService service;
 
-    @Autowired
-    RestTemplate restTemplate;
-
     @Test
     public void whenCreateS3ServerWithValidValuesShouldSuccess() {
         List<ResourceServerDto> resourceServers = new ArrayList<>();
@@ -51,7 +38,7 @@ public class ResourceManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void whenDeleteUnAllocatedAS3ServerShouldSuccess() throws Exception {
+    public void whenDeleteUnAllocatedAS3ServerShouldSuccess() {
         List<ResourceServerDto> resourceServers = new ArrayList<>();
         resourceServers.add(newValidServer());
 
