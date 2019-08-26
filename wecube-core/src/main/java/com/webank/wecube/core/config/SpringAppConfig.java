@@ -18,7 +18,8 @@ import com.webank.wecube.core.commons.ApplicationProperties.S3Properties;
         CmdbDataProperties.class,
         PluginProperties.class,
         S3Properties.class,
-        ApiProxyProperties.class
+        ApiProxyProperties.class,
+        ResourceProperties.class
 })
 @ComponentScan({ "com.webank.wecube.core.service" })
 public class SpringAppConfig {
