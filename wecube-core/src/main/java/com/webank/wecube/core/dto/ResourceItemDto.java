@@ -28,7 +28,7 @@ public class ResourceItemDto {
     private String type;
     private String additionalProperties;
     private Integer resourceServerId;
-    private Boolean isAllocated = true;
+    private Boolean isAllocated;
     private String purpose;
     private String status;
     private ResourceServerDto resourceServer;

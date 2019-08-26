@@ -58,7 +58,7 @@ public class S3BucketManagementService implements ResourceItemService {
     }
 
     @Override
-    public int deleteItem(ResourceItem item) {
+    public void deleteItem(ResourceItem item) {
         try {
             String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
             AmazonS3 amazonS3 = newS3Client(
@@ -80,8 +80,6 @@ public class S3BucketManagementService implements ResourceItemService {
         } catch (Exception e) {
             throw new WecubeCoreException(String.format("Failed to delete s3 bucket [%s]", item.getName()), e);
         }
-
-        return 1;
     }
 
     @Override

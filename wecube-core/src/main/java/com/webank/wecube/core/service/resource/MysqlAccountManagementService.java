@@ -55,7 +55,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
     }
 
     @Override
-    public int deleteItem(ResourceItem item) {
+    public void deleteItem(ResourceItem item) {
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             statement.executeUpdate(String.format("DROP USER %s", item.getName()));
@@ -64,7 +64,6 @@ public class MysqlAccountManagementService implements ResourceItemService {
             log.error(errorMessage);
             throw new WecubeCoreException(errorMessage, e);
         }
-        return 1;
     }
 
     private DriverManagerDataSource newDatasource(ResourceItem item) {

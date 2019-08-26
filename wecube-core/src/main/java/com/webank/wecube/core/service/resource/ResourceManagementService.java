@@ -63,13 +63,14 @@ public class ResourceManagementService {
 
     @Transactional
     public void deleteServers(List<ResourceServerDto> resourceServers) {
-        validateIfServerAllocated(resourceServers);
+        List<ResourceServer> domains = convertServerDtoToDomain(resourceServers);
+        validateIfServerAllocated(domains);
         resourceServerRepository.deleteAll(convertServerDtoToDomain(resourceServers));
     }
 
-    private void validateIfServerAllocated(List<ResourceServerDto> resourceServers) {
+    private void validateIfServerAllocated(List<ResourceServer> resourceServers) {
         resourceServers.forEach(server -> {
-            if (server.getIsAllocated()) {
+            if (server.getIsAllocated() == 1) {
                 throw new WecubeCoreException(String.format("Can not delete resource server [%s] as it has been allocated for [%s].", server.getName(), server.getPurpose()));
             }
         });

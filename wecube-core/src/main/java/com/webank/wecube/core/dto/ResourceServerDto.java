@@ -29,7 +29,7 @@ public class ResourceServerDto {
     private String loginUsername;
     private String loginPassword;
     private String type;
-    private Boolean isAllocated = true;
+    private Boolean isAllocated;
     private String purpose;
     private String status;
     @JsonIgnore

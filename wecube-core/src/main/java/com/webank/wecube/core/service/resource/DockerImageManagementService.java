@@ -15,6 +15,9 @@ import com.webank.wecube.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class DockerImageManagementService implements ResourceItemService {
 
@@ -54,17 +57,17 @@ public class DockerImageManagementService implements ResourceItemService {
     }
 
     @Override
-    public int deleteItem(ResourceItem item) {
+    public void deleteItem(ResourceItem item) {
         Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
 
         String imageName = additionalProperties.get("repository") + ":" + additionalProperties.get("tag");
         DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort());
         List<Image> images = dockerClient.listImagesCmd().withShowAll(true).withImageNameFilter(imageName).exec();
         if (images.isEmpty()) {
-            throw new WecubeCoreException(String.format("Failed to delete image with name [%s] : Image is not exists.", imageName));
+            log.warn("The image {} to be deleted is not existed.", imageName);
+            return;
         }
         dockerClient.removeImageCmd(imageName).exec();
-        return 1;
     }
 
 }

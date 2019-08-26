@@ -66,7 +66,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     }
 
     @Override
-    public int deleteItem(ResourceItem item) {
+    public void deleteItem(ResourceItem item) {
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             if (hasTables(connection, item.getName())) {
@@ -79,7 +79,6 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
             log.error(errorMessage);
             throw new WecubeCoreException(errorMessage, e);
         }
-        return 1;
     }
 
     private boolean hasTables(Connection connection, String dbName) {
@@ -90,7 +89,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to query tables, meet error [%s].", e.getMessage());
             log.error(errorMessage);
-            throw new WecubeCoreException(errorMessage);
+            throw new WecubeCoreException(errorMessage, e);
         }
         return hasTable;
     }

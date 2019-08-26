@@ -83,27 +83,26 @@ public class DockerContainerManagementService implements ResourceItemService, Re
     }
 
     @Override
-    public int deleteItem(ResourceItem item) {
+    public void deleteItem(ResourceItem item) {
         String containerName = item.getName();
         DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort());
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true).withFilter("name", Arrays.asList(containerName)).exec();
         if (containers.isEmpty()) {
             log.warn("The container {} to be deleted is not existed.", containerName);
-            return 0;
+            return;
         }
 
         Container container = containers.get(0);
         if (!container.getState().equals("running")) {
             dockerClient.removeContainerCmd(containerName).exec();
-            return 1;
         } else {
             throw new WecubeCoreException(String.format("Failed to delete container with name [%s] : Container still running, please stop first.", containerName));
         }
     }
 
     @Override
-    public int startItem(ResourceItem item) {
+    public void startItem(ResourceItem item) {
         String containerName = item.getName();
         DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort());
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true).withFilter("name", Arrays.asList(containerName)).exec();
@@ -117,11 +116,10 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         } else {
             log.warn("The container {} is already running.", containerName);
         }
-        return 1;
     }
 
     @Override
-    public int stopItem(ResourceItem item) {
+    public void stopItem(ResourceItem item) {
         String containerName = item.getName();
         DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost(), item.getResourceServer().getPort());
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true).withFilter("name", Arrays.asList(containerName)).exec();
@@ -135,7 +133,6 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         } else {
             log.warn("The container {} is already stopped.", containerName);
         }
-        return 1;
     }
 
     @Override
