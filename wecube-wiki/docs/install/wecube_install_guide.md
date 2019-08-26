@@ -30,27 +30,30 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 
 
 ## 加载镜像
-	通过文件方式加载镜像，执行以下命令：
+    
+   通过文件方式加载镜像，执行以下命令：
 
-	```
-	docker load --input wecube-platform.tar
-	docker load --input wecube-db.tar 
-	```
+   ```
+   docker load --input wecube-platform.tar
+   docker load --input wecube-db.tar 
+   ```
 
-	执行docker images 命令，能看到镜像已经导入：
-	![wecube-platform_make_image](images/wecube-platform_make_image.png)
-	记下镜像列表中的镜像名称以及TAG， 在下面的配置中需要用到。
+   执行docker images 命令，能看到镜像已经导入：
+
+   ![wecube-platform_make_image](images/wecube-platform_make_image.png)
+
+   记下镜像列表中的镜像名称以及TAG， 在下面的配置中需要用到。
 
 ## 配置
 1. 建立执行目录和相关文件
    
-   在部署机器上建立安装目录，新建以下三个文件:
+	在部署机器上建立安装目录，新建以下三个文件:
 
-   [wecube.cfg](../../../build/wecube.cfg)
+	[wecube.cfg](../../../build/wecube.cfg)
 
-   [install.sh](../../../build/install.sh)
+	[install.sh](../../../build/install.sh)
 
-   [docker-compose.tpl](../../../build/docker-compose.tpl)
+	[docker-compose.tpl](../../../build/docker-compose.tpl)
 
 
 2. 编辑wecube.cfg配置文件，该文件包含如下配置项，用户根据各自的部署环境替换掉相关值。
