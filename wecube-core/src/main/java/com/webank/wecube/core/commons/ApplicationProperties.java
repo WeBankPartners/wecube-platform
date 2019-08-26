@@ -1,6 +1,11 @@
 package com.webank.wecube.core.commons;
 
 import lombok.Data;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
 
@@ -76,6 +81,13 @@ public class ApplicationProperties {
         private String propertyNameOfState = "state";
     }
 
+    @Data
+    @ConfigurationProperties(prefix = "wecube.core.api-proxy")
+    public class ApiProxyProperties {
+        private Map<String, String> customHeaders = new LinkedHashMap<>();
+        private Set<String> sensitiveHeaders = null;
+    }
+    
     @Data
     @ConfigurationProperties(prefix = "wecube.core.plugin")
     public class PluginProperties {
