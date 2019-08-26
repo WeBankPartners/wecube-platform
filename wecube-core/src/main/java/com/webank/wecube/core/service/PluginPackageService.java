@@ -67,7 +67,7 @@ public class PluginPackageService {
 
         PluginPackage pluginPackage = PluginConfigXmlParser.newInstance(new ByteArrayInputStream(pluginConfigFile)).parsePluginPackage();
         if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
-            throw new WecubeCoreException("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ");
+            throw new WecubeCoreException(String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ", pluginPackage.getName()));
         }
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.", pluginPackage.getName(), pluginPackage.getVersion()));
