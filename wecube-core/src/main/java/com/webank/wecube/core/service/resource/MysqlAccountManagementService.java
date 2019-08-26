@@ -9,9 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.ResourceItem;
-import com.webank.wecube.core.service.CmdbResourceService;
 import com.webank.wecube.core.utils.EncryptionUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MysqlAccountManagementService implements ResourceItemService {
 
     @Autowired
-    private CmdbResourceService cmdbResourceService;
+    private ResourceProperties resourceProperties;
 
     public DriverManagerDataSource newMysqlDatasource(String host, String port, String username, String password) {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
@@ -43,7 +43,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
 
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
-            String rawPassword = EncryptionUtils.decryptWithAes(password, cmdbResourceService.getSeedFromSystemEnum(), item.getName());
+            String rawPassword = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(), item.getName());
             statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", item.getName(), rawPassword));
             statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s", item.getName(), username));
         } catch (Exception e) {
@@ -69,7 +69,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
     private DriverManagerDataSource newDatasource(ResourceItem item) {
         String password;
         try {
-            password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), cmdbResourceService.getSeedFromSystemEnum(), item.getResourceServer().getName());
+            password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         } catch (Exception e) {
             throw new WecubeCoreException(String.format("Failed to decrypt the login password of server [%s].", item.getResourceServer()), e);
         }
