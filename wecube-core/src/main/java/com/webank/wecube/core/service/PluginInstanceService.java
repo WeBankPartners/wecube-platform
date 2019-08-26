@@ -741,7 +741,7 @@ public class PluginInstanceService {
     // This can be enhanced once the health check function is ready.
     // This can be enhanced when a weighted based algorithm is required in the
     // future.
-    private PluginInstance chooseOne(List<PluginInstance> pluginInstances) {
+    public PluginInstance chooseOne(List<PluginInstance> pluginInstances) {
         return pickRandomOne(pluginInstances);
     }
 
