@@ -27,7 +27,20 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	```
 
 	替换成wecube所在主机的ip，重启wecmdb服务。
-	
+
+
+## 加载镜像
+	通过文件方式加载镜像，执行以下命令：
+
+	```
+	docker load --input wecube-platform.tar
+	docker load --input wecube-db.tar 
+	```
+
+	执行docker images 命令，能看到镜像已经导入：
+	![wecube-platform_make_image](images/wecube-platform_make_image.png)
+	记下镜像列表中的镜像名称以及TAG， 在下面的配置中需要用到。
+
 ## 配置
 1. 建立执行目录和相关文件
    
@@ -72,13 +85,13 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	---------------------------|--------------------
 	wecube_server_ip           |wecube的服务ip，cas单点登录成功后的回跳地址；如果浏览器是通过局域网访问，该值填部署主机的局域网ip;如果是公网访问需填公网可访问的ip地址，如LB的ip
 	wecube_server_port         |wecube的服务端口
-	wecube_image_name          |wecube的docker镜像名称
+	wecube_image_name          |wecube的docker镜像名称及TAG，请填入在“加载镜像”章节中看到的镜像名称以及TAG，需要保持一致， 例如：wecube-platform:bd4fbec
 	wecube_plugin_hosts        |wecube部署插件的容器主机ip
 	wecube_plugin_host_port    |wecube部署插件主机的ssh端口
 	wecube_plugin_host_user    |wecube部署插件主机的ssh用户
 	wecube_plugin_host_pwd     |wecube部署插件主机的ssh密码
 	cmdb_url                   |wecube依赖的cmdb服务url
-	database_image_name        |wecube数据库镜像名称
+	database_image_name        |wecube数据库镜像名称及TAG，请填入在“加载镜像”章节中看到的镜像名称以及TAG，需要保持一致， 例如：wecube-db:dev
 	database_init_password     |wecube数据库初始化密码
 	cas_url                    |单点登陆cas服务器url
 	s3_url                     |wecube依赖的对象存储服务器地址，docker-compose.tpl中已经包含minio的S3服务，此处填部署主机ip
@@ -194,15 +207,6 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	```
 
 ## 执行安装
-1. 拉取镜像文件
-	
-	通过文件方式加载镜像
-	```
-	docker load --input wecube-platform.tar
-	docker load --input wecube-db.tar 
-	```
-	执行docker images 命令，能看到镜像已经导入。
-
 1. 执行如下命令，通过docker-compose拉起WeCube服务。
 
 	```
@@ -212,4 +216,4 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 2. 安装后检查
 	访问WeCube的url http://wecube_server_ip:wecube_server_port 确认页面访问正常。
 
-
+## 配置修改
