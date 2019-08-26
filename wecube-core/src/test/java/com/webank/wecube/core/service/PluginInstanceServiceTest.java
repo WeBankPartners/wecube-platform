@@ -1,18 +1,16 @@
 package com.webank.wecube.core.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.webank.wecube.core.DatabaseBasedTest;
+
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
-public class PluginInstanceServiceTest {
+public class PluginInstanceServiceTest extends DatabaseBasedTest{
 
     @Autowired
     PluginInstanceService pluginInstanceService;
