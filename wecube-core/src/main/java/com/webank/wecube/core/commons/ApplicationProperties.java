@@ -113,5 +113,6 @@ public class ApplicationProperties {
     @ConfigurationProperties(prefix = "wecube.core.resource")
     public class ResourceProperties {
         private Integer dockerPullImageTimeout = 300;
+        private String passwordEncryptionSeed;
     }
 }
