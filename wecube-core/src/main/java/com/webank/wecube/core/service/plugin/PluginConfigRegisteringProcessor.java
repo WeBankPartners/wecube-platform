@@ -1,25 +1,36 @@
 package com.webank.wecube.core.service.plugin;
 
 
+import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.CONFIGURED;
+import static com.webank.wecube.core.domain.plugin.PluginRegisteringModel.pathToString;
+import static java.util.function.Function.identity;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+
 import com.google.common.collect.Lists;
 import com.webank.wecube.core.commons.WecubeCoreException;
-import com.webank.wecube.core.domain.plugin.*;
+import com.webank.wecube.core.domain.plugin.PluginConfig;
+import com.webank.wecube.core.domain.plugin.PluginConfigFilteringRule;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.core.domain.plugin.PluginPackage;
+import com.webank.wecube.core.domain.plugin.PluginRegisteringModel;
 import com.webank.wecube.core.domain.plugin.PluginRegisteringModel.FilteringRuleConfig;
 import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
 import com.webank.wecube.core.support.cmdb.dto.v2.IntQueryOperateAggRequestDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.IntQueryOperateAggRequestDto.Criteria;
 import com.webank.wecube.core.support.cmdb.dto.v2.IntQueryOperateAggRequestDto.CriteriaNode;
 import com.webank.wecube.core.support.cmdb.dto.v2.IntQueryOperateAggResponseDto;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.CONFIGURED;
-import static com.webank.wecube.core.domain.plugin.PluginRegisteringModel.pathToString;
-import static java.util.function.Function.identity;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 public class PluginConfigRegisteringProcessor {
 
@@ -78,10 +89,21 @@ public class PluginConfigRegisteringProcessor {
 
             for (PluginRegisteringModel.InputParameterMapping parameterMapping : interfaceConfig.getInputParameterMappings()) {
                 PluginConfigInterfaceParameter parameter = getPluginConfigInterfaceParameter(parameterMap, String.valueOf(parameterMapping.getParameterId()));
+
+                if (PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE.equals(parameterMapping.getMappingType())) {
+                    parameter.setCmdbCitypeId(parameterMapping.getCmdbCiTypeId());
+                    parameter.setCmdbAttributeId(parameterMapping.getCmdbAttributeId());
+                    parameter.setCmdbCitypePath(pathToString(converRoutine(parameterMapping.getRoutine())));
+                } else if (PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_ENUM_CODE.equals(parameterMapping.getMappingType())) {
+                    parameter.setCmdbEnumCode(parameterMapping.getCmdbEnumCode());
+                } else if (PluginConfigInterfaceParameter.MAPPING_TYPE_RUNTIME.equals(parameterMapping.getMappingType())) {
+                    // do nothing
+                } else {
+                    throw new WecubeCoreException("Unsupported mapping type: " + parameterMapping.getMappingType());
+                }
+
+                parameter.setMappingType(parameterMapping.getMappingType());
                 parameter.setCmdbColumnSource(parameterMapping.getCmdbColumnSource());
-                parameter.setCmdbCitypeId(parameterMapping.getCmdbCiTypeId());
-                parameter.setCmdbAttributeId(parameterMapping.getCmdbAttributeId());
-                parameter.setCmdbCitypePath(pathToString(converRoutine(parameterMapping.getRoutine())));
             }
 
             for (PluginRegisteringModel.OutputParameterMapping parameterMapping : interfaceConfig.getOutputParameterMappings()) {
@@ -121,13 +143,15 @@ public class PluginConfigRegisteringProcessor {
                 .map(config -> createCmdbIntQueryOperateAggRequestCriteria(cmdbCiTypeId, cmdbCiTypeName, config))
                 .collect(Collectors.toMap(this::keyOfCiTypeAndAttributeAndPath, identity()));
         for (PluginRegisteringModel.InputParameterMapping parameterMapping : interfaceConfig.getInputParameterMappings()) {
-            Criteria criteria = createCmdbIntQueryOperateAggRequestCriteria(parameterMapping);
-            String keyOfCriteria = keyOfCiTypeAndAttributeAndPath(criteria.getCiTypeId(), criteria.getAttribute().getAttrId(), converRoutine(criteria.getRoutine()));
-            if (criteriaMap.containsKey(keyOfCriteria)) {
-                Criteria existingCriteria = criteriaMap.get(keyOfCriteria);
-                existingCriteria.setBranchId(existingCriteria.getBranchId() + "-" + criteria.getBranchId());
-            } else {
-                criteriaMap.put(keyOfCriteria, criteria);
+            if (PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE.equals(parameterMapping.getMappingType())) {
+                Criteria criteria = createCmdbIntQueryOperateAggRequestCriteria(parameterMapping);
+                String keyOfCriteria = keyOfCiTypeAndAttributeAndPath(criteria.getCiTypeId(), criteria.getAttribute().getAttrId(), converRoutine(criteria.getRoutine()));
+                if (criteriaMap.containsKey(keyOfCriteria)) {
+                    Criteria existingCriteria = criteriaMap.get(keyOfCriteria);
+                    existingCriteria.setBranchId(existingCriteria.getBranchId() + "-" + criteria.getBranchId());
+                } else {
+                    criteriaMap.put(keyOfCriteria, criteria);
+                }
             }
         }
 
