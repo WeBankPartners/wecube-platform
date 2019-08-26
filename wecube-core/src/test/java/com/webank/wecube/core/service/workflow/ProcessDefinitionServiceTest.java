@@ -1,24 +1,5 @@
 package com.webank.wecube.core.service.workflow;
 
-import com.google.common.collect.Lists;
-import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
-import com.webank.wecube.core.domain.workflow.ServiceTaskVO;
-import com.webank.wecube.core.jpa.PluginConfigRepository;
-import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
-import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeDto;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_INPUT;
 import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_OUTPUT;
@@ -30,9 +11,25 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class ProcessDefinitionServiceTest {
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+
+import com.google.common.collect.Lists;
+import com.webank.wecube.core.DatabaseBasedTest;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.core.domain.workflow.ServiceTaskVO;
+import com.webank.wecube.core.jpa.PluginConfigRepository;
+import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeDto;
+
+public class ProcessDefinitionServiceTest extends DatabaseBasedTest{
 
     @InjectMocks
     ProcessDefinitionService processDefinitionService;
