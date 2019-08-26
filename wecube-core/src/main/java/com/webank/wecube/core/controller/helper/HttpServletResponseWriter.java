@@ -40,13 +40,20 @@ public class HttpServletResponseWriter {
 
     private void writeBody(byte[] body) {
         if (body == null) return;
+        
+        ServletOutputStream outputStream = null;
         try {
-            ServletOutputStream outputStream = response.getOutputStream();
+            outputStream = response.getOutputStream();
             outputStream.write(body);
             outputStream.flush();
-            outputStream.close();
         } catch (Exception e) {
             throw new WecubeCoreException(String.format("Failed to write http servlet response data due to %s ", e.getMessage()));
+        } finally {
+            try {
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+            } catch (Exception e) {}
         }
     }
 
