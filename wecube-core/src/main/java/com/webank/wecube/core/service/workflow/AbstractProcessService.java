@@ -56,10 +56,10 @@ public abstract class AbstractProcessService {
     protected CmdbServiceV2Stub cmdbServiceV2Stub;
 
     @Autowired
-    protected ProcessDefinitionEntityRepository coreProcessDefinitionEntityRepository;
+    protected ProcessDefinitionEntityRepository processDefinitionEntityRepository;
 
     @Autowired
-    protected ProcessDefinitionTaskServiceEntityRepository coreProcessDefinitionTaskServiceEntityRepository;
+    protected ProcessDefinitionTaskServiceEntityRepository processDefinitionTaskServiceEntityRepository;
 
     @Autowired
     protected ProcessTransactionEntityRepository processTransactionEntityRepository;

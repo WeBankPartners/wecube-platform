@@ -24,7 +24,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.webank.wecube.core.commons.TimestampedIdGenerator;
+import com.webank.wecube.core.commons.LocalIdGenerator;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.core.domain.workflow.AttachVO;
@@ -164,7 +164,7 @@ public class ProcessInstanceService extends AbstractProcessService {
         trans.setStartTime(startDate);
         trans.setOperator(currUser);
         trans.setCreateBy(currUser);
-        trans.setName(TimestampedIdGenerator.INSTANCE.generateTimestampedId());
+        trans.setName(LocalIdGenerator.INSTANCE.generateTimestampedId());
 
         trans.setCreateTime(startDate);
         trans.setStatus(INPROGRESS);
@@ -567,7 +567,7 @@ public class ProcessInstanceService extends AbstractProcessService {
     }
 
     private String generateProcessInstanceBusinessKey() {
-        return TimestampedIdGenerator.INSTANCE.generateTimestampedId();
+        return LocalIdGenerator.INSTANCE.generateTimestampedId();
     }
 
     private void prepareProcessInstanceBusinessKey(StartProcessInstaceWithCiDataReq request,
@@ -583,7 +583,7 @@ public class ProcessInstanceService extends AbstractProcessService {
         cmdbServiceV2Stub.updateCiData(rootCiTypeId, ciDataToUpdate);
 
         // process ci bound on service task
-        List<ProcessDefinitionTaskServiceEntity> taskServices = coreProcessDefinitionTaskServiceEntityRepository
+        List<ProcessDefinitionTaskServiceEntity> taskServices = processDefinitionTaskServiceEntityRepository
                 .findTaskServicesByProcDefKeyAndVersion(procDef.getKey(), procDef.getVersion());
 
         BpmnModelInstance bpmnModel = repositoryService.getBpmnModelInstance(procDef.getId());
