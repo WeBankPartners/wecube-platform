@@ -1133,7 +1133,12 @@ export default {
                 this.renderRightPanels();
               });
           });
-          setHeaders({ "X-XSRF-TOKEN": document.cookie.split("=")[1] });
+          let uploadToken = document.cookie
+            .split(";")
+            .find(i => i.indexOf("XSRF-TOKEN") !== -1);
+          setHeaders({
+            "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
+          });
           initEvent();
           this.renderGraph(ciResponse.data);
         }
@@ -1262,7 +1267,6 @@ export default {
     },
     renderGraph(data) {
       let nodesString = this.genDOT(data);
-      console.log("nodesString", nodesString.replace(/]/g, "]\n"));
       this.loadImage(nodesString);
       this.graph.graphviz.renderDot(nodesString);
       addEvent("svg", "click", e => {
@@ -1862,8 +1866,11 @@ export default {
   },
   computed: {
     setUploadActionHeader() {
+      let uploadToken = document.cookie
+        .split(";")
+        .find(i => i.indexOf("XSRF-TOKEN") !== -1);
       return {
-        "X-XSRF-TOKEN": document.cookie.split("=")[1]
+        "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
       };
     }
   }
