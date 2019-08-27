@@ -1,18 +1,12 @@
 package com.webank.wecube.core.parser;
 
-import com.webank.wecube.core.commons.WecubeCoreException;
-import com.webank.wecube.core.commons.XPathEvaluator;
-import com.webank.wecube.core.domain.plugin.PluginConfig;
-import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
-import com.webank.wecube.core.domain.plugin.PluginPackage;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.NOT_CONFIGURED;
+import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE;
+import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.MAPPING_TYPE_NOT_AVAILABLE;
+import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_INPUT;
+import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_OUTPUT;
+import static org.apache.commons.lang3.StringUtils.trim;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -20,10 +14,20 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.NOT_CONFIGURED;
-import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_INPUT;
-import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_OUTPUT;
-import static org.apache.commons.lang3.StringUtils.trim;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import com.webank.wecube.core.commons.WecubeCoreException;
+import com.webank.wecube.core.commons.XPathEvaluator;
+import com.webank.wecube.core.domain.plugin.PluginConfig;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.core.domain.plugin.PluginPackage;
 
 public class PluginConfigXmlParser {
     private final static String SEPARATOR_OF_NAMES = "/";
@@ -98,18 +102,18 @@ public class PluginConfigXmlParser {
             pluginConfigInterface.setPath(trim(xPathEvaluator.getString("./@path", interfaceNode)));
             NodeList inputParameterNodeList = xPathEvaluator.getNodeList("./input-parameters/parameter", interfaceNode);
             if (inputParameterNodeList != null && inputParameterNodeList.getLength() > 0) {
-                pluginConfigInterface.setInputParameters(parsePluginConfigInterfaceParameters(inputParameterNodeList, pluginConfigInterface, TYPE_INPUT));
+                pluginConfigInterface.setInputParameters(parsePluginConfigInterfaceParameters(inputParameterNodeList, pluginConfigInterface, TYPE_INPUT, MAPPING_TYPE_CMDB_CI_TYPE));
             }
             NodeList outputParameterNodeList = xPathEvaluator.getNodeList("./output-parameters/parameter", interfaceNode);
             if (outputParameterNodeList != null && outputParameterNodeList.getLength() > 0) {
-                pluginConfigInterface.setOutputParameters(parsePluginConfigInterfaceParameters(outputParameterNodeList, pluginConfigInterface, TYPE_OUTPUT));
+                pluginConfigInterface.setOutputParameters(parsePluginConfigInterfaceParameters(outputParameterNodeList, pluginConfigInterface, TYPE_OUTPUT, MAPPING_TYPE_NOT_AVAILABLE));
             }
         }
 
         return pluginConfigInterfaces;
     }
 
-    private Set<PluginConfigInterfaceParameter> parsePluginConfigInterfaceParameters(NodeList parameterNodeList, PluginConfigInterface pluginConfigInterface, String parameterType) throws XPathExpressionException {
+    private Set<PluginConfigInterfaceParameter> parsePluginConfigInterfaceParameters(NodeList parameterNodeList, PluginConfigInterface pluginConfigInterface, String parameterType, String mappingType) throws XPathExpressionException {
         Set<PluginConfigInterfaceParameter> pluginConfigInterfaceParameters = new LinkedHashSet<>();
         for (int i = 0; i < parameterNodeList.getLength(); i++) {
             Node parameterNode = parameterNodeList.item(i);
@@ -117,6 +121,7 @@ public class PluginConfigXmlParser {
             PluginConfigInterfaceParameter pluginConfigInterfaceParameter = new PluginConfigInterfaceParameter();
             pluginConfigInterfaceParameter.setPluginConfigInterface(pluginConfigInterface);
             pluginConfigInterfaceParameter.setType(parameterType);
+            pluginConfigInterfaceParameter.setMappingType(mappingType);
             pluginConfigInterfaceParameters.add(pluginConfigInterfaceParameter);
 
             pluginConfigInterfaceParameter.setName(trim(parameterNode.getTextContent()));
