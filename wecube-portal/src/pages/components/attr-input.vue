@@ -186,16 +186,18 @@ export default {
           if (status === "OK") {
             let attr = [];
             data.forEach(_ => {
-              attr.push({
-                ..._,
-                ciTypeName:
-                  _.inputType === "ref"
-                    ? this.allCi.find(i => i.ciTypeId === _.referenceId).name
-                    : this.allCi.find(i => i.ciTypeId === _.ciTypeId).name,
-                ciTypeAttrName: _.name,
-                isReferedFromParent: 1,
-                id: _.inputType === "ref" ? _.referenceId : _.ciTypeId
-              });
+              if (_.status === "created") {
+                attr.push({
+                  ..._,
+                  ciTypeName:
+                    _.inputType === "ref"
+                      ? this.allCi.find(i => i.ciTypeId === _.referenceId).name
+                      : this.allCi.find(i => i.ciTypeId === _.ciTypeId).name,
+                  ciTypeAttrName: _.name,
+                  isReferedFromParent: 1,
+                  id: _.inputType === "ref" ? _.referenceId : _.ciTypeId
+                });
+              }
             });
             this.options = attr;
           } else {
