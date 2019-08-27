@@ -88,6 +88,7 @@ public class PluginConfigCopyHelper {
         targetParameter.setCmdbCitypePath(sourceParameter.getCmdbCitypePath());
         targetParameter.setCmdbColumnSource(sourceParameter.getCmdbColumnSource());
         targetParameter.setCmdbColumnName(sourceParameter.getCmdbColumnName());
+        targetParameter.setCmdbEnumCode(sourceParameter.getCmdbEnumCode());
     }
 
     private PluginConfigFilteringRule cloneFilteringRule(PluginConfigFilteringRule rule) {
