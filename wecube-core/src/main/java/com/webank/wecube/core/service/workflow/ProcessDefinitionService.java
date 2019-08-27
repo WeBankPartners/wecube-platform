@@ -224,44 +224,36 @@ public class ProcessDefinitionService extends AbstractProcessService {
         org.camunda.bpm.model.bpmn.instance.Process process = processes.iterator().next();
 
         Collection<ServiceTask> serviceTasks = process.getChildElementsByType(ServiceTask.class);
+        Collection<SubProcess> subProcesses = process.getChildElementsByType(SubProcess.class);
 
         List<ProcessDefinitionTaskServiceEntity> taskEntities = processDefinitionTaskServiceEntityRepository
                 .findTaskServicesByProcDefKeyAndVersion(procDef.getKey(), procDef.getVersion());
 
         List<ServiceTaskVO> serviceTaskVOs = new ArrayList<>();
         for (ProcessDefinitionTaskServiceEntity taskEntity : taskEntities) {
-            if (!containsTaskNodeId(taskEntity.getTaskNodeId(), serviceTasks)) {
+            if(isServiceTask(taskEntity, serviceTasks) || isSubProcess(taskEntity, subProcesses)){
+                ServiceTaskVO stVo = new ServiceTaskVO();
+                stVo.setServiceCode(taskEntity.getBindServiceName());
+                stVo.setId(taskEntity.getTaskNodeId());
+                stVo.setName(taskEntity.getTaksNodeName());
+                stVo.setCiLocateExpression(taskEntity.getBindCiRoutineExp());
+
+                serviceTaskVOs.add(stVo);
+            }else{
                 log.warn("such task node ID does not exist in process definition, taskNodeId={}",
                         taskEntity.getTaskNodeId());
                 continue;
             }
-
-            ServiceTaskVO stVo = new ServiceTaskVO();
-            stVo.setServiceCode(taskEntity.getBindServiceName());
-            stVo.setId(taskEntity.getTaskNodeId());
-            stVo.setName(taskEntity.getTaksNodeName());
-            stVo.setCiLocateExpression(taskEntity.getBindCiRoutineExp());
-
-            serviceTaskVOs.add(stVo);
         }
 
         return serviceTaskVOs;
     }
 
-    private boolean containsTaskNodeId(String taskNodeId, Collection<ServiceTask> serviceTasks) {
-        for (ServiceTask s : serviceTasks) {
-            if (s.getId().equals(taskNodeId)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public Map<String, Object> evaluateRequiredInputParameters(String processDefinitionId) {
         List<ServiceTaskVO> serviceTasks = calPluginEnabledServiceTasks(processDefinitionId);
-        if (isEmpty(serviceTasks))
+        if (isEmpty(serviceTasks)){
             throw new WecubeCoreException("No service task found for process - " + processDefinitionId);
+        }
         return evaluateRequiredInputParameters(serviceTasks);
     }
 
@@ -271,9 +263,10 @@ public class ProcessDefinitionService extends AbstractProcessService {
         serviceTasks.stream().map(ServiceTaskVO::getServiceCode).forEach(serviceName -> {
             Optional<PluginConfigInterface> pluginConfigInterface = pluginConfigRepository
                     .findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(serviceName);
-            if (!pluginConfigInterface.isPresent())
+            if (!pluginConfigInterface.isPresent()){
                 throw new WecubeCoreException(
                         String.format("Plugin interface not found for serviceName [%s].", serviceName));
+            }
             PluginConfigInterface inf = pluginConfigInterface.get();
             inputParameters.addAll(inf.getInputParameters());
             putToSet(outputParameterAttributeIds, inf.getOutputParameters(),
@@ -514,32 +507,14 @@ public class ProcessDefinitionService extends AbstractProcessService {
                 entity.setTaskNodeType(ProcessDefinitionTaskServiceEntity.TASK_NODE_TYPE_SUBPROCESS);
                 processDefinitionTaskServiceEntityRepository.save(entity);
             } else {
-                log.warn("such service task bind infomation does not expected, nodeId={}, serviceTaskId={}",
+                log.warn("such service task bind information is invalid, nodeId={}, serviceTaskId={}",
                         entity.getTaskNodeId(), entity.getBindServiceId());
                 processDefinitionTaskServiceEntityRepository.delete(entity);
             }
         }
     }
 
-    protected boolean isSubProcess(ProcessDefinitionTaskServiceEntity entity, Collection<SubProcess> subProcesses) {
-        for (SubProcess sp : subProcesses) {
-            if (sp.getId().equals(entity.getTaskNodeId())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected boolean isServiceTask(ProcessDefinitionTaskServiceEntity entity, Collection<ServiceTask> serviceTasks) {
-        for (ServiceTask task : serviceTasks) {
-            if (task.getId().equals(entity.getTaskNodeId())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    
 
     private void handleDeployFailure(ProcessDefinitionEntity processDefinitionEntity) {
         List<ProcessDefinitionTaskServiceEntity> taskServiceEntities = processDefinitionTaskServiceEntityRepository

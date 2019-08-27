@@ -13,8 +13,6 @@ import com.webank.wecube.core.domain.workflow.ServiceInvocationEventImpl;
 @Component("taskDispatcher")
 public class PlugableApplicationTaskDispatcher implements JavaDelegate {
     private static final Logger log = LoggerFactory.getLogger(PlugableApplicationTaskDispatcher.class);
-    public static final String W3_NS_URI = "http://www.webank.com/schema/we3/1.0";
-    public static final String ATTR_NAME_SERVICE_CODE = "serviceCode";
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
