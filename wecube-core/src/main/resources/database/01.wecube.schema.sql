@@ -1,8 +1,3 @@
-SET NAMES utf8;
-create database wecube charset = utf8;
-
-use wecube;
-
 drop table if exists blob_data;
 create table blob_data (
   id int auto_increment primary key,
@@ -82,11 +77,13 @@ create table plugin_cfg_inf_parameters (
   type varchar(50) not null,
   name varchar(255) not null,
   datatype varchar(50) default null,
+  mapping_type varchar(50),
   cmdb_column_name varchar(500),
   cmdb_column_source varchar(2000),
   cmdb_citype_id int,
   cmdb_attribute_id int,
-  cmdb_citype_path varchar(500)
+  cmdb_citype_path varchar(500),
+  cmdb_enum_code int
 );
 
 drop table if exists plugin_instances;

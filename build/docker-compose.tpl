@@ -1,9 +1,6 @@
 version: '2'
-networks:
-  wecube-core:
-    external: false
 services:
-  minio:
+  wecube-minio:
     image: minio/minio
     restart: always
     command: [
@@ -15,12 +12,11 @@ services:
     volumes:
       - /data/minio-storage/data:/data    
       - /data/minio-storage/config:/root
+      - /etc/localtime:/etc/localtime
     environment:
       - MINIO_ACCESS_KEY={{S3_ACCESS_KEY}}
       - MINIO_SECRET_KEY={{S3_SECRET_KEY}}
-    networks:
-      - wecube-core
-  mysql:
+  wecube-mysql:
     image: {{WECUBE_DATABASE_IMAGE_NAME}}
     restart: always
     command: [
@@ -28,37 +24,39 @@ services:
             '--collation-server=utf8mb4_unicode_ci',
             '--default-time-zone=+8:00'
     ]
+    ports:
+      - 13306:3306
     environment:
-      - MYSQL_ROOT_PASSWORD={{MYSQL_USER_PASSWORD}}
-    networks:
-      - wecube-core
+      - MYSQL_ROOT_PASSWORD={{MYSQL_ROOT_PASSWORD}}
     volumes:
       - /data/wecube/db:/var/lib/mysql
-  wecube:
-    image: {{WECUBE_CORE_IMAGE_NAME}}
+      - /etc/localtime:/etc/localtime
+  wecube-app:
+    image: {{WECUBE_IMAGE_NAME}}
     restart: always
     depends_on:
-      - mysql
+      - wecube-minio
+      - wecube-mysql
     volumes:
-      - /data/wecube/log:/data/ 
-    networks:
-      - wecube-core
+      - /data/wecube/log:/log/ 
+      - /etc/localtime:/etc/localtime
     ports:
-      - {{WECUBE_CORE_EXTERNAL_PORT}}:8080
+      - {{WECUBE_SERVER_PORT}}:8080
     environment:
-      - MYSQL_SERVER_ADDR=mysql
+      - TZ=Asia/Shanghai
+      - MYSQL_SERVER_ADDR=wecube-mysql
       - MYSQL_SERVER_PORT=3306
       - MYSQL_SERVER_DATABASE_NAME=wecube
       - MYSQL_USER_NAME=root
-      - MYSQL_USER_PASSWORD={{MYSQL_USER_PASSWORD}}
+      - MYSQL_USER_PASSWORD={{MYSQL_ROOT_PASSWORD}}
       - CAS_SERVER_URL={{CAS_SERVER_URL}}
       - CMDB_SERVER_URL={{CMDB_SERVER_URL}}
-      - CAS_REDIRECT_APP_ADDR={{WECUBE_CORE_EXTERNAL_IP}}:{{WECUBE_CORE_EXTERNAL_PORT}}
+      - CAS_REDIRECT_APP_ADDR={{WECUBE_SERVER_IP}}:{{WECUBE_SERVER_PORT}}
       - WECUBE_PLUGIN_HOSTS={{WECUBE_PLUGIN_HOSTS}}
       - WECUBE_PLUGIN_HOST_PORT={{WECUBE_PLUGIN_HOST_PORT}}
       - WECUBE_PLUGIN_HOST_USER={{WECUBE_PLUGIN_HOST_USER}}
       - WECUBE_PLUGIN_HOST_PWD={{WECUBE_PLUGIN_HOST_PWD}}
-      - S3_ENDPOINT={{S3_ENDPOINT}}
+      - S3_ENDPOINT={{S3_URL}}
       - S3_ACCESS_KEY={{S3_ACCESS_KEY}}
       - S3_SECRET_KEY={{S3_SECRET_KEY}}
 
