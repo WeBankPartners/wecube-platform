@@ -16,6 +16,21 @@ services:
     environment:
       - MINIO_ACCESS_KEY={{S3_ACCESS_KEY}}
       - MINIO_SECRET_KEY={{S3_SECRET_KEY}}
+  wecube-mysql:
+    image: {{WECUBE_DATABASE_IMAGE_NAME}}
+    restart: always
+    command: [
+            '--character-set-server=utf8mb4',
+            '--collation-server=utf8mb4_unicode_ci',
+            '--default-time-zone=+8:00'
+    ]
+    ports:
+      - 13306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD={{MYSQL_ROOT_PASSWORD}}
+    volumes:
+      - /data/wecube/db:/var/lib/mysql
+      - /etc/localtime:/etc/localtime
   wecube-app:
     image: {{WECUBE_IMAGE_NAME}}
     restart: always
