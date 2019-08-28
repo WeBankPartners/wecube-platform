@@ -25,7 +25,7 @@ services:
             '--default-time-zone=+8:00'
     ]
     ports:
-      - 3306:3306
+      - 13306:3306
     environment:
       - MYSQL_ROOT_PASSWORD={{MYSQL_ROOT_PASSWORD}}
     volumes:
