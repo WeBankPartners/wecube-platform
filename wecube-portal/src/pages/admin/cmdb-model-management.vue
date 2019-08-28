@@ -1232,7 +1232,7 @@ export default {
         .attr("stroke-opacity", ".2")
         .attr("fill", "#7f8fa6")
         .attr("fill-opacity", ".2");
-      d3.selectAll("text").attr("fill", "#000");
+      d3.selectAll(".edge text").attr("fill", "#000");
     },
     colorNode(nodeName) {
       d3.selectAll('g[from="' + nodeName + '"] path')
@@ -1280,8 +1280,7 @@ export default {
           .attr("stroke-opacity", "1")
           .attr("fill", "#7f8fa6")
           .attr("fill-opacity", "1");
-
-        d3.selectAll("text").attr("fill", "#000");
+        d3.selectAll(".edge text").attr("fill", "#000");
       });
       addEvent(".node", "click", async e => {
         e.preventDefault();
