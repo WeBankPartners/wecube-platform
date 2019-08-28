@@ -9,13 +9,14 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 4. 安装docker1.17.03.x以上版本及docker-compose命令。
      - docker安装请参考[docker安装文档](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker_install_guide.md)
      - docker-compose安装请参考[docker-compose安装文档](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker-compose_install_guide.md)
-5. 确认cmdb相关信息
+5. 确认cmdb已经部署并能正常访问
 	
 	需要知道cmdb的访问ip以及端口。
 
 	确认cmdb的api访问ip白名单列表中已包含wecube部署主机的ip。
 	
 	可查看wecmdb的安装文档中cmdb.cfg配置文件中的配置项：
+
 	```
 	cmdb_ip_whitelists={$cmdb_ip_whitelists}
 	```
@@ -26,7 +27,7 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	--cas-server.whitelist-ipaddress=127.0.0.1
 	```
 
-	替换成wecube所在主机的ip，重启wecmdb服务。
+	127.0.0.1替换成wecube所在主机的ip，重启wecmdb服务。
 
 
 ## 加载镜像
@@ -40,7 +41,7 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 
    执行docker images 命令，能看到镜像已经导入：
 
-   ![wecube-platform_make_image](images/wecube-platform_make_image.png)
+   ![wecube-platform_images](images/wecube-platform_images.png)
 
    记下镜像列表中的镜像名称以及TAG， 在下面的配置中需要用到。
 
@@ -52,6 +53,8 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	[wecube.cfg](../../../build/wecube.cfg)
 
 	[install.sh](../../../build/install.sh)
+
+	[uninstall.sh](../../../build/uninstall.sh)
 
 	[docker-compose.tpl](../../../build/docker-compose.tpl)
 
@@ -139,13 +142,21 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	
 	```
 
-3. docker-compose.tpl文件
+4. uninstall.sh文件。
+
+	```
+	#!/bin/bash
+	docker-compose -f docker-compose.yml down -v
+	```
+
+5. docker-compose.tpl文件
 	
 	此文件中配置了要安装的服务:wecube、mysql和minio。
 	
 	如果已有minio和mysql，在文件中将这两段注释掉,在wecube的environment配置中,手动修改s3和数据库配置即可。
 	
 	详细代码如下:
+
 	```
 	version: '2'
 	services:
@@ -219,4 +230,23 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 2. 安装后检查
 	访问WeCube的url http://wecube_server_ip:wecube_server_port 确认页面访问正常。
 
-## 配置修改
+
+## 卸载
+执行如下命令，通过docker-compose停止WeCube服务。
+
+```
+/bin/bash ./uninstall.sh
+```
+
+## 重启
+执行如下命令，通过docker-compose停止WeCube服务。
+
+```
+/bin/bash ./uninstall.sh
+```
+
+根据需要修改wecube.cfg配置文件，重启服务
+
+```
+/bin/bash ./install.sh
+```
