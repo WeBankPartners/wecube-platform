@@ -37,19 +37,34 @@
 
 	编译过程中会从外网拉取maven包和npm包，如果有更快的maven源，可修改该文件中的配置。
 
-	在代码根目录下执行make build 等待编译完成，如下图：
+	在代码根目录下执行
+
+    ```
+	make build
+	```
+	
+	等待编译完成，如下图：
+
 	![wecube-platform_make_build](images/wecube-platform_make_build.png)
 
 3. 制作镜像
 	
-	编译完成后，在代码根目录下执行make image，如下图：
+	编译完成后，在代码根目录下执行
+
+    ```
+	make image
+	```
+	
+	如下图：
+
 	![wecube-platform_make_image](images/wecube-platform_make_image.png)
 
 	将制作WeCube的运行镜像。
 	
-	如果还需要制作WeCube的数据库镜像，进入build/db目录，执行以下命令：
+	如果还需要制作WeCube的数据库镜像，执行以下命令：
 
 	```
+	cd build/db
 	chmod +x build-image.sh
 	./build-image.sh
 	```
