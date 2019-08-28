@@ -52,6 +52,7 @@ camunda:
 wecube:
   core:
     cas-server-url: http://cas-server-ip:8080/cas
+    cas-redirect-app-addr: localhost:8080
     cmdb-server-url: http://cmdb-server-ip:37000/cmdb
     security-enabled: true
     max-file-size: 64KB
