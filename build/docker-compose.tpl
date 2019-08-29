@@ -17,7 +17,7 @@ services:
       - MINIO_ACCESS_KEY={{S3_ACCESS_KEY}}
       - MINIO_SECRET_KEY={{S3_SECRET_KEY}}
   wecube-app:
-    image: {{WECUBE_IMAGE_NAME}}
+    image: {{WECUBE_IMAGE_NAME}}:{{IMAGE_VERSION}}
     restart: always
     depends_on:
       - wecube-minio
