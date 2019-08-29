@@ -628,16 +628,17 @@ export default {
             ? i.resultStatus.toString()
             : "",
           inputParameterMappings: i.inputParameters.map(inp => {
-            const routine = inp.cmdbAttr.cmdbColumnCriteria
-              ? inp.cmdbAttr.cmdbColumnCriteria.routine.slice(0, -1)
+            const params = inp.cmdbAttr.cmdbColumnCriteria;
+            const routine = params
+              ? params.routine.length === 1
+                ? params.routine
+                : params.routine.slice(0, -1)
               : null;
             return {
               routine: routine,
               mappingType: inp.cmdbAttr.mappingType,
               cmdbEnumCode: inp.cmdbAttr.cmdbEnumCode,
-              cmdbAttributeId: inp.cmdbAttr.cmdbColumnCriteria
-                ? inp.cmdbAttr.cmdbColumnCriteria.attribute.attrId
-                : null,
+              cmdbAttributeId: params ? params.attribute.attrId : null,
               cmdbCiTypeId:
                 routine &&
                 routine[routine.length - 1] &&
@@ -1005,8 +1006,11 @@ export default {
   },
   computed: {
     setUploadActionHeader() {
+      let uploadToken = document.cookie
+        .split(";")
+        .find(i => i.indexOf("XSRF-TOKEN") !== -1);
       return {
-        "X-XSRF-TOKEN": document.cookie.split("=")[1]
+        "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
       };
     }
   }
