@@ -64,37 +64,37 @@ export default {
       immediate: true
     }
   },
+  mounted() {
+    this.$emit("input", this.outputValue);
+  },
   computed: {
-    cmdbCiType() {
-      return {
-        mappingType: this.mappingType,
-        cmdbEnumCode: null,
-        cmdbColumnSource: this.cmdbAttr.cmdbColumnSource,
-        cmdbColumnCriteria: this.cmdbAttr.cmdbColumnCriteria
-      };
-    },
-    cmdbEnumCodeValue() {
-      return {
-        mappingType: this.mappingType,
-        cmdbEnumCode: this.cmdbEnumCode,
-        cmdbColumnSource: null,
-        cmdbColumnCriteria: null
-      };
+    outputValue() {
+      if (this.mappingType === "CMDB_CI_TYPE") {
+        return {
+          mappingType: this.mappingType,
+          cmdbEnumCode: null,
+          cmdbColumnSource: this.cmdbAttr.cmdbColumnSource,
+          cmdbColumnCriteria: this.cmdbAttr.cmdbColumnCriteria
+        };
+      } else {
+        return {
+          mappingType: this.mappingType,
+          cmdbEnumCode: this.cmdbEnumCode,
+          cmdbColumnSource: null,
+          cmdbColumnCriteria: null
+        };
+      }
     }
   },
   methods: {
     mappingTypeChangeHandler(v) {
-      if (v === "CMDB_CI_TYPE") {
-        this.$emit("input", this.cmdbCiType);
-      } else {
-        this.$emit("input", this.cmdbEnumCodeValue);
-      }
+      this.$emit("input", this.outputValue);
     },
     cmdbAttrChangeHandler(v) {
-      this.$emit("input", this.cmdbCiType);
+      this.$emit("input", this.outputValue);
     },
     cmdbEnumCodeChangeHandler(v) {
-      this.$emit("input", this.cmdbEnumCodeValue);
+      this.$emit("input", this.outputValue);
     }
   }
 };
