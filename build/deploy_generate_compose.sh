@@ -26,3 +26,7 @@ sed -i "s~{{S3_URL}}~$s3_url~g" docker-compose.yml
 sed -i "s~{{S3_ACCESS_KEY}}~$s3_access_key~g" docker-compose.yml
 sed -i "s~{{S3_SECRET_KEY}}~$s3_secret_key~g" docker-compose.yml
 sed -i "s~{{IMAGE_VERSION}}~$image_version~g" docker-compose.yml
+sed -i "s~{{MYSQL_SERVER_ADDR}}~$mysql_server_addr~g" docker-compose.yml
+sed -i "s~{{MYSQL_SERVER_PORT}}~$mysql_server_port~g" docker-compose.yml
+sed -i "s~{{MYSQL_SERVER_DATABASE_NAME}}~$mysql_server_database_name~g" docker-compose.yml
+sed -i "s~{{MYSQL_USER_NAME}}~$mysql_user_name~g" docker-compose.yml
