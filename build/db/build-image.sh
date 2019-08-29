@@ -5,7 +5,7 @@ cp -r ../../wecube-core/src/main/resources/database  database
 TEXT='use wecube;'
 
 cd database
-for i in `ls -1 ./*`; do
+for i in `ls -1 ./*.sql`; do
      CONTENTS=`cat $i`
      echo $TEXT > $i  
      echo $CONTENTS >> $i
