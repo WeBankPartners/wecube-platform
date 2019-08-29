@@ -1,11 +1,22 @@
 package com.webank.wecube.core.domain.plugin;
 
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
 
-import javax.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data @NoArgsConstructor @AllArgsConstructor
 @Entity
@@ -15,6 +26,7 @@ public class PluginConfigInterfaceParameter {
     public static final String TYPE_INPUT = "INPUT";
     public static final String TYPE_OUTPUT = "OUTPUT";
     
+    public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
     public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
     public static final String MAPPING_TYPE_CMDB_ENUM_CODE = "CMDB_ENUM_CODE";
     public static final String MAPPING_TYPE_RUNTIME = "RUNTIME";
