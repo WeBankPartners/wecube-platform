@@ -246,7 +246,7 @@
                       <FormItem :label-width="0">
                         <Tooltip :content="param.name">
                           <span
-                            style="display: inline-block;max-width: 100%;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                           >
                             {{ param.name }}
                           </span>
@@ -304,7 +304,7 @@
                       <FormItem :label-width="0">
                         <Tooltip :content="outPut.name">
                           <span
-                            style="display: inline-block;max-width: 100%;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                           >
                             {{ outPut.name }}
                           </span>
