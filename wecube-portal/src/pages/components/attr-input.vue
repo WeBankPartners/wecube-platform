@@ -1,13 +1,14 @@
 <template>
   <div class="attr_input">
     <Poptip v-if="!isReadOnly" v-model="optionsHide" placement="bottom">
-      <div class="input_in">
+      <div ref="wecube_cmdb_attr" class="input_in">
         <textarea
           ref="textarea"
           :rows="1.5"
           @input="inputHandler"
           :value="inputVal"
         ></textarea>
+        <span class="wecube-error-message">请选择非引用属性</span>
       </div>
       <div slot="content">
         <div v-if="rootCiType" class="attr-ul">
@@ -138,6 +139,17 @@ export default {
         "updateRoutine",
         this.getValue(val).cmdbColumnCriteria.routine
       );
+      const attrId = val[val.length - 1].ciTypeAttrId;
+      if (attrId) {
+        if (
+          this.ciTypeAttributeObj[attrId].inputType === "ref" ||
+          this.ciTypeAttributeObj[attrId].inputType === "multiRef"
+        ) {
+          this.$refs["wecube_cmdb_attr"].classList.add("wecube-error");
+        } else {
+          this.$refs["wecube_cmdb_attr"].classList.remove("wecube-error");
+        }
+      }
     }
   },
   methods: {
@@ -365,12 +377,32 @@ export default {
 }
 .input_in {
   width: 100%;
-}
-.input_in textarea {
-  font-size: 11px;
-  line-height: 28px;
-  width: 100%;
-  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+
+  textarea {
+    font-size: 11px;
+    line-height: 28px;
+    width: 100%;
+    border-radius: 5px;
+  }
+  .wecube-error-message {
+    display: none;
+  }
+
+  &.wecube-error {
+    textarea {
+      border: 1px solid #f00;
+    }
+    .wecube-error-message {
+      display: block;
+      height: 20px;
+      line-height: 16px;
+      color: #f00;
+      padding: 2px 0;
+      font-size: 12px;
+    }
+  }
 }
 .attr-ul ul {
   width: 100%;

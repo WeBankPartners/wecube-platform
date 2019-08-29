@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,8 @@ import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.core.domain.plugin.PluginPackage;
 import com.webank.wecube.core.domain.plugin.PluginRegisteringModel;
 import com.webank.wecube.core.domain.plugin.PluginRegisteringModel.FilteringRuleConfig;
+import com.webank.wecube.core.domain.plugin.PluginRegisteringModel.InputParameterMapping;
+import com.webank.wecube.core.jpa.PluginConfigInterfaceParameterRepository;
 import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
 import com.webank.wecube.core.support.cmdb.dto.v2.IntQueryOperateAggRequestDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.IntQueryOperateAggRequestDto.Criteria;
@@ -38,13 +41,16 @@ public class PluginConfigRegisteringProcessor {
 
     private PluginConfig pluginConfig;
 
+    private PluginConfigInterfaceParameterRepository pluginConfigInterfaceParameterRepository;
+
     private Map<String, PluginConfigFilteringRule> filteringRuleMap = new HashMap<>();
     private Map<Integer, PluginConfigInterface> interfaceMap = new HashMap<>();
     private Map<String, PluginConfigInterfaceParameter> parameterMap = new HashMap<>();
 
-    public PluginConfigRegisteringProcessor(CmdbServiceV2Stub cmdbServiceV2Stub, PluginConfig pluginConfig) {
+    public PluginConfigRegisteringProcessor(CmdbServiceV2Stub cmdbServiceV2Stub, PluginConfig pluginConfig, PluginConfigInterfaceParameterRepository pluginConfigInterfaceParameterRepository) {
         this.cmdbServiceV2Stub = cmdbServiceV2Stub;
         this.pluginConfig = pluginConfig;
+        this.pluginConfigInterfaceParameterRepository = pluginConfigInterfaceParameterRepository;
 
         init();
     }
@@ -180,6 +186,7 @@ public class PluginConfigRegisteringProcessor {
     }
 
     private Criteria createCmdbIntQueryOperateAggRequestCriteria(PluginRegisteringModel.InputParameterMapping parameterMapping) {
+        validateRequiredFields(parameterMapping);
         Criteria criteria = new Criteria();
         criteria.setBranchId("P" + parameterMapping.getParameterId());
         criteria.setCiTypeId(parameterMapping.getCmdbCiTypeId());
@@ -188,6 +195,25 @@ public class PluginConfigRegisteringProcessor {
         criteria.setRoutine(parameterMapping.getRoutine());
 
         return criteria;
+    }
+
+    private void validateRequiredFields(InputParameterMapping parameterMapping) {
+        if (parameterMapping.getCmdbCiTypeId() == null) {
+            throw new WecubeCoreException(String.format("Field - cmdbCiTypeId is required for input parameter - [%s].", getParameterName(parameterMapping.getParameterId())));
+        }
+
+        if (parameterMapping.getCmdbAttributeId() == null) {
+            throw new WecubeCoreException(String.format("Field - cmdbAttributedId is required for input parameter - [%s].", getParameterName(parameterMapping.getParameterId())));
+        }
+    }
+
+    private String getParameterName(Integer parameterId) {
+        String parameterName = null;
+        Optional<PluginConfigInterfaceParameter> parameter = pluginConfigInterfaceParameterRepository.findById(parameterId);
+        if (parameter.isPresent()) {
+            parameterName = parameter.get().getName();
+        }
+        return parameterName;
     }
 
     private Criteria createCmdbIntQueryOperateAggRequestCriteria(int cmdbCiTypeId, String cmdbCiTypeName, FilteringRuleConfig filteringRuleConfig) {
