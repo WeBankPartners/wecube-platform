@@ -21,7 +21,6 @@ services:
     restart: always
     depends_on:
       - wecube-minio
-      - wecube-mysql
     volumes:
       - /data/wecube/log:/log/ 
       - /etc/localtime:/etc/localtime
