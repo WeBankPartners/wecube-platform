@@ -3,6 +3,7 @@ package com.webank.wecube.core.service;
 
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.plugin.*;
+import com.webank.wecube.core.jpa.PluginConfigInterfaceParameterRepository;
 import com.webank.wecube.core.jpa.PluginConfigRepository;
 import com.webank.wecube.core.jpa.PluginPackageRepository;
 import com.webank.wecube.core.service.plugin.PluginConfigRegisteringProcessor;
@@ -30,6 +31,8 @@ public class PluginConfigService {
     PluginConfigRepository pluginConfigRepository;
     @Autowired
     CmdbServiceV2Stub cmdbServiceV2Stub;
+    @Autowired
+    private PluginConfigInterfaceParameterRepository pluginConfigInterfaceParameterRepository;
 
     public Iterable<PluginPackage> getPluginPackages() {
         return pluginPackageRepository.findAll();
@@ -82,7 +85,7 @@ public class PluginConfigService {
         PluginConfig pluginConfig = pluginConfigOptional.get();
         pluginConfig.setCmdbCiTypeId(cmdbCiTypeId);
 
-        new PluginConfigRegisteringProcessor(cmdbServiceV2Stub, pluginConfig)
+        new PluginConfigRegisteringProcessor(cmdbServiceV2Stub, pluginConfig, pluginConfigInterfaceParameterRepository)
                 .process(cmdbCiTypeId, cmdbCiTypeName, registeringModel);
 
         pluginConfigRepository.save(pluginConfig);
