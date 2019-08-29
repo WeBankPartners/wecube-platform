@@ -188,19 +188,19 @@
           </Row>
           <hr />
           <Row style="margin-bottom:10px;margin-top:10px">
-            <Col span="2">
+            <Col span="4">
               <span>操作</span>
             </Col>
-            <Col span="2">
+            <Col span="3">
               <span>参数类型</span>
             </Col>
-            <Col span="5">
+            <Col span="3">
               <span>数据状态</span>
             </Col>
             <Col span="3">
               <span>参数名</span>
             </Col>
-            <Col span="6" offset="0">
+            <Col span="5" offset="0">
               <span>CMDB属性</span>
             </Col>
           </Row>
