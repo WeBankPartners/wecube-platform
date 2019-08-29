@@ -188,10 +188,10 @@
           </Row>
           <hr />
           <Row style="margin-bottom:10px;margin-top:10px">
-            <Col span="4">
+            <Col span="3">
               <span>操作</span>
             </Col>
-            <Col span="3">
+            <Col span="2">
               <span>参数类型</span>
             </Col>
             <Col span="3">
@@ -200,7 +200,7 @@
             <Col span="3">
               <span>参数名</span>
             </Col>
-            <Col span="5" offset="0">
+            <Col span="5" offset="1">
               <span>CMDB属性</span>
             </Col>
           </Row>
@@ -209,15 +209,23 @@
             v-for="(interfaces, index) in pluginInterfaces"
             :key="interfaces.id"
           >
-            <Col span="2">{{ interfaces.name }}</Col>
-            <Col span="22">
+            <Col span="3">
+              <Tooltip :content="interfaces.name">
+                <span
+                  style="display: inline-block;max-width: 95%;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                >
+                  {{ interfaces.name }}
+                </span>
+              </Tooltip>
+            </Col>
+            <Col span="21">
               <Row>
                 <Col span="2">
                   <FormItem :label-width="0">
                     <span>输入参数</span>
                   </FormItem>
                 </Col>
-                <Col span="4">
+                <Col span="3">
                   <FormItem :label-width="0">
                     <Select v-model="interfaces.filterStatus" clearable>
                       <Option
@@ -236,7 +244,13 @@
                   >
                     <Col span="5">
                       <FormItem :label-width="0">
-                        <span>{{ param.name }}</span>
+                        <Tooltip :content="param.name">
+                          <span
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >
+                            {{ param.name }}
+                          </span>
+                        </Tooltip>
                       </FormItem>
                     </Col>
                     <Col span="18">
@@ -269,7 +283,7 @@
                     <span>输出参数</span>
                   </FormItem>
                 </Col>
-                <Col span="4">
+                <Col span="3">
                   <FormItem :label-width="0">
                     <Select v-model="interfaces.resultStatus" clearable>
                       <Option
@@ -288,7 +302,13 @@
                   >
                     <Col span="5">
                       <FormItem :label-width="0">
-                        <span>{{ outPut.name }}</span>
+                        <Tooltip :content="outPut.name">
+                          <span
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >
+                            {{ outPut.name }}
+                          </span>
+                        </Tooltip>
                       </FormItem>
                     </Col>
                     <Col span="18">
