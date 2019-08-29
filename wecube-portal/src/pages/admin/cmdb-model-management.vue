@@ -1133,7 +1133,12 @@ export default {
                 this.renderRightPanels();
               });
           });
-          setHeaders({ "X-XSRF-TOKEN": document.cookie.split("=")[1] });
+          let uploadToken = document.cookie
+            .split(";")
+            .find(i => i.indexOf("XSRF-TOKEN") !== -1);
+          setHeaders({
+            "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
+          });
           initEvent();
           this.renderGraph(ciResponse.data);
         }
@@ -1213,9 +1218,9 @@ export default {
         '"->' +
         '"' +
         target.name.trim() +
-        '"[label="' +
+        '"[taillabel="' +
         labels +
-        '"];'
+        '", labeldistance=3];'
       );
     },
     shadeAll() {
@@ -1227,7 +1232,7 @@ export default {
         .attr("stroke-opacity", ".2")
         .attr("fill", "#7f8fa6")
         .attr("fill-opacity", ".2");
-      d3.selectAll("text").attr("fill", "#000");
+      d3.selectAll(".edge text").attr("fill", "#000");
     },
     colorNode(nodeName) {
       d3.selectAll('g[from="' + nodeName + '"] path')
@@ -1275,8 +1280,7 @@ export default {
           .attr("stroke-opacity", "1")
           .attr("fill", "#7f8fa6")
           .attr("fill-opacity", "1");
-
-        d3.selectAll("text").attr("fill", "#000");
+        d3.selectAll(".edge text").attr("fill", "#000");
       });
       addEvent(".node", "click", async e => {
         e.preventDefault();
@@ -1861,8 +1865,11 @@ export default {
   },
   computed: {
     setUploadActionHeader() {
+      let uploadToken = document.cookie
+        .split(";")
+        .find(i => i.indexOf("XSRF-TOKEN") !== -1);
       return {
-        "X-XSRF-TOKEN": document.cookie.split("=")[1]
+        "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
       };
     }
   }

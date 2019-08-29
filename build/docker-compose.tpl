@@ -22,10 +22,11 @@ services:
     command: [
             '--character-set-server=utf8mb4',
             '--collation-server=utf8mb4_unicode_ci',
-            '--default-time-zone=+8:00'
+            '--default-time-zone=+8:00',
+            '--max_allowed_packet=4M'
     ]
     ports:
-      - 3306:3306
+      - 13306:3306
     environment:
       - MYSQL_ROOT_PASSWORD={{MYSQL_ROOT_PASSWORD}}
     volumes:
