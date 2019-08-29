@@ -34,6 +34,15 @@
 	
 	在本地开发电脑上运行WeCube，如果需要使用物料管理、插件功能，则需要一个支持S3协议的对象存储，可以使用远程服务， 也可以在本地开发电脑部署。本指引以Minio为例。
 
+	dockerhub上有容器镜像，可以直接下载安装：https://hub.docker.com/r/minio/minio/
+	
+	安装命令如下：
+	
+	```
+	docker pull minio/minio
+	docker run -p 9000:9000 -e MINIO_ACCESS_KEY=access_key -e MINIO_SECRET_KEY=secret_key minio/minio server /data
+	```
+	
 7. 需要预先部署WeCMDB
 	
 	在本地开发电脑上运行WeCube，需要WeCMDB支持。
