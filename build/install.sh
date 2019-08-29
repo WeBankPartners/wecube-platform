@@ -14,7 +14,7 @@ fi
 
 source wecube.cfg
 
-sed  "s~{{WECUBE_DATABASE_IMAGE_NAME}}~$database_image_name~g" docker-compose.tpl >  docker-compose.yml  
+sed  "s~{{WECUBE_DATABASE_IMAGE_NAME}}~$database_image_name~g" docker-compose-all.tpl >  docker-compose.yml  
 sed -i "s~{{WECUBE_IMAGE_NAME}}~$wecube_image_name~g" docker-compose.yml  
 sed -i "s~{{WECUBE_SERVER_PORT}}~$wecube_server_port~g" docker-compose.yml 
 sed -i "s~{{MYSQL_ROOT_PASSWORD}}~$database_init_password~g" docker-compose.yml 
