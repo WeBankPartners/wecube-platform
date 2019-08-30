@@ -13,6 +13,7 @@ import com.webank.wecube.core.domain.workflow.entity.NodeType;
 import com.webank.wecube.core.domain.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.core.domain.workflow.entity.TraceStatus;
 import com.webank.wecube.core.jpa.workflow.ServiceNodeStatusRepository;
+import com.webank.wecube.core.service.workflow.WorkflowConstants;
 
 @Component
 public class UserTaskStartListener implements ExecutionListener {
@@ -32,7 +33,7 @@ public class UserTaskStartListener implements ExecutionListener {
     protected void logUserTaskStart(DelegateExecution execution) {
         Date currTime = new Date();
         ServiceNodeStatusEntity entity = new ServiceNodeStatusEntity();
-        entity.setCreatedBy("system");
+        entity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
         entity.setCreatedTime(currTime);
         entity.setId(LocalIdGenerator.generateId());
         entity.setNodeId(execution.getCurrentActivityId());
@@ -45,9 +46,7 @@ public class UserTaskStartListener implements ExecutionListener {
         entity.setStatus(TraceStatus.InProgress);
         entity.setTryTimes(0);
 
-        ServiceNodeStatusRepository respository = SpringApplicationContextUtil
-                .getBean(ServiceNodeStatusRepository.class);
-        respository.save(entity);
+        SpringApplicationContextUtil.getBean(ServiceNodeStatusRepository.class).save(entity);
     }
 
 }

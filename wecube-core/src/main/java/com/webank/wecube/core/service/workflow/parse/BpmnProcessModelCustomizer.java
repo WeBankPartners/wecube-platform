@@ -219,6 +219,60 @@ public class BpmnProcessModelCustomizer {
         }
     }
 
+    protected void validateLeafNode(FlowNode dstFlowNode) {
+        if (dstFlowNode.getOutgoing().isEmpty()) {
+            if ("endEvent".equals(dstFlowNode.getElementType().getTypeName())) {
+                log.info("end event,id={}", dstFlowNode.getId());
+            } else {
+                log.error("the leaf node must be end event,id={}", dstFlowNode.getId());
+                throw new BpmnCustomizationException("the leaf node must be end event");
+            }
+        }
+    }
+
+    protected void enhanceSequenceFlow(SequenceFlow sf) {
+        FlowNode srcFlowNode = sf.getSource();
+        FlowNode dstFlowNode = sf.getTarget();
+
+        // type="bpmn:tFormalExpression"
+        if (sf.getConditionExpression() == null && "exclusiveGateway".equals(srcFlowNode.getElementType().getTypeName())
+                && srcFlowNode.getOutgoing().size() == 2) {
+            String dstType = dstFlowNode.getElementType().getTypeName();
+            if ("serviceTask".equals(dstType) || "subProcess".equals(dstType)) {
+                log.info("to add condition,sequenceFlowId={}", sf.getId());
+                ConditionExpression okCon = sf.getModelInstance().newInstance(ConditionExpression.class);
+                okCon.setType(FORMAL_EXPR_TYPE);
+                okCon.setTextContent(CONDITION_EXPR_OK);
+                sf.builder().condition(okCon).done();
+            }
+
+            if ("endEvent".equals(dstType)) {
+                EndEvent endEvent = (EndEvent) dstFlowNode;
+                Collection<EventDefinition> eventDefinitions = endEvent.getEventDefinitions();
+                boolean isErrorEndEvent = false;
+                for (EventDefinition ed : eventDefinitions) {
+                    if (ErrorEventDefinition.class.isAssignableFrom(ed.getClass())) {
+                        isErrorEndEvent = true;
+                        break;
+                    }
+                }
+
+                if (isErrorEndEvent) {
+                    log.info("to add condition,sequenceFlowId={}", sf.getId());
+                    ConditionExpression notOkCon = sf.getModelInstance().newInstance(ConditionExpression.class);
+                    notOkCon.setType(FORMAL_EXPR_TYPE);
+                    notOkCon.setTextContent(CONDITION_EXPR_NOT_OK);
+                    sf.builder().condition(notOkCon).done();
+                } else {
+                    ConditionExpression okCon = sf.getModelInstance().newInstance(ConditionExpression.class);
+                    okCon.setType(FORMAL_EXPR_TYPE);
+                    okCon.setTextContent(CONDITION_EXPR_OK);
+                    sf.builder().condition(okCon).done();
+                }
+            }
+        }
+    }
+
     protected void enhanceSequenceFlows(BpmnModelInstance procModelInstance) {
         Collection<SequenceFlow> sequenceFlows = procModelInstance.getModelElementsByType(SequenceFlow.class);
         for (SequenceFlow sf : sequenceFlows) {
@@ -230,53 +284,9 @@ public class BpmnProcessModelCustomizer {
                     sf.getId(), sf.getName(), srcFlowNode.getElementType().getTypeName(), srcFlowNode.getId(),
                     srcFlowNode.getOutgoing().size(), dstFlowNode.getId(), dstFlowNode.getOutgoing().size());
 
-            if (dstFlowNode.getOutgoing().isEmpty()) {
-                if ("endEvent".equals(dstFlowNode.getElementType().getTypeName())) {
-                    log.info("end event,id={}", dstFlowNode.getId());
-                } else {
-                    log.error("the leaf node must be end event,id={}", dstFlowNode.getId());
-                    throw new BpmnCustomizationException("the leaf node must be end event");
-                }
-            }
+            validateLeafNode(dstFlowNode);
 
-            // type="bpmn:tFormalExpression"
-            if (sf.getConditionExpression() == null
-                    && "exclusiveGateway".equals(srcFlowNode.getElementType().getTypeName())
-                    && srcFlowNode.getOutgoing().size() == 2) {
-                String dstType = dstFlowNode.getElementType().getTypeName();
-                if ("serviceTask".equals(dstType) || "subProcess".equals(dstType)) {
-                    log.info("to add condition,sequenceFlowId={}", sf.getId());
-                    ConditionExpression okCon = sf.getModelInstance().newInstance(ConditionExpression.class);
-                    okCon.setType(FORMAL_EXPR_TYPE);
-                    okCon.setTextContent(CONDITION_EXPR_OK);
-                    sf.builder().condition(okCon).done();
-                }
-
-                if ("endEvent".equals(dstType)) {
-                    EndEvent endEvent = (EndEvent) dstFlowNode;
-                    Collection<EventDefinition> eventDefinitions = endEvent.getEventDefinitions();
-                    boolean isErrorEndEvent = false;
-                    for (EventDefinition ed : eventDefinitions) {
-                        if (ErrorEventDefinition.class.isAssignableFrom(ed.getClass())) {
-                            isErrorEndEvent = true;
-                            break;
-                        }
-                    }
-
-                    if (isErrorEndEvent) {
-                        log.info("to add condition,sequenceFlowId={}", sf.getId());
-                        ConditionExpression notOkCon = sf.getModelInstance().newInstance(ConditionExpression.class);
-                        notOkCon.setType(FORMAL_EXPR_TYPE);
-                        notOkCon.setTextContent(CONDITION_EXPR_NOT_OK);
-                        sf.builder().condition(notOkCon).done();
-                    } else {
-                        ConditionExpression okCon = sf.getModelInstance().newInstance(ConditionExpression.class);
-                        okCon.setType(FORMAL_EXPR_TYPE);
-                        okCon.setTextContent(CONDITION_EXPR_OK);
-                        sf.builder().condition(okCon).done();
-                    }
-                }
-            }
+            enhanceSequenceFlow(sf);
 
         }
     }
@@ -385,7 +395,7 @@ public class BpmnProcessModelCustomizer {
     protected void supplementSubProcess(SubProcess subProc) {
         String subProcId = subProc.getId();
 
-        String userTaskId = subProcId + "-userTask1";
+        String userTaskId = "exceptSubUT-"+subProcId;
         String srvBeanServiceTaskId = String.format("srvBeanST-%s", subProcId);
         String actRetryExpr = String.format("${ act_%s == 'retry' }", subProcId);
         String actSkipExpr = String.format("${ act_%s == 'skip' }", subProcId);
@@ -396,7 +406,7 @@ public class BpmnProcessModelCustomizer {
                 .name("EGW1_" + subProcId).intermediateCatchEvent(subProcId + "_ice1").name("ICE1_" + subProcId)
                 .signal(subProcId + "_sig1").exclusiveGateway().gatewayDirection(GatewayDirection.Diverging)
                 .condition("con1", CONDITION_EXPR_OK).endEvent(subProcId + "_endEvent1").name("End1_" + subProcId)
-                .moveToLastGateway().condition("con2", CONDITION_EXPR_NOT_OK).serviceTask(subProcId + "_serviceTask2")
+                .moveToLastGateway().condition("con2", CONDITION_EXPR_NOT_OK).serviceTask("srvFailBeanST-"+subProcId)
                 .name("SRV-FAIL-HANDLER_" + subProcId).camundaDelegateExpression("${srvFailBean}").userTask(userTaskId)
                 .name("EXCEPTION-HANDLER_" + subProcId).condition("con4", actRetryExpr).connectTo(srvBeanServiceTaskId)
                 .moveToActivity(userTaskId).condition("con3", actSkipExpr).endEvent().name("End2_" + subProcId);
@@ -405,7 +415,7 @@ public class BpmnProcessModelCustomizer {
         if (StringUtils.isNotBlank(subProcessTimeoutExpr)) {
             AbstractFlowNodeBuilder<?, ?> ab = eb.moveToLastGateway().moveToLastGateway()
                     .intermediateCatchEvent(subProcId + "_time1").timerWithDuration(subProcessTimeoutExpr)
-                    .serviceTask(subProcId + "_serviceTask3").name("SRV-TIMEOUT-HANDLER_" + subProcId)
+                    .serviceTask("srvTimeOutBeanST-"+subProcId).name("SRV-TIMEOUT-HANDLER_" + subProcId)
                     .camundaDelegateExpression("${srvTimeoutBean}").connectTo(userTaskId);
             ab.done();
         } else {

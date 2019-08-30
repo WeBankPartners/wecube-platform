@@ -21,6 +21,8 @@ public class WorkflowConstants {
 
     public static final String PREFIX_SRV_BEAN_SERVICETASK = "srvBeanST-";
     
+    public static final String PREFIX_EXCEPT_SUB_USER_TASK = "exceptSubUT-";
+    
     public static final String DEFAULT_USER = "sys";
 
 }
