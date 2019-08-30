@@ -501,9 +501,7 @@ export default {
   },
   watch: {
     currentPlugin: {
-      handler(val) {
-        console.log(val);
-      },
+      handler(val) {},
       deep: true
     },
     selectedCiType: {
@@ -746,7 +744,7 @@ export default {
       if (c && c.value) {
         this.pluginInterfaces.forEach(_ => {
           _.inputParameters.forEach(inparams => {
-            this.$set(inparams, "cmdbAttr", {});
+            this.$set(inparams, "cmdbAttr", inparams);
           });
           // _.outputParameters.forEach(outparams => {
           //   this.$set(outparams, "cmdbColumnSource", _.cmdbColumnSource||'');
