@@ -1,12 +1,17 @@
 package com.webank.wecube.core.service.plugin;
 
-import com.webank.wecube.core.domain.plugin.*;
-import lombok.extern.slf4j.Slf4j;
+import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.NOT_CONFIGURED;
+import static com.webank.wecube.core.utils.CollectionUtils.asMap;
 
 import java.util.Map;
 
-import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.NOT_CONFIGURED;
-import static com.webank.wecube.core.utils.CollectionUtils.asMap;
+import com.webank.wecube.core.domain.plugin.PluginConfig;
+import com.webank.wecube.core.domain.plugin.PluginConfigFilteringRule;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.core.domain.plugin.PluginPackage;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PluginConfigCopyHelper {
@@ -77,11 +82,13 @@ public class PluginConfigCopyHelper {
     }
 
     private void copyParameterConfig(final PluginConfigInterfaceParameter sourceParameter, final PluginConfigInterfaceParameter targetParameter) {
+        targetParameter.setMappingType(sourceParameter.getMappingType());
         targetParameter.setCmdbAttributeId(sourceParameter.getCmdbAttributeId());
         targetParameter.setCmdbCitypeId(sourceParameter.getCmdbCitypeId());
         targetParameter.setCmdbCitypePath(sourceParameter.getCmdbCitypePath());
         targetParameter.setCmdbColumnSource(sourceParameter.getCmdbColumnSource());
         targetParameter.setCmdbColumnName(sourceParameter.getCmdbColumnName());
+        targetParameter.setCmdbEnumCode(sourceParameter.getCmdbEnumCode());
     }
 
     private PluginConfigFilteringRule cloneFilteringRule(PluginConfigFilteringRule rule) {
