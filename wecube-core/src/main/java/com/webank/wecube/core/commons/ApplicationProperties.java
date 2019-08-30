@@ -1,18 +1,30 @@
 package com.webank.wecube.core.commons;
 
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
+
+import lombok.Data;
 
 @Data
 @ConfigurationProperties(prefix = "wecube.core")
 public class ApplicationProperties {
+    private static final String AUTH_PROVIDER_LOCAL = "local";
+    private static final String AUTH_PROVIDER_CAS = "CAS";
 
+    private String authenticationProvider;
     private String casServerUrl = "";
     private String cmdbServerUrl = "";
     private String casRedirectAppAddr = "";
     private DataSize maxFileSize = DataSize.ofKilobytes(64);
     private boolean securityEnabled = true;
+    
+    public boolean isAuthenticationProviderLocal() {
+        return AUTH_PROVIDER_LOCAL.equalsIgnoreCase(authenticationProvider);
+    }
+    
+    public boolean isAuthenticationProviderCAS() {
+        return AUTH_PROVIDER_CAS.equalsIgnoreCase(authenticationProvider);
+    }
 
     @Data
     @ConfigurationProperties(prefix = "wecube.core.httpclient")
