@@ -51,10 +51,15 @@ camunda:
 
 wecube:
   core:
+    security-enabled: true
+    
+    #Authentication provider options: local or CAS. Effective ONLY when security-enabled set as true.
+    authentication-provider: local
+    #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS
     cas-server-url: http://cas-server-ip:8080/cas
     cas-redirect-app-addr: localhost:8080
+    
     cmdb-server-url: http://cmdb-server-ip:37000/cmdb
-    security-enabled: true
     max-file-size: 64KB
     httpclient:
       max-total-connections: 200
