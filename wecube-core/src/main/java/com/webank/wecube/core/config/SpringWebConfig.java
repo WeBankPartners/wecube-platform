@@ -1,12 +1,9 @@
 package com.webank.wecube.core.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
-import com.webank.wecube.core.commons.CustomRolesPrefixPostProcessor;
-import com.webank.wecube.core.commons.ApplicationProperties;
+import java.util.List;
+
 import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -16,11 +13,13 @@ import org.springframework.security.cas.ServiceProperties;
 import org.springframework.security.cas.authentication.CasAuthenticationProvider;
 import org.springframework.security.cas.web.CasAuthenticationEntryPoint;
 import org.springframework.security.cas.web.CasAuthenticationFilter;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -30,11 +29,14 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
+import com.webank.wecube.core.commons.ApplicationProperties;
+import com.webank.wecube.core.commons.CustomRolesPrefixPostProcessor;
+import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.interceptor.WebUsernameInterceptor;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-
-import java.util.List;
 
 @Configuration
 @EnableWebMvc
@@ -43,9 +45,6 @@ import java.util.List;
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
 @ComponentScan({"com.webank.wecube.core.controller"})
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
-
-    @Autowired
-    private ServerProperties serverProperties;
 
     @Autowired
     private ApplicationProperties applicationProperties;
@@ -77,20 +76,60 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         if (applicationProperties.isSecurityEnabled()) {
-            http.exceptionHandling()
-                    .authenticationEntryPoint(casAuthenticationEntryPoint())
-                    .and()
-                    .addFilter(casAuthenticationFilter())
-                    .addFilterBefore(logoutFilter(), LogoutFilter.class)
-                    .authorizeRequests()
-                    .anyRequest().authenticated()
-                    .and()
-                    .logout().permitAll()
-                    .and()
-                    .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+            if (applicationProperties.isAuthenticationProviderLocal()) {
+                configureLocalAuthentication(http);
+            }
+            else if (applicationProperties.isAuthenticationProviderCAS()) {
+                configureCasAuthentication(http);
+            }
+            else {
+                throw new WecubeCoreException("Unsupported authentication-provider: " + applicationProperties.getAuthenticationProvider());
+            }
         } else {
-            http.csrf().disable().antMatcher("/**").anonymous();
+            http.csrf().disable().authorizeRequests().anyRequest().permitAll();
         }
+    }
+    
+    protected void configureLocalAuthentication(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+            .authorizeRequests()
+                .antMatchers("/login*").permitAll()
+                .antMatchers("/logout*").permitAll()
+                .anyRequest().authenticated()
+            .and()
+                .formLogin()
+                .loginPage("/login.html")
+                .loginProcessingUrl("/login")
+                .defaultSuccessUrl("/index.html", true)
+                .failureUrl("/login.html?error=true")
+            .and()
+                .logout()
+                .logoutUrl("/logout")
+                .deleteCookies("JSESSIONID")
+                .logoutSuccessUrl("/login.html");
+    }
+    
+    @Override
+    protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
+        if (applicationProperties.isAuthenticationProviderLocal()) {
+            auth.userDetailsService(userDetailsService).passwordEncoder(new BypassPasswordEncoder());
+        } else {
+            super.configure(auth);
+        }
+    }
+    
+    protected void configureCasAuthentication(HttpSecurity http) throws Exception {
+        http.exceptionHandling()
+            .authenticationEntryPoint(casAuthenticationEntryPoint())
+            .and()
+            .addFilter(casAuthenticationFilter())
+            .addFilterBefore(casLogoutFilter(), LogoutFilter.class)
+            .authorizeRequests()
+            .anyRequest().authenticated()
+            .and()
+            .logout().permitAll()
+            .and()
+            .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     }
 
 
@@ -107,7 +146,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         return filter;
     }
 
-    public LogoutFilter logoutFilter() {
+    public LogoutFilter casLogoutFilter() {
         return new LogoutFilter(applicationProperties.getCasServerUrl() + "/logout?service=" + getServerUrl(), new SecurityContextLogoutHandler());
     }
 
@@ -151,4 +190,19 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         messageConverter.setObjectMapper(mapper);
         return messageConverter;
     }
+    
+    
+    private class BypassPasswordEncoder implements PasswordEncoder{
+        @Override
+        public boolean matches(CharSequence rawPassword, String encodedPassword) {
+            return true;
+        }
+        
+        @Override
+        public String encode(CharSequence rawPassword) {
+            return String.valueOf(rawPassword);
+        }
+    }
+    
+    
 }
