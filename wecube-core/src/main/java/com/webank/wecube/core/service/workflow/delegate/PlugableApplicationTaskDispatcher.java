@@ -9,6 +9,10 @@ import org.springframework.stereotype.Component;
 
 import com.webank.wecube.core.domain.workflow.ServiceInvocationEvent;
 import com.webank.wecube.core.domain.workflow.ServiceInvocationEventImpl;
+import com.webank.wecube.core.domain.workflow.entity.ServiceNodeStatusEntity;
+import com.webank.wecube.core.jpa.workflow.ServiceNodeStatusRepository;
+import com.webank.wecube.core.service.workflow.WorkflowConstants;
+import com.webank.wecube.core.service.workflow.parse.SpringApplicationContextUtil;
 
 @Component("taskDispatcher")
 public class PlugableApplicationTaskDispatcher implements JavaDelegate {
@@ -37,6 +41,33 @@ public class PlugableApplicationTaskDispatcher implements JavaDelegate {
             log.error("plugin invocation errors", e);
             throw e;
         }
+        
+        logServiceNodeExecution(execution);
+    }
+    
+    protected void logServiceNodeExecution(DelegateExecution execution){
+        String activityId = execution.getCurrentActivityId();
+        if(activityId == null){
+            return;
+        }
+        
+        String nodeId = activityId;
+        if(activityId.startsWith(WorkflowConstants.PREFIX_SRV_BEAN_SERVICETASK)){
+            nodeId = activityId.substring(WorkflowConstants.PREFIX_SRV_BEAN_SERVICETASK.length());
+        }
+        
+        String procInstanceBizKey = execution.getProcessBusinessKey();
+        
+        ServiceNodeStatusRepository repository = SpringApplicationContextUtil.getBean(ServiceNodeStatusRepository.class);
+        
+        ServiceNodeStatusEntity entity = repository.findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
+        
+        if(entity != null){
+            entity.setTryTimes(entity.getTryTimes() +  1);
+            repository.save(entity);
+        }
+        
+        
     }
 
     private ServiceInvocationEvent serviceInvocationEvent(DelegateExecution execution, ProcessDefinition procDef) {
