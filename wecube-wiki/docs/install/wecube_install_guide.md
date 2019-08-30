@@ -44,7 +44,6 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 
 	```
 	#wecube-core
-	wecube_server_ip={$wecube_server_ip}
 	wecube_server_port=9090
 	wecube_image_name={$wecube_image_name}
 	wecube_plugin_hosts=100.107.119.14,100.107.119.79
@@ -59,9 +58,6 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	database_image_name={$wecube_database_image_name}
 	database_init_password={$wecube_database_init_password}
 	
-	#cas
-	cas_url=http://{$cas_ip}:{$cas_port}/cas
-	
 	#s3
 	s3_url=http://{$minio_server_ip}:9000
 	s3_access_key=access_key
@@ -70,7 +66,6 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 
 	配置项                      |说明
 	---------------------------|--------------------
-	wecube_server_ip           |wecube的服务ip，cas单点登录成功后的回跳地址；如果浏览器是通过局域网访问，该值填部署主机的局域网ip;如果是公网访问需填公网可访问的ip地址，如LB的ip
 	wecube_server_port         |wecube的服务端口
 	wecube_image_name          |wecube的docker镜像名称
 	wecube_plugin_hosts        |wecube部署插件的容器主机ip
@@ -80,7 +75,6 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	cmdb_url                   |wecube依赖的cmdb服务url
 	database_image_name        |wecube数据库镜像名称
 	database_init_password     |wecube数据库初始化密码
-	cas_url                    |单点登陆cas服务器url
 	s3_url                     |wecube依赖的对象存储服务器地址，docker-compose.tpl中已经包含minio的S3服务，此处填部署主机ip
 	s3_access_key              |minio对象存储访问access_key
 	s3_secret_key              |minio对象存储访问secret_key
@@ -108,9 +102,7 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	sed -i "s~{{WECUBE_IMAGE_NAME}}~$wecube_image_name~" docker-compose.yml  
 	sed -i "s~{{WECUBE_SERVER_PORT}}~$wecube_server_port~" docker-compose.yml 
 	sed -i "s~{{MYSQL_ROOT_PASSWORD}}~$database_user_password~" docker-compose.yml 
-	sed -i "s~{{CAS_SERVER_URL}}~$cas_url~" docker-compose.yml 
 	sed -i "s~{{CMDB_SERVER_URL}}~$cmdb_url~" docker-compose.yml 
-	sed -i "s~{{WECUBE_SERVER_IP}}~$wecube_server_ip~" docker-compose.yml
 	sed -i "s~{{WECUBE_PLUGIN_HOSTS}}~$wecube_plugin_hosts~" docker-compose.yml
 	sed -i "s~{{WECUBE_PLUGIN_HOST_PORT}}~$wecube_plugin_host_port~" docker-compose.yml
 	sed -i "s~{{WECUBE_PLUGIN_HOST_USER}}~$wecube_plugin_host_user~" docker-compose.yml
@@ -181,9 +173,7 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	      - MYSQL_SERVER_DATABASE_NAME=wecube
 	      - MYSQL_USER_NAME=root
 	      - MYSQL_USER_PASSWORD={{MYSQL_ROOT_PASSWORD}}
-	      - CAS_SERVER_URL={{CAS_SERVER_URL}}
 	      - CMDB_SERVER_URL={{CMDB_SERVER_URL}}
-	      - CAS_REDIRECT_APP_ADDR={{WECUBE_SERVER_IP}}:{{WECUBE_SERVER_PORT}}
 	      - WECUBE_PLUGIN_HOSTS={{WECUBE_PLUGIN_HOSTS}}
 	      - WECUBE_PLUGIN_HOST_PORT={{WECUBE_PLUGIN_HOST_PORT}}
 	      - WECUBE_PLUGIN_HOST_USER={{WECUBE_PLUGIN_HOST_USER}}
