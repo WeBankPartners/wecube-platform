@@ -10,8 +10,7 @@ import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.NOT_CONFIGURED;
-import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_INPUT;
-import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_OUTPUT;
+import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
 
@@ -101,9 +100,9 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
     private PluginConfigInterface mockPluginConfigInterface(PluginConfig pluginConfig) {
         PluginConfigInterface pluginConfigInterface = new PluginConfigInterface(null, pluginConfig, "create", "'create", "Qcloud_vpc_create", "/v1/qcloud/vpc/create", null, null, null, newLinkedHashSet(), newLinkedHashSet());
-        pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_INPUT, "provider_params", "string", null, null, null, null, null));
-        pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_INPUT, "name", "string", null, null, null, null, null));
-        pluginConfigInterface.addOutputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_OUTPUT, "id", "string", null, null, null, null, null));
+        pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_INPUT, "provider_params", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, null, null, null, null));
+        pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_INPUT, "name", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, null, null, null, null));
+        pluginConfigInterface.addOutputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_OUTPUT, "id", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, null, null, null, null));
         return pluginConfigInterface;
     }
 
