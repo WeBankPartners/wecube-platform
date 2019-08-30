@@ -188,19 +188,19 @@
           </Row>
           <hr />
           <Row style="margin-bottom:10px;margin-top:10px">
-            <Col span="2">
+            <Col span="3">
               <span>操作</span>
             </Col>
             <Col span="2">
               <span>参数类型</span>
             </Col>
-            <Col span="5">
+            <Col span="3">
               <span>数据状态</span>
             </Col>
             <Col span="3">
               <span>参数名</span>
             </Col>
-            <Col span="6" offset="0">
+            <Col span="5" offset="1">
               <span>CMDB属性</span>
             </Col>
           </Row>
@@ -209,15 +209,23 @@
             v-for="(interfaces, index) in pluginInterfaces"
             :key="interfaces.id"
           >
-            <Col span="2">{{ interfaces.name }}</Col>
-            <Col span="22">
+            <Col span="3">
+              <Tooltip :content="interfaces.name">
+                <span
+                  style="display: inline-block;max-width: 95%;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                >
+                  {{ interfaces.name }}
+                </span>
+              </Tooltip>
+            </Col>
+            <Col span="21">
               <Row>
                 <Col span="2">
                   <FormItem :label-width="0">
                     <span>输入参数</span>
                   </FormItem>
                 </Col>
-                <Col span="4">
+                <Col span="3">
                   <FormItem :label-width="0">
                     <Select v-model="interfaces.filterStatus" clearable>
                       <Option
@@ -236,14 +244,29 @@
                   >
                     <Col span="5">
                       <FormItem :label-width="0">
-                        <span>{{ param.name }}</span>
+                        <Tooltip :content="param.name">
+                          <span
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >
+                            {{ param.name }}
+                          </span>
+                        </Tooltip>
                       </FormItem>
                     </Col>
                     <Col span="18">
                       <FormItem :label-width="0">
-                        <AttrInput
+                        <!-- <AttrInput
                           :allCiTypes="ciTypes"
                           :cmdbColumnSource="param.cmdbColumnSource"
+                          :rootCiType="selectedCiType"
+                          v-model="param.cmdbAttr"
+                          :ciTypesObj="ciTypesObj"
+                          :ciTypeAttributeObj="ciTypeAttributeObj"
+                        /> -->
+                        <CmdbAttrInput
+                          :allCodes="allCodes"
+                          :allCiTypes="ciTypes"
+                          :paramData="param"
                           :rootCiType="selectedCiType"
                           v-model="param.cmdbAttr"
                           :ciTypesObj="ciTypesObj"
@@ -260,7 +283,7 @@
                     <span>输出参数</span>
                   </FormItem>
                 </Col>
-                <Col span="4">
+                <Col span="3">
                   <FormItem :label-width="0">
                     <Select v-model="interfaces.resultStatus" clearable>
                       <Option
@@ -279,7 +302,13 @@
                   >
                     <Col span="5">
                       <FormItem :label-width="0">
-                        <span>{{ outPut.name }}</span>
+                        <Tooltip :content="outPut.name">
+                          <span
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >
+                            {{ outPut.name }}
+                          </span>
+                        </Tooltip>
                       </FormItem>
                     </Col>
                     <Col span="18">
@@ -341,6 +370,7 @@
 <script>
 import AttrSelect from "../components/attr-select";
 import AttrInput from "../components/attr-input";
+import CmdbAttrInput from "../components/cmdb-attr-input";
 import {
   getAllCITypesByLayerWithAttr,
   getAllPluginPkgs,
@@ -382,10 +412,12 @@ export default {
   components: {
     AttrSelect,
     AttrInput,
-    refPayloadModal
+    refPayloadModal,
+    CmdbAttrInput
   },
   data() {
     return {
+      allCodes: [],
       ciTypesObj: {},
       ciTypeAttributeObj: {},
       allAvailiableHosts: [],
@@ -545,6 +577,27 @@ export default {
         });
       }
     },
+    async getAllCodes() {
+      // getAllSystemEnumCodes
+      const payload = {
+        filters: [],
+        paging: false
+      };
+      let { data, status, message } = await getAllSystemEnumCodes(payload);
+      if (status === "OK") {
+        this.allCodes = data.contents
+          .map(_ => {
+            return {
+              codeId: _.codeId,
+              value: _.codeId,
+              label: _.value || "",
+              catName: _.cat.catName
+            };
+          })
+          .filter(i => i.catName != "tab_query_of_architecture_design")
+          .filter(j => j.catName != "tab_query_of_deploy_design");
+      }
+    },
     async getLogDetail(logData) {
       const payload = {
         inputs: [
@@ -595,17 +648,24 @@ export default {
             ? i.resultStatus.toString()
             : "",
           inputParameterMappings: i.inputParameters.map(inp => {
-            const routine = inp.cmdbAttr.cmdbColumnCriteria.routine.slice(
-              0,
-              -1
-            );
+            const params = inp.cmdbAttr.cmdbColumnCriteria;
+            const routine = params
+              ? params.routine.length === 1
+                ? params.routine
+                : params.routine.slice(0, -1)
+              : null;
             return {
               routine: routine,
-              cmdbAttributeId: inp.cmdbAttr.cmdbColumnCriteria.attribute.attrId,
+              mappingType: inp.cmdbAttr.mappingType,
+              cmdbEnumCode: inp.cmdbAttr.cmdbEnumCode,
+              cmdbAttributeId: params ? params.attribute.attrId : null,
               cmdbCiTypeId:
+                routine &&
                 routine[routine.length - 1] &&
                 routine[routine.length - 1].ciTypeId,
-              cmdbColumnSource: JSON.stringify(inp.cmdbAttr.cmdbColumnSource),
+              cmdbColumnSource: inp.cmdbAttr.cmdbColumnSource
+                ? JSON.stringify(inp.cmdbAttr.cmdbColumnSource)
+                : null,
               parameterId: inp.id
             };
           }),
@@ -961,10 +1021,16 @@ export default {
     this.getAllPluginPkgs();
     this.getAllCiTypesByCatalog();
   },
+  mounted() {
+    this.getAllCodes();
+  },
   computed: {
     setUploadActionHeader() {
+      let uploadToken = document.cookie
+        .split(";")
+        .find(i => i.indexOf("XSRF-TOKEN") !== -1);
       return {
-        "X-XSRF-TOKEN": document.cookie.split("=")[1]
+        "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
       };
     }
   }

@@ -1,8 +1,7 @@
 package com.webank.wecube.core.service.workflow;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_INPUT;
-import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_OUTPUT;
+import static com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static java.util.Optional.of;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
@@ -75,11 +74,11 @@ public class ProcessDefinitionServiceTest extends DatabaseBasedTest{
         PluginConfigInterface pluginConfigInterface = new PluginConfigInterface();
         pluginConfigInterface.setId(id);
         pluginConfigInterface.setInputParameters(inputParameters.stream()
-                .map(paramId -> new PluginConfigInterfaceParameter(paramId, pluginConfigInterface, TYPE_INPUT, "param"+paramId, "string", "cmdbColumnName", "cmdbColumnSource", 10001, paramId, cmdbCitypePath))
+                .map(paramId -> new PluginConfigInterfaceParameter(paramId, pluginConfigInterface, TYPE_INPUT, "param"+paramId, "string", MAPPING_TYPE_CMDB_CI_TYPE, "cmdbColumnName", "cmdbColumnSource", 10001, paramId, cmdbCitypePath, null))
                 .collect(Collectors.toSet())
         );
         pluginConfigInterface.setOutputParameters(outputParameters.stream()
-                .map(paramId -> new PluginConfigInterfaceParameter(paramId, pluginConfigInterface, TYPE_OUTPUT, "param"+paramId, "string", "cmdbColumnName", "cmdbColumnSource", 10001, paramId, null))
+                .map(paramId -> new PluginConfigInterfaceParameter(paramId, pluginConfigInterface, TYPE_OUTPUT, "param"+paramId, "string", MAPPING_TYPE_CMDB_CI_TYPE, "cmdbColumnName", "cmdbColumnSource", 10001, paramId, null, null))
                 .collect(Collectors.toSet())
         );
         return pluginConfigInterface;

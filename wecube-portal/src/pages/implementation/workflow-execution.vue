@@ -233,7 +233,12 @@ export default {
                   });
               });
           });
-          setHeaders({ "X-XSRF-TOKEN": document.cookie.split("=")[1] });
+          let uploadToken = document.cookie
+            .split(";")
+            .find(i => i.indexOf("XSRF-TOKEN") !== -1);
+          setHeaders({
+            "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
+          });
           initEvent();
           this.renderGraph(ciResponse.data);
         }

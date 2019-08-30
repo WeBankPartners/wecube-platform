@@ -40,11 +40,15 @@ public class PluginRegisteringModel {
     @Data
     public static class InputParameterMapping{
         Integer parameterId;
+        
+        String mappingType;
 
         Integer cmdbCiTypeId;
         String cmdbCiTypeName;
         Integer cmdbAttributeId;
         String cmdbColumnSource;
+        
+        Integer cmdbEnumCode;
         List<CriteriaNode> routine;
     }
 
