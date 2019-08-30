@@ -18,8 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -67,6 +65,8 @@ import com.webank.wecube.core.support.plugin.dto.PluginRequest.PluginLoggingInfo
 import com.webank.wecube.core.support.plugin.dto.PortalRequestBody.SearchPluginLogRequest;
 import com.webank.wecube.core.support.s3.S3Client;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -490,18 +490,7 @@ public class PluginInstanceService {
 
         if (pluginResponse.getPluginResponse() == null) {
             log.error("notify workflow engine with failure message.");
-            
-            TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                    .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
-            if (execLog != null) {
-                execLog.setErrCode("1");
-                execLog.setErrMsg("no response");
-                execLog.setUpdatedTime(new Date());
-                execLog.setUpdatedBy(UsernameStorage.getIntance().get());
-                execLog.setTaskNodeStatus("Faulted");
-
-                taskNodeExecLogEntityRepository.saveAndFlush(execLog);
-            }
+            pluginWorkService.logFailureExecution(processInstanceBizKey, taskNodeId, "no response");
             pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode,
                     PLUGIN_WORK_FAIL);
             return;
@@ -509,18 +498,7 @@ public class PluginInstanceService {
 
         if (pluginResponse.getPluginResponse().isEmpty()) {
             log.warn("empty plugin response returned");
-            TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                    .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
-            if (execLog != null) {
-                execLog.setErrCode("0");
-                execLog.setErrMsg("response data is blank");
-                execLog.setResponseData(marshalRequestData(pluginResponse.getPluginResponse()));
-                execLog.setUpdatedTime(new Date());
-                execLog.setUpdatedBy(UsernameStorage.getIntance().get());
-                execLog.setTaskNodeStatus("Completed");
-
-                taskNodeExecLogEntityRepository.saveAndFlush(execLog);
-            }
+            pluginWorkService.logCompleteExecution(processInstanceBizKey, taskNodeId, marshalRequestData(pluginResponse.getPluginResponse()), "response data is blank");
 
             pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode, PLUGIN_WORK_SUCC);
 
@@ -544,22 +522,13 @@ public class PluginInstanceService {
         ParsePluginParametersResult parsePluginParametersResult = parsePluginParameters(pluginResponse, catCode);
 
         operateCiByInvocationResult(pluginResponse, parsePluginParametersResult);
-
-        TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
-        if (execLog != null) {
-            execLog.setErrCode("0");
-            execLog.setResponseData(marshalRequestData(pluginResponse.getPluginResponse()));
-            execLog.setUpdatedTime(new Date());
-            execLog.setUpdatedBy(UsernameStorage.getIntance().get());
-            execLog.setTaskNodeStatus("Completed");
-
-            taskNodeExecLogEntityRepository.saveAndFlush(execLog);
-        }
+        
+        pluginWorkService.logCompleteExecution(processInstanceBizKey, taskNodeId, marshalRequestData(pluginResponse.getPluginResponse()), "success");
 
         log.info("update cmdb and notify workflow engine with success message. Response is " + pluginResponse);
         pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode, PLUGIN_WORK_SUCC);
     }
+    
 
     private void setOperatorWithChecking(String operator) {
         if (UsernameStorage.getIntance().get() == null) {
