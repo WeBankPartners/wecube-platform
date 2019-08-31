@@ -10,8 +10,13 @@
             <!-- Login Form -->
             <form name='f' action="login" method='POST'>
                 <input type="text" id="username" class="fadeIn second" name="username" placeholder="username">
-                <input type="submit" class="fadeIn fourth" value="submit">
+                <input type="submit" class="fadeIn fourth" value="Login">
             </form>
+
+            <div id="formFooter">
+                <p class="underlineHover">默认管理员用户为: Admin</p>
+                <p class="underlineHover">服务器以体验模式启动，用户登录无需密码</p>
+            </div>
         </div>
     </div>
 
@@ -39,7 +44,7 @@
         font-weight: 600;
         text-transform: uppercase;
         display: inline-block;
-        margin: 40px 8px 10px;
+        margin: 40px 8px 10px 8px;
         color: #cccccc;
     }
 
@@ -60,13 +65,20 @@
     #formContent {
         border-radius: 10px;
         background: #fff;
-        padding: 30px;
         width: 90%;
         max-width: 450px;
         position: relative;
-        -webkit-box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.3);
+        padding: 0px;
         box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.3);
         text-align: center;
+    }
+
+    #formFooter {
+        background-color: #f6f6f6;
+        border-top: 1px solid #dce8f1;
+        padding: 25px;
+        text-align: center;
+        border-radius: 0 0 10px 10px;
     }
 
     h2.active {
@@ -74,13 +86,11 @@
         border-bottom: 2px solid #5fbae9;
     }
 
-    /* FORM TYPOGRAPHY*/
 
     input[type=button],
     input[type=submit],
     input[type=reset] {
         background-color: #56baed;
-        border: none;
         color: white;
         padding: 15px 80px;
         text-align: center;
@@ -91,7 +101,7 @@
         -webkit-box-shadow: 0 10px 30px 0 rgba(95, 186, 233, 0.4);
         box-shadow: 0 10px 30px 0 rgba(95, 186, 233, 0.4);
         border-radius: 5px;
-        margin: 5px 20px 40px;
+        margin: 20px;
         -webkit-transition: all 0.3s ease-in-out;
         -moz-transition: all 0.3s ease-in-out;
         -ms-transition: all 0.3s ease-in-out;
@@ -255,36 +265,10 @@
         animation-delay: 1s;
     }
 
-    /* Simple CSS3 Fade-in Animation */
-    .underlineHover:after {
-        display: block;
-        left: 0;
-        bottom: -10px;
-        width: 0;
-        height: 2px;
-        background-color: #56baed;
-        content: "";
-        transition: width 0.2s;
-    }
-
-    .underlineHover:hover {
-        color: #0d0d0d;
-    }
-
-    .underlineHover:hover:after {
-        width: 100%;
-    }
-
-
-
     /* OTHERS */
 
     *:focus {
         outline: none;
-    }
-
-    #icon {
-        width: 60%;
     }
 
     * {
