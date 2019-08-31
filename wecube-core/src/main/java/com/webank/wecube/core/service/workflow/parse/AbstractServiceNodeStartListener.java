@@ -7,6 +7,7 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import com.webank.wecube.core.domain.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.core.domain.workflow.entity.TraceStatus;
 import com.webank.wecube.core.jpa.workflow.ServiceNodeStatusRepository;
+import com.webank.wecube.core.service.workflow.WorkflowConstants;
 
 public abstract class AbstractServiceNodeStartListener extends AbstractServiceNodeListener{
     protected void logServiceNodeStart(DelegateExecution execution) {
@@ -26,7 +27,7 @@ public abstract class AbstractServiceNodeStartListener extends AbstractServiceNo
         }
         
         Date currTime = new Date();
-        entity.setUpdatedBy("system");
+        entity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         entity.setUpdatedTime(currTime);
         entity.setStatus(TraceStatus.InProgress);
         entity.setStartTime(currTime);

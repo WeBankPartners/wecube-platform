@@ -45,30 +45,24 @@ public class LocalBpmnParseListener extends AbstractBpmnParseListener {
 
     @Override
     public void parseSubProcess(Element subProcessElement, ScopeImpl scope, ActivityImpl activity) {
-        super.parseSubProcess(subProcessElement, scope, activity);
-
-        log.info("add listener {} {}", ExecutionListener.EVENTNAME_START, subProcessStartListener.getClass().getName());
-        log.info("add listener {} {}", ExecutionListener.EVENTNAME_END, subProcessEndListener.getClass().getName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_START, subProcessStartListener.getClass().getSimpleName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_END, subProcessEndListener.getClass().getSimpleName());
         activity.addListener(ExecutionListener.EVENTNAME_START, subProcessStartListener);
         activity.addListener(ExecutionListener.EVENTNAME_END, subProcessEndListener);
     }
 
     @Override
     public void parseProcess(Element processElement, ProcessDefinitionEntity processDefinition) {
-        super.parseProcess(processElement, processDefinition);
-
-        log.info("##### add listener {}", processInstanceStartListener.getClass().getName());
-        log.info("##### add listener {}", processInstanceEndListener.getClass().getName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_START, processInstanceStartListener.getClass().getSimpleName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_END, processInstanceEndListener.getClass().getSimpleName());
         processDefinition.addListener(ExecutionListener.EVENTNAME_START, processInstanceStartListener);
         processDefinition.addListener(ExecutionListener.EVENTNAME_END, processInstanceEndListener);
     }
 
     @Override
     public void parseServiceTask(Element serviceTaskElement, ScopeImpl scope, ActivityImpl activity) {
-        super.parseServiceTask(serviceTaskElement, scope, activity);
-
-        log.info("##### add listener {}", serviceTaskStartListener.getClass().getName());
-        log.info("##### add listener {}", serviceTaskEndListener.getClass().getName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_START, serviceTaskStartListener.getClass().getSimpleName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_END, serviceTaskEndListener.getClass().getSimpleName());
         activity.addListener(ExecutionListener.EVENTNAME_START, serviceTaskStartListener);
         activity.addListener(ExecutionListener.EVENTNAME_END, serviceTaskEndListener);
     }
@@ -76,18 +70,14 @@ public class LocalBpmnParseListener extends AbstractBpmnParseListener {
 
     @Override
     public void parseEndEvent(Element endEventElement, ScopeImpl scope, ActivityImpl activity) {
-        super.parseEndEvent(endEventElement, scope, activity);
-
-        log.info("##### add listener {}", endEventListener.getClass().getName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_END, endEventListener.getClass().getSimpleName());
         activity.addListener(ExecutionListener.EVENTNAME_END, endEventListener);
     }
 
     @Override
     public void parseUserTask(Element userTaskElement, ScopeImpl scope, ActivityImpl activity) {
-        super.parseUserTask(userTaskElement, scope, activity);
-        
-        log.info("##### add listener {}", userTaskStartListener.getClass().getName());
-        log.info("##### add listener {}", userTaskEndListener.getClass().getName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_START, userTaskStartListener.getClass().getSimpleName());
+        log.info("add listener {} {}", ExecutionListener.EVENTNAME_END, userTaskEndListener.getClass().getSimpleName());
         activity.addListener(ExecutionListener.EVENTNAME_START, userTaskStartListener);
         activity.addListener(ExecutionListener.EVENTNAME_END, userTaskEndListener);
     }

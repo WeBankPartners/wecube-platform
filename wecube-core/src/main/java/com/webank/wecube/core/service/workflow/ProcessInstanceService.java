@@ -13,12 +13,14 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricProcessInstanceQuery;
 import org.camunda.bpm.engine.history.NativeHistoricActivityInstanceQuery;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.FlowNode;
 import org.camunda.bpm.model.bpmn.instance.ServiceTask;
@@ -51,8 +53,10 @@ import com.webank.wecube.core.domain.workflow.RestartProcessInstanceRequest;
 import com.webank.wecube.core.domain.workflow.StartProcessInstaceWithCiDataReq;
 import com.webank.wecube.core.domain.workflow.StartProcessInstaceWithCiDataReqChunk;
 import com.webank.wecube.core.domain.workflow.TaskNodeExecLogEntity;
+import com.webank.wecube.core.domain.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.core.interceptor.UsernameStorage;
 import com.webank.wecube.core.jpa.TaskNodeExecLogEntityRepository;
+import com.webank.wecube.core.jpa.workflow.ServiceNodeStatusRepository;
 import com.webank.wecube.core.support.cmdb.dto.v2.AdhocIntegrationQueryDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeAttrDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.IntegrationQueryDto;
@@ -74,6 +78,12 @@ public class ProcessInstanceService extends AbstractProcessService {
 
     @Autowired
     private TaskNodeExecLogEntityRepository taskNodeExecLogEntityRepository;
+
+    @Autowired
+    private ServiceNodeStatusRepository serviceNodeStatusRepository;
+    
+    @Autowired
+    private TaskService taskService;
 
     public ProcessInstanceOutline refreshProcessInstanceStatus(String businessKey) {
         List<ProcessInstance> instances = runtimeService.createProcessInstanceQuery().active()
@@ -255,8 +265,7 @@ public class ProcessInstanceService extends AbstractProcessService {
                 .processInstanceId(processInstanceId).singleResult();
 
         if (runningInstance != null) {
-            log.error("such process instance is still running, processInstanceId={}", processInstanceId);
-            throw new WecubeCoreException("such process instance is still running");
+            return doRestartProcessInstanceFromRunningInstance(request, runningInstance);
         }
 
         HistoricProcessInstance hisInstance = historyService.createHistoricProcessInstanceQuery()
@@ -267,8 +276,13 @@ public class ProcessInstanceService extends AbstractProcessService {
             throw new WecubeCoreException("such process instance doesn't exist in history");
         }
 
+        return doRestartProcessInstanceFromHistoricInstance(request, hisInstance);
+
+    }
+    
+    private ProcessInstanceStartResponse doRestartProcessInstanceFromHistoricInstance(RestartProcessInstanceRequest request, HistoricProcessInstance hisInstance){
         HistoricProcessInstanceQuery hisQuery = historyService.createHistoricProcessInstanceQuery()
-                .processInstanceId(processInstanceId);
+                .processInstanceId(request.getProcessInstanceId());
 
         runtimeService.restartProcessInstances(hisInstance.getProcessDefinitionId())
                 .historicProcessInstanceQuery(hisQuery).startBeforeActivity(request.getActivityId())
@@ -290,9 +304,46 @@ public class ProcessInstanceService extends AbstractProcessService {
         resp.setProcessInstanceId(restartedInstance.getProcessInstanceId());
 
         resp.setProcessExecutionId(restartedInstance.getProcessInstanceId());
+        
+        return resp;
+    }
+
+    private ProcessInstanceStartResponse doRestartProcessInstanceFromRunningInstance(
+            RestartProcessInstanceRequest request, ProcessInstance runningInstance) {
+        
+        
+        String instanceId = request.getProcessInstanceId();
+        String taskId = WorkflowConstants.PREFIX_EXCEPT_SUB_USER_TASK+request.getActivityId();
+        
+        String act = StringUtils.isBlank(request.getAct())? "retry" : request.getAct();
+
+        Task task = taskService.createTaskQuery().processInstanceId(instanceId).active().taskId(taskId).singleResult();
+
+        if (task == null) {
+            log.error("cannot find task with instanceId {} and taskId {}", instanceId, taskId);
+            throw new WecubeCoreException("process instance restarting failed");
+        } else {
+
+            String actVarName = String.format("%s_%s", WorkflowConstants.VAR_KEY_USER_ACT, request.getActivityId());
+
+            log.info("to complete task {} put {} {}", taskId, WorkflowConstants.VAR_KEY_USER_ACT, act);
+            Map<String, Object> variables = new HashMap<String, Object>();
+            variables.put(actVarName, act);
+
+            taskService.complete(taskId, variables);
+        }
+        
+        
+        ProcessInstanceStartResponse resp = new ProcessInstanceStartResponse();
+
+        resp.setBusinessKey(runningInstance.getBusinessKey());
+        resp.setProcessDefinitionId(runningInstance.getProcessDefinitionId());
+
+        resp.setProcessInstanceId(runningInstance.getProcessInstanceId());
+
+        resp.setProcessExecutionId(runningInstance.getProcessInstanceId());
 
         return resp;
-
     }
 
     private String formatDate(Date date) {
@@ -589,6 +640,15 @@ public class ProcessInstanceService extends AbstractProcessService {
 
     private void setFlowNodeVoStatus(HistoricActivityInstance activity, String processInstanceId, FlowNodeVO vo) {
         if (activity.getActivityType().equals("subProcess")) {
+
+            ServiceNodeStatusEntity statusEntity = serviceNodeStatusRepository
+                    .findOneByProcInstanceIdAndNodeId(processInstanceId, activity.getActivityId());
+            if (statusEntity != null) {
+                vo.setStartTime(formatDate(statusEntity.getStartTime()));
+                vo.setStatus(statusEntity.getStatus().name());
+                return;
+            }
+
             String sql = String.format(
                     "select * from %s T where T.ACT_TYPE_ = 'errorEndEvent' and T.PROC_INST_ID_ = #{procInstId} and T.PARENT_ACT_INST_ID_ = #{parentActInstId}",
                     processEngine.getManagementService().getTableName(HistoricActivityInstance.class));
@@ -647,7 +707,7 @@ public class ProcessInstanceService extends AbstractProcessService {
 
             if (isServiceTask(entity, serviceTasks) || isSubProcess(entity, subProcesses)) {
                 processTaskServiceNode(rootCiTypeId, rootCiDataGuid, entity, processInstanceBizKey);
-            }else{
+            } else {
                 log.warn("such task node ID does not exist in process definition, taskNodeId={}",
                         entity.getTaskNodeId());
             }
@@ -794,19 +854,6 @@ public class ProcessInstanceService extends AbstractProcessService {
         outline.setProcessDefinitionId(historicProcessInstance.getProcessDefinitionId());
         outline.setProcessInstanceId(processInstanceId);
         outline.setStatus(COMPLETED);
-
-        String sql = String.format(
-                "select * from %s T where T.ACT_TYPE_ = 'errorEndEvent' and T.PROC_INST_ID_ = #{procInstId} and T.PARENT_ACT_INST_ID_ = #{parentActInstId}",
-                processEngine.getManagementService().getTableName(HistoricActivityInstance.class));
-        NativeHistoricActivityInstanceQuery errorEndEventsNativeQuery = processEngine.getHistoryService()
-                .createNativeHistoricActivityInstanceQuery().sql(sql).parameter("procInstId", processInstanceId)
-                .parameter("parentActInstId", processInstanceId);
-
-        Collection<HistoricActivityInstance> nativeErrorEndEvents = errorEndEventsNativeQuery.list();
-
-        if (nativeErrorEndEvents != null && (!nativeErrorEndEvents.isEmpty())) {
-            outline.setStatus(FAULTED);
-        }
 
         return outline;
     }
