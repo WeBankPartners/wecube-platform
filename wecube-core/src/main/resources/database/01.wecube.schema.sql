@@ -250,3 +250,49 @@ CREATE TABLE `operation_log` (
  INDEX `idx_operation` (`operation`),
  INDEX `idx_result` (`result`)
 );
+DROP TABLE IF EXISTS `act_ru_procinst_status`;
+CREATE TABLE `act_ru_procinst_status` (
+  `id` varchar(30) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `updated_by` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `proc_def_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_key` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_name` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_key` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+DROP TABLE IF EXISTS `act_ru_srvnode_status`;
+CREATE TABLE `act_ru_srvnode_status` (
+  `id` varchar(30) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `updated_by` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `node_id` varchar(60) COLLATE utf8_bin DEFAULT NULL,
+  `node_inst_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `node_name` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `node_type` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_key` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `try_times` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+);
+
+ALTER TABLE `wecube_dev`.`core_re_proc_def` 
+ADD COLUMN `PROC_DATA` LONGTEXT NULL,
+ADD COLUMN `PROC_STATUS` VARCHAR(45) NULL;
+
+
+ALTER TABLE `wecube_dev`.`core_re_proc_task_service` 
+ADD COLUMN `TIMEOUT_EXPR` VARCHAR(45) NULL,
+ADD COLUMN `TASK_NODE_TYPE` VARCHAR(45) NULL,
+ADD COLUMN `CORE_PROC_DEF_ID` VARCHAR(45) NULL;
