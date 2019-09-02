@@ -16,3 +16,27 @@ BEGIN
   END IF;
 END$$
 DELIMITER ;
+
+
+
+DROP PROCEDURE IF EXISTS create_table;
+
+DELIMITER $$
+$$
+CREATE PROCEDURE create_table(IN _tablename VARCHAR(100), IN _tableddl VARCHAR(1000))
+BEGIN
+  DECLARE _dbname VARCHAR(100);
+  DECLARE _count INT;
+  SET _dbname = DATABASE();
+  
+  SET _count = (SELECT COUNT(1)  FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = _tablename AND TABLE_SCHEMA = _dbname);
+  IF _count = 0 THEN
+    SET @ddl = CONCAT('create table ', _tablename, ' (', _tableddl,  ');');
+    PREPARE STMT FROM @ddl;
+    EXECUTE STMT;
+  END IF;
+END$$
+DELIMITER ;
+
+
+
