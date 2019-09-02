@@ -13,6 +13,8 @@ public class ServiceTaskBindInfoVO {
 	private String ciRoutineRaw;
 
 	private String description;
+	
+	private String timeoutExpression;
 
 	public String getId() {
 		return id;
@@ -94,4 +96,12 @@ public class ServiceTaskBindInfoVO {
 		this.description = description;
 	}
 
+    public String getTimeoutExpression() {
+        return timeoutExpression;
+    }
+
+    public void setTimeoutExpression(String timeoutExpression) {
+        this.timeoutExpression = timeoutExpression;
+    }
+	
 }
