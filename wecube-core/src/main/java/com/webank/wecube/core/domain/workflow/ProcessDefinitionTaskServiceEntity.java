@@ -12,6 +12,9 @@ import javax.persistence.Table;
 public class ProcessDefinitionTaskServiceEntity {
 	public static final int ACTIVE_VALUE = 1;
 	public static final int INACTIVE_VALUE = 0;
+	
+	public static final String TASK_NODE_TYPE_SERVICE_TASK = "serviceTask";
+	public static final String TASK_NODE_TYPE_SUBPROCESS = "subprocess";
 
 	@Id
 	@Column(name="ID")
@@ -49,6 +52,16 @@ public class ProcessDefinitionTaskServiceEntity {
 	private Date updateTime;
 	@Column(name="UPDATE_BY")
 	private String updateBy;
+	
+	@Column(name="TIMEOUT_EXPR")
+	private String timeoutExpression;
+	
+	@Column(name="TASK_NODE_TYPE")
+	private String taskNodeType;
+	
+	@Column(name="CORE_PROC_DEF_ID")
+	private String coreProcDefId;
+	
 
 	public String getId() {
 		return id;
@@ -182,4 +195,28 @@ public class ProcessDefinitionTaskServiceEntity {
 		return ((this.active != null ) && (this.active == 1));
 	}
 
+    public String getTimeoutExpression() {
+        return timeoutExpression;
+    }
+
+    public void setTimeoutExpression(String timeoutExpression) {
+        this.timeoutExpression = timeoutExpression;
+    }
+
+    public String getTaskNodeType() {
+        return taskNodeType;
+    }
+
+    public void setTaskNodeType(String taskNodeType) {
+        this.taskNodeType = taskNodeType;
+    }
+
+    public String getCoreProcDefId() {
+        return coreProcDefId;
+    }
+
+    public void setCoreProcDefId(String coreProcDefId) {
+        this.coreProcDefId = coreProcDefId;
+    }
+	
 }
