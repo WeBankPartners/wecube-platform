@@ -41,7 +41,6 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
     protected void doSendProcessEndNotification(ServiceInvocationEvent event) {
         log.info("resolve process end notification type event, event={}", event);
 
-        // process end notification not supported currently
         resolveProcessInstanceEndEvent(event);
     }
 

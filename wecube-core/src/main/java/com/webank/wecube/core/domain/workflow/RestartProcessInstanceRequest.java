@@ -6,6 +6,8 @@ public class RestartProcessInstanceRequest {
 
     private String activityId;
 
+    private String act;
+
     public String getProcessInstanceId() {
         return processInstanceId;
     }
@@ -20,6 +22,14 @@ public class RestartProcessInstanceRequest {
 
     public void setActivityId(String activityId) {
         this.activityId = activityId;
+    }
+
+    public String getAct() {
+        return act;
+    }
+
+    public void setAct(String act) {
+        this.act = act;
     }
 
 }
