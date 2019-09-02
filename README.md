@@ -87,13 +87,18 @@ WeCube采用容器化部署。
 如何安装WeCube， 请查看以下文档
 [WeCube部署文档](wecube-wiki/docs/install/wecube_install_guide.md)
 
-## API说明
-更多关于WeCube的使用和操作说明， 请查看以下文档
-[WeCube API手册](wecube-wiki/docs/api/wecube_api_guide.md)
-
 ## 用户手册
 更多关于WeCube的使用和操作说明， 请查看以下文档
 [WeCube用户手册](wecube-wiki/docs/manual/wecube_user_guide.md)
+
+## 开发者文档
+WeCube使用Java和VUE进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
+
+请参考以下文档进行开发环境配置[WeCube开发环境配置](wecube-wiki/docs/developer/wecube_developer_guide.md)
+
+## API说明
+更多关于WeCube的使用和操作说明， 请查看以下文档
+[WeCube API手册](wecube-wiki/docs/api/wecube_api_guide.md)
 
 ## License
 WeCube是基于 Apache License 2.0 协议， 详情请参考
@@ -101,6 +106,6 @@ WeCube是基于 Apache License 2.0 协议， 详情请参考
 
 
 ## 社区
-- 如果您想得到最快的响应，请给我们提issue，或者关注微信公众号： ，或者您也可以扫码进群：
+- 如果您想得到最快的响应，请给我们提issue。
 - 联系我们：fintech@webank.com
 
