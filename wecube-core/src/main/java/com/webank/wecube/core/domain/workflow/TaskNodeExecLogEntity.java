@@ -15,6 +15,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "CORE_RU_TASK_NODE_EXEC_LOG")
 public class TaskNodeExecLogEntity {
+    public static final String ERR_CODE_OK = "0";
+    public static final String ERR_CODE_ERR = "1";
 
     @Id
     @Column(name = "ID")
