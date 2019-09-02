@@ -287,12 +287,12 @@ CREATE TABLE `act_ru_srvnode_status` (
   PRIMARY KEY (`id`)
 );
 
-ALTER TABLE `wecube_dev`.`core_re_proc_def` 
+ALTER TABLE `core_re_proc_def`
 ADD COLUMN `PROC_DATA` LONGTEXT NULL,
 ADD COLUMN `PROC_STATUS` VARCHAR(45) NULL;
 
 
-ALTER TABLE `wecube_dev`.`core_re_proc_task_service` 
+ALTER TABLE `core_re_proc_task_service`
 ADD COLUMN `TIMEOUT_EXPR` VARCHAR(45) NULL,
 ADD COLUMN `TASK_NODE_TYPE` VARCHAR(45) NULL,
 ADD COLUMN `CORE_PROC_DEF_ID` VARCHAR(45) NULL;
