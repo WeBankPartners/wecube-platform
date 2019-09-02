@@ -300,6 +300,11 @@ public class PluginInstanceService {
         String processInstanceBizKey = cmd.getProcessInstanceBizKey();
         int rootCiTypeId = getCiTypeIdAndSetOperator(processInstanceBizKey);
         String operator = UsernameStorage.getIntance().get();
+        if(taskNodeId.indexOf("srvBeanST-") >= 0){
+            taskNodeId = taskNodeId.substring("srvBeanST-".length());
+        }
+        
+        log.info("processing taskNode:{}", taskNodeId);
 
         List<ProcessDefinitionTaskServiceEntity> taskEntities = processDefinitionTaskServiceEntityRepository
                 .findTaskServicesByProcDefKeyAndVersionAndTaskNodeId(procDefKey, procDefVersion, taskNodeId);
@@ -340,27 +345,21 @@ public class PluginInstanceService {
         PluginInstance chosenInstance = chooseOne(availableInstances);
 
         TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
+                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, taskNodeId);
 
         Date curTime = new Date();
         if (execLog == null) {
-            execLog = new TaskNodeExecLogEntity();
-            execLog.setCreatedBy(operator);
-            execLog.setCreatedTime(curTime);
-            execLog.setInstanceBusinessKey(cmd.getProcessInstanceBizKey());
-            execLog.setTaskNodeId(cmd.getServiceTaskNodeId());
-            execLog.setPreStatus(inf.getFilterStatus());
-            execLog.setPostStatus(inf.getResultStatus());
-            execLog.setRootCiTypeId(rootCiTypeId);
-            execLog.setServiceName(serviceName);
-
-        } else {
-            execLog.setUpdatedBy(operator);
-            execLog.setUpdatedTime(curTime);
+            log.error("such execution log doesnt exist,bizKey={},nodeId={}", processInstanceBizKey, taskNodeId);
+            throw new WecubeCoreException("Execution errors");
         }
+        execLog.setPreStatus(inf.getFilterStatus());
+        execLog.setPostStatus(inf.getResultStatus());
+        execLog.setRootCiTypeId(rootCiTypeId);
+
+        execLog.setUpdatedBy(operator);
+        execLog.setUpdatedTime(curTime);
 
         execLog.setExecutionId(cmd.getProcessExecutionId());
-        execLog.setInstanceId(cmd.getProcessInstanceId());
         execLog.setRequestUrl(getInstanceAddress(chosenInstance));
         execLog.setRequestData(marshalRequestData(pluginParameters));
 
@@ -464,9 +463,16 @@ public class PluginInstanceService {
         String executionId = cmd.getProcessExecutionId();
 
         String procDefKey = cmd.getProcessDefinitionKey();
+        
+        String taskNodeId = cmd.getServiceTaskNodeId();
+        
+        if(taskNodeId.indexOf("srvBeanST-") > 0){
+            taskNodeId = taskNodeId.substring("srvBeanST-".length());
+        }
 
         if (pluginResponse.getPluginResponse() == null) {
             log.error("notify workflow engine with failure message.");
+            pluginWorkService.logFailureExecution(processInstanceBizKey, taskNodeId, "no response");
             pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode,
                     PLUGIN_WORK_FAIL);
             return;
@@ -474,18 +480,7 @@ public class PluginInstanceService {
 
         if (pluginResponse.getPluginResponse().isEmpty()) {
             log.warn("empty plugin response returned");
-            TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                    .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
-            if (execLog != null) {
-                execLog.setErrCode("0");
-                execLog.setErrMsg("response data is blank");
-                execLog.setResponseData(marshalRequestData(pluginResponse.getPluginResponse()));
-                execLog.setUpdatedTime(new Date());
-                execLog.setUpdatedBy(UsernameStorage.getIntance().get());
-                execLog.setTaskNodeStatus("Completed");
-
-                taskNodeExecLogEntityRepository.saveAndFlush(execLog);
-            }
+            pluginWorkService.logCompleteExecution(processInstanceBizKey, taskNodeId, marshalRequestData(pluginResponse.getPluginResponse()), "response data is blank");
 
             pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode, PLUGIN_WORK_SUCC);
 
@@ -510,21 +505,12 @@ public class PluginInstanceService {
 
         operateCiByInvocationResult(pluginResponse, parsePluginParametersResult);
 
-        TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
-        if (execLog != null) {
-            execLog.setErrCode("0");
-            execLog.setResponseData(marshalRequestData(pluginResponse.getPluginResponse()));
-            execLog.setUpdatedTime(new Date());
-            execLog.setUpdatedBy(UsernameStorage.getIntance().get());
-            execLog.setTaskNodeStatus("Completed");
-
-            taskNodeExecLogEntityRepository.saveAndFlush(execLog);
-        }
+        pluginWorkService.logCompleteExecution(processInstanceBizKey, taskNodeId, marshalRequestData(pluginResponse.getPluginResponse()), "success");
 
         log.info("update cmdb and notify workflow engine with success message. Response is " + pluginResponse);
         pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode, PLUGIN_WORK_SUCC);
     }
+    
 
     private void setOperatorWithChecking(String operator) {
         if (UsernameStorage.getIntance().get() == null) {
