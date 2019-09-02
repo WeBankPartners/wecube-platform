@@ -31,10 +31,10 @@ public class ApplicationProperties {
     public class HttpClientProperties {
         private int connectTimeout = 30000;
         private int requestTimeout = 30000;
-        private int socketTimeout = 60000;
+        private int socketTimeout = 1200000;
         private int maxTotalConnections = 50;
         private int poolSizeOfScheduler = 50;
-        private int defaultKeepAliveTimeMillis = 20000;
+        private int defaultKeepAliveTimeMillis = 1200000;
         private int closeIdleConnectionWaitTimeSecs = 30;
     }
 
