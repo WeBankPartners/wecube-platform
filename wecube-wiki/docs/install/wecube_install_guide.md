@@ -87,9 +87,9 @@ WeCube运行环境包括3个组件：wecube-app、wecube-db(mysql)、minio(对�
 	---------------------------|--------------------
 	wecube_server_port         |wecube的服务端口
 	wecube_image_name          |wecube的docker镜像名称及TAG，请填入在“加载镜像”章节中看到的镜像名称以及TAG，需要保持一致， 例如：wecube-platform:bd4fbec
-	wecube_plugin_hosts        |wecube部署插件的容器主机ip
+	wecube_plugin_hosts        |部署wecube插件的容器母机ip，每一台母机上都需要预装docker
 	wecube_plugin_host_port    |wecube部署插件主机的ssh端口
-	wecube_plugin_host_user    |wecube部署插件主机的ssh用户
+	wecube_plugin_host_user    |wecube部署插件主机的ssh用户，最好是root用户，若是其他用户，请保证该用户有执行docker命令的权限
 	wecube_plugin_host_pwd     |wecube部署插件主机的ssh密码
 	cmdb_url                   |wecube依赖的cmdb服务url
 	database_image_name        |wecube数据库镜像名称及TAG，请填入在“加载镜像”章节中看到的镜像名称以及TAG，需要保持一致， 例如：wecube-db:dev
