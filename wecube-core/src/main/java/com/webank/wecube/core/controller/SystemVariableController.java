@@ -31,15 +31,15 @@ public class SystemVariableController {
     @GetMapping("/system-variables/supported-scope-types")
     @ResponseBody
     public JsonResponse getSupportedScopeTypes() {
-        List<String> properties = systemVariableService.getSupportedScopeTypes();
-        return okayWithData(properties);
+        List<String> types = systemVariableService.getSupportedScopeTypes();
+        return okayWithData(types);
     }
     
     @GetMapping("/system-variables/global")
     @ResponseBody
     public JsonResponse getGlobalSystemVariables(@RequestParam(value = "status", required = false) String status) {
-        List<SystemVariable> properties = systemVariableService.getGlobalSystemVariables(status);
-        return okayWithData(properties);
+        List<SystemVariable> variables = systemVariableService.getGlobalSystemVariables(status);
+        return okayWithData(variables);
     }
     
     @GetMapping("/system-variables")
@@ -47,15 +47,15 @@ public class SystemVariableController {
     public JsonResponse getSystemVariables(@RequestParam(value = "scope-type") String scopeType
             , @RequestParam(value = "scope-value") String scopeValue
             , @RequestParam(value = "status", required = false) String status) {
-        List<SystemVariable> properties = systemVariableService.getSystemVariables(scopeType, scopeValue, status);
-        return okayWithData(properties);
+        List<SystemVariable> variables = systemVariableService.getSystemVariables(scopeType, scopeValue, status);
+        return okayWithData(variables);
     }
     
     @GetMapping("/system-variables/all")
     @ResponseBody
     public JsonResponse getAllSystemVariables(@RequestParam(value = "status", required = false) String status) {
-        List<SystemVariable> properties = systemVariableService.getAllSystemVariables(status);
-        return okayWithData(properties);
+        List<SystemVariable> variables = systemVariableService.getAllSystemVariables(status);
+        return okayWithData(variables);
     }
 
     @GetMapping("/system-variables/{var-id}")
@@ -70,6 +70,19 @@ public class SystemVariableController {
         return okayWithData(systemVariableService.saveSystemVariables(variables));
     }
     
+    @PostMapping("/system-variables/enable")
+    @ResponseBody
+    public JsonResponse enableSystemVariables(@RequestBody List<Integer> variableIds) {
+        systemVariableService.deleteSystemVariables(variableIds);
+        return okay();
+    }
+    
+    @PostMapping("/system-variables/disable")
+    @ResponseBody
+    public JsonResponse disableSystemVariables(@RequestBody List<Integer> variableIds) {
+        systemVariableService.deleteSystemVariables(variableIds);
+        return okay();
+    }
 
     @PostMapping("/system-variables/delete")
     @ResponseBody

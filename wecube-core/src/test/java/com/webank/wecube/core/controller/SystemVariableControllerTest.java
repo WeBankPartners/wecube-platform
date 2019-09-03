@@ -99,7 +99,8 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         mvc.perform(get("/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.name", is("mockVariable")))
-                .andExpect(jsonPath("$.data.value", is("mockVariableValue")));
+                .andExpect(jsonPath("$.data.value", is("mockVariableValue")))
+                .andExpect(jsonPath("$.data.status", is("active")));
 
         // update
         variable.setValue("UpdatedVariableValue");
@@ -113,6 +114,24 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.data.name", is("mockVariable")))
                 .andExpect(jsonPath("$.data.value", is("UpdatedVariableValue")));
 
+        // disable
+        mvc.perform(post("/system-variables/disable").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
+                .andExpect(jsonPath("$.status", is("OK")));
+        
+        // disable-verify
+        mvc.perform(get("/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(jsonPath("$.status", is("OK")))
+                .andExpect(jsonPath("$.data.status", is("inactive")));
+        
+        // enable
+        mvc.perform(post("/system-variables/enable").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
+                .andExpect(jsonPath("$.status", is("OK")));
+        
+        // enable-verify
+        mvc.perform(get("/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(jsonPath("$.status", is("OK")))
+                .andExpect(jsonPath("$.data.status", is("active")));
+        
         // delete
         mvc.perform(post("/system-variables/delete").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
                 .andExpect(jsonPath("$.status", is("OK")));
