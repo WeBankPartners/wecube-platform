@@ -1,33 +1,50 @@
 package com.webank.wecube.core.service;
 
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.webank.wecube.core.commons.WecubeCoreException;
-import com.webank.wecube.core.domain.*;
-import com.webank.wecube.core.jpa.MenuItemRepository;
-import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
-import com.webank.wecube.core.support.cmdb.dto.v2.*;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.thymeleaf.util.StringUtils;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import static com.webank.wecube.core.service.permission.CiTypePermissionUtil.evaluatePartialActionPermissions;
 import static com.webank.wecube.core.service.permission.CiTypePermissionUtil.mergeActionPermissions;
 import static com.webank.wecube.core.support.cmdb.dto.v2.CiTypePermissions.DISABLED;
 import static com.webank.wecube.core.support.cmdb.dto.v2.CiTypePermissions.ENABLED;
 import static com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery.defaultQueryObject;
 import static com.webank.wecube.core.utils.BooleanUtils.isTrue;
-import static com.webank.wecube.core.utils.CollectionUtils.*;
+import static com.webank.wecube.core.utils.CollectionUtils.asMap;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.util.StringUtils;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.webank.wecube.core.commons.WecubeCoreException;
+import com.webank.wecube.core.domain.MenuItem;
+import com.webank.wecube.core.domain.Role;
+import com.webank.wecube.core.domain.RoleMenu;
+import com.webank.wecube.core.domain.RoleUser;
+import com.webank.wecube.core.domain.User;
+import com.webank.wecube.core.jpa.MenuItemRepository;
+import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeAttrDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.InputType;
+import com.webank.wecube.core.support.cmdb.dto.v2.RoleCiTypeCtrlAttrConditionDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.RoleCiTypeCtrlAttrDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.RoleCiTypeDto;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -48,6 +65,15 @@ public class UserManagerService {
 
     @Autowired
     CmdbServiceV2Stub cmdbServiceStub;
+    
+    public List<User> createUser(User user) {
+        if (user == null ) throw new WecubeCoreException("User parameter should not be null.");
+        if (user.getUsername() == null ) throw new WecubeCoreException("Username should not be null.");
+        if (user.getFullName() == null ) user.setFullName(user.getUsername());
+        if (user.getDescription() == null) user.setDescription(user.getFullName());
+        
+        return cmdbServiceStub.createUsers(user);
+    }
 
     public void deleteRole(int roleId) {
         List<User> users = cmdbServiceStub.getUsersByRoleId(roleId);
