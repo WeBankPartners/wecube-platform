@@ -421,12 +421,20 @@ public class ProcessDefinitionService extends AbstractProcessService {
             SubProcessAdditionalInfo info = new SubProcessAdditionalInfo();
             info.setSubProcessNodeId(entity.getTaskNodeId());
             info.setSubProcessNodeName(entity.getTaksNodeName());
-            info.setTimeoutExpression(entity.getTimeoutExpression());
+            info.setTimeoutExpression(convertIsoTimeFormat(entity.getTimeoutExpression()));
             
             bpmnParseAttachment.addSubProcessAddtionalInfo(info);
         }
         
         return bpmnParseAttachment;
+    }
+    
+    private String convertIsoTimeFormat(String timeoutExpression){
+        if(StringUtils.isBlank(timeoutExpression)){
+            return timeoutExpression;
+        }
+        
+        return "PT"+timeoutExpression.trim()+"M";
     }
 
     private void updateProcessDefinitionEntity(ProcessDefinitionEntity entity, ProcessDefinition processDef) {
