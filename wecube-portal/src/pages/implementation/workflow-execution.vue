@@ -64,6 +64,29 @@
         style="text-align: center;margin-top: 20px;"
       ></div>
     </Modal>
+
+    <Modal
+      title="请选择操作"
+      v-model="workflowActionModalVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <div
+        class="workflowActionModal-container"
+        style="text-align: center;margin-top: 20px;"
+      >
+        <Button type="info" @click="workFlowActionHandler('retry')"
+          >重试</Button
+        >
+        <Button
+          type="info"
+          @click="workFlowActionHandler('skip')"
+          style="margin-left: 20px"
+          >跳过</Button
+        >
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -153,7 +176,9 @@ export default {
         graph_preview: {},
         graph_refresh: {}
       },
-      g: {}
+      g: {},
+      currentNodeID: "",
+      workflowActionModalVisible: false
     };
   },
   computed: {
@@ -727,9 +752,15 @@ export default {
         clearInterval(this.graphsTimer);
       }
     },
-    async workFlowRestart(nodeId) {
-      const found = this.graph_refresh.flowNodes.find(_ => _.id === nodeId);
+    async workFlowActionHandler(type) {
+      const found = this.graph_refresh.flowNodes.find(
+        _ => _.id === this.currentNodeID
+      );
+      if (!found) {
+        return;
+      }
       const payload = {
+        act: type,
         activityId: found.id,
         processInstanceId: found.processInstanceId
       };
@@ -739,25 +770,17 @@ export default {
           title: "Success",
           desc: "Success"
         });
+        this.workflowActionModalVisible = false;
       }
     },
     bindClick() {
       const _this = this;
       //add event to serviceTask
-
       addEvent("#graph_refresh .serviceTask image", "click", e => {
         e.preventDefault();
         e.stopPropagation();
-        console.log(e.target.parentNode.getAttribute("id"));
-        const currentNodeID = e.target.parentNode.getAttribute("id");
-        this.$Modal.confirm({
-          title: "重试",
-          content: "<p>确定重试吗 ?</p>",
-          onOk: () => {
-            this.workFlowRestart(currentNodeID);
-          },
-          onCancel: () => {}
-        });
+        this.currentNodeID = e.target.parentNode.getAttribute("id");
+        this.workflowActionModalVisible = true;
       });
       addEvent("#graph_refresh .serviceTask image", "mouseover", e => {
         e.preventDefault();
@@ -771,16 +794,8 @@ export default {
       addEvent("#graph_refresh .subProcess image", "click", e => {
         e.preventDefault();
         e.stopPropagation();
-        console.log(e.target.parentNode.getAttribute("id"));
-        const currentNodeID = e.target.parentNode.getAttribute("id");
-        this.$Modal.confirm({
-          title: "重试",
-          content: "<p>确定重试吗 ?</p>",
-          onOk: () => {
-            this.workFlowRestart(currentNodeID);
-          },
-          onCancel: () => {}
-        });
+        this.currentNodeID = e.target.parentNode.getAttribute("id");
+        this.workflowActionModalVisible = true;
       });
       addEvent("#graph_refresh .subProcess image", "mouseover", e => {
         e.preventDefault();
