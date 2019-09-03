@@ -286,24 +286,24 @@ public class ProcessInstanceService extends AbstractProcessService {
         
         
         String instanceId = request.getProcessInstanceId();
-        String taskId = WorkflowConstants.PREFIX_EXCEPT_SUB_USER_TASK+request.getActivityId();
+        String taskDefKey = WorkflowConstants.PREFIX_EXCEPT_SUB_USER_TASK+request.getActivityId();
         
         String act = StringUtils.isBlank(request.getAct())? "retry" : request.getAct();
 
-        Task task = taskService.createTaskQuery().processInstanceId(instanceId).active().taskDefinitionKey(taskId).singleResult();
+        Task task = taskService.createTaskQuery().processInstanceId(instanceId).active().taskDefinitionKey(taskDefKey).singleResult();
 
         if (task == null) {
-            log.error("cannot find task with instanceId {} and taskId {}", instanceId, taskId);
+            log.error("cannot find task with instanceId {} and taskId {}", instanceId, taskDefKey);
             throw new WecubeCoreException("process instance restarting failed");
         } else {
 
             String actVarName = String.format("%s_%s", WorkflowConstants.VAR_KEY_USER_ACT, request.getActivityId());
 
-            log.info("to complete task {} put {} {}", taskId, WorkflowConstants.VAR_KEY_USER_ACT, act);
+            log.info("to complete task {} put {} {}", taskDefKey, WorkflowConstants.VAR_KEY_USER_ACT, act);
             Map<String, Object> variables = new HashMap<String, Object>();
             variables.put(actVarName, act);
 
-            taskService.complete(taskId, variables);
+            taskService.complete(task.getId(), variables);
         }
         
         
