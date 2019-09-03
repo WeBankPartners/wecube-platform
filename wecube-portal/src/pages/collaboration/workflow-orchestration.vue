@@ -100,6 +100,13 @@
             />
           </div>
         </FormItem>
+        <FormItem label="超时时间" prop="timeoutExpression">
+          <Select clearable v-model="pluginForm.timeoutExpression">
+            <Option v-for="item in timeSelection" :value="item" :key="item"
+              >{{ item }}分钟</Option
+            >
+          </Select>
+        </FormItem>
         <FormItem label="描述说明" prop="description">
           <Input v-model="pluginForm.description" />
         </FormItem>
@@ -208,7 +215,8 @@ export default {
       selectedNodeName: "",
       pluginModalVisible: false,
       pluginForm: {
-        rules: {}
+        rules: {},
+        timeoutExpression: "30" // 默认超时时间30分钟
       },
       serviceTaskBindInfos: [],
       allNodeTypes: [
@@ -218,7 +226,8 @@ export default {
       ],
       allPlugins: [],
       calcFlowModalVisible: false,
-      calcFlowResult: []
+      calcFlowResult: [],
+      timeSelection: ["5", "10", "20", "30", "60"]
     };
   },
   watch: {},
