@@ -74,4 +74,23 @@ public class SystemVariableService {
         }
     }
 
+    public void enableSystemVariables(List<Integer> variableIds) {
+        if (isNotEmpty(variableIds)) {
+            for(Integer varId : variableIds) {
+                SystemVariable variable = getSystemVariableById(varId);
+                variable.setStatus(SystemVariable.ACTIVE);
+                systemVariableRepository.save(variable);
+            }
+        }
+    }
+    
+    public void disableSystemVariables(List<Integer> variableIds) {
+        if (isNotEmpty(variableIds)) {
+            for(Integer varId : variableIds) {
+                SystemVariable variable = getSystemVariableById(varId);
+                variable.setStatus(SystemVariable.INACTIVE);
+                systemVariableRepository.save(variable);
+            }
+        }
+    }
 }
