@@ -40,6 +40,16 @@ body {
 html {
   height: 100%;
 }
+
+// error style
+.ivu-notice-desc {
+  word-break: break-all;
+  margin-right: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+// form validation style
 .validation-form {
   .no-need-validation {
     .ivu-form-item-label:before {
@@ -58,7 +68,7 @@ html {
     color: #ed4014;
   }
 }
-
+// to show table x direction scroll bar
 .ivu-table-fixed-body {
   height: auto !important;
 }
