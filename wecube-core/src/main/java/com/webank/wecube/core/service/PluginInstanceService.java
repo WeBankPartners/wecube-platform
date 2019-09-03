@@ -212,7 +212,7 @@ public class PluginInstanceService {
         } else {
             throw new WecubeCoreException("Invalid instance id: " + instanceId);
         }
-        String command = "sudo docker rm -f " + pluginInstance.getInstanceContainerId();
+        String command = "docker rm -f " + pluginInstance.getInstanceContainerId();
         log.info(CONSTANT_RUN_COMMAND + command);
         CommandService c = new CommandService();
         c.runAtRemote(pluginInstance.getHost(), pluginProperties.getDefaultHostSshUser(),
