@@ -23,6 +23,18 @@ create table role_menu (
   unique key uk_roleid_menuid (role_id, menu_id)
 );
 
+drop table if exists system_variables;
+create table system_variables (
+  id int auto_increment primary key,
+  name varchar(255) not null,
+  value varchar(2000),
+  scope_type varchar(50) not null default 'global',
+  scope_value varchar(500),
+  seq_no int not null default 0,
+  status varchar(50) not null default 'active',
+  index idx_prop_scope_val (scope_value)
+);
+
 drop table if exists plugin_packages;
 create table plugin_packages (
   id int auto_increment primary key,
