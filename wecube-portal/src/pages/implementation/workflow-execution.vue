@@ -152,7 +152,8 @@ export default {
       graphs: {
         graph_preview: {},
         graph_refresh: {}
-      }
+      },
+      g: {}
     };
   },
   computed: {
@@ -237,7 +238,7 @@ export default {
             .split(";")
             .find(i => i.indexOf("XSRF-TOKEN") !== -1);
           setHeaders({
-            "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
+            "X-XSRF-TOKEN": (uploadToken && uploadToken.split("=")[1]) || ""
           });
           initEvent();
           this.renderGraph(ciResponse.data);
@@ -373,8 +374,8 @@ export default {
       addEvent(".node", "click", async e => {
         e.preventDefault();
         e.stopPropagation();
-        var g = e.currentTarget;
-        var nodeName = g.children[0].innerHTML.trim();
+        this.g = e.currentTarget;
+        var nodeName = this.g.children[0].innerHTML.trim();
         this.shadeAll();
         this.colorNode(nodeName);
       });
@@ -402,9 +403,9 @@ export default {
       addEvent(".node", "dblclick", async e => {
         e.preventDefault();
         e.stopPropagation();
-        var g = e.currentTarget;
-        var nodeName = g.children[0].innerHTML.trim();
-        this.queryCiAttrs(g.id, nodeName);
+        this.g = e.currentTarget;
+        var nodeName = this.g.children[0].innerHTML.trim();
+        this.queryCiAttrs(this.g.id, nodeName);
       });
     },
     handleTabRemove(name) {
@@ -510,7 +511,7 @@ export default {
         }
         //   this.queryCiData();
       } else {
-        this.currentTab = g.id;
+        this.currentTab = this.g.id;
       }
     },
     getSelectOptions(columns) {
@@ -742,6 +743,8 @@ export default {
     },
     bindClick() {
       const _this = this;
+      //add event to serviceTask
+
       addEvent("#graph_refresh .serviceTask image", "click", e => {
         e.preventDefault();
         e.stopPropagation();
@@ -760,6 +763,29 @@ export default {
         e.preventDefault();
         e.stopPropagation();
         d3.selectAll("#graph_refresh .serviceTask image").attr(
+          "cursor",
+          "pointer"
+        );
+      });
+      //add event to sub process
+      addEvent("#graph_refresh .subProcess image", "click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log(e.target.parentNode.getAttribute("id"));
+        const currentNodeID = e.target.parentNode.getAttribute("id");
+        this.$Modal.confirm({
+          title: "重试",
+          content: "<p>确定重试吗 ?</p>",
+          onOk: () => {
+            this.workFlowRestart(currentNodeID);
+          },
+          onCancel: () => {}
+        });
+      });
+      addEvent("#graph_refresh .subProcess image", "mouseover", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        d3.selectAll("#graph_refresh .subProcess image").attr(
           "cursor",
           "pointer"
         );
