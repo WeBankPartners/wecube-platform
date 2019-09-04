@@ -596,7 +596,7 @@ public class ProcessInstanceService extends AbstractProcessService {
             }
 
             if (activity != null) {
-                setFlowNodeVoStatus(activity, processInstanceId, vo);
+                setFlowNodeVoStatus(activity, processInstanceId, vo, COMPLETED);
                 continue;
             }
 
@@ -606,12 +606,12 @@ public class ProcessInstanceService extends AbstractProcessService {
                     .unfinished().singleResult();
 
             if (inprogressActivity != null) {
-                vo.setStatus(INPROGRESS);
+            	setFlowNodeVoStatus(activity, processInstanceId, vo, INPROGRESS);
             }
         }
     }
 
-    private void setFlowNodeVoStatus(HistoricActivityInstance activity, String processInstanceId, FlowNodeVO vo) {
+    private void setFlowNodeVoStatus(HistoricActivityInstance activity, String processInstanceId, FlowNodeVO vo, String defaultStatus) {
         if (activity.getActivityType().equals("subProcess")) {
 
             ServiceNodeStatusEntity statusEntity = serviceNodeStatusRepository
@@ -634,10 +634,10 @@ public class ProcessInstanceService extends AbstractProcessService {
             if (nativeErrorEndEvents != null && (!nativeErrorEndEvents.isEmpty())) {
                 vo.setStatus(FAULTED);
             } else {
-                vo.setStatus(COMPLETED);
+                vo.setStatus(defaultStatus);
             }
         } else {
-            vo.setStatus(COMPLETED);
+            vo.setStatus(defaultStatus);
         }
     }
 
