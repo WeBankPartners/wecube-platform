@@ -1075,8 +1075,4 @@ export default {
   margin-bottom: 10px;
   margin-top: -6px;
 }
-
-.highlight-text {
-  background-color: #ff0000;
-}
 </style>
