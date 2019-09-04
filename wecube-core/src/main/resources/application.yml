@@ -65,7 +65,7 @@ wecube:
       max-total-connections: 200
 
     plugin:
-      plugin-deploy-path: /home/app/
+      plugin-deploy-path: /opt/
       plugin-hosts: 10.0.0.1, 10.0.0.2, 10.0.0.3
       plugin-package-bucket-name: wecube-plugin-package-bucket
       register-file: register.xml
