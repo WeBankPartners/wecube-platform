@@ -13,26 +13,15 @@
 	
 	需要在开发电脑上先安装Mysql，请参考[Mysql安装文档](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/mysql_install_guide.md)
 
-4. 安装CAS
-	
-	需要有一个CAS服务， 也可以在开发电脑上安装CAS。dockerhub上有容器镜像，可以直接下载安装。
-	
-	命令如下：
-	
-	```
-	docker pull kawhii/sso
-	docker run -d --name cas -p 8443:8443 -p 8878:8080 kawhii/sso
-	```
-	
-	CAS默认用户密码：admin/123
-
-5. 安装node.js
+4. 安装node.js
 	
 	访问node.js官方网站：http://nodejs.cn/download， 下载v10.16.3版本。双击下载后的安装文件， 按默认配置进行安装。
 
-6. 安装对象存储
+5. 安装对象存储（可选）
 	
 	在本地开发电脑上运行WeCube，如果需要使用物料管理、插件功能，则需要一个支持S3协议的对象存储，可以使用远程服务， 也可以在本地开发电脑部署。本指引以Minio为例。
+	
+	如果不使用物料管理、插件功能，则无需部署。
 
 	dockerhub上有容器镜像，可以直接下载安装：https://hub.docker.com/r/minio/minio/
 	
@@ -43,7 +32,7 @@
 	docker run -p 9000:9000 -e MINIO_ACCESS_KEY=access_key -e MINIO_SECRET_KEY=secret_key minio/minio server /data
 	```
 	
-7. 需要预先部署WeCMDB
+6. 需要预先部署WeCMDB
 	
 	在本地开发电脑上运行WeCube，需要WeCMDB支持。
 	
@@ -97,7 +86,7 @@
 	在 *Project Explorer* 视图中，将 *application-uat.yml* 复制一份，更名为 *application-dev.yml*
 	![wecube_config_1](images/wecube_config_1.png)
 	
-	打开 *application-dev.yml* ，修改相关配置。
+	打开 *application-dev.yml* ，修改相关配置，开发模式下无需CAS， 可将CAS相关配置去掉。
 
 	application-dev.yml配置示例：
 
@@ -115,7 +104,6 @@
 	
 	wecube:
 	  core:
-	    cas-server-url: http://192.168.10.3:8080/cas
 	    cmdb-server-url: http://192.168.20.5:37000/cmdb
 	    plugin:
 	      plugin-hosts: 192.168.0.1, 192.168.0.2
@@ -132,8 +120,6 @@
 
 	cmdb-server-url必填， 并需要在WeCMDB中将本地IP添加到白名单中。
 
-	因为WeCube需要调用WeCMDB的接口， WeCMDB需要进行用户鉴权， 所以wecube使用的cas-server-url最好跟WeCMDB使用的是同一个CAS服务。
-
 5. 启动WeCube后端
 
 	打开Window->Preferences窗口， 选择Java->Installed JREs，新增jdk配置，如下图
@@ -144,8 +130,17 @@
 	
 	启动
 	![wecube_start](images/wecube_start.png)
+	
+	在浏览器输入 *http://localhost:8080/swagger-ui.html* 会跳转到登录页面
 
-	打开 *http://localhost:8080/swagger-ui.html* 打开 *swagger* 页面，， 输入cas登录用户及密码，即可查看并测试API
+	![wecube_swagger_login](images/wecube_swagger_login.png)
+
+	输入用户后确认， 会重定向到首页
+
+	![wecube_swagger_redirect](images/wecube_swagger_redirect.png)
+
+	需要重新输入 *http://localhost:8080/swagger-ui.html* , 进入swagger页面
+
 	![wecube_swagger_ui](images/wecube_swagger_ui.png)
 
 
@@ -158,7 +153,7 @@
 	执行npm安装命令
 	
 	```
-	npm i
+	npm install
 	```
 
 	![wecube_ui_npm_install_result](images/wecube_ui_npm_install_result.png)
