@@ -138,9 +138,11 @@
                 footer-hide
                 width="70"
               >
-                <highlight-code lang="json" style="white-space: pre-wrap;">
-                  {{ logDetails }}
-                </highlight-code>
+                <div
+                  lang="json"
+                  style="white-space: pre-wrap;"
+                  v-html="logDetails"
+                ></div>
               </Modal>
             </Card>
           </Row>
@@ -490,7 +492,7 @@ export default {
         currentPage: 1,
         total: 0
       },
-      seachFilters: [],
+      searchFilters: [],
       logDetailsModalVisible: false,
       logDetails: "",
       ciRulesFilters: [],
@@ -613,11 +615,19 @@ export default {
       );
       if (status === "OK") {
         this.logDetailsModalVisible = true;
-        this.logDetails = data.outputs[0].logs.toString();
+        let re = new RegExp(this.searchFilters[1].value, "g");
+        this.logDetails = data.outputs[0].logs
+          .toString()
+          .replace(
+            re,
+            `<span style="background-color: #ff0">${
+              this.searchFilters[1].value
+            }</span>`
+          );
       }
     },
     handleSubmit(data) {
-      this.seachFilters = data;
+      this.searchFilters = data;
       this.getTableData();
     },
     async regist() {
@@ -927,13 +937,13 @@ export default {
       }
     },
     async getTableData() {
-      if (this.seachFilters.length < 2) return;
+      if (this.searchFilters.length < 2) return;
       const payload = {
-        instanceIds: this.seachFilters[0].value,
+        instanceIds: this.searchFilters[0].value,
         pluginRequest: {
           inputs: [
             {
-              key_word: this.seachFilters[1].value
+              key_word: this.searchFilters[1].value
             }
           ]
         }
