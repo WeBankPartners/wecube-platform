@@ -606,7 +606,7 @@ public class ProcessInstanceService extends AbstractProcessService {
                     .unfinished().singleResult();
 
             if (inprogressActivity != null) {
-            	setFlowNodeVoStatus(activity, processInstanceId, vo, INPROGRESS);
+            	setFlowNodeVoStatus(inprogressActivity, processInstanceId, vo, INPROGRESS);
             }
         }
     }
