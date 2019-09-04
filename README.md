@@ -44,7 +44,7 @@ WeCube1.0版本已实现功能见下图：
 
 ![WeCube1.0功能架构](wecube-wiki/images/wecube_arch_2.png) 
 
-###WeCube 2.0版本
+### WeCube 2.0版本
 WeCube 2.0版本正在设计进行中， 敬请期待。
 
 ## 主要功能简介
