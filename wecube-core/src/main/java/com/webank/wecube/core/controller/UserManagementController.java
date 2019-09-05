@@ -1,24 +1,35 @@
 package com.webank.wecube.core.controller;
 
-import com.webank.wecube.core.domain.JsonResponse;
-import com.webank.wecube.core.domain.MenuItem;
-import com.webank.wecube.core.domain.Role;
-import com.webank.wecube.core.service.UserManagerService;
-import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
-import com.webank.wecube.core.support.cmdb.dto.v2.RoleCiTypeDto;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import static com.webank.wecube.core.domain.JsonResponse.okay;
+import static com.webank.wecube.core.domain.JsonResponse.okayWithData;
+import static com.webank.wecube.core.domain.MenuItem.MENU_ADMIN_PERMISSION_MANAGEMENT;
 
-import javax.annotation.security.RolesAllowed;
-import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-import static com.webank.wecube.core.domain.JsonResponse.*;
-import static com.webank.wecube.core.domain.MenuItem.MENU_ADMIN_PERMISSION_MANAGEMENT;
+import javax.annotation.security.RolesAllowed;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.webank.wecube.core.domain.JsonResponse;
+import com.webank.wecube.core.domain.MenuItem;
+import com.webank.wecube.core.domain.Role;
+import com.webank.wecube.core.domain.User;
+import com.webank.wecube.core.service.UserManagerService;
+import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
+import com.webank.wecube.core.support.cmdb.dto.v2.RoleCiTypeDto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
@@ -43,6 +54,18 @@ public class UserManagementController {
     @ResponseBody
     public JsonResponse getAllUsers() {
         return okayWithData(cmdbServiceV2Stub.getAllUsers());
+    }
+    
+    @GetMapping("/users/{username}/available")
+    @ResponseBody
+    public JsonResponse usernameAvailable(@PathVariable(value = "username")String username) {
+        return okayWithData(!userManagerService.checkUserExists(username));
+    }
+    
+    @PostMapping("/users/create")
+    @ResponseBody
+    public JsonResponse createNewUser(@RequestBody User user) {
+        return okayWithData(userManagerService.createUser(user));
     }
 
     @GetMapping("/roles")
