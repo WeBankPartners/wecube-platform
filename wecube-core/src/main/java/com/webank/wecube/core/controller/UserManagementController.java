@@ -56,7 +56,8 @@ public class UserManagementController {
         return okayWithData(cmdbServiceV2Stub.getAllUsers());
     }
     
-    @PostMapping("/users/{username}/available")
+    @GetMapping("/users/{username}/available")
+    @ResponseBody
     public JsonResponse usernameAvailable(@PathVariable(value = "username")String username) {
         return okayWithData(!userManagerService.checkUserExists(username));
     }
