@@ -73,12 +73,12 @@ export default new Router({
         },
         {
           path: "/designing/enum-management",
-          name: "enumEnquiry",
+          name: "enumManage",
           component: () => import("@/pages/admin/enums")
         },
         {
           path: "/designing/enum-enquiry",
-          name: "enumManage",
+          name: "enumEnquiry",
           component: () => import("@/pages/admin/enums")
         },
         {
