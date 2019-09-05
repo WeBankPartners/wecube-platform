@@ -418,15 +418,17 @@ export default {
       let found = this.allPlugins.find(
         _ => _.serviceName === this.pluginForm.serviceId
       );
+
+      let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm));
       this.serviceTaskBindInfos.push({
         version: 0,
-        ...this.pluginForm,
+        ...pluginFormCopy,
         nodeId: this.selectNodeId,
         nodeName: this.selectedNodeName,
         ciRoutineExp: JSON.stringify(
-          this.pluginForm.rules.cmdbColumnCriteria.routine
+          pluginFormCopy.rules.cmdbColumnCriteria.routine
         ),
-        ciRoutineRaw: JSON.stringify(this.pluginForm.rules.cmdbColumnSource),
+        ciRoutineRaw: JSON.stringify(pluginFormCopy.rules.cmdbColumnSource),
         serviceName: (found && found.serviceName) || ""
       });
       this.serviceTaskBindInfos.forEach(_ => {
