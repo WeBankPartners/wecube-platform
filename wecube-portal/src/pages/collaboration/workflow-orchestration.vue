@@ -75,18 +75,6 @@
             >
           </Select>
         </FormItem>
-
-        <FormItem label="插件选择" prop="serviceName">
-          <Select filterable clearable v-model="pluginForm.serviceId">
-            <Option
-              v-for="item in allPlugins"
-              :value="item.serviceName"
-              :key="item.serviceName"
-              >{{ item.serviceDisplayName }}</Option
-            >
-          </Select>
-        </FormItem>
-
         <FormItem label="定位规则" prop="rules">
           <div style="width: 100%">
             <AttrInput
@@ -99,6 +87,16 @@
               @change="setRootFilterRule"
             />
           </div>
+        </FormItem>
+        <FormItem label="插件选择" prop="serviceName">
+          <Select filterable clearable v-model="pluginForm.serviceId">
+            <Option
+              v-for="item in allPlugins"
+              :value="item.serviceName"
+              :key="item.serviceName"
+              >{{ item.serviceDisplayName }}</Option
+            >
+          </Select>
         </FormItem>
         <FormItem label="超时时间" prop="timeoutExpression">
           <Select clearable v-model="pluginForm.timeoutExpression">
@@ -246,6 +244,7 @@ export default {
     },
     setRootFilterRule(v) {
       this.rootFilterRule = v;
+      this.getAllPlugins();
     },
     async getAllCITypesByLayerWithAttr() {
       let { status, data, message } = await getAllCITypesByLayerWithAttr([
@@ -274,7 +273,13 @@ export default {
       }
     },
     async getAllPlugins() {
-      const { data, status, message } = await getLatestOnlinePluginInterfaces();
+      let routine =
+        this.pluginForm.rules.cmdbColumnCriteria &&
+        this.pluginForm.rules.cmdbColumnCriteria.routine;
+      let ciTypeId = routine && routine[routine.length - 1].ciTypeId;
+      const { data, status, message } = !!routine
+        ? await getLatestOnlinePluginInterfaces(ciTypeId)
+        : await getLatestOnlinePluginInterfaces();
       if (status === "OK") {
         this.allPlugins = data;
       }
@@ -405,6 +410,7 @@ export default {
       }
     },
     savePluginConfig(ref) {
+      debugger;
       let index = -1;
       this.serviceTaskBindInfos.forEach((_, i) => {
         if (this.selectNodeId === _.nodeId) {
