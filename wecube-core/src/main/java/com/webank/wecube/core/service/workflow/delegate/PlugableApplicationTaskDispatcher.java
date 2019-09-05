@@ -1,5 +1,7 @@
 package com.webank.wecube.core.service.workflow.delegate;
 
+import java.util.Date;
+
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 import com.webank.wecube.core.domain.workflow.ServiceInvocationEvent;
 import com.webank.wecube.core.domain.workflow.ServiceInvocationEventImpl;
 import com.webank.wecube.core.domain.workflow.entity.ServiceNodeStatusEntity;
+import com.webank.wecube.core.domain.workflow.entity.TraceStatus;
 import com.webank.wecube.core.jpa.workflow.ServiceNodeStatusRepository;
 import com.webank.wecube.core.service.workflow.WorkflowConstants;
 import com.webank.wecube.core.service.workflow.parse.SpringApplicationContextUtil;
@@ -64,6 +67,9 @@ public class PlugableApplicationTaskDispatcher implements JavaDelegate {
         
         if(entity != null){
             entity.setTryTimes(entity.getTryTimes() +  1);
+            entity.setStatus(TraceStatus.InProgress);
+            entity.setUpdatedTime(new Date());
+            entity.setUpdatedBy("system");
             repository.save(entity);
         }
         
