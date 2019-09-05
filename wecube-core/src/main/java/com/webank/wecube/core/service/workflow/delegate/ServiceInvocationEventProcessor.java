@@ -131,7 +131,7 @@ public class ServiceInvocationEventProcessor implements Runnable {
                 resolver.resolveServiceInvocationEvent(event);
             } catch (Exception e) {
                 log.error("resolvation errors", e);
-                throw e;
+//                throw e;
             }
 
             return EXECUTION_SUCC;
