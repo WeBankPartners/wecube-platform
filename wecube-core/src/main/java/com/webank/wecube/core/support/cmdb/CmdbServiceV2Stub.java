@@ -206,6 +206,10 @@ public class CmdbServiceV2Stub {
         return queryResult.getContents();
     }
     
+    public User getUserByUsername(String username) {
+        return findFirst(ADMIN_USERS_QUERY, defaultQueryObject("username", username), UsersQueryResultResponse.class, false);
+    }
+    
     public List<User> createUsers(User... users) {
         return create(ADMIN_USERS_CREATE, users, UserListResultResponse.class);
     }

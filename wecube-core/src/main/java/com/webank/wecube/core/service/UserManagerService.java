@@ -71,8 +71,15 @@ public class UserManagerService {
         if (user.getUsername() == null ) throw new WecubeCoreException("Username should not be null.");
         if (user.getFullName() == null ) user.setFullName(user.getUsername());
         if (user.getDescription() == null) user.setDescription(user.getFullName());
+        if (checkUserExists(user.getUsername())) {
+            throw new WecubeCoreException(String.format("Username[%s] already exists.", user.getUsername()));
+        }
         
         return cmdbServiceStub.createUsers(user);
+    }
+    
+    public boolean checkUserExists(String username) {
+        return cmdbServiceStub.getUserByUsername(username) != null;
     }
 
     public void deleteRole(int roleId) {

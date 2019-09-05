@@ -56,6 +56,11 @@ public class UserManagementController {
         return okayWithData(cmdbServiceV2Stub.getAllUsers());
     }
     
+    @PostMapping("/users/{username}/available")
+    public JsonResponse usernameAvailable(@PathVariable(value = "username")String username) {
+        return okayWithData(!userManagerService.checkUserExists(username));
+    }
+    
     @PostMapping("/users/create")
     @ResponseBody
     public JsonResponse createNewUser(@RequestBody User user) {
