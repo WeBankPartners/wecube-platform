@@ -302,7 +302,10 @@ export default {
     onCISelect(v) {
       this.selectedCI = v;
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
-      this.pluginForm = {};
+      this.pluginForm = {
+        rules: {},
+        timeoutExpression: "30"
+      };
     },
     resetZoom() {
       var canvas = this.bpmnModeler.get("canvas");
