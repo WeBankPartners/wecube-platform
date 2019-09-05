@@ -410,7 +410,6 @@ export default {
       }
     },
     savePluginConfig(ref) {
-      debugger;
       let index = -1;
       this.serviceTaskBindInfos.forEach((_, i) => {
         if (this.selectNodeId === _.nodeId) {
