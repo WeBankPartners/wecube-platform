@@ -1,19 +1,20 @@
 package com.webank.wecube.core.support.cmdb.dto.v2;
 
 
+import java.util.List;
+import java.util.Map;
+
 import com.webank.wecube.core.domain.Role;
 import com.webank.wecube.core.domain.RoleUser;
 import com.webank.wecube.core.domain.User;
 import com.webank.wecube.core.support.cmdb.dto.CmdbResponse;
-
-import java.util.List;
-import java.util.Map;
 
 public class CmdbResponses {
 
     public static class ImageInfoResponse extends CmdbResponse<ImageInfoDto> {}
 
     public static class UsersQueryResultResponse extends CmdbResponse<PaginationQueryResult<User>> {}
+    public static class UserListResultResponse extends CmdbResponse<List<User>> {}
     public static class RoleQueryResultResponse extends CmdbResponse<PaginationQueryResult<Role>> {}
     public static class RoleListResultResponse extends CmdbResponse<List<Role>> {}
     public static class RoleUserQueryResultResponse extends CmdbResponse<PaginationQueryResult<RoleUser>> {}
