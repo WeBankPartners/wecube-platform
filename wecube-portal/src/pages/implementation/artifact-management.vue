@@ -436,10 +436,10 @@ export default {
           const result = data.outputs[0].config_key_infos.map((_, i) => {
             _.index = i + 1;
             const found = diffConfigEnums.data.find(
-              item => item.code === _.key
+              item => item.value === _.key
             );
             if (found) {
-              _.attrInputValue = found.value;
+              _.attrInputValue = found.code;
             }
             return _;
           });
@@ -702,8 +702,8 @@ export default {
     },
     saveAttr(row) {
       this.saveDiffConfigEnumCodes({
-        code: this.tabData[this.nowTab].tableData[row].key,
-        value: this.tabData[this.nowTab].tableData[row].routine
+        value: this.tabData[this.nowTab].tableData[row].key,
+        code: this.tabData[this.nowTab].tableData[row].routine
       });
     },
     async getAllSystemEnumCodes() {
