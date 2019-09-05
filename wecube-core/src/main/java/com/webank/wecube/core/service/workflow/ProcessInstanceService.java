@@ -720,7 +720,7 @@ public class ProcessInstanceService extends AbstractProcessService {
 
             String existedBizKey = (String) ciMap.get("tail$biz_key");
 
-            if (StringUtils.isNotBlank(existedBizKey)) {
+            if (StringUtils.isNotBlank(existedBizKey) && (!existedBizKey.equals(processInstanceBizKey))) {
                 log.error("bizKey already existed, guid={}", guid);
                 throw new WecubeCoreException("business key already existed but still going to write in");
             }
