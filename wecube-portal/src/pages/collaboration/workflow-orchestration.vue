@@ -302,7 +302,10 @@ export default {
     onCISelect(v) {
       this.selectedCI = v;
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
-      this.pluginForm = {};
+      this.pluginForm = {
+        rules: {},
+        timeoutExpression: "30"
+      };
     },
     resetZoom() {
       var canvas = this.bpmnModeler.get("canvas");
@@ -415,15 +418,17 @@ export default {
       let found = this.allPlugins.find(
         _ => _.serviceName === this.pluginForm.serviceId
       );
+
+      let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm));
       this.serviceTaskBindInfos.push({
         version: 0,
-        ...this.pluginForm,
+        ...pluginFormCopy,
         nodeId: this.selectNodeId,
         nodeName: this.selectedNodeName,
         ciRoutineExp: JSON.stringify(
-          this.pluginForm.rules.cmdbColumnCriteria.routine
+          pluginFormCopy.rules.cmdbColumnCriteria.routine
         ),
-        ciRoutineRaw: JSON.stringify(this.pluginForm.rules.cmdbColumnSource),
+        ciRoutineRaw: JSON.stringify(pluginFormCopy.rules.cmdbColumnSource),
         serviceName: (found && found.serviceName) || ""
       });
       this.serviceTaskBindInfos.forEach(_ => {
@@ -445,7 +450,7 @@ export default {
         this.pluginModalVisible = true;
         this.pluginForm = this.serviceTaskBindInfos.find(
           _ => _.nodeId === this.selectNodeId
-        ) || { rules: this.rootFilterRule };
+        ) || { rules: this.rootFilterRule, timeoutExpression: "30" };
         this.$nextTick(() => {
           document.querySelector(".attr-ul").style.width =
             document.querySelector(".input_in textarea").clientWidth + "px";
