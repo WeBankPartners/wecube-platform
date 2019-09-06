@@ -1,5 +1,29 @@
 package com.webank.wecube.core.service;
 
+import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.ONLINE;
+import static com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery.defaultQueryObject;
+import static com.webank.wecube.core.utils.CollectionUtils.pickRandomOne;
+import static com.webank.wecube.core.utils.SystemUtils.getTempFolderPath;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.trim;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -7,16 +31,31 @@ import com.webank.wecube.core.commons.ApplicationProperties;
 import com.webank.wecube.core.commons.ApplicationProperties.CmdbDataProperties;
 import com.webank.wecube.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
-import com.webank.wecube.core.domain.plugin.*;
+import com.webank.wecube.core.domain.plugin.PluginConfig;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.core.domain.plugin.PluginInstance;
+import com.webank.wecube.core.domain.plugin.PluginPackage;
+import com.webank.wecube.core.domain.plugin.PluginTriggerCommand;
 import com.webank.wecube.core.domain.workflow.ProcessDefinitionTaskServiceEntity;
 import com.webank.wecube.core.domain.workflow.ProcessTaskEntity;
 import com.webank.wecube.core.domain.workflow.TaskNodeExecLogEntity;
 import com.webank.wecube.core.domain.workflow.TaskNodeExecVariableEntity;
 import com.webank.wecube.core.interceptor.UsernameStorage;
-import com.webank.wecube.core.jpa.*;
+import com.webank.wecube.core.jpa.PluginConfigRepository;
+import com.webank.wecube.core.jpa.PluginInstanceRepository;
+import com.webank.wecube.core.jpa.PluginPackageRepository;
+import com.webank.wecube.core.jpa.ProcessDefinitionEntityRepository;
+import com.webank.wecube.core.jpa.ProcessDefinitionTaskServiceEntityRepository;
+import com.webank.wecube.core.jpa.ProcessTaskEntityRepository;
 import com.webank.wecube.core.service.workflow.PluginWorkService;
 import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
-import com.webank.wecube.core.support.cmdb.dto.v2.*;
+import com.webank.wecube.core.support.cmdb.dto.v2.CatCodeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CatTypeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CategoryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.OperateCiDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQueryResult;
 import com.webank.wecube.core.support.plugin.PluginInterfaceInvoker;
 import com.webank.wecube.core.support.plugin.PluginInterfaceInvoker.InvocationResult;
 import com.webank.wecube.core.support.plugin.PluginServiceStub;
@@ -24,24 +63,10 @@ import com.webank.wecube.core.support.plugin.dto.PluginRequest.PluginLoggingInfo
 import com.webank.wecube.core.support.plugin.dto.PluginRequest.PluginLoggingInfoSearchDetailRequest;
 import com.webank.wecube.core.support.plugin.dto.PortalRequestBody.SearchPluginLogRequest;
 import com.webank.wecube.core.support.s3.S3Client;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.ONLINE;
-import static com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery.defaultQueryObject;
-import static com.webank.wecube.core.utils.CollectionUtils.pickRandomOne;
-import static com.webank.wecube.core.utils.SystemUtils.getTempFolderPath;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.trim;
 
 @Service
 @Slf4j
@@ -87,13 +112,10 @@ public class PluginInstanceService {
     ProcessDefinitionEntityRepository processDefinitionEntityRepository;
 
     @Autowired
-    TaskNodeExecLogEntityRepository taskNodeExecLogEntityRepository;
-
-    @Autowired
-    TaskNodeExecVariableEntityRepository taskNodeExecVariableEntityRepository;
-
-    @Autowired
     PluginConfigService pluginConfigService;
+    
+    @Autowired
+    PluginInvocationContextService pluginInvCxtService;
 
 
     private static final String CONSTANT_CONFIRM = "confirm";
@@ -268,22 +290,7 @@ public class PluginInstanceService {
 
         UsernameStorage.getIntance().set(task.getOperator());
 
-        List<TaskNodeExecLogEntity> execLogs = taskNodeExecLogEntityRepository
-                .findEntitiesByInstanceBusinessKey(bizKey);
-
-        List<OperateCiDto> operateCiObjects = new ArrayList<OperateCiDto>();
-
-        for (TaskNodeExecLogEntity execLog : execLogs) {
-            List<TaskNodeExecVariableEntity> execVars = taskNodeExecVariableEntityRepository
-                    .findEntitiesByExecLog(execLog.getId());
-            for (TaskNodeExecVariableEntity execVar : execVars) {
-                String guid = execVar.getCiGuid();
-                int ciTypeId = execVar.getCiTypeId();
-
-                OperateCiDto dto = new OperateCiDto(guid, ciTypeId);
-                operateCiObjects.add(dto);
-            }
-        }
+        List<OperateCiDto> operateCiObjects = pluginInvCxtService.getOperateCiObjects(bizKey);
 
         if (!operateCiObjects.isEmpty()) {
             log.info("to confirm ci while process instance ended");
@@ -339,41 +346,14 @@ public class PluginInstanceService {
 
         PluginInstance chosenInstance = chooseOne(availableInstances);
 
-        TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
-
-        Date curTime = new Date();
-        if (execLog == null) {
-            execLog = new TaskNodeExecLogEntity();
-            execLog.setCreatedBy(operator);
-            execLog.setCreatedTime(curTime);
-            execLog.setInstanceBusinessKey(cmd.getProcessInstanceBizKey());
-            execLog.setTaskNodeId(cmd.getServiceTaskNodeId());
-            execLog.setPreStatus(inf.getFilterStatus());
-            execLog.setPostStatus(inf.getResultStatus());
-            execLog.setRootCiTypeId(rootCiTypeId);
-            execLog.setServiceName(serviceName);
-
-        } else {
-            execLog.setUpdatedBy(operator);
-            execLog.setUpdatedTime(curTime);
-        }
-
-        execLog.setExecutionId(cmd.getProcessExecutionId());
-        execLog.setInstanceId(cmd.getProcessInstanceId());
-        execLog.setRequestUrl(getInstanceAddress(chosenInstance));
-        execLog.setRequestData(marshalRequestData(pluginParameters));
-
-        TaskNodeExecLogEntity savedExecLog = taskNodeExecLogEntityRepository.save(execLog);
-
-        List<TaskNodeExecVariableEntity> vars = taskNodeExecVariableEntityRepository.findEntitiesByExecLog(savedExecLog.getId());
-
-
-        saveTaskNodeExecVariable(pluginParameters, vars, pluginConfig.getCmdbCiTypeId(), execLog);
+        pluginInvCxtService.saveTaskNodeInvocationParameter(cmd, processInstanceBizKey, rootCiTypeId, operator, serviceName, inf,
+				pluginConfig, pluginParameters, chosenInstance);
 
         new Thread(new PluginInterfaceInvoker(getInstanceAddress(chosenInstance), operator, rootCiTypeId, serviceName,
                 inf.getPath(), inf, cmd, pluginParameters, pluginServiceStub, this::handlePluginResponse)).start();
     }
+
+
 
     private String getPluginSeedCodeById(Integer id) {
         CatCodeDto catCode = cmdbServiceV2Stub.getEnumCodeById(id);
@@ -403,47 +383,6 @@ public class PluginInstanceService {
         UsernameStorage.getIntance().set(operator);
     }
 
-    private void saveTaskNodeExecVariable(List<Map<String, Object>> pluginParameters, List<TaskNodeExecVariableEntity> vars, int ciTypeId, TaskNodeExecLogEntity execLog) {
-        for (Map<String, Object> inputDataMap : pluginParameters) {
-            String guid = (String) inputDataMap.get("guid");
-            if (StringUtils.isBlank(guid)) {
-                continue;
-            }
-
-            boolean contains = false;
-            for (TaskNodeExecVariableEntity var : vars) {
-                if (guid.equalsIgnoreCase(var.getCiGuid())) {
-                    contains = true;
-                    break;
-                }
-            }
-
-            if (contains) {
-                continue;
-            }
-
-            TaskNodeExecVariableEntity execVar = new TaskNodeExecVariableEntity();
-            execVar.setCiGuid(guid);
-            execVar.setConfirmed(false);
-            execVar.setCiTypeId(ciTypeId);
-            execVar.setTaskNodeExecLog(execLog);
-
-            taskNodeExecVariableEntityRepository.save(execVar);
-        }
-    }
-
-    private String marshalRequestData(Object data) {
-        if (data == null) {
-            return null;
-        }
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            String json = mapper.writeValueAsString(data);
-            return json;
-        } catch (JsonProcessingException e) {
-            return null;
-        }
-    }
 
     private String getInstanceAddress(Integer instanceId) {
         Optional<PluginInstance> instanceRepository = pluginInstanceRepository.findById(instanceId);
@@ -474,18 +413,7 @@ public class PluginInstanceService {
 
         if (pluginResponse.getPluginResponse().isEmpty()) {
             log.warn("empty plugin response returned");
-            TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                    .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
-            if (execLog != null) {
-                execLog.setErrCode("0");
-                execLog.setErrMsg("response data is blank");
-                execLog.setResponseData(marshalRequestData(pluginResponse.getPluginResponse()));
-                execLog.setUpdatedTime(new Date());
-                execLog.setUpdatedBy(UsernameStorage.getIntance().get());
-                execLog.setTaskNodeStatus("Completed");
-
-                taskNodeExecLogEntityRepository.saveAndFlush(execLog);
-            }
+            pluginInvCxtService.saveTaskNodeProcessResponse(pluginResponse, cmd, processInstanceBizKey);
 
             pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode, PLUGIN_WORK_SUCC);
 
@@ -510,21 +438,13 @@ public class PluginInstanceService {
 
         operateCiByInvocationResult(pluginResponse, parsePluginParametersResult);
 
-        TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, cmd.getServiceTaskNodeId());
-        if (execLog != null) {
-            execLog.setErrCode("0");
-            execLog.setResponseData(marshalRequestData(pluginResponse.getPluginResponse()));
-            execLog.setUpdatedTime(new Date());
-            execLog.setUpdatedBy(UsernameStorage.getIntance().get());
-            execLog.setTaskNodeStatus("Completed");
-
-            taskNodeExecLogEntityRepository.saveAndFlush(execLog);
-        }
+        pluginInvCxtService.saveTaskNodeProcessResponse(pluginResponse, cmd, processInstanceBizKey);
 
         log.info("update cmdb and notify workflow engine with success message. Response is " + pluginResponse);
         pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode, PLUGIN_WORK_SUCC);
     }
+
+
 
     private void setOperatorWithChecking(String operator) {
         if (UsernameStorage.getIntance().get() == null) {
