@@ -94,7 +94,7 @@ public class PluginInstanceService {
 
     @Autowired
     PluginConfigService pluginConfigService;
-
+    
 
     private static final String CONSTANT_CONFIRM = "confirm";
     private static final int PLUGIN_WORK_SUCC = 0;
@@ -268,23 +268,8 @@ public class PluginInstanceService {
 
         UsernameStorage.getIntance().set(task.getOperator());
 
-        List<TaskNodeExecLogEntity> execLogs = taskNodeExecLogEntityRepository
-                .findEntitiesByInstanceBusinessKey(bizKey);
-
-        List<OperateCiDto> operateCiObjects = new ArrayList<OperateCiDto>();
-
-        for (TaskNodeExecLogEntity execLog : execLogs) {
-            List<TaskNodeExecVariableEntity> execVars = taskNodeExecVariableEntityRepository
-                    .findEntitiesByExecLog(execLog.getId());
-            for (TaskNodeExecVariableEntity execVar : execVars) {
-                String guid = execVar.getCiGuid();
-                int ciTypeId = execVar.getCiTypeId();
-
-                OperateCiDto dto = new OperateCiDto(guid, ciTypeId);
-                operateCiObjects.add(dto);
-            }
-        }
-
+        List<OperateCiDto> operateCiObjects = pluginWorkService.getOperateCiObjects(bizKey);
+        
         if (!operateCiObjects.isEmpty()) {
             log.info("to confirm ci while process instance ended");
             cmdbServiceV2Stub.operateCiForState(operateCiObjects, CONSTANT_CONFIRM);
@@ -343,32 +328,10 @@ public class PluginInstanceService {
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getId()));
 
         PluginInstance chosenInstance = chooseOne(availableInstances);
+        
+        pluginWorkService.saveTaskNodeInvocationParameter(cmd, processInstanceBizKey, rootCiTypeId, operator, serviceName, inf,
+        		pluginConfig, pluginParameters, chosenInstance, taskNodeId);
 
-        TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
-                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, taskNodeId);
-
-        Date curTime = new Date();
-        if (execLog == null) {
-            log.error("such execution log doesnt exist,bizKey={},nodeId={}", processInstanceBizKey, taskNodeId);
-            throw new WecubeCoreException("Execution errors");
-        }
-        execLog.setPreStatus(inf.getFilterStatus());
-        execLog.setPostStatus(inf.getResultStatus());
-        execLog.setRootCiTypeId(rootCiTypeId);
-
-        execLog.setUpdatedBy(operator);
-        execLog.setUpdatedTime(curTime);
-
-        execLog.setExecutionId(cmd.getProcessExecutionId());
-        execLog.setRequestUrl(getInstanceAddress(chosenInstance));
-        execLog.setRequestData(marshalRequestData(pluginParameters));
-
-        TaskNodeExecLogEntity savedExecLog = taskNodeExecLogEntityRepository.save(execLog);
-
-        List<TaskNodeExecVariableEntity> vars = taskNodeExecVariableEntityRepository.findEntitiesByExecLog(savedExecLog.getId());
-
-
-        saveTaskNodeExecVariable(pluginParameters, vars, pluginConfig.getCmdbCiTypeId(), execLog);
 
         new Thread(new PluginInterfaceInvoker(getInstanceAddress(chosenInstance), operator, rootCiTypeId, serviceName,
                 inf.getPath(), inf, cmd, pluginParameters, pluginServiceStub, this::handlePluginResponse)).start();
@@ -402,34 +365,6 @@ public class PluginInstanceService {
         UsernameStorage.getIntance().set(operator);
     }
 
-    private void saveTaskNodeExecVariable(List<Map<String, Object>> pluginParameters, List<TaskNodeExecVariableEntity> vars, int ciTypeId, TaskNodeExecLogEntity execLog) {
-        for (Map<String, Object> inputDataMap : pluginParameters) {
-            String guid = (String) inputDataMap.get("guid");
-            if (StringUtils.isBlank(guid)) {
-                continue;
-            }
-
-            boolean contains = false;
-            for (TaskNodeExecVariableEntity var : vars) {
-                if (guid.equalsIgnoreCase(var.getCiGuid())) {
-                    contains = true;
-                    break;
-                }
-            }
-
-            if (contains) {
-                continue;
-            }
-
-            TaskNodeExecVariableEntity execVar = new TaskNodeExecVariableEntity();
-            execVar.setCiGuid(guid);
-            execVar.setConfirmed(false);
-            execVar.setCiTypeId(ciTypeId);
-            execVar.setTaskNodeExecLog(execLog);
-
-            taskNodeExecVariableEntityRepository.save(execVar);
-        }
-    }
 
     private String marshalRequestData(Object data) {
         if (data == null) {
