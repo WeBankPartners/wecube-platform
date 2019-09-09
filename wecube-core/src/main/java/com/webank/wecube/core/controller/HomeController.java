@@ -1,19 +1,18 @@
 package com.webank.wecube.core.controller;
 
-import com.webank.wecube.core.domain.JsonResponse;
-import com.webank.wecube.core.service.UserManagerService;
-import lombok.extern.slf4j.Slf4j;
+import static com.webank.wecube.core.domain.JsonResponse.okay;
+
+import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.security.Principal;
+import com.webank.wecube.core.domain.JsonResponse;
+import com.webank.wecube.core.service.UserManagerService;
 
-import static com.webank.wecube.core.domain.JsonResponse.okay;
-
-@Slf4j
 @Controller
 public class HomeController {
 
@@ -23,6 +22,11 @@ public class HomeController {
     @GetMapping(value = {"/", "index.html"})
     public String index() {
         return "index.html";
+    }
+    
+    @GetMapping(value = { "login.html" })
+    public String loginPage() {
+        return "login.html";
     }
 
     @GetMapping(value = {"/home"})

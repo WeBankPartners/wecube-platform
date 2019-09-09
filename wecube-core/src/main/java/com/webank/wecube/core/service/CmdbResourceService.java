@@ -1046,7 +1046,6 @@ public class CmdbResourceService {
     void setCmdbServiceV2Stub(CmdbServiceV2Stub cmdbServiceV2Stub) {
         this.cmdbServiceV2Stub = cmdbServiceV2Stub;
     }
-
 }
 
 

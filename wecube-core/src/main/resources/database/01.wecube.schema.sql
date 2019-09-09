@@ -23,18 +23,6 @@ create table role_menu (
   unique key uk_roleid_menuid (role_id, menu_id)
 );
 
-drop table if exists system_variables;
-create table system_variables (
-  id int auto_increment primary key,
-  name varchar(255) not null,
-  value varchar(2000),
-  scope_type varchar(50) not null default 'global',
-  scope_value varchar(500),
-  seq_no int not null default 0,
-  status varchar(50) not null default 'active',
-  index idx_prop_scope_val (scope_value)
-);
-
 drop table if exists plugin_packages;
 create table plugin_packages (
   id int auto_increment primary key,
@@ -178,6 +166,25 @@ CREATE TABLE `core_re_proc_def` (
   `CREATE_BY` varchar(255) DEFAULT NULL,
   `UPDATE_TIME` datetime DEFAULT NULL,
   `UPDATE_BY` varchar(255) DEFAULT NULL,
+  `PROC_DATA` LONGTEXT DEFAULT NULL,
+  `PROC_STATUS` VARCHAR(45) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+);
+
+DROP TABLE IF EXISTS `core_re_proc_def`;
+CREATE TABLE `core_re_proc_def` (
+  `ID` varchar(30) NOT NULL,
+  `PROC_DEF_KEY` varchar(255) DEFAULT NULL,
+  `PROC_NAME` varchar(255) DEFAULT NULL,
+  `VERSION` int(11) DEFAULT NULL,
+  `BIND_CITYPE_ID` int(11) DEFAULT NULL,
+  `ACTIVE` int(1) NOT NULL,
+  `CREATE_TIME` datetime DEFAULT NULL,
+  `CREATE_BY` varchar(255) DEFAULT NULL,
+  `UPDATE_TIME` datetime DEFAULT NULL,
+  `UPDATE_BY` varchar(255) DEFAULT NULL,
+  `PROC_DATA` LONGTEXT DEFAULT NULL,
+  `PROC_STATUS` VARCHAR(45) DEFAULT NULL,
   PRIMARY KEY (`ID`)
 );
 
@@ -199,6 +206,9 @@ CREATE TABLE `core_re_proc_task_service` (
   `CREATE_BY` varchar(255) DEFAULT NULL,
   `UPDATE_TIME` datetime DEFAULT NULL,
   `UPDATE_BY` varchar(255) DEFAULT NULL,
+  `TIMEOUT_EXPR` VARCHAR(45) DEFAULT NULL,
+  `TASK_NODE_TYPE` VARCHAR(45) DEFAULT NULL,
+  `CORE_PROC_DEF_ID` VARCHAR(45) DEFAULT NULL,
   PRIMARY KEY (`ID`)
 );
 
@@ -262,43 +272,39 @@ CREATE TABLE `operation_log` (
  INDEX `idx_operation` (`operation`),
  INDEX `idx_result` (`result`)
 );
-
-DROP TABLE IF EXISTS `resource_server`;
-CREATE TABLE `resource_server` (
-	`id` INT(11) NOT NULL AUTO_INCREMENT,
-	`name` VARCHAR(100) NULL DEFAULT NULL,
-	`host` VARCHAR(50) NULL DEFAULT NULL,
-	`port` VARCHAR(10) NULL DEFAULT NULL,
-	`login_username` VARCHAR(50) NULL DEFAULT NULL,
-	`login_password` VARCHAR(100) NULL DEFAULT NULL,
-	`type` VARCHAR(20) NULL DEFAULT NULL,
-	`is_allocated` INT(1) NULL DEFAULT 0,
-	`purpose` VARCHAR(255) NULL DEFAULT NULL,
-	`status` VARCHAR(20) NULL DEFAULT NULL,
-	`created_by` VARCHAR(50) NULL DEFAULT NULL,
-	`created_date` DATETIME NULL DEFAULT NULL,
-	`updated_by` VARCHAR(50) NULL DEFAULT NULL,
-	`updated_date` DATETIME NULL DEFAULT NULL,
-	PRIMARY KEY (`id`),
-	UNIQUE INDEX `uk_resource_server` (`name`)
+DROP TABLE IF EXISTS `act_ru_procinst_status`;
+CREATE TABLE `act_ru_procinst_status` (
+  `id` varchar(30) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `updated_by` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `proc_def_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_key` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `proc_def_name` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_key` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  PRIMARY KEY (`id`)
 );
-
-DROP TABLE IF EXISTS `resource_item`;
-CREATE TABLE `resource_item` (
-	`id` INT(11) NOT NULL AUTO_INCREMENT,
-	`name` VARCHAR(100) NULL DEFAULT NULL,
-	`type` VARCHAR(20) NULL DEFAULT NULL,
-	`additional_properties` LONGTEXT NULL,
-	`resource_server_id` INT(11) NULL DEFAULT NULL,
-	`is_allocated` INT(1) NULL DEFAULT 0,
-	`purpose` VARCHAR(255) NULL DEFAULT NULL,
-	`status` VARCHAR(20) NULL DEFAULT NULL,
-	`created_by` VARCHAR(50) NULL DEFAULT NULL,
-	`created_date` DATETIME NULL DEFAULT NULL,
-	`updated_by` VARCHAR(50) NULL DEFAULT NULL,
-	`updated_date` DATETIME NULL DEFAULT NULL,
-	PRIMARY KEY (`id`),
-	UNIQUE INDEX `uk_name_resource_server_id` (`name`, `resource_server_id`),
-	INDEX `fk_resource_server_id` (`resource_server_id`),
-	CONSTRAINT `fk_resource_server_id` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
+DROP TABLE IF EXISTS `act_ru_srvnode_status`;
+CREATE TABLE `act_ru_srvnode_status` (
+  `id` varchar(30) COLLATE utf8_bin NOT NULL,
+  `created_by` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `end_time` datetime DEFAULT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `updated_by` varchar(20) COLLATE utf8_bin DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `node_id` varchar(60) COLLATE utf8_bin DEFAULT NULL,
+  `node_inst_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `node_name` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `node_type` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_key` varchar(30) COLLATE utf8_bin DEFAULT NULL,
+  `proc_inst_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  `try_times` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 );

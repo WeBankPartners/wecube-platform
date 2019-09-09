@@ -1,33 +1,40 @@
 package com.webank.wecube.core.commons;
 
-import lombok.Data;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
+
+import lombok.Data;
 
 @Data
 @ConfigurationProperties(prefix = "wecube.core")
 public class ApplicationProperties {
+    private static final String AUTH_PROVIDER_LOCAL = "local";
+    private static final String AUTH_PROVIDER_CAS = "CAS";
 
+    private String authenticationProvider;
     private String casServerUrl = "";
     private String cmdbServerUrl = "";
     private String casRedirectAppAddr = "";
     private DataSize maxFileSize = DataSize.ofKilobytes(64);
     private boolean securityEnabled = true;
+    
+    public boolean isAuthenticationProviderLocal() {
+        return AUTH_PROVIDER_LOCAL.equalsIgnoreCase(authenticationProvider);
+    }
+    
+    public boolean isAuthenticationProviderCAS() {
+        return AUTH_PROVIDER_CAS.equalsIgnoreCase(authenticationProvider);
+    }
 
     @Data
     @ConfigurationProperties(prefix = "wecube.core.httpclient")
     public class HttpClientProperties {
         private int connectTimeout = 30000;
         private int requestTimeout = 30000;
-        private int socketTimeout = 60000;
+        private int socketTimeout = 1200000;
         private int maxTotalConnections = 50;
         private int poolSizeOfScheduler = 50;
-        private int defaultKeepAliveTimeMillis = 20000;
+        private int defaultKeepAliveTimeMillis = 1200000;
         private int closeIdleConnectionWaitTimeSecs = 30;
     }
 
@@ -67,8 +74,7 @@ public class ApplicationProperties {
         private String enumCategoryCiStateOfCreate = "ci_state_create";
         private String enumCodeChangeOfCiStateOfCreate = "update";
         private String enumCodeDestroyedOfCiStateOfCreate = "delete";
-        private String enumCategorySecurity = "security";
-        private String enumCodeOfSeed = "seed";
+
 
         private String statusAttributeName = "status";
         private String businessKeyAttributeName = "bizKey";
@@ -81,13 +87,6 @@ public class ApplicationProperties {
         private String propertyNameOfState = "state";
     }
 
-    @Data
-    @ConfigurationProperties(prefix = "wecube.core.api-proxy")
-    public class ApiProxyProperties {
-        private Map<String, String> customHeaders = new LinkedHashMap<>();
-        private Set<String> sensitiveHeaders = null;
-    }
-    
     @Data
     @ConfigurationProperties(prefix = "wecube.core.plugin")
     public class PluginProperties {
@@ -107,12 +106,5 @@ public class ApplicationProperties {
         private String endpoint;
         private String accessKey;
         private String secretKey;
-    }
-
-    @Data
-    @ConfigurationProperties(prefix = "wecube.core.resource")
-    public class ResourceProperties {
-        private Integer dockerPullImageTimeout = 300;
-        private String passwordEncryptionSeed;
     }
 }

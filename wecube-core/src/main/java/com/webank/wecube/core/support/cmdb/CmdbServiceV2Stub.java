@@ -9,18 +9,27 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.webank.wecube.core.commons.WecubeCoreException;
-import com.webank.wecube.core.domain.RoleUser;
-import com.webank.wecube.core.support.cmdb.dto.v2.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
 import com.webank.wecube.core.commons.ApplicationProperties;
+import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.Role;
+import com.webank.wecube.core.domain.RoleUser;
 import com.webank.wecube.core.domain.User;
 import com.webank.wecube.core.support.cmdb.dto.CmdbResponse;
 import com.webank.wecube.core.support.cmdb.dto.CmdbResponse.DefaultCmdbResponse;
+import com.webank.wecube.core.support.cmdb.dto.v2.AdhocIntegrationQueryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CatCodeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CatTypeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CategoryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiDataDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiDataTreeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeAttrDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses;
 import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.CiDataQueryResultResponse;
 import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.CiDataVersionDetailResultResponse;
 import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.CiDataVersionsQueryResultResponse;
@@ -50,7 +59,18 @@ import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.RoleListResultRe
 import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.RoleQueryResultResponse;
 import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.RoleUserListResultResponse;
 import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.RoleUserQueryResultResponse;
+import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.UserListResultResponse;
 import com.webank.wecube.core.support.cmdb.dto.v2.CmdbResponses.UsersQueryResultResponse;
+import com.webank.wecube.core.support.cmdb.dto.v2.ImageInfoDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.IntQueryOperateAggRequestDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.IntQueryOperateAggResponseDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.IntegrationQueryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.OperateCiDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQueryResult;
+import com.webank.wecube.core.support.cmdb.dto.v2.RoleCiTypeCtrlAttrConditionDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.RoleCiTypeCtrlAttrDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.RoleCiTypeDto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -72,6 +92,7 @@ public class CmdbServiceV2Stub {
     private static final String CONSTANTS_EFFECTIVE_STATUS = "/constants/effectiveStatus/retrieve";
 
     private static final String ADMIN_USERS_QUERY = "/users/retrieve";
+    private static final String ADMIN_USERS_CREATE = "/users/create";
     private static final String ADMIN_ROLES_QUERY = "/roles/retrieve";
     private static final String ADMIN_ROLES_CREATE = "/roles/create";
     private static final String ADMIN_ROLES_UPDATE = "/roles/update";
@@ -184,6 +205,14 @@ public class CmdbServiceV2Stub {
         PaginationQueryResult<User> queryResult = query(ADMIN_USERS_QUERY, defaultQueryObject(), UsersQueryResultResponse.class);
         return queryResult.getContents();
     }
+    
+    public User getUserByUsername(String username) {
+        return findFirst(ADMIN_USERS_QUERY, defaultQueryObject("username", username), UsersQueryResultResponse.class, false);
+    }
+    
+    public List<User> createUsers(User... users) {
+        return create(ADMIN_USERS_CREATE, users, UserListResultResponse.class);
+    }
 
     public List<Role> getAllRoles() {
         PaginationQueryResult<Role> queryResult = query(ADMIN_ROLES_QUERY, defaultQueryObject(), RoleQueryResultResponse.class);
@@ -211,7 +240,7 @@ public class CmdbServiceV2Stub {
     public List<Role> createRoles(Role... roles) {
         return create(ADMIN_ROLES_CREATE, roles, RoleListResultResponse.class);
     }
-
+    
     public List<CiTypeDto> updateRoles(Role... roles) {
         return update(ADMIN_ROLES_UPDATE, roles, RoleListResultResponse.class);
     }
