@@ -73,14 +73,14 @@ public class SystemVariableController {
     @PostMapping("/system-variables/enable")
     @ResponseBody
     public JsonResponse enableSystemVariables(@RequestBody List<Integer> variableIds) {
-        systemVariableService.deleteSystemVariables(variableIds);
+        systemVariableService.enableSystemVariables(variableIds);
         return okay();
     }
     
     @PostMapping("/system-variables/disable")
     @ResponseBody
     public JsonResponse disableSystemVariables(@RequestBody List<Integer> variableIds) {
-        systemVariableService.deleteSystemVariables(variableIds);
+        systemVariableService.disableSystemVariables(variableIds);
         return okay();
     }
 
