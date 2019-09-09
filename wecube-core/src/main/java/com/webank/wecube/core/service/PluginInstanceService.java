@@ -8,6 +8,7 @@ import com.webank.wecube.core.commons.ApplicationProperties.CmdbDataProperties;
 import com.webank.wecube.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.plugin.*;
+import com.webank.wecube.core.domain.workflow.CiRoutineItem;
 import com.webank.wecube.core.domain.workflow.ProcessDefinitionTaskServiceEntity;
 import com.webank.wecube.core.domain.workflow.ProcessTaskEntity;
 import com.webank.wecube.core.domain.workflow.TaskNodeExecLogEntity;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -95,7 +97,6 @@ public class PluginInstanceService {
     @Autowired
     PluginConfigService pluginConfigService;
 
-
     private static final String CONSTANT_CONFIRM = "confirm";
     private static final int PLUGIN_WORK_SUCC = 0;
     private static final int PLUGIN_WORK_FAIL = 1;
@@ -108,7 +109,8 @@ public class PluginInstanceService {
             throw new RuntimeException("Invalid host ip");
         }
 
-        List<Integer> ports = pluginInstanceRepository.findPortsByHostOrderByPort(hostIp, PLUGIN_INSTANCE_STATUS_RUNNING);
+        List<Integer> ports = pluginInstanceRepository.findPortsByHostOrderByPort(hostIp,
+                PLUGIN_INSTANCE_STATUS_RUNNING);
         if (ports.size() == 0) {
             return PLUGIN_DEFAULT_START_PORT;
         }
@@ -129,7 +131,7 @@ public class PluginInstanceService {
         }
         return false;
     }
-    
+
     public boolean isIpValidity(String ip) {
         if (ip != null && !ip.isEmpty()) {
             String ipValidityRegularExpression = "^(([1-9])|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))((\\.([0-9]|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))){3})$";
@@ -144,7 +146,7 @@ public class PluginInstanceService {
         if (!isIpValidity(hostIp)) {
             throw new WecubeCoreException("Invalid IP: " + hostIp);
         }
-		
+
         if (!isHostIpAvailable(hostIp)) {
             throw new WecubeCoreException("Unavailable host ip");
         }
@@ -191,9 +193,8 @@ public class PluginInstanceService {
         }
 
         String runCommand = "docker run -d -p " + port + ":" + pp.getContainerPort().trim() + " "
-                + additionalStartParameters
-                + " -it "
-                + pp.getDockerImageRepository().trim() + ":" + pp.getDockerImageTag();
+                + additionalStartParameters + " -it " + pp.getDockerImageRepository().trim() + ":"
+                + pp.getDockerImageTag();
         log.info(CONSTANT_RUN_COMMAND + runCommand);
         String containerId = commandService.runAtRemote(hostIp, pluginProperties.getDefaultHostSshUser(),
                 pluginProperties.getDefaultHostSshPassword(), pluginProperties.getDefaultHostSshPort(), runCommand);
@@ -300,10 +301,10 @@ public class PluginInstanceService {
         String processInstanceBizKey = cmd.getProcessInstanceBizKey();
         int rootCiTypeId = getCiTypeIdAndSetOperator(processInstanceBizKey);
         String operator = UsernameStorage.getIntance().get();
-        if(taskNodeId.indexOf("srvBeanST-") >= 0){
+        if (taskNodeId.indexOf("srvBeanST-") >= 0) {
             taskNodeId = taskNodeId.substring("srvBeanST-".length());
         }
-        
+
         log.info("processing taskNode:{}", taskNodeId);
 
         List<ProcessDefinitionTaskServiceEntity> taskEntities = processDefinitionTaskServiceEntityRepository
@@ -365,8 +366,8 @@ public class PluginInstanceService {
 
         TaskNodeExecLogEntity savedExecLog = taskNodeExecLogEntityRepository.save(execLog);
 
-        List<TaskNodeExecVariableEntity> vars = taskNodeExecVariableEntityRepository.findEntitiesByExecLog(savedExecLog.getId());
-
+        List<TaskNodeExecVariableEntity> vars = taskNodeExecVariableEntityRepository
+                .findEntitiesByExecLog(savedExecLog.getId());
 
         saveTaskNodeExecVariable(pluginParameters, vars, pluginConfig.getCmdbCiTypeId(), execLog);
 
@@ -402,7 +403,8 @@ public class PluginInstanceService {
         UsernameStorage.getIntance().set(operator);
     }
 
-    private void saveTaskNodeExecVariable(List<Map<String, Object>> pluginParameters, List<TaskNodeExecVariableEntity> vars, int ciTypeId, TaskNodeExecLogEntity execLog) {
+    private void saveTaskNodeExecVariable(List<Map<String, Object>> pluginParameters,
+            List<TaskNodeExecVariableEntity> vars, int ciTypeId, TaskNodeExecLogEntity execLog) {
         for (Map<String, Object> inputDataMap : pluginParameters) {
             String guid = (String) inputDataMap.get("guid");
             if (StringUtils.isBlank(guid)) {
@@ -463,10 +465,10 @@ public class PluginInstanceService {
         String executionId = cmd.getProcessExecutionId();
 
         String procDefKey = cmd.getProcessDefinitionKey();
-        
+
         String taskNodeId = cmd.getServiceTaskNodeId();
-        
-        if(taskNodeId.indexOf("srvBeanST-") > 0){
+
+        if (taskNodeId.indexOf("srvBeanST-") > 0) {
             taskNodeId = taskNodeId.substring("srvBeanST-".length());
         }
 
@@ -480,24 +482,27 @@ public class PluginInstanceService {
 
         if (pluginResponse.getPluginResponse().isEmpty()) {
             log.warn("empty plugin response returned");
-            pluginWorkService.logCompleteExecution(processInstanceBizKey, taskNodeId, marshalRequestData(pluginResponse.getPluginResponse()), "response data is blank");
+            pluginWorkService.logCompleteExecution(processInstanceBizKey, taskNodeId,
+                    marshalRequestData(pluginResponse.getPluginResponse()), "response data is blank");
 
-            pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode, PLUGIN_WORK_SUCC);
+            pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode,
+                    PLUGIN_WORK_SUCC);
 
             return;
         }
 
         updateCiDataByInvocationResult(pluginResponse);
 
-
         int rootCiTypeId = pluginResponse.getRootCiTypeId();
         CatTypeDto catTypeDto = cmdbServiceV2Stub.getEnumCategoryTypeByCiTypeId(rootCiTypeId);
 
-        PaginationQuery queryObject = defaultQueryObject().addEqualsFilter("catName", "orchestration").addEqualsFilter("catTypeId", catTypeDto.getCatTypeId());
+        PaginationQuery queryObject = defaultQueryObject().addEqualsFilter("catName", "orchestration")
+                .addEqualsFilter("catTypeId", catTypeDto.getCatTypeId());
         PaginationQueryResult<CategoryDto> result = cmdbServiceV2Stub.queryEnumCategories(queryObject);
 
         CategoryDto category = result.getContents().get(0);
-        PaginationQuery queryObjectCatCodes = defaultQueryObject().addEqualsFilter("code", procDefKey).addEqualsFilter("catId", category.getCatId());
+        PaginationQuery queryObjectCatCodes = defaultQueryObject().addEqualsFilter("code", procDefKey)
+                .addEqualsFilter("catId", category.getCatId());
         PaginationQueryResult<CatCodeDto> resultCatCodes = cmdbServiceV2Stub.queryEnumCodes(queryObjectCatCodes);
         CatCodeDto catCode = resultCatCodes.getContents().get(0);
 
@@ -505,12 +510,12 @@ public class PluginInstanceService {
 
         operateCiByInvocationResult(pluginResponse, parsePluginParametersResult);
 
-        pluginWorkService.logCompleteExecution(processInstanceBizKey, taskNodeId, marshalRequestData(pluginResponse.getPluginResponse()), "success");
+        pluginWorkService.logCompleteExecution(processInstanceBizKey, taskNodeId,
+                marshalRequestData(pluginResponse.getPluginResponse()), "success");
 
         log.info("update cmdb and notify workflow engine with success message. Response is " + pluginResponse);
         pluginWorkService.responseServiceTaskResult(processInstanceBizKey, executionId, serviceCode, PLUGIN_WORK_SUCC);
     }
-    
 
     private void setOperatorWithChecking(String operator) {
         if (UsernameStorage.getIntance().get() == null) {
@@ -518,7 +523,8 @@ public class PluginInstanceService {
         }
     }
 
-    private void operateCiByInvocationResult(InvocationResult pluginResponse, ParsePluginParametersResult parsePluginParametersResult) {
+    private void operateCiByInvocationResult(InvocationResult pluginResponse,
+            ParsePluginParametersResult parsePluginParametersResult) {
         List<OperateCiDto> operateCiObjects = parsePluginParametersResult.getOperateCiObjects();
         List<Map<String, Object>> cmdbWfUpdateItems = parsePluginParametersResult.getCmdbWfUpdateItems();
         PluginConfigInterface inf = pluginResponse.getInf();
@@ -601,6 +607,7 @@ public class PluginInstanceService {
     private void updateCiDataByInvocationResult(InvocationResult pluginResponse) {
         PluginConfigInterface inf = pluginResponse.getInf();
         for (Object obj : pluginResponse.getPluginResponse()) {
+            @SuppressWarnings("unchecked")
             Map<String, Object> responseItems = (Map<String, Object>) obj;
 
             Map<String, Object> cmdbReqItems = calCmdbUpdateRequestItems(responseItems, inf.getOutputParameters());
@@ -617,7 +624,7 @@ public class PluginInstanceService {
     }
 
     private Map<String, Object> calCmdbUpdateRequestItems(Map<String, Object> pluginRespItems,
-                                                          Set<PluginConfigInterfaceParameter> predefinedOutputParams) {
+            Set<PluginConfigInterfaceParameter> predefinedOutputParams) {
         Map<String, Object> reqItems = new HashMap<>();
         for (PluginConfigInterfaceParameter param : predefinedOutputParams) {
             String paramName = param.getName();
@@ -634,10 +641,11 @@ public class PluginInstanceService {
         return reqItems;
     }
 
-    private Set<PluginConfigInterfaceParameter> filterPluginConfigInterfaceParameter(Set<PluginConfigInterfaceParameter> srcInputParameters, String mappingType){
+    private Set<PluginConfigInterfaceParameter> filterPluginConfigInterfaceParameter(
+            Set<PluginConfigInterfaceParameter> srcInputParameters, String mappingType) {
         Set<PluginConfigInterfaceParameter> inputParameters = new HashSet<>();
         srcInputParameters.forEach(p -> {
-            if(mappingType.equals(p.getMappingType())){
+            if (mappingType.equals(p.getMappingType())) {
                 inputParameters.add(p);
             }
         });
@@ -646,11 +654,13 @@ public class PluginInstanceService {
 
     private List<Map<String, Object>> queryCmdb(PluginConfigInterface pluginConfigInterface, String bizKey) {
         Set<PluginConfigInterfaceParameter> fullInputParameters = pluginConfigInterface.getInputParameters();
-        Set<PluginConfigInterfaceParameter> intQryInputParameters = filterPluginConfigInterfaceParameter(fullInputParameters, "CMDB_CI_TYPE");
-        Set<PluginConfigInterfaceParameter> enumKindInputParameters = filterPluginConfigInterfaceParameter(fullInputParameters, "CMDB_ENUM_CODE");
+        Set<PluginConfigInterfaceParameter> intQryInputParameters = filterPluginConfigInterfaceParameter(
+                fullInputParameters, "CMDB_CI_TYPE");
+        Set<PluginConfigInterfaceParameter> enumKindInputParameters = filterPluginConfigInterfaceParameter(
+                fullInputParameters, "CMDB_ENUM_CODE");
 
-        List<String> resultColumns = intQryInputParameters.stream().map(PluginConfigInterfaceParameter::getCmdbColumnName)
-                .collect(Collectors.toList());
+        List<String> resultColumns = intQryInputParameters.stream()
+                .map(PluginConfigInterfaceParameter::getCmdbColumnName).collect(Collectors.toList());
 
         Map<String, Object> equalsFilters = new LinkedHashMap<>();
         Map<String, Object> inFilters = new LinkedHashMap<>();
@@ -671,18 +681,16 @@ public class PluginInstanceService {
                 .collect(Collectors.toList());
         log.info("Converted Ci data list is " + convertedCiDataList);
 
-        convertedCiDataList.forEach(m ->
-            enumKindInputParameters.forEach(p -> {
-                Integer enumCodeId = p.getCmdbEnumCode();
-                if(enumCodeId != null){
-                    String enumCodeValue = getPluginSeedCodeById(enumCodeId);
-                    if(StringUtils.isNotBlank(enumCodeValue)){
-                        m.put(p.getName(), enumCodeValue);
-                    }
+        convertedCiDataList.forEach(m -> enumKindInputParameters.forEach(p -> {
+            Integer enumCodeId = p.getCmdbEnumCode();
+            if (enumCodeId != null) {
+                String enumCodeValue = getPluginSeedCodeById(enumCodeId);
+                if (StringUtils.isNotBlank(enumCodeValue)) {
+                    m.put(p.getName(), enumCodeValue);
                 }
+            }
 
-            })
-        );
+        }));
 
         log.info("Ci data list is " + convertedCiDataList);
         return convertedCiDataList;
@@ -704,7 +712,7 @@ public class PluginInstanceService {
                         String.format("Column %s not found in ci data [%s].", cmdbColumnName, data));
             }
 
-            value = getValueByKeyIfMap(value, "code");
+            value = extractValueFromSpecialCiType(value, inputParameters, data);
             if (value == null) {
                 log.warn("value from cmdb is null,column name:{} plugin column name:{}", cmdbColumnName,
                         pluginColumnName);
@@ -719,17 +727,170 @@ public class PluginInstanceService {
         return convertedData;
     }
 
-	@SuppressWarnings("unchecked")
-	private Object getValueByKeyIfMap(Object map, String key) {
-		if (map != null && map instanceof Map) {
-			Map<String, Object> valueMap = (Map<String, Object>) map;
-			Object valueOfCode = valueMap.get(key);
-			if (valueOfCode != null) {
-				return valueOfCode;
-			}
-		}
-		return map;
-	}
+    @SuppressWarnings("unchecked")
+    private Object extractValueFromSpecialCiType(Object rawValue, Set<PluginConfigInterfaceParameter> inputParameters,
+            Map<String, Object> data) {
+        // check if it is enum type
+        if (rawValue != null && rawValue instanceof Map) {
+            Map<String, Object> valueMap = (Map<String, Object>) rawValue;
+            Object valueOfCode = valueMap.get("code");
+            if (valueOfCode != null) {
+                //check if diff conf variable
+                if (isDiffConfVariable(valueOfCode)) {
+                    return extractDiffConfVariable((String)valueOfCode, inputParameters, data);
+                } else {
+                    return valueOfCode;
+                }
+            }
+        }
+        return rawValue;
+    }
+    
+    private Object extractDiffConfVariable(String valueOfCode, Set<PluginConfigInterfaceParameter> inputParameters,
+            Map<String, Object> data){
+        log.info("start to extract diff conf variable for value:{}", valueOfCode);
+        
+        List<CiRoutineItem> ciRoutineItems = null;
+        try {
+            ciRoutineItems = buildRoutines(valueOfCode);
+        } catch (IOException e) {
+            log.error("build routines errors", e);
+            return valueOfCode;
+        }
+        
+        if(ciRoutineItems == null){
+            log.error("diff conf expression cannot parse correctly");
+            return valueOfCode;
+        }
+        
+        String rootGuid = extractRootCiGuid(inputParameters, data);
+        if(StringUtils.isBlank(rootGuid)){
+            log.error("guid is expected but cannot find for value of code:{}", valueOfCode);
+            return valueOfCode;
+        }
+        
+        try {
+            List<Map<String, Object>> retDataList = buildIntegrationQueryAndGetQueryResult(rootGuid, ciRoutineItems);
+            if(retDataList != null && !retDataList.isEmpty()){
+                Map<String,Object> retDataMap = retDataList.get(0);
+                return retDataMap.get("tail$attr");
+            }
+        } catch (IOException e) {
+            log.error("errors while retrieving data from cmdb", e);
+            return valueOfCode;
+        }
+        
+        log.warn("didnt extract expected diff conf variable for value of code:{}", valueOfCode);
+        return valueOfCode;
+    }
+    
+    private List<Map<String, Object>> buildIntegrationQueryAndGetQueryResult(
+            String rootCiDataGuid, List<CiRoutineItem> routines) throws IOException {
+
+        AdhocIntegrationQueryDto rootDto = buildRootDto(routines.get(0), rootCiDataGuid);
+
+        IntegrationQueryDto childQueryDto = travelRoutine(routines, rootDto, 1);
+        if (childQueryDto != null) {
+            rootDto.getCriteria().setChildren(Collections.singletonList(childQueryDto));
+        }
+        
+        return cmdbServiceV2Stub.adhocIntegrationQuery(rootDto).getContents();
+    }
+    
+    protected AdhocIntegrationQueryDto buildRootDto(CiRoutineItem rootRoutineItem, String rootCiGuid) {
+        AdhocIntegrationQueryDto dto = new AdhocIntegrationQueryDto();
+        PaginationQuery queryRequest = new PaginationQuery();
+
+        queryRequest.addEqualsFilter("root$guid", rootCiGuid);
+
+        IntegrationQueryDto root = new IntegrationQueryDto();
+        dto.setCriteria(root);
+        dto.setQueryRequest(queryRequest);
+
+        root.setName("root");
+        root.setCiTypeId(rootRoutineItem.getCiTypeId());
+        root.setAttrs(Arrays.asList(getGuidAttrIdByCiTypeId(rootRoutineItem.getCiTypeId())));
+        root.setAttrKeyNames(Arrays.asList("root$guid"));
+
+        return dto;
+    }
+    
+    protected Integer getGuidAttrIdByCiTypeId(int ciTypeId) {
+        List<CiTypeAttrDto> attrDtos = cmdbServiceV2Stub.getCiTypeAttributesByCiTypeId(ciTypeId);
+        for (CiTypeAttrDto dto : attrDtos) {
+            if ("guid".equalsIgnoreCase(dto.getPropertyName())) {
+                return dto.getCiTypeAttrId();
+            }
+        }
+
+        return null;
+    }
+
+    protected IntegrationQueryDto travelRoutine(List<CiRoutineItem> routines, AdhocIntegrationQueryDto rootDto, int position) {
+        if (position >= (routines.size() - 1)) {
+            return null;
+        }
+
+        CiRoutineItem item = routines.get(position);
+        IntegrationQueryDto dto = new IntegrationQueryDto();
+        dto.setName("a" + position);
+        dto.setCiTypeId(item.getCiTypeId());
+
+        Relationship parentRs = new Relationship();
+        parentRs.setAttrId(item.getParentRs().getAttrId());
+        parentRs.setIsReferedFromParent(item.getParentRs().getIsReferedFromParent() == 1);
+        dto.setParentRs(parentRs);
+
+        IntegrationQueryDto childDto = travelRoutine(routines, rootDto, position+1);
+        if (childDto == null) {
+            CiRoutineItem attrItem = routines.get(position+1);
+            if(item.getCiTypeId() != attrItem.getCiTypeId()){
+                throw new WecubeCoreException("citype id is error");
+            }
+            
+            dto.setAttrs(Arrays.asList(attrItem.getParentRs().getAttrId()));
+
+            List<String> attrKeyNames = new ArrayList<String>();
+            attrKeyNames.add("tail$attr");
+
+            dto.setAttrKeyNames(attrKeyNames);
+
+            
+        } else {
+            dto.setChildren(Arrays.asList(childDto));
+        }
+
+        return dto;
+    }
+    
+    private String extractRootCiGuid(Set<PluginConfigInterfaceParameter> inputParameters,
+            Map<String, Object> data){
+        for(PluginConfigInterfaceParameter parameter : inputParameters){
+            if("guid".equals(parameter.getName())){
+                return (String) data.get(parameter.getCmdbColumnName());
+            }
+        }
+        
+        return null;
+    }
+    
+    
+    private List<CiRoutineItem> buildRoutines(String ciRoutineExpStr) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(ciRoutineExpStr.getBytes(),
+                mapper.getTypeFactory().constructCollectionType(ArrayList.class, CiRoutineItem.class));
+    }
+
+    private boolean isDiffConfVariable(Object value) {
+        if (value instanceof String) {
+            String valStr = (String) value;
+            if (valStr.startsWith("[{") && valStr.endsWith("}]")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     // Use random selection as a short term solution of load-balancing.
     // This can be enhanced once the health check function is ready.
