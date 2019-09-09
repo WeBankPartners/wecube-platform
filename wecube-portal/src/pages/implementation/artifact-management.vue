@@ -36,7 +36,7 @@
         <Upload
           :action="`/artifact/unit-designs/${guid}/packages/upload`"
           :headers="setUploadActionHeader"
-          :on-success="queryPackages"
+          :on-success="uploadPackagesSuccess"
           slot="title"
         >
           <Button icon="ios-cloud-upload-outline">上传新包</Button>
@@ -321,6 +321,17 @@ export default {
     }
   },
   methods: {
+    uploadPackagesSuccess(response, file, fileList) {
+      if (response.status === "ERROR") {
+        this.$Notice.error({
+          title: "Error",
+          desc: response.message || ""
+        });
+      } else {
+        this.queryPackages();
+      }
+    },
+
     renderActionButton(params) {
       const row = params.row;
       return this.statusOperations
