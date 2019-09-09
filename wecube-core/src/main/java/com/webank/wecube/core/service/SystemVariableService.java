@@ -1,5 +1,6 @@
 package com.webank.wecube.core.service;
 
+import static com.webank.wecube.core.domain.SystemVariable.ACTIVE;
 import static com.webank.wecube.core.domain.SystemVariable.SCOPE_TYPE_GLOBAL;
 import static com.webank.wecube.core.domain.SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -63,7 +64,10 @@ public class SystemVariableService {
 
     public List<SystemVariable> saveSystemVariables(List<SystemVariable> variables) {
         if (isNotEmpty(variables)) {
-            return variables.stream().map(p -> systemVariableRepository.save(p)).collect(Collectors.toList());
+            return variables.stream().map(p -> {
+                    if (p.getStatus()==null) p.setStatus(ACTIVE);
+                    return systemVariableRepository.save(p);
+                }).collect(Collectors.toList());
         }
         return variables;
     }
