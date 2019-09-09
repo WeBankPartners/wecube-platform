@@ -748,6 +748,8 @@ public class PluginInstanceService {
     
     private Object extractDiffConfVariable(String valueOfCode, Set<PluginConfigInterfaceParameter> inputParameters,
             Map<String, Object> data){
+        log.info("start to extract diff conf variable for value:{}", valueOfCode);
+        
         List<CiRoutineItem> ciRoutineItems = null;
         try {
             ciRoutineItems = buildRoutines(valueOfCode);
