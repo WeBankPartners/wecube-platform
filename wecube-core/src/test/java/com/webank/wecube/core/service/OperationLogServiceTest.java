@@ -1,17 +1,24 @@
 package com.webank.wecube.core.service;
 
-import static com.webank.wecube.core.dto.QueryRequest.defaultQueryObject;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.webank.wecube.core.DatabaseBasedTest;
+import com.webank.wecube.core.domain.OperationLog;
 import com.webank.wecube.core.dto.OperationLogDto;
 import com.webank.wecube.core.dto.QueryRequest;
 import com.webank.wecube.core.dto.QueryResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
-public class OperationLogServiceTest extends DatabaseBasedTest{
+import static com.webank.wecube.core.dto.QueryRequest.defaultQueryObject;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
+@Slf4j
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class OperationLogServiceTest {
 
     @Autowired
     private OperationLogService operationLogService;
@@ -42,6 +49,7 @@ public class OperationLogServiceTest extends DatabaseBasedTest{
         }
     }
 
+    @Ignore
     @Test
     public void queryByCreatTimeTest() {
         String startTime = "2019-07-30 11:29:44";
