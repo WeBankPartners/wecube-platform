@@ -1,12 +1,19 @@
 <template>
-  <div id="app">
-    <div class="content-container">
-      <BackTop :height="100" :bottom="100" />
-      <router-view :key="$route.path" />
-    </div>
+  <div class="content-container">
+    <BackTop :height="100" :bottom="100" />
+    <router-view :key="$route.path" />
   </div>
 </template>
-
+<script>
+export default {
+  mounted() {
+    const boxLoading = document.getElementById("boxLoading");
+    const boxTitle = document.getElementById("boxTitle");
+    boxLoading.style.display = "none";
+    boxTitle.style.display = "none";
+  }
+};
+</script>
 <style lang="scss">
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
