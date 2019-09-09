@@ -3,6 +3,10 @@ package com.webank.wecube.core.service.workflow.parse;
 import org.camunda.bpm.engine.impl.bpmn.deployer.BpmnDeployer;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParse;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParser;
+import org.camunda.bpm.engine.impl.calendar.CycleBusinessCalendar;
+import org.camunda.bpm.engine.impl.calendar.DueDateBusinessCalendar;
+import org.camunda.bpm.engine.impl.calendar.DurationBusinessCalendar;
+import org.camunda.bpm.engine.impl.calendar.MapBusinessCalendarManager;
 import org.camunda.bpm.engine.impl.cfg.BpmnParseFactory;
 import org.camunda.bpm.engine.spring.SpringProcessEngineConfiguration;
 import org.slf4j.Logger;
@@ -42,6 +46,18 @@ public class CustomSpringProcessEngineConfiguration extends SpringProcessEngineC
         bpmnDeployer.setBpmnParser(bpmnParser);
 
         return bpmnDeployer;
+    }
+    
+    protected void initBusinessCalendarManager() {
+        if (businessCalendarManager == null) {
+            MapBusinessCalendarManager mapBusinessCalendarManager = new MapBusinessCalendarManager();
+            mapBusinessCalendarManager.addBusinessCalendar(DurationBusinessCalendar.NAME,
+                    new CustomDurationBusinessCalendar());
+            mapBusinessCalendarManager.addBusinessCalendar(DueDateBusinessCalendar.NAME, new DueDateBusinessCalendar());
+            mapBusinessCalendarManager.addBusinessCalendar(CycleBusinessCalendar.NAME, new CycleBusinessCalendar());
+
+            businessCalendarManager = mapBusinessCalendarManager;
+        }
     }
     
     

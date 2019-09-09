@@ -7,8 +7,6 @@ java -jar /application/wecube-core.jar  --server.address=0.0.0.0 --server.port=8
 --spring.datasource.url=jdbc:mysql://${MYSQL_SERVER_ADDR}:${MYSQL_SERVER_PORT}/${MYSQL_SERVER_DATABASE_NAME}?characterEncoding=utf8 \
 --spring.datasource.username=${MYSQL_USER_NAME} \
 --spring.datasource.password=${MYSQL_USER_PASSWORD}  \
---wecube.core.cas-server-url=${CAS_SERVER_URL}  \
---wecube.core.cas-redirect-app-addr=${CAS_REDIRECT_APP_ADDR} \
 --wecube.core.cmdb-server-url=${CMDB_SERVER_URL} \
 --wecube.core.plugin.plugin-hosts=${WECUBE_PLUGIN_HOSTS} \
 --wecube.core.plugin.default-host-ssh-user=${WECUBE_PLUGIN_HOST_USER} \

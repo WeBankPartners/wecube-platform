@@ -7,7 +7,6 @@ import static com.webank.wecube.core.utils.CollectionUtils.putToSet;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -21,8 +20,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.RepositoryService;
-import org.camunda.bpm.engine.impl.util.IoUtil;
-import org.camunda.bpm.engine.repository.DeploymentBuilder;
 import org.camunda.bpm.engine.repository.DeploymentWithDefinitions;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.repository.ProcessDefinitionQuery;
@@ -30,24 +27,24 @@ import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.FlowNode;
 import org.camunda.bpm.model.bpmn.instance.ServiceTask;
 import org.camunda.bpm.model.bpmn.instance.StartEvent;
+import org.camunda.bpm.model.bpmn.instance.SubProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.webank.wecube.core.commons.TimestampedIdGenerator;
+import com.webank.wecube.core.commons.LocalIdGenerator;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
-import com.webank.wecube.core.domain.workflow.ProcessDefinitionEntity;
-import com.webank.wecube.core.domain.workflow.ProcessDefinitionTaskServiceEntity;
 import com.webank.wecube.core.domain.workflow.FlowNodeVO;
 import com.webank.wecube.core.domain.workflow.ProcessDefinitionDeployRequest;
 import com.webank.wecube.core.domain.workflow.ProcessDefinitionDeployResponse;
+import com.webank.wecube.core.domain.workflow.ProcessDefinitionEntity;
 import com.webank.wecube.core.domain.workflow.ProcessDefinitionOutline;
 import com.webank.wecube.core.domain.workflow.ProcessDefinitionPreviewVO;
+import com.webank.wecube.core.domain.workflow.ProcessDefinitionTaskServiceEntity;
 import com.webank.wecube.core.domain.workflow.ProcessDefinitionVO;
 import com.webank.wecube.core.domain.workflow.ServiceTaskBindInfoVO;
 import com.webank.wecube.core.domain.workflow.ServiceTaskVO;
@@ -56,7 +53,10 @@ import com.webank.wecube.core.domain.workflow.TaskNodeDefinitionPreviewResultVO.
 import com.webank.wecube.core.domain.workflow.TaskNodeDefinitionPreviewResultVO.CiDataItem;
 import com.webank.wecube.core.domain.workflow.TaskNodeDefinitionPreviewResultVO.HeaderItem;
 import com.webank.wecube.core.domain.workflow.TaskNodeDefinitionPreviewVO;
-import com.webank.wecube.core.jpa.PluginConfigRepository;
+import com.webank.wecube.core.interceptor.UsernameStorage;
+import com.webank.wecube.core.service.workflow.parse.BpmnParseAttachment;
+import com.webank.wecube.core.service.workflow.parse.BpmnProcessModelCustomizer;
+import com.webank.wecube.core.service.workflow.parse.SubProcessAdditionalInfo;
 import com.webank.wecube.core.support.cmdb.dto.v2.CatCodeDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.CategoryDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeAttrDto;
@@ -64,12 +64,11 @@ import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeDto;
 
 @Service
 public class ProcessDefinitionService extends AbstractProcessService {
-    private static final String CONSTANT_SYSTEM="system";
     private static final Logger log = LoggerFactory.getLogger(ProcessDefinitionService.class);
 
-    public static final String NS_WECUBE = "http://www.webank.com/schema/we3/1.0";
-
     private static final String BPMN_SUFFIX = ".bpmn20.xml";
+    
+    private String encoding = "UTF-8";
 
     public TaskNodeDefinitionPreviewResultVO previewTaskNodeDefinition(TaskNodeDefinitionPreviewVO request) {
         TaskNodeDefinitionPreviewResultVO vo = new TaskNodeDefinitionPreviewResultVO();
@@ -103,8 +102,8 @@ public class ProcessDefinitionService extends AbstractProcessService {
         }
 
         int version = proc.getVersion();
-        ProcessDefinitionEntity defEntity = coreProcessDefinitionEntityRepository
-                .findByProcDefKeyAndVersion(procDefKey, version);
+        ProcessDefinitionEntity defEntity = processDefinitionEntityRepository.findByProcDefKeyAndVersion(procDefKey,
+                version);
 
         if (defEntity == null) {
             log.error("such process definition did not regitered correctly,procDefKey={}, version={}", procDefKey,
@@ -114,7 +113,7 @@ public class ProcessDefinitionService extends AbstractProcessService {
 
         String taskNodeId = request.getTaskNodeId();
 
-        List<ProcessDefinitionTaskServiceEntity> taskEntities = coreProcessDefinitionTaskServiceEntityRepository
+        List<ProcessDefinitionTaskServiceEntity> taskEntities = processDefinitionTaskServiceEntityRepository
                 .findTaskServicesByProcDefKeyAndVersionAndTaskNodeId(procDefKey, version, taskNodeId);
 
         if (taskEntities.isEmpty()) {
@@ -225,44 +224,36 @@ public class ProcessDefinitionService extends AbstractProcessService {
         org.camunda.bpm.model.bpmn.instance.Process process = processes.iterator().next();
 
         Collection<ServiceTask> serviceTasks = process.getChildElementsByType(ServiceTask.class);
+        Collection<SubProcess> subProcesses = process.getChildElementsByType(SubProcess.class);
 
-        List<ProcessDefinitionTaskServiceEntity> taskEntities = coreProcessDefinitionTaskServiceEntityRepository
+        List<ProcessDefinitionTaskServiceEntity> taskEntities = processDefinitionTaskServiceEntityRepository
                 .findTaskServicesByProcDefKeyAndVersion(procDef.getKey(), procDef.getVersion());
 
         List<ServiceTaskVO> serviceTaskVOs = new ArrayList<>();
         for (ProcessDefinitionTaskServiceEntity taskEntity : taskEntities) {
-            if (!containsTaskNodeId(taskEntity.getTaskNodeId(), serviceTasks)) {
+            if(isServiceTask(taskEntity, serviceTasks) || isSubProcess(taskEntity, subProcesses)){
+                ServiceTaskVO stVo = new ServiceTaskVO();
+                stVo.setServiceCode(taskEntity.getBindServiceName());
+                stVo.setId(taskEntity.getTaskNodeId());
+                stVo.setName(taskEntity.getTaksNodeName());
+                stVo.setCiLocateExpression(taskEntity.getBindCiRoutineExp());
+
+                serviceTaskVOs.add(stVo);
+            }else{
                 log.warn("such task node ID does not exist in process definition, taskNodeId={}",
                         taskEntity.getTaskNodeId());
                 continue;
             }
-
-            ServiceTaskVO stVo = new ServiceTaskVO();
-            stVo.setServiceCode(taskEntity.getBindServiceName());
-            stVo.setId(taskEntity.getTaskNodeId());
-            stVo.setName(taskEntity.getTaksNodeName());
-            stVo.setCiLocateExpression(taskEntity.getBindCiRoutineExp());
-
-            serviceTaskVOs.add(stVo);
         }
 
         return serviceTaskVOs;
     }
 
-    private boolean containsTaskNodeId(String taskNodeId, Collection<ServiceTask> serviceTasks) {
-        for (ServiceTask s : serviceTasks) {
-            if (s.getId().equals(taskNodeId)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public Map<String, Object> evaluateRequiredInputParameters(String processDefinitionId) {
         List<ServiceTaskVO> serviceTasks = calPluginEnabledServiceTasks(processDefinitionId);
-        if (isEmpty(serviceTasks))
+        if (isEmpty(serviceTasks)){
             throw new WecubeCoreException("No service task found for process - " + processDefinitionId);
+        }
         return evaluateRequiredInputParameters(serviceTasks);
     }
 
@@ -272,9 +263,10 @@ public class ProcessDefinitionService extends AbstractProcessService {
         serviceTasks.stream().map(ServiceTaskVO::getServiceCode).forEach(serviceName -> {
             Optional<PluginConfigInterface> pluginConfigInterface = pluginConfigRepository
                     .findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(serviceName);
-            if (!pluginConfigInterface.isPresent())
+            if (!pluginConfigInterface.isPresent()){
                 throw new WecubeCoreException(
                         String.format("Plugin interface not found for serviceName [%s].", serviceName));
+            }
             PluginConfigInterface inf = pluginConfigInterface.get();
             inputParameters.addAll(inf.getInputParameters());
             putToSet(outputParameterAttributeIds, inf.getOutputParameters(),
@@ -320,7 +312,7 @@ public class ProcessDefinitionService extends AbstractProcessService {
         ProcessDefinitionOutline outline = new ProcessDefinitionOutline();
         int procDefKeyEnumId = definitionsPreviewVO.getDefinitionKey();
 
-//        String definitionKey = definitionsPreviewVO.getDefinitionKey();
+        // String definitionKey = definitionsPreviewVO.getDefinitionKey();
         String definitionKey = getCodeByEnumCodeId(procDefKeyEnumId);
 
         if (StringUtils.isBlank(definitionKey)) {
@@ -375,24 +367,121 @@ public class ProcessDefinitionService extends AbstractProcessService {
 
     public ProcessDefinitionDeployResponse deployProcessDefinition(ProcessDefinitionDeployRequest request) {
         log.info("start to deploy process definition,request={}", request);
-        DeploymentBuilder deploymentBuilder = processEngine.getRepositoryService().createDeployment()
-                .name(request.getProcessName())
-                .addString(request.getProcessName() + BPMN_SUFFIX, request.getProcessData());
 
-        DeploymentWithDefinitions deployment = deploymentBuilder.deployWithResult();
+        ProcessDefinitionEntity processDefinitionEntity = buildProcessDefinitionEntity(request);
 
+        processDefinitionEntityRepository.save(processDefinitionEntity);
+
+        List<ProcessDefinitionTaskServiceEntity> processDefinitionTaskServiceEntities = buildProcessDefinitionTaskServiceEntities(
+                request, processDefinitionEntity);
+        processDefinitionTaskServiceEntityRepository.saveAll(processDefinitionTaskServiceEntities);
+        
+        String fileName = request.getProcessName() + BPMN_SUFFIX;
+        
+        BpmnParseAttachment bpmnParseAttachment = buildBpmnParseAttachment(processDefinitionEntity, processDefinitionTaskServiceEntities);
+        
+        BpmnProcessModelCustomizer customizer = new BpmnProcessModelCustomizer(fileName, request.getProcessData(), encoding);
+        customizer.setBpmnParseAttachment(bpmnParseAttachment);
+        BpmnModelInstance procModelInstance = customizer.build();
+        
+        DeploymentWithDefinitions deployment = repositoryService.createDeployment()
+                .addModelInstance(fileName, procModelInstance).deployWithResult();
         List<ProcessDefinition> processDefs = deployment.getDeployedProcessDefinitions();
 
         if (processDefs == null || processDefs.isEmpty()) {
-            log.warn("abnormally to parse process definition,request={}", request);
-            return null;
+            log.error("abnormally to parse process definition,request={}", request);
+            handleDeployFailure(processDefinitionEntity);
+            throw new WecubeCoreException("process deploying failed");
         }
+
+//        DeploymentBuilder deploymentBuilder = processEngine.getRepositoryService().createDeployment()
+//                .name(request.getProcessName())
+//                .addString(request.getProcessName() + BPMN_SUFFIX, request.getProcessData());
+//
+//        DeploymentWithDefinitions deployment = deploymentBuilder.deployWithResult();
+
+        
 
         ProcessDefinition processDef = processDefs.get(0);
 
-        coreProcessDefinitionEntityRepository
-                .save(buildCoreProcessDefinitionEntity(processDef, request.getRootCiTypeId()));
+        updateProcessDefinitionEntity(processDefinitionEntity, processDef);
 
+        updateProcessDefinitionTaskServiceEntities(processDefinitionTaskServiceEntities, processDef);
+
+        pushProcDefKeyToCmdb(request.getRootCiTypeId(), procDefKeyCmdbAttrName, processDef.getKey(),
+                processDef.getName());
+
+        return buildProcessDefinitionDeployResponse(processDef);
+    }
+    
+    private BpmnParseAttachment buildBpmnParseAttachment(ProcessDefinitionEntity processDefinitionEntity, List<ProcessDefinitionTaskServiceEntity> processDefinitionTaskServiceEntities){
+        BpmnParseAttachment bpmnParseAttachment = new BpmnParseAttachment();
+        
+        for(ProcessDefinitionTaskServiceEntity entity : processDefinitionTaskServiceEntities){
+            SubProcessAdditionalInfo info = new SubProcessAdditionalInfo();
+            info.setSubProcessNodeId(entity.getTaskNodeId());
+            info.setSubProcessNodeName(entity.getTaksNodeName());
+            info.setTimeoutExpression(convertIsoTimeFormat(entity.getTimeoutExpression()));
+            
+            bpmnParseAttachment.addSubProcessAddtionalInfo(info);
+        }
+        
+        return bpmnParseAttachment;
+    }
+    
+    private String convertIsoTimeFormat(String timeoutExpression){
+        if(StringUtils.isBlank(timeoutExpression)){
+            return timeoutExpression;
+        }
+        
+        return "PT"+timeoutExpression.trim()+"M";
+    }
+
+    private void updateProcessDefinitionEntity(ProcessDefinitionEntity entity, ProcessDefinition processDef) {
+        entity.setActive(ProcessDefinitionEntity.ACTIVE_VALUE);
+        entity.setProcDefKey(processDef.getKey());
+        entity.setProcStatus(ProcessDefinitionEntity.PROC_STATUS_DEPLOYED);
+        entity.setUpdateBy(UsernameStorage.getIntance().get());
+        entity.setUpdateTime(new Date());
+        entity.setVersion(processDef.getVersion());
+
+        processDefinitionEntityRepository.save(entity);
+    }
+
+    private List<ProcessDefinitionTaskServiceEntity> buildProcessDefinitionTaskServiceEntities(
+            ProcessDefinitionDeployRequest request, ProcessDefinitionEntity processDefinitionEntity) {
+        List<ProcessDefinitionTaskServiceEntity> taskServiceEntities = new ArrayList<ProcessDefinitionTaskServiceEntity>();
+
+        Date currTime = new Date();
+        String currUser = UsernameStorage.getIntance().get();
+        for (ServiceTaskBindInfoVO bindInfo : request.getServiceTaskBindInfos()) {
+            ProcessDefinitionTaskServiceEntity taskEntity = new ProcessDefinitionTaskServiceEntity();
+            taskEntity.setId(LocalIdGenerator.INSTANCE.generateTimestampedId());
+            taskEntity.setActive(ProcessDefinitionTaskServiceEntity.ACTIVE_VALUE);
+            taskEntity.setBindCiRoutineExp(bindInfo.getCiRoutineExp());
+            taskEntity.setBindCiRoutineRaw(bindInfo.getCiRoutineRaw());
+            taskEntity.setBindServiceId(bindInfo.getServiceId());
+            taskEntity.setBindServiceName(bindInfo.getServiceName());
+            taskEntity.setTaskNodeId(bindInfo.getNodeId());
+            taskEntity.setTaksNodeName(bindInfo.getNodeName());
+
+            taskEntity.setDescription(bindInfo.getDescription());
+            taskEntity.setTimeoutExpression(bindInfo.getTimeoutExpression());
+
+            taskEntity.setCreateTime(currTime);
+            taskEntity.setCreateBy(currUser);
+
+            taskEntity.setCoreProcDefId(processDefinitionEntity.getId());
+
+            taskServiceEntities.add(taskEntity);
+        }
+
+        return taskServiceEntities;
+    }
+
+    private void updateProcessDefinitionTaskServiceEntities(
+            List<ProcessDefinitionTaskServiceEntity> processDefinitionTaskServiceEntities,
+            ProcessDefinition processDef) {
         BpmnModelInstance bpmnModel = repositoryService.getBpmnModelInstance(processDef.getId());
 
         Collection<org.camunda.bpm.model.bpmn.instance.Process> processes = bpmnModel
@@ -406,21 +495,42 @@ public class ProcessDefinitionService extends AbstractProcessService {
         org.camunda.bpm.model.bpmn.instance.Process process = processes.iterator().next();
 
         Collection<ServiceTask> serviceTasks = process.getChildElementsByType(ServiceTask.class);
+        Collection<SubProcess> subProcesses = process.getChildElementsByType(SubProcess.class);
 
-        for (ServiceTaskBindInfoVO bindInfo : request.getServiceTaskBindInfos()) {
-            if (containsTaskNodeId(bindInfo.getNodeId(), serviceTasks)) {
-                coreProcessDefinitionTaskServiceEntityRepository
-                        .save(buildCoreProcessDefinitionTaskServiceEntity(bindInfo, processDef));
+        Date currTime = new Date();
+        String currUser = UsernameStorage.getIntance().get();
+
+        for (ProcessDefinitionTaskServiceEntity entity : processDefinitionTaskServiceEntities) {
+            entity.setUpdateBy(currUser);
+            entity.setUpdateTime(currTime);
+            entity.setProcDefId(processDef.getId());
+            entity.setProcDefKey(processDef.getKey());
+            entity.setVersion(processDef.getVersion());
+            entity.setActive(ProcessDefinitionTaskServiceEntity.ACTIVE_VALUE);
+
+            if (isServiceTask(entity, serviceTasks)) {
+                entity.setTaskNodeType(ProcessDefinitionTaskServiceEntity.TASK_NODE_TYPE_SERVICE_TASK);
+                processDefinitionTaskServiceEntityRepository.save(entity);
+            } else if (isSubProcess(entity, subProcesses)) {
+                entity.setTaskNodeType(ProcessDefinitionTaskServiceEntity.TASK_NODE_TYPE_SUBPROCESS);
+                processDefinitionTaskServiceEntityRepository.save(entity);
             } else {
-                log.warn("such service task bind infomation does not expected, nodeId={}, serviceTaskId={}",
-                        bindInfo.getNodeId(), bindInfo.getServiceId());
+                log.warn("such service task bind information is invalid, nodeId={}, serviceTaskId={}",
+                        entity.getTaskNodeId(), entity.getBindServiceId());
+                processDefinitionTaskServiceEntityRepository.delete(entity);
             }
         }
+    }
 
-        pushProcDefKeyToCmdb(request.getRootCiTypeId(), procDefKeyCmdbAttrName, processDef.getKey(),
-                processDef.getName());
+    
 
-        return buildProcessDefinitionDeployResponse(processDef);
+    private void handleDeployFailure(ProcessDefinitionEntity processDefinitionEntity) {
+        List<ProcessDefinitionTaskServiceEntity> taskServiceEntities = processDefinitionTaskServiceEntityRepository
+                .findAllByProcDefId(processDefinitionEntity.getId());
+        
+        processDefinitionTaskServiceEntityRepository.deleteAll(taskServiceEntities);
+        
+        processDefinitionEntityRepository.delete(processDefinitionEntity);
     }
 
     private void pushProcDefKeyToCmdb(int ciTypeId, String catAttrName, String procDefKey, String procDefName) {
@@ -478,41 +588,32 @@ public class ProcessDefinitionService extends AbstractProcessService {
 
         if (pd == null) {
             log.warn("cannot find process definition with id, processDefinitionId={}", processDefinitionId);
-            throw new RuntimeException("none process definition found");
+            throw new WecubeCoreException("such process definition doesnt exist");
         }
 
-        InputStream processModelIn = null;
-        String definitionText = null;
-        try {
-            processModelIn = repositoryService.getProcessModel(processDefinitionId);
-            byte[] processModel = IoUtil.readInputStream(processModelIn, "processModelBpmn20Xml");
-            definitionText = new String(processModel, "UTF-8");
-        } catch (Exception e) {
-            log.error("errors while getting process model", e);
-            throw new RuntimeException("server errors");
-        } finally {
-            IoUtil.closeSilently(processModelIn);
-        }
+        
 
         ProcessDefinitionVO procVo = new ProcessDefinitionVO();
         procVo.setDefinitionBizKey(pd.getKey());
         procVo.setDefinitionId(pd.getId());
         procVo.setDefinitionVersion(String.valueOf(pd.getVersion()));
         procVo.setProcessName(pd.getName());
-        procVo.setDefinitionText(definitionText);
+        
 
         String procDefKey = pd.getKey();
         int version = pd.getVersion();
 
-        ProcessDefinitionEntity defEntity = coreProcessDefinitionEntityRepository
-                .findByProcDefKeyAndVersion(procDefKey, version);
+        ProcessDefinitionEntity defEntity = processDefinitionEntityRepository.findByProcDefKeyAndVersion(procDefKey,
+                version);
         if (defEntity == null) {
-            log.warn("none process definition entity found for processDefinitionId={}", processDefinitionId);
+            log.error("none process definition entity found for processDefinitionId={}", processDefinitionId);
+            throw new WecubeCoreException("such process definition doesnt exist");
         } else {
             procVo.setRootCiTypeId(defEntity.getBindCiTypeId());
+            procVo.setDefinitionText(defEntity.getProcData());
         }
 
-        List<ProcessDefinitionTaskServiceEntity> taskEntities = coreProcessDefinitionTaskServiceEntityRepository
+        List<ProcessDefinitionTaskServiceEntity> taskEntities = processDefinitionTaskServiceEntityRepository
                 .findTaskServicesByProcDefKeyAndVersion(procDefKey, version);
 
         for (ProcessDefinitionTaskServiceEntity taskEntity : taskEntities) {
@@ -532,47 +633,18 @@ public class ProcessDefinitionService extends AbstractProcessService {
         return response;
     }
 
-    private ProcessDefinitionEntity buildCoreProcessDefinitionEntity(ProcessDefinition procDef,
-            Integer rootCiTypeId) {
-        ProcessDefinitionEntity defEntity = new ProcessDefinitionEntity();
-        defEntity.setId(TimestampedIdGenerator.INSTANCE.generateTimestampedId());
-        defEntity.setActive(ProcessDefinitionEntity.ACTIVE_VALUE);
-        defEntity.setBindCiTypeId(rootCiTypeId);
-        defEntity.setProcDefKey(procDef.getKey());
-        defEntity.setProcName(procDef.getName());
-        defEntity.setVersion(procDef.getVersion());
-        defEntity.setCreateBy(CONSTANT_SYSTEM);
-        defEntity.setCreateTime(new Date());
+    private ProcessDefinitionEntity buildProcessDefinitionEntity(ProcessDefinitionDeployRequest request) {
+        ProcessDefinitionEntity entity = new ProcessDefinitionEntity();
+        entity.setActive(ProcessDefinitionEntity.INACTIVE_VALUE);
+        entity.setCreateBy(UsernameStorage.getIntance().get());
+        entity.setCreateTime(new Date());
+        entity.setId(LocalIdGenerator.INSTANCE.generateTimestampedId());
+        entity.setProcData(request.getProcessData());
+        entity.setProcName(request.getProcessName());
+        entity.setBindCiTypeId(request.getRootCiTypeId());
+        entity.setProcStatus(ProcessDefinitionEntity.PROC_STATUS_PREDEPLOY);
 
-        defEntity.setUpdateBy(CONSTANT_SYSTEM);
-        defEntity.setUpdateTime(new Date());
-
-        return defEntity;
-    }
-
-    private ProcessDefinitionTaskServiceEntity buildCoreProcessDefinitionTaskServiceEntity(
-            ServiceTaskBindInfoVO bindInfo, ProcessDefinition procDef) {
-        ProcessDefinitionTaskServiceEntity taskEntity = new ProcessDefinitionTaskServiceEntity();
-        taskEntity.setId(TimestampedIdGenerator.INSTANCE.generateTimestampedId());
-        taskEntity.setActive(ProcessDefinitionTaskServiceEntity.ACTIVE_VALUE);
-        taskEntity.setBindCiRoutineExp(bindInfo.getCiRoutineExp());
-        taskEntity.setBindCiRoutineRaw(bindInfo.getCiRoutineRaw());
-        taskEntity.setBindServiceId(bindInfo.getServiceId());
-        taskEntity.setBindServiceName(bindInfo.getServiceName());
-        taskEntity.setProcDefId(procDef.getId());
-        taskEntity.setProcDefKey(procDef.getKey());
-        taskEntity.setVersion(procDef.getVersion());
-        taskEntity.setTaskNodeId(bindInfo.getNodeId());
-        taskEntity.setTaksNodeName(bindInfo.getNodeName());
-
-        taskEntity.setDescription(bindInfo.getDescription());
-
-        taskEntity.setCreateTime(new Date());
-        taskEntity.setCreateBy(CONSTANT_SYSTEM);
-        taskEntity.setUpdateTime(new Date());
-        taskEntity.setUpdateBy(CONSTANT_SYSTEM);
-
-        return taskEntity;
+        return entity;
     }
 
     private ServiceTaskBindInfoVO buildServiceTaskBindInfoVO(ProcessDefinitionTaskServiceEntity taskEntity) {
@@ -589,6 +661,8 @@ public class ProcessDefinitionService extends AbstractProcessService {
         infoVo.setServiceId(taskEntity.getBindServiceId());
         infoVo.setServiceName(taskEntity.getBindServiceName());
         infoVo.setDescription(taskEntity.getDescription());
+        
+        infoVo.setTimeoutExpression(taskEntity.getTimeoutExpression());
 
         return infoVo;
     }
