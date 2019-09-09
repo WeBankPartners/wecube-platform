@@ -921,6 +921,7 @@ import {
   getAllCITypesByLayerWithAttr,
   getAllLayers,
   createLayer,
+  deleteCiTypeLayer,
   moveUpLayer,
   moveDownLayer,
   deleteCITypeByID,
@@ -1472,14 +1473,7 @@ export default {
         title: "确认删除？",
         "z-index": 1000000,
         onOk: async () => {
-          let layerItem = this.layers.find(_ => _.codeId === id);
-          delete layerItem.name;
-          delete layerItem.layerId;
-          let payload = {
-            ...layerItem,
-            status: "inactive"
-          };
-          const { status, message, data } = await updateEnumCode([payload]);
+          const { status, message, data } = await deleteCiTypeLayer(id);
 
           if (status === "OK") {
             this.$Notice.success({
