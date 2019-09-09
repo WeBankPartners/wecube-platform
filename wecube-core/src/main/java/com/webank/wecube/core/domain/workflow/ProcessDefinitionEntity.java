@@ -13,6 +13,12 @@ public class ProcessDefinitionEntity {
 
 	public static final int ACTIVE_VALUE = 1;
 	public static final int INACTIVE_VALUE = 0;
+	
+	public static final String PROC_STATUS_DRAFT = "draft";
+	public static final String PROC_STATUS_DEPLOYED = "deployed";
+	public static final String PROC_STATUS_DELETED = "deleted";
+	public static final String PROC_STATUS_TEMPLATE = "template";
+	public static final String PROC_STATUS_PREDEPLOY = "predeploy";
 
 	@Id
 	@Column(name = "ID")
@@ -36,6 +42,12 @@ public class ProcessDefinitionEntity {
 	private Date updateTime;
 	@Column(name = "UPDATE_BY")
 	private String updateBy;
+	
+	@Column(name = "PROC_DATA")
+	private String procData;
+	
+	@Column(name = "PROC_STATUS")
+	private String procStatus;
 
 	public String getId() {
 		return id;
@@ -121,4 +133,21 @@ public class ProcessDefinitionEntity {
 		return ((this.active != null) && (this.active == ACTIVE_VALUE));
 	}
 
+    public String getProcData() {
+        return procData;
+    }
+
+    public void setProcData(String procData) {
+        this.procData = procData;
+    }
+
+    public String getProcStatus() {
+        return procStatus;
+    }
+
+    public void setProcStatus(String procStatus) {
+        this.procStatus = procStatus;
+    }
+    
+    
 }
