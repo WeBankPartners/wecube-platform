@@ -155,10 +155,10 @@ export default {
               }
             }
           }
-          const found = this.tableColumns.find(q => q.inputKey === i);
-          if (found && found.isRefreshable) {
-            _[i] = null;
-          }
+          // const found = this.tableColumns.find(q => q.inputKey === i);
+          // if (found && found.isRefreshable) {
+          //   _[i] = null;
+          // }
         }
       });
     },
