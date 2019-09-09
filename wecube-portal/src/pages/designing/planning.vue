@@ -834,6 +834,7 @@ export default {
                 };
               }
             });
+            this.tabList = this.tabList.filter(tab => tab);
           }
         });
       }
