@@ -47,6 +47,7 @@
             :pagination="ci.pagination"
             :ascOptions="ci.ascOptions"
             :showCheckbox="needCheckout"
+            :isRefreshable="true"
             @actionFun="actionFun"
             @sortHandler="sortHandler"
             @handleSubmit="handleSubmit"
@@ -834,6 +835,7 @@ export default {
                 };
               }
             });
+            this.tabList = this.tabList.filter(tab => tab);
           }
         });
       }
