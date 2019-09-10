@@ -3,6 +3,9 @@
     <div class="header">
       <Header @allMenus="allMenus" />
     </div>
+    <div class="header">
+      <Header @allMenus="allMenus" />
+    </div>
     <div class="content-container">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum">
         <BreadcrumbItem to="/">Home</BreadcrumbItem>
