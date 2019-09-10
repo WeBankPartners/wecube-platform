@@ -921,6 +921,7 @@ import {
   getAllCITypesByLayerWithAttr,
   getAllLayers,
   createLayer,
+  deleteCiTypeLayer,
   moveUpLayer,
   moveDownLayer,
   deleteCITypeByID,
@@ -1305,13 +1306,14 @@ export default {
       if (!this.nodeName) return;
       if (!!this.isLayerSelected) {
         this.currentSelectedLayer = this.layers.find(
-          _ => _.name === this.nodeName
+          // _ => _.name === this.nodeName
+          _ => _.layerId === this.isLayerSelected.layerId
         );
         this.updatedLayerNameValue = {
           codeId: this.currentSelectedLayer.layerId,
           code: this.currentSelectedLayer.name
         };
-        this.handleLayerSelect(this.nodeName);
+        this.handleLayerSelect(this.currentSelectedLayer.layerId);
       } else {
         this.source.forEach(_ => {
           _.ciTypes &&
@@ -1351,11 +1353,13 @@ export default {
         }
       }
     },
-    handleLayerSelect(layerName) {
+    handleLayerSelect(layerId) {
       this.currentSelectLayerChildren = this.source.find(
-        _ => _.value === layerName
+        _ => _.codeId === layerId
       );
-      this.addNewCITypeForm.layerId = this.currentSelectLayerChildren.codeId;
+      this.addNewCITypeForm.layerId =
+        this.currentSelectLayerChildren &&
+        this.currentSelectLayerChildren.codeId;
     },
     handleStatusChange(value) {
       this.initGraph(value);
@@ -1472,14 +1476,7 @@ export default {
         title: "确认删除？",
         "z-index": 1000000,
         onOk: async () => {
-          let layerItem = this.layers.find(_ => _.codeId === id);
-          delete layerItem.name;
-          delete layerItem.layerId;
-          let payload = {
-            ...layerItem,
-            status: "inactive"
-          };
-          const { status, message, data } = await updateEnumCode([payload]);
+          const { status, message, data } = await deleteCiTypeLayer(id);
 
           if (status === "OK") {
             this.$Notice.success({
