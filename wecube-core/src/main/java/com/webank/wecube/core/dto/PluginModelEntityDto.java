@@ -1,7 +1,6 @@
 package com.webank.wecube.core.dto;
 
 import com.webank.wecube.core.domain.plugin.PluginModelEntity;
-import com.webank.wecube.core.domain.plugin.PluginPackage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,16 +10,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PluginModelEntityDto {
     private Integer id;
-    private PluginPackage pluginPackage;  // packageID
     private String description;
     private String name;
+    // plugin package info
+    private Integer packageId;
+    private String packageName;
+    private String packageVersion;
 
     public static PluginModelEntityDto fromDomain(PluginModelEntity pluginModelEntity) {
         PluginModelEntityDto pluginModelEntityDto = new PluginModelEntityDto();
         pluginModelEntityDto.setId(pluginModelEntity.getId());
-        pluginModelEntityDto.setPluginPackage(pluginModelEntity.getPluginPackage());
+        pluginModelEntityDto.setPackageId(pluginModelEntity.getPluginPackage().getId());
         pluginModelEntityDto.setDescription(pluginModelEntity.getDescription());
         pluginModelEntityDto.setName(pluginModelEntity.getName());
+        pluginModelEntityDto.setPackageName(pluginModelEntity.getPluginPackage().getName());
+        pluginModelEntityDto.setPackageVersion(pluginModelEntity.getPluginPackage().getVersion());
 
         return pluginModelEntityDto;
     }
@@ -35,8 +39,8 @@ public class PluginModelEntityDto {
             pluginModelEntity.setId(pluginModelEntityDto.getId());
         }
 
-        if (pluginModelEntityDto.getPluginPackage() != null) {
-            pluginModelEntity.setPluginPackage(pluginModelEntityDto.getPluginPackage());
+        if (pluginModelEntityDto.getPackageId() != null) {
+            pluginModelEntity.setPackageId(pluginModelEntityDto.getPackageId());
         }
 
         if (pluginModelEntityDto.getDescription() != null) {
