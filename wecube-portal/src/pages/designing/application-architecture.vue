@@ -184,6 +184,7 @@
               :pagination="ci.pagination"
               :ascOptions="ci.ascOptions"
               :showCheckbox="needCheckout"
+              :isRefreshable="true"
               @actionFun="actionFun"
               @handleSubmit="handleSubmit"
               @sortHandler="sortHandler"

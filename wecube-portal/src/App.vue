@@ -1,5 +1,8 @@
 <template>
-  <div id="app">
+  <div>
+    <div class="header">
+      <Header @allMenus="allMenus" />
+    </div>
     <div class="header">
       <Header @allMenus="allMenus" />
     </div>
@@ -65,6 +68,12 @@ export default {
     }
   },
   mounted() {
+    // remove loading
+    const boxLoading = document.getElementById("boxLoading");
+    const boxTitle = document.getElementById("boxTitle");
+    boxLoading.style.display = "none";
+    boxTitle.style.display = "none";
+
     // TODO: get plugins url by axios.
     let pluginURLs = [
       {
@@ -136,7 +145,6 @@ body {
 html {
   height: 100%;
 }
-
 // error style
 .ivu-notice-desc {
   word-break: break-all;
@@ -144,7 +152,6 @@ html {
   max-height: 200px;
   overflow-y: auto;
 }
-
 // form validation style
 .validation-form {
   .no-need-validation {
