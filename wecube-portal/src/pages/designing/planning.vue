@@ -47,6 +47,7 @@
             :pagination="ci.pagination"
             :ascOptions="ci.ascOptions"
             :showCheckbox="needCheckout"
+            :isRefreshable="true"
             @actionFun="actionFun"
             @sortHandler="sortHandler"
             @handleSubmit="handleSubmit"
