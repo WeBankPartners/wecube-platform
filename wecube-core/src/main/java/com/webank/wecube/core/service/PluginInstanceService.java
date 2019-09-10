@@ -103,6 +103,8 @@ public class PluginInstanceService {
     private static final int PLUGIN_DEFAULT_START_PORT = 20000;
     private static final int PLUGIN_DEFAULT_END_PORT = 30000;
     private static final String PLUGIN_INSTANCE_STATUS_RUNNING = "RUNNING";
+    
+    private static final String CUSTOM_SERVICE_BEAN_PREFIX = "srvBeanST-";
 
     public Integer getAvailablePortByHostIp(String hostIp) {
         if (!(isHostIpAvailable(hostIp))) {
@@ -301,8 +303,8 @@ public class PluginInstanceService {
         String processInstanceBizKey = cmd.getProcessInstanceBizKey();
         int rootCiTypeId = getCiTypeIdAndSetOperator(processInstanceBizKey);
         String operator = UsernameStorage.getIntance().get();
-        if (taskNodeId.indexOf("srvBeanST-") >= 0) {
-            taskNodeId = taskNodeId.substring("srvBeanST-".length());
+        if (taskNodeId.indexOf(CUSTOM_SERVICE_BEAN_PREFIX) >= 0) {
+            taskNodeId = taskNodeId.substring(CUSTOM_SERVICE_BEAN_PREFIX.length());
         }
 
         log.info("processing taskNode:{}", taskNodeId);
@@ -468,8 +470,8 @@ public class PluginInstanceService {
 
         String taskNodeId = cmd.getServiceTaskNodeId();
 
-        if (taskNodeId.indexOf("srvBeanST-") > 0) {
-            taskNodeId = taskNodeId.substring("srvBeanST-".length());
+        if (taskNodeId.indexOf(CUSTOM_SERVICE_BEAN_PREFIX) > 0) {
+            taskNodeId = taskNodeId.substring(CUSTOM_SERVICE_BEAN_PREFIX.length());
         }
 
         if (pluginResponse.getPluginResponse() == null) {
