@@ -35,7 +35,7 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
      * @return registered model entities dtos
      */
     @Override
-    public List<PluginModelEntityDto> registerModelEntity(List<PluginModelEntityDto> pluginModelEntityDtos) {
+    public List<PluginModelEntityDto> registerPluginModelEntity(List<PluginModelEntityDto> pluginModelEntityDtos) {
         Iterable<PluginModelEntity> savedPluginModelEntities = pluginModelEntityRepository.saveAll(convertPluginModelEntityDtoToDomain(pluginModelEntityDtos));
         return convertPluginModelEntityDomainToDto(savedPluginModelEntities);
     }
@@ -47,9 +47,19 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
      * @return updated model entity dtos
      */
     @Override
-    public List<PluginModelEntityDto> updateModelEntity(List<PluginModelEntityDto> pluginModelEntityDtos) {
+    public List<PluginModelEntityDto> updatePluginModelEntity(List<PluginModelEntityDto> pluginModelEntityDtos) {
         Iterable<PluginModelEntity> savedPluginModelEntities = pluginModelEntityRepository.saveAll(convertPluginModelEntityDtoToDomain(pluginModelEntityDtos));
         return convertPluginModelEntityDomainToDto(savedPluginModelEntities);
+    }
+
+    /**
+     * Return the plugin model entity overview
+     *
+     * @return list of all model entities
+     */
+    @Override
+    public List<PluginModelEntityDto> ModelEntityOverview() {
+        return convertPluginModelEntityDomainToDto(pluginModelEntityRepository.findAll());
     }
 
     /**

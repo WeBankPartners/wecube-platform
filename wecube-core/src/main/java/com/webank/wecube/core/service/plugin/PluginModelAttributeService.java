@@ -6,5 +6,8 @@ import java.util.List;
 
 public interface PluginModelAttributeService {
     List<PluginModelAttributeDto> registerPluginModelAttribute(List<PluginModelAttributeDto> pluginModelAttributeDtos);
+
     List<PluginModelAttributeDto> updatePluginModelAttribute(List<PluginModelAttributeDto> pluginModelAttributeDtos);
+
+    List<PluginModelAttributeDto> PluginModelAttributeOverview();
 }
