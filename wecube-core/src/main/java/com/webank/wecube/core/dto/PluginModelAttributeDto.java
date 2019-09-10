@@ -15,7 +15,7 @@ public class PluginModelAttributeDto {
     private String description;
     private String name;
     private String inputType;
-    private PluginModelAttribute pluginModelAttribute;  // referenceID in db as foreign key
+    private Integer referenceId;
     // plugin model entity info
     private Integer pluginModelEntityId;
     private String pluginModelEntityName;
@@ -25,11 +25,11 @@ public class PluginModelAttributeDto {
         PluginModelAttributeDto pluginModelAttributeDto = new PluginModelAttributeDto();
 
         pluginModelAttributeDto.setId(pluginModelAttribute.getId());
-        pluginModelAttributeDto.setPluginModelEntityId(pluginModelAttribute.getPluginModelEntityId());
         pluginModelAttributeDto.setDescription(pluginModelAttribute.getDescription());
         pluginModelAttributeDto.setName(pluginModelAttribute.getName());
         pluginModelAttributeDto.setInputType(pluginModelAttribute.getInputType());
-        pluginModelAttributeDto.setPluginModelAttribute(pluginModelAttribute.getPluginModelAttribute());
+        pluginModelAttributeDto.setReferenceId(pluginModelAttribute.getReferenceId());
+        pluginModelAttributeDto.setPluginModelEntityId(pluginModelAttribute.getPluginModelEntityId());
         pluginModelAttributeDto.setPluginModelEntityName(pluginModelAttribute.getPluginModelEntity().getName());
         pluginModelAttributeDto.setPluginModelEntityDescription(pluginModelAttribute.getPluginModelEntity().getDescription());
         return pluginModelAttributeDto;
@@ -50,21 +50,21 @@ public class PluginModelAttributeDto {
             pluginModelAttribute.setPluginModelEntityId(pluginModelAttributeDto.getPluginModelEntityId());
         }
 
-        if (pluginModelAttributeDto.getId() != null) {
+        if (pluginModelAttributeDto.getDescription() != null) {
             pluginModelAttribute.setDescription(pluginModelAttributeDto.getDescription());
         }
 
-        if (pluginModelAttributeDto.getId() != null) {
+        if (pluginModelAttributeDto.getName() != null) {
             pluginModelAttribute.setName(pluginModelAttributeDto.getName());
         }
 
-        if (pluginModelAttributeDto.getId() != null) {
+        if (pluginModelAttributeDto.getInputType() != null) {
             pluginModelAttribute.setInputType(pluginModelAttributeDto.getInputType());
         }
 
-        if (pluginModelAttributeDto.getId() != null) {
+        if (pluginModelAttributeDto.getReferenceId() != null) {
             pluginModelAttribute
-                    .setPluginModelAttribute(pluginModelAttributeDto.getPluginModelAttribute());
+                    .setReferenceId(pluginModelAttributeDto.getReferenceId());
         }
 
         return pluginModelAttribute;
