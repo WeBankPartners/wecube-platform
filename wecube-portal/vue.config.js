@@ -7,25 +7,25 @@ module.exports = {
     port: 3000,
     proxy: {
       "/process": {
-        target: "http://129.204.99.160:9098"
+        target: "http://localhost:8080"
       },
       "/admin": {
-        target: "http://129.204.99.160:9098"
+        target: "http://localhost:8080"
       },
       "/cmdb": {
-        target: "http://129.204.99.160:9098"
+        target: "http://localhost:8080"
       },
       "/logout": {
-        target: "http://129.204.99.160:9098"
+        target: "http://localhost:8080"
       },
       "/plugin": {
-        target: "http://129.204.99.160:9098"
+        target: "http://localhost:8080"
       },
       "/artifact": {
-        target: "http://129.204.99.160:9098"
+        target: "http://localhost:8080"
       },
       "/batch-job": {
-        target: "http://129.204.99.160:9098"
+        target: "http://localhost:8080"
       }
     }
   },
