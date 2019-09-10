@@ -45,5 +45,5 @@ public class PluginModelAttribute {
     @Column(name = "reference_id")
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "plugin_model_attr_id", insertable = false, updatable = false)
-    private Integer pluginModelAttrId;
+    private Integer referenceId;
 }
