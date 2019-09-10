@@ -5,6 +5,11 @@ Vue.use(Router);
 let router = new Router({
   routes: [
     {
+      path: "/",
+      name: "home",
+      redirect: "/homepage"
+    },
+    {
       path: "/homepage",
       name: "homepage",
       component: () => import("@/pages/home-page"),
