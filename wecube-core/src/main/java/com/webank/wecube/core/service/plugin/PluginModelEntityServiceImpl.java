@@ -25,9 +25,6 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
     @Autowired
     PluginModelEntityRepository pluginModelEntityRepository;
 
-    @Autowired
-    private PluginProperties pluginProperties;
-
     /**
      * Register plugin model entity to wecube
      *
@@ -70,9 +67,7 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
      */
     private List<PluginModelEntityDto> convertPluginModelEntityDomainToDto(Iterable<PluginModelEntity> savedPluginModelEntity) {
         List<PluginModelEntityDto> pluginModelEntityDtos = new ArrayList<>();
-        savedPluginModelEntity.forEach(domain -> {
-            pluginModelEntityDtos.add(PluginModelEntityDto.fromDomain(domain));
-        });
+        savedPluginModelEntity.forEach(domain -> pluginModelEntityDtos.add(PluginModelEntityDto.fromDomain(domain)));
         return pluginModelEntityDtos;
     }
 
