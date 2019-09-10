@@ -53,6 +53,16 @@ public class PluginModelAttributeServiceImpl implements PluginModelAttributeServ
         return convertPluginModelAttributeDomainToDto(updatedPluginModelAttribute);
     }
 
+    /**
+     * The plugin model attribute overview
+     *
+     * @return list of all plugin model attributes
+     */
+    @Override
+    public List<PluginModelAttributeDto> PluginModelAttributeOverview() {
+        return convertPluginModelAttributeDomainToDto(pluginModelAttributeRepository.findAll());
+    }
+
 
     /**
      * Convert the plugin model attributes from domains to dtos
