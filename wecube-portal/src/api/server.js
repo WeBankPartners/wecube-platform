@@ -15,6 +15,10 @@ export const getFlowPreview = data =>
   req.post(`/process/definitions/definition/input-parameters/preview`, data);
 
 // admin
+
+export const deleteCiTypeLayer = layerId =>
+  req.delete(`/cmdb/ci-type-layers/${layerId}`);
+
 export const getAllUsers = () => req.get("/admin/users");
 export const getAllRoles = () => req.get("/admin/roles");
 export const getAllMenus = () => req.get("/admin/menus");
