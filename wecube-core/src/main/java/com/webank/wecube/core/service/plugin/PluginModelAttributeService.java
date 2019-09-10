@@ -5,9 +5,9 @@ import com.webank.wecube.core.dto.PluginModelAttributeDto;
 import java.util.List;
 
 public interface PluginModelAttributeService {
-    List<PluginModelAttributeDto> registerPluginModelAttribute(List<PluginModelAttributeDto> pluginModelAttributeDtos);
+    List<PluginModelAttributeDto> register(List<PluginModelAttributeDto> pluginModelAttributeDtos);
 
-    List<PluginModelAttributeDto> updatePluginModelAttribute(List<PluginModelAttributeDto> pluginModelAttributeDtos);
+    List<PluginModelAttributeDto> update(List<PluginModelAttributeDto> pluginModelAttributeDtos);
 
-    List<PluginModelAttributeDto> PluginModelAttributeOverview();
+    List<PluginModelAttributeDto> overview();
 }

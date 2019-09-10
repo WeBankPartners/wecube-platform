@@ -25,9 +25,6 @@ public class PluginModelAttributeServiceImpl implements PluginModelAttributeServ
     @Autowired
     PluginModelAttributeRepository pluginModelAttributeRepository;
 
-    @Autowired
-    private PluginProperties pluginProperties;
-
     /**
      * Register plugin model attribute to the wecube
      *
@@ -35,7 +32,7 @@ public class PluginModelAttributeServiceImpl implements PluginModelAttributeServ
      * @return saved plugin model attribute dto
      */
     @Override
-    public List<PluginModelAttributeDto> registerPluginModelAttribute(List<PluginModelAttributeDto> pluginModelAttributeDtos) {
+    public List<PluginModelAttributeDto> register(List<PluginModelAttributeDto> pluginModelAttributeDtos) {
         Iterable<PluginModelAttribute> savedPluginModelAttribute = pluginModelAttributeRepository.saveAll(convertPluginModelAttributeDtoToDomain(pluginModelAttributeDtos));
         return convertPluginModelAttributeDomainToDto(savedPluginModelAttribute);
     }
@@ -48,7 +45,7 @@ public class PluginModelAttributeServiceImpl implements PluginModelAttributeServ
      * @return updated plugin model attribute
      */
     @Override
-    public List<PluginModelAttributeDto> updatePluginModelAttribute(List<PluginModelAttributeDto> pluginModelAttributeDtos) {
+    public List<PluginModelAttributeDto> update(List<PluginModelAttributeDto> pluginModelAttributeDtos) {
         Iterable<PluginModelAttribute> updatedPluginModelAttribute = pluginModelAttributeRepository.saveAll(convertPluginModelAttributeDtoToDomain(pluginModelAttributeDtos));
         return convertPluginModelAttributeDomainToDto(updatedPluginModelAttribute);
     }
@@ -59,7 +56,7 @@ public class PluginModelAttributeServiceImpl implements PluginModelAttributeServ
      * @return list of all plugin model attributes
      */
     @Override
-    public List<PluginModelAttributeDto> PluginModelAttributeOverview() {
+    public List<PluginModelAttributeDto> overview() {
         return convertPluginModelAttributeDomainToDto(pluginModelAttributeRepository.findAll());
     }
 
