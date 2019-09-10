@@ -85,6 +85,7 @@
               :ciTypesObj="this.ciTypesObj"
               :ciTypeAttributeObj="this.ciTypeAttributeObj"
               @change="setRootFilterRule"
+              :isEndWithCIType="true"
             />
           </div>
         </FormItem>
