@@ -7,10 +7,7 @@ let router = new Router({
     {
       path: "/",
       name: "home",
-      redirect: "/homepage",
-      component: () => import("@/pages/home-page"),
-      params: {},
-      props: true
+      redirect: "/homepage"
     },
     {
       path: "/homepage",
