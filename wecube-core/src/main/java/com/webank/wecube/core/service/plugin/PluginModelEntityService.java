@@ -6,9 +6,9 @@ import com.webank.wecube.core.dto.PluginModelEntityDto;
 import java.util.List;
 
 public interface PluginModelEntityService {
-    List<PluginModelEntityDto> registerPluginModelEntity(List<PluginModelEntityDto> pluginModelEntityDtos);
+    List<PluginModelEntityDto> register(List<PluginModelEntityDto> pluginModelEntityDtos);
 
-    List<PluginModelEntityDto> updatePluginModelEntity(List<PluginModelEntityDto> pluginModelEntityDtos);
+    List<PluginModelEntityDto> update(List<PluginModelEntityDto> pluginModelEntityDtos);
 
-    List<PluginModelEntityDto> ModelEntityOverview();
+    List<PluginModelEntityDto> overview();
 }
