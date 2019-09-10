@@ -8,7 +8,9 @@
           @input="inputHandler"
           :value="inputVal"
         ></textarea>
-        <span class="wecube-error-message">请选择非引用属性</span>
+        <span v-if="!isEndWithCIType" class="wecube-error-message"
+          >请选择非引用属性</span
+        >
       </div>
       <div slot="content">
         <div v-if="rootCiType" class="attr-ul">
@@ -106,6 +108,11 @@ export default {
     sourceData: {
       type: String,
       required: false
+    },
+    isEndWithCIType: {
+      type: Boolean,
+      default: false,
+      required: false
     }
   },
   watch: {
@@ -145,7 +152,8 @@ export default {
           this.ciTypeAttributeObj[attrId].inputType === "ref" ||
           this.ciTypeAttributeObj[attrId].inputType === "multiRef"
         ) {
-          this.$refs["wecube_cmdb_attr"].classList.add("wecube-error");
+          !this.isEndWithCIType &&
+            this.$refs["wecube_cmdb_attr"].classList.add("wecube-error");
         } else {
           this.$refs["wecube_cmdb_attr"].classList.remove("wecube-error");
         }
@@ -211,7 +219,11 @@ export default {
                 });
               }
             });
-            this.options = attr;
+            this.options = this.isEndWithCIType
+              ? attr.filter(
+                  _ => _.inputType === "ref" || _.inputType === "multiRef"
+                )
+              : attr;
           } else {
             this.$Message.error({
               content: message
