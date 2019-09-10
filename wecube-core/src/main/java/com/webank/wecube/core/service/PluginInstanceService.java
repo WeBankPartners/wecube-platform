@@ -470,7 +470,7 @@ public class PluginInstanceService {
 
         String taskNodeId = cmd.getServiceTaskNodeId();
 
-        if (taskNodeId.indexOf(CUSTOM_SERVICE_BEAN_PREFIX) > 0) {
+        if (taskNodeId.indexOf(CUSTOM_SERVICE_BEAN_PREFIX) >= 0) {
             taskNodeId = taskNodeId.substring(CUSTOM_SERVICE_BEAN_PREFIX.length());
         }
 
