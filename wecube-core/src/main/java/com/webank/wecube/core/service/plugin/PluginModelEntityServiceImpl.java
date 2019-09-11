@@ -1,8 +1,6 @@
 package com.webank.wecube.core.service.plugin;
 
-import com.webank.wecube.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.core.domain.plugin.PluginModelEntity;
-import com.webank.wecube.core.dto.PluginModelEntityDto;
 import com.webank.wecube.core.dto.PluginModelEntityDto;
 import com.webank.wecube.core.jpa.PluginModelEntityRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +31,8 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
      */
     @Override
     public List<PluginModelEntityDto> register(List<PluginModelEntityDto> pluginModelEntityDtos) {
-        Iterable<PluginModelEntity> savedPluginModelEntities = pluginModelEntityRepository.saveAll(convertPluginModelEntityDtoToDomain(pluginModelEntityDtos));
-        return convertPluginModelEntityDomainToDto(savedPluginModelEntities);
+        Iterable<PluginModelEntity> savedPluginModelEntities = pluginModelEntityRepository.saveAll(convertDtoToDomain(pluginModelEntityDtos));
+        return convertDomainToDto(savedPluginModelEntities);
     }
 
     /**
@@ -45,8 +43,8 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
      */
     @Override
     public List<PluginModelEntityDto> update(List<PluginModelEntityDto> pluginModelEntityDtos) {
-        Iterable<PluginModelEntity> savedPluginModelEntities = pluginModelEntityRepository.saveAll(convertPluginModelEntityDtoToDomain(pluginModelEntityDtos));
-        return convertPluginModelEntityDomainToDto(savedPluginModelEntities);
+        Iterable<PluginModelEntity> savedPluginModelEntities = pluginModelEntityRepository.saveAll(convertDtoToDomain(pluginModelEntityDtos));
+        return convertDomainToDto(savedPluginModelEntities);
     }
 
     /**
@@ -56,7 +54,7 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
      */
     @Override
     public List<PluginModelEntityDto> overview() {
-        return convertPluginModelEntityDomainToDto(pluginModelEntityRepository.findAll());
+        return convertDomainToDto(pluginModelEntityRepository.findAll());
     }
 
     /**
@@ -65,7 +63,7 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
      * @param savedPluginModelEntity an Iterable pluginModelEntity
      * @return converted dtos
      */
-    private List<PluginModelEntityDto> convertPluginModelEntityDomainToDto(Iterable<PluginModelEntity> savedPluginModelEntity) {
+    private List<PluginModelEntityDto> convertDomainToDto(Iterable<PluginModelEntity> savedPluginModelEntity) {
         List<PluginModelEntityDto> pluginModelEntityDtos = new ArrayList<>();
         savedPluginModelEntity.forEach(domain -> pluginModelEntityDtos.add(PluginModelEntityDto.fromDomain(domain)));
         return pluginModelEntityDtos;
@@ -77,7 +75,7 @@ public class PluginModelEntityServiceImpl implements PluginModelEntityService {
      * @param pluginModelEntityDtos the list of pluginModelEntityDto
      * @return the list of converted domains
      */
-    private List<PluginModelEntity> convertPluginModelEntityDtoToDomain(List<PluginModelEntityDto> pluginModelEntityDtos) {
+    private List<PluginModelEntity> convertDtoToDomain(List<PluginModelEntityDto> pluginModelEntityDtos) {
         List<PluginModelEntity> pluginModelEntities = new ArrayList<>();
         pluginModelEntityDtos.forEach(dto -> {
             PluginModelEntity existedPluginModelEntity = null;
