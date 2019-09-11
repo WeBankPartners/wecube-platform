@@ -5,17 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PluginModelEntityDto {
     private Integer id;
+    private Integer packageId;
     private String description;
     private String name;
-    // plugin package info
-    private Integer packageId;
-    private String packageName;
-    private String packageVersion;
+    // plugin model attribute list
+    private List<PluginModelAttributeDto> attributeDtoList;
 
     public static PluginModelEntityDto fromDomain(PluginModelEntity pluginModelEntity) {
         PluginModelEntityDto pluginModelEntityDto = new PluginModelEntityDto();
@@ -23,13 +24,16 @@ public class PluginModelEntityDto {
         pluginModelEntityDto.setPackageId(pluginModelEntity.getPluginPackage().getId());
         pluginModelEntityDto.setDescription(pluginModelEntity.getDescription());
         pluginModelEntityDto.setName(pluginModelEntity.getName());
-        pluginModelEntityDto.setPackageName(pluginModelEntity.getPluginPackage().getName());
-        pluginModelEntityDto.setPackageVersion(pluginModelEntity.getPluginPackage().getVersion());
-
+        if (pluginModelEntity.getPluginModelAttributeList() != null) {
+            pluginModelEntity.getPluginModelAttributeList()
+                    .forEach(pluginModelAttribute -> pluginModelEntityDto.attributeDtoList
+                            .add(PluginModelAttributeDto.fromDomain(pluginModelAttribute)));
+        }
         return pluginModelEntityDto;
     }
 
-    public static PluginModelEntity toDomain(PluginModelEntityDto pluginModelEntityDto, PluginModelEntity existedPluginModelEnitty) {
+    public static PluginModelEntity toDomain(PluginModelEntityDto pluginModelEntityDto,
+                                             PluginModelEntity existedPluginModelEnitty) {
         PluginModelEntity pluginModelEntity = existedPluginModelEnitty;
         if (pluginModelEntity == null) {
             pluginModelEntity = new PluginModelEntity();
@@ -50,7 +54,6 @@ public class PluginModelEntityDto {
         if (pluginModelEntityDto.getName() != null) {
             pluginModelEntity.setName(pluginModelEntityDto.getName());
         }
-
         return pluginModelEntity;
     }
 }
