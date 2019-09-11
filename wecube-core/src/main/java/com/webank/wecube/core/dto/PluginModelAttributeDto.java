@@ -18,8 +18,6 @@ public class PluginModelAttributeDto {
     private Integer referenceId;
     // plugin model entity info
     private Integer pluginModelEntityId;
-    private String pluginModelEntityName;
-    private String pluginModelEntityDescription;
 
     public static PluginModelAttributeDto fromDomain(PluginModelAttribute pluginModelAttribute) {
         PluginModelAttributeDto pluginModelAttributeDto = new PluginModelAttributeDto();
@@ -30,8 +28,6 @@ public class PluginModelAttributeDto {
         pluginModelAttributeDto.setInputType(pluginModelAttribute.getInputType());
         pluginModelAttributeDto.setReferenceId(pluginModelAttribute.getReferenceId());
         pluginModelAttributeDto.setPluginModelEntityId(pluginModelAttribute.getPluginModelEntityId());
-        pluginModelAttributeDto.setPluginModelEntityName(pluginModelAttribute.getPluginModelEntity().getName());
-        pluginModelAttributeDto.setPluginModelEntityDescription(pluginModelAttribute.getPluginModelEntity().getDescription());
         return pluginModelAttributeDto;
     }
 
