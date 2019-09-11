@@ -7,15 +7,11 @@ import java.util.EnumMap;
 import java.util.List;
 
 public interface PluginModelService {
-    // plugin model enum for multiple return result usage
-    enum PluginModel {
-        entityDtos, attributeDtos
-    }
 
-    EnumMap<PluginModel, Object> register(List<PluginModelEntityDto> pluginModelEntityDtos, List<PluginModelAttributeDto> pluginModelAttributeDtos);
+    List<PluginModelEntityDto> register(List<PluginModelEntityDto> pluginModelEntityDtos);
 
-    EnumMap<PluginModel, Object> update(List<PluginModelEntityDto> pluginModelEntityDtos, List<PluginModelAttributeDto> pluginModelAttributeDtos);
+    List<PluginModelEntityDto> update(List<PluginModelEntityDto> pluginModelEntityDtos);
 
-    EnumMap<PluginModel, Object> overview();
+    List<PluginModelEntityDto> overview();
 
 }

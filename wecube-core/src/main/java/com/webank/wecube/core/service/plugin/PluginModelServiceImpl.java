@@ -5,6 +5,7 @@ import com.webank.wecube.core.dto.PluginModelEntityDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -14,47 +15,73 @@ public class PluginModelServiceImpl implements PluginModelService {
     private PluginModelEntityServiceImpl pluginModelEntityServiceImpl = new PluginModelEntityServiceImpl();
     private PluginModelAttributeServiceImpl pluginModelAttributeServiceImpl = new PluginModelAttributeServiceImpl();
 
-
     /**
      * Plugin model registration
      *
-     * @param pluginModelEntityDtos    list of plugin model entity dtos
-     * @param pluginModelAttributeDtos list of plugin model attribute dtos
-     * @return an enum map of dtos
+     * @param inputEntityDtos list of plugin model entity dtos
+     * @return an list of entity dtos which contain both entities and attributes
      */
     @Override
-    public EnumMap<PluginModel, Object> register(List<PluginModelEntityDto> pluginModelEntityDtos, List<PluginModelAttributeDto> pluginModelAttributeDtos) {
-        EnumMap<PluginModel, Object> pluginModel = new EnumMap<>(PluginModel.class);
-        pluginModel.put(PluginModel.entityDtos, pluginModelEntityServiceImpl.register(pluginModelEntityDtos));
-        pluginModel.put(PluginModel.attributeDtos, pluginModelAttributeServiceImpl.register(pluginModelAttributeDtos));
-        return pluginModel;
+    public List<PluginModelEntityDto> register(List<PluginModelEntityDto> inputEntityDtos) {
+        List<List<PluginModelAttributeDto>> attrDtoList = extractAttributes(inputEntityDtos);
+
+        List<Integer> registeredEntityIdList = new ArrayList<>();
+        for (PluginModelEntityDto tmpEntityDto : pluginModelEntityServiceImpl.register(inputEntityDtos)) {
+            registeredEntityIdList.add(tmpEntityDto.getId());
+        }
+        List<PluginModelAttributeDto> flatAttributeList = setAttributeWithEntityId(attrDtoList, registeredEntityIdList);
+        pluginModelAttributeServiceImpl.register(flatAttributeList);
+
+        return pluginModelEntityServiceImpl.overview();
     }
 
     /**
      * Plugin model update
      *
-     * @param pluginModelEntityDtos    list of plugin model entity dtos
-     * @param pluginModelAttributeDtos list of plugin model attribute dtos
-     * @return an enum map of dtos
+     * @param inputEntityDtos list of plugin model entity dtos
+     * @return an list of entity dtos which contain both entities and attributes
      */
     @Override
-    public EnumMap<PluginModel, Object> update(List<PluginModelEntityDto> pluginModelEntityDtos, List<PluginModelAttributeDto> pluginModelAttributeDtos) {
-        EnumMap<PluginModel, Object> pluginModel = new EnumMap<>(PluginModel.class);
-        pluginModel.put(PluginModel.entityDtos, pluginModelEntityServiceImpl.update(pluginModelEntityDtos));
-        pluginModel.put(PluginModel.attributeDtos, pluginModelAttributeServiceImpl.update(pluginModelAttributeDtos));
-        return pluginModel;
+    public List<PluginModelEntityDto> update(List<PluginModelEntityDto> inputEntityDtos) {
+        List<List<PluginModelAttributeDto>> attrDtoList = extractAttributes(inputEntityDtos);
+
+        List<Integer> registeredEntityIdList = new ArrayList<>();
+        for (PluginModelEntityDto tmpEntityDto : pluginModelEntityServiceImpl.update(inputEntityDtos)) {
+            registeredEntityIdList.add(tmpEntityDto.getId());
+        }
+        List<PluginModelAttributeDto> flatAttributeList = setAttributeWithEntityId(attrDtoList, registeredEntityIdList);
+        pluginModelAttributeServiceImpl.update(flatAttributeList);
+
+        return pluginModelEntityServiceImpl.overview();
     }
 
     /**
      * Plugin model overview
      *
-     * @return an enum map of dtos
+     * @return an list of entity dtos which contain both entities and attributes
      */
     @Override
-    public EnumMap<PluginModel, Object> overview() {
-        EnumMap<PluginModel, Object> pluginModel = new EnumMap<>(PluginModel.class);
-        pluginModel.put(PluginModel.entityDtos, pluginModelEntityServiceImpl.overview());
-        pluginModel.put(PluginModel.attributeDtos, pluginModelAttributeServiceImpl.overview());
-        return pluginModel;
+    public List<PluginModelEntityDto> overview() {
+        return pluginModelEntityServiceImpl.overview();
     }
+
+    private List<PluginModelAttributeDto> setAttributeWithEntityId(List<List<PluginModelAttributeDto>> attrDtoList, List<Integer> registeredEntityIdList) {
+        List<PluginModelAttributeDto> pluginModelAttributeDtos = new ArrayList<>();
+        for (int i = 0; i < registeredEntityIdList.size(); i++) {
+            Integer registeredId = registeredEntityIdList.get(i);
+            for (PluginModelAttributeDto tmp : attrDtoList.get(i)) {
+                tmp.setPluginModelEntityId(registeredId);
+                pluginModelAttributeDtos.add(tmp);
+            }
+        }
+        return pluginModelAttributeDtos;
+    }
+
+    private List<List<PluginModelAttributeDto>> extractAttributes(List<PluginModelEntityDto> inputEntityDtos) {
+        List<List<PluginModelAttributeDto>> dtoList = new ArrayList<>();
+        inputEntityDtos.forEach(tmpEntityDto -> dtoList.add(tmpEntityDto.getAttributeDtoList()));
+        return dtoList;
+    }
+
+
 }
