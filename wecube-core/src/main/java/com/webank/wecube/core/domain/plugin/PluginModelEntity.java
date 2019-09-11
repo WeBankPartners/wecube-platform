@@ -7,24 +7,23 @@ import org.apache.ibatis.annotations.Many;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Data
 @Entity
 @Table(name = "plugin_model_entity")
 public class PluginModelEntity {
     @Id
-    @NotBlank
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "package_id")
-    @NotBlank
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "plugin_packages_id", insertable = false, updatable = false)
     private PluginPackage pluginPackage;
 
     @Column(name = "package_id")
-    @NotBlank
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "plugin_packages_id", insertable = false, updatable = false)
     private Integer packageId;
@@ -34,6 +33,8 @@ public class PluginModelEntity {
     private String description;
 
     @Column(name = "name")
-    @NotBlank
     private String name;
+
+    @OneToMany(mappedBy = "pluginModelEntity")
+    public List<PluginModelAttribute> pluginModelAttributeList;
 }
