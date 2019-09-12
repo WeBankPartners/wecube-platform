@@ -26,7 +26,7 @@ public class PluginModelAttributeDto {
         pluginModelAttributeDto.setDescription(pluginModelAttribute.getDescription());
         pluginModelAttributeDto.setName(pluginModelAttribute.getName());
         pluginModelAttributeDto.setInputType(pluginModelAttribute.getInputType());
-        pluginModelAttributeDto.setReferenceId(pluginModelAttribute.getReferenceId());
+        pluginModelAttributeDto.setReferenceId(pluginModelAttribute.getPluginModelAttribute().getId());
         pluginModelAttributeDto.setPluginModelEntityId(pluginModelAttribute.getPluginModelEntityId());
         return pluginModelAttributeDto;
     }
