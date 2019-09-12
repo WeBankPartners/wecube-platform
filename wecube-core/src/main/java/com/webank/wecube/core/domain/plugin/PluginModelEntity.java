@@ -19,12 +19,11 @@ public class PluginModelEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "package_id")
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "plugin_packages_id", insertable = false, updatable = false)
     private PluginPackage pluginPackage;
 
-    @Column(name = "package_id")
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "plugin_packages_id", insertable = false, updatable = false)
     private Integer packageId;
 
