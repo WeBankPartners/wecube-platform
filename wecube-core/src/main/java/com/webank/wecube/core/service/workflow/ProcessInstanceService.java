@@ -177,10 +177,10 @@ public class ProcessInstanceService extends AbstractProcessService {
         trans.setAttach(jsonAttach);
 
         trans.setName(String.format("%s [%s]", currUser, formatDate(startDate)));
-        processTransactionEntityRepository.save(trans);
+        ProcessTransactionEntity savedTrans = processTransactionEntityRepository.save(trans);
 
         for (StartProcessInstaceWithCiDataReq request : requests) {
-            ProcessInstanceStartResponse resp = doStartProcessInstanceWithCiData(request, trans);
+            ProcessInstanceStartResponse resp = doStartProcessInstanceWithCiData(request, savedTrans);
             resps.add(resp);
 
             List<ProcessTaskEntity> tasks = processTaskEntityRepository
