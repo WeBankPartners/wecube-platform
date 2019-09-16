@@ -744,9 +744,46 @@ public class PluginInstanceService {
                     return valueOfCode;
                 }
             }
+        }else if(rawValue != null && rawValue instanceof List){
+            //check if multi enum values
+            List<?> valueAsList = (List<?>)rawValue;
+            return extractMultiDiffConfVariables(valueAsList,inputParameters, data);
         }
+        
         return rawValue;
     }
+    
+    private Object extractMultiDiffConfVariables(List<?> valueAsList, Set<PluginConfigInterfaceParameter> inputParameters,
+            Map<String, Object> data){
+        String retAsKeyValuePairs = "";
+        for(Object obj : valueAsList){
+            if(obj != null && obj instanceof Map){
+                @SuppressWarnings("unchecked")
+                Map<String, Object> objMap = (Map<String, Object>)obj;
+                String enumNameAsStr = (String) objMap.get("value");
+                Object codeAsObj = objMap.get("code");
+                
+                Object codeValue = null;
+                
+                if(codeAsObj != null && isDiffConfVariable(codeAsObj)){
+                    codeValue = extractDiffConfVariable((String)codeAsObj, inputParameters, data);
+                }else{
+                    codeValue = codeAsObj;
+                }
+                
+                retAsKeyValuePairs += String.format("%s=%s,", enumNameAsStr, codeValue);
+            }else{
+                log.warn("not a enum value, {}", obj);
+            }
+        }
+        
+        if(retAsKeyValuePairs.endsWith(",")){
+            retAsKeyValuePairs = retAsKeyValuePairs.substring(0, retAsKeyValuePairs.length() - 1);
+        }
+        
+        return retAsKeyValuePairs;
+    }
+    
     
     private Object extractDiffConfVariable(String valueOfCode, Set<PluginConfigInterfaceParameter> inputParameters,
             Map<String, Object> data){
