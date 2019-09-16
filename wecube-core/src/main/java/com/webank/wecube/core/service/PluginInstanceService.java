@@ -757,11 +757,33 @@ public class PluginInstanceService {
             Map<String, Object> data){
         String retAsKeyValuePairs = "";
         for(Object obj : valueAsList){
-            return null;
+            if(obj != null && obj instanceof Map){
+                @SuppressWarnings("unchecked")
+                Map<String, Object> objMap = (Map<String, Object>)obj;
+                String enumNameAsStr = (String) objMap.get("value");
+                Object codeAsObj = objMap.get("code");
+                
+                Object codeValue = null;
+                
+                if(codeAsObj != null && isDiffConfVariable(codeAsObj)){
+                    codeValue = extractDiffConfVariable((String)codeAsObj, inputParameters, data);
+                }else{
+                    codeValue = codeAsObj;
+                }
+                
+                retAsKeyValuePairs += String.format("%s=%s,", enumNameAsStr, codeValue);
+            }else{
+                log.warn("not a enum value, {}", obj);
+            }
         }
         
-        return "";
+        if(retAsKeyValuePairs.endsWith(",")){
+            retAsKeyValuePairs = retAsKeyValuePairs.substring(0, retAsKeyValuePairs.length() - 1);
+        }
+        
+        return retAsKeyValuePairs;
     }
+    
     
     private Object extractDiffConfVariable(String valueOfCode, Set<PluginConfigInterfaceParameter> inputParameters,
             Map<String, Object> data){
