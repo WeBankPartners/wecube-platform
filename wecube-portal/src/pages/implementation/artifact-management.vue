@@ -133,7 +133,6 @@ import {
   getPackageCiTypeId,
   getAllCITypesByLayerWithAttr,
   getSystemDesignVersions,
-  getAllCiTypesByCatalog,
   getSystemDesignVersion,
   queryPackages,
   deleteCiDatas,
@@ -370,6 +369,13 @@ export default {
       if (status === "OK") {
         let ciTypes = {};
         let ciTypeAttrs = {};
+
+        let tempCITypes = JSON.parse(JSON.stringify(data));
+        tempCITypes.forEach(_ => {
+          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
+        });
+        this.ciTypes = tempCITypes;
+
         data.forEach(layer => {
           if (layer.ciTypes instanceof Array) {
             layer.ciTypes.forEach(citype => {
@@ -386,12 +392,7 @@ export default {
         this.ciTypeAttributeObj = ciTypeAttrs;
       }
     },
-    async getAllCiTypesByCatalog() {
-      let { status, data, message } = await getAllCiTypesByCatalog();
-      if (status === "OK") {
-        this.ciTypes = data;
-      }
-    },
+
     async getSystemDesignVersion(guid) {
       this.treeLoading = true;
       let { status, data, message } = await getSystemDesignVersion(guid);
@@ -760,7 +761,6 @@ export default {
   created() {
     this.fetchData();
     this.getAllCITypesByLayerWithAttr();
-    this.getAllCiTypesByCatalog();
     this.getAllSystemEnumCodes();
   }
 };
