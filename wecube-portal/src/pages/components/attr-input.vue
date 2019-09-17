@@ -255,7 +255,7 @@ export default {
     },
     formatAllCiType() {
       this.allCiTypes.forEach(_ => {
-        this.allCi = this.allCi.concat([..._.ciTypes]);
+        this.allCi = this.allCi.concat(_.ciTypes ? [..._.ciTypes] : []);
       });
     },
     inputHandler(v) {
