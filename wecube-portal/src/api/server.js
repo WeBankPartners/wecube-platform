@@ -105,8 +105,6 @@ export const deleteCIRecord = (ciTypeId, ciId) =>
   req.delete(`/cmdb/ci-types/${ciTypeId}/ci-data/${ciId}`);
 // plugin manager
 export const getAllPluginPkgs = () => req.get("/plugin/packages");
-export const getAllCiTypesByCatalog = () =>
-  req.get("/cmdb/ci-types?group-by=catalog");
 export const getPluginInterfaces = id =>
   req.get(`/plugin/configs/${id}/interfaces`);
 export const getRefCiTypeFrom = id =>
