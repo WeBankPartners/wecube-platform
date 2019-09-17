@@ -158,7 +158,6 @@ import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
 import {
   getAllCITypesByLayerWithAttr,
-  getAllCiTypesByCatalog,
   getAllFlow,
   saveFlow,
   getFlowDetailByID,
@@ -240,7 +239,6 @@ export default {
     init() {
       this.getAllCITypesByLayerWithAttr();
       this.getAllFlows();
-      this.getAllCITypes();
       this.getAllPlugins();
     },
     setRootFilterRule(v) {
@@ -257,6 +255,13 @@ export default {
       if (status === "OK") {
         let ciTypes = {};
         let ciTypeAttrs = {};
+
+        let tempCITypes = JSON.parse(JSON.stringify(data));
+        tempCITypes.forEach(_ => {
+          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
+        });
+        this.allCITypes = tempCITypes;
+
         data.forEach(layer => {
           if (layer.ciTypes instanceof Array) {
             layer.ciTypes.forEach(citype => {
@@ -283,15 +288,6 @@ export default {
         : await getLatestOnlinePluginInterfaces();
       if (status === "OK") {
         this.allPlugins = data;
-      }
-    },
-    async getAllCITypes() {
-      const { data, message, status } = await getAllCiTypesByCatalog();
-      if (status === "OK") {
-        data.forEach(_ => {
-          _.ciTypes.filter(i => i.status !== "decommissioned");
-        });
-        this.allCITypes = data;
       }
     },
     async getAllFlows() {
