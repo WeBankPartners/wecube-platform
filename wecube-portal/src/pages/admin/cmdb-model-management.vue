@@ -1070,9 +1070,7 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .scale(1.2)
           .width(window.innerWidth * 0.8)
-          .height(window.innerHeight * 0.75)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               var keys = d.key.split("->");
