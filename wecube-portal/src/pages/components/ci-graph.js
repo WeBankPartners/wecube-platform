@@ -545,10 +545,9 @@ export default {
               } else {
                 currentIndex = `${childIndexBase}-1`;
               }
-
               //如果已经存在froms中 则不重复计算
               const existNode = this.savedClickedNode.to.find(
-                _ => _.referenceId === to.ciTypeId
+                _ => _.referenceId === to.ciTypeId && _.name === to.name
               );
               if (existNode) {
                 return existNode;
