@@ -1060,17 +1060,18 @@ export default {
       let graph;
       let graphviz;
 
+      const graphEl = document.getElementById("graph");
+
       const initEvent = () => {
         graph = d3.select("#graph");
         graph
           .on("dblclick.zoom", null)
           .on("wheel.zoom", null)
           .on("mousewheel.zoom", null);
-
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .width(window.innerWidth * 0.8)
+          .width(graphEl.offsetWidth * 1)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               var keys = d.key.split("->");
