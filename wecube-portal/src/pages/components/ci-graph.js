@@ -330,7 +330,9 @@ export default {
           children: this.referTos.map(_ => {
             let found =
               currentTos &&
-              currentTos.find(i => i.referenceId === _.referenceId);
+              currentTos.find(
+                i => i.referenceId === _.referenceId && i.name === _.name
+              );
             return {
               id: _.referenceId,
               title: _.name,
@@ -552,7 +554,7 @@ export default {
                 return existNode;
               }
               // eslint-disable-next-line
-              if (_.referenceId == to.ciTypeId) {
+              if (_.referenceId == to.ciTypeId && _.name === to.name) {
                 indexMap[childIndexBase] =
                   Number(indexMap[childIndexBase] || 0) + 1;
                 const label = `${currentIndex}-${_.name}-${_.referenceName}`;
