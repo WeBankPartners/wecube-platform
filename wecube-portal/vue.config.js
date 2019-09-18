@@ -1,4 +1,7 @@
 const CompressionPlugin = require("compression-webpack-plugin");
+
+const baseURL = "http://129.204.99.160:9098"; // http://localhost:8080
+
 module.exports = {
   devServer: {
     // hot: true,
@@ -7,25 +10,25 @@ module.exports = {
     port: 3000,
     proxy: {
       "/process": {
-        target: "http://localhost:8080"
+        target: baseURL
       },
       "/admin": {
-        target: "http://localhost:8080"
+        target: baseURL
       },
       "/cmdb": {
-        target: "http://localhost:8080"
+        target: baseURL
       },
       "/logout": {
-        target: "http://localhost:8080"
+        target: baseURL
       },
       "/plugin": {
-        target: "http://localhost:8080"
+        target: baseURL
       },
       "/artifact": {
-        target: "http://localhost:8080"
+        target: baseURL
       },
       "/batch-job": {
-        target: "http://localhost:8080"
+        target: baseURL
       }
     }
   },
