@@ -662,7 +662,7 @@ public class ProcessInstanceService extends AbstractProcessService {
         Map<String, Object> recordMap = (Map<String, Object>) ((Map<String, Object>) rootCiResults.get(0)).get("data");
         String existedBizKey = (String) recordMap.get("biz_key");
         
-        if(existedBizKey != null && (!existedBizKey.equals(processInstanceBizKey))){
+        if(StringUtils.isNotBlank(existedBizKey) && (!existedBizKey.equals(processInstanceBizKey))){
             log.error("such ci data already has process intance bound,rootCiTypeId={},rootCiDataGuid={}", rootCiTypeId, rootCiDataGuid);
             throw new WecubeCoreException(String.format("cidata [%s,%s] isnt available", rootCiTypeId, rootCiDataGuid));
         }
