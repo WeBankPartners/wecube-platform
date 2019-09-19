@@ -312,6 +312,7 @@ export default {
         ciTypeName: this.allCi.find(i => i.ciTypeId === item.id).name
       });
       this.options = [];
+      this.$refs["textarea"].focus();
       this.$emit("input", this.getValue(this.routine));
       this.$emit("change", this.getValue(this.routine));
     },
