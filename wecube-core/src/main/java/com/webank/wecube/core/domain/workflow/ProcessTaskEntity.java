@@ -67,7 +67,7 @@ public class ProcessTaskEntity {
 	@Column(name = "UPDATE_BY")
 	private String updateBy;
 
-	@ManyToOne(cascade=CascadeType.ALL)
+	@ManyToOne
 	@JoinColumn(name = "TRANSACTION_ID")
 	private ProcessTransactionEntity transaction;
 
