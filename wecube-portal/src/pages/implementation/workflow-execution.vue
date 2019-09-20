@@ -374,7 +374,8 @@ export default {
         .attr("stroke-opacity", ".2")
         .attr("fill", "#7f8fa6")
         .attr("fill-opacity", ".2");
-      d3.selectAll("text").attr("fill", "#000");
+      // d3.selectAll("text").attr("fill", "#000");
+      d3.selectAll(".edge text").attr("fill", "#7f8fa6");
     },
     colorNode(nodeName) {
       d3.selectAll('g[from="' + nodeName + '"] path')
@@ -400,7 +401,9 @@ export default {
       let nodesString = this.genDOT(data);
       this.loadImage(nodesString);
       this.graph.graphviz.renderDot(nodesString);
-      addEvent(".node", "click", async e => {
+      this.shadeAll();
+      addEvent(".node", "mouseover", async e => {
+        d3.selectAll("g").attr("cursor", "pointer");
         e.preventDefault();
         e.stopPropagation();
         this.g = e.currentTarget;
@@ -408,28 +411,14 @@ export default {
         this.shadeAll();
         this.colorNode(nodeName);
       });
-      addEvent(".node", "mouseover", e => {
+
+      addEvent("svg", "mouseover", e => {
+        this.shadeAll();
         e.preventDefault();
         e.stopPropagation();
-        d3.selectAll("g").attr("cursor", "pointer");
       });
 
-      addEvent("svg", "click", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        d3.selectAll("g path")
-          .attr("stroke", "#7f8fa6")
-          .attr("stroke-opacity", "1");
-        d3.selectAll("g polygon")
-          .attr("stroke", "#7f8fa6")
-          .attr("stroke-opacity", "1")
-          .attr("fill", "#7f8fa6")
-          .attr("fill-opacity", "1");
-
-        d3.selectAll("text").attr("fill", "#000");
-      });
-
-      addEvent(".node", "dblclick", async e => {
+      addEvent(".node", "click", async e => {
         e.preventDefault();
         e.stopPropagation();
         this.g = e.currentTarget;
