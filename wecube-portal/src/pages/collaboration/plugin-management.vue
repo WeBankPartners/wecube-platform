@@ -376,7 +376,6 @@ import CmdbAttrInput from "../components/cmdb-attr-input";
 import {
   getAllCITypesByLayerWithAttr,
   getAllPluginPkgs,
-  getAllCiTypesByCatalog,
   getPluginInterfaces,
   getRefCiTypeFrom,
   getRefCiTypeTo,
@@ -524,6 +523,13 @@ export default {
       if (status === "OK") {
         let ciTypes = {};
         let ciTypeAttrs = {};
+
+        let tempCITypes = JSON.parse(JSON.stringify(data));
+        tempCITypes.forEach(_ => {
+          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
+        });
+        this.ciTypes = tempCITypes;
+
         data.forEach(layer => {
           if (layer.ciTypes instanceof Array) {
             layer.ciTypes.forEach(citype => {
@@ -823,7 +829,8 @@ export default {
       if (ciTypeId) {
         this.setCiRulesFilters(ciTypeId);
         this.ciTypes.forEach(_ => {
-          const found = _.ciTypes.find(c => c.ciTypeId === ciTypeId);
+          const found =
+            _.ciTypes && _.ciTypes.find(c => c.ciTypeId === ciTypeId);
           if (found) {
             this.selectedCiTypeIdAndName = {
               value: found.ciTypeId,
@@ -974,12 +981,6 @@ export default {
         this.pagination.pageSize
       );
     },
-    async getAllCiTypesByCatalog() {
-      let { status, data, message } = await getAllCiTypesByCatalog();
-      if (status === "OK") {
-        this.ciTypes = data;
-      }
-    },
     async getAllPluginPkgs() {
       let { status, data, message } = await getAllPluginPkgs();
       if (status === "OK") {
@@ -1027,7 +1028,6 @@ export default {
   created() {
     this.getAllCITypesByLayerWithAttr();
     this.getAllPluginPkgs();
-    this.getAllCiTypesByCatalog();
   },
   mounted() {
     this.getAllCodes();

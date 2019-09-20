@@ -133,7 +133,6 @@ import {
   getPackageCiTypeId,
   getAllCITypesByLayerWithAttr,
   getSystemDesignVersions,
-  getAllCiTypesByCatalog,
   getSystemDesignVersion,
   queryPackages,
   deleteCiDatas,
@@ -370,6 +369,13 @@ export default {
       if (status === "OK") {
         let ciTypes = {};
         let ciTypeAttrs = {};
+
+        let tempCITypes = JSON.parse(JSON.stringify(data));
+        tempCITypes.forEach(_ => {
+          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
+        });
+        this.ciTypes = tempCITypes;
+
         data.forEach(layer => {
           if (layer.ciTypes instanceof Array) {
             layer.ciTypes.forEach(citype => {
@@ -386,12 +392,7 @@ export default {
         this.ciTypeAttributeObj = ciTypeAttrs;
       }
     },
-    async getAllCiTypesByCatalog() {
-      let { status, data, message } = await getAllCiTypesByCatalog();
-      if (status === "OK") {
-        this.ciTypes = data;
-      }
-    },
+
     async getSystemDesignVersion(guid) {
       this.treeLoading = true;
       let { status, data, message } = await getSystemDesignVersion(guid);
@@ -671,15 +672,15 @@ export default {
       if (this.currentTreeModal.key === "diff_conf_file") {
         this.diffTabData = "";
         let files = [];
-        this.selectNode.forEach(_ => {
-          files.push("/" + _.path);
+        this.selectNode.forEach((_, index) => {
+          index === 0 ? files.push(_.path) : files.push("/" + _.path);
         });
         this.diffTabData = files.join("|");
         this.currentPackage.diff_conf_file = files.join("|");
         this.selectNode = [];
         this.filesTreeData = [];
       } else {
-        this.currentPackage[this.currentTreeModal.key] = "/" + this.selectFile;
+        this.currentPackage[this.currentTreeModal.key] = this.selectFile;
       }
     },
     closeTreeModal() {
@@ -760,7 +761,6 @@ export default {
   created() {
     this.fetchData();
     this.getAllCITypesByLayerWithAttr();
-    this.getAllCiTypesByCatalog();
     this.getAllSystemEnumCodes();
   }
 };
