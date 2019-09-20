@@ -10,7 +10,7 @@
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
       <transition name="fade" mode="out-in">
-        <router-view class="pages"></router-view>
+        <router-view class="pages" :key="$route.name"></router-view>
       </transition>
     </div>
     <BackTop :height="100" :bottom="100" />
@@ -70,7 +70,6 @@ export default {
     const boxTitle = document.getElementById("boxTitle");
     boxLoading.style.display = "none";
     boxTitle.style.display = "none";
-
     // TODO: get plugins url by axios.
     let pluginURLs = [
       {
@@ -80,6 +79,7 @@ export default {
         props: { src: "dsadsadsad" }
       }
     ];
+
     this.$router.addRoutes(pluginURLs);
   },
   watch: {
@@ -98,6 +98,7 @@ export default {
   }
 };
 </script>
+
 <style lang="scss">
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
