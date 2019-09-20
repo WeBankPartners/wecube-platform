@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
     <div class="header">
       <Header @allMenus="allMenus" />
     </div>
@@ -10,7 +10,7 @@
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
       <transition name="fade" mode="out-in">
-        <router-view class="pages"></router-view>
+        <router-view class="pages" :key="$route.name"></router-view>
       </transition>
     </div>
     <BackTop :height="100" :bottom="100" />
@@ -65,6 +65,11 @@ export default {
     }
   },
   mounted() {
+    // remove loading
+    const boxLoading = document.getElementById("boxLoading");
+    const boxTitle = document.getElementById("boxTitle");
+    boxLoading.style.display = "none";
+    boxTitle.style.display = "none";
     // TODO: get plugins url by axios.
     let pluginURLs = [
       {
@@ -113,7 +118,6 @@ export default {
     }
   }
 }
-
 .header {
   width: 100%;
   background-color: #515a6e;
@@ -122,11 +126,9 @@ export default {
 .content-container {
   padding: 5px 30px;
 }
-
 .ivu-breadcrumb {
   color: #515a6e;
 }
-
 .ivu-layout,
 .ivu-layout-sider {
   height: 100%;
@@ -141,6 +143,14 @@ body {
 html {
   height: 100%;
 }
+// error style
+.ivu-notice-desc {
+  word-break: break-all;
+  margin-right: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+// form validation style
 .validation-form {
   .no-need-validation {
     .ivu-form-item-label:before {
@@ -159,7 +169,7 @@ html {
     color: #ed4014;
   }
 }
-
+// to show table x direction scroll bar
 .ivu-table-fixed-body {
   height: auto !important;
 }
