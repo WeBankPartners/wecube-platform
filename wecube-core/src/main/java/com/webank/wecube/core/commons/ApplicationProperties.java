@@ -12,22 +12,33 @@ import org.springframework.util.unit.DataSize;
 @Data
 @ConfigurationProperties(prefix = "wecube.core")
 public class ApplicationProperties {
+    private static final String AUTH_PROVIDER_LOCAL = "local";
+    private static final String AUTH_PROVIDER_CAS = "CAS";
 
+    private String authenticationProvider;
     private String casServerUrl = "";
     private String cmdbServerUrl = "";
     private String casRedirectAppAddr = "";
     private DataSize maxFileSize = DataSize.ofKilobytes(64);
     private boolean securityEnabled = true;
+    
+    public boolean isAuthenticationProviderLocal() {
+        return AUTH_PROVIDER_LOCAL.equalsIgnoreCase(authenticationProvider);
+    }
+    
+    public boolean isAuthenticationProviderCAS() {
+        return AUTH_PROVIDER_CAS.equalsIgnoreCase(authenticationProvider);
+    }
 
     @Data
     @ConfigurationProperties(prefix = "wecube.core.httpclient")
     public class HttpClientProperties {
         private int connectTimeout = 30000;
         private int requestTimeout = 30000;
-        private int socketTimeout = 60000;
+        private int socketTimeout = 1200000;
         private int maxTotalConnections = 50;
         private int poolSizeOfScheduler = 50;
-        private int defaultKeepAliveTimeMillis = 20000;
+        private int defaultKeepAliveTimeMillis = 1200000;
         private int closeIdleConnectionWaitTimeSecs = 30;
     }
 
