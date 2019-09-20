@@ -51,16 +51,21 @@ camunda:
 
 wecube:
   core:
+    security-enabled: true
+    
+    #Authentication provider options: local or CAS. Effective ONLY when security-enabled set as true.
+    authentication-provider: local
+    #Effective ONLY when security-enabled set as true and authentication-provider turns to CAS
     cas-server-url: http://cas-server-ip:8080/cas
     cas-redirect-app-addr: localhost:8080
+    
     cmdb-server-url: http://cmdb-server-ip:37000/cmdb
-    security-enabled: true
     max-file-size: 64KB
     httpclient:
       max-total-connections: 200
 
     plugin:
-      plugin-deploy-path: /home/app/
+      plugin-deploy-path: /opt/
       plugin-hosts: 10.0.0.1, 10.0.0.2, 10.0.0.3
       plugin-package-bucket-name: wecube-plugin-package-bucket
       register-file: register.xml

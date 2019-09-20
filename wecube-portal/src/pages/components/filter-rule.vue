@@ -347,17 +347,7 @@ export default {
                   this.inputVal.lastIndexOf("]")
                 )
                 .split(",");
-              const array = groupInfo.map(_ => {
-                if (
-                  (_[0] === '"' && _[_.length - 1] === '"') ||
-                  (_[0] === "'" && _[_.length - 1] === "'")
-                ) {
-                  return _.substr(1, _.length - 2);
-                } else {
-                  return Number(_);
-                }
-              });
-              this.filterRuleArray.push(array);
+              this.filterRuleArray.push(groupInfo);
               this.inputVal = this.$refs.textarea.value + " ";
               this.createRespRuleData();
               if (this.filterRuleArray.length !== 0) {
@@ -751,14 +741,7 @@ export default {
             this.filterRuleArray.push(filterRightRule);
             if (filterRightRule.length > 0) {
               if (!filterRightRule[0].ciTypeId) {
-                const array = filterRightRule.map(_ => {
-                  if (typeof _ === "string") {
-                    return `"${_}"`;
-                  } else {
-                    return _;
-                  }
-                });
-                val += "in [" + array + "] ";
+                val += "in [" + filterRightRule + "] ";
               } else {
                 val += "in { ";
                 filterRightRule.forEach(item => {

@@ -36,7 +36,7 @@
         <Upload
           :action="`/artifact/unit-designs/${guid}/packages/upload`"
           :headers="setUploadActionHeader"
-          :on-success="queryPackages"
+          :on-success="uploadPackagesSuccess"
           slot="title"
         >
           <Button icon="ios-cloud-upload-outline">上传新包</Button>
@@ -133,7 +133,6 @@ import {
   getPackageCiTypeId,
   getAllCITypesByLayerWithAttr,
   getSystemDesignVersions,
-  getAllCiTypesByCatalog,
   getSystemDesignVersion,
   queryPackages,
   deleteCiDatas,
@@ -321,6 +320,17 @@ export default {
     }
   },
   methods: {
+    uploadPackagesSuccess(response, file, fileList) {
+      if (response.status === "ERROR") {
+        this.$Notice.error({
+          title: "Error",
+          desc: response.message || ""
+        });
+      } else {
+        this.queryPackages();
+      }
+    },
+
     renderActionButton(params) {
       const row = params.row;
       return this.statusOperations
@@ -359,6 +369,13 @@ export default {
       if (status === "OK") {
         let ciTypes = {};
         let ciTypeAttrs = {};
+
+        let tempCITypes = JSON.parse(JSON.stringify(data));
+        tempCITypes.forEach(_ => {
+          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
+        });
+        this.ciTypes = tempCITypes;
+
         data.forEach(layer => {
           if (layer.ciTypes instanceof Array) {
             layer.ciTypes.forEach(citype => {
@@ -375,12 +392,7 @@ export default {
         this.ciTypeAttributeObj = ciTypeAttrs;
       }
     },
-    async getAllCiTypesByCatalog() {
-      let { status, data, message } = await getAllCiTypesByCatalog();
-      if (status === "OK") {
-        this.ciTypes = data;
-      }
-    },
+
     async getSystemDesignVersion(guid) {
       this.treeLoading = true;
       let { status, data, message } = await getSystemDesignVersion(guid);
@@ -436,10 +448,10 @@ export default {
           const result = data.outputs[0].config_key_infos.map((_, i) => {
             _.index = i + 1;
             const found = diffConfigEnums.data.find(
-              item => item.code === _.key
+              item => item.value === _.key
             );
             if (found) {
-              _.attrInputValue = found.value;
+              _.attrInputValue = found.code;
             }
             return _;
           });
@@ -660,15 +672,15 @@ export default {
       if (this.currentTreeModal.key === "diff_conf_file") {
         this.diffTabData = "";
         let files = [];
-        this.selectNode.forEach(_ => {
-          files.push("/" + _.path);
+        this.selectNode.forEach((_, index) => {
+          index === 0 ? files.push(_.path) : files.push("/" + _.path);
         });
         this.diffTabData = files.join("|");
         this.currentPackage.diff_conf_file = files.join("|");
         this.selectNode = [];
         this.filesTreeData = [];
       } else {
-        this.currentPackage[this.currentTreeModal.key] = "/" + this.selectFile;
+        this.currentPackage[this.currentTreeModal.key] = this.selectFile;
       }
     },
     closeTreeModal() {
@@ -702,8 +714,8 @@ export default {
     },
     saveAttr(row) {
       this.saveDiffConfigEnumCodes({
-        code: this.tabData[this.nowTab].tableData[row].key,
-        value: this.tabData[this.nowTab].tableData[row].routine
+        value: this.tabData[this.nowTab].tableData[row].key,
+        code: this.tabData[this.nowTab].tableData[row].routine
       });
     },
     async getAllSystemEnumCodes() {
@@ -749,7 +761,6 @@ export default {
   created() {
     this.fetchData();
     this.getAllCITypesByLayerWithAttr();
-    this.getAllCiTypesByCatalog();
     this.getAllSystemEnumCodes();
   }
 };

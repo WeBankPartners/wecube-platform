@@ -1,5 +1,6 @@
 package com.webank.wecube.core.service.workflow;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.core.domain.workflow.TaskNodeExecLogEntity;
+import com.webank.wecube.core.interceptor.UsernameStorage;
+import com.webank.wecube.core.jpa.TaskNodeExecLogEntityRepository;
+
 @Service
 public class PluginWorkService {
     private static final Logger log = LoggerFactory.getLogger(PluginWorkService.class);
@@ -26,8 +31,42 @@ public class PluginWorkService {
     @Autowired
     private ManagementService managementService;
 
+    @Autowired
+    private TaskNodeExecLogEntityRepository taskNodeExecLogEntityRepository;
+
+    public void logFailureExecution(String processInstanceBizKey, String taskNodeId, String errMsg) {
+        TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
+                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, taskNodeId);
+        if (execLog != null) {
+            execLog.setErrCode(TaskNodeExecLogEntity.ERR_CODE_ERR);
+            execLog.setErrMsg(errMsg);
+            execLog.setUpdatedTime(new Date());
+            execLog.setUpdatedBy(UsernameStorage.getIntance().get());
+            execLog.setTaskNodeStatus(ProcessInstanceService.FAULTED);
+
+            taskNodeExecLogEntityRepository.saveAndFlush(execLog);
+        } else {
+            log.warn("cannot find {} with processInstanceBizKey={},taskNodeId={}",
+                    TaskNodeExecLogEntity.class.getSimpleName(), processInstanceBizKey, taskNodeId);
+        }
+    }
+    
+    public void logCompleteExecution(String processInstanceBizKey, String taskNodeId, String responseData, String errMsg){
+        TaskNodeExecLogEntity execLog = taskNodeExecLogEntityRepository
+                .findEntityByInstanceBusinessKeyAndTaskNodeId(processInstanceBizKey, taskNodeId);
+        if (execLog != null) {
+            execLog.setErrCode(TaskNodeExecLogEntity.ERR_CODE_OK);
+            execLog.setResponseData(responseData);
+            execLog.setUpdatedTime(new Date());
+            execLog.setUpdatedBy(UsernameStorage.getIntance().get());
+            execLog.setTaskNodeStatus(ProcessInstanceService.COMPLETED);
+
+            taskNodeExecLogEntityRepository.saveAndFlush(execLog);
+        }
+    }
+
     public void responseServiceTaskResult(String processInstanceBizKey, String executionId, String serviceCode,
-                                          int resultCode) {
+            int resultCode) {
         log.info("process response for service task, processInstanceBizKey={},serviceCode={},resultCode={}",
                 processInstanceBizKey, serviceCode, resultCode);
 
