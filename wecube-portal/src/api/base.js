@@ -23,7 +23,7 @@ req.interceptors.response.use(
         const errorMes = Array.isArray(res.data.data)
           ? res.data.data.map(_ => _.errorMessage).join("<br/>")
           : res.data.message;
-        Vue.prototype.$Notice.error({
+        Vue.prototype.$Notice.warning({
           title: "Error",
           desc: errorMes,
           duration: 0
@@ -41,8 +41,8 @@ req.interceptors.response.use(
   },
   res => {
     const { response } = res;
-    Vue.prototype.$Notice.error({
-      title: "error",
+    Vue.prototype.$Notice.warning({
+      title: "Error",
       desc:
         (response.data &&
           "status:" +
