@@ -70,7 +70,6 @@ export default {
     const boxTitle = document.getElementById("boxTitle");
     boxLoading.style.display = "none";
     boxTitle.style.display = "none";
-
     // TODO: get plugins url by axios.
     let pluginURLs = [
       {
@@ -80,6 +79,7 @@ export default {
         props: { src: "dsadsadsad" }
       }
     ];
+
     this.$router.addRoutes(pluginURLs);
   },
   watch: {
@@ -98,6 +98,7 @@ export default {
   }
 };
 </script>
+
 <style lang="scss">
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
