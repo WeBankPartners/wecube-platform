@@ -14,7 +14,8 @@ export default {
     tableOuterActions: { default: () => [] },
     tableInnerActions: { default: () => [] },
     pagination: { type: Object },
-    ascOptions: { type: Object }
+    ascOptions: { type: Object },
+    isRefreshable: { default: () => false }
   },
   data() {
     return {
@@ -155,10 +156,12 @@ export default {
               }
             }
           }
-          // const found = this.tableColumns.find(q => q.inputKey === i);
-          // if (found && found.isRefreshable) {
-          //   _[i] = "";
-          // }
+          if (this.isRefreshable) {
+            const found = this.tableColumns.find(q => q.inputKey === i);
+            if (found && found.isRefreshable) {
+              _[i] = null;
+            }
+          }
         }
       });
     },
