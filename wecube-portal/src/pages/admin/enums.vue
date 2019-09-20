@@ -7,6 +7,7 @@
     :pagination="pagination"
     :ascOptions="ascOptions"
     :showCheckbox="showCheckbox"
+    :isSortable="false"
     @actionFun="actionFun"
     @getSelectedRows="onSelectedRowsChange"
     @handleSubmit="handleSubmit"
@@ -77,11 +78,22 @@ export default {
           placeholder: "value"
         },
         {
+          title: "枚举类型",
+          key: "catTypeName",
+          inputKey: "cat.catType.catTypeName",
+          searchSeqNo: 0, // 不可作为搜索条件
+          displaySeqNo: 4,
+          component: "Input",
+          disEditor: true, // 枚举类型不可改
+          inputType: "text",
+          placeholder: "catTypeName"
+        },
+        {
           title: "枚举组",
           key: "groupCodeId",
           inputKey: "groupCodeId",
-          searchSeqNo: 4,
-          displaySeqNo: 4,
+          searchSeqNo: 5,
+          displaySeqNo: 5,
           component: "WeSelect",
           inputType: "select",
           placeholder: "groupCodeId",
@@ -91,8 +103,8 @@ export default {
           title: "状态",
           key: "status",
           inputKey: "status",
-          searchSeqNo: 5,
-          displaySeqNo: 5,
+          searchSeqNo: 6,
+          displaySeqNo: 6,
           component: "WeSelect",
           inputType: "select",
           placeholder: "status",
@@ -114,7 +126,8 @@ export default {
         sorting: {
           asc: true,
           field: ""
-        }
+        },
+        refResources: ["cat"]
       },
       ascOptions: {},
       seletedRows: []
@@ -211,7 +224,13 @@ export default {
         this.tableData = data.contents.map(_ => {
           return {
             ..._,
-            ..._.cat
+            ..._.cat,
+            catTypeName:
+              _.cat.catType.catTypeName === "sys"
+                ? "系统枚举"
+                : _.cat.catType.catTypeName === "common"
+                ? "公有枚举"
+                : "私有枚举-" + _.cat.catType.catTypeName
           };
         });
       }
