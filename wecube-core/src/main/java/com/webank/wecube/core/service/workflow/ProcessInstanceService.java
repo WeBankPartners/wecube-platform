@@ -177,10 +177,10 @@ public class ProcessInstanceService extends AbstractProcessService {
         trans.setAttach(jsonAttach);
 
         trans.setName(String.format("%s [%s]", currUser, formatDate(startDate)));
-        processTransactionEntityRepository.save(trans);
+        ProcessTransactionEntity savedTrans = processTransactionEntityRepository.save(trans);
 
         for (StartProcessInstaceWithCiDataReq request : requests) {
-            ProcessInstanceStartResponse resp = doStartProcessInstanceWithCiData(request, trans);
+            ProcessInstanceStartResponse resp = doStartProcessInstanceWithCiData(request, savedTrans);
             resps.add(resp);
 
             List<ProcessTaskEntity> tasks = processTaskEntityRepository
@@ -650,6 +650,22 @@ public class ProcessInstanceService extends AbstractProcessService {
             throws JsonParseException, JsonMappingException, IOException {
         Integer rootCiTypeId = Integer.parseInt(request.getCiTypeId());
         String rootCiDataGuid = request.getCiDataId();
+        
+        List<Object> rootCiResults = cmdbServiceV2Stub.getCiDataByGuid(rootCiTypeId,
+                Arrays.asList(rootCiDataGuid));
+        
+        if(rootCiResults == null || rootCiResults.isEmpty()){
+            log.error("root ci doesnt exist,rootCiTypeId={},rootCiDataGuid={}", rootCiTypeId, rootCiDataGuid);
+            throw new WecubeCoreException(String.format("failed to mark process instance key for cidata [%s,%s]", rootCiTypeId, rootCiDataGuid));
+        }
+        
+        Map<String, Object> recordMap = (Map<String, Object>) ((Map<String, Object>) rootCiResults.get(0)).get("data");
+        String existedBizKey = (String) recordMap.get("biz_key");
+        
+        if(StringUtils.isNotBlank(existedBizKey) && (!existedBizKey.equals(processInstanceBizKey))){
+            log.error("such ci data already has process intance bound,rootCiTypeId={},rootCiDataGuid={}", rootCiTypeId, rootCiDataGuid);
+            throw new WecubeCoreException(String.format("cidata [%s,%s] isnt available", rootCiTypeId, rootCiDataGuid));
+        }
 
         Map<String, Object> ciDataToUpdate = new HashMap<>();
         ciDataToUpdate.put("guid", rootCiDataGuid);

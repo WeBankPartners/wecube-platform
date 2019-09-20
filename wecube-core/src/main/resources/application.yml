@@ -90,8 +90,6 @@ wecube:
       business-key-attribute-name: biz_key
       status-attribute-name: state
 
-
-
-
-
-
+    resource:
+      dockerPullImageTimeout: 300
+      passwordEncryptionSeed: defaultSeed

@@ -16,7 +16,7 @@
       @on-cancel
       @on-ok="saveOrchestration"
     >
-      <Select filterable v-model="selectedOrchestration">
+      <Select filterable clearable v-model="selectedOrchestration">
         <Option
           v-for="i in allOrchestration"
           :label="i.label"
@@ -62,13 +62,14 @@ export default {
       }
     },
     async saveOrchestration() {
-      console.log("aa", this.selectedOrchestration, this.row);
       let payload = {
         id: this.row.citypeId,
         updateData: [
           {
             guid: this.row.guid,
             orchestration: this.selectedOrchestration
+              ? this.selectedOrchestration
+              : null
           }
         ]
       };

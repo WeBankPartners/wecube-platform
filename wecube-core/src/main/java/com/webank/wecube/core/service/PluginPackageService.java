@@ -1,6 +1,28 @@
 package com.webank.wecube.core.service;
 
-import com.amazonaws.services.s3.model.*;
+import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.ONLINE;
+import static com.webank.wecube.core.utils.SystemUtils.getTempFolderPath;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Optional;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.webank.wecube.core.commons.ApplicationProperties;
 import com.webank.wecube.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
@@ -10,22 +32,9 @@ import com.webank.wecube.core.jpa.PluginPackageRepository;
 import com.webank.wecube.core.parser.PluginConfigXmlParser;
 import com.webank.wecube.core.service.plugin.PluginConfigCopyHelper;
 import com.webank.wecube.core.support.s3.S3Client;
+import com.webank.wecube.core.utils.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.Optional;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import static com.webank.wecube.core.domain.plugin.PluginConfig.Status.ONLINE;
-import static com.webank.wecube.core.utils.SystemUtils.getTempFolderPath;
 
 @Service
 @Slf4j
@@ -57,6 +66,9 @@ public class PluginPackageService {
         byte[] pluginConfigFile = FileUtils.readFileToByteArray(new File(tmpFilePath + pluginProperties.getRegisterFile()));
 
         PluginPackage pluginPackage = PluginConfigXmlParser.newInstance(new ByteArrayInputStream(pluginConfigFile)).parsePluginPackage();
+        if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
+            throw new WecubeCoreException(String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ", pluginPackage.getName()));
+        }
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.", pluginPackage.getName(), pluginPackage.getVersion()));
         }
