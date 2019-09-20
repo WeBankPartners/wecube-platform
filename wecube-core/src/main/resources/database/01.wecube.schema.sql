@@ -23,6 +23,18 @@ create table role_menu (
   unique key uk_roleid_menuid (role_id, menu_id)
 );
 
+drop table if exists system_variables;
+create table system_variables (
+  id int auto_increment primary key,
+  name varchar(255) not null,
+  value varchar(2000),
+  scope_type varchar(50) not null default 'global',
+  scope_value varchar(500),
+  seq_no int not null default 0,
+  status varchar(50) not null default 'active',
+  index idx_prop_scope_val (scope_value)
+);
+
 drop table if exists plugin_packages;
 create table plugin_packages (
   id int auto_increment primary key,
@@ -307,4 +319,44 @@ CREATE TABLE `act_ru_srvnode_status` (
   `proc_inst_id` varchar(100) COLLATE utf8_bin DEFAULT NULL,
   `try_times` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
+);
+
+DROP TABLE IF EXISTS `resource_server`;
+CREATE TABLE `resource_server` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`name` VARCHAR(100) NULL DEFAULT NULL,
+	`host` VARCHAR(50) NULL DEFAULT NULL,
+	`port` VARCHAR(10) NULL DEFAULT NULL,
+	`login_username` VARCHAR(50) NULL DEFAULT NULL,
+	`login_password` VARCHAR(100) NULL DEFAULT NULL,
+	`type` VARCHAR(20) NULL DEFAULT NULL,
+	`is_allocated` INT(1) NULL DEFAULT 0,
+	`purpose` VARCHAR(255) NULL DEFAULT NULL,
+	`status` VARCHAR(20) NULL DEFAULT NULL,
+	`created_by` VARCHAR(50) NULL DEFAULT NULL,
+	`created_date` DATETIME NULL DEFAULT NULL,
+	`updated_by` VARCHAR(50) NULL DEFAULT NULL,
+	`updated_date` DATETIME NULL DEFAULT NULL,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `uk_resource_server` (`name`)
+);
+
+DROP TABLE IF EXISTS `resource_item`;
+CREATE TABLE `resource_item` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`name` VARCHAR(100) NULL DEFAULT NULL,
+	`type` VARCHAR(20) NULL DEFAULT NULL,
+	`additional_properties` LONGTEXT NULL,
+	`resource_server_id` INT(11) NULL DEFAULT NULL,
+	`is_allocated` INT(1) NULL DEFAULT 0,
+	`purpose` VARCHAR(255) NULL DEFAULT NULL,
+	`status` VARCHAR(20) NULL DEFAULT NULL,
+	`created_by` VARCHAR(50) NULL DEFAULT NULL,
+	`created_date` DATETIME NULL DEFAULT NULL,
+	`updated_by` VARCHAR(50) NULL DEFAULT NULL,
+	`updated_date` DATETIME NULL DEFAULT NULL,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `uk_name_resource_server_id` (`name`, `resource_server_id`),
+	INDEX `fk_resource_server_id` (`resource_server_id`),
+	CONSTRAINT `fk_resource_server_id` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
 );
