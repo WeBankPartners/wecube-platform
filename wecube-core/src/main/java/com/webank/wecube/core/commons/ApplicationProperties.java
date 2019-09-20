@@ -1,9 +1,13 @@
 package com.webank.wecube.core.commons;
 
+import lombok.Data;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
-
-import lombok.Data;
 
 @Data
 @ConfigurationProperties(prefix = "wecube.core")
@@ -74,7 +78,8 @@ public class ApplicationProperties {
         private String enumCategoryCiStateOfCreate = "ci_state_create";
         private String enumCodeChangeOfCiStateOfCreate = "update";
         private String enumCodeDestroyedOfCiStateOfCreate = "delete";
-
+        private String enumCategorySecurity = "security";
+        private String enumCodeOfSeed = "seed";
 
         private String statusAttributeName = "status";
         private String businessKeyAttributeName = "bizKey";
@@ -87,6 +92,13 @@ public class ApplicationProperties {
         private String propertyNameOfState = "state";
     }
 
+    @Data
+    @ConfigurationProperties(prefix = "wecube.core.api-proxy")
+    public class ApiProxyProperties {
+        private Map<String, String> customHeaders = new LinkedHashMap<>();
+        private Set<String> sensitiveHeaders = null;
+    }
+    
     @Data
     @ConfigurationProperties(prefix = "wecube.core.plugin")
     public class PluginProperties {
@@ -106,5 +118,12 @@ public class ApplicationProperties {
         private String endpoint;
         private String accessKey;
         private String secretKey;
+    }
+
+    @Data
+    @ConfigurationProperties(prefix = "wecube.core.resource")
+    public class ResourceProperties {
+        private Integer dockerPullImageTimeout = 300;
+        private String passwordEncryptionSeed;
     }
 }
