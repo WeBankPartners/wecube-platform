@@ -10,6 +10,7 @@ export default {
     tableData: { default: () => [] },
     showCheckbox: { default: () => true },
     highlightRow: { default: () => false },
+    isSortable: { default: () => true },
     filtersHidden: { default: () => false },
     tableOuterActions: { default: () => [] },
     tableInnerActions: { default: () => [] },
@@ -535,7 +536,7 @@ export default {
         ...col,
         maxWidth: 500,
         minWidth: 200,
-        sortable: "custom",
+        sortable: this.isSortable ? "custom" : false,
         render: (h, params) => {
           if (
             params.row.isRowEditable &&

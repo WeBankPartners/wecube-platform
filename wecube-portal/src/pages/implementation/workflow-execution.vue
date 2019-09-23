@@ -76,6 +76,10 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
+        <p v-if="currentNodeStsatus === 'Completed'" style="margin: 25px 0px;">
+          此任务节点已成功执行，重复执行可能带来不确定结果，是否仍需重复执行？
+        </p>
+
         <Button type="info" @click="workFlowActionHandler('retry')"
           >重试</Button
         >
@@ -178,7 +182,8 @@ export default {
       },
       g: {},
       currentNodeID: "",
-      workflowActionModalVisible: false
+      workflowActionModalVisible: false,
+      currentNodeStsatus: ""
     };
   },
   computed: {
@@ -204,9 +209,8 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .scale(1.2)
+          .scale(0.8)
           .width(window.innerWidth * 0.96)
-          .height(window.innerHeight * 0.8)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               var keys = d.key.split("->");
@@ -370,7 +374,8 @@ export default {
         .attr("stroke-opacity", ".2")
         .attr("fill", "#7f8fa6")
         .attr("fill-opacity", ".2");
-      d3.selectAll("text").attr("fill", "#000");
+      // d3.selectAll("text").attr("fill", "#000");
+      d3.selectAll(".edge text").attr("fill", "#7f8fa6");
     },
     colorNode(nodeName) {
       d3.selectAll('g[from="' + nodeName + '"] path')
@@ -396,7 +401,9 @@ export default {
       let nodesString = this.genDOT(data);
       this.loadImage(nodesString);
       this.graph.graphviz.renderDot(nodesString);
-      addEvent(".node", "click", async e => {
+      this.shadeAll();
+      addEvent(".node", "mouseover", async e => {
+        d3.selectAll("g").attr("cursor", "pointer");
         e.preventDefault();
         e.stopPropagation();
         this.g = e.currentTarget;
@@ -404,28 +411,14 @@ export default {
         this.shadeAll();
         this.colorNode(nodeName);
       });
-      addEvent(".node", "mouseover", e => {
+
+      addEvent("svg", "mouseover", e => {
+        this.shadeAll();
         e.preventDefault();
         e.stopPropagation();
-        d3.selectAll("g").attr("cursor", "pointer");
       });
 
-      addEvent("svg", "click", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        d3.selectAll("g path")
-          .attr("stroke", "#7f8fa6")
-          .attr("stroke-opacity", "1");
-        d3.selectAll("g polygon")
-          .attr("stroke", "#7f8fa6")
-          .attr("stroke-opacity", "1")
-          .attr("fill", "#7f8fa6")
-          .attr("fill-opacity", "1");
-
-        d3.selectAll("text").attr("fill", "#000");
-      });
-
-      addEvent(".node", "dblclick", async e => {
+      addEvent(".node", "click", async e => {
         e.preventDefault();
         e.stopPropagation();
         this.g = e.currentTarget;
@@ -780,6 +773,9 @@ export default {
         e.preventDefault();
         e.stopPropagation();
         this.currentNodeID = e.target.parentNode.getAttribute("id");
+        this.currentNodeStsatus = _this.graph_refresh.flowNodes.find(
+          _ => _.id === this.currentNodeID
+        ).status;
         this.workflowActionModalVisible = true;
       });
       addEvent("#graph_refresh .serviceTask image", "mouseover", e => {
@@ -795,6 +791,10 @@ export default {
         e.preventDefault();
         e.stopPropagation();
         this.currentNodeID = e.target.parentNode.getAttribute("id");
+        this.currentNodeStsatus = _this.graph_refresh.flowNodes.find(
+          _ => _.id === this.currentNodeID
+        ).status;
+
         this.workflowActionModalVisible = true;
       });
       addEvent("#graph_refresh .subProcess image", "mouseover", e => {
