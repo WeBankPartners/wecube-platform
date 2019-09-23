@@ -788,7 +788,7 @@ public class PluginInstanceService {
             List<Map<String, Object>> retDataList = buildIntegrationQueryAndGetQueryResult(rootGuid, ciRoutineItems);
             if(retDataList != null && !retDataList.isEmpty()){
                 Map<String,Object> retDataMap = retDataList.get(0);
-                return retDataMap.get("tail$attr");
+                return extractValueFromSpecialCiType(retDataMap.get("tail$attr"), inputParameters, data);
             }
         } catch (IOException e) {
             log.error("errors while retrieving data from cmdb", e);
