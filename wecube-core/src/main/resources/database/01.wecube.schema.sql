@@ -20,6 +20,7 @@ create table role_menu (
   id int auto_increment primary key,
   role_id int not null,
   menu_id int not null,
+  is_system int(1) DEFAULT '0',
   unique key uk_roleid_menuid (role_id, menu_id)
 );
 
