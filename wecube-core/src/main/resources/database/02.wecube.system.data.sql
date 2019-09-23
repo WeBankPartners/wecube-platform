@@ -46,5 +46,5 @@ insert into menu_items (id,parent_id,code,description) values
 ;
 
 delete from role_menu;
-insert into role_menu (role_id, menu_id,is_system) select 1, id, 1 from menu_items;
+insert into role_menu (role_id, menu_id) select 1, id from menu_items;
 
