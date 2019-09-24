@@ -1,0 +1,18 @@
+server:
+   port: 9999
+logging:
+   config: classpath:logback-spring.xml
+spring:
+   cloud:
+      gateway:
+         routes:
+         -  id: sparklr2_route
+            uri: http://localhost:16000
+            predicates:
+            - Path=/sparklr2/**
+         -  id: wecube_cds_route
+            uri: http://localhost:9000
+            predicates:
+            - Path=/wecube-cds/**
+            filters:
+            - StripPrefix=1

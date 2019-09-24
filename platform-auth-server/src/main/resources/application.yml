@@ -1,0 +1,14 @@
+server:
+   port: 8080
+logging:
+   config: classpath:logback-spring.xml
+spring:
+   datasource:
+      url: ***REMOVED***
+      username: wecube
+      password: password
+      driver-class-name: com.mysql.cj.jdbc.Driver
+   profiles:
+      active: dev
+   thymeleaf:
+      cache: false
