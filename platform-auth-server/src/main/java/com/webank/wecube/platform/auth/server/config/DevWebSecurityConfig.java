@@ -22,22 +22,22 @@ public class DevWebSecurityConfig extends AuthSecurityConfigurerAdapter {
         warnNotLoadingProdSecurityConfigurationNotice();
     }
 
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        log.info("=== configure AuthenticationManagerBuilder ===");
-        auth.inMemoryAuthentication() //
-                .withUser("marissa") //
-                .password("{noop}koala") //
-                .roles("USER") //
-                .and() //
-                .withUser("paul") //
-                .password("{noop}emu") //
-                .roles("USER") //
-                .and() //
-                .withUser("umadmin") //
-                .password("{noop}123456") //
-                .roles("TESTER") //
-        ; //
-    }
+//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+//        log.info("=== configure AuthenticationManagerBuilder ===");
+//        auth.inMemoryAuthentication() //
+//                .withUser("marissa") //
+//                .password("{noop}koala") //
+//                .roles("USER") //
+//                .and() //
+//                .withUser("paul") //
+//                .password("{noop}emu") //
+//                .roles("USER") //
+//                .and() //
+//                .withUser("umadmin") //
+//                .password("{noop}123456") //
+//                .roles("TESTER") //
+//        ; //
+//    }
 
     protected void configure(HttpSecurity http) throws Exception {
         log.info("==== configure HttpSecurity ====");
