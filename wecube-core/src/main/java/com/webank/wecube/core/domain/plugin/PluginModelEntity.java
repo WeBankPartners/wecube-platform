@@ -1,39 +1,47 @@
 package com.webank.wecube.core.domain.plugin;
 
-import com.webank.wecube.core.domain.plugin.PluginConfig;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import net.bytebuddy.build.Plugin;
-import org.apache.ibatis.annotations.Many;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "plugin_model_entity")
+@Table(name = "plugin_model_entity", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"package_name", "name"})
+})
 public class PluginModelEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "package_id")
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "plugin_packages_id", insertable = false, updatable = false)
-    private PluginPackage pluginPackage;
 
-    @JoinColumn(name = "plugin_packages_id", insertable = false, updatable = false)
+    @Column(name = "package_id")
     private Integer packageId;
 
-
-    @Column(name = "description")
-    private String description;
+    @Column(name = "package_version")
+    private String packageVersion;
 
     @Column(name = "name")
     private String name;
 
+    @Column(name = "package_name")
+    private String packageName;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "state")
+    private String state;
+
     @OneToMany(mappedBy = "pluginModelEntity")
     public List<PluginModelAttribute> pluginModelAttributeList;
+
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "package_id", insertable = false, updatable = false)
+    private PluginPackage pluginPackage;
 }
