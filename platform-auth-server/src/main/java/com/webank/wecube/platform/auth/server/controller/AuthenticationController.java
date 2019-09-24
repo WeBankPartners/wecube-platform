@@ -19,7 +19,7 @@ import com.webank.wecube.platform.auth.server.dto.JwtTokenDto;
 public class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
-    @PostMapping("/login")
+    @PostMapping("/logout")
     public JwtTokenDto userCentralLogin(HttpServletRequest request, HttpServletResponse response,
             @RequestBody CredentialDto credentialDto) {
         

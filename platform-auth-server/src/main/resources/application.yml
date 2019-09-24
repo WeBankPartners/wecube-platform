@@ -4,11 +4,20 @@ logging:
    config: classpath:logback-spring.xml
 spring:
    datasource:
-      url: ***REMOVED***
-      username: wecube
-      password: password
+      url: jdbc:mysql://localhost:3306/weauth?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
+      username: root
+      ***REMOVED***
+#      url: ***REMOVED***
+#      username: wecube
+#      password: password
       driver-class-name: com.mysql.cj.jdbc.Driver
    profiles:
       active: dev
    thymeleaf:
       cache: false
+   jpa:
+      database: mysql
+      show-sql: true
+      hibernate:
+         ddl-auto: update
+         use-new-id-generator-mappings: false
