@@ -26,7 +26,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
         Date expireTime = calendar.getTime();
         
         String refreshToken = Jwts.builder()
-                .setSubject(authentication.getName() + "-" + "refreshToken")
+                .setSubject(authentication.getName())
                 .setIssuedAt(now)
                 .claim("type", "refreshToken")
                 .setExpiration(expireTime)
