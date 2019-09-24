@@ -2,15 +2,22 @@ package com.webank.wecube.platform.auth.server.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
+import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedAuthenticationFilter;
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedLoginFilter;
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextRepository;
 import com.webank.wecube.platform.auth.server.handler.Http401AuthenticationEntryPoint;
 import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler;
+import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 
 public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = { //
@@ -25,6 +32,9 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
     };
 
     protected Logger log = LoggerFactory.getLogger(this.getClass());
+    
+    @Autowired
+    private LocalUserDetailsService userDetailsService;
 
     protected String[] getAuthWhiteList() {
         return AUTH_WHITELIST;
@@ -42,7 +52,9 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
                 .securityContext() //
                 .securityContextRepository(new JwtSsoBasedSecurityContextRepository()) //
                 .and() //
-                .addFilterBefore(new JwtSsoBasedLoginFilter(authenticationManager()), SecurityContextPersistenceFilter.class) //
+                .addFilterBefore(new JwtSsoBasedLoginFilter(authenticationManager()),
+                        SecurityContextPersistenceFilter.class) //
+                .addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager()))//
                 .authorizeRequests() //
                 .antMatchers(getAuthWhiteList()) //
                 .permitAll() //
@@ -66,5 +78,15 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
         sb.append("\n********************************************************************\t");
 
         log.warn(sb.toString());
+    }
+    
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
