@@ -1,7 +1,6 @@
 package com.webank.wecube.core.dto;
 
 import com.webank.wecube.core.domain.plugin.PluginModelAttribute;
-import com.webank.wecube.core.domain.plugin.PluginModelEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,25 +11,34 @@ import lombok.NoArgsConstructor;
 public class PluginModelAttributeDto {
 
     private Integer id;
+    private Integer entityId;
     private String description;
     private String name;
-    private String inputType;
-    private Integer referenceId;
-    // plugin model entity info
-    private Integer pluginModelEntityId;
-
+    private String packageName;
+    private String entityName;
+    private String dataType;
+    private String state = "draft";
+    // for service to bind the unpacked reference info
+    /**
+     * @param pluginModelAttribute input attribute domain object
+     * @return attribute dto exposed to the server
+     */
     public static PluginModelAttributeDto fromDomain(PluginModelAttribute pluginModelAttribute) {
         PluginModelAttributeDto pluginModelAttributeDto = new PluginModelAttributeDto();
-
-        pluginModelAttributeDto.setId(pluginModelAttribute.getId());
-        pluginModelAttributeDto.setDescription(pluginModelAttribute.getDescription());
         pluginModelAttributeDto.setName(pluginModelAttribute.getName());
-        pluginModelAttributeDto.setInputType(pluginModelAttribute.getInputType());
-        pluginModelAttributeDto.setReferenceId(pluginModelAttribute.getPluginModelAttribute().getId());
-        pluginModelAttributeDto.setPluginModelEntityId(pluginModelAttribute.getPluginModelEntityId());
+        pluginModelAttributeDto.setEntityName(pluginModelAttribute.getEntityName());
+        pluginModelAttributeDto.setPackageName(pluginModelAttribute.getPackageName());
+        pluginModelAttributeDto.setDescription(pluginModelAttribute.getDescription());
+        pluginModelAttributeDto.setDataType(pluginModelAttribute.getDataType());
+        pluginModelAttributeDto.setState(pluginModelAttribute.getState());
         return pluginModelAttributeDto;
     }
 
+    /**
+     * @param pluginModelAttributeDto     input attribute dto
+     * @param existedPluginModelAttribute existed attribute domain object
+     * @return transformed attribute domain object
+     */
     public static PluginModelAttribute toDomain(PluginModelAttributeDto pluginModelAttributeDto,
                                                 PluginModelAttribute existedPluginModelAttribute) {
         PluginModelAttribute pluginModelAttribute = existedPluginModelAttribute;
@@ -42,25 +50,34 @@ public class PluginModelAttributeDto {
             pluginModelAttribute.setId(pluginModelAttributeDto.getId());
         }
 
-        if (pluginModelAttributeDto.getPluginModelEntityId() != null) {
-            pluginModelAttribute.setPluginModelEntityId(pluginModelAttributeDto.getPluginModelEntityId());
-        }
-
-        if (pluginModelAttributeDto.getDescription() != null) {
-            pluginModelAttribute.setDescription(pluginModelAttributeDto.getDescription());
+        if (pluginModelAttributeDto.getEntityId() != null) {
+            pluginModelAttribute
+                    .setEntityId(pluginModelAttributeDto.getEntityId());
         }
 
         if (pluginModelAttributeDto.getName() != null) {
             pluginModelAttribute.setName(pluginModelAttributeDto.getName());
         }
 
-        if (pluginModelAttributeDto.getInputType() != null) {
-            pluginModelAttribute.setInputType(pluginModelAttributeDto.getInputType());
+        if (pluginModelAttributeDto.getEntityName() != null) {
+            pluginModelAttribute.setEntityName(pluginModelAttributeDto.getEntityName());
         }
 
-        if (pluginModelAttributeDto.getReferenceId() != null) {
-            pluginModelAttribute
-                    .setReferenceId(pluginModelAttributeDto.getReferenceId());
+        if (pluginModelAttributeDto.getPackageName() != null) {
+            pluginModelAttribute.setPackageName(pluginModelAttributeDto.getPackageName());
+        }
+
+        if (pluginModelAttributeDto.getDescription() != null) {
+            pluginModelAttribute.setDescription(pluginModelAttributeDto.getDescription());
+        }
+
+        if (pluginModelAttributeDto.getDataType() != null) {
+            pluginModelAttribute.setDataType(pluginModelAttributeDto.getDataType());
+        }
+
+
+        if (pluginModelAttributeDto.getState() != null) {
+            pluginModelAttribute.setState(pluginModelAttributeDto.getState().toUpperCase());
         }
 
         return pluginModelAttribute;
