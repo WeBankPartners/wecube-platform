@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,6 +18,10 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationProvider;
+import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationToken;
+import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+import com.webank.wecube.platform.auth.server.config.SpringApplicationContextUtil;
 import com.webank.wecube.platform.auth.server.dto.CredentialDto;
 
 public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilter {
@@ -25,7 +30,7 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
     private static final String URI_LOGIN = "/v1/api/login";
 
     private AuthenticationManager authenticationManager;
-    
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     public JwtSsoBasedLoginFilter(AuthenticationManager authenticationManager) {
@@ -44,15 +49,47 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
 
         try {
             CredentialDto credential = objectMapper.readValue(request.getInputStream(), CredentialDto.class);
-            final UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    credential.getUsername(), credential.getPassword());
 
-            return authenticationManager.authenticate(authenticationToken);
+            if (log.isDebugEnabled()) {
+                log.debug("LOGIN:{}", credential);
+            }
+
+            if (StringUtils.isNotBlank(credential.getClientType()) && StringUtils.isNotBlank(credential.getNonce())
+                    && isSubSystemClient(credential)) {
+                return attemptSubSystemAuthentication(request, response, credential);
+            } else {
+                return attemptUserAuthentication(request, response, credential);
+            }
+
         } catch (IOException e) {
-            log.error("errors while reading credential,message:{}", e.getMessage());
+            log.error("errors while reading credential:{}", e.getMessage(), e);
             throw e;
         }
 
+    }
+
+    protected boolean isSubSystemClient(CredentialDto credential) {
+        if (ApplicationConstants.ClientType.SUB_SYSTEM.equals(credential.getClientType())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected Authentication attemptSubSystemAuthentication(HttpServletRequest request, HttpServletResponse response,
+            CredentialDto credential) {
+        SubSystemAuthenticationToken token = new SubSystemAuthenticationToken(credential.getUsername(),
+                credential.getPassword(), credential.getNonce());
+        return SpringApplicationContextUtil.getBean("subSystemAuthenticationProvider", SubSystemAuthenticationProvider.class)
+                .authenticate(token);
+    }
+
+    protected Authentication attemptUserAuthentication(HttpServletRequest request, HttpServletResponse response,
+            CredentialDto credential) {
+        final UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                credential.getUsername(), credential.getPassword());
+
+        return authenticationManager.authenticate(authenticationToken);
     }
 
     @Override
@@ -61,7 +98,7 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
         JwtBuilder jwtBuilder = new DefaultJwtBuilder();
         String refreshToken = jwtBuilder.buildRefreshToken(authResult);
         String accessToken = jwtBuilder.buildAccessToken(authResult);
-        
+
         response.addHeader("Authorization", "Bearer " + accessToken);
         response.addHeader("Authentication-Info", "Bearer " + refreshToken);
     }
