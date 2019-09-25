@@ -7,6 +7,7 @@ public final class ApplicationConstants {
         public static final String TEST = "test";
         public static final String PROD = "prod";
         public static final String DEFAULT = "default";
+        public static final String MOCK = "mock";
     }
     
     public static class ApiInfo {
@@ -21,5 +22,10 @@ public final class ApplicationConstants {
         
         public static final String PREFIX_DEFAULT = PREFIX_VERSION_V1;
         
+    }
+    
+    public static class ClientType {
+        public static final String USER = "user";
+        public static final String SUB_SYSTEM = "subSystem";
     }
 }

@@ -27,6 +27,9 @@ public class SysApiEntity extends AbstractTraceableEntity {
 
     @Column(name = "API_URL")
     private String apiUrl;
+    
+    @Column(name = "HTTP_METHOD")
+    private String httpMethod;
 
     @Column(name = "SYSTEM_ID")
     private Long systemId;
@@ -111,4 +114,11 @@ public class SysApiEntity extends AbstractTraceableEntity {
         this.boundAuthorities = boundAuthorities;
     }
 
+    public String getHttpMethod() {
+        return httpMethod;
+    }
+
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
+    }
 }
