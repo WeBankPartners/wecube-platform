@@ -11,7 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 
-@Ignore
+//@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class RoleRepositoryTest {
