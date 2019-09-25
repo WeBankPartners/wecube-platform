@@ -1,36 +1,18 @@
-package com.webank.wecube.platform.auth.server.entity;
+package com.webank.wecube.platform.auth.server.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-@Entity
-@Table(name="AUTH_SYS_SUB_SYSTEM")
-public class SysSubSystemEntity extends AbstractTraceableEntity {
-
-    @Id
-    @GeneratedValue
-    @Column(name = "ID")
+public class SysSubSystemInfo {
     private Long id;
-    
-    @Column(name = "NAME")
+
     private String name;
-    
-    @Column(name = "SYSTEM_CODE")
+
     private String systemCode;
-    
-    @Column(name = "API_KEY", length = 500)
+
     private String apiKey;
-    
-    @Column(name = "PUB_API_KEY", length = 500)
+
     private String pubApiKey;
-    
-    @Column(name = "IS_ACTIVE")
+
     private Boolean active;
-    
-    @Column(name = "IS_BLOCKED")
+
     private Boolean blocked;
 
     public Long getId() {
@@ -88,6 +70,5 @@ public class SysSubSystemEntity extends AbstractTraceableEntity {
     public void setBlocked(Boolean blocked) {
         this.blocked = blocked;
     }
-    
-    
+
 }
