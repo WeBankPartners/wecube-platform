@@ -38,7 +38,12 @@ public final class ApplicationConstants {
     public static class JwtInfo {
         public static final String CLAIM_KEY_TYPE = "type";
         public static final String CLAIM_KEY_CLIENT_TYPE = "clientType";
+        public static final String CLAIM_KEY_AUTHORITIES = "authority";
         public static final String TOKEN_TYPE_REFRESH = "refreshToken";
         public static final String TOKEN_TYPE_ACCESS = "accessToken";
+        
+        public static final String HEADER_AUTHORIZATION_INFO = "Authorization-Info";
+        public static final String HEADER_AUTHORIZATION = "Authorization";
+        public static final String PREFIX_BEARER_TOKEN = "Bearer ";
     }
 }
