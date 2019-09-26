@@ -17,74 +17,83 @@ import javax.persistence.Table;
 @Table(name = "AUTH_SYS_USER")
 public class SysUserEntity extends AbstractTraceableEntity {
 
-    @Id
-    @GeneratedValue
-    @Column(name = "ID")
-    private Long id;
+	@Id
+	@GeneratedValue
+	@Column(name = "ID")
+	private Long id;
 
-    @Column(name = "USERNAME")
-    private String username;
+	@Column(name = "USERNAME")
+	private String username;
 
-    @Column(name = "PASSWORD")
-    private String password;
+	@Column(name = "PASSWORD")
+	private String password;
 
-    @Column(name = "IS_ACTIVE")
-    private Boolean active;
+	@Column(name = "IS_ACTIVE")
+	private Boolean active;
 
-    @Column(name = "IS_BLOCKED")
-    private Boolean blocked;
+	@Column(name = "IS_BLOCKED")
+	private Boolean blocked;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "AUTH_SYS_USER_ROLE", joinColumns = { @JoinColumn(name = "USER_ID") }, inverseJoinColumns = {
-            @JoinColumn(name = "ROLE_ID") })
-    private List<SysRoleEntity> roles = new ArrayList<SysRoleEntity>();
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "AUTH_SYS_USER_ROLE", joinColumns = { @JoinColumn(name = "USER_ID") }, inverseJoinColumns = {
+			@JoinColumn(name = "ROLE_ID") })
+	private List<SysRoleEntity> roles = new ArrayList<SysRoleEntity>();
 
-    public Long getId() {
-        return id;
-    }
+	public SysUserEntity() {
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public SysUserEntity(String username, String password, Boolean active) {
+		this.setUsername(username);
+		this.setPassword(password);
+		this.setActive(active);
+	}
 
-    public String getUsername() {
-        return username;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getPassword() {
-        return password;
-    }
+	public String getUsername() {
+		return username;
+	}
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
-    public Boolean getActive() {
-        return active;
-    }
+	public String getPassword() {
+		return password;
+	}
 
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-    public Boolean getBlocked() {
-        return blocked;
-    }
+	public Boolean getActive() {
+		return active;
+	}
 
-    public void setBlocked(Boolean blocked) {
-        this.blocked = blocked;
-    }
+	public void setActive(Boolean active) {
+		this.active = active;
+	}
 
-    public List<SysRoleEntity> getRoles() {
-        return roles;
-    }
+	public Boolean getBlocked() {
+		return blocked;
+	}
 
-    public void setRoles(List<SysRoleEntity> roles) {
-        this.roles = roles;
-    }
+	public void setBlocked(Boolean blocked) {
+		this.blocked = blocked;
+	}
+
+	public List<SysRoleEntity> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(List<SysRoleEntity> roles) {
+		this.roles = roles;
+	}
 
 }
