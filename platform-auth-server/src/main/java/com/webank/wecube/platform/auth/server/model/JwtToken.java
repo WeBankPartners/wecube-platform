@@ -1,28 +1,24 @@
-package com.webank.wecube.platform.auth.server.dto;
+package com.webank.wecube.platform.auth.server.model;
 
-public class JwtTokenDto {
-    private String expiration;
+public class JwtToken {
+
     private String token;
     private String tokenType;
+    private long expiration;
+    
+    
 
-    public JwtTokenDto() {
+    public JwtToken() {
         super();
     }
 
-    public JwtTokenDto(String token, String tokenType, String expiration) {
+    public JwtToken(String token, String tokenType, long expiration) {
         super();
-        this.tokenType = tokenType;
         this.token = token;
+        this.tokenType = tokenType;
         this.expiration = expiration;
     }
 
-    public String getExpiration() {
-        return expiration;
-    }
-
-    public void setExpiration(String expiration) {
-        this.expiration = expiration;
-    }
 
     public String getToken() {
         return token;
@@ -40,11 +36,19 @@ public class JwtTokenDto {
         this.tokenType = tokenType;
     }
 
+    public long getExpiration() {
+        return expiration;
+    }
+
+    public void setExpiration(long expiration) {
+        this.expiration = expiration;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((expiration == null) ? 0 : expiration.hashCode());
+        result = prime * result + (int) (expiration ^ (expiration >>> 32));
         result = prime * result + ((token == null) ? 0 : token.hashCode());
         result = prime * result + ((tokenType == null) ? 0 : tokenType.hashCode());
         return result;
@@ -58,11 +62,8 @@ public class JwtTokenDto {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        JwtTokenDto other = (JwtTokenDto) obj;
-        if (expiration == null) {
-            if (other.expiration != null)
-                return false;
-        } else if (!expiration.equals(other.expiration))
+        JwtToken other = (JwtToken) obj;
+        if (expiration != other.expiration)
             return false;
         if (token == null) {
             if (other.token != null)
@@ -77,9 +78,5 @@ public class JwtTokenDto {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "[expiration=" + expiration + ", token=" + token + ", tokenType=" + tokenType + "]";
-    }
-
+    
 }
