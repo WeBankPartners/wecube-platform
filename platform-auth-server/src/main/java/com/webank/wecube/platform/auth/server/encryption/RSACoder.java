@@ -28,7 +28,7 @@ final class RSACoder {
 
     public static final String KEY_ALGORITHM = "RSA";
 
-    private static final int KEY_SIZE = 512;
+    private static final int KEY_SIZE = 1024;
 
     private static final RSACoder _INSTANCE = new RSACoder();
 
@@ -68,6 +68,7 @@ final class RSACoder {
 
     public static byte[] decryptByPublicKey(byte[] data, byte[] key) {
         try {
+            System.out.println(data.length);
             return _INSTANCE.doDecryptByPublicKey(data, key);
         } catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
                 | IllegalBlockSizeException | BadPaddingException e) {
