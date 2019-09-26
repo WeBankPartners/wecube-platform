@@ -45,10 +45,8 @@ public class SubSystemAuthenticationProvider implements AuthenticationProvider {
     protected Authentication createSuccessAuthentication(SysSubSystemInfo retrievedSubSystemInfo,
             SubSystemAuthenticationToken authToken) {
 
-        List<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
-        grantedAuthorities.add(new SimpleGrantedAuthority(ApplicationConstants.Authority.SUBSYSTEM));
         SubSystemAuthenticationToken returnAuthToken = new SubSystemAuthenticationToken(authToken.getPrincipal(),
-                authToken.getCredentials(), authToken.getNonce(), grantedAuthorities);
+                authToken.getCredentials(), authToken.getNonce(), retrievedSubSystemInfo.getAuthorities());
         
         return returnAuthToken;
 

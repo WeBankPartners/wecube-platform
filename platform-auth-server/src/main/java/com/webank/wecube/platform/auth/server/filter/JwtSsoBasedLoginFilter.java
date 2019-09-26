@@ -39,7 +39,7 @@ import com.webank.wecube.platform.auth.server.model.JwtToken;
 public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedLoginFilter.class);
 
-    private static final String URI_LOGIN = "/auth/v1/api/login";
+    private static final String URI_LOGIN = "/v1/api/login";
 
     private AuthenticationManager authenticationManager;
 
@@ -65,7 +65,7 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
             if (log.isDebugEnabled()) {
                 log.debug("LOGIN:{}", credential);
             }
-            
+
             validateCredential(credential);
 
             if (StringUtils.isNotBlank(credential.getClientType()) && StringUtils.isNotBlank(credential.getNonce())
@@ -81,13 +81,13 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
         }
 
     }
-    
-    protected void validateCredential(CredentialDto c){
-        if(c == null){
+
+    protected void validateCredential(CredentialDto c) {
+        if (c == null) {
             throw new BadCredentialsException("credentials is empty.");
         }
-        
-        if(StringUtils.isBlank(c.getUsername()) || StringUtils.isBlank(c.getPassword())){
+
+        if (StringUtils.isBlank(c.getUsername()) || StringUtils.isBlank(c.getPassword())) {
             throw new BadCredentialsException("credentials is blank.");
         }
     }
@@ -104,8 +104,8 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
             CredentialDto credential) {
         SubSystemAuthenticationToken token = new SubSystemAuthenticationToken(credential.getUsername(),
                 credential.getPassword(), credential.getNonce());
-        return SpringApplicationContextUtil.getBean("subSystemAuthenticationProvider", SubSystemAuthenticationProvider.class)
-                .authenticate(token);
+        return SpringApplicationContextUtil
+                .getBean("subSystemAuthenticationProvider", SubSystemAuthenticationProvider.class).authenticate(token);
     }
 
     protected Authentication attemptUserAuthentication(HttpServletRequest request, HttpServletResponse response,
@@ -123,21 +123,22 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
         JwtTokenDto refreshToken = jwtTokenDto(jwtBuilder.buildRefreshToken(authResult));
         JwtTokenDto accessToken = jwtTokenDto(jwtBuilder.buildAccessToken(authResult));
 
-        response.addHeader("Authorization", "Bearer " + accessToken.getToken());
-        response.addHeader("Authentication-Info", "Bearer " + refreshToken.getToken());
-        
+        response.addHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION,
+                ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN + accessToken.getToken());
+        response.addHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION_INFO, ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN + refreshToken.getToken());
+
         List<JwtTokenDto> dtos = new ArrayList<JwtTokenDto>();
         dtos.add(refreshToken);
         dtos.add(accessToken);
-        
+
         CommonResponseDto responseBody = CommonResponseDto.okayWithData(dtos);
         String jsonResponseBody = objectMapper.writeValueAsString(responseBody);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getOutputStream().print(jsonResponseBody);
         response.getOutputStream().flush();
     }
-    
-    private JwtTokenDto jwtTokenDto(JwtToken t){
+
+    private JwtTokenDto jwtTokenDto(JwtToken t) {
         String expire = String.valueOf(t.getExpiration());
         return new JwtTokenDto(t.getToken(), t.getTokenType(), expire);
     }

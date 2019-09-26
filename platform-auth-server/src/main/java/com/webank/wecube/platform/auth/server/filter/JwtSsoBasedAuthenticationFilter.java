@@ -14,18 +14,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.Jws;
 
 public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedAuthenticationFilter.class);
 
-    private static final String SIGNING_KEY = "platform-auth-server-@Jwt!&Secret^#";
+    private JwtBuilder jwtBuilder = new DefaultJwtBuilder();
 
     public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
@@ -48,29 +52,58 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(request, response);
     }
+    
+    protected void validateRequestHeader(HttpServletRequest request) {
+        String header = request.getHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION);
+        if (header == null || !header.startsWith(ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN)) {
+            throw new BadCredentialsException("refresh token should provide");
+        }
+    }
 
     protected UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
-        String accessToken = request.getHeader("Authorization");
-        if (StringUtils.isBlank(accessToken)) {
+        validateRequestHeader(request);
+        
+        String sAccessToken = request.getHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION);
+        
+        
+        sAccessToken = sAccessToken.substring(ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN.length()).trim();
+        
+        if (StringUtils.isBlank(sAccessToken)) {
             throw new AuthenticationCredentialsNotFoundException("access token is blank");
         }
+        
+        Jws<Claims> jwt = jwtBuilder.parseJwt(sAccessToken);
 
-        Claims claims = Jwts.parser().setSigningKey(SIGNING_KEY).parseClaimsJws(accessToken.replace("Bearer ", ""))
-                .getBody();
+        Claims claims = jwt.getBody();
 
-        String tokenType = claims.get("type", String.class);
+        String sAuthorities = claims.get(ApplicationConstants.JwtInfo.CLAIM_KEY_AUTHORITIES, String.class);
 
-        String subject = claims.getSubject();
+        String username = claims.getSubject();
 
-        log.info("subject:{}", subject);
+        log.info("subject:{}", username);
+        
+        String tokenType = claims.get(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, String.class);
 
-        if (!"refreshToken".equals(tokenType)) {
-            throw new AccessDeniedException("refresh token required");
+        if (!ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS.equals(tokenType)) {
+            throw new AccessDeniedException("access token required");
+        }
+        
+        if(sAuthorities.length() >= 2){
+            sAuthorities  = sAuthorities.substring(1);
+            sAuthorities = sAuthorities.substring(0, sAuthorities.length() - 1);
         }
 
         ArrayList<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        
+        if(StringUtils.isNotBlank(sAuthorities)){
+            String [] aAuthParts = sAuthorities.split(",");
+            for(String s : aAuthParts){
+                GrantedAuthority ga = new SimpleGrantedAuthority(s.trim());
+                authorities.add(ga);
+            }
+        }
 
-        return new UsernamePasswordAuthenticationToken(subject, null, authorities);
+        return new UsernamePasswordAuthenticationToken(username, null, authorities);
 
     }
 

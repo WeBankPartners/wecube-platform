@@ -1,5 +1,10 @@
 package com.webank.wecube.platform.auth.server.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.springframework.security.core.GrantedAuthority;
+
 public class SysSubSystemInfo {
     private Long id;
 
@@ -14,6 +19,8 @@ public class SysSubSystemInfo {
     private Boolean active;
 
     private Boolean blocked;
+
+    private Collection<? extends GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
 
     public Long getId() {
         return id;
@@ -69,6 +76,14 @@ public class SysSubSystemInfo {
 
     public void setBlocked(Boolean blocked) {
         this.blocked = blocked;
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        this.authorities = authorities;
     }
 
 }
