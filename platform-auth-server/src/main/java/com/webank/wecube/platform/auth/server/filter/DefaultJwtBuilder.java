@@ -1,10 +1,8 @@
 package com.webank.wecube.platform.auth.server.filter;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -29,10 +27,14 @@ public class DefaultJwtBuilder implements JwtBuilder {
         Date expireTime = determineRefreshTokenDuration(now, authentication);
         String clientType = determineClientType(authentication);
 
-        String refreshToken = Jwts.builder().setSubject(authentication.getName()).setIssuedAt(now)
-                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH)
-                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType).setExpiration(expireTime)
-                .signWith(SignatureAlgorithm.HS512, SIGNING_KEY).compact();
+        String refreshToken = Jwts //
+                .builder() //
+                .setSubject(authentication.getName()) //
+                .setIssuedAt(now) //
+                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH) //
+                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType).setExpiration(expireTime) //
+                .signWith(SignatureAlgorithm.HS512, SIGNING_KEY) //
+                .compact(); //
 
         return new JwtToken(refreshToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH, expireTime.getTime());
 
@@ -40,20 +42,43 @@ public class DefaultJwtBuilder implements JwtBuilder {
 
     @Override
     public JwtToken buildAccessToken(Authentication authentication) {
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        List<String> strAuthorities = new ArrayList<String>();
-
-        authorities.forEach(a -> strAuthorities.add(a.getAuthority()));
+        String sAuthorities = formatAuthorities(authentication.getAuthorities());
 
         Date now = new Date();
         Date expireTime = determineAccessTokenDuration(now, authentication);
         String clientType = determineClientType(authentication);
 
-        String accessToken = Jwts.builder().setSubject(authentication.getName() + "-" + strAuthorities).setIssuedAt(now)
-                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS)
-                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType).setExpiration(expireTime)
-                .signWith(SignatureAlgorithm.HS512, SIGNING_KEY).compact();
+        String accessToken = Jwts //
+                .builder() //
+                .setSubject(authentication.getName()) //
+                .setIssuedAt(now) //
+                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS) //
+                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType) //
+                .setExpiration(expireTime) //
+                .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_AUTHORITIES, sAuthorities) //
+                .signWith(SignatureAlgorithm.HS512, SIGNING_KEY) //
+                .compact(); //
         return new JwtToken(accessToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS, expireTime.getTime());
+    }
+    
+    protected String formatAuthorities(Collection<? extends GrantedAuthority> authorities){
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        
+        boolean isFirst = true;
+        
+        for(GrantedAuthority a : authorities){
+            if(!isFirst){
+                sb.append(",").append(a.getAuthority());
+            }else{
+                sb.append(a.getAuthority());
+                isFirst = false;
+            }
+        }
+        
+        
+        sb.append("]");
+        return sb.toString();
     }
 
     protected String determineClientType(Authentication authentication) {
