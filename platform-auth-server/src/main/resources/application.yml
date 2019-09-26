@@ -1,6 +1,6 @@
 server:
    port: 8080
-   context-path: /auth
+   contextPath: /auth
 logging:
    config: classpath:logback-spring.xml
 spring:

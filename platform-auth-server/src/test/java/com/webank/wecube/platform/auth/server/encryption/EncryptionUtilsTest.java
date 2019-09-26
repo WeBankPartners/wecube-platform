@@ -5,7 +5,7 @@ import java.nio.charset.Charset;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.webank.wecube.platform.auth.server.common.util.StringUtils;
+import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
 
 
 public class EncryptionUtilsTest {
@@ -24,7 +24,7 @@ public class EncryptionUtilsTest {
             String cipherText = EncryptionUtils.encryptByPrivateKeyAsString(originalText.getBytes(Charset.forName("iso-8859-1")), keyPair.getPrivateKey());
             
             System.out.println("cipherText " + cipherText);
-            String plainText = EncryptionUtils.decryptByPublicKeyAsString(StringUtils.decodeBase64(cipherText), keyPair.getPublicKey());
+            String plainText = EncryptionUtils.decryptByPublicKeyAsString(StringUtilsEx.decodeBase64(cipherText), keyPair.getPublicKey());
             System.out.println("plainText "+ plainText);
             Assert.assertEquals(originalText, plainText);
         }
