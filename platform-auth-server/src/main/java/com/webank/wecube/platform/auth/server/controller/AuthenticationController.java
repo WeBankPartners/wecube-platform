@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 import com.webank.wecube.platform.auth.server.dto.CredentialDto;
-import com.webank.wecube.platform.auth.server.dto.JwtTokenDto;
 
 @RestController
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
@@ -20,15 +20,12 @@ public class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     @PostMapping("/logout")
-    public JwtTokenDto userCentralLogin(HttpServletRequest request, HttpServletResponse response,
+    public CommonResponseDto userCentralLogin(HttpServletRequest request, HttpServletResponse response,
             @RequestBody CredentialDto credentialDto) {
         
         log.info("=== login ===");
-        JwtTokenDto dto = new JwtTokenDto();
-        dto.setName("logined");
-        dto.setPassword("123456");
         
-        return dto;
+        return CommonResponseDto.okay();
 
     }
 
