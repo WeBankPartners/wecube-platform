@@ -10,39 +10,47 @@ import javax.persistence.Table;
 @Table(name = "AUTH_SYS_ROLE")
 public class SysRoleEntity extends AbstractTraceableEntity {
 
-    @Id
-    @GeneratedValue
-    @Column(name = "ID")
-    private Long id;
+	@Id
+	@GeneratedValue
+	@Column(name = "ID")
+	private Long id;
 
-    @Column(name = "NAME")
-    private String name;
+	@Column(name = "NAME")
+	private String name;
 
-    @Column(name = "DISPLAY_NAME")
-    private String displayName;
+	@Column(name = "DISPLAY_NAME")
+	private String displayName;
 
-    public Long getId() {
-        return id;
-    }
+	public SysRoleEntity() {
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public SysRoleEntity(String name, String displayName) {
+		this.setName(name);
+		this.setDisplayName(displayName);
+	}
 
-    public String getName() {
-        return name;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getDisplayName() {
-        return displayName;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
 
 }
