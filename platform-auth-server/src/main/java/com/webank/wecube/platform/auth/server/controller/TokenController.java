@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
-import com.webank.wecube.platform.auth.server.dto.JwtTokenDto;
+import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 
 @RestController
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
@@ -34,17 +34,14 @@ public class TokenController {
     }
 
     @GetMapping("/token/refresh")
-    public JwtTokenDto refreshToken(HttpServletRequest request, HttpServletResponse response, Principal principal){
+    public CommonResponseDto refreshToken(HttpServletRequest request, HttpServletResponse response, Principal principal){
         log.info("refresh token ===");
-        JwtTokenDto token = new JwtTokenDto();
-        token.setName("jwt token");
-        token.setPassword("111111");
         
         
         UserDetails userDetails = userDetailsService.loadUserByUsername(principal.getName());
         
         log.info("UserDetails:{}", userDetails);
         
-        return token;
+        return CommonResponseDto.okayWithData(userDetails);
     }
 }
