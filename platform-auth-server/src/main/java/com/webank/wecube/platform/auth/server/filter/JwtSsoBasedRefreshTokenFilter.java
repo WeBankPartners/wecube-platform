@@ -15,10 +15,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.Assert;
@@ -26,9 +29,12 @@ import org.springframework.util.Assert;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationToken;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+import com.webank.wecube.platform.auth.server.config.SpringApplicationContextUtil;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 import com.webank.wecube.platform.auth.server.dto.JwtTokenDto;
 import com.webank.wecube.platform.auth.server.model.JwtToken;
+import com.webank.wecube.platform.auth.server.model.SysSubSystemInfo;
+import com.webank.wecube.platform.auth.server.service.SubSystemInfoDataService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -42,12 +48,10 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
 
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedRefreshTokenFilter.class);
 
-    private static final String URI_REFRESH_TOKEN = "/auth/v1/api/token";
+    private static final String URI_REFRESH_TOKEN = "/v1/api/token";
 
     private AuthenticationManager authenticationManager;
 
-    private static final String HEADER_REFRESH_TOKEN = "Authorization";
-    private static final String PREFIX_REFRESH_TOKEN = "Bearer ";
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -73,8 +77,8 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
 
         validateRequestHeader(request);
 
-        String sRefreshToken = request.getHeader(HEADER_REFRESH_TOKEN);
-        sRefreshToken = sRefreshToken.substring(PREFIX_REFRESH_TOKEN.length()).trim();
+        String sRefreshToken = request.getHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION);
+        sRefreshToken = sRefreshToken.substring(ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN.length()).trim();
 
         if (log.isDebugEnabled()) {
             log.debug("refresh token:{}", sRefreshToken);
@@ -110,25 +114,54 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
 
     protected Authentication attemptUserAuthentication(HttpServletRequest request, HttpServletResponse response,
             Claims claims) {
-        
-        List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-        
-        String username = "dummyUser";
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                username, null, authorities);
-        //TODO
+
+        String username = claims.getSubject();
+
+        if (StringUtils.isBlank(username)) {
+            log.error("username is blank");
+            throw new BadCredentialsException("username is blank.");
+        }
+        UserDetailsService userService = SpringApplicationContextUtil.getBean(UserDetailsService.class);
+
+        if (userService == null) {
+            log.error("user details service is not configured");
+            throw new InternalAuthenticationServiceException("user details service is not configured");
+        }
+
+        UserDetails userDetails = userService.loadUserByUsername(username);
+
+        if (userDetails == null) {
+            log.error("such user {} doesnt exist", username);
+            throw new UsernameNotFoundException("such user doesnt exist");
+        }
+
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, null,
+                userDetails.getAuthorities());
         return authToken;
     }
 
     protected Authentication attemptSubSystemAuthentication(HttpServletRequest request, HttpServletResponse response,
             Claims claims) {
         
-        List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+        String systemCode = claims.getSubject();
         
-        String systemCode = "dummyCode";
+        if(StringUtils.isBlank(systemCode)){
+            log.error("system code is blank");
+            throw new BadCredentialsException("system code is blank.");
+        }
+        
+        SubSystemInfoDataService subSystemInfoDateService = SpringApplicationContextUtil.getBean(SubSystemInfoDataService.class);
+        
+        SysSubSystemInfo systemInfo = subSystemInfoDateService.retrieveSysSubSystemInfoWithSystemCode(systemCode);
+        
+        if(systemInfo == null){
+            log.error("such sub system {} is not available.", systemCode);
+            throw new UsernameNotFoundException("such sub system is not available.");
+        }
+        
         
         SubSystemAuthenticationToken token = new SubSystemAuthenticationToken(systemCode,
-                null, null, authorities);
+                null, null, systemInfo.getAuthorities());
         return token;
     }
 
@@ -146,8 +179,8 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
         JwtTokenDto refreshToken = jwtTokenDto(jwtBuilder.buildRefreshToken(authResult));
         JwtTokenDto accessToken = jwtTokenDto(jwtBuilder.buildAccessToken(authResult));
 
-        response.addHeader("Authorization", "Bearer " + accessToken.getToken());
-        response.addHeader("Authentication-Info", "Bearer " + refreshToken.getToken());
+        response.addHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION, ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN + accessToken.getToken());
+        response.addHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION_INFO, ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN + refreshToken.getToken());
 
         List<JwtTokenDto> dtos = new ArrayList<JwtTokenDto>();
         dtos.add(refreshToken);
@@ -167,8 +200,8 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
     }
 
     protected void validateRequestHeader(HttpServletRequest request) {
-        String header = request.getHeader(HEADER_REFRESH_TOKEN);
-        if (header == null || !header.startsWith(PREFIX_REFRESH_TOKEN)) {
+        String header = request.getHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION);
+        if (header == null || !header.startsWith(ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN)) {
             throw new BadCredentialsException("refresh token should provide");
         }
     }
