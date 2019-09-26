@@ -17,108 +17,121 @@ import javax.persistence.Table;
 @Table(name = "AUTH_SYS_API")
 public class SysApiEntity extends AbstractTraceableEntity {
 
-    @Id
-    @GeneratedValue
-    @Column(name = "ID")
-    private Long id;
+	@Id
+	@GeneratedValue
+	@Column(name = "ID")
+	private Long id;
 
-    @Column(name = "NAME")
-    private String name;
+	@Column(name = "NAME")
+	private String name;
 
-    @Column(name = "API_URL")
-    private String apiUrl;
-    
-    @Column(name = "HTTP_METHOD")
-    private String httpMethod;
+	@Column(name = "API_URL")
+	private String apiUrl;
 
-    @Column(name = "SYSTEM_ID")
-    private Long systemId;
+	@Column(name = "HTTP_METHOD")
+	private String httpMethod;
 
-    @Column(name = "SYSTEM_NAME")
-    private String systemName;
+	@Column(name = "SYSTEM_ID")
+	private Long systemId;
 
-    @Column(name = "SYSTEM_CODE")
-    private String systemCode;
+	@Column(name = "SYSTEM_NAME")
+	private String systemName;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "AUTH_SYS_API_ROLE", joinColumns = { @JoinColumn(name = "API_ID") }, inverseJoinColumns = {
-            @JoinColumn(name = "ROLE_ID") })
-    private List<SysRoleEntity> boundRoles = new ArrayList<SysRoleEntity>();
+	@Column(name = "SYSTEM_CODE")
+	private String systemCode;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "AUTH_SYS_API_AUTHORITY", joinColumns = { @JoinColumn(name = "API_ID") }, inverseJoinColumns = {
-            @JoinColumn(name = "AUTHORITY_ID") })
-    private List<SysAuthorityEntity> boundAuthorities = new ArrayList<SysAuthorityEntity>();
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "AUTH_SYS_API_ROLE", joinColumns = { @JoinColumn(name = "API_ID") }, inverseJoinColumns = {
+			@JoinColumn(name = "ROLE_ID") })
+	private List<SysRoleEntity> boundRoles = new ArrayList<SysRoleEntity>();
 
-    public Long getId() {
-        return id;
-    }
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "AUTH_SYS_API_AUTHORITY", joinColumns = { @JoinColumn(name = "API_ID") }, inverseJoinColumns = {
+			@JoinColumn(name = "AUTHORITY_ID") })
+	private List<SysAuthorityEntity> boundAuthorities = new ArrayList<SysAuthorityEntity>();
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public SysApiEntity() {
+	}
 
-    public String getName() {
-        return name;
-    }
+	public SysApiEntity(String name, String apiUrl, String httpMethod, Long systemId, String systemName,
+			String systemCode) {
+		this.setName(name);
+		this.setApiUrl(apiUrl);
+		this.setHttpMethod(httpMethod);
+		this.setSystemId(systemId);
+		this.setSystemName(systemName);
+		this.setSystemCode(systemCode);
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public String getApiUrl() {
-        return apiUrl;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void setApiUrl(String apiUrl) {
-        this.apiUrl = apiUrl;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public Long getSystemId() {
-        return systemId;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setSystemId(Long systemId) {
-        this.systemId = systemId;
-    }
+	public String getApiUrl() {
+		return apiUrl;
+	}
 
-    public String getSystemName() {
-        return systemName;
-    }
+	public void setApiUrl(String apiUrl) {
+		this.apiUrl = apiUrl;
+	}
 
-    public void setSystemName(String systemName) {
-        this.systemName = systemName;
-    }
+	public Long getSystemId() {
+		return systemId;
+	}
 
-    public String getSystemCode() {
-        return systemCode;
-    }
+	public void setSystemId(Long systemId) {
+		this.systemId = systemId;
+	}
 
-    public void setSystemCode(String systemCode) {
-        this.systemCode = systemCode;
-    }
+	public String getSystemName() {
+		return systemName;
+	}
 
-    public List<SysRoleEntity> getBoundRoles() {
-        return boundRoles;
-    }
+	public void setSystemName(String systemName) {
+		this.systemName = systemName;
+	}
 
-    public void setBoundRoles(List<SysRoleEntity> boundRoles) {
-        this.boundRoles = boundRoles;
-    }
+	public String getSystemCode() {
+		return systemCode;
+	}
 
-    public List<SysAuthorityEntity> getBoundAuthorities() {
-        return boundAuthorities;
-    }
+	public void setSystemCode(String systemCode) {
+		this.systemCode = systemCode;
+	}
 
-    public void setBoundAuthorities(List<SysAuthorityEntity> boundAuthorities) {
-        this.boundAuthorities = boundAuthorities;
-    }
+	public List<SysRoleEntity> getBoundRoles() {
+		return boundRoles;
+	}
 
-    public String getHttpMethod() {
-        return httpMethod;
-    }
+	public void setBoundRoles(List<SysRoleEntity> boundRoles) {
+		this.boundRoles = boundRoles;
+	}
 
-    public void setHttpMethod(String httpMethod) {
-        this.httpMethod = httpMethod;
-    }
+	public List<SysAuthorityEntity> getBoundAuthorities() {
+		return boundAuthorities;
+	}
+
+	public void setBoundAuthorities(List<SysAuthorityEntity> boundAuthorities) {
+		this.boundAuthorities = boundAuthorities;
+	}
+
+	public String getHttpMethod() {
+		return httpMethod;
+	}
+
+	public void setHttpMethod(String httpMethod) {
+		this.httpMethod = httpMethod;
+	}
 }
