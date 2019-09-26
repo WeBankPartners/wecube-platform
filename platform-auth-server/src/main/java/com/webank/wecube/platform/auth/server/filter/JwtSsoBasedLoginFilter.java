@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -30,10 +31,15 @@ import com.webank.wecube.platform.auth.server.dto.CredentialDto;
 import com.webank.wecube.platform.auth.server.dto.JwtTokenDto;
 import com.webank.wecube.platform.auth.server.model.JwtToken;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedLoginFilter.class);
 
-    private static final String URI_LOGIN = "/v1/api/login";
+    private static final String URI_LOGIN = "/auth/v1/api/login";
 
     private AuthenticationManager authenticationManager;
 
@@ -59,6 +65,8 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
             if (log.isDebugEnabled()) {
                 log.debug("LOGIN:{}", credential);
             }
+            
+            validateCredential(credential);
 
             if (StringUtils.isNotBlank(credential.getClientType()) && StringUtils.isNotBlank(credential.getNonce())
                     && isSubSystemClient(credential)) {
@@ -72,6 +80,16 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
             throw e;
         }
 
+    }
+    
+    protected void validateCredential(CredentialDto c){
+        if(c == null){
+            throw new BadCredentialsException("credentials is empty.");
+        }
+        
+        if(StringUtils.isBlank(c.getUsername()) || StringUtils.isBlank(c.getPassword())){
+            throw new BadCredentialsException("credentials is blank.");
+        }
     }
 
     protected boolean isSubSystemClient(CredentialDto credential) {

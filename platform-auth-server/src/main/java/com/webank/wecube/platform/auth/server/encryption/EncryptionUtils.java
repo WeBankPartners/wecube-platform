@@ -2,7 +2,7 @@ package com.webank.wecube.platform.auth.server.encryption;
 
 import java.nio.charset.Charset;
 
-import com.webank.wecube.platform.auth.server.common.util.StringUtils;
+import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
 
 public final class EncryptionUtils {
 
@@ -29,25 +29,25 @@ public final class EncryptionUtils {
     }
 
     public static String decryptByPrivateKeyAsString(byte[] data, String sKey) {
-        byte[] key = StringUtils.decodeBase64(sKey);
+        byte[] key = StringUtilsEx.decodeBase64(sKey);
         byte[] plainData = decryptByPrivateKey(data, key);
         return new String(plainData, DEFAULT_CHARSET);
     }
 
     public static String encryptByPrivateKeyAsString(byte[] data, String sKey) {
-        byte[] key = StringUtils.decodeBase64(sKey);
+        byte[] key = StringUtilsEx.decodeBase64(sKey);
 
-        return StringUtils.encodeBase64String(encryptByPrivateKey(data, key));
+        return StringUtilsEx.encodeBase64String(encryptByPrivateKey(data, key));
     }
 
     public static String decryptByPublicKeyAsString(byte[] data, String sKey) {
-        byte[] key = StringUtils.decodeBase64(sKey);
+        byte[] key = StringUtilsEx.decodeBase64(sKey);
         byte[] plainData = decryptByPublicKey(data, key);
         return new String(plainData, DEFAULT_CHARSET);
     }
 
     public static String encryptByPublicKeyAsString(byte[] data, String sKey) {
-        byte[] key = StringUtils.decodeBase64(sKey);
-        return StringUtils.encodeBase64String(encryptByPublicKey(data, key));
+        byte[] key = StringUtilsEx.decodeBase64(sKey);
+        return StringUtilsEx.encodeBase64String(encryptByPublicKey(data, key));
     }
 }
