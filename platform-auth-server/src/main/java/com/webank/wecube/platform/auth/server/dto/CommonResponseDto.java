@@ -1,8 +1,10 @@
 package com.webank.wecube.platform.auth.server.dto;
 
-public class BaseResponse {
+public class CommonResponseDto {
     public final static String STATUS_OK = "OK";
     public final static String STATUS_ERROR = "ERROR";
+    
+    public final static String OK_MESSAGE = "success";
 
     private String status;
     private String message;
@@ -32,24 +34,24 @@ public class BaseResponse {
         this.data = data;
     }
 
-    public BaseResponse withData(Object data){
+    public CommonResponseDto withData(Object data){
         this.data = data;
         return this;
     }
 
-    public static BaseResponse okay() {
-        BaseResponse result = new BaseResponse();
+    public static CommonResponseDto okay() {
+        CommonResponseDto result = new CommonResponseDto();
         result.setStatus(STATUS_OK);
-        result.setMessage("Success");
+        result.setMessage(OK_MESSAGE);
         return result;
     }
 
-    public static BaseResponse okayWithData(Object data) {
+    public static CommonResponseDto okayWithData(Object data) {
         return okay().withData(data);
     }
 
-    public static BaseResponse error(String errorMessage) {
-        BaseResponse result = new BaseResponse();
+    public static CommonResponseDto error(String errorMessage) {
+        CommonResponseDto result = new CommonResponseDto();
         result.setStatus(STATUS_ERROR);
         result.setMessage(errorMessage);
         return result;
