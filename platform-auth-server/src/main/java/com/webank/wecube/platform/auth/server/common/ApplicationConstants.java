@@ -25,7 +25,13 @@ public final class ApplicationConstants {
     }
     
     public static class ClientType {
-        public static final String USER = "user";
-        public static final String SUB_SYSTEM = "subSystem";
+        public static final String USER = "USER";
+        public static final String SUB_SYSTEM = "SUB_SYSTEM";
+    }
+    
+    public static class Authority {
+        public static final String AUTH_ADMIN = "AUTH_ADMIN";
+        public static final String AUTH_USER = "AUTH_USER";
+        public static final String SUBSYSTEM = "SUB_SYSTEM";
     }
 }
