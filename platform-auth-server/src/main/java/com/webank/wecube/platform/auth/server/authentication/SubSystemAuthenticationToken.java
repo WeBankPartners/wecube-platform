@@ -12,9 +12,9 @@ public class SubSystemAuthenticationToken extends AbstractAuthenticationToken {
 
     private final Object credentials;
     
-    private final String nonce;
+    private final Object nonce;
 
-    public SubSystemAuthenticationToken(String aPrincipal, String aCredentials, String aNonce,
+    public SubSystemAuthenticationToken(Object aPrincipal, Object aCredentials, Object aNonce,
             Collection<? extends GrantedAuthority> anAuthorities) {
         super(anAuthorities);
         this.principal = aPrincipal;
@@ -23,7 +23,7 @@ public class SubSystemAuthenticationToken extends AbstractAuthenticationToken {
         super.setAuthenticated(true);
     }
 
-    public SubSystemAuthenticationToken(String aPrincipal, String aCredentials, String aNonce) {
+    public SubSystemAuthenticationToken(Object aPrincipal, Object aCredentials, Object aNonce) {
         super(null);
         this.principal = aPrincipal;
         this.credentials = aCredentials;
@@ -41,7 +41,7 @@ public class SubSystemAuthenticationToken extends AbstractAuthenticationToken {
         return principal;
     }
 
-    public String getNonce() {
+    public Object getNonce() {
         return nonce;
     }
 }

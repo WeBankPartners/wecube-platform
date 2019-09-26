@@ -37,7 +37,7 @@ public final class EncryptionUtils {
     public static String encryptByPrivateKeyAsString(byte[] data, String sKey) {
         byte[] key = StringUtils.decodeBase64(sKey);
 
-        return new String(encryptByPrivateKey(data, key), DEFAULT_CHARSET);
+        return StringUtils.encodeBase64String(encryptByPrivateKey(data, key));
     }
 
     public static String decryptByPublicKeyAsString(byte[] data, String sKey) {
@@ -48,6 +48,6 @@ public final class EncryptionUtils {
 
     public static String encryptByPublicKeyAsString(byte[] data, String sKey) {
         byte[] key = StringUtils.decodeBase64(sKey);
-        return new String(encryptByPublicKey(data, key), DEFAULT_CHARSET);
+        return StringUtils.encodeBase64String(encryptByPublicKey(data, key));
     }
 }

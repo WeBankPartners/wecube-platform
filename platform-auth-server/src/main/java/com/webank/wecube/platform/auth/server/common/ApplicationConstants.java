@@ -34,4 +34,10 @@ public final class ApplicationConstants {
         public static final String AUTH_USER = "AUTH_USER";
         public static final String SUBSYSTEM = "SUB_SYSTEM";
     }
+    
+    public static class JwtInfo {
+        public static final String CLAIM_KEY_TYPE = "type";
+        public static final String TOKEN_TYPE_REFRESH = "refreshToken";
+        public static final String TOKEN_TYPE_ACCESS = "accessToken";
+    }
 }
