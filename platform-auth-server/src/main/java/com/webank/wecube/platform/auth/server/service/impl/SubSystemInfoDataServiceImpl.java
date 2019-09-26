@@ -1,11 +1,17 @@
 package com.webank.wecube.platform.auth.server.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.entity.SysSubSystemEntity;
 import com.webank.wecube.platform.auth.server.model.SysSubSystemInfo;
 import com.webank.wecube.platform.auth.server.repository.SubSystemRepository;
@@ -34,7 +40,14 @@ public class SubSystemInfoDataServiceImpl implements SubSystemInfoDataService {
             return null;
         }
         
-        return buildSysSubSystemInfo(entity);
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
+        grantedAuthorities.add(new SimpleGrantedAuthority(ApplicationConstants.Authority.SUBSYSTEM));
+        
+        SysSubSystemInfo returnSystemInfo =  buildSysSubSystemInfo(entity);
+        
+        returnSystemInfo.setAuthorities(grantedAuthorities);
+        
+        return returnSystemInfo;
     }
     
     protected SysSubSystemInfo buildSysSubSystemInfo(SysSubSystemEntity entity){
