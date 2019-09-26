@@ -22,7 +22,7 @@ import javax.crypto.NoSuchPaddingException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import com.webank.wecube.platform.auth.server.common.util.StringUtils;
+import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
 
 final class RSACoder {
 
@@ -162,8 +162,8 @@ final class RSACoder {
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
 
         AsymmetricKeyPair aKeyPair = AsymmetricKeyPairBuilder
-                .withPublicKey(StringUtils.encodeBase64String((publicKey.getEncoded())))
-                .withPrivateKey(StringUtils.encodeBase64String(privateKey.getEncoded())).build();
+                .withPublicKey(StringUtilsEx.encodeBase64String((publicKey.getEncoded())))
+                .withPrivateKey(StringUtilsEx.encodeBase64String(privateKey.getEncoded())).build();
 
         return aKeyPair;
     }

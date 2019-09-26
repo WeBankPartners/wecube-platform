@@ -14,6 +14,7 @@ import org.springframework.security.web.context.SecurityContextPersistenceFilter
 
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedAuthenticationFilter;
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedLoginFilter;
+import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedRefreshTokenFilter;
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextRepository;
 import com.webank.wecube.platform.auth.server.handler.Http401AuthenticationEntryPoint;
 import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler;
@@ -32,7 +33,7 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
     };
 
     protected Logger log = LoggerFactory.getLogger(this.getClass());
-    
+
     @Autowired
     private LocalUserDetailsService userDetailsService;
 
@@ -53,6 +54,8 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
                 .securityContextRepository(new JwtSsoBasedSecurityContextRepository()) //
                 .and() //
                 .addFilterBefore(new JwtSsoBasedLoginFilter(authenticationManager()),
+                        SecurityContextPersistenceFilter.class) //
+                .addFilterBefore(new JwtSsoBasedRefreshTokenFilter(authenticationManager()),
                         SecurityContextPersistenceFilter.class) //
                 .addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager()))//
                 .authorizeRequests() //
@@ -79,12 +82,12 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
 
         log.warn(sb.toString());
     }
-    
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
-    
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

@@ -2,7 +2,7 @@ package com.webank.wecube.platform.auth.server.common.util;
 
 import org.apache.commons.codec.binary.Base64;
 
-public class StringUtils {
+public class StringUtilsEx {
     public static String encodeBase64String(byte[] data){
         return Base64.encodeBase64String(data);
     }

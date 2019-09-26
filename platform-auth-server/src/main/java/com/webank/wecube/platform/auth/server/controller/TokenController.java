@@ -33,7 +33,7 @@ public class TokenController {
         Assert.notNull(userDetailsService, "user details service should provide");
     }
 
-    @GetMapping("/token/refresh")
+    @GetMapping("/token")
     public CommonResponseDto refreshToken(HttpServletRequest request, HttpServletResponse response, Principal principal){
         log.info("refresh token ===");
         
