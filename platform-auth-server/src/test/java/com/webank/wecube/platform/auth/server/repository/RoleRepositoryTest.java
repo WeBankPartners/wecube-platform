@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
+import com.webank.wecube.platform.auth.server.entity.SysSubSystemEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 
 //@Ignore
@@ -24,6 +25,19 @@ public class RoleRepositoryTest {
     
     @Autowired
     PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    SubSystemRepository subSystemRepo;
+    
+    @Test
+    public void testAddSubSystem(){
+        SysSubSystemEntity entity = new SysSubSystemEntity();
+        entity.setSystemCode("WECUBE-CORE");
+        entity.setName("wecube core");
+        
+        
+        subSystemRepo.save(entity);
+    }
 
     @Test
     public void testSave() {
