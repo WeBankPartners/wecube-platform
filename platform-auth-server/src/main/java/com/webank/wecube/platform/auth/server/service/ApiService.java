@@ -15,7 +15,7 @@ import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.repository.ApiRepository;
 import com.webank.wecube.platform.auth.server.repository.UserRepository;
 
-@Service("userService")
+@Service("apiService")
 public class ApiService {
 
 	private static final Logger log = LoggerFactory.getLogger(ApiService.class);
@@ -25,8 +25,6 @@ public class ApiService {
 
 	@Autowired
 	PasswordEncoder passwordEncoder;
-
-	private final static Boolean ACTIVE_TRUE = true;
 
 	public SysApiEntity create(CreateApiDto createApiDto) throws Exception {
 
