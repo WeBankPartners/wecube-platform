@@ -92,6 +92,8 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
             sAuthorities  = sAuthorities.substring(1);
             sAuthorities = sAuthorities.substring(0, sAuthorities.length() - 1);
         }
+        
+        log.info("Authority String:{}", sAuthorities);
 
         ArrayList<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
         
@@ -102,6 +104,8 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
                 authorities.add(ga);
             }
         }
+        
+        log.info("Authorities:{}", authorities);
 
         return new UsernamePasswordAuthenticationToken(username, null, authorities);
 
