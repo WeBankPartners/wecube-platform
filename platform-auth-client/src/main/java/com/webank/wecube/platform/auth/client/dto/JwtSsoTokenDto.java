@@ -1,15 +1,15 @@
 package com.webank.wecube.platform.auth.client.dto;
 
-public class JwtTokenDto {
+public class JwtSsoTokenDto {
     private String expiration;
     private String token;
     private String tokenType;
 
-    public JwtTokenDto() {
+    public JwtSsoTokenDto() {
         super();
     }
 
-    public JwtTokenDto(String token, String tokenType, String expiration) {
+    public JwtSsoTokenDto(String token, String tokenType, String expiration) {
         super();
         this.tokenType = tokenType;
         this.token = token;
@@ -58,7 +58,7 @@ public class JwtTokenDto {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        JwtTokenDto other = (JwtTokenDto) obj;
+        JwtSsoTokenDto other = (JwtSsoTokenDto) obj;
         if (expiration == null) {
             if (other.expiration != null)
                 return false;

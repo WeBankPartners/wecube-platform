@@ -29,7 +29,7 @@ import io.jsonwebtoken.Jws;
 public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedAuthenticationFilter.class);
 
-    private WeJwtParser jwtParser = new DefaultWeJwtParser();
+    private JwtSsoTokenParser jwtParser = new DefaultJwtSsoTokenParser();
 
     public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);

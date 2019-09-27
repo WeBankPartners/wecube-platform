@@ -1,5 +1,5 @@
 package com.webank.wecube.platform.auth.client.context;
 
-public interface JwtSsoClientRequestClient {
+public interface JwtSsoClientRequestContext {
 
 }
