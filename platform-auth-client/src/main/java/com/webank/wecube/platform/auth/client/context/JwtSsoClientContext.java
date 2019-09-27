@@ -12,7 +12,9 @@ public interface JwtSsoClientContext {
     
     String HEADER_AUTHORIZATION_INFO = "Authorization-Info";
     String HEADER_AUTHORIZATION = "Authorization";
+    String HEADER_WWW_AUTHENTICATE = "WWW-Authenticate";
     String PREFIX_BEARER_TOKEN = "Bearer ";
+    
     
     String getAuthServerLoginUrl();
     String getAuthServerRefreshTokenUrl();

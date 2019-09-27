@@ -1,5 +1,11 @@
 package com.webank.wecube.platform.auth.server.filter;
 
+import static com.webank.wecube.platform.auth.server.common.ApplicationConstants.JwtInfo.CLAIM_KEY_AUTHORITIES;
+import static com.webank.wecube.platform.auth.server.common.ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE;
+import static com.webank.wecube.platform.auth.server.common.ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION;
+import static com.webank.wecube.platform.auth.server.common.ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN;
+import static com.webank.wecube.platform.auth.server.common.ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -21,8 +27,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 
@@ -41,9 +45,9 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        log.info("======== doFilterInternal  ==========");
+        log.info("=== doFilterInternal  ===");
 
-        String header = request.getHeader("Authorization");
+        String header = request.getHeader(HEADER_AUTHORIZATION);
         if (header == null || !header.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
@@ -54,38 +58,38 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     }
     
     protected void validateRequestHeader(HttpServletRequest request) {
-        String header = request.getHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION);
-        if (header == null || !header.startsWith(ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN)) {
-            throw new BadCredentialsException("refresh token should provide");
+        String header = request.getHeader(HEADER_AUTHORIZATION);
+        if (header == null || !header.startsWith(PREFIX_BEARER_TOKEN)) {
+            throw new BadCredentialsException("Access token is required.");
         }
     }
 
     protected UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
         validateRequestHeader(request);
         
-        String sAccessToken = request.getHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION);
+        String sAccessTokenHeader = request.getHeader(HEADER_AUTHORIZATION);
         
         
-        sAccessToken = sAccessToken.substring(ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN.length()).trim();
+        String sAccessToken = sAccessTokenHeader.substring(PREFIX_BEARER_TOKEN.length()).trim();
         
         if (StringUtils.isBlank(sAccessToken)) {
-            throw new AuthenticationCredentialsNotFoundException("access token is blank");
+            throw new AuthenticationCredentialsNotFoundException("Access token is blank");
         }
         
         Jws<Claims> jwt = jwtBuilder.parseJwt(sAccessToken);
 
         Claims claims = jwt.getBody();
 
-        String sAuthorities = claims.get(ApplicationConstants.JwtInfo.CLAIM_KEY_AUTHORITIES, String.class);
+        String sAuthorities = claims.get(CLAIM_KEY_AUTHORITIES, String.class);
 
         String username = claims.getSubject();
 
         log.info("subject:{}", username);
         
-        String tokenType = claims.get(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, String.class);
+        String tokenType = claims.get(CLAIM_KEY_TYPE, String.class);
 
-        if (!ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS.equals(tokenType)) {
-            throw new AccessDeniedException("access token required");
+        if (!TOKEN_TYPE_ACCESS.equals(tokenType)) {
+            throw new AccessDeniedException("Access token is required.");
         }
         
         if(sAuthorities.length() >= 2){
@@ -103,7 +107,7 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
             }
         }
 
-        return new UsernamePasswordAuthenticationToken(username, null, authorities);
+        return new UsernamePasswordAuthenticationToken(username, sAccessTokenHeader, authorities);
 
     }
 
