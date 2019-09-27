@@ -1,24 +1,21 @@
 package com.webank.wecube.platform.auth.client.model;
 
-public class JwtToken {
+public class JwtTokenImpl {
 
     private String token;
     private String tokenType;
     private long expiration;
-    
-    
 
-    public JwtToken() {
+    public JwtTokenImpl() {
         super();
     }
 
-    public JwtToken(String token, String tokenType, long expiration) {
+    public JwtTokenImpl(String token, String tokenType, long expiration) {
         super();
         this.token = token;
         this.tokenType = tokenType;
         this.expiration = expiration;
     }
-
 
     public String getToken() {
         return token;
@@ -62,7 +59,7 @@ public class JwtToken {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        JwtToken other = (JwtToken) obj;
+        JwtTokenImpl other = (JwtTokenImpl) obj;
         if (expiration != other.expiration)
             return false;
         if (token == null) {
@@ -78,5 +75,4 @@ public class JwtToken {
         return true;
     }
 
-    
 }
