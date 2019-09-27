@@ -17,7 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
+import com.webank.wecube.platform.auth.server.dto.CreateApiDto;
+import com.webank.wecube.platform.auth.server.dto.CreateAuthorityDto;
+import com.webank.wecube.platform.auth.server.dto.CreateRoleDto;
 import com.webank.wecube.platform.auth.server.dto.CreateUserDto;
+import com.webank.wecube.platform.auth.server.service.ApiService;
+import com.webank.wecube.platform.auth.server.service.AuthorityService;
+import com.webank.wecube.platform.auth.server.service.RoleService;
 import com.webank.wecube.platform.auth.server.service.UserService;
 
 import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okayWithData;
@@ -25,33 +31,33 @@ import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okay;
 
 @RestController
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
-public class UserController {
+public class AuthorityController {
 
 	private static final Logger log = LoggerFactory.getLogger(TokenController.class);
 
 	@Autowired
-	UserService userService;
+	AuthorityService authorityService;
 
-	@PostMapping("/users")
+	@PostMapping("/authorities")
 	@ResponseBody
 	// TODO
 	// @PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
-	public CommonResponseDto createUser(@RequestBody CreateUserDto createUserDto, HttpServletRequest request)
+	public CommonResponseDto createRole(@RequestBody CreateAuthorityDto createAuthorityDto, HttpServletRequest request)
 			throws Exception {
-		return okayWithData(userService.create(createUserDto));
+		return okayWithData(authorityService.create(createAuthorityDto));
 	}
 
-	@GetMapping("/users")
+	@GetMapping("/authorities")
 	@ResponseBody
-	public CommonResponseDto retrieveUser(HttpServletRequest request) throws Exception {
-		return okayWithData(userService.retrieve());
+	public CommonResponseDto retrieveRole(HttpServletRequest request) throws Exception {
+		return okayWithData(authorityService.retrieve());
 	}
 
-	@DeleteMapping("/users/{user-id}")
+	@DeleteMapping("/authorities/{authority-id}")
 	@ResponseBody
-	public CommonResponseDto deleteUser(@PathVariable(value = "user-id") Long id, HttpServletRequest request)
-			throws Exception {
-		userService.delete(id);
+	public CommonResponseDto deleteRole(@PathVariable(value = "authority-id") Long authorityId,
+			HttpServletRequest request) throws Exception {
+		authorityService.delete(authorityId);
 		return okay();
 	}
 }

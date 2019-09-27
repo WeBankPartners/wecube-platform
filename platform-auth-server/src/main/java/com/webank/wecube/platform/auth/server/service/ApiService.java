@@ -9,11 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.auth.server.dto.CreateApiDto;
-import com.webank.wecube.platform.auth.server.dto.CreateUserDto;
 import com.webank.wecube.platform.auth.server.entity.SysApiEntity;
-import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.repository.ApiRepository;
-import com.webank.wecube.platform.auth.server.repository.UserRepository;
 
 @Service("apiService")
 public class ApiService {
@@ -28,13 +25,13 @@ public class ApiService {
 
 	public SysApiEntity create(CreateApiDto createApiDto) throws Exception {
 
-		SysApiEntity existedApir = apiRepository.findOneByHttpMethodAndApiUrl(createApiDto.getHttpMethod(),
+		SysApiEntity existedApi = apiRepository.findOneByHttpMethodAndApiUrl(createApiDto.getHttpMethod(),
 				createApiDto.getApiUrl());
 
-		log.info("existedApir = {}", existedApir);
-		if (!(null == existedApir))
+		log.info("existedApir = {}", existedApi);
+		if (!(null == existedApi))
 			throw new Exception(String.format("Api [HttpMethod=%s, Url=%s] already existed",
-					existedApir.getHttpMethod(), existedApir.getApiUrl()));
+					createApiDto.getHttpMethod(), createApiDto.getApiUrl()));
 
 		SysApiEntity api = new SysApiEntity(createApiDto.getName(), createApiDto.getApiUrl(),
 				createApiDto.getHttpMethod(), createApiDto.getSystemId(), createApiDto.getSystemName(),
