@@ -1,12 +1,12 @@
 server:
-   port: 8080
+   port: 8081
    servlet:
       context-path: /auth
 logging:
    config: classpath:logback-spring.xml
 spring:
    datasource:
-      url: jdbc:mysql://localhost:3306/weauth?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
+      url: jdbc:mysql://localhost:port/db?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
       username: root
       ***REMOVED***
 #      url: ***REMOVED***
@@ -21,5 +21,5 @@ spring:
       database: mysql
       show-sql: true
       hibernate:
-         ddl-auto: update
+         ddl-auto: none
          use-new-id-generator-mappings: false
