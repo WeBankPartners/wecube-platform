@@ -42,7 +42,8 @@ public class SubSystemController {
 
 	@PostMapping("/sub-systems")
 	@ResponseBody
-//	@PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
+	// TODO
+	// @PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
 	public CommonResponseDto createRole(@RequestBody CreateSubsystemDto createSubsystemDto, HttpServletRequest request)
 			throws Exception {
 		return okayWithData(subsystemService.create(createSubsystemDto));
