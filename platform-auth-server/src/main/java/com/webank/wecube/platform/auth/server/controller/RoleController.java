@@ -36,7 +36,8 @@ public class RoleController {
 
 	@PostMapping("/roles")
 	@ResponseBody
-//	@PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
+	// TODO
+	// @PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
 	public CommonResponseDto createRole(@RequestBody CreateRoleDto createRoleDto, HttpServletRequest request)
 			throws Exception {
 		return okayWithData(roleService.create(createRoleDto));
