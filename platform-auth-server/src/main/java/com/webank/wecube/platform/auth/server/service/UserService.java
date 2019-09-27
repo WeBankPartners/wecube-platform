@@ -23,7 +23,7 @@ public class UserService {
 	@Autowired
 	PasswordEncoder passwordEncoder;
 
-	private final static Boolean ACTIVE_TRUE = true;
+	private final static Boolean ACTIVE = true;
 
 	public SysUserEntity create(CreateUserDto createUserDto) throws Exception {
 
@@ -33,14 +33,15 @@ public class UserService {
 		if (!(null == existedUser))
 			throw new Exception(String.format("User [%s] already existed", createUserDto.getUserName()));
 
-		SysUserEntity user = new SysUserEntity(createUserDto.getUserName(), createUserDto.getPassword(), ACTIVE_TRUE);
+		SysUserEntity user = new SysUserEntity(createUserDto.getUserName(),
+				passwordEncoder.encode(createUserDto.getPassword()), ACTIVE);
 		userRepository.saveAndFlush(user);
 
 		return user;
 	}
 
 	public List<SysUserEntity> retrieve() {
-		return userRepository.findByActive(ACTIVE_TRUE);
+		return userRepository.findByActive(ACTIVE);
 	}
 
 	public void delete(Long id) {

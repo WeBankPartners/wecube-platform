@@ -30,7 +30,7 @@ public class RoleService {
 	public SysRoleEntity create(CreateRoleDto createRoleDto) throws Exception {
 
 		SysRoleEntity existedRole = roleRepository.findOneByName(createRoleDto.getName());
-
+		
 		log.info("existUser = {}", existedRole);
 		if (!(null == existedRole))
 			throw new Exception(String.format("Role [%s] already existed", createRoleDto.getName()));
@@ -46,6 +46,7 @@ public class RoleService {
 	}
 
 	public void delete(Long id) {
+		
 		roleRepository.deleteById(id);
 	}
 }
