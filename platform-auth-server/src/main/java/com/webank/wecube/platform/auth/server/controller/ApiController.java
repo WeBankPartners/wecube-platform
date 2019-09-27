@@ -17,7 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
+import com.webank.wecube.platform.auth.server.dto.CreateApiDto;
+import com.webank.wecube.platform.auth.server.dto.CreateRoleDto;
 import com.webank.wecube.platform.auth.server.dto.CreateUserDto;
+import com.webank.wecube.platform.auth.server.service.ApiService;
+import com.webank.wecube.platform.auth.server.service.RoleService;
 import com.webank.wecube.platform.auth.server.service.UserService;
 
 import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okayWithData;
@@ -25,33 +29,33 @@ import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okay;
 
 @RestController
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
-public class UserController {
+public class ApiController {
 
 	private static final Logger log = LoggerFactory.getLogger(TokenController.class);
 
 	@Autowired
-	UserService userService;
+	ApiService apiService;
 
-	@PostMapping("/users")
+	@PostMapping("/apis")
 	@ResponseBody
 	// TODO
 	// @PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
-	public CommonResponseDto createUser(@RequestBody CreateUserDto createUserDto, HttpServletRequest request)
+	public CommonResponseDto createRole(@RequestBody CreateApiDto createApiDto, HttpServletRequest request)
 			throws Exception {
-		return okayWithData(userService.create(createUserDto));
+		return okayWithData(apiService.create(createApiDto));
 	}
 
-	@GetMapping("/users")
+	@GetMapping("/apis")
 	@ResponseBody
-	public CommonResponseDto retrieveUser(HttpServletRequest request) throws Exception {
-		return okayWithData(userService.retrieve());
+	public CommonResponseDto retrieveRole(HttpServletRequest request) throws Exception {
+		return okayWithData(apiService.retrieve());
 	}
 
-	@DeleteMapping("/users/{user-id}")
+	@DeleteMapping("/apis/{api-id}")
 	@ResponseBody
-	public CommonResponseDto deleteUser(@PathVariable(value = "user-id") Long id, HttpServletRequest request)
+	public CommonResponseDto deleteRole(@PathVariable(value = "api-id") Long apiId, HttpServletRequest request)
 			throws Exception {
-		userService.delete(id);
+		apiService.delete(apiId);
 		return okay();
 	}
 }
