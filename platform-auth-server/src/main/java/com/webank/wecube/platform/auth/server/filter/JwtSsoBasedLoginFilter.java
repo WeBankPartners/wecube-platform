@@ -77,7 +77,7 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
 
         } catch (IOException e) {
             log.error("errors while reading credential:{}", e.getMessage(), e);
-            throw e;
+            throw new BadCredentialsException("Bad credentials");
         }
 
     }

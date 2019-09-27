@@ -44,6 +44,7 @@ public final class ApplicationConstants {
         
         public static final String HEADER_AUTHORIZATION_INFO = "Authorization-Info";
         public static final String HEADER_AUTHORIZATION = "Authorization";
+        public static final String HEADER_WWW_AUTHENTICATE = "WWW-Authenticate";
         public static final String PREFIX_BEARER_TOKEN = "Bearer ";
     }
 }

@@ -3,6 +3,8 @@ package com.webank.wecube.platform.auth.server.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.web.servlet.support.ErrorPageFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,12 +20,15 @@ import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedRefreshTokenFilt
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextRepository;
 import com.webank.wecube.platform.auth.server.handler.Http401AuthenticationEntryPoint;
 import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler;
+import com.webank.wecube.platform.auth.server.handler.JwtSsoBasedAuthenticationFailureHandler;
 import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 
 public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = { //
             "/v1/api/login", //
+            "/v1/api/ping", //
             "/v2/api-docs", //
+            "/error", //
             "/swagger-resources", //
             "/swagger-resources/**", //
             "/configuration/ui", //
@@ -53,8 +58,7 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
                 .securityContext() //
                 .securityContextRepository(new JwtSsoBasedSecurityContextRepository()) //
                 .and() //
-                .addFilterBefore(new JwtSsoBasedLoginFilter(authenticationManager()),
-                        SecurityContextPersistenceFilter.class) //
+                .addFilterBefore(jwtSsoBasedLoginFilter(), SecurityContextPersistenceFilter.class) //
                 .addFilterBefore(new JwtSsoBasedRefreshTokenFilter(authenticationManager()),
                         SecurityContextPersistenceFilter.class) //
                 .addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager()))//
@@ -70,6 +74,13 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
                 .exceptionHandling() //
                 .accessDeniedHandler(new Http403AccessDeniedHandler()); //
 
+    }
+
+    protected JwtSsoBasedLoginFilter jwtSsoBasedLoginFilter() throws Exception {
+        JwtSsoBasedLoginFilter f = new JwtSsoBasedLoginFilter(authenticationManager());
+        f.setAuthenticationFailureHandler(new JwtSsoBasedAuthenticationFailureHandler());
+
+        return f;
     }
 
     protected void warnNotLoadingProdSecurityConfigurationNotice() {
@@ -91,5 +102,18 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public ErrorPageFilter errorPageFilter() {
+        return new ErrorPageFilter();
+    }
+
+    @Bean
+    public FilterRegistrationBean<ErrorPageFilter> disableSpringBootErrorFilter(ErrorPageFilter filter) {
+        FilterRegistrationBean<ErrorPageFilter> filterRegistrationBean = new FilterRegistrationBean<ErrorPageFilter>();
+        filterRegistrationBean.setFilter(filter);
+        filterRegistrationBean.setEnabled(false);
+        return filterRegistrationBean;
     }
 }
