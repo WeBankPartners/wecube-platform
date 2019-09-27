@@ -38,7 +38,8 @@ public class ApiController {
 
 	@PostMapping("/apis")
 	@ResponseBody
-//	@PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
+	// TODO
+	// @PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
 	public CommonResponseDto createRole(@RequestBody CreateApiDto createApiDto, HttpServletRequest request)
 			throws Exception {
 		return okayWithData(apiService.create(createApiDto));
