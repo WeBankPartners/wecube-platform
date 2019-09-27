@@ -14,13 +14,16 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 public class Http403AccessDeniedHandler implements AccessDeniedHandler {
 
     private static final Logger log = LoggerFactory.getLogger(Http403AccessDeniedHandler.class);
+    private String headerValue = "Fully authorization is required.";
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        log.error("access denied ===");
-        response.setHeader("Authorization", "error");
+        log.warn("=== access denied ===");
+
+        response.setHeader("Authorization", this.headerValue);
         response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());
+
     }
 
 }
