@@ -1,9 +1,5 @@
 <template>
   <Row style="padding:20px">
-    <Spin size="large" fix v-if="isLoading">
-      <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-      <div>加载中...</div>
-    </Spin>
     <Col span="6">
       <Row>
         <Card>
@@ -26,125 +22,179 @@
       <Row class="plugins-tree-container">
         <Card>
           <p slot="title">{{ $t("plugins_list") }}</p>
-          <Tree :data="plugins" @on-select-change="selectPlugin"></Tree>
+          <div style="height: 70%">
+            <Collapse accordion>
+              <Panel
+                :name="plugin.id + ''"
+                v-for="plugin in plugins"
+                :key="plugin.id"
+              >
+                {{ plugin.name + "_" + plugin.version }}
+                <span style="float: right; margin-right: 10px">
+                  <Tooltip content="删除插件" placement="top-start">
+                    <Button
+                      @click.stop.prevent="deletePlugin(plugin.id)"
+                      size="small"
+                      icon="ios-trash"
+                    ></Button>
+                  </Tooltip>
+                </span>
+                <p slot="content">
+                  <Button
+                    @click="configPlugin(plugin.id)"
+                    size="small"
+                    icon="ios-construct"
+                    >注册配置</Button
+                  >
+                  <Button
+                    @click="manageRuntimePlugin(plugin.id)"
+                    size="small"
+                    icon="ios-settings"
+                    >运行管理</Button
+                  >
+                </p>
+              </Panel>
+            </Collapse>
+          </div>
         </Card>
       </Row>
     </Col>
     <Col span="17" offset="1">
+      <Spin size="large" fix v-if="isLoading">
+        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+        <div>加载中...</div>
+      </Spin>
       <div v-if="Object.keys(currentPlugin).length > 0">
         <div v-if="currentPlugin.children">
           <Row class="instances-container">
-            <Card>
-              <p slot="title">实例</p>
-              <Row>
-                <Select
-                  @on-change="selectHost"
-                  multiple
-                  style="width: 40%"
-                  :max-tag-count="4"
-                  v-model="selectHosts"
-                >
-                  <Option
-                    v-for="item in allAvailiableHosts"
-                    :value="item"
-                    :key="item"
-                    >{{ item }}</Option
-                  >
-                </Select>
-                <Button
-                  size="small"
-                  type="success"
-                  @click="getAvailablePortByHostIp"
-                  >端口预览</Button
-                >
-                <div v-if="availiableHostsWithPort.length > 0">
-                  <p style="margin-top: 20px">可用端口:</p>
-
-                  <div
-                    v-for="item in availiableHostsWithPort"
-                    :key="item.ip + item.port"
-                  >
-                    <div
-                      class="instance-item-container"
-                      style="border-bottom: 1px solid gray; padding: 10px 0"
-                    >
-                      <div class="instance-item">
-                        {{ item.ip + ":" + item.port }}
-                      </div>
-                      <span>启动参数:</span>
-                      <Input
-                        type="textarea"
-                        style="width: 50%"
-                        :autosize="true"
-                        v-model="item.createParams"
-                      />
+            <Collapse>
+              <Panel name="1">
+                <span style="font-size: 14px; font-weight: 600">运行容器</span>
+                <p slot="content">
+                  <Card>
+                    <Row>
+                      <Select
+                        placeholder="请选择实例"
+                        @on-change="selectHost"
+                        multiple
+                        style="width: 40%"
+                        :max-tag-count="4"
+                        v-model="selectHosts"
+                      >
+                        <Option
+                          v-for="item in allAvailiableHosts"
+                          :value="item"
+                          :key="item"
+                          >{{ item }}</Option
+                        >
+                      </Select>
                       <Button
                         size="small"
                         type="success"
-                        @click="
-                          createPluginInstanceByPackageIdAndHostIp(
-                            item.ip,
-                            item.port,
-                            item.createParams
-                          )
-                        "
-                        >{{ $t("create") }}</Button
+                        @click="getAvailablePortByHostIp"
+                        >端口预览</Button
                       >
+                      <div v-if="availiableHostsWithPort.length > 0">
+                        <p style="margin-top: 20px">可用端口:</p>
+
+                        <div
+                          v-for="item in availiableHostsWithPort"
+                          :key="item.ip + item.port"
+                        >
+                          <div
+                            class="instance-item-container"
+                            style="border-bottom: 1px solid gray; padding: 10px 0"
+                          >
+                            <div class="instance-item">
+                              {{ item.ip + ":" + item.port }}
+                            </div>
+                            <span>启动参数:</span>
+                            <Input
+                              type="textarea"
+                              style="width: 50%"
+                              :autosize="true"
+                              v-model="item.createParams"
+                            />
+                            <Button
+                              size="small"
+                              type="success"
+                              @click="
+                                createPluginInstanceByPackageIdAndHostIp(
+                                  item.ip,
+                                  item.port,
+                                  item.createParams
+                                )
+                              "
+                              >{{ $t("create") }}</Button
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </Row>
+                    <Row>
+                      <p style="margin-top: 20px">{{ $t("running_node") }}:</p>
+                      <div v-if="allInstances.length === 0">暂无运行节点</div>
+                      <div v-else>
+                        <div v-for="item in allInstances" :key="item.id">
+                          <div class="instance-item-container">
+                            <div class="instance-item">
+                              {{ item.displayLabel }}
+                            </div>
+
+                            <Button
+                              size="small"
+                              type="error"
+                              @click="removePluginInstance(item.id)"
+                              >{{ $t("ternmiante") }}</Button
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </Row>
+                  </Card>
+
+                  <Card style="margin-top: 20px">
+                    <p>插件日志查询</p>
+                    <div style="padding: 0 0 50px 0;margin-top: 20px">
+                      <WeTable
+                        :tableData="tableData"
+                        :tableInnerActions="innerActions"
+                        :tableColumns="tableColumns"
+                        :pagination="pagination"
+                        @actionFun="actionFun"
+                        @handleSubmit="handleSubmit"
+                        @pageChange="pageChange"
+                        @pageSizeChange="pageSizeChange"
+                        :showCheckbox="false"
+                        tableHeight="650"
+                        ref="table"
+                      ></WeTable>
                     </div>
-                  </div>
-                </div>
-              </Row>
-              <Row>
-                <p style="margin-top: 20px">{{ $t("running_node") }}:</p>
-                <div v-if="allInstances.length === 0">暂无运行节点</div>
-                <div v-else>
-                  <div v-for="item in allInstances" :key="item.id">
-                    <div class="instance-item-container">
-                      <div class="instance-item">{{ item.displayLabel }}</div>
 
-                      <Button
-                        size="small"
-                        type="error"
-                        @click="removePluginInstance(item.id)"
-                        >{{ $t("ternmiante") }}</Button
-                      >
-                    </div>
-                  </div>
-                </div>
-              </Row>
-            </Card>
-
-            <Card style="margin-top: 20px">
-              <p slot="title">日志查询</p>
-              <div style="padding: 0 0 50px 0">
-                <WeTable
-                  :tableData="tableData"
-                  :tableInnerActions="innerActions"
-                  :tableColumns="tableColumns"
-                  :pagination="pagination"
-                  @actionFun="actionFun"
-                  @handleSubmit="handleSubmit"
-                  @pageChange="pageChange"
-                  @pageSizeChange="pageSizeChange"
-                  :showCheckbox="false"
-                  tableHeight="650"
-                  ref="table"
-                ></WeTable>
-              </div>
-
-              <Modal
-                v-model="logDetailsModalVisible"
-                title="日志详情"
-                footer-hide
-                width="70"
-              >
-                <div
-                  lang="json"
-                  style="white-space: pre-wrap;"
-                  v-html="logDetails"
-                ></div>
-              </Modal>
-            </Card>
+                    <Modal
+                      v-model="logDetailsModalVisible"
+                      title="日志详情"
+                      footer-hide
+                      width="70"
+                    >
+                      <div
+                        lang="json"
+                        style="white-space: pre-wrap;"
+                        v-html="logDetails"
+                      ></div>
+                    </Modal>
+                  </Card>
+                </p>
+              </Panel>
+              <Panel name="2">
+                <span style="font-size: 14px; font-weight: 600">数据库</span>
+                <p slot="content">数据库</p>
+              </Panel>
+              <Panel name="3">
+                <span style="font-size: 14px; font-weight: 600">对象存储</span>
+                <p slot="content">对象存储</p>
+              </Panel>
+            </Collapse>
           </Row>
         </div>
         <Form v-else :model="form">
@@ -215,9 +265,8 @@
               <Tooltip :content="interfaces.name">
                 <span
                   style="display: inline-block;max-width: 95%;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                  >{{ interfaces.name }}</span
                 >
-                  {{ interfaces.name }}
-                </span>
               </Tooltip>
             </Col>
             <Col span="21">
@@ -249,22 +298,13 @@
                         <Tooltip :content="param.name">
                           <span
                             style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            >{{ param.name }}</span
                           >
-                            {{ param.name }}
-                          </span>
                         </Tooltip>
                       </FormItem>
                     </Col>
                     <Col span="18">
                       <FormItem :label-width="0">
-                        <!-- <AttrInput
-                          :allCiTypes="ciTypes"
-                          :cmdbColumnSource="param.cmdbColumnSource"
-                          :rootCiType="selectedCiType"
-                          v-model="param.cmdbAttr"
-                          :ciTypesObj="ciTypesObj"
-                          :ciTypeAttributeObj="ciTypeAttributeObj"
-                        /> -->
                         <CmdbAttrInput
                           :allCodes="allCodes"
                           :allCiTypes="ciTypes"
@@ -307,9 +347,8 @@
                         <Tooltip :content="outPut.name">
                           <span
                             style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            >{{ outPut.name }}</span
                           >
-                            {{ outPut.name }}
-                          </span>
                         </Tooltip>
                       </FormItem>
                     </Col>
@@ -727,33 +766,7 @@ export default {
     async queryPluginAffterUpdate() {
       let { status, data, message } = await getAllPluginPkgs();
       if (status === "OK") {
-        this.plugins = data.map(_ => {
-          return {
-            ..._,
-            title: `${_.name}[${_.version}]`,
-            id: _.id,
-            expand: false,
-            checked: false,
-            children: _.pluginConfigs.map(i => {
-              return {
-                ...i,
-                title: i.name,
-                id: i.id,
-                expand: true,
-                checked: false
-              };
-            })
-          };
-        });
-        this.plugins.forEach(_ => {
-          const found = _.pluginConfigs.find(
-            p => p.id === this.currentPlugin.id
-          );
-          if (found) {
-            this.currentPlugin = found;
-            return;
-          }
-        });
+        this.plugins = data || [];
       }
     },
     async selectCiType(c) {
@@ -809,7 +822,27 @@ export default {
         getRefAndSelectData(refAndSelectRes.data);
       }
     },
-    async selectPlugin(plugins, currentPlugin) {
+    async deletePlugin(id) {
+      this.$Modal.confirm({
+        title: "确认删除？",
+        "z-index": 1000000,
+        onOk: async () => {
+          console.log("delete plugin = =");
+          // const { status, message, data } = await xxxx(id);
+
+          // if (status === "OK") {
+          //   this.$Notice.success({
+          //     title: "Delete Plugin Success",
+          //     desc: message
+          //   });
+          // }
+        },
+        onCancel: () => {}
+      });
+      document.querySelector(".ivu-modal-mask").click();
+    },
+    async manageRuntimePlugin(currentPluginId) {
+      let currentPlugin = this.plugins.find(_ => _.id === currentPluginId);
       this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
       this.currentPlugin = currentPlugin;
       let { status, data, message } = await getPluginInterfaces(
