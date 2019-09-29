@@ -17,7 +17,7 @@ import com.webank.wecube.platform.auth.client.context.JwtSsoClientContext;
 public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
     private static final Logger log = LoggerFactory.getLogger(Http401AuthenticationEntryPoint.class);
 
-    private String headerValue = "Form realm=\"Central Authentication Server\";profile=\"JWT\";";
+    private String headerValue = "Bearer realm=\"Central Authentication Server\";profile=\"JWT\";";
     
     private ObjectMapper objectMapper = new ObjectMapper();
 
