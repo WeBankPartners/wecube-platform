@@ -1,10 +1,22 @@
 package com.webank.wecube.core.controller;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.webank.wecube.core.domain.JsonResponse.error;
 import static com.webank.wecube.core.domain.JsonResponse.okay;
 import static com.webank.wecube.core.domain.JsonResponse.okayWithData;
-import static com.webank.wecube.core.domain.JsonResponse.error;
-import static com.webank.wecube.core.domain.MenuItem.*;
+import static com.webank.wecube.core.domain.MenuItem.MENU_ADMIN_CMDB_MODEL_MANAGEMENT;
+import static com.webank.wecube.core.domain.MenuItem.MENU_COLLABORATION_PLUGIN_MANAGEMENT;
+import static com.webank.wecube.core.domain.MenuItem.MENU_COLLABORATION_WORKFLOW_ORCHESTRATION;
+import static com.webank.wecube.core.domain.MenuItem.MENU_DESIGNING_APPLICATION_ARCHITECTURE;
+import static com.webank.wecube.core.domain.MenuItem.MENU_DESIGNING_APPLICATION_DEPLOYMENT;
+import static com.webank.wecube.core.domain.MenuItem.MENU_DESIGNING_CI_DATA_ENQUIRY;
+import static com.webank.wecube.core.domain.MenuItem.MENU_DESIGNING_CI_DATA_MANAGEMENT;
+import static com.webank.wecube.core.domain.MenuItem.MENU_DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT;
+import static com.webank.wecube.core.domain.MenuItem.MENU_DESIGNING_PLANNING;
+import static com.webank.wecube.core.domain.MenuItem.MENU_DESIGNING_RESOURCE_PLANNING;
+import static com.webank.wecube.core.domain.MenuItem.MENU_IMPLEMENTATION_APPLICATION_DEPLOYMENT;
+import static com.webank.wecube.core.domain.MenuItem.MENU_IMPLEMENTATION_ARTIFACT_MANAGEMENT;
+import static com.webank.wecube.core.domain.MenuItem.MENU_IMPLEMENTATION_BATCH_JOB;
 import static com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery.defaultQueryObject;
 import static com.webank.wecube.core.utils.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -30,11 +42,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.webank.wecube.core.commons.ApplicationProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.JsonResponse;
-import com.webank.wecube.core.support.cmdb.dto.v2.OperateCiDto;
 import com.webank.wecube.core.service.CmdbResourceService;
 import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
 import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeAttrDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.OperateCiDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery;
 
 import lombok.extern.slf4j.Slf4j;
@@ -230,7 +242,7 @@ public class CmdbCiManagementController {
     @ResponseBody
     public JsonResponse queryCiData(@PathVariable(value = "ci-type-id") int ciTypeId,
                                     @RequestBody PaginationQuery queryObject) {
-        return okayWithData(cmdbServiceV2Stub.queryCiData(ciTypeId, queryObject));
+        return okayWithData(cmdbResourceService.queryCiData(ciTypeId, queryObject));
     }
 
     @PostMapping("/referenceCiData/{reference-attr-id}/query")

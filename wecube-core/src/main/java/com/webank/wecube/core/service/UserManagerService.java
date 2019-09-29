@@ -397,6 +397,8 @@ public class UserManagerService {
     private void removeMenuPermissionForRole(int roleId, String menuCode) {
         MenuItem menuItem = menuItemRepository.findByCode(menuCode);
         if (menuItem == null) throw new WecubeCoreException("Unknown menu code " + menuCode);
+        if (roleId == 1 && "ADMIN_PERMISSION_MANAGEMENT".equals(menuCode))
+        	   throw new WecubeCoreException("Cannot be deleted as this is Admin permission menu.");
         if (menuItem.getAssignedRoles() != null) {
             menuItem.getAssignedRoles().removeIf(roleMenu -> roleMenu.getRoleId().equals(roleId));
         }
