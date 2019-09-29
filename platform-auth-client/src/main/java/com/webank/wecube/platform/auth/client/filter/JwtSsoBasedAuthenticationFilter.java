@@ -63,18 +63,30 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         if (log.isDebugEnabled()) {
             log.debug("===  doFilterInternal  ===");
         }
+        SecurityContextHolder.clearContext();
 
         String header = request.getHeader(JwtSsoClientContext.HEADER_AUTHORIZATION);
         if (header == null || !header.startsWith(JwtSsoClientContext.PREFIX_BEARER_TOKEN)) {
+
+            log.debug("bearer token does not exist");
+
             chain.doFilter(request, response);
+
             return;
         }
+
+        if (log.isDebugEnabled()) {
+            log.debug("start to authenticate with bearer token");
+        }
+
         try {
             UsernamePasswordAuthenticationToken authentication = getAuthentication(request);
             if (authentication != null && authentication.isAuthenticated()) {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (AuthenticationException failed) {
+            log.debug("authentication failed");
+
             SecurityContextHolder.clearContext();
 
             onUnsuccessfulAuthentication(request, response, failed);
@@ -88,7 +100,16 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
             return;
 
         }
-        chain.doFilter(request, response);
+        executeFilter(request, response, chain);
+    }
+
+    protected void executeFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     protected boolean isIgnoreFailure() {
