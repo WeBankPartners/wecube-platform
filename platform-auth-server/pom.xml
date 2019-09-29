@@ -102,6 +102,12 @@
 
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -131,6 +137,7 @@
         <profile>
             <id>dev</id>
             <properties>
+                <activatedProperties>dev</activatedProperties>
                 <environment>dev</environment>
             </properties>
             <activation>
@@ -138,14 +145,24 @@
             </activation>
         </profile>
         <profile>
-            <id>test</id>
+            <id>mock</id>
             <properties>
+                <activatedProperties>mock</activatedProperties>
+                <environment>mock</environment>
+            </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            
+            <properties>
+                <activatedProperties>test</activatedProperties>
                 <environment>test</environment>
             </properties>
         </profile>
         <profile>
             <id>prod</id>
             <properties>
+                <activatedProperties>prod</activatedProperties>
                 <environment>prod</environment>
             </properties>
         </profile>
