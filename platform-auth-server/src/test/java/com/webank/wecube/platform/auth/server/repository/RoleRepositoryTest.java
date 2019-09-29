@@ -14,7 +14,7 @@ import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
 import com.webank.wecube.platform.auth.server.entity.SysSubSystemEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 
-//@Ignore
+@Ignore
 @ActiveProfiles({"test"})
 @RunWith(SpringRunner.class)
 @SpringBootTest
