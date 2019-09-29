@@ -18,7 +18,7 @@ import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextR
 import com.webank.wecube.platform.auth.server.handler.Http401AuthenticationEntryPoint;
 import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler;
 
-@Profile({ ApplicationConstants.Profile.MOCK, ApplicationConstants.Profile.TEST })
+@Profile({ ApplicationConstants.Profile.MOCK })
 @Configuration
 @EnableWebSecurity(debug = true)
 @EnableGlobalMethodSecurity(securedEnabled = false)
