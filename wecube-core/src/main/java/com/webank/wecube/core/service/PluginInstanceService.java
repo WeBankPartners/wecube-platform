@@ -788,7 +788,12 @@ public class PluginInstanceService {
             List<Map<String, Object>> retDataList = buildIntegrationQueryAndGetQueryResult(rootGuid, ciRoutineItems);
             if(retDataList != null && !retDataList.isEmpty()){
                 Map<String,Object> retDataMap = retDataList.get(0);
-                return extractValueFromSpecialCiType(retDataMap.get("tail$attr"), inputParameters, data);
+                Object tailAttr = retDataMap.get("tail$attr");
+                if(tailAttr == null ) {
+                	log.error("failed to find tail attribute for {}", valueOfCode);
+                	return valueOfCode;
+                }
+                return extractValueFromSpecialCiType(tailAttr, inputParameters, data);
             }
         } catch (IOException e) {
             log.error("errors while retrieving data from cmdb", e);
@@ -806,7 +811,23 @@ public class PluginInstanceService {
 
         IntegrationQueryDto childQueryDto = travelRoutine(routines, rootDto, 1);
         if (childQueryDto != null) {
+        	log.info("child routine is null");
             rootDto.getCriteria().setChildren(Collections.singletonList(childQueryDto));
+        }else if(routines.size() == 2){
+        	log.info("routine size equals 2");
+        	CiRoutineItem attrItem = routines.get(1);
+            if(rootDto.getCriteria().getCiTypeId() != attrItem.getCiTypeId()){
+                throw new WecubeCoreException("citype id is error");
+            }
+            
+            List<Integer> attrs = rootDto.getCriteria().getAttrs();
+            attrs.add(attrItem.getParentRs().getAttrId());
+            rootDto.getCriteria().setAttrs(attrs);
+
+            List<String> attrKeyNames = rootDto.getCriteria().getAttrKeyNames();
+            attrKeyNames.add("tail$attr");
+            
+            rootDto.getCriteria().setAttrKeyNames(attrKeyNames);
         }
         
         return cmdbServiceV2Stub.adhocIntegrationQuery(rootDto).getContents();
@@ -824,8 +845,12 @@ public class PluginInstanceService {
 
         root.setName("root");
         root.setCiTypeId(rootRoutineItem.getCiTypeId());
-        root.setAttrs(Arrays.asList(getGuidAttrIdByCiTypeId(rootRoutineItem.getCiTypeId())));
-        root.setAttrKeyNames(Arrays.asList("root$guid"));
+        ArrayList<Integer> attrs = new ArrayList<Integer>();
+        attrs.add(getGuidAttrIdByCiTypeId(rootRoutineItem.getCiTypeId()));
+        root.setAttrs(attrs);
+        ArrayList<String> attrKeyNames = new ArrayList<String>();
+        attrKeyNames.add("root$guid");
+        root.setAttrKeyNames(attrKeyNames);
 
         return dto;
     }
