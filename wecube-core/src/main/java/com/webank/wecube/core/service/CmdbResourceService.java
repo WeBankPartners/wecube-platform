@@ -1,7 +1,5 @@
 package com.webank.wecube.core.service;
 
-
-import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery.defaultQueryObject;
 import static com.webank.wecube.core.utils.CollectionUtils.groupUp;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -16,9 +14,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.webank.wecube.core.support.cmdb.dto.v2.*;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +26,24 @@ import com.google.common.collect.Lists;
 import com.webank.wecube.core.commons.ApplicationProperties.CmdbDataProperties;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.workflow.CiRoutineItem;
+import com.webank.wecube.core.dto.ci.ResourceTreeDto;
 import com.webank.wecube.core.support.cmdb.CmdbDataNotFoundException;
 import com.webank.wecube.core.support.cmdb.CmdbServiceV2Stub;
-import com.webank.wecube.core.dto.ci.ResourceTreeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.AdhocIntegrationQueryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CatCodeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CatTypeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CategoryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeAttrDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.IntegrationQueryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.OperateCiDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery.Sorting;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQueryResult;
+import com.webank.wecube.core.support.cmdb.dto.v2.Relationship;
+import com.webank.wecube.core.support.cmdb.dto.v2.ZoneLinkDto;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -1046,6 +1055,12 @@ public class CmdbResourceService {
     void setCmdbServiceV2Stub(CmdbServiceV2Stub cmdbServiceV2Stub) {
         this.cmdbServiceV2Stub = cmdbServiceV2Stub;
     }
+    
+	public PaginationQueryResult<Object> queryCiData(Integer ciTypeId, PaginationQuery queryObject) {
+		if (null == queryObject.getSorting())
+			queryObject.setSorting(new Sorting(false, "created_date"));
+		return cmdbServiceV2Stub.queryCiData(ciTypeId, queryObject);
+	}
 
 }
 
