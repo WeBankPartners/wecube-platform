@@ -19,7 +19,9 @@ public class PlatformAuthServerApplication {
     public static void main(String[] args) {
         SpringApplicationBuilder b = new SpringApplicationBuilder(PlatformAuthServerApplication.class);
         String loadDefaultProperties = System.getenv(ENV_KEY_LOAD_DEFAULT_PROPERTIES);
+        System.out.println("loadDefaultProperties="+loadDefaultProperties);
         
+        log.info("=== loadDefaultProperties={}", loadDefaultProperties);
         if (loadDefaultProperties != null) {
             b.properties(loadDefaultProperties());
             log.info("=== loaded default properties ===");
