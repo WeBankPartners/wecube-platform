@@ -1,6 +1,6 @@
 const CompressionPlugin = require("compression-webpack-plugin");
 
-let isUsingLocalCore = true;
+let isUsingLocalCore = false;
 
 const baseURL = isUsingLocalCore
   ? "http://localhost:8080"
