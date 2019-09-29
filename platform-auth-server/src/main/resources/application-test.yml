@@ -3,7 +3,7 @@ server:
 
 spring:
    datasource:
-      url: jdbc:mysql://localhost:3306/weauth?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
+      url: jdbc:mysql://localhost:3306/wecube_cds?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
       username: root
-      ***REMOVED***
+      password: password
       driver-class-name: com.mysql.cj.jdbc.Driver
