@@ -2,7 +2,7 @@
   <Row style="padding:20px">
     <Col span="6">
       <Row>
-        <Card>
+        <Card dis-hover>
           <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
           <Upload
             show-upload-list
@@ -20,7 +20,7 @@
         </Card>
       </Row>
       <Row class="plugins-tree-container">
-        <Card>
+        <Card dis-hover>
           <p slot="title">{{ $t("plugins_list") }}</p>
           <div style="height: 70%">
             <Collapse accordion>
@@ -71,7 +71,7 @@
               <Panel name="1">
                 <span style="font-size: 14px; font-weight: 600">运行容器</span>
                 <p slot="content">
-                  <Card>
+                  <Card dis-hover>
                     <Row>
                       <Select
                         placeholder="请选择实例"

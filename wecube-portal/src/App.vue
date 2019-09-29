@@ -26,4 +26,10 @@ export default {
   height: 100%;
   min-width: 1280px;
 }
+.pages {
+  background-color: #f8f8f9;
+
+  height: 100%;
+  padding-bottom: 20px;
+}
 </style>

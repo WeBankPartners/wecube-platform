@@ -3,12 +3,14 @@
     <div class="header">
       <Header @allMenus="allMenus" />
     </div>
-    <div class="content-container">
+    <div class="breadcrumb">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum">
         <BreadcrumbItem><a href="/">Home</a></BreadcrumbItem>
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
+    </div>
+    <div class="content-container">
       <router-view class="pages" :key="$route.name"></router-view>
     </div>
     <BackTop :height="100" :bottom="100" />
@@ -109,8 +111,12 @@ export default {
   background-color: #515a6e;
   display: block;
 }
+.breadcrumb {
+  margin: 5px 30px;
+}
 .content-container {
-  padding: 5px 30px;
+  margin: 5px 30px;
+  background-color: #fff;
 }
 .ivu-breadcrumb {
   color: #515a6e;
@@ -122,13 +128,7 @@ export default {
 .spin-icon-load {
   animation: ani-demo-spin 1s linear infinite;
 }
-body {
-  height: 100%;
-  overflow: auto !important;
-}
-html {
-  height: 100%;
-}
+
 // error style
 .ivu-notice-desc {
   word-break: break-all;
