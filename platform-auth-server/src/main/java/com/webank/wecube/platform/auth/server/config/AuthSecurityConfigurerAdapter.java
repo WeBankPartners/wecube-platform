@@ -25,7 +25,7 @@ import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 
 public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = { //
-            "/v1/api/login", //
+//            "/v1/api/login", //
             "/v1/api/ping", //
             "/v2/api-docs", //
             "/error", //
