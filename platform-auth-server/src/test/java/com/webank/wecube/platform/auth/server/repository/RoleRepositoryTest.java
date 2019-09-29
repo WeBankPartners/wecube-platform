@@ -1,11 +1,13 @@
 package com.webank.wecube.platform.auth.server.repository;
 
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
@@ -13,6 +15,7 @@ import com.webank.wecube.platform.auth.server.entity.SysSubSystemEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 
 //@Ignore
+@ActiveProfiles({"test"})
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class RoleRepositoryTest {
@@ -40,7 +43,7 @@ public class RoleRepositoryTest {
     }
 
     @Test
-    public void testSave() {
+    public void testSaveUserWithUserAndAdminRoles() {
         SysRoleEntity userRole = new SysRoleEntity();
         userRole.setCreatedBy("test");
         userRole.setName("USER");
@@ -60,6 +63,36 @@ public class RoleRepositoryTest {
         user.getRoles().add(adminRole);
         
         userRepo.save(user);
+    }
+    
+    @Test
+    public void testSaveUserWithUserRoles() {
+        SysRoleEntity userRole = new SysRoleEntity();
+        userRole.setCreatedBy("test");
+        userRole.setName("USER");
+        
+        userRole = roleRepo.save(userRole);
+        
+//        SysRoleEntity adminRole =  new SysRoleEntity();
+//        adminRole.setName("ADMIN");
+//        
+//        adminRole = roleRepo.save(adminRole);
+        
+        SysUserEntity user = new SysUserEntity();
+        user.setUsername("umuser");
+        user.setPassword(passwordEncoder.encode("123456"));
+        
+        user.getRoles().add(userRole);
+//        user.getRoles().add(adminRole);
+        
+        userRepo.save(user);
+    }
+    
+    @Test
+    public void testFindUser() {
+    	SysUserEntity user = userRepo.findOneByUsername("umuser");
+    	System.out.println("USER:" + user);
+    	Assert.assertNotNull(user);
     }
 
 }
