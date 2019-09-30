@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 
+import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+
 public class Http403AccessDeniedHandler implements AccessDeniedHandler {
 
     private static final Logger log = LoggerFactory.getLogger(Http403AccessDeniedHandler.class);
@@ -21,7 +23,7 @@ public class Http403AccessDeniedHandler implements AccessDeniedHandler {
             AccessDeniedException accessDeniedException) throws IOException, ServletException {
         log.warn("=== access denied ===");
 
-        response.setHeader("Authorization", this.headerValue);
+        response.setHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION, this.headerValue);
         response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());
 
     }
