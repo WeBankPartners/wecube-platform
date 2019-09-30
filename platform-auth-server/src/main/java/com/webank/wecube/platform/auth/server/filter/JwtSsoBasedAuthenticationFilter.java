@@ -48,7 +48,7 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         log.info("=== doFilterInternal  ===");
 
         String header = request.getHeader(HEADER_AUTHORIZATION);
-        if (header == null || !header.startsWith("Bearer ")) {
+        if (header == null || !header.startsWith(PREFIX_BEARER_TOKEN)) {
             chain.doFilter(request, response);
             return;
         }
@@ -69,7 +69,6 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         
         String sAccessTokenHeader = request.getHeader(HEADER_AUTHORIZATION);
         
-        
         String sAccessToken = sAccessTokenHeader.substring(PREFIX_BEARER_TOKEN.length()).trim();
         
         if (StringUtils.isBlank(sAccessToken)) {
@@ -84,8 +83,6 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
 
         String username = claims.getSubject();
 
-        log.info("subject:{}", username);
-        
         String tokenType = claims.get(CLAIM_KEY_TYPE, String.class);
 
         if (!TOKEN_TYPE_ACCESS.equals(tokenType)) {
