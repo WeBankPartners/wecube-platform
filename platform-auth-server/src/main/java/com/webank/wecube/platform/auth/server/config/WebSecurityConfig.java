@@ -11,7 +11,7 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 @Primary
 @Profile({ ApplicationConstants.Profile.PROD })
 @Configuration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity(debug = false)
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class WebSecurityConfig extends AuthSecurityConfigurerAdapter {
 
