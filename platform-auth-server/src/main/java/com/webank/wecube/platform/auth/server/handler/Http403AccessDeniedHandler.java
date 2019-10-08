@@ -13,6 +13,11 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class Http403AccessDeniedHandler implements AccessDeniedHandler {
 
     private static final Logger log = LoggerFactory.getLogger(Http403AccessDeniedHandler.class);

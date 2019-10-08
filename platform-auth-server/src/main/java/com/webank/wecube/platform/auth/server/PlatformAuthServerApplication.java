@@ -11,6 +11,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @SpringBootApplication
 public class PlatformAuthServerApplication {
     public static final String ENV_KEY_LOAD_DEFAULT_PROPERTIES = "loadDefaultProperties";
@@ -19,12 +24,20 @@ public class PlatformAuthServerApplication {
     public static void main(String[] args) {
         SpringApplicationBuilder b = new SpringApplicationBuilder(PlatformAuthServerApplication.class);
         String loadDefaultProperties = System.getenv(ENV_KEY_LOAD_DEFAULT_PROPERTIES);
-        System.out.println("loadDefaultProperties="+loadDefaultProperties);
-        
-        log.info("=== loadDefaultProperties={}", loadDefaultProperties);
+
         if (loadDefaultProperties != null) {
-            b.properties(loadDefaultProperties());
-            log.info("=== loaded default properties ===");
+            Properties loadedProperties = loadDefaultProperties();
+            b.properties(loadedProperties);
+            if (log.isInfoEnabled()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("loaded default properties:\n");
+                
+                loadedProperties.forEach( (k , v) -> {
+                    sb.append("key=").append(k).append(",value=").append(v).append("\n");
+                });
+                
+                log.info(sb.toString());
+            }
         }
         ConfigurableApplicationContext ctx = b.run(args);
 
