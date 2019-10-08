@@ -8,6 +8,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);

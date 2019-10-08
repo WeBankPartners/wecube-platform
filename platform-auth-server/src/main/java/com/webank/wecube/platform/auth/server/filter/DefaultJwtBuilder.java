@@ -16,6 +16,11 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class DefaultJwtBuilder implements JwtBuilder {
 
     private static final String SIGNING_KEY = "platform-auth-server-@Jwt!&Secret^#";
