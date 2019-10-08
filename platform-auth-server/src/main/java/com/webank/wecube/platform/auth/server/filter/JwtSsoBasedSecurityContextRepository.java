@@ -10,6 +10,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpRequestResponseHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class JwtSsoBasedSecurityContextRepository implements SecurityContextRepository {
 
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedSecurityContextRepository.class);

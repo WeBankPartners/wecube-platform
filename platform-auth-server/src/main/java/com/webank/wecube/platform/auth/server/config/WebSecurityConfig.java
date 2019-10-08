@@ -8,6 +8,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Primary
 @Profile({ ApplicationConstants.Profile.PROD })
 @Configuration

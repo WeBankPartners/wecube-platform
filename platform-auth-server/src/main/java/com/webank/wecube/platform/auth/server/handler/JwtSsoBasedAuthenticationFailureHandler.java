@@ -13,6 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class JwtSsoBasedAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
     private ObjectMapper objectMapper = new ObjectMapper();
     private String headerValue = "Bearer realm=\"Central Authentication Server\";profile=\"JWT\";";
