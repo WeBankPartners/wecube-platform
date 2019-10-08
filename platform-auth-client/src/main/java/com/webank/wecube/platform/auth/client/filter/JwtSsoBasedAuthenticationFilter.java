@@ -23,7 +23,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import com.webank.wecube.platform.auth.client.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.client.context.JwtSsoClientContext;
 
 import io.jsonwebtoken.Claims;
@@ -121,8 +120,8 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     }
 
     protected void validateRequestHeader(HttpServletRequest request) {
-        String header = request.getHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION);
-        if (header == null || !header.startsWith(ApplicationConstants.JwtInfo.PREFIX_BEARER_TOKEN)) {
+        String header = request.getHeader(JwtSsoClientContext.HEADER_AUTHORIZATION);
+        if (header == null || !header.startsWith(JwtSsoClientContext.PREFIX_BEARER_TOKEN)) {
             throw new BadCredentialsException("Access token is required.");
         }
     }
