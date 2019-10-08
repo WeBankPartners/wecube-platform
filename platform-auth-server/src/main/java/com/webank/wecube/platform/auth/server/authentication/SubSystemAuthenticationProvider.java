@@ -4,17 +4,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
+import com.webank.wecube.platform.auth.server.encryption.EncryptionUtils;
 import com.webank.wecube.platform.auth.server.model.SysSubSystemInfo;
 import com.webank.wecube.platform.auth.server.service.SubSystemInfoDataService;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Component("subSystemAuthenticationProvider")
 public class SubSystemAuthenticationProvider implements AuthenticationProvider {
     private static final Logger log = LoggerFactory.getLogger(SubSystemAuthenticationProvider.class);
+    private static final String DELIMITER_SYSTEM_CODE_AND_NONCE = ":";
 
     @Autowired
     private SubSystemInfoDataService subSystemDataService;
@@ -27,13 +36,33 @@ public class SubSystemAuthenticationProvider implements AuthenticationProvider {
         }
 
         SubSystemAuthenticationToken subSystemAuthToken = (SubSystemAuthenticationToken) authentication;
-        // TODO must verify password
-        
+
         String systemCode = (String) subSystemAuthToken.getPrincipal();
-        
+
         SysSubSystemInfo subSystemInfo = retrieveSubSystemInfo(systemCode, subSystemAuthToken);
 
+        verifySubSystemAuthenticationToken(subSystemAuthToken, subSystemInfo);
+
         return createSuccessAuthentication(subSystemInfo, subSystemAuthToken);
+    }
+
+    protected void verifySubSystemAuthenticationToken(SubSystemAuthenticationToken subSystemAuthToken,
+            SysSubSystemInfo subSystemInfo) {
+        String systemCode = (String) subSystemAuthToken.getPrincipal();
+        String password = (String) subSystemAuthToken.getCredentials();
+        String nonce = (String) subSystemAuthToken.getNonce();
+
+        String subSystemPublicKey = subSystemInfo.getPubApiKey();
+
+        String decryptedPassword = new String(
+                EncryptionUtils.decryptByPublicKeyAsString(StringUtilsEx.decodeBase64(password), subSystemPublicKey),
+                EncryptionUtils.UTF8);
+
+        String[] decryptedPasswordParts = decryptedPassword.split(DELIMITER_SYSTEM_CODE_AND_NONCE);
+        if ((decryptedPasswordParts.length < 2) && (!systemCode.equals(decryptedPasswordParts[0]))
+                && (!nonce.equals(decryptedPasswordParts[1]))) {
+            throw new BadCredentialsException("Bad credential");
+        }
     }
 
     protected Authentication createSuccessAuthentication(SysSubSystemInfo retrievedSubSystemInfo,
@@ -41,7 +70,7 @@ public class SubSystemAuthenticationProvider implements AuthenticationProvider {
 
         SubSystemAuthenticationToken returnAuthToken = new SubSystemAuthenticationToken(authToken.getPrincipal(),
                 authToken.getCredentials(), authToken.getNonce(), retrievedSubSystemInfo.getAuthorities());
-        
+
         return returnAuthToken;
 
     }
@@ -50,8 +79,10 @@ public class SubSystemAuthenticationProvider implements AuthenticationProvider {
         SysSubSystemInfo subSystemInfo = subSystemDataService.retrieveSysSubSystemInfoWithSystemCode(systemCode);
 
         if (subSystemInfo == null) {
-            String errMsg = String.format("%s doesnt exist", systemCode);
-            log.error(errMsg);
+            String errMsg = String.format("%s does not exist", systemCode);
+            if (log.isInfoEnabled()) {
+                log.info(errMsg);
+            }
             throw new UsernameNotFoundException(errMsg);
         }
 
