@@ -16,18 +16,21 @@ export default {
     tableInnerActions: { default: () => [] },
     pagination: { type: Object },
     ascOptions: { type: Object },
-    isRefreshable: { default: () => false }
+    isRefreshable: { default: () => false },
+    isColumnsFilterOn: { default: () => true }
   },
   data() {
     return {
       form: {},
       selectedRows: [],
       data: [],
-      isShowHiddenFilters: false
+      isShowHiddenFilters: false,
+      selections: []
     };
   },
   mounted() {
     this.formatTableData();
+    this.selections = this.tableColumns.map(column => column.title);
   },
   watch: {
     tableData(val) {
@@ -50,6 +53,9 @@ export default {
             }
           }
         });
+        this.selections = this.tableColumns
+          .filter(_ => _.searchSeqNo)
+          .map(column => column.title);
       },
       deep: true,
       immediate: true
@@ -257,22 +263,63 @@ export default {
       });
     },
     getTableOuterActions() {
-      return (
-        this.tableOuterActions &&
-        this.tableOuterActions.map(_ => {
-          return (
-            <Button
-              style="margin-right: 10px"
-              {..._}
-              onClick={() => {
-                this.$emit("actionFun", _.actionType, this.selectedRows);
-              }}
-            >
-              {_.label}
-            </Button>
-          );
-        })
-      );
+      if (this.tableOuterActions) {
+        if (this.isColumnsFilterOn) {
+          this.tableOuterActions.forEach(action => {
+            if (action.actionType === "filterColumns") {
+              action.props.disabled = false;
+            }
+          });
+        }
+
+        let columnsTitles = this.tableColumns
+          .filter(_ => _.searchSeqNo)
+          .map(column => column.title);
+
+        return this.tableOuterActions.map(_ => {
+          if (_.actionType === "filterColumns") {
+            return (
+              <Poptip
+                placement="bottom"
+                style="float: right;margin-right: 10px"
+              >
+                <Tooltip content="过滤列" placement="top">
+                  <Button {..._} />
+                </Tooltip>
+                <CheckboxGroup
+                  slot="content"
+                  value={this.selections}
+                  on-input={values => {
+                    this.selections = values;
+                    this.calColumn();
+                  }}
+                  style="display: grid;"
+                >
+                  {columnsTitles.map(_ => {
+                    return (
+                      <Checkbox label={_}>
+                        <span>{_}</span>
+                      </Checkbox>
+                    );
+                  })}
+                </CheckboxGroup>
+              </Poptip>
+            );
+          } else {
+            return (
+              <Button
+                style="margin-right: 10px"
+                {..._}
+                onClick={() => {
+                  this.$emit("actionFun", _.actionType, this.selectedRows);
+                }}
+              >
+                {_.label}
+              </Button>
+            );
+          }
+        });
+      }
     },
     renderFormItem(item, index = 0) {
       if (item.isNotFilterable) return;
@@ -521,6 +568,16 @@ export default {
             );
           }
         });
+
+      if (this.isColumnsFilterOn) {
+        this.columns = this.columns.filter(column => {
+          return (
+            column.type === "selection" ||
+            column.key === "actions" ||
+            !!this.selections.find(_ => _ === column.title)
+          );
+        });
+      }
     },
     renderCol(col) {
       let setValueHandler = (_this, v, col, params) => {
@@ -534,8 +591,9 @@ export default {
 
       return {
         ...col,
-        maxWidth: 500,
-        minWidth: 200,
+        tooltip: true,
+        // maxWidth: 500,
+        minWidth: 130,
         sortable: this.isSortable ? "custom" : false,
         render: (h, params) => {
           if (
@@ -627,40 +685,34 @@ export default {
               content = params.row.weTableForm[col.key];
             }
 
+            const len = content ? content.toString().length : 0;
             const d = {
               props: {
+                disabled: len < 10,
                 content: content,
-                "max-width": "100px"
+                "min-width": "130px",
+                "max-width": "500px"
               }
             };
-            const len = content ? content.toString().length : 0;
-            // show tooltip when string length greater than 15
-            return len > 10 ? (
+
+            return (
               <Tooltip {...d}>
-                <span style="display: inline-block;max-width: 75%;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  {content}
-                </span>
-                {params.column.propertyName === "orchestration" &&
-                  this.$route.name === "workflowExecution" && (
-                    <orchestration
-                      onHandleSubmit={this.handleSubmit}
-                      col={params.column}
-                      row={params.row}
-                    />
-                  )}
+                <div class="ivu-table-cell-tooltip ivu-tooltip">
+                  <div class="ivu-tooltip-rel">
+                    <span class="ivu-table-cell-tooltip-content">
+                      {content}{" "}
+                      {params.column.propertyName === "orchestration" &&
+                        this.$route.name === "workflowExecution" && (
+                          <orchestration
+                            onHandleSubmit={this.handleSubmit}
+                            col={params.column}
+                            row={params.row}
+                          />
+                        )}
+                    </span>
+                  </div>
+                </div>
               </Tooltip>
-            ) : (
-              <span>
-                {content}{" "}
-                {params.column.propertyName === "orchestration" &&
-                  this.$route.name === "workflowExecution" && (
-                    <orchestration
-                      onHandleSubmit={this.handleSubmit}
-                      col={params.column}
-                      row={params.row}
-                    />
-                  )}
-              </span>
             );
           }
         }
