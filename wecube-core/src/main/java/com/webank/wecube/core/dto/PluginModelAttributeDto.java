@@ -1,33 +1,53 @@
 package com.webank.wecube.core.dto;
 
 import com.webank.wecube.core.domain.plugin.PluginModelAttribute;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.webank.wecube.core.domain.plugin.PluginModelEntity;
+import org.springframework.util.StringUtils;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+import javax.validation.constraints.NotNull;
+
 public class PluginModelAttributeDto {
-
-    private Integer id;
-    private Integer entityId;
-    private String description;
-    private String name;
+    @NotNull
     private String packageName;
+    private String packageVersion;
     private String entityName;
+    private String name;
+    private String description;
     private String dataType;
     private String state = "draft";
-    // for service to bind the unpacked reference info
+//    private String referenceName;  // {packageName}.{entityName}.{attributeName}
+    private String refPackageName;
+    private String refEntityName;
+    private String refAttributeName;
+
+    public PluginModelAttributeDto(String name,
+                                   String description,
+                                   String dataType,
+                                   String referencePackageName,
+                                   String referenceEntityName,
+                                   String referenceAttributeName) {
+        this.name = name;
+        this.description = description;
+        this.dataType = dataType;
+        this.refPackageName = referencePackageName;
+        this.refEntityName = referenceEntityName;
+        this.refAttributeName = referenceAttributeName;
+    }
+
+    public PluginModelAttributeDto() {
+    }
+
+
     /**
      * @param pluginModelAttribute input attribute domain object
      * @return attribute dto exposed to the server
      */
     public static PluginModelAttributeDto fromDomain(PluginModelAttribute pluginModelAttribute) {
         PluginModelAttributeDto pluginModelAttributeDto = new PluginModelAttributeDto();
+        pluginModelAttributeDto.setPackageName(pluginModelAttribute.getPluginModelEntity().getPluginPackage().getName());
+        pluginModelAttributeDto.setPackageVersion(pluginModelAttribute.getPluginModelEntity().getPluginPackage().getVersion());
+        pluginModelAttributeDto.setEntityName(pluginModelAttribute.getPluginModelEntity().getName());
         pluginModelAttributeDto.setName(pluginModelAttribute.getName());
-        pluginModelAttributeDto.setEntityName(pluginModelAttribute.getEntityName());
-        pluginModelAttributeDto.setPackageName(pluginModelAttribute.getPackageName());
         pluginModelAttributeDto.setDescription(pluginModelAttribute.getDescription());
         pluginModelAttributeDto.setDataType(pluginModelAttribute.getDataType());
         pluginModelAttributeDto.setState(pluginModelAttribute.getState());
@@ -35,51 +55,125 @@ public class PluginModelAttributeDto {
     }
 
     /**
-     * @param pluginModelAttributeDto     input attribute dto
-     * @param existedPluginModelAttribute existed attribute domain object
+     * @param attributeDto       input attribute dto
+     * @param referenceAttribute the attribute this attribute refers to
+     * @param referenceEntity    the entity this attribute refers to
      * @return transformed attribute domain object
      */
-    public static PluginModelAttribute toDomain(PluginModelAttributeDto pluginModelAttributeDto,
-                                                PluginModelAttribute existedPluginModelAttribute) {
-        PluginModelAttribute pluginModelAttribute = existedPluginModelAttribute;
-        if (pluginModelAttribute == null) {
-            pluginModelAttribute = new PluginModelAttribute();
+    public static PluginModelAttribute toDomain(PluginModelAttributeDto attributeDto,
+                                                PluginModelAttribute referenceAttribute,
+                                                PluginModelEntity referenceEntity) {
+        PluginModelAttribute pluginModelAttribute = new PluginModelAttribute();
+
+
+        if (referenceEntity != null) {
+            pluginModelAttribute.setPluginModelEntity(referenceEntity);
         }
 
-        if (pluginModelAttributeDto.getId() != null) {
-            pluginModelAttribute.setId(pluginModelAttributeDto.getId());
+        if (referenceAttribute != null) {
+            pluginModelAttribute.setPluginModelAttribute(referenceAttribute);
         }
 
-        if (pluginModelAttributeDto.getEntityId() != null) {
-            pluginModelAttribute
-                    .setEntityId(pluginModelAttributeDto.getEntityId());
+        if (attributeDto.getName() != null) {
+            pluginModelAttribute.setName(attributeDto.getName());
         }
 
-        if (pluginModelAttributeDto.getName() != null) {
-            pluginModelAttribute.setName(pluginModelAttributeDto.getName());
+        if (attributeDto.getDescription() != null) {
+            // the description can be empty
+            pluginModelAttribute.setDescription(attributeDto.getDescription());
         }
 
-        if (pluginModelAttributeDto.getEntityName() != null) {
-            pluginModelAttribute.setEntityName(pluginModelAttributeDto.getEntityName());
-        }
-
-        if (pluginModelAttributeDto.getPackageName() != null) {
-            pluginModelAttribute.setPackageName(pluginModelAttributeDto.getPackageName());
-        }
-
-        if (pluginModelAttributeDto.getDescription() != null) {
-            pluginModelAttribute.setDescription(pluginModelAttributeDto.getDescription());
-        }
-
-        if (pluginModelAttributeDto.getDataType() != null) {
-            pluginModelAttribute.setDataType(pluginModelAttributeDto.getDataType());
+        if (!StringUtils.isEmpty(attributeDto.getDataType())) {
+            // the DataType should not be null or empty
+            pluginModelAttribute.setDataType(attributeDto.getDataType().toLowerCase());
         }
 
 
-        if (pluginModelAttributeDto.getState() != null) {
-            pluginModelAttribute.setState(pluginModelAttributeDto.getState().toUpperCase());
+        if (!StringUtils.isEmpty(attributeDto.getState())) {
+            // the State should not be null or empty
+            pluginModelAttribute.setState(attributeDto.getState().toLowerCase());
         }
 
         return pluginModelAttribute;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getPackageVersion() {
+        return packageVersion;
+    }
+
+    public void setPackageVersion(String packageVersion) {
+        this.packageVersion = packageVersion;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getRefPackageName() {
+        return refPackageName;
+    }
+
+    public void setRefPackageName(String refPackageName) {
+        this.refPackageName = refPackageName;
+    }
+
+    public String getRefEntityName() {
+        return refEntityName;
+    }
+
+    public void setRefEntityName(String refEntityName) {
+        this.refEntityName = refEntityName;
+    }
+
+    public String getRefAttributeName() {
+        return refAttributeName;
+    }
+
+    public void setRefAttributeName(String refAttributeName) {
+        this.refAttributeName = refAttributeName;
     }
 }
