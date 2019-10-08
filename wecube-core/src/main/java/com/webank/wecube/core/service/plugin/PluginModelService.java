@@ -10,13 +10,13 @@ public interface PluginModelService {
 
     List<PluginModelEntityDto> register(List<PluginModelEntityDto> pluginModelEntityDtos);
 
-    List<PluginModelEntityDto> update(List<PluginModelEntityDto> pluginModelEntityDtos);
-
     List<PluginModelEntityDto> overview();
 
-    List<PluginModelEntityDto> overview(String packageName, String... version);
+    List<PluginModelEntityDto> packageView(String packageName, String version);
 
     void deleteEntity(String packageName, String... entityNames);
+
+    void deleteAttribute(String entityName, String... attributeNames);
 
 
 }
