@@ -15,6 +15,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
     private static final Logger log = LoggerFactory.getLogger(Http401AuthenticationEntryPoint.class);
 

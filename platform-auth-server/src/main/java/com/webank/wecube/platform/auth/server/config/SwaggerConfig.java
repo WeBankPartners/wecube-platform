@@ -16,6 +16,11 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Profile({ ApplicationConstants.Profile.DEV, ApplicationConstants.Profile.TEST, ApplicationConstants.Profile.DEFAULT,
 		ApplicationConstants.Profile.MOCK })
 @Configuration

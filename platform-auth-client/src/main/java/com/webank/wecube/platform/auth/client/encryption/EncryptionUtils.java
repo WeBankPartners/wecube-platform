@@ -1,14 +1,13 @@
-package com.webank.wecube.platform.auth.server.encryption;
+package com.webank.wecube.platform.auth.client.encryption;
 
 import java.nio.charset.Charset;
-
-import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
 
 public final class EncryptionUtils {
 
     public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
     public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
     public static final Charset UTF8 = Charset.forName("UTF-8");
+    
 
     /* --------------- Asymmetric start ----------------------------- */
 

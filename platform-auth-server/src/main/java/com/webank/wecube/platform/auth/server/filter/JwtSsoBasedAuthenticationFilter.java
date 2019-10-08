@@ -30,6 +30,11 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedAuthenticationFilter.class);
 

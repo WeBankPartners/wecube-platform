@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.auth.server.common.util;
+package com.webank.wecube.platform.auth.client.encryption;
 
 import org.apache.commons.codec.binary.Base64;
 

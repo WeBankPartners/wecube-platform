@@ -1,5 +1,10 @@
 package com.webank.wecube.platform.auth.server.common;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public final class ApplicationConstants {
     
     public static class Profile {

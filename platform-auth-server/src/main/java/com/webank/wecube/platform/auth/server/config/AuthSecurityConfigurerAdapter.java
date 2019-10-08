@@ -23,6 +23,11 @@ import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler
 import com.webank.wecube.platform.auth.server.handler.JwtSsoBasedAuthenticationFailureHandler;
 import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = { //
 //            "/v1/api/login", //

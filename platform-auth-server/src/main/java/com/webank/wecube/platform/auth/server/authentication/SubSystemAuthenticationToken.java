@@ -5,6 +5,11 @@ import java.util.Collection;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class SubSystemAuthenticationToken extends AbstractAuthenticationToken {
     private static final long serialVersionUID = -6762939343698545817L;
 
