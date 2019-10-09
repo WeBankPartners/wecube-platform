@@ -25,12 +25,12 @@ export default {
       selectedRows: [],
       data: [],
       isShowHiddenFilters: false,
-      selections: []
+      showedColumns: []
     };
   },
   mounted() {
     this.formatTableData();
-    this.selections = this.tableColumns.map(column => column.title);
+    this.showedColumns = this.tableColumns.map(column => column.title);
   },
   watch: {
     tableData(val) {
@@ -53,8 +53,8 @@ export default {
             }
           }
         });
-        this.selections = this.tableColumns
-          .filter(_ => _.searchSeqNo)
+        this.showedColumns = this.tableColumns
+          .filter(_ => _.isDisplayed || _.displaySeqNo)
           .map(column => column.title);
       },
       deep: true,
@@ -273,7 +273,7 @@ export default {
         }
 
         let columnsTitles = this.tableColumns
-          .filter(_ => _.searchSeqNo)
+          .filter(_ => _.isDisplayed || _.displaySeqNo)
           .map(column => column.title);
 
         return this.tableOuterActions.map(_ => {
@@ -288,9 +288,9 @@ export default {
                 </Tooltip>
                 <CheckboxGroup
                   slot="content"
-                  value={this.selections}
+                  value={this.showedColumns}
                   on-input={values => {
-                    this.selections = values;
+                    this.showedColumns = values;
                     this.calColumn();
                   }}
                   style="display: grid;"
@@ -574,7 +574,7 @@ export default {
           return (
             column.type === "selection" ||
             column.key === "actions" ||
-            !!this.selections.find(_ => _ === column.title)
+            !!this.showedColumns.find(_ => _ === column.title)
           );
         });
       }
