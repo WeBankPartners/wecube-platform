@@ -10,9 +10,10 @@ spring:
             uri: http://localhost:16000
             predicates:
             - Path=/sparklr2/**
-         -  id: wecube_cds_route
-            uri: http://localhost:9000
-            predicates:
-            - Path=/wecube-cds/**
-            filters:
-            - StripPrefix=1
+#         -  id: wecube_cds_route
+#            uri: http://localhost:9000
+#            predicates:
+#            - Path=/wecube-cds/**
+#            filters:
+#            - StripPrefix=1
+#            - JwtSsoToken=true
