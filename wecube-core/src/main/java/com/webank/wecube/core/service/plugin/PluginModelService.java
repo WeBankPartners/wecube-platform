@@ -14,6 +14,8 @@ public interface PluginModelService {
 
     List<PluginModelEntityDto> packageView(String packageName, String version);
 
+    List<PluginModelEntityDto> packageView(int packageId);
+
     void deleteEntity(String packageName, String... entityNames);
 
     void deleteAttribute(String entityName, String... attributeNames);
