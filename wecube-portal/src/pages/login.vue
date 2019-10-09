@@ -6,14 +6,46 @@
     </div>
     <br />
     <div class="login-form">
-      <input type="text" placeholder="username" name="user" /><br />
-      <input type="password" placeholder="password" name="password" /><br />
-      <input type="button" value="Login" />
+      <input
+        type="text"
+        placeholder="username"
+        v-model="username"
+        name="user"
+      /><br />
+      <input
+        type="password"
+        placeholder="password"
+        v-model="password"
+        name="password"
+      /><br />
+      <input type="button" value="Login" @click="login" />
     </div>
   </div>
 </template>
 <script>
-export default {};
+import { login } from "../api/server";
+export default {
+  data() {
+    return {
+      username: "",
+      password: ""
+    };
+  },
+  methods: {
+    async login() {
+      const payload = {
+        username: this.username,
+        password: this.password
+      };
+      const { status, message, data } = await login(payload);
+      if (status === "OK") {
+        let session = window.sessionStorage;
+        session.setItem("token", JSON.stringify(data));
+        this.$router.push("/homepage");
+      }
+    }
+  }
+};
 </script>
 <style scoped>
 .body {

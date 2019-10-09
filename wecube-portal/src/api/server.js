@@ -465,3 +465,4 @@ export const refreshProcessInstanceStatus = id =>
   req.get(`/process/instances/${id}/outline`);
 export const restartProcessInstance = data =>
   req.post("/process/instances/restart", data);
+export const login = data => req.post("/auth/v1/api/login", data);
