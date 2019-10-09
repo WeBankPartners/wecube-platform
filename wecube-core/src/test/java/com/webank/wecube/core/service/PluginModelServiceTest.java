@@ -58,9 +58,18 @@ public class PluginModelServiceTest extends DatabaseBasedTest {
 
 
     @Test
-    public void whenPackageViewShouldSuccess() {
+    public void whenPackageViewByPackageNameAndVersionShouldSuccess() {
         whenRegisterDataModelShouldSuccess();
         List<PluginModelEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginModelService.packageView("Package_1", "1.0");
+        assertThat(foundEntityDtoListByPackageNameAndVersion.size()).isEqualTo(3);
+        assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageName()).isEqualTo("Package_1");
+        assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageVersion()).isEqualTo("1.0");
+    }
+
+    @Test
+    public void whenPackageViewByPackageIdShouldSuccess() {
+        whenRegisterDataModelShouldSuccess();
+        List<PluginModelEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginModelService.packageView(1);
         assertThat(foundEntityDtoListByPackageNameAndVersion.size()).isEqualTo(3);
         assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageName()).isEqualTo("Package_1");
         assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageVersion()).isEqualTo("1.0");
