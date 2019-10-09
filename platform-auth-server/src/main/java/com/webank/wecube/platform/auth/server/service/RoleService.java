@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.auth.server.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class RoleService {
 	public SysRoleEntity create(CreateRoleDto createRoleDto) throws Exception {
 
 		SysRoleEntity existedRole = roleRepository.findOneByName(createRoleDto.getName());
-		
+
 		log.info("existUser = {}", existedRole);
 		if (!(null == existedRole))
 			throw new Exception(String.format("Role [%s] already existed", createRoleDto.getName()));
@@ -46,7 +47,13 @@ public class RoleService {
 	}
 
 	public void delete(Long id) {
-		
 		roleRepository.deleteById(id);
+	}
+
+	public SysRoleEntity getRoleByIdIfExisted(Long roleId) throws Exception {
+		Optional<SysRoleEntity> roleEntityOptional = roleRepository.findById(roleId);
+		if (!roleEntityOptional.isPresent())
+			throw new Exception(String.format("Role ID [%d] does not exist", roleId));
+		return roleEntityOptional.get();
 	}
 }

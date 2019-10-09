@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.auth.server.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.auth.server.dto.CreateApiDto;
 import com.webank.wecube.platform.auth.server.entity.SysApiEntity;
+import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.repository.ApiRepository;
 
 @Service("apiService")
@@ -48,4 +50,12 @@ public class ApiService {
 	public void delete(Long id) {
 		apiRepository.deleteById(id);
 	}
+
+	public SysApiEntity getApiByIdIfExisted(Long apiId) throws Exception {
+		Optional<SysApiEntity> apiEntityOptional = apiRepository.findById(apiId);
+		if (!apiEntityOptional.isPresent())
+			throw new Exception(String.format("Api ID [%d] does not exist", apiId));
+		return apiEntityOptional.get();
+	}
+
 }

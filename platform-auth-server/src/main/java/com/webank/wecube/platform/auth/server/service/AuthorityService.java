@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.auth.server.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.auth.server.dto.CreateAuthorityDto;
+import com.webank.wecube.platform.auth.server.entity.SysApiEntity;
 import com.webank.wecube.platform.auth.server.entity.SysAuthorityEntity;
 import com.webank.wecube.platform.auth.server.repository.AuthorityRepository;
 
@@ -41,5 +43,12 @@ public class AuthorityService {
 
 	public void delete(Long id) {
 		authorityRepository.deleteById(id);
+	}
+
+	public SysAuthorityEntity getAuthorityByIdIfExisted(Long authorityId) throws Exception {
+		Optional<SysAuthorityEntity> authorityEntityOptional = authorityRepository.findById(authorityId);
+		if (!authorityEntityOptional.isPresent())
+			throw new Exception(String.format("Api ID [%d] does not exist", authorityId));
+		return authorityEntityOptional.get();
 	}
 }

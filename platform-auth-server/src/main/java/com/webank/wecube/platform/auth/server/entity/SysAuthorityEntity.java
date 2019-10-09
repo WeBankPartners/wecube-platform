@@ -14,7 +14,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "AUTH_SYS_AUTHORIRY")
+@Table(name = "AUTH_SYS_AUTHORITY")
 public class SysAuthorityEntity extends AbstractTraceableEntity {
 
 	@Id
@@ -37,10 +37,10 @@ public class SysAuthorityEntity extends AbstractTraceableEntity {
 	@Column(name = "SYSTEM_NAME")
 	private String systemName;
 
-	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "AUTH_SYS_AUTHORITY_ROLE", joinColumns = {
-			@JoinColumn(name = "AUTHORITY_ID") }, inverseJoinColumns = { @JoinColumn(name = "ROLE_ID") })
-	private List<SysRoleEntity> boundRoles = new ArrayList<SysRoleEntity>();
+//	@ManyToMany(fetch = FetchType.EAGER)
+//	@JoinTable(name = "AUTH_SYS_AUTHORITY_ROLE", joinColumns = {
+//			@JoinColumn(name = "AUTHORITY_ID") }, inverseJoinColumns = { @JoinColumn(name = "ROLE_ID") })
+//	private List<SysRoleEntity> boundRoles = new ArrayList<SysRoleEntity>();
 
 	public SysAuthorityEntity() {
 	}
@@ -101,12 +101,12 @@ public class SysAuthorityEntity extends AbstractTraceableEntity {
 		this.systemName = systemName;
 	}
 
-	public List<SysRoleEntity> getBoundRoles() {
-		return boundRoles;
-	}
-
-	public void setBoundRoles(List<SysRoleEntity> boundRoles) {
-		this.boundRoles = boundRoles;
-	}
+//	public List<SysRoleEntity> getBoundRoles() {
+//		return boundRoles;
+//	}
+//
+//	public void setBoundRoles(List<SysRoleEntity> boundRoles) {
+//		this.boundRoles = boundRoles;
+//	}
 
 }

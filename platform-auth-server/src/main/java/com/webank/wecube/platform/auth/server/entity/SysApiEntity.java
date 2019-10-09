@@ -40,15 +40,15 @@ public class SysApiEntity extends AbstractTraceableEntity {
 	@Column(name = "SYSTEM_CODE")
 	private String systemCode;
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "AUTH_SYS_API_ROLE", joinColumns = { @JoinColumn(name = "API_ID") }, inverseJoinColumns = {
-			@JoinColumn(name = "ROLE_ID") })
-	private List<SysRoleEntity> boundRoles = new ArrayList<SysRoleEntity>();
+//	@ManyToMany(fetch = FetchType.LAZY)
+//	@JoinTable(name = "AUTH_SYS_API_ROLE", joinColumns = { @JoinColumn(name = "API_ID") }, inverseJoinColumns = {
+//			@JoinColumn(name = "ROLE_ID") })
+//	private List<SysRoleEntity> boundRoles = new ArrayList<SysRoleEntity>();
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "AUTH_SYS_API_AUTHORITY", joinColumns = { @JoinColumn(name = "API_ID") }, inverseJoinColumns = {
-			@JoinColumn(name = "AUTHORITY_ID") })
-	private List<SysAuthorityEntity> boundAuthorities = new ArrayList<SysAuthorityEntity>();
+//	@ManyToMany(fetch = FetchType.LAZY)
+//	@JoinTable(name = "AUTH_SYS_API_AUTHORITY", joinColumns = { @JoinColumn(name = "API_ID") }, inverseJoinColumns = {
+//			@JoinColumn(name = "AUTHORITY_ID") })
+//	private List<SysAuthorityEntity> boundAuthorities = new ArrayList<SysAuthorityEntity>();
 
 	public SysApiEntity() {
 	}
@@ -111,21 +111,21 @@ public class SysApiEntity extends AbstractTraceableEntity {
 		this.systemCode = systemCode;
 	}
 
-	public List<SysRoleEntity> getBoundRoles() {
-		return boundRoles;
-	}
-
-	public void setBoundRoles(List<SysRoleEntity> boundRoles) {
-		this.boundRoles = boundRoles;
-	}
-
-	public List<SysAuthorityEntity> getBoundAuthorities() {
-		return boundAuthorities;
-	}
-
-	public void setBoundAuthorities(List<SysAuthorityEntity> boundAuthorities) {
-		this.boundAuthorities = boundAuthorities;
-	}
+//	public List<SysRoleEntity> getBoundRoles() {
+//		return boundRoles;
+//	}
+//
+//	public void setBoundRoles(List<SysRoleEntity> boundRoles) {
+//		this.boundRoles = boundRoles;
+//	}
+//
+//	public List<SysAuthorityEntity> getBoundAuthorities() {
+//		return boundAuthorities;
+//	}
+//
+//	public void setBoundAuthorities(List<SysAuthorityEntity> boundAuthorities) {
+//		this.boundAuthorities = boundAuthorities;
+//	}
 
 	public String getHttpMethod() {
 		return httpMethod;

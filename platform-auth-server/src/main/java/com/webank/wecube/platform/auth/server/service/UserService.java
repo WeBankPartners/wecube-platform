@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.auth.server.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.auth.server.dto.CreateUserDto;
+import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.repository.UserRepository;
 
@@ -46,5 +48,12 @@ public class UserService {
 
 	public void delete(Long id) {
 		userRepository.deleteById(id);
+	}
+
+	public SysUserEntity getUserByIdIfExisted(Long userId) throws Exception {
+		Optional<SysUserEntity> UserEntityOptional = userRepository.findById(userId);
+		if (!UserEntityOptional.isPresent())
+			throw new Exception(String.format("User ID [%d] does not exist", userId));
+		return UserEntityOptional.get();
 	}
 }

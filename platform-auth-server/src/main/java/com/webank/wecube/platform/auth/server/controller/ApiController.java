@@ -31,7 +31,7 @@ import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okay;
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
 public class ApiController {
 
-	private static final Logger log = LoggerFactory.getLogger(TokenController.class);
+	private static final Logger log = LoggerFactory.getLogger(ApiController.class);
 
 	@Autowired
 	ApiService apiService;
