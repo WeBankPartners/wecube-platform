@@ -29,7 +29,7 @@ import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okay;
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
 public class RoleController {
 
-	private static final Logger log = LoggerFactory.getLogger(TokenController.class);
+	private static final Logger log = LoggerFactory.getLogger(RoleController.class);
 
 	@Autowired
 	RoleService roleService;
