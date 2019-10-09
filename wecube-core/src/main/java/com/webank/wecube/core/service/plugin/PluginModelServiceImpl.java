@@ -89,6 +89,29 @@ public class PluginModelServiceImpl implements PluginModelService {
     }
 
     /**
+     * View one data model entity with its relationship by packageId
+     *
+     * @param packageId the name of package
+     * @return list of entity dto
+     */
+    @Override
+    public List<PluginModelEntityDto> packageView(int packageId) throws WecubeCoreException {
+        Optional<List<PluginModelEntity>> allByPluginPackage_id = pluginModelEntityRepository.findAllByPluginPackage_Id(packageId);
+        if (allByPluginPackage_id.isPresent()) {
+            List<PluginModelEntity> pluginModelEntityList = allByPluginPackage_id.get();
+            return convertEntityDomainToDto(pluginModelEntityList);
+        } else {
+            String msg = String.format("The data model of package ID: %d cannot be found.", packageId);
+            logger.error(msg);
+            if (logger.isDebugEnabled()) {
+                logger.debug(String
+                        .format("package ID: %d", packageId));
+            }
+            throw new WecubeCoreException(msg);
+        }
+    }
+
+    /**
      * Delete entity, can delete single entity under one package or all entities under one package
      *
      * @param packageName the name of package
