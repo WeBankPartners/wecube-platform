@@ -1,16 +1,9 @@
 package com.webank.wecube.platform.auth.server.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -34,10 +27,10 @@ public class SysUserEntity extends AbstractTraceableEntity {
 	@Column(name = "IS_BLOCKED")
 	private Boolean blocked;
 
-	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name = "AUTH_SYS_USER_ROLE", joinColumns = { @JoinColumn(name = "USER_ID") }, inverseJoinColumns = {
-			@JoinColumn(name = "ROLE_ID") })
-	private List<SysRoleEntity> roles = new ArrayList<SysRoleEntity>();
+//	@ManyToMany(fetch = FetchType.EAGER)
+//	@JoinTable(name = "AUTH_SYS_USER_ROLE", joinColumns = { @JoinColumn(name = "USER_ID") }, inverseJoinColumns = {
+//			@JoinColumn(name = "ROLE_ID") })
+//	private List<SysRoleEntity> roles = new ArrayList<SysRoleEntity>();
 
 	public SysUserEntity() {
 	}
@@ -88,12 +81,12 @@ public class SysUserEntity extends AbstractTraceableEntity {
 		this.blocked = blocked;
 	}
 
-	public List<SysRoleEntity> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(List<SysRoleEntity> roles) {
-		this.roles = roles;
-	}
+//	public List<SysRoleEntity> getRoles() {
+//		return roles;
+//	}
+//
+//	public void setRoles(List<SysRoleEntity> roles) {
+//		this.roles = roles;
+//	}
 
 }
