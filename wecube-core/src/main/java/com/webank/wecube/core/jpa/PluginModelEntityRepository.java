@@ -14,6 +14,8 @@ public interface PluginModelEntityRepository extends CrudRepository<PluginModelE
 
     List<PluginModelEntity> findAllByPluginPackage(PluginPackage pluginPackage);
 
+    Optional<List<PluginModelEntity>> findAllByPluginPackage_Id(Integer id);
+
     void deleteByPluginPackage_NameAndName(String pluginPackageName, String entityName);
 
     void deleteByPluginPackage_Name(String packageName);
