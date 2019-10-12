@@ -1,5 +1,7 @@
 package com.webank.wecube.core.service.plugin;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.plugin.PluginModelAttribute;
 import com.webank.wecube.core.domain.plugin.PluginModelEntity;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -41,15 +44,14 @@ public class PluginModelServiceImpl implements PluginModelService {
     public List<PluginModelEntityDto> register(List<PluginModelEntityDto> inputEntityDtoList)
             throws WecubeCoreException {
 
-        // map "{package}.{entity}.{attribute}" to another "{package}.{entity}.{attribute}"
+        // map "{package}`{version}`{entity}`{attribute}" to another "{package}`{version}`{entity}`{attribute}"
         Map<String, String> referenceNameMap = new HashMap<>();
-        // map "{package}.{entity}.{attribute}" to attribute domain object
+        // map "{package}`{version}`{entity}`{attribute}" to attribute domain object
         Map<String, PluginModelAttribute> nameToAttributeMap = new HashMap<>();
 
         List<PluginModelEntity> cancidateEntityList = new ArrayList<>();
 
-        buildReferenceMapping(inputEntityDtoList, referenceNameMap, nameToAttributeMap,
-                cancidateEntityList);
+        buildReferenceMapping(inputEntityDtoList, referenceNameMap, nameToAttributeMap, cancidateEntityList);
 
         updateCandidateEntityList(referenceNameMap, nameToAttributeMap, cancidateEntityList);
 
@@ -75,17 +77,44 @@ public class PluginModelServiceImpl implements PluginModelService {
      * @return list of entity dto
      */
     @Override
-    public List<PluginModelEntityDto> packageView(String packageName, String version) {
-        if (version != null) {
-            List<PluginModelEntity> pluginModelEntityList = new ArrayList<>();
-            Optional<PluginPackage> foundPackageByNameAndVersion = pluginPackageRepository
-                    .findByNameAndVersion(packageName, version);
-            foundPackageByNameAndVersion.ifPresent(pluginPackage -> pluginModelEntityList
-                    .addAll(pluginModelEntityRepository.findAllByPluginPackage(pluginPackage)));
+    public List<PluginModelEntityDto> packageView(String packageName, String version) throws WecubeCoreException {
+        // check if the package name is empty or null first
+        if (StringUtils.isEmpty(packageName)) {
+            String msg = String.format("The package name: [%s] should not be null or empty.", packageName);
+            logger.error(msg);
+            if (logger.isDebugEnabled()) {
+                logger.debug(String.format("package name: [%s].", packageName));
+            }
+            throw new WecubeCoreException(msg);
+        }
+        // then check the version
+        if (StringUtils.isEmpty(version)) {
+            // if version is empty or null, then can return all the data model according to the give package name, ignore the version
+            Optional<List<PluginModelEntity>> allByPluginPackage_name = pluginModelEntityRepository.findAllByPluginPackage_Name(packageName);
+            if (!allByPluginPackage_name.isPresent()) {
+                String msg = String.format("Cannot find datamodel according to packageName: [%s].", packageName);
+                logger.error(msg);
+                if (logger.isDebugEnabled()) {
+                    logger.debug(String.format("package name: [%s].", packageName));
+                }
+                throw new WecubeCoreException(msg);
+            }
+            List<PluginModelEntity> pluginModelEntityList = allByPluginPackage_name.get();
             return convertEntityDomainToDto(pluginModelEntityList);
         }
-        return convertEntityDomainToDto(
-                pluginModelEntityRepository.findAllByPluginPackage_Name(packageName));
+
+        // give package name and version are all not empty or not null
+        Optional<List<PluginModelEntity>> allByPluginPackage_nameAndPluginPackage_version = pluginModelEntityRepository.findAllByPluginPackage_NameAndPluginPackage_Version(packageName, version);
+        if (!allByPluginPackage_nameAndPluginPackage_version.isPresent()) {
+            String msg = String.format("Cannot find datamodel according to packageName: [%s] and version: [%s].", packageName, version);
+            logger.error(msg);
+            if (logger.isDebugEnabled()) {
+                logger.debug(String.format("package name: [%s] and version: [%s].", packageName, version));
+            }
+            throw new WecubeCoreException(msg);
+        }
+        List<PluginModelEntity> pluginModelEntityList = allByPluginPackage_nameAndPluginPackage_version.get();
+        return convertEntityDomainToDto(pluginModelEntityList);
     }
 
     /**
@@ -97,10 +126,7 @@ public class PluginModelServiceImpl implements PluginModelService {
     @Override
     public List<PluginModelEntityDto> packageView(int packageId) throws WecubeCoreException {
         Optional<List<PluginModelEntity>> allByPluginPackage_id = pluginModelEntityRepository.findAllByPluginPackage_Id(packageId);
-        if (allByPluginPackage_id.isPresent()) {
-            List<PluginModelEntity> pluginModelEntityList = allByPluginPackage_id.get();
-            return convertEntityDomainToDto(pluginModelEntityList);
-        } else {
+        if (!allByPluginPackage_id.isPresent()) {
             String msg = String.format("The data model of package ID: %d cannot be found.", packageId);
             logger.error(msg);
             if (logger.isDebugEnabled()) {
@@ -109,100 +135,57 @@ public class PluginModelServiceImpl implements PluginModelService {
             }
             throw new WecubeCoreException(msg);
         }
+        List<PluginModelEntity> pluginModelEntityList = allByPluginPackage_id.get();
+        return convertEntityDomainToDto(pluginModelEntityList);
     }
 
     /**
-     * Delete entity, can delete single entity under one package or all entities under one package
+     * Delete one or multiple entity by package name and its version
      *
      * @param packageName the name of package
-     * @param entityNames the name of entity
+     * @param version     version of package
      */
     @Override
-    public void deleteEntity(String packageName, String... entityNames) throws WecubeCoreException {
-        if (!StringUtils.isEmpty(packageName)) {
-            if (entityNames.length > 0) {
-                for (String entityName : entityNames) {
-                    if (!StringUtils.isEmpty(entityName)) {
-                        // delete specific entity under the package
-                        pluginModelEntityRepository.deleteByPluginPackage_NameAndName(packageName, entityName);
-                    } else {
-                        String msg = "The entity name should not be null or empty";
-                        logger.error(msg);
-                        if (logger.isDebugEnabled()) {
-                            logger
-                                    .debug(String
-                                            .format("packageName: %s, entityName: %s", packageName, entityName));
-                        }
-                        throw new WecubeCoreException(msg);
-                    }
-                }
-            } else {
-                // delete all entities under same package
-                pluginModelEntityRepository.deleteByPluginPackage_Name(packageName);
-            }
-        } else {
-            String msg = "The package name should not be null or empty";
+    public void deleteModel(String packageName, String version) throws WecubeCoreException {
+        if (StringUtils.isEmpty(packageName) || StringUtils.isEmpty(version)) {
+            String msg = "The package name or version should not be null or empty";
             logger.error(msg);
             if (logger.isDebugEnabled()) {
-                logger.debug(String
-                        .format("packageName: %s, entityName: %s", packageName,
-                                Arrays.toString(entityNames)));
+                logger.debug(String.format("packageName: %s, version: %s", packageName, version));
             }
             throw new WecubeCoreException(msg);
         }
 
-    }
-
-    /**
-     * Delete attribute, can delete single attribute under one package or all attributes under one
-     * package
-     *
-     * @param entityName     the name of package
-     * @param attributeNames the name of entity
-     */
-    @Override
-    public void deleteAttribute(String entityName, String... attributeNames)
-            throws WecubeCoreException {
-        if (!StringUtils.isEmpty(entityName)) {
-            if (attributeNames.length > 0) {
-                for (String attributeName : attributeNames) {
-                    if (!StringUtils.isEmpty(attributeName)) {
-                        // delete specific entity under the package
-                        pluginModelAttributeRepository
-                                .deleteByPluginModelEntity_NameAndName(entityName, attributeName);
-                    } else {
-                        String msg = "The attribute name should not be null or empty";
-                        logger.error(msg);
-                        if (logger.isDebugEnabled()) {
-                            logger.debug(
-                                    String
-                                            .format("entityName: %s, attributeName: %s", entityName, attributeName));
-                        }
-                        throw new WecubeCoreException(msg);
+        // if the attribute the user want to delete is still referenced by other attributes, the delete operation will terminate
+        Optional<List<PluginModelAttribute>> allByPackageNameAndVersion = pluginModelAttributeRepository.findAllByPluginModelEntity_PluginPackage_NameAndPluginModelEntity_PluginPackage_Version(packageName, version);
+        allByPackageNameAndVersion.ifPresent(pluginModelAttributeList -> {
+            for (PluginModelAttribute pluginModelAttribute : pluginModelAttributeList) {
+                String entityName = pluginModelAttribute.getPluginModelEntity().getName();
+                String attributeName = pluginModelAttribute.getName();
+                long allReferenceCount = pluginModelAttributeRepository
+                        .countAllByPluginModelAttribute_PluginModelEntity_PluginPackage_NameAndPluginModelAttribute_PluginModelEntity_PluginPackage_VersionAndPluginModelAttribute_PluginModelEntity_NameAndName(
+                                packageName, version, entityName, attributeName);
+                if (allReferenceCount > 0) {
+                    String msg = String.format("The attribute: [%s] from Package: [%s] with Version: [%s] and Entity: [%s]  is still referenced by others, delete operation will terminate.", attributeName, packageName, version, entityName);
+                    logger.error(msg);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(String.format("package: [%s], version: [%s], entity: [%s], attribute: [%s]", packageName, version, entityName, attributeName));
                     }
-
+                    throw new WecubeCoreException(msg);
                 }
-            } else {
-                // delete all entities under same package
-                pluginModelAttributeRepository.deleteByPluginModelEntity_Name(entityName);
             }
-        } else {
-            String msg = "The entity name should not be null or empty";
-            logger.error(msg);
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("entityName: %s, attributeName: %s", entityName,
-                        Arrays.toString(attributeNames)));
-            }
-            throw new WecubeCoreException(msg);
-        }
+        });
+
+        pluginModelEntityRepository.deleteByPluginPackage_NameAndPluginPackage_Version(packageName, version);
+
     }
 
     /**
      * Build reference mapping for package registration
      *
      * @param inputEntityDtoList  the input entity dto list
-     * @param referenceNameMap    map "{package}.{entity}.{attribute}" to another "{package}.{entity}.{attribute}"
-     * @param nameToAttributeMap  map "{package}.{entity}.{attribute}" to attribute domain object
+     * @param referenceNameMap    map "{package}`{version}`{entity}`{attribute}" to another "{package}`{version}`{entity}`{attribute}"
+     * @param nameToAttributeMap  map "{package}`{version}`{entity}`{attribute}" to attribute domain object
      * @param cancidateEntityList the candidate entity list, will be inserted to DB later
      * @throws WecubeCoreException when missing reference name, missing datatype or datatype is not equal to "ref"
      */
@@ -212,33 +195,7 @@ public class PluginModelServiceImpl implements PluginModelService {
         for (PluginModelEntityDto inputEntityDto : inputEntityDtoList) {
             // update the referenceNameMap with self and referenceName, the referenceName was transfered into "packageName"."entityName"."attributeName"
             for (PluginModelAttributeDto inputAttributeDto : inputEntityDto.getAttributeDtoList()) {
-                if (!StringUtils.isEmpty(inputAttributeDto.getDataType())) {
-                    // check the DataType
-                    if ("ref".equals(inputAttributeDto.getDataType())) {
-                        // if DataType equals "ref"
-                        if (!StringUtils.isEmpty(inputAttributeDto.getRefPackageName()) && !StringUtils
-                                .isEmpty(inputAttributeDto.getRefEntityName()) && !StringUtils
-                                .isEmpty(inputAttributeDto.getRefAttributeName())) {
-                            // get the self name and reference name
-                            String selfName =
-                                    inputEntityDto.getPackageName() + "." + inputEntityDto.getName() + "."
-                                            + inputAttributeDto.getName();
-                            String referenceName =
-                                    inputAttributeDto.getRefPackageName() + "." + inputAttributeDto.getRefEntityName()
-                                            + "." + inputAttributeDto.getRefAttributeName();
-                            referenceNameMap.put(selfName, referenceName);
-                        } else {
-                            String msg = String.format(
-                                    "The DataType should be set to \"ref\" and reference name should not be empty while registering he package [%s] with version: [%s]",
-                                    inputEntityDto.getPackageName(), inputEntityDto.getPackageVersion());
-                            logger.error(msg);
-                            if (logger.isDebugEnabled()) {
-                                logger.debug(String.valueOf(inputAttributeDto));
-                            }
-                            throw new WecubeCoreException(msg);
-                        }
-                    }
-                } else {
+                if (StringUtils.isEmpty(inputAttributeDto.getDataType())) {
                     String msg = String.format(
                             "The DataType should not be empty or null while registering he package [%s] with version: [%s]",
                             inputEntityDto.getPackageName(), inputEntityDto.getPackageVersion());
@@ -248,30 +205,59 @@ public class PluginModelServiceImpl implements PluginModelService {
                     }
                     throw new WecubeCoreException(msg);
                 }
+                // check the DataType
+                if ("ref".equals(inputAttributeDto.getDataType())) {
+                    // if DataType equals "ref"
+                    if (StringUtils.isEmpty(inputAttributeDto.getRefPackageName())
+                            || StringUtils.isEmpty(inputAttributeDto.getRefPackageVersion())
+                            || StringUtils.isEmpty(inputAttributeDto.getRefEntityName())
+                            || StringUtils.isEmpty(inputAttributeDto.getRefAttributeName())) {
+                        // once the reference name (including packageName, packageVersion, entityName and attributeName should be specified
+                        String msg = "All reference field should be specified when [dataType] is set to [\"ref\"]";
+                        logger.error(msg);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(String.valueOf(inputAttributeDto));
+                        }
+                        throw new WecubeCoreException(msg);
+                    }
+                    // get the self name and reference name
+                    String selfName =
+                            inputEntityDto.getPackageName() + "`"
+                                    + inputEntityDto.getPackageVersion() + "`"
+                                    + inputEntityDto.getName() + "`"
+                                    + inputAttributeDto.getName();
+                    String referenceName =
+                            inputAttributeDto.getRefPackageName() + "`"
+                                    + inputAttributeDto.getRefPackageVersion() + "`"
+                                    + inputAttributeDto.getRefEntityName() + "`"
+                                    + inputAttributeDto.getRefAttributeName();
+                    referenceNameMap.put(selfName, referenceName);
+                }
             }
 
             // transfer from entity dto to entity domain object
             PluginModelEntity transferedEntity = PluginModelEntityDto.toDomain(inputEntityDto);
             // query the plugin package domain object by package name and version recorded in entity dto
-            Optional<PluginPackage> foundPackageByNameAndVersion = pluginPackageRepository
-                    .findByNameAndVersion(inputEntityDto.getPackageName(),
-                            inputEntityDto.getPackageVersion());
-            if (foundPackageByNameAndVersion.isPresent()) {
-                transferedEntity.setPluginPackage(foundPackageByNameAndVersion.get());
-            } else {
-                String msg = String
-                        .format("Cannot find the package [%s] with version: [%s] while registering data model",
-                                inputEntityDto.getPackageName(), inputEntityDto.getPackageVersion());
+            Optional<PluginPackage> foundPackageByNameAndVersion = pluginPackageRepository.findByNameAndVersion(
+                    inputEntityDto.getPackageName(), inputEntityDto.getPackageVersion());
+
+            if (!foundPackageByNameAndVersion.isPresent()) {
+                String msg = String.format("Cannot find the package [%s] with version: [%s] while registering data model",
+                        inputEntityDto.getPackageName(), inputEntityDto.getPackageVersion());
                 logger.error(msg);
                 throw new WecubeCoreException(msg);
             }
+
+            transferedEntity.setPluginPackage(foundPackageByNameAndVersion.get());
 
             for (PluginModelAttribute transferedAttribute : transferedEntity
                     .getPluginModelAttributeList()) {
                 // update the transfered attribute domain object with found transfered entity domain object
                 transferedAttribute.setPluginModelEntity(transferedEntity);
                 String referenceName =
-                        inputEntityDto.getPackageName() + "." + inputEntityDto.getName() + "."
+                        inputEntityDto.getPackageName() + "`"
+                                + inputEntityDto.getPackageVersion() + "`"
+                                + inputEntityDto.getName() + "`"
                                 + transferedAttribute.getName();
                 // update the nameToAttribute map with reference name and self
                 nameToAttributeMap.put(referenceName, transferedAttribute);
@@ -285,8 +271,8 @@ public class PluginModelServiceImpl implements PluginModelService {
     /**
      * Update candidate entity list according to the reference mapping
      *
-     * @param referenceNameMap    map "{package}.{entity}.{attribute}" to another "{package}.{entity}.{attribute}"
-     * @param nameToAttributeMap  map "{package}.{entity}.{attribute}" to attribute domain object
+     * @param referenceNameMap    map "{package}`{version}`{entity}`{attribute}" to another "{package}`{version}`{entity}`{attribute}"
+     * @param nameToAttributeMap  map "{package}`{version}`{entity}`{attribute}" to attribute domain object
      * @param cancidateEntityList the candidate entity list, will be inserted to DB later
      * @throws WecubeCoreException when reference name the dto passed is invalid
      */
@@ -297,46 +283,108 @@ public class PluginModelServiceImpl implements PluginModelService {
         for (PluginModelEntity pluginModelEntity : cancidateEntityList) {
             for (PluginModelAttribute pluginModelAttribute : pluginModelEntity
                     .getPluginModelAttributeList()) {
-                String selfName =
-                        pluginModelAttribute.getPluginModelEntity().getPluginPackage().getName() + "."
-                                + pluginModelAttribute.getPluginModelEntity().getName() + "." + pluginModelAttribute
-                                .getName();
+                String selfName = pluginModelAttribute.getPluginModelEntity().getPluginPackage().getName() + "`"
+                        + pluginModelAttribute.getPluginModelEntity().getPluginPackage().getVersion() + "`"
+                        + pluginModelAttribute.getPluginModelEntity().getName() + "`"
+                        + pluginModelAttribute.getName();
                 if (referenceNameMap.containsKey(selfName)) {
                     // only need to assign the attribute to attribute when the selfName is found in referenceNameMap
                     String referenceName = referenceNameMap.get(selfName);
                     // check nameToAttributeMap first, if not exist, then check the database, finally throw the exception
                     if (nameToAttributeMap.containsKey(referenceName)) {
+                        // the reference is inside the same package
                         PluginModelAttribute referenceAttribute = nameToAttributeMap
                                 .get(referenceName);
                         pluginModelAttribute.setPluginModelAttribute(referenceAttribute);
                     } else {
-                        // the reference cannot be found in the referenceNameMap, which means it's a cross-package reference
-                        // split the crossReferenceName and assign to three parameters
-                        String[] splitResult = referenceName.split("\\.");
-                        if (splitResult.length == 3) {
-                            String referencePackageName = splitResult[0];
-                            String referenceEntityName = splitResult[1];
-                            String referenceAttributeName = splitResult[2];
-                            // found attribute domain object with the seperated three reference names
-                            Optional<PluginModelAttribute> foundAttributeList = pluginModelAttributeRepository
-                                    .findAllByPluginModelEntity_PluginPackage_NameAndPluginModelEntity_NameAndName(
-                                            referencePackageName, referenceEntityName, referenceAttributeName);
-                            // the foundEntity should only be one because of the unique key constraint
-                            if (foundAttributeList.isPresent()) {
-                                pluginModelAttribute.setPluginModelAttribute(foundAttributeList.get());
-                            } else {
-                                String msg = String.format(
-                                        "Cannot found the specified plugin model entity with package name: [%s], entity name: [%s] and attribute name: [%s]",
-                                        referencePackageName, referenceEntityName, referenceAttributeName);
-                                logger.error(msg);
-                                throw new WecubeCoreException(msg);
-                            }
-                        } else {
+                        // cross-package reference process
+                        // the reference cannot be found in the referenceNameMap
+
+                        // split the crossReferenceName
+                        Iterable<String> splitResult = Splitter.on('`').trimResults().split(referenceName);
+                        if (Iterables.size(splitResult) != 4) {
                             String msg = String.format("The reference name [%s] is illegal", referenceName);
                             logger.error(msg);
                             throw new WecubeCoreException(msg);
                         }
+                        // fetch the packageName, packageVersion, entityName, attributeName
+                        Iterator<String> splitResultIterator = splitResult.iterator();
+                        String referencePackageName = splitResultIterator.next();
+                        String referencePackageVersion = splitResultIterator.next();
+                        String referenceEntityName = splitResultIterator.next();
+                        String referenceAttributeName = splitResultIterator.next();
+
+                        // found attribute domain object with the seperated three reference names
+                        Optional<PluginModelAttribute> foundAttributeList = pluginModelAttributeRepository
+                                .findByPluginModelEntity_PluginPackage_NameAndPluginModelEntity_PluginPackage_VersionAndPluginModelEntity_NameAndName(
+                                        referencePackageName, referencePackageVersion, referenceEntityName, referenceAttributeName);
+                        // the foundEntity should only be one because of the unique key constraint
+                        if (!foundAttributeList.isPresent()) {
+                            String msg = String.format(
+                                    "Cannot found the specified plugin model entity with package name: [%s], entity name: [%s], attribute name: [%s] and package version: [%s]",
+                                    referencePackageName, referenceEntityName, referenceAttributeName, referencePackageVersion);
+                            logger.error(msg);
+                            throw new WecubeCoreException(msg);
+                        }
+                        pluginModelAttribute.setPluginModelAttribute(foundAttributeList.get());
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * Update the reference info for both reference by and reference to
+     * This feature is for entity to known whom it refers to and whom it is referred by
+     *
+     * @param inputEntityDtoList entity dto list as input
+     */
+    private void updateReferenceInfo(List<PluginModelEntityDto> inputEntityDtoList) {
+        for (PluginModelEntityDto inputEntityDto : inputEntityDtoList) {
+            // query for the referenceBy info
+            String packageName = inputEntityDto.getPackageName();
+            String packageVersion = inputEntityDto.getPackageVersion();
+            String entityName = inputEntityDto.getName();
+            Optional<List<PluginModelAttribute>> allAttributeReferenceByList = pluginModelAttributeRepository
+                    .findAllByPluginModelAttribute_PluginModelEntity_PluginPackage_NameAndPluginModelAttribute_PluginModelEntity_PluginPackage_VersionAndPluginModelAttribute_PluginModelEntity_Name(packageName, packageVersion, entityName);
+            allAttributeReferenceByList.ifPresent(attributeList -> attributeList.forEach(attribute -> {
+                // the process of found reference by info
+                PluginModelEntity referenceByEntity = attribute.getPluginModelEntity();
+                String referenceByPackageName = referenceByEntity.getPluginPackage().getName();
+                String referenceByPackageVersion = referenceByEntity.getPluginPackage().getVersion();
+                String referenceByEntityName = referenceByEntity.getName();
+                String displayName = referenceByEntity.getDisplayName();
+                if (!packageName.equals(referenceByPackageName) ||
+                        !packageVersion.equals(referenceByPackageVersion) ||
+                        !entityName.equals(referenceByEntityName)) {
+                    // only add the dto to set when the attribute doesn't belong to this input entity
+                    inputEntityDto.updateReferenceBy(
+                            referenceByPackageName,
+                            referenceByPackageVersion,
+                            referenceByEntityName,
+                            displayName
+                    );
+                }
+            }));
+
+            // query for the referenceTo info
+            List<PluginModelAttributeDto> attributeDtoList = inputEntityDto.getAttributeDtoList();
+            if (!CollectionUtils.isEmpty(attributeDtoList)) {
+                for (PluginModelAttributeDto attributeDto : attributeDtoList) {
+                    Optional<PluginModelEntity> entityReferenceTo = pluginModelEntityRepository.findByPluginPackage_NameAndPluginPackage_VersionAndName(
+                            attributeDto.getRefPackageName(),
+                            attributeDto.getRefPackageVersion(),
+                            attributeDto.getRefEntityName()
+                    );
+                    entityReferenceTo.ifPresent(entity -> {
+                        PluginModelEntityDto entityReferenceToDto = PluginModelEntityDto.fromDomain(entity);
+                        inputEntityDto.updateReferenceTo(
+                                entityReferenceToDto.getPackageName(),
+                                entityReferenceToDto.getPackageVersion(),
+                                entityReferenceToDto.getName(),
+                                entityReferenceToDto.getDisplayName()
+                        );
+                    });
                 }
             }
         }
@@ -348,11 +396,12 @@ public class PluginModelServiceImpl implements PluginModelService {
      * @param savedPluginModelEntity an Iterable pluginModelEntity
      * @return converted dtos
      */
-    private List<PluginModelEntityDto> convertEntityDomainToDto(
-            Iterable<PluginModelEntity> savedPluginModelEntity) {
+    private List<PluginModelEntityDto> convertEntityDomainToDto(Iterable<PluginModelEntity> savedPluginModelEntity) {
         List<PluginModelEntityDto> pluginModelEntityDtos = new ArrayList<>();
         savedPluginModelEntity
                 .forEach(domain -> pluginModelEntityDtos.add(PluginModelEntityDto.fromDomain(domain)));
+        updateReferenceInfo(pluginModelEntityDtos);
+
         return pluginModelEntityDtos;
     }
 
