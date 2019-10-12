@@ -15,21 +15,23 @@ public class PluginModelAttributeDto {
     private String description;
     private String dataType;
     private String state = "draft";
-//    private String referenceName;  // {packageName}.{entityName}.{attributeName}
     private String refPackageName;
     private String refEntityName;
     private String refAttributeName;
+    private String refPackageVersion;
 
     public PluginModelAttributeDto(String name,
                                    String description,
                                    String dataType,
                                    String referencePackageName,
+                                   String referencePackageVersion,
                                    String referenceEntityName,
                                    String referenceAttributeName) {
         this.name = name;
         this.description = description;
         this.dataType = dataType;
         this.refPackageName = referencePackageName;
+        this.refPackageVersion = referencePackageVersion;
         this.refEntityName = referenceEntityName;
         this.refAttributeName = referenceAttributeName;
     }
@@ -51,6 +53,14 @@ public class PluginModelAttributeDto {
         pluginModelAttributeDto.setDescription(pluginModelAttribute.getDescription());
         pluginModelAttributeDto.setDataType(pluginModelAttribute.getDataType());
         pluginModelAttributeDto.setState(pluginModelAttribute.getState());
+        if (pluginModelAttribute.getPluginModelAttribute() != null) {
+            pluginModelAttributeDto.setRefPackageName(pluginModelAttribute.getPluginModelAttribute().getPluginModelEntity().getPluginPackage().getName());
+            pluginModelAttributeDto.setRefPackageVersion(pluginModelAttribute.getPluginModelAttribute().getPluginModelEntity().getPluginPackage().getVersion());
+            pluginModelAttributeDto.setRefEntityName(pluginModelAttribute.getPluginModelAttribute().getPluginModelEntity().getName());
+            pluginModelAttributeDto.setRefAttributeName(pluginModelAttribute.getPluginModelAttribute().getName());
+        }
+
+
         return pluginModelAttributeDto;
     }
 
@@ -175,5 +185,13 @@ public class PluginModelAttributeDto {
 
     public void setRefAttributeName(String refAttributeName) {
         this.refAttributeName = refAttributeName;
+    }
+
+    public String getRefPackageVersion() {
+        return refPackageVersion;
+    }
+
+    public void setRefPackageVersion(String refPackageVersion) {
+        this.refPackageVersion = refPackageVersion;
     }
 }
