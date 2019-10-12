@@ -180,7 +180,7 @@
                       <WeTable
                         :tableData="tableData"
                         :tableInnerActions="innerActions"
-                        :tableColumns="tableColumns"
+                        :tableColumns="logTableColumns"
                         :pagination="pagination"
                         @actionFun="actionFun"
                         @handleSubmit="handleSubmit"
@@ -209,11 +209,36 @@
               </Panel>
               <Panel name="2">
                 <span style="font-size: 14px; font-weight: 600">数据库</span>
-                <p slot="content">数据库</p>
+                <Row slot="content">
+                  <Row>
+                    <Col span="16">
+                      <Input
+                        v-model="dbQueryCommandString"
+                        type="textarea"
+                        placeholder="显示使用的数据库,限定只能执行select"
+                      />
+                    </Col>
+                    <Col span="4" offset="1">
+                      <Button @click="queryDBHandler">执行</Button>
+                    </Col>
+                  </Row>
+                  <Row>
+                    查询结果
+                    <Table
+                      :columns="dbQueryColumns"
+                      :data="dbQueryData"
+                    ></Table>
+                  </Row>
+                </Row>
               </Panel>
               <Panel name="3">
                 <span style="font-size: 14px; font-weight: 600">对象存储</span>
-                <p slot="content">对象存储</p>
+                <Row slot="content">
+                  <Table
+                    :columns="storageServiceColumns"
+                    :data="storageServiceData"
+                  ></Table>
+                </Row>
               </Panel>
             </Collapse>
           </Row>
@@ -257,7 +282,7 @@ const innerActions = [
   }
 ];
 
-const tableColumns = [
+const logTableColumns = [
   {
     title: "插件运行实例",
     key: "instance",
@@ -308,6 +333,24 @@ const pagination = {
   currentPage: 1,
   total: 0
 };
+const storageServiceColumns = [
+  {
+    title: "文件",
+    key: "file"
+  },
+  {
+    title: "路径",
+    key: "path"
+  },
+  {
+    title: "hash",
+    key: "hash"
+  },
+  {
+    title: "上传时间",
+    key: "uploadTime"
+  }
+];
 export default {
   data() {
     return {
@@ -319,13 +362,18 @@ export default {
       tableData: [],
       totalTableData: [],
       innerActions,
-      tableColumns,
+      logTableColumns,
       pagination,
       allAvailiableHosts: [],
       allInstances: [],
       searchFilters: [],
       logDetailsModalVisible: false,
-      logDetails: ""
+      logDetails: "",
+      dbQueryCommandString: "",
+      dbQueryColumns: [],
+      dbQueryData: [],
+      storageServiceColumns,
+      storageServiceData: []
     };
   },
   methods: {
@@ -385,7 +433,7 @@ export default {
       }
     },
     getHostsForTableFilter() {
-      this.tableColumns[0].options = this.allInstances.map(_ => {
+      this.logTableColumns[0].options = this.allInstances.map(_ => {
         return {
           label: _.hostIp + ":" + _.port,
           value: _.id
@@ -461,6 +509,9 @@ export default {
           };
         });
       }
+    },
+    queryDBHandler() {
+      console.log("db query", this.dbQueryCommandString);
     }
   },
   created() {
