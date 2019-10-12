@@ -75,18 +75,6 @@
             >
           </Select>
         </FormItem>
-
-        <FormItem label="插件选择" prop="serviceName">
-          <Select filterable clearable v-model="pluginForm.serviceId">
-            <Option
-              v-for="item in allPlugins"
-              :value="item.serviceName"
-              :key="item.serviceName"
-              >{{ item.serviceDisplayName }}</Option
-            >
-          </Select>
-        </FormItem>
-
         <FormItem label="定位规则" prop="rules">
           <div style="width: 100%">
             <AttrInput
@@ -97,8 +85,26 @@
               :ciTypesObj="this.ciTypesObj"
               :ciTypeAttributeObj="this.ciTypeAttributeObj"
               @change="setRootFilterRule"
+              :isEndWithCIType="true"
             />
           </div>
+        </FormItem>
+        <FormItem label="插件选择" prop="serviceName">
+          <Select filterable clearable v-model="pluginForm.serviceId">
+            <Option
+              v-for="item in allPlugins"
+              :value="item.serviceName"
+              :key="item.serviceName"
+              >{{ item.serviceDisplayName }}</Option
+            >
+          </Select>
+        </FormItem>
+        <FormItem label="超时时间" prop="timeoutExpression">
+          <Select clearable v-model="pluginForm.timeoutExpression">
+            <Option v-for="item in timeSelection" :value="item" :key="item"
+              >{{ item }}分钟</Option
+            >
+          </Select>
         </FormItem>
         <FormItem label="描述说明" prop="description">
           <Input v-model="pluginForm.description" />
@@ -152,7 +158,6 @@ import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
 import {
   getAllCITypesByLayerWithAttr,
-  getAllCiTypesByCatalog,
   getAllFlow,
   saveFlow,
   getFlowDetailByID,
@@ -208,7 +213,8 @@ export default {
       selectedNodeName: "",
       pluginModalVisible: false,
       pluginForm: {
-        rules: {}
+        rules: {},
+        timeoutExpression: "30" // 默认超时时间30分钟
       },
       serviceTaskBindInfos: [],
       allNodeTypes: [
@@ -218,7 +224,8 @@ export default {
       ],
       allPlugins: [],
       calcFlowModalVisible: false,
-      calcFlowResult: []
+      calcFlowResult: [],
+      timeSelection: ["5", "10", "20", "30", "60"]
     };
   },
   watch: {},
@@ -232,11 +239,11 @@ export default {
     init() {
       this.getAllCITypesByLayerWithAttr();
       this.getAllFlows();
-      this.getAllCITypes();
       this.getAllPlugins();
     },
     setRootFilterRule(v) {
       this.rootFilterRule = v;
+      this.getAllPlugins();
     },
     async getAllCITypesByLayerWithAttr() {
       let { status, data, message } = await getAllCITypesByLayerWithAttr([
@@ -248,6 +255,13 @@ export default {
       if (status === "OK") {
         let ciTypes = {};
         let ciTypeAttrs = {};
+
+        let tempCITypes = JSON.parse(JSON.stringify(data));
+        tempCITypes.forEach(_ => {
+          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
+        });
+        this.allCITypes = tempCITypes;
+
         data.forEach(layer => {
           if (layer.ciTypes instanceof Array) {
             layer.ciTypes.forEach(citype => {
@@ -265,18 +279,15 @@ export default {
       }
     },
     async getAllPlugins() {
-      const { data, status, message } = await getLatestOnlinePluginInterfaces();
+      let routine =
+        this.pluginForm.rules.cmdbColumnCriteria &&
+        this.pluginForm.rules.cmdbColumnCriteria.routine;
+      let ciTypeId = routine && routine[routine.length - 1].ciTypeId;
+      const { data, status, message } = !!routine
+        ? await getLatestOnlinePluginInterfaces(ciTypeId)
+        : await getLatestOnlinePluginInterfaces();
       if (status === "OK") {
         this.allPlugins = data;
-      }
-    },
-    async getAllCITypes() {
-      const { data, message, status } = await getAllCiTypesByCatalog();
-      if (status === "OK") {
-        data.forEach(_ => {
-          _.ciTypes.filter(i => i.status !== "decommissioned");
-        });
-        this.allCITypes = data;
       }
     },
     async getAllFlows() {
@@ -293,7 +304,10 @@ export default {
     onCISelect(v) {
       this.selectedCI = v;
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
-      this.pluginForm = {};
+      this.pluginForm = {
+        rules: {},
+        timeoutExpression: "30"
+      };
     },
     resetZoom() {
       var canvas = this.bpmnModeler.get("canvas");
@@ -406,15 +420,17 @@ export default {
       let found = this.allPlugins.find(
         _ => _.serviceName === this.pluginForm.serviceId
       );
+
+      let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm));
       this.serviceTaskBindInfos.push({
         version: 0,
-        ...this.pluginForm,
+        ...pluginFormCopy,
         nodeId: this.selectNodeId,
         nodeName: this.selectedNodeName,
         ciRoutineExp: JSON.stringify(
-          this.pluginForm.rules.cmdbColumnCriteria.routine
+          pluginFormCopy.rules.cmdbColumnCriteria.routine
         ),
-        ciRoutineRaw: JSON.stringify(this.pluginForm.rules.cmdbColumnSource),
+        ciRoutineRaw: JSON.stringify(pluginFormCopy.rules.cmdbColumnSource),
         serviceName: (found && found.serviceName) || ""
       });
       this.serviceTaskBindInfos.forEach(_ => {
@@ -436,7 +452,7 @@ export default {
         this.pluginModalVisible = true;
         this.pluginForm = this.serviceTaskBindInfos.find(
           _ => _.nodeId === this.selectNodeId
-        ) || { rules: this.rootFilterRule };
+        ) || { rules: this.rootFilterRule, timeoutExpression: "30" };
         this.$nextTick(() => {
           document.querySelector(".attr-ul").style.width =
             document.querySelector(".input_in textarea").clientWidth + "px";

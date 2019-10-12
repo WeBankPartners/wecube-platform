@@ -921,6 +921,7 @@ import {
   getAllCITypesByLayerWithAttr,
   getAllLayers,
   createLayer,
+  deleteCiTypeLayer,
   moveUpLayer,
   moveDownLayer,
   deleteCITypeByID,
@@ -1059,19 +1060,18 @@ export default {
       let graph;
       let graphviz;
 
+      const graphEl = document.getElementById("graph");
+
       const initEvent = () => {
         graph = d3.select("#graph");
         graph
           .on("dblclick.zoom", null)
           .on("wheel.zoom", null)
           .on("mousewheel.zoom", null);
-
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .scale(1.2)
-          .width(window.innerWidth * 0.8)
-          .height(window.innerHeight * 0.75)
+          .width(graphEl.offsetWidth * 1)
           .attributer(function(d) {
             if (d.attributes.class === "edge") {
               var keys = d.key.split("->");
@@ -1269,49 +1269,40 @@ export default {
       let nodesString = this.genDOT(data);
       this.loadImage(nodesString);
       this.graph.graphviz.renderDot(nodesString);
-      addEvent("svg", "click", e => {
+      addEvent("svg", "mouseover", e => {
+        this.shadeAll();
         e.preventDefault();
         e.stopPropagation();
-        d3.selectAll("g path")
-          .attr("stroke", "#7f8fa6")
-          .attr("stroke-opacity", "1");
-        d3.selectAll("g polygon")
-          .attr("stroke", "#7f8fa6")
-          .attr("stroke-opacity", "1")
-          .attr("fill", "#7f8fa6")
-          .attr("fill-opacity", "1");
-        d3.selectAll(".edge text").attr("fill", "#000");
       });
-      addEvent(".node", "click", async e => {
+      this.shadeAll();
+
+      addEvent(".node", "mouseover", async e => {
         e.preventDefault();
         e.stopPropagation();
+        d3.selectAll("g").attr("cursor", "pointer");
 
         this.g = e.currentTarget;
         this.nodeName = this.g.children[0].innerHTML.trim();
         this.shadeAll();
         this.colorNode(this.nodeName);
-        // d3.selectAll("g").attr("stroke", "");
-        // d3.select(g).attr("stroke", "red");
+      });
+      addEvent(".node", "click", async e => {
         this.isLayerSelected = this.layers.find(_ => _.name === this.nodeName);
         this.renderRightPanels();
-      });
-      addEvent(".node", "mouseover", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        d3.selectAll("g").attr("cursor", "pointer");
       });
     },
     renderRightPanels() {
       if (!this.nodeName) return;
       if (!!this.isLayerSelected) {
         this.currentSelectedLayer = this.layers.find(
-          _ => _.name === this.nodeName
+          // _ => _.name === this.nodeName
+          _ => _.layerId === this.isLayerSelected.layerId
         );
         this.updatedLayerNameValue = {
           codeId: this.currentSelectedLayer.layerId,
           code: this.currentSelectedLayer.name
         };
-        this.handleLayerSelect(this.nodeName);
+        this.handleLayerSelect(this.currentSelectedLayer.layerId);
       } else {
         this.source.forEach(_ => {
           _.ciTypes &&
@@ -1351,11 +1342,13 @@ export default {
         }
       }
     },
-    handleLayerSelect(layerName) {
+    handleLayerSelect(layerId) {
       this.currentSelectLayerChildren = this.source.find(
-        _ => _.value === layerName
+        _ => _.codeId === layerId
       );
-      this.addNewCITypeForm.layerId = this.currentSelectLayerChildren.codeId;
+      this.addNewCITypeForm.layerId =
+        this.currentSelectLayerChildren &&
+        this.currentSelectLayerChildren.codeId;
     },
     handleStatusChange(value) {
       this.initGraph(value);
@@ -1472,14 +1465,7 @@ export default {
         title: "确认删除？",
         "z-index": 1000000,
         onOk: async () => {
-          let layerItem = this.layers.find(_ => _.codeId === id);
-          delete layerItem.name;
-          delete layerItem.layerId;
-          let payload = {
-            ...layerItem,
-            status: "inactive"
-          };
-          const { status, message, data } = await updateEnumCode([payload]);
+          const { status, message, data } = await deleteCiTypeLayer(id);
 
           if (status === "OK") {
             this.$Notice.success({
@@ -1611,6 +1597,7 @@ export default {
             this.resetAddNewCITypeForm();
             this.isAddNewCITypeModalVisible = false;
             this.initGraph();
+            this.getAllEnumTypes();
           }
         }
       });

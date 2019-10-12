@@ -13,6 +13,8 @@ import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.model.bpmn.instance.EndEvent;
 import org.camunda.bpm.model.bpmn.instance.EventDefinition;
 import org.camunda.bpm.model.bpmn.instance.FlowNode;
+import org.camunda.bpm.model.bpmn.instance.ServiceTask;
+import org.camunda.bpm.model.bpmn.instance.SubProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,10 +58,10 @@ public abstract class AbstractProcessService {
     protected CmdbServiceV2Stub cmdbServiceV2Stub;
 
     @Autowired
-    protected ProcessDefinitionEntityRepository coreProcessDefinitionEntityRepository;
+    protected ProcessDefinitionEntityRepository processDefinitionEntityRepository;
 
     @Autowired
-    protected ProcessDefinitionTaskServiceEntityRepository coreProcessDefinitionTaskServiceEntityRepository;
+    protected ProcessDefinitionTaskServiceEntityRepository processDefinitionTaskServiceEntityRepository;
 
     @Autowired
     protected ProcessTransactionEntityRepository processTransactionEntityRepository;
@@ -98,7 +100,6 @@ public abstract class AbstractProcessService {
         return item.getCiTypeId();
     }
 
-    @SuppressWarnings("unchecked")
     protected List<SimpleCiDataInfo> calCiDataInfosForTaskServiceNode(Integer rootCiTypeId, String rootCiDataGuid,
                                                                       ProcessDefinitionTaskServiceEntity entity)
             throws IOException {
@@ -334,6 +335,26 @@ public abstract class AbstractProcessService {
         }
 
         return vo;
+    }
+    
+    protected boolean isSubProcess(ProcessDefinitionTaskServiceEntity entity, Collection<SubProcess> subProcesses) {
+        for (SubProcess sp : subProcesses) {
+            if (sp.getId().equals(entity.getTaskNodeId())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected boolean isServiceTask(ProcessDefinitionTaskServiceEntity entity, Collection<ServiceTask> serviceTasks) {
+        for (ServiceTask task : serviceTasks) {
+            if (task.getId().equals(entity.getTaskNodeId())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static class SimpleCiDataInfo {

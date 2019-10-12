@@ -7,10 +7,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author gavinli
  *
  */
-public final class TimestampedIdGenerator {
+public final class LocalIdGenerator {
 
-	public static final String KEY_MODULE = TimestampedIdGenerator.class.getSimpleName();
-	public static final TimestampedIdGenerator INSTANCE = new TimestampedIdGenerator();
+	public static final String KEY_MODULE = LocalIdGenerator.class.getSimpleName();
+	public static final LocalIdGenerator INSTANCE = new LocalIdGenerator();
 	
 	private static final String BASE62_CHARS_STR = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	private static char[] BASE62_CHARS;
@@ -22,7 +22,7 @@ public final class TimestampedIdGenerator {
 
 	private String idSaltStr;
 
-	private TimestampedIdGenerator() {
+	private LocalIdGenerator() {
 		BASE62_CHARS = BASE62_CHARS_STR.toCharArray();
 		int salt = new Random().nextInt(62);
 		idSaltStr = String.valueOf(BASE62_CHARS[salt]);
@@ -31,6 +31,14 @@ public final class TimestampedIdGenerator {
 		if(moduleIdentity != null && moduleIdentity.trim().length() > 0) {
 			idSaltStr+=moduleIdentity.trim();
 		}
+	}
+	
+	public static String generateId(){
+	    return INSTANCE.doGenerateTimestampedId();
+	}
+	
+	public static String generateId(String prefix){
+	    return INSTANCE.generateTimestampedId(prefix);
 	}
 	
 	public String generateTimestampedId(String prefix) {
