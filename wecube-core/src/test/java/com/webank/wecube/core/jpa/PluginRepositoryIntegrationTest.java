@@ -138,7 +138,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         // when correct state code is declared
         PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
         PluginModelEntity pluginModelEntity_1 = new PluginModelEntity(package_1, "entity_1", "entity_1", "entity_1_description", "draft");
-        PluginModelAttribute pluginModelAttribute_1 = new PluginModelAttribute(pluginModelEntity_1, null, "attribute_1", "attribute_1_description", "string", "draft");
+        PluginModelAttribute pluginModelAttribute_1 = new PluginModelAttribute(pluginModelEntity_1, null, "attribute_1", "attribute_1_description", "str", "draft");
         assertThat(pluginPackageRepository.save(package_1)).isEqualTo(pluginPackageRepository.findAll().iterator().next());
 
 
@@ -147,7 +147,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         String fail_code = "should_failed";
         try {
             PluginModelEntity pluginModelEntity_2 = new PluginModelEntity(package_2, "entity_1", "entity_1", "entity_1_description", fail_code);
-            PluginModelAttribute pluginModelAttribute_2 = new PluginModelAttribute(pluginModelEntity_2, null, "attribute_1", "attribute_1_description", "string", fail_code);
+            PluginModelAttribute pluginModelAttribute_2 = new PluginModelAttribute(pluginModelEntity_2, null, "attribute_1", "attribute_1_description", "str", fail_code);
         } catch (IllegalArgumentException argException) {
             assertThat(argException.getMessage()).isEqualTo(String.format("Cannot find the data model state from code %s", fail_code));
         }
@@ -159,7 +159,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         // when correct state code is declared
         PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
         PluginModelEntity pluginModelEntity_1 = new PluginModelEntity(package_1, "entity_1", "entity_1", "entity_1_description", "draft");
-        PluginModelAttribute pluginModelAttribute_1 = new PluginModelAttribute(pluginModelEntity_1, null, "attribute_1", "attribute_1_description", "string", "draft");
+        PluginModelAttribute pluginModelAttribute_1 = new PluginModelAttribute(pluginModelEntity_1, null, "attribute_1", "attribute_1_description", "str", "draft");
         assertThat(pluginPackageRepository.save(package_1)).isEqualTo(pluginPackageRepository.findAll().iterator().next());
 
 
@@ -202,8 +202,8 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
     public static void mockPluginModelEntityListWithAttributeList(List<PluginModelEntity> pluginModelEntityList) {
         for (PluginModelEntity pluginModelEntity : pluginModelEntityList) {
-            PluginModelAttribute attribute_1 = new PluginModelAttribute(pluginModelEntity, null, "attribute_1", "attribute_1_description", "string", "draft");
-            PluginModelAttribute attribute_2 = new PluginModelAttribute(pluginModelEntity, null, "attribute_2", "attribute_2_description", "string", "draft");
+            PluginModelAttribute attribute_1 = new PluginModelAttribute(pluginModelEntity, null, "attribute_1", "attribute_1_description", "str", "draft");
+            PluginModelAttribute attribute_2 = new PluginModelAttribute(pluginModelEntity, null, "attribute_2", "attribute_2_description", "str", "draft");
             PluginModelAttribute attribute_3 = new PluginModelAttribute(pluginModelEntity, attribute_1, "attribute_3", "attribute_3_description", "ref", "draft");
             PluginModelAttribute attribute_4 = new PluginModelAttribute(pluginModelEntity, attribute_1, "attribute_4", "attribute_4_description", "ref", "draft");
             PluginModelAttribute attribute_5 = new PluginModelAttribute(pluginModelEntity, attribute_2, "attribute_5", "attribute_5_description", "ref", "draft");
