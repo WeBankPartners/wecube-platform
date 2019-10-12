@@ -184,6 +184,7 @@
               :pagination="ci.pagination"
               :ascOptions="ci.ascOptions"
               :showCheckbox="needCheckout"
+              :isRefreshable="true"
               @actionFun="actionFun"
               @handleSubmit="handleSubmit"
               @sortHandler="sortHandler"
@@ -240,12 +241,12 @@ const stateColorMap = new Map([
   ["delete", "red"]
 ]);
 const colors = [
-  "#c8d6f0",
-  "#cde4fd",
-  "#acc1e8",
-  "#516282",
-  "#243047",
-  "#0f1624"
+  "#E1F5FE",
+  "#B3E5FC",
+  "#81D4FA",
+  "#4FC3F7",
+  "#29B6F6",
+  "#0091EA"
 ];
 export default {
   components: {

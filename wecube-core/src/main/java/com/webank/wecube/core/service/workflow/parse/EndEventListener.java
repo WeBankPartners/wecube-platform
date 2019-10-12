@@ -29,7 +29,7 @@ public class EndEventListener implements ExecutionListener {
                     log.warn("process {} ,businessKey {} going with error", execution.getProcessInstanceId(),
                             execution.getBusinessKey());
 
-                    execution.setVariable(WorkflowConstants.VARIABLE_KEY_PROCESS_WITH_ERROR, true);
+                    execution.setVariable(WorkflowConstants.VAR_KEY_PROCESS_WITH_ERROR, true);
 
                 }
             }
