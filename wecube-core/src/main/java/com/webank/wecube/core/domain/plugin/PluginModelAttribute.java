@@ -6,7 +6,7 @@ import com.webank.wecube.core.utils.constant.DataModelState;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "plugin_model_attribute", uniqueConstraints = {
+@Table(name = "plugin_package_attribute", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"entity_id", "name"})
 })
 public class PluginModelAttribute {
@@ -28,12 +28,11 @@ public class PluginModelAttribute {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "data_type", length = 32)
-    private DataModelDataType dataType;
-
+    @Column(name = "data_type")
+    private String dataType;
 
     @Column(name = "state")
-    private DataModelState state = DataModelState.Draft;
+    private String state = DataModelState.Draft.getCode();
 
 
     public PluginModelAttribute() {
@@ -49,8 +48,8 @@ public class PluginModelAttribute {
         this.pluginModelAttribute = pluginModelAttribute;
         this.name = name;
         this.description = description;
-        this.dataType = DataModelDataType.fromCode(dataType);
-        this.state = DataModelState.fromCode(state);
+        this.dataType = DataModelDataType.fromCode(dataType).getCode();
+        this.state = DataModelState.fromCode(state).getCode();
     }
 
     public Integer getId() {
@@ -94,18 +93,18 @@ public class PluginModelAttribute {
     }
 
     public String getDataType() {
-        return dataType.getCode();
+        return dataType.toLowerCase();
     }
 
     public void setDataType(String dataType) {
-        this.dataType = DataModelDataType.fromCode(dataType);
+        this.dataType = DataModelDataType.fromCode(dataType).getCode();
     }
 
     public String getState() {
-        return state.getCode();
+        return state.toLowerCase();
     }
 
     public void setState(String state) {
-        this.state = DataModelState.fromCode(state);
+        this.state = DataModelState.fromCode(state).getCode();
     }
 }
