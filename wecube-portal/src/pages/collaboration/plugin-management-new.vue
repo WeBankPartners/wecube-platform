@@ -19,7 +19,7 @@
           </Upload>
         </Card>
       </Row>
-      <Row class="plugins-tree-container">
+      <Row class="plugins-tree-container" style="margin-top: 20px">
         <Card dis-hover>
           <p slot="title">{{ $t("plugins_list") }}</p>
           <div style="height: 70%">
