@@ -8,9 +8,16 @@ import java.util.Optional;
 
 public interface PluginModelAttributeRepository extends CrudRepository<PluginModelAttribute, Integer> {
 
-    Optional<PluginModelAttribute> findAllByPluginModelEntity_PluginPackage_NameAndPluginModelEntity_NameAndName(String packageName, String entityName, String name);
+    // find by package name, package version, entity name and attribute name
+    Optional<PluginModelAttribute> findByPluginModelEntity_PluginPackage_NameAndPluginModelEntity_PluginPackage_VersionAndPluginModelEntity_NameAndName(String packageName, String packageVersion, String entityName, String name);
 
-    void deleteByPluginModelEntity_NameAndName(String entityName, String attributeName);
+    // find all by referenced package name, package version, entity name
+    Optional<List<PluginModelAttribute>> findAllByPluginModelAttribute_PluginModelEntity_PluginPackage_NameAndPluginModelAttribute_PluginModelEntity_PluginPackage_VersionAndPluginModelAttribute_PluginModelEntity_Name(String packageName, String packageVersion, String entityName);
 
-    void deleteByPluginModelEntity_Name(String entityName);
+    // find all by package name, package version
+    Optional<List<PluginModelAttribute>> findAllByPluginModelEntity_PluginPackage_NameAndPluginModelEntity_PluginPackage_Version(String packageName, String version);
+
+    // count all references by given package name, package nersion, entity name and attribute name
+    long countAllByPluginModelAttribute_PluginModelEntity_PluginPackage_NameAndPluginModelAttribute_PluginModelEntity_PluginPackage_VersionAndPluginModelAttribute_PluginModelEntity_NameAndName(String packageName, String packageVersion, String entityName, String attributeName);
+
 }
