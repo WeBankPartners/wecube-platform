@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "plugin_model_entity", uniqueConstraints = {
+@Table(name = "plugin_package_entity", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"package_id", "name"})
 })
 public class PluginModelEntity {
@@ -32,7 +32,7 @@ public class PluginModelEntity {
     private String description;
 
     @Column(name = "state")
-    private DataModelState state = DataModelState.Draft;
+    private String state = DataModelState.Draft.getCode();
 
     @OneToMany(mappedBy = "pluginModelEntity", cascade = CascadeType.ALL)
     private List<PluginModelAttribute> pluginModelAttributeList;
@@ -49,7 +49,8 @@ public class PluginModelEntity {
         this.name = name;
         this.displayName = displayName;
         this.description = description;
-        this.state = DataModelState.fromCode(state);
+        this.state = DataModelState.fromCode(state).getCode();
+//        this.state = state;
     }
 
     public Integer getId() {
@@ -93,11 +94,11 @@ public class PluginModelEntity {
     }
 
     public String getState() {
-        return state.getCode();
+        return state;
     }
 
     public void setState(String state) {
-        this.state = DataModelState.fromCode(state);
+        this.state = DataModelState.fromCode(state).getCode();
     }
 
     public List<PluginModelAttribute> getPluginModelAttributeList() {
