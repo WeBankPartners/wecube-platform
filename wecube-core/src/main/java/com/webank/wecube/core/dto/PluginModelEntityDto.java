@@ -2,12 +2,55 @@ package com.webank.wecube.core.dto;
 
 import com.webank.wecube.core.domain.plugin.PluginModelAttribute;
 import com.webank.wecube.core.domain.plugin.PluginModelEntity;
-import com.webank.wecube.core.jpa.PluginPackageRepository;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
+class TrimmedPluginModelEntityDto {
+    private String packageName;
+    private String packageVersion;
+    private String name;
+    private String displayName;
+
+
+    public TrimmedPluginModelEntityDto(String packageName, String packageVersion, String name, String displayName) {
+        this.packageName = packageName;
+        this.name = name;
+        this.displayName = displayName;
+        this.packageVersion = packageVersion;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getPackageVersion() {
+        return packageVersion;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TrimmedPluginModelEntityDto that = (TrimmedPluginModelEntityDto) o;
+        return Objects.equals(getPackageName(), that.getPackageName()) &&
+                Objects.equals(getName(), that.getName()) &&
+                Objects.equals(getDisplayName(), that.getDisplayName()) &&
+                Objects.equals(getPackageVersion(), that.getPackageVersion());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getPackageName(), getName(), getDisplayName(), getPackageVersion());
+    }
+}
 
 public class PluginModelEntityDto {
     private String packageName;
@@ -17,7 +60,10 @@ public class PluginModelEntityDto {
     private String state = "draft";
     // plugin model attribute list
     private String packageVersion;
+    private Set<TrimmedPluginModelEntityDto> referenceToEntityList = new HashSet<>();
+    private Set<TrimmedPluginModelEntityDto> referenceByEntityList = new HashSet<>();
     private List<PluginModelAttributeDto> attributeDtoList = new ArrayList<>();
+
 
     public PluginModelEntityDto(String name, String displayName, String description, String state, List<PluginModelAttributeDto> attributeDtoList) {
         this.name = name;
@@ -80,6 +126,16 @@ public class PluginModelEntityDto {
         return pluginModelEntity;
     }
 
+    public void updateReferenceBy(String packageName, String packageVersion, String name, String displayName) {
+        TrimmedPluginModelEntityDto trimmedPluginModelEntityDto = new TrimmedPluginModelEntityDto(packageName, packageVersion, name, displayName);
+        this.referenceByEntityList.add(trimmedPluginModelEntityDto);
+    }
+
+    public void updateReferenceTo(String packageName, String packageVersion, String name, String displayName) {
+        TrimmedPluginModelEntityDto trimmedPluginModelEntityDto = new TrimmedPluginModelEntityDto(packageName, packageVersion, name, displayName);
+        this.referenceToEntityList.add(trimmedPluginModelEntityDto);
+    }
+
 
     public String getPackageName() {
         return packageName;
@@ -106,7 +162,7 @@ public class PluginModelEntityDto {
     }
 
     public String getState() {
-        return state;
+        return state.toLowerCase();
     }
 
     public void setState(String state) {
@@ -135,5 +191,21 @@ public class PluginModelEntityDto {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public Set<TrimmedPluginModelEntityDto> getReferenceToEntityList() {
+        return referenceToEntityList;
+    }
+
+    public void setReferenceToEntityList(Set<TrimmedPluginModelEntityDto> referenceToEntityList) {
+        this.referenceToEntityList = referenceToEntityList;
+    }
+
+    public Set<TrimmedPluginModelEntityDto> getReferenceByEntityList() {
+        return referenceByEntityList;
+    }
+
+    public void setReferenceByEntityList(Set<TrimmedPluginModelEntityDto> referenceByEntityList) {
+        this.referenceByEntityList = referenceByEntityList;
     }
 }
