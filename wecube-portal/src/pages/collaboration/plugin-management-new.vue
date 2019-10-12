@@ -60,7 +60,7 @@
       </Row>
     </Col>
     <Col span="17" offset="1" v-if="isShowConfigPanel">
-      <Tabs :value="currentTab" closable @on-click="handleTabClick">
+      <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
         <TabPane name="Dependency" label="依赖分析">
           <div>依赖分析</div>
         </TabPane>
