@@ -15,6 +15,10 @@ export const getFlowPreview = data =>
   req.post(`/process/definitions/definition/input-parameters/preview`, data);
 
 // admin
+
+export const deleteCiTypeLayer = layerId =>
+  req.delete(`/cmdb/ci-type-layers/${layerId}`);
+
 export const getAllUsers = () => req.get("/admin/users");
 export const getAllRoles = () => req.get("/admin/roles");
 export const getAllMenus = () => req.get("/admin/menus");
@@ -28,6 +32,7 @@ export const getPermissionsByRole = roleId =>
 export const getPermissionsByUser = username =>
   req.get(`/admin/users/${username}/permissions`);
 export const addRole = data => req.post(`/admin/roles/create`, data);
+export const addUser = data => req.post(`/admin/users/create`, data);
 export const addUsersToRole = (users, roleId) =>
   req.post(`/admin/roles/${roleId}/users`, users);
 export const romoveUsersFromRole = (users, roleId) =>
@@ -100,8 +105,6 @@ export const deleteCIRecord = (ciTypeId, ciId) =>
   req.delete(`/cmdb/ci-types/${ciTypeId}/ci-data/${ciId}`);
 // plugin manager
 export const getAllPluginPkgs = () => req.get("/plugin/packages");
-export const getAllCiTypesByCatalog = () =>
-  req.get("/cmdb/ci-types?group-by=catalog");
 export const getPluginInterfaces = id =>
   req.get(`/plugin/configs/${id}/interfaces`);
 export const getRefCiTypeFrom = id =>
@@ -462,3 +465,4 @@ export const refreshProcessInstanceStatus = id =>
   req.get(`/process/instances/${id}/outline`);
 export const restartProcessInstance = data =>
   req.post("/process/instances/restart", data);
+export const login = data => req.post("/auth/v1/api/login", data);
