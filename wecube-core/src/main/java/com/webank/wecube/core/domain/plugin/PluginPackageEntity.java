@@ -1,17 +1,13 @@
 package com.webank.wecube.core.domain.plugin;
 
-
-import com.webank.wecube.core.utils.constant.DataModelDataType;
-import com.webank.wecube.core.utils.constant.DataModelState;
-
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "plugin_package_entity", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"package_id", "name"})
+@Table(name = "plugin_package_entities", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"plugin_package_id", "name"})
 })
-public class PluginModelEntity {
+public class PluginPackageEntity {
 
 
     @Id
@@ -19,7 +15,7 @@ public class PluginModelEntity {
     private Integer id;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinColumn(name = "package_id")
+    @JoinColumn(name = "plugin_package_id")
     private PluginPackage pluginPackage;
 
     @Column(name = "name")
@@ -31,26 +27,21 @@ public class PluginModelEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "state")
-    private String state = DataModelState.Draft.getCode();
 
-    @OneToMany(mappedBy = "pluginModelEntity", cascade = CascadeType.ALL)
-    private List<PluginModelAttribute> pluginModelAttributeList;
+    @OneToMany(mappedBy = "pluginPackageEntity", cascade = CascadeType.ALL)
+    private List<PluginPackageAttribute> pluginPackageAttributeList;
 
-    public PluginModelEntity() {
+    public PluginPackageEntity() {
     }
 
-    public PluginModelEntity(PluginPackage pluginPackage,
-                             String name,
-                             String displayName,
-                             String description,
-                             String state) {
+    public PluginPackageEntity(PluginPackage pluginPackage,
+                               String name,
+                               String displayName,
+                               String description) {
         this.pluginPackage = pluginPackage;
         this.name = name;
         this.displayName = displayName;
         this.description = description;
-        this.state = DataModelState.fromCode(state).getCode();
-//        this.state = state;
     }
 
     public Integer getId() {
@@ -93,19 +84,12 @@ public class PluginModelEntity {
         this.description = description;
     }
 
-    public String getState() {
-        return state;
+
+    public List<PluginPackageAttribute> getPluginPackageAttributeList() {
+        return pluginPackageAttributeList;
     }
 
-    public void setState(String state) {
-        this.state = DataModelState.fromCode(state).getCode();
-    }
-
-    public List<PluginModelAttribute> getPluginModelAttributeList() {
-        return pluginModelAttributeList;
-    }
-
-    public void setPluginModelAttributeList(List<PluginModelAttribute> pluginModelAttributeList) {
-        this.pluginModelAttributeList = pluginModelAttributeList;
+    public void setPluginPackageAttributeList(List<PluginPackageAttribute> pluginPackageAttributeList) {
+        this.pluginPackageAttributeList = pluginPackageAttributeList;
     }
 }

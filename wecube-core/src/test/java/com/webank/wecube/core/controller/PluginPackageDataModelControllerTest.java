@@ -5,20 +5,16 @@ import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.contains;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
-import java.util.List;
-
 import static com.webank.wecube.core.domain.MenuItem.MENU_COLLABORATION_PLUGIN_MANAGEMENT;
 import static com.webank.wecube.core.domain.MenuItem.ROLE_PREFIX;
+import static org.hamcrest.Matchers.contains;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_COLLABORATION_PLUGIN_MANAGEMENT})
-public class PluginModelControllerTest extends AbstractControllerTest {
+public class PluginPackageDataModelControllerTest extends AbstractControllerTest {
 
     @Test
     public void getAllDataModels() throws Exception {
@@ -46,25 +42,25 @@ public class PluginModelControllerTest extends AbstractControllerTest {
                 "VALUES ('package_1',\n" +
                 "        '1.0');\n" +
                 "\n" +
-                "INSERT INTO plugin_package_entity(package_id, name, display_name, description)\n" +
+                "INSERT INTO plugin_package_entities(plugin_package_id, name, display_name, description)\n" +
                 "VALUES (1, 'entity_1', 'entity_1', 'entity_1_description');\n" +
-                "INSERT INTO plugin_package_entity(package_id, name, display_name, description)\n" +
+                "INSERT INTO plugin_package_entities(plugin_package_id, name, display_name, description)\n" +
                 "VALUES (1, 'entity_2', 'entity_2', 'entity_2_description');\n" +
-                "INSERT INTO plugin_package_entity(package_id, name, display_name, description)\n" +
+                "INSERT INTO plugin_package_entities(plugin_package_id, name, display_name, description)\n" +
                 "VALUES (1, 'entity_3', 'entity_3', 'entity_3_description');\n" +
                 "\n" +
                 "\n" +
-                "INSERT INTO plugin_package_attribute(entity_id, reference_id, name, description, data_type)\n" +
+                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
                 "VALUES (1, NULL, 'attribute_1', 'attribute_1_description', 'INT');\n" +
-                "INSERT INTO plugin_package_attribute(entity_id, reference_id, name, description, data_type)\n" +
+                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
                 "VALUES (1, NULL, 'attribute_2', 'attribute_2_description', 'INT');\n" +
-                "INSERT INTO plugin_package_attribute(entity_id, reference_id, name, description, data_type)\n" +
+                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
                 "VALUES (1, 1, 'attribute_3', 'attribute_3_description', 'INT');\n" +
-                "INSERT INTO plugin_package_attribute(entity_id, reference_id, name, description, data_type)\n" +
+                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
                 "VALUES (1, 1, 'attribute_4', 'attribute_4_description', 'REF');\n" +
-                "INSERT INTO plugin_package_attribute(entity_id, reference_id, name, description, data_type)\n" +
+                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
                 "VALUES (2, 2, 'attribute_5', 'attribute_5_description', 'REF');\n" +
-                "INSERT INTO plugin_package_attribute(entity_id, reference_id, name, description, data_type)\n" +
+                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
                 "VALUES (3, NULL, 'attribute_6', 'attribute_6_description', 'REF');";
         executeSql(sqlStr);
 
