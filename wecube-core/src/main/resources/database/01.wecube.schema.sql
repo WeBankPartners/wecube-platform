@@ -291,21 +291,20 @@ CREATE TABLE `resource_item` (
 	CONSTRAINT `fk_resource_server_id` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
 );
 
-DROP TABLE IF EXISTS plugin_package_entity;
-CREATE TABLE plugin_package_entity
+DROP TABLE IF EXISTS plugin_package_entities;
+CREATE TABLE plugin_package_entities
 (
     id           INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-    package_id   INTEGER                        NOT NULL,
+    plugin_package_id   INTEGER                        NOT NULL,
     name         VARCHAR(100)                   NOT NULL,
     display_name VARCHAR(100)                   NOT NULL,
     description  VARCHAR(256)                   NOT NULL,
-    state        VARCHAR(50)                    NOT NULL DEFAULT 'draft',
-    CONSTRAINT fk_package_id FOREIGN KEY (package_id) REFERENCES plugin_packages (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_package_entity (package_id, name)
+    CONSTRAINT fk_package_id FOREIGN KEY (plugin_package_id) REFERENCES plugin_packages (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE uk_package_entity (plugin_package_id, name)
 
 );
-DROP TABLE IF EXISTS plugin_package_attribute;
-CREATE TABLE plugin_package_attribute
+DROP TABLE IF EXISTS plugin_package_attributes;
+CREATE TABLE plugin_package_attributes
 (
     id           INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     entity_id    INTEGER                        NOT NULL,
@@ -313,8 +312,7 @@ CREATE TABLE plugin_package_attribute
     name         VARCHAR(100)                   NOT NULL,
     description  VARCHAR(256)                   NOT NULL,
     data_type    VARCHAR(20)                    NOT NULL,
-    state        VARCHAR(50)                    NOT NULL DEFAULT 'draft',
-    CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES plugin_package_entity (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_reference_id FOREIGN KEY (reference_id) REFERENCES plugin_package_attribute (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES plugin_package_entities (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_reference_id FOREIGN KEY (reference_id) REFERENCES plugin_package_attributes (id) ON DELETE CASCADE ON UPDATE CASCADE,
     UNIQUE uk_entity_attribute (entity_id, name)
 );
