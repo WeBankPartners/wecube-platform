@@ -22,8 +22,8 @@
       <Row class="plugins-tree-container" style="margin-top: 20px">
         <Card dis-hover>
           <p slot="title">{{ $t("plugins_list") }}</p>
-          <div style="height: 70%">
-            <Collapse accordion>
+          <div style="height: 70%; overflow: auto">
+            <Collapse accordion @on-change="pluginPackageChangeHandler">
               <Panel
                 :name="plugin.id + ''"
                 v-for="plugin in plugins"
@@ -88,7 +88,7 @@
       <div v-if="Object.keys(currentPlugin).length > 0">
         <div v-if="currentPlugin.children">
           <Row class="instances-container">
-            <Collapse>
+            <Collapse value="1">
               <Panel name="1">
                 <span style="font-size: 14px; font-weight: 600">运行容器</span>
                 <p slot="content">
@@ -415,6 +415,11 @@ export default {
       }
       this.getAvailableContainerHosts();
       this.resetLogTable();
+    },
+    pluginPackageChangeHandler(key) {
+      console.log("key", key);
+      this.isShowConfigPanel = this.isShowRuntimeManagementPanel = false;
+      this.dbQueryCommandString = "";
     },
     async getAllInstancesByPackageId(id) {
       let { data, status, message } = await getAllInstancesByPackageId(id);
