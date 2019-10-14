@@ -2,6 +2,8 @@ package com.webank.wecube.core.dto;
 
 import com.webank.wecube.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.core.domain.plugin.PluginPackageEntity;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.*;
 
@@ -40,15 +42,23 @@ class TrimmedPluginPackageEntityDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TrimmedPluginPackageEntityDto that = (TrimmedPluginPackageEntityDto) o;
-        return Objects.equals(getPackageName(), that.getPackageName()) &&
-                Objects.equals(getName(), that.getName()) &&
-                Objects.equals(getDisplayName(), that.getDisplayName()) &&
-                Objects.equals(getPackageVersion(), that.getPackageVersion());
+
+        return new EqualsBuilder()
+                .append(getPackageName(), that.getPackageName())
+                .append(getName(), that.getName())
+                .append(getDisplayName(), that.getDisplayName())
+                .append(getPackageVersion(), that.getPackageVersion())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getPackageName(), getName(), getDisplayName(), getPackageVersion());
+        return new HashCodeBuilder()
+                .append(getPackageName())
+                .append(getName())
+                .append(getDisplayName())
+                .append(getPackageName())
+                .toHashCode();
     }
 }
 
