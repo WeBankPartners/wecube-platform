@@ -13,6 +13,7 @@ import java.util.List;
 import static com.webank.wecube.core.domain.MenuItem.MENU_COLLABORATION_PLUGIN_MANAGEMENT;
 
 @RestController
+@RequestMapping("/")
 @RolesAllowed({MENU_COLLABORATION_PLUGIN_MANAGEMENT})
 public class PluginPackageDataModelController {
 
