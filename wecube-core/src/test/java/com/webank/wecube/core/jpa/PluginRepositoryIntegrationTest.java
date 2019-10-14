@@ -1,10 +1,13 @@
 package com.webank.wecube.core.jpa;
 
+import com.google.common.collect.Iterables;
 import com.webank.wecube.core.DatabaseBasedTest;
 import com.webank.wecube.core.domain.plugin.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +25,10 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     PluginConfigRepository pluginConfigRepository;
     @Autowired
     PluginInstanceRepository pluginInstanceRepository;
+    @Autowired
+    PluginPackageEntityRepository pluginPackageEntityRepository;
+    @Autowired
+    PluginPackageAttributeRepository pluginPackageAttributeRepository;
 
     @Test
     public void findAllSavedPluginPackages() {
@@ -89,7 +96,63 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         assertThat(pluginInstances.get(0).getInstanceContainerId()).isEqualTo(pluginInstance.getInstanceContainerId());
     }
 
-    private PluginPackage mockPluginPackage(String name, String version) {
+    @Test
+    public void findAllPluginPackageEntities() {
+        PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
+        List<PluginPackageEntity> pluginPackageEntityList = mockPluginPackageEntityList(package_1);
+        pluginPackageEntityRepository.saveAll(pluginPackageEntityList);
+        assertThat(pluginPackageEntityRepository.findAll()).isEqualTo(pluginPackageEntityList);
+    }
+
+    @Test
+    public void findAllPluginPackageEntityWithAttribute() {
+        PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
+        List<PluginPackageEntity> pluginPackageEntityList = mockPluginPackageEntityList(package_1);
+        mockPluginPackageEntityListWithAttributeList(pluginPackageEntityList);
+        pluginPackageEntityRepository.saveAll(pluginPackageEntityList);
+        assertThat(pluginPackageEntityRepository.findAll()).isEqualTo(pluginPackageEntityList);
+    }
+
+    @Test
+    public void deleteEntity() {
+        PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
+        List<PluginPackageEntity> pluginPackageEntityList = mockPluginPackageEntityList(package_1);
+        mockPluginPackageEntityListWithAttributeList(pluginPackageEntityList);
+        pluginPackageEntityRepository.saveAll(pluginPackageEntityList);
+        assertThat(Iterables.size(pluginPackageRepository.findAllByName("package_1"))).isEqualTo(1);
+        assertThat(Iterables.size(pluginPackageEntityRepository.findAll())).isEqualTo(3);
+        assertThat(Iterables.size(pluginPackageAttributeRepository.findAll())).isEqualTo(15);
+//
+        // delete the package
+        pluginPackageEntityRepository.deleteAll();
+        pluginPackageRepository.deleteAll();
+        assertThat(Iterables.size(pluginPackageRepository.findAll())).isEqualTo(0);
+        assertThat(Iterables.size(pluginPackageEntityRepository.findAll())).isEqualTo(0);
+        assertThat(Iterables.size(pluginPackageAttributeRepository.findAll())).isEqualTo(0);
+    }
+
+    @Test
+    public void dataModelDataTypeTest() {
+        // when correct data type is declared
+        PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
+        PluginPackageEntity pluginPackageEntity_1 = new PluginPackageEntity(package_1, "entity_1", "entity_1", "entity_1_description");
+        PluginPackageAttribute pluginPackageAttribute_1 = new PluginPackageAttribute(pluginPackageEntity_1, null, "attribute_1", "attribute_1_description", "str");
+        assertThat(pluginPackageRepository.save(package_1)).isEqualTo(pluginPackageRepository.findAll().iterator().next());
+
+
+        // when wrong data type is declared
+        PluginPackage package_2 = mockPluginPackage("package_1", "1.0");
+        String fail_code = "should_failed";
+        try {
+            PluginPackageEntity pluginPackageEntity_2 = new PluginPackageEntity(package_2, "entity_1", "entity_1", "entity_1_description");
+            PluginPackageAttribute pluginPackageAttribute_2 = new PluginPackageAttribute(pluginPackageEntity_2, null, "attribute_1", "attribute_1_description", fail_code);
+        } catch (IllegalArgumentException argException) {
+            assertThat(argException.getMessage()).isEqualTo(String.format("Cannot find the data model data type from code %s", fail_code));
+        }
+    }
+
+
+    public static PluginPackage mockPluginPackage(String name, String version) {
         PluginPackage mockPluginPackage = new PluginPackage(null, name, version, "qcloud.image", "wecube-plugin", "201904191234", "8080", "/home/app/conf", "/home/app/log", null, null, newArrayList(), newArrayList());
         PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, NOT_CONFIGURED, newArrayList(), newArrayList());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
@@ -98,12 +161,31 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         return mockPluginPackage;
     }
 
-    private PluginConfigInterface mockPluginConfigInterface(PluginConfig pluginConfig) {
+    public static PluginConfigInterface mockPluginConfigInterface(PluginConfig pluginConfig) {
         PluginConfigInterface pluginConfigInterface = new PluginConfigInterface(null, pluginConfig, "create", "'create", "Qcloud_vpc_create", "/v1/qcloud/vpc/create", null, null, null, newLinkedHashSet(), newLinkedHashSet());
         pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_INPUT, "provider_params", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, null, null, null, null));
         pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_INPUT, "name", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, null, null, null, null));
         pluginConfigInterface.addOutputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_OUTPUT, "id", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, null, null, null, null));
         return pluginConfigInterface;
+    }
+
+    public static List<PluginPackageEntity> mockPluginPackageEntityList(PluginPackage pluginPackage) {
+        List<PluginPackageEntity> pluginPackageEntityList = new ArrayList<>();
+        pluginPackageEntityList.add(new PluginPackageEntity(pluginPackage, "entity_1", "entity_1", "entity_1_description"));
+        pluginPackageEntityList.add(new PluginPackageEntity(pluginPackage, "entity_2", "entity_2", "entity_2_description"));
+        pluginPackageEntityList.add(new PluginPackageEntity(pluginPackage, "entity_3", "entity_3", "entity_3_description"));
+        return pluginPackageEntityList;
+    }
+
+    public static void mockPluginPackageEntityListWithAttributeList(List<PluginPackageEntity> pluginPackageEntityList) {
+        for (PluginPackageEntity pluginPackageEntity : pluginPackageEntityList) {
+            PluginPackageAttribute attribute_1 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_1", "attribute_1_description", "str");
+            PluginPackageAttribute attribute_2 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_2", "attribute_2_description", "str");
+            PluginPackageAttribute attribute_3 = new PluginPackageAttribute(pluginPackageEntity, attribute_1, "attribute_3", "attribute_3_description", "ref");
+            PluginPackageAttribute attribute_4 = new PluginPackageAttribute(pluginPackageEntity, attribute_1, "attribute_4", "attribute_4_description", "ref");
+            PluginPackageAttribute attribute_5 = new PluginPackageAttribute(pluginPackageEntity, attribute_2, "attribute_5", "attribute_5_description", "ref");
+            pluginPackageEntity.setPluginPackageAttributeList(new ArrayList<>(Arrays.asList(attribute_1, attribute_2, attribute_3, attribute_4, attribute_5)));
+        }
     }
 
 }
