@@ -157,13 +157,13 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         }
 
         // if the attribute the user want to delete is still referenced by other attributes, the delete operation will terminate
-        Optional<List<PluginPackageAttribute>> allByPackageNameAndVersion = pluginPackageAttributeRepository.findAllByPluginPackageEntity_PluginPackage_NameAndPluginPackageEntity_PluginPackage_Version(packageName, version);
+        Optional<List<PluginPackageAttribute>> allByPackageNameAndVersion = pluginPackageAttributeRepository.findAllReferenceByAttribute(packageName, version);
         allByPackageNameAndVersion.ifPresent(pluginPackageAttributeList -> {
             for (PluginPackageAttribute pluginPackageAttribute : pluginPackageAttributeList) {
                 String entityName = pluginPackageAttribute.getPluginPackageEntity().getName();
                 String attributeName = pluginPackageAttribute.getName();
                 long allReferenceCount = pluginPackageAttributeRepository
-                        .countAllByPluginPackageAttribute_PluginPackageEntity_PluginPackage_NameAndPluginPackageAttribute_PluginPackageEntity_PluginPackage_VersionAndPluginPackageAttribute_PluginPackageEntity_NameAndName(
+                        .countAllReferenceByAttribute(
                                 packageName, version, entityName, attributeName);
                 if (allReferenceCount > 0) {
                     String msg = String.format("The attribute: [%s] from Package: [%s] with Version: [%s] and Entity: [%s]  is still referenced by others, delete operation will terminate.", attributeName, packageName, version, entityName);
@@ -316,7 +316,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
 
                         // found attribute domain object with the seperated three reference names
                         Optional<PluginPackageAttribute> foundAttributeList = pluginPackageAttributeRepository
-                                .findByPluginPackageEntity_PluginPackage_NameAndPluginPackageEntity_PluginPackage_VersionAndPluginPackageEntity_NameAndName(
+                                .findSingleAttribute(
                                         referencePackageName, referencePackageVersion, referenceEntityName, referenceAttributeName);
                         // the foundEntity should only be one because of the unique key constraint
                         if (!foundAttributeList.isPresent()) {
@@ -346,7 +346,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             String packageVersion = inputEntityDto.getPackageVersion();
             String entityName = inputEntityDto.getName();
             Optional<List<PluginPackageAttribute>> allAttributeReferenceByList = pluginPackageAttributeRepository
-                    .findAllByPluginPackageAttribute_PluginPackageEntity_PluginPackage_NameAndPluginPackageAttribute_PluginPackageEntity_PluginPackage_VersionAndPluginPackageAttribute_PluginPackageEntity_Name(packageName, packageVersion, entityName);
+                    .findAllReferenceByAttribute(packageName, packageVersion, entityName);
             allAttributeReferenceByList.ifPresent(attributeList -> attributeList.forEach(attribute -> {
                 // the process of found reference by info
                 PluginPackageEntity referenceByEntity = attribute.getPluginPackageEntity();
