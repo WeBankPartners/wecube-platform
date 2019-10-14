@@ -29,10 +29,10 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     @Autowired
     PluginPackageAttributeRepository pluginPackageAttributeRepository;
     @Autowired
-    PluginPackageDataModelServiceImpl pluginPackageService;
+    PluginPackageDataModelServiceImpl pluginPackageDataModelService;
 
     Integer MOCK_SIZE_PER_PACKAGE = 3;
-    Integer PACKAGE_SIZE = 3;
+    Integer PACKAGE_SIZE = 4;
 
     @Test
     public void whenRegisterDataModelShouldSuccess() {
@@ -40,23 +40,29 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         List<PluginPackageEntityDto> pluginPackageEntityDtoList = mockPluginPackageEntityDtoList("Package_1", "1.0", "1.0");
         List<PluginPackageEntityDto> pluginPackageEntityDtoList2 = mockPluginPackageEntityDtoList("Package_1", "2.0", "1.0");
         pluginPackageEntityDtoList.addAll(pluginPackageEntityDtoList2);
-        List<PluginPackageEntityDto> registeredPluginPackageEntityDtoList = pluginPackageService.register(pluginPackageEntityDtoList);
+        List<PluginPackageEntityDto> registeredPluginPackageEntityDtoList = pluginPackageDataModelService.register(pluginPackageEntityDtoList);
         Iterable<PluginPackageEntity> foundAllRegisteredEntityList = pluginPackageEntityRepository.findAll();
         assertThat(Iterators.size(foundAllRegisteredEntityList.iterator())).isEqualTo(registeredPluginPackageEntityDtoList.size());
 
         // data model with false info
         List<PluginPackageEntityDto> pluginPackageEntityDtoList3 = mockFalsePluginPackageEntityDtoList("Package_2", "2.0", "1.0");
         try {
-            pluginPackageService.register(pluginPackageEntityDtoList3);
+            pluginPackageDataModelService.register(pluginPackageEntityDtoList3);
         } catch (WecubeCoreException ex) {
             assertThat(ex.getMessage().contains("Cannot found the specified plugin model entity with package name:")).isEqualTo(true);
         }
 
-        // data model reference to a registered package
+        // data model reference to a registered package with one attribte refer to package1`1.0`entity_1
         pluginPackageRepository.save(mockPluginPackage("Package_3", "1.0"));
         List<PluginPackageEntityDto> pluginPackageEntityDtoList4 = mockPluginPackageEntityDtoListByRegisteredPackage("Package_3", "1.0", "1.0");
-        List<PluginPackageEntityDto> registeredDtoList4 = pluginPackageService.register(pluginPackageEntityDtoList4);
+        List<PluginPackageEntityDto> registeredDtoList4 = pluginPackageDataModelService.register(pluginPackageEntityDtoList4);
         assertThat(registeredDtoList4.size()).isEqualTo(pluginPackageEntityDtoList4.size());
+
+        // data model reference to a registered package with no attribute reference
+        pluginPackageRepository.save(mockPluginPackage("Package_4", "1.0"));
+        List<PluginPackageEntityDto> pluginPackageEntityDtoList5 = mockPluginPackageEntityDtoListWithNoAttrRef("Package_4", "1.0");
+        List<PluginPackageEntityDto> registeredDtoList5 = pluginPackageDataModelService.register(pluginPackageEntityDtoList5);
+        assertThat(registeredDtoList5.size()).isEqualTo(pluginPackageEntityDtoList5.size());
 
         // test current package number and data model size
         Iterable<PluginPackage> allPackages = pluginPackageRepository.findAll();
@@ -70,13 +76,13 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         whenRegisterDataModelShouldSuccess();
         // register same package should fail
         List<PluginPackageEntityDto> pluginPackageEntityDtoList = mockPluginPackageEntityDtoList("Package_1", "1.0", "1.0");
-        pluginPackageService.register(pluginPackageEntityDtoList);
+        pluginPackageDataModelService.register(pluginPackageEntityDtoList);
     }
 
     @Test
     public void whenOverviewShouldSuccess() {
         whenRegisterDataModelShouldSuccess();
-        List<PluginPackageEntityDto> registeredAllDataModelList = pluginPackageService.overview();
+        List<PluginPackageEntityDto> registeredAllDataModelList = pluginPackageDataModelService.overview();
         assertThat(registeredAllDataModelList.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE * PACKAGE_SIZE);
         registeredAllDataModelList.forEach(registeredDataModel -> assertThat(registeredDataModel.getAttributeDtoList().size()).isEqualTo(3));
     }
@@ -86,12 +92,12 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     public void whenPackageViewByPackageNameAndVersionShouldSuccess() {
         whenRegisterDataModelShouldSuccess();
         try {
-            pluginPackageService.packageView("falsePackageName", "falsePackageVersion");
+            pluginPackageDataModelService.packageView("falsePackageName", "falsePackageVersion");
         } catch (WecubeCoreException ex) {
             assertThat(ex.getMessage()).contains("Cannot find datamodel");
         }
 
-        List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageService.packageView("Package_1", "1.0");
+        List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView("Package_1", "1.0");
         assertThat(foundEntityDtoListByPackageNameAndVersion.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE);
         assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageName()).isEqualTo("Package_1");
         assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageVersion()).isEqualTo("1.0");
@@ -100,7 +106,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     @Test
     public void whenPackageViewByPackageIdShouldSuccess() {
         whenRegisterDataModelShouldSuccess();
-        List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageService.packageView(1);
+        List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView(1);
         assertThat(foundEntityDtoListByPackageNameAndVersion.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE);
         assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageName()).isEqualTo("Package_1");
         assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageVersion()).isEqualTo("1.0");
@@ -110,14 +116,17 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     public void whenDeleteByPackageNameAndVersionShouldSuccess() {
         whenRegisterDataModelShouldSuccess();
         Iterable<PluginPackageEntity> allAfterDelete = pluginPackageEntityRepository.findAll();
+        List<PluginPackageEntityDto> overview = pluginPackageDataModelService.overview();
         assertThat(Iterators.size(allAfterDelete.iterator())).isEqualTo(MOCK_SIZE_PER_PACKAGE * PACKAGE_SIZE);
         try {
-            pluginPackageService.deleteModel("Package_1", "1.0");
+            pluginPackageDataModelService.deleteModel("Package_1", "1.0");
         } catch (WecubeCoreException ex) {
             assertThat(ex.getMessage().contains("is still referenced by others, delete operation will terminate.")).isEqualTo(true);
         }
-        pluginPackageService.deleteModel("Package_1", "2.0");
+        // because no one refer to data model with package name: Package_1 and version: 2.0 so that this model can be deleted
+        pluginPackageDataModelService.deleteModel("Package_1", "2.0");
         allAfterDelete = pluginPackageEntityRepository.findAll();
+        overview = pluginPackageDataModelService.overview();
         assertThat(Iterators.size(allAfterDelete.iterator())).isEqualTo(MOCK_SIZE_PER_PACKAGE * (PACKAGE_SIZE - 1));
     }
 
@@ -175,13 +184,39 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
                 attributeDto.setDescription(String.format("Attribute_%d", j));
                 attributeDto.setName(String.format("Attribute_%d", j));
                 attributeDto.setDataType("str");
-                if (i > 1 && j >= 1) {
+                if (i >= 1 && j >= 1) {
                     attributeDto.setDataType("ref");
                     attributeDto.setRefPackageName("Package_1");
                     attributeDto.setRefEntityName("Entity_1");
                     attributeDto.setRefAttributeName("Attribute_1");
                     attributeDto.setRefPackageVersion(referenceVersion);
                 }
+                pluginPackageAttributeDtoList.add(attributeDto);
+            }
+            entityDto.setAttributeDtoList(pluginPackageAttributeDtoList);
+            pluginPackageEntityDtoList.add(entityDto);
+        }
+
+        return pluginPackageEntityDtoList;
+    }
+
+    private List<PluginPackageEntityDto> mockPluginPackageEntityDtoListWithNoAttrRef(String packageName, String packageVersion) {
+
+        List<PluginPackageEntityDto> pluginPackageEntityDtoList = new ArrayList<>();
+
+        // mock the entityDto list with nested attribute List inside
+        for (int i = 0; i < MOCK_SIZE_PER_PACKAGE; i++) {
+            PluginPackageEntityDto entityDto = new PluginPackageEntityDto();
+            entityDto.setName(String.format("Entity_%d", i + 1));
+            entityDto.setPackageName(packageName);
+            entityDto.setPackageVersion(packageVersion);
+            entityDto.setDescription(String.format("Entity_%d_description", i + 1));
+            List<PluginPackageAttributeDto> pluginPackageAttributeDtoList = new ArrayList<>();
+            for (int j = 0; j < MOCK_SIZE_PER_PACKAGE; j++) {
+                PluginPackageAttributeDto attributeDto = new PluginPackageAttributeDto();
+                attributeDto.setDescription(String.format("Attribute_%d", j));
+                attributeDto.setName(String.format("Attribute_%d", j));
+                attributeDto.setDataType("str");
                 pluginPackageAttributeDtoList.add(attributeDto);
             }
             entityDto.setAttributeDtoList(pluginPackageAttributeDtoList);
