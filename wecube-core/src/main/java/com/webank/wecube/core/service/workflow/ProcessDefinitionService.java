@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.webank.wecube.core.commons.LocalIdGenerator;
 import com.webank.wecube.core.commons.WecubeCoreException;
 import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
@@ -54,13 +53,14 @@ import com.webank.wecube.core.domain.workflow.TaskNodeDefinitionPreviewResultVO.
 import com.webank.wecube.core.domain.workflow.TaskNodeDefinitionPreviewResultVO.HeaderItem;
 import com.webank.wecube.core.domain.workflow.TaskNodeDefinitionPreviewVO;
 import com.webank.wecube.core.interceptor.UsernameStorage;
-import com.webank.wecube.core.service.workflow.parse.BpmnParseAttachment;
-import com.webank.wecube.core.service.workflow.parse.BpmnProcessModelCustomizer;
-import com.webank.wecube.core.service.workflow.parse.SubProcessAdditionalInfo;
 import com.webank.wecube.core.support.cmdb.dto.v2.CatCodeDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.CategoryDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeAttrDto;
 import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeDto;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
+import com.webank.wecube.platform.workflow.parse.BpmnParseAttachment;
+import com.webank.wecube.platform.workflow.parse.BpmnProcessModelCustomizer;
+import com.webank.wecube.platform.workflow.parse.SubProcessAdditionalInfo;
 
 @Service
 public class ProcessDefinitionService extends AbstractProcessService {
