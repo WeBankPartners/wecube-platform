@@ -45,11 +45,13 @@ public class PluginConfigXmlValidator {
     }
 
     public void validate(String definitionXmlFullName) throws WecubeCoreException {
-        InputStream inputStream = null;
+        InputStream inputStream;
         try {
             inputStream = new ClassPathResource(definitionXmlFullName).getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
+            if (logger.isDebugEnabled()) logger.debug(definitionXmlFullName);
+            throw new WecubeCoreException(e.getMessage());
         }
         validate(inputStream);
     }
