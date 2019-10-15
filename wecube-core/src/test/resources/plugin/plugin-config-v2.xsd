@@ -89,6 +89,7 @@
         <xs:attribute type="xs:string" name="containerName" use="required"/>
         <xs:attribute type="xs:string" name="portBindings" use="required"/>
         <xs:attribute type="xs:string" name="volumeBindings" use="optional"/>
+        <xs:attribute type="xs:string" name="env_variables" use="optional"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -97,19 +98,22 @@
       <xs:extension base="xs:string">
         <xs:attribute type="xs:string" name="schema" use="required"/>
         <xs:attribute type="xs:string" name="initFileName" use="required"/>
+        <xs:attribute type="xs:string" name="upgradeFileName"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
-  <xs:complexType name="resourceDependencyType">
-    <xs:sequence>
-      <xs:element type="dockerType" name="docker" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element type="mysqlType" name="mysql" minOccurs="0" maxOccurs="unbounded"/>
-    </xs:sequence>
-    <xs:attribute type="xs:string" name="type" use="required"/>
+  <xs:complexType name="s3Type">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="bucketName" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
   </xs:complexType>
   <xs:complexType name="resourceDependenciesType">
     <xs:sequence>
-      <xs:element type="resourceDependencyType" name="resourceDependency"  maxOccurs="unbounded"/>
+      <xs:element type="dockerType" name="docker" maxOccurs="unbounded"/>
+      <xs:element type="mysqlType" name="mysql" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="s3Type" name="s3" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="input-parameterType">
