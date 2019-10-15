@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.gateway.route;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ public class DynamicRouteConfigurationServiceTest {
     
     Logger log = LoggerFactory.getLogger(getClass());
 
+    @Ignore
     @Test
     public void testLoadRoutes() {
         WebClient webClient = WebClient.create(baseUrl);
