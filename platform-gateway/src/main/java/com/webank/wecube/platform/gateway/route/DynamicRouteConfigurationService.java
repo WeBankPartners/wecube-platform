@@ -43,35 +43,6 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     protected void loadRoutes() {
         log.info("start to load routes...");
-
-        RouteDefinition definition = new RouteDefinition();
-        definition.setId("dynamic-1");
-        URI uri = UriComponentsBuilder.fromHttpUrl("http://localhost:9000").build().toUri();
-        definition.setUri(uri);
-
-        PredicateDefinition predicate = new PredicateDefinition();
-        predicate.setName("Path");
-
-        Map<String, String> predicateParams = new HashMap<>(8);
-        predicateParams.put("pattern", "/wecube-cds/**");
-        predicate.setArgs(predicateParams);
-
-        FilterDefinition filter = new FilterDefinition();
-        filter.setName("StripPrefix");
-        Map<String, String> filterParams = new HashMap<>(8);
-        filterParams.put("parts", "1");
-        filter.setArgs(filterParams);
-
-        FilterDefinition filter1 = new FilterDefinition();
-        filter1.setName("JwtSsoToken");
-        Map<String, String> filterParams1 = new HashMap<>(8);
-        filterParams1.put("authenticated", "true");
-        filter1.setArgs(filterParams1);
-
-        definition.setFilters(Arrays.asList(filter, filter1));
-        definition.setPredicates(Arrays.asList(predicate));
-
-        this.add(definition);
     }
 
     private void notifyChanged() {
