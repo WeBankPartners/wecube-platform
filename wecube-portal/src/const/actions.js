@@ -84,6 +84,16 @@ export const outerActions = [
       icon: "ios-download-outline"
     },
     actionType: "export"
+  },
+  {
+    label: "过滤列",
+    props: {
+      type: "primary",
+      icon: "ios-funnel",
+      shape: "circle",
+      disabled: false
+    },
+    actionType: "filterColumns"
   }
 ];
 export const innerActions = [
