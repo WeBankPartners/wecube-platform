@@ -6,6 +6,7 @@
 *.log.*.gz
 */package-lock.json
 */node/
+bin/
 
 # Ignore the generated front-end resource
 **/resources/static/
