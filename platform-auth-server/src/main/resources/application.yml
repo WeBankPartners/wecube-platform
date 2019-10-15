@@ -1,0 +1,31 @@
+server:
+   port: 8080
+   servlet:
+      context-path: /auth
+logging:
+   config: classpath:logback-spring.xml
+spring:
+   datasource:
+#      url: jdbc:mysql://localhost:port/db?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
+#      username: root
+#      ***REMOVED***
+#      url: ***REMOVED***
+#      username: wecube
+#      password: password
+#      driver-class-name: com.mysql.cj.jdbc.Driver
+   profiles:
+      active: @activatedProperties@
+   thymeleaf:
+      cache: false
+   jpa:
+      database: mysql
+      show-sql: true
+      hibernate:
+         ddl-auto: update
+         use-new-id-generator-mappings: false
+platform:
+   auth:
+      server:
+         privateKey: MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAp2zxdQeCUXTvTenwf4g9AJMT7fUDq357JPMX7qQcSkunth4O7s5kKogfqlhabEPROZAuhuM80DsgwT3fCrwdfQIDAQABAkAnM5IBteVkjz2s/5apNcwaw1VKRTE7yVyqFSVIYjKhjl5aA1ZcFwPx1Tue+kO5SXCR130x7gPA8t3sBjwwNWBBAiEA0ug/GxgrjTRI3jo+5Eojngm4zo15rQC5mm3fZLYvIY0CIQDLOMfOmE1jlciD8wd7cir6wqrDmRCUhAngbqBa9XtXsQIhALwF5MyI3brC0/uaPZtUJTCtRh6Ordz3+n+cWD321Um5AiANESuX1ycyvhDUmy3h/CdTVG0SgqcURaE08ygQcTRrIQIhAJO1gqZlPthg3t8y04XM+IY5Cmy9MHIgasmsI7HpvhGM
+         publicKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKds8XUHglF0703p8H+IPQCTE+31A6t+eyTzF+6kHEpLp7YeDu7OZCqIH6pYWmxD0TmQLobjPNA7IME93wq8HX0CAwEAAQ==
+   
