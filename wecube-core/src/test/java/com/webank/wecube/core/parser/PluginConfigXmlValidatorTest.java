@@ -72,7 +72,7 @@ public class PluginConfigXmlValidatorTest {
         try {
             validator.validate("/plugin/sample-plugin-config-v2-false6.xml");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("Attribute 'type' must appear on element 'resourceDependency'.");
+            assertThat(ex.getMessage()).contains("Invalid content was found starting with element 'mysql'. One of '{docker}' is expected.");
         }
     }
 }
