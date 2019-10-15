@@ -68,7 +68,10 @@
           <div>菜单注入</div>
         </TabPane>
         <TabPane name="models" label="数据模型">
-          <div>数据模型</div>
+          <DataModel
+            v-if="currentTab === 'models'"
+            :pkgId="currentPackageId"
+          ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" label="系统参数">
           <div>系统参数</div>
@@ -351,7 +354,12 @@ const storageServiceColumns = [
     key: "uploadTime"
   }
 ];
+
+import DataModel from "./components/data-model.vue";
 export default {
+  components: {
+    DataModel
+  },
   data() {
     return {
       plugins: [],
@@ -396,14 +404,17 @@ export default {
       this.isShowConfigPanel = isShowConfigPanel;
       this.isShowRuntimeManagementPanel = !isShowConfigPanel;
     },
-    deletePlugin(currentPluginId) {},
-    configPlugin(currentPluginId) {
+    deletePlugin(packageId) {},
+    configPlugin(packageId) {
       this.swapPanel(true);
+      this.currentPlugin = this.plugins.find(_ => _.id === packageId);
+      this.selectedCiType = this.currentPlugin.cmdbCiTypeId || "";
+      this.currentPackageId = this.currentPlugin.id;
     },
-    async manageRuntimePlugin(currentPluginId) {
+    async manageRuntimePlugin(packageId) {
       this.swapPanel(false);
 
-      let currentPlugin = this.plugins.find(_ => _.id === currentPluginId);
+      let currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
       this.currentPlugin = currentPlugin;
 
