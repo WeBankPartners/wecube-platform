@@ -1,5 +1,6 @@
 package com.webank.wecube.core.parser;
 
+import com.webank.wecube.core.commons.WecubeCoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -24,15 +25,13 @@ public class PluginConfigXmlValidator {
         validator = schema.newValidator();
     }
 
-    public boolean validate(StreamSource xmlSource) throws IOException, SAXException {
+    public void validate(StreamSource xmlSource) throws WecubeCoreException {
         // xml source is the xml file path
         try {
             validator.validate(xmlSource);
-        } catch (IOException | SAXException ex) {
-            logger.error(ex.getMessage());
+        } catch (SAXException | IOException ex) {
             if (logger.isDebugEnabled()) logger.debug(xmlSource.toString());
-            throw ex;
+            throw new WecubeCoreException("XML validate failed: "+ex.getMessage());
         }
-        return true;
     }
 }
