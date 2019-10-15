@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -35,7 +36,6 @@ public class JwtSsoTokenGatewayFilterFactory
 
     public static final String TOKEN_PREFIX = "Bearer";
 
-    public static final String HEADER_WWW_AUTHENTICATE = "WWW-Authenticate";
     private String headerValue = "Bearer realm=\"Central Authentication Server\";profile=\"JWT\";";
 
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -96,7 +96,7 @@ public class JwtSsoTokenGatewayFilterFactory
             DataBuffer buffer = response.bufferFactory().wrap(bits);
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
-            response.getHeaders().add(HEADER_WWW_AUTHENTICATE, headerValue);
+            response.getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, headerValue);
 
             return response.writeWith(Mono.just(buffer));
         } catch (JsonProcessingException e) {
