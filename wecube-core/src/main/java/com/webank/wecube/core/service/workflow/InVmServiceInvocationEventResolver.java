@@ -1,4 +1,4 @@
-package com.webank.wecube.core.service.workflow.delegate;
+package com.webank.wecube.core.service.workflow;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.core.domain.plugin.PluginTriggerCommand;
-import com.webank.wecube.core.domain.workflow.ServiceInvocationEvent;
 import com.webank.wecube.core.service.PluginInstanceService;
+import com.webank.wecube.platform.workflow.delegate.ServiceInvocationEventResolver;
+import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent;
 
 @Service("InVmServiceInvocationEventResolver")
 public class InVmServiceInvocationEventResolver implements ServiceInvocationEventResolver {
