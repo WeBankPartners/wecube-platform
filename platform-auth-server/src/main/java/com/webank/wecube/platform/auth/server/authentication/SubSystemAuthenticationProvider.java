@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.auth.server.authentication;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,11 @@ public class SubSystemAuthenticationProvider implements AuthenticationProvider {
         String nonce = (String) subSystemAuthToken.getNonce();
 
         String subSystemPublicKey = subSystemInfo.getPubApiKey();
+        
+        if(StringUtils.isBlank(subSystemPublicKey)){
+            log.warn("sub system public key is blank for system code:{}", systemCode);
+            throw new BadCredentialsException("Bad credential and failed to decrypt password.");
+        }
 
         String decryptedPassword = new String(
                 EncryptionUtils.decryptByPublicKeyAsString(StringUtilsEx.decodeBase64(password), subSystemPublicKey),
