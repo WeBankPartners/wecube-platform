@@ -1,6 +1,6 @@
 const CompressionPlugin = require("compression-webpack-plugin");
 
-let isUsingLocalCore = true;
+let isUsingLocalCore = false;
 
 const baseURL = isUsingLocalCore
   ? "http://localhost:8080"
@@ -33,6 +33,9 @@ module.exports = {
       },
       "/batch-job": {
         target: baseURL
+      },
+      "/auth": {
+        target: "http://129.204.99.160:8889"
       }
     }
   },
