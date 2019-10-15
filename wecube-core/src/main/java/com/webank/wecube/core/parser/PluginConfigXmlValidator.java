@@ -14,14 +14,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+
 public class PluginConfigXmlValidator {
+    final String XML_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
+    final String XSD_PATH = "/plugin/plugin-config-v2.xsd";
+
     private Validator validator;
 
     private static final Logger logger = LoggerFactory.getLogger(PluginConfigXmlValidator.class);
 
     public PluginConfigXmlValidator() throws SAXException, IOException {
-        SchemaFactory schemaFactory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
-        URL resource = new ClassPathResource("/plugin/plugin-config-v2.xsd").getURL();
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XML_NAMESPACE);
+        URL resource = new ClassPathResource(XSD_PATH).getURL();
         Schema schema = schemaFactory.newSchema(resource);
         validator = schema.newValidator();
     }
@@ -32,7 +36,7 @@ public class PluginConfigXmlValidator {
             validator.validate(xmlSource);
         } catch (SAXException | IOException ex) {
             if (logger.isDebugEnabled()) logger.debug(xmlSource.toString());
-            throw new WecubeCoreException("XML validation failed: "+ex.getMessage());
+            throw new WecubeCoreException("XML validation failed: " + ex.getMessage());
         }
     }
 
