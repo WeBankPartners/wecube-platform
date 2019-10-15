@@ -11,6 +11,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 public class PluginConfigXmlValidator {
@@ -31,7 +32,21 @@ public class PluginConfigXmlValidator {
             validator.validate(xmlSource);
         } catch (SAXException | IOException ex) {
             if (logger.isDebugEnabled()) logger.debug(xmlSource.toString());
-            throw new WecubeCoreException("XML validate failed: "+ex.getMessage());
+            throw new WecubeCoreException("XML validation failed: "+ex.getMessage());
         }
+    }
+
+    public void validate(InputStream inputStream) throws WecubeCoreException {
+        validate(new StreamSource(inputStream));
+    }
+
+    public void validate(String definitionXmlFullName) throws WecubeCoreException {
+        InputStream inputStream = null;
+        try {
+            inputStream = new ClassPathResource(definitionXmlFullName).getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        validate(inputStream);
     }
 }
