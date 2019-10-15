@@ -1055,7 +1055,7 @@ public class CmdbResourceService {
     void setCmdbServiceV2Stub(CmdbServiceV2Stub cmdbServiceV2Stub) {
         this.cmdbServiceV2Stub = cmdbServiceV2Stub;
     }
-    
+
 	public PaginationQueryResult<Object> queryCiData(Integer ciTypeId, PaginationQuery queryObject) {
 		if (null == queryObject.getSorting())
 			queryObject.setSorting(new Sorting(false, "created_date"));
