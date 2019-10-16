@@ -25,9 +25,9 @@ import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
         ApiProxyProperties.class,
         ResourceProperties.class
 })
-@ComponentScan({ "com.webank.wecube.core.service" })
-@EntityScan(basePackages = { "com.webank.wecube.core" })
-@EnableJpaRepositories(basePackages = { "com.webank.wecube.core" })
+@ComponentScan({ "com.webank.wecube.platform.core.service" })
+@EntityScan(basePackages = { "com.webank.wecube.platform.core" })
+@EnableJpaRepositories(basePackages = { "com.webank.wecube.platform.core" })
 @EnablePlatformWorkflowApplication
 public class SpringAppConfig {
 
