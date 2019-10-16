@@ -7,11 +7,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.collect.Lists;
-import com.webank.wecube.core.service.resource.ResourceAvaliableStatus;
-import com.webank.wecube.core.service.resource.ResourceServerType;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.interceptor.UsernameStorage;
+import com.webank.wecube.platform.core.service.resource.ResourceAvaliableStatus;
+import com.webank.wecube.platform.core.service.resource.ResourceServerType;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
