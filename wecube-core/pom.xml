@@ -1,36 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>wecube-platform</artifactId>
-        <groupId>com.webank.wecube</groupId>
+        <groupId>com.webank.wecube.platform</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>wecube-core</artifactId>
 
-    <properties>
-        <version.camunda>7.11.0-alpha5</version.camunda>
-    </properties>
-
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.camunda.bpm</groupId>
-                <artifactId>camunda-bom</artifactId>
-                <scope>import</scope>
-                <type>pom</type>
-                <version>${version.camunda}</version>
-            </dependency>
-            <!--<dependency>-->
-                <!--<groupId>com.amazonaws</groupId>-->
-                <!--<artifactId>aws-java-sdk-bom</artifactId>-->
-                <!--&lt;!&ndash;<version>${aws.sdk.version}</version>&ndash;&gt;-->
-                <!--<type>pom</type>-->
-                <!--<scope>import</scope>-->
-            <!--</dependency>-->
+            <!--<dependency> -->
+            <!--<groupId>com.amazonaws</groupId> -->
+            <!--<artifactId>aws-java-sdk-bom</artifactId> -->
+            <!--&lt;!&ndash;<version>${aws.sdk.version}</version>&ndash;&gt; -->
+            <!--<type>pom</type> -->
+            <!--<scope>import</scope> -->
+            <!--</dependency> -->
         </dependencies>
     </dependencyManagement>
 
@@ -65,11 +53,10 @@
         </dependency>
 
         <dependency>
-            <groupId>org.camunda.bpm.springboot</groupId>
-            <artifactId>camunda-bpm-spring-boot-starter</artifactId>
-            <version>3.3.0-alpha1</version>
+            <groupId>com.webank.wecube.platform</groupId>
+            <artifactId>platform-workflow</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.jasig.cas.client</groupId>
