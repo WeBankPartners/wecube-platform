@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="package" type="packageType"/>
+  <xs:complexType name="packageDependencyType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="required"/>
+        <xs:attribute type="xs:string" name="version" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="packageDependenciesType">
+    <xs:sequence>
+      <xs:element type="packageDependencyType" name="packageDependency" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="menuType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="code" use="required"/>
+        <xs:attribute type="xs:string" name="cat" use="optional"/>
+        <xs:attribute type="xs:string" name="displayName" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="menusType">
+    <xs:sequence>
+      <xs:element type="menuType" name="menu" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="attributeType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="required"/>
+        <xs:attribute type="xs:string" name="datatype" use="required"/>
+        <xs:attribute type="xs:string" name="description" use="optional"/>
+        <xs:attribute type="xs:string" name="refPackage" use="optional"/>
+        <xs:attribute type="xs:string" name="refVersion" use="optional"/>
+        <xs:attribute type="xs:string" name="refEntity" use="optional"/>
+        <xs:attribute type="xs:string" name="ref" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="entityType">
+    <xs:sequence>
+      <xs:element type="attributeType" name="attribute" maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name" use="required"/>
+    <xs:attribute type="xs:string" name="displayName" use="required"/>
+    <xs:attribute type="xs:string" name="description" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="dataModelType">
+    <xs:sequence>
+      <xs:element type="entityType" name="entity" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="systemParameterType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="name" use="optional"/>
+        <xs:attribute type="xs:string" name="defaultValue" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="systemParametersType">
+    <xs:sequence>
+      <xs:element type="systemParameterType" name="systemParameter" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="authorityType">
+    <xs:sequence>
+      <xs:element type="menuType" name="menu" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="systemRoleName" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="authoritiesType">
+    <xs:sequence>
+      <xs:element type="authorityType" name="authority" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>system predefined roles</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="dockerType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="imageName" use="required"/>
+        <xs:attribute type="xs:string" name="containerName" use="required"/>
+        <xs:attribute type="xs:string" name="portBindings" use="required"/>
+        <xs:attribute type="xs:string" name="volumeBindings" use="optional"/>
+        <xs:attribute type="xs:string" name="env_variables" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="mysqlType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="schema" use="required"/>
+        <xs:attribute type="xs:string" name="initFileName" use="required"/>
+        <xs:attribute type="xs:string" name="upgradeFileName"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="s3Type">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="bucketName" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="resourceDependenciesType">
+    <xs:sequence>
+      <xs:element type="dockerType" name="docker" maxOccurs="unbounded"/>
+      <xs:element type="mysqlType" name="mysql" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element type="s3Type" name="s3" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="input-parameterType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="datatype" use="optional"/>
+        <xs:attribute type="xs:string" name="mappingType" use="optional"/>
+        <xs:attribute type="xs:string" name="mappingSystemVariableId" use="optional"/>
+        <xs:attribute type="xs:string" name="required" use="required"/>
+        <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="input-parametersType">
+    <xs:sequence>
+      <xs:element type="input-parameterType" name="parameter" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="output-parameterType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="datatype" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="output-parametersType">
+    <xs:sequence>
+      <xs:element type="output-parameterType" name="parameter" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="interfaceType">
+    <xs:sequence>
+      <xs:element type="input-parametersType" name="input-parameters" minOccurs="0"/>
+      <xs:element type="output-parametersType" name="output-parameters" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name"/>
+    <xs:attribute type="xs:string" name="path"/>
+    <xs:attribute type="xs:string" name="httpMethod"/>
+  </xs:complexType>
+  <xs:complexType name="pluginType">
+    <xs:sequence>
+      <xs:element type="interfaceType" name="interface" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="id"/>
+    <xs:attribute type="xs:string" name="name"/>
+  </xs:complexType>
+  <xs:complexType name="pluginsType">
+    <xs:sequence>
+      <xs:element type="pluginType" name="plugin" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="packageType">
+    <xs:sequence>
+      <xs:element type="packageDependenciesType" name="packageDependencies" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>1.依赖分析 - 描述运行本插件包需要的其他插件</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="menusType" name="menus" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>2.菜单注入 - 描述运行本插件包需要注入的菜单</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="dataModelType" name="dataModel" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="systemParametersType" name="systemParameters" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>4.系统参数 - 描述运行本插件包需要的系统参数</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="authoritiesType" name="authorities" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>5.权限设定</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="resourceDependenciesType" name="resourceDependencies">
+        <xs:annotation>
+          <xs:documentation>6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等)</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="pluginsType" name="plugins" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>7.插件列表 - 描述插件包中单个插件的输入和输出</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="name"/>
+    <xs:attribute type="xs:string" name="version"/>
+  </xs:complexType>
+</xs:schema>
