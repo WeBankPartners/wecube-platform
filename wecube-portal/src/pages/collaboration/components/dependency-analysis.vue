@@ -1,12 +1,12 @@
 <template>
-  <div class="graph-container" id="data-model-graph"></div>
+  <div class="graph-container" id="dependency-analysis-graph"></div>
 </template>
 <script>
-import { getPluginPkgDataModel } from "@/api/server";
+import { getPluginPkgDependcy } from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 export default {
-  name: "data-model",
+  name: "dependency-analysis",
   data() {
     return {
       data: [],
@@ -30,22 +30,44 @@ export default {
     this.getData();
   },
   methods: {
-    async getData() {
-      // let { status, data, message } = await getPluginPkgDataModel(this.pkgId);
-      let { status, data, message } = await getPluginPkgDataModel(2);
-      if (status === "OK") {
-        this.data = data.map(_ => {
-          return {
-            ..._,
-            id: _.packageName + "_" + _.name,
-            tos: _.referenceToEntityList.map(_ => {
-              return { ..._, id: _.packageName + "_" + _.name };
-            }),
-            bys: _.referenceByEntityList.map(_ => {
-              return { ..._, id: _.packageName + "_" + _.name };
-            })
-          };
+    formatData(data) {
+      let dependency = [data];
+      dependency.forEach(_ => {
+        let firstLevelTos = _.dependencies.map(i => {
+          if (i.dependencies) {
+            this.data.push({
+              ...i,
+              id: i.plugin_package,
+              tos: i.dependencies.map(j => {
+                return { ...j, id: j.plugin_package };
+              }),
+              bys: []
+            });
+            i.dependencies.forEach(d => {
+              this.data.push({
+                ...d,
+                id: d.plugin_package,
+                tos: [],
+                bys: []
+              });
+            });
+          }
+          return { ...i, id: i.plugin_package };
         });
+
+        this.data.push({
+          ..._,
+          id: _.plugin_package,
+          tos: firstLevelTos,
+          bys: []
+        });
+      });
+    },
+    async getData() {
+      // let { status, data, message } = await getPluginPkgDependcy(this.pkgId);
+      let { status, data, message } = await getPluginPkgDependcy(3);
+      if (status === "OK") {
+        this.formatData(data);
         this.initGraph();
       }
     },
@@ -61,10 +83,10 @@ export default {
         return `"${from.id}" -> "${to.id}"[edgetooltip="${to.id}"];`;
       };
       let addNodeAttr = node => {
-        const color = "#273c75";
+        const color = node.status === "active" ? "#19be6b" : "#c5c8ce";
         return `"${node.id}" [id="${node.id}" label="${node.id +
           "_v" +
-          node.packageVersion}" shape="box" fontcolor="${color}"];`;
+          node.version}" shape="ellipse" color="${color}" style="filled"];`;
       };
       const nodeMap = new Map();
       this.data.forEach(node => {
@@ -106,7 +128,7 @@ export default {
     initGraph() {
       const initEvent = () => {
         let graph;
-        graph = d3.select(`#data-model-graph`);
+        graph = d3.select(`#dependency-analysis-graph`);
         graph.on("dblclick.zoom", null);
         this.graph.graphviz = graph.graphviz().zoom(false);
       };

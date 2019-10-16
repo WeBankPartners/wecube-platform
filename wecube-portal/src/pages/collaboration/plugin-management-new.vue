@@ -61,8 +61,11 @@
     </Col>
     <Col span="17" offset="1" v-if="isShowConfigPanel">
       <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
-        <TabPane name="Dependency" label="依赖分析">
-          <div>依赖分析</div>
+        <TabPane name="dependency" label="依赖分析">
+          <DependencyAnalysis
+            v-if="currentTab === 'dependency'"
+            :pkgId="currentPackageId"
+          ></DependencyAnalysis>
         </TabPane>
         <TabPane name="menus" label="菜单注入">
           <div>菜单注入</div>
@@ -356,16 +359,19 @@ const storageServiceColumns = [
 ];
 
 import DataModel from "./components/data-model.vue";
+import DependencyAnalysis from "./components/dependency-analysis.vue";
+
 export default {
   components: {
-    DataModel
+    DataModel,
+    DependencyAnalysis
   },
   data() {
     return {
       plugins: [],
       isShowConfigPanel: false,
       isShowRuntimeManagementPanel: false,
-      currentTab: "Dependency",
+      currentTab: "dependency",
       currentPlugin: {},
       tableData: [],
       totalTableData: [],
