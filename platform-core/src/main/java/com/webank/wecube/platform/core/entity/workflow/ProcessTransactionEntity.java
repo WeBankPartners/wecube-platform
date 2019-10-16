@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.domain.workflow;
+package com.webank.wecube.platform.core.entity.workflow;
 
 import java.util.Date;
 import java.util.HashSet;
