@@ -52,4 +52,13 @@ public class UserManagementControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.data.length()", is(0)));
     }
 
+    
+    @Test
+    public void removeMenuPermissionForRole() throws Exception {
+        mvc.perform(delete("/admin/roles/1/menu-permissions").contentType(MediaType.APPLICATION_JSON)
+        .content(toJsonString(newArrayList("ADMIN_PERMISSION_MANAGEMENT"))))
+        .andExpect(jsonPath("$.status", is("ERROR")))
+        .andExpect(jsonPath("$.message", is("Cannot be deleted as this is Admin permission menu.")));
+    }
+
 }
