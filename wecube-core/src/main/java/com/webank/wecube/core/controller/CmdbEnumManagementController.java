@@ -151,7 +151,7 @@ public class CmdbEnumManagementController {
         return okay();
     }
 
-    @RolesAllowed({MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT, MENU_COLLABORATION_PLUGIN_MANAGEMENT})
+    @RolesAllowed({MENU_ADMIN_CMDB_MODEL_MANAGEMENT, MENU_ADMIN_BASE_DATA_MANAGEMENT, MENU_COLLABORATION_PLUGIN_MANAGEMENT,MENU_DESIGNING_CI_DATA_MANAGEMENT, MENU_DESIGNING_CI_DATA_ENQUIRY})
     @PostMapping("/enum/system/codes")
     @ResponseBody
     public JsonResponse querySystemEnumCodesWithRefResources(@RequestBody PaginationQuery queryObject) {
