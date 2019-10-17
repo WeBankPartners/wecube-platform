@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.controller;
 
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,48 +41,27 @@ public class WorkflowProcessDefinitionController {
 
     @PostMapping("/process/definitions/draft")
     public CommonResponseDto draftProcessDefinition(@RequestBody ProcessDefinitionInfoDto requestDto) {
-        return null;
+        if(log.isDebugEnabled()){
+            log.debug("draft process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
+                    requestDto.getProcDefName(),requestDto.getRootEntity());
+        }
+        
+        ProcessDefinitionInfoDto result = procDefService.draftProcessDefinition(requestDto);
+        return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/definitions")
     public CommonResponseDto getProcessDefinitions(
-            @RequestParam(name = "includeDraft", required = false, defaultValue = "0") int includeDraft) {
-        return null;
+            @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft) {
+        
+        boolean includeDraftProcDef = (includeDraft == 1? true : false);
+        List<ProcessDefinitionInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef);
+        return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/definitions/{id}")
     public CommonResponseDto getProcessDefinition(@PathVariable(name = "id") String id) {
-        return null;
-    }
-
-    // @PutMapping("/process/definitions/{process-def-key}/task-nodes")
-    // public CommonResponseDto configureTaskNode(@PathVariable(name =
-    // "process-def-key") String processDefKey,
-    // @RequestBody TaskNodeInfoDto request) {
-    // if (log.isDebugEnabled()) {
-    // log.debug("configure task node with process id:{},task node info:{}",
-    // processId, request);
-    // }
-    //
-    // if (StringUtils.isBlank(processId)) {
-    // throw new WecubeCoreException("process id is blank.");
-    // }
-    //
-    // TaskNodeInfoDto result = procDefService.configureTaskNode(processId,
-    // request);
-    //
-    // return CommonResponseDto.okayWithData(result);
-    // }
-
-    @GetMapping("/process/definitions/{process-id}/task-nodes/{node-id}")
-    public CommonResponseDto getTaskNodeInfo(@PathVariable(name = "process-id") String processId,
-            @PathVariable(name = "node-id") String nodeId) {
-        if (StringUtils.isBlank(processId) || StringUtils.isBlank(nodeId)) {
-            throw new WecubeCoreException("process id or node id is blank.");
-        }
-
-        TaskNodeInfoDto result = procDefService.getTaskNodeInfo(processId, nodeId);
-
+        ProcessDefinitionInfoDto result = procDefService.getProcessDefinition(id);
         return CommonResponseDto.okayWithData(result);
     }
 
