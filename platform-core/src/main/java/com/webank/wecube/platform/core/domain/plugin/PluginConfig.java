@@ -17,110 +17,110 @@ import java.util.List;
 @Table(name = "plugin_configs")
 public class PluginConfig {
 
-	public enum Status {
-		NOT_CONFIGURED, CONFIGURED, ONLINE, DECOMMISSIONED
-	}
+    public enum Status {
+        NOT_CONFIGURED, CONFIGURED, ONLINE, DECOMMISSIONED
+    }
 
-	@Id
-	@GeneratedValue
-	private Integer id;
+    @Id
+    @GeneratedValue
+    private Integer id;
 
-	@JsonIgnore
-	@EqualsAndHashCode.Exclude
-	@ToString.Exclude
-	@ManyToOne
-	@JoinColumn(name = "plugin_package_id")
-	private PluginPackage pluginPackage;
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "plugin_package_id")
+    private PluginPackage pluginPackage;
 
-	@Column
-	private String name;
+    @Column
+    private String name;
 
-	@Column
-	private Integer entityId;
+    @Column
+    private Integer entityId;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private Status status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status;
 
-	@JsonIgnore
-	@EqualsAndHashCode.Exclude
-	@ToString.Exclude
-	@OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<PluginConfigInterface> interfaces = new ArrayList<>();
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PluginConfigInterface> interfaces = new ArrayList<>();
 
-	public void addPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
-		this.interfaces.add(pluginConfigInterface);
-	}
+    public void addPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
+        this.interfaces.add(pluginConfigInterface);
+    }
 
-	@JsonInclude
-	@EqualsAndHashCode.Include
-	@ToString.Include
-	public Integer getPluginPackageId() {
-		return pluginPackage == null ? null : pluginPackage.getId();
-	}
+    @JsonInclude
+    @EqualsAndHashCode.Include
+    @ToString.Include
+    public Integer getPluginPackageId() {
+        return pluginPackage == null ? null : pluginPackage.getId();
+    }
 
-	public Integer getId() {
-		return id;
-	}
+    public Integer getId() {
+        return id;
+    }
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	public PluginPackage getPluginPackage() {
-		return pluginPackage;
-	}
+    public PluginPackage getPluginPackage() {
+        return pluginPackage;
+    }
 
-	public void setPluginPackage(PluginPackage pluginPackage) {
-		this.pluginPackage = pluginPackage;
-	}
+    public void setPluginPackage(PluginPackage pluginPackage) {
+        this.pluginPackage = pluginPackage;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public Integer getEntityId() {
-		return entityId;
-	}
+    public Integer getEntityId() {
+        return entityId;
+    }
 
-	public void setEntityId(Integer entityId) {
-		this.entityId = entityId;
-	}
+    public void setEntityId(Integer entityId) {
+        this.entityId = entityId;
+    }
 
-	public Status getStatus() {
-		return status;
-	}
+    public Status getStatus() {
+        return status;
+    }
 
-	public void setStatus(Status status) {
-		this.status = status;
-	}
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
-	public List<PluginConfigInterface> getInterfaces() {
-		return interfaces;
-	}
+    public List<PluginConfigInterface> getInterfaces() {
+        return interfaces;
+    }
 
-	public void setInterfaces(List<PluginConfigInterface> interfaces) {
-		this.interfaces = interfaces;
-	}
+    public void setInterfaces(List<PluginConfigInterface> interfaces) {
+        this.interfaces = interfaces;
+    }
 
-	public PluginConfig() {
-	}
+    public PluginConfig() {
+    }
 
-	public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, Status status, List<PluginConfigInterface> interfaces) {
-		this.id = id;
-		this.pluginPackage = pluginPackage;
-		this.name = name;
-		this.entityId = entityId;
-		this.status = status;
-		this.interfaces = interfaces;
-	}
+    public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, Status status, List<PluginConfigInterface> interfaces) {
+        this.id = id;
+        this.pluginPackage = pluginPackage;
+        this.name = name;
+        this.entityId = entityId;
+        this.status = status;
+        this.interfaces = interfaces;
+    }
 
-	@Override
-	public String toString() {
-		return ReflectionToStringBuilder.toStringExclude(this, new String[] {"pluginPackage"});
-	}
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+    }
 }
