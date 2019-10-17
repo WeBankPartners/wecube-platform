@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.core.utils.constant;
 
 public enum DataModelDataType {
-    Ref("ref"), String("str"), Integer("int");
+    Ref("ref"), String("str"), Integer("int"), Timestamp("timestamp");
 
     private String code;
 
