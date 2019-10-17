@@ -28,5 +28,11 @@
   "search": "搜索",
   "search_result": "搜索结果",
   "no_result": "没有结果",
-  "number_of_result": "条结果"
+  "number_of_result": "条结果",
+  "enum_management": "枚举管理",
+  "name": "名称",
+  "enum_type": "枚举类型",
+  "enum_group": "分组",
+  "common_enum": "公共枚举",
+  "private_enum": "私有枚举"
 }
