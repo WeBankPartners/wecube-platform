@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import com.webank.wecube.platform.core.entity.workflow.ProcessDefInfoEntity;
 
 public interface ProcessDefInfoRepository extends JpaRepository<ProcessDefInfoEntity, String> {
-    ProcessDefInfoEntity findByProcDefKeyAndVersion(String procDefKey, Integer version);
+//    ProcessDefInfoEntity findByProcDefKeyAndVersion(String procDefKey, Integer version);
 
     @Query("select p from ProcessDefInfoEntity p where p.procDefId = :processId and p.status = :status")
     ProcessDefInfoEntity findOneByProcessIdAndStatus(@Param("processId") String processId,
