@@ -99,7 +99,7 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
-        <plugin id="task" name="task management">
+        <plugin name="task">
             <interface name="create" path="/service-management/tasks" httpMethod='POST'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>callbackUrl</parameter>
@@ -117,7 +117,7 @@
                 </outputParameters>
             </interface>
         </plugin>
-        <plugin id="service_request" name="service request management">
+        <plugin name="service request management">
             <interface name="update" path="/service-management/service-requests/{service-request-id}/done" httpMethod='PUT'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>service-request-id</parameter>
@@ -238,7 +238,6 @@
 
 | tag 名称 | 描述     | 是否必须 |
 | -------- | -------- | -------- |
-| id       | 唯一身份 | 是       |
 | name     | 名称     | 是       |
 
 ##### interface
