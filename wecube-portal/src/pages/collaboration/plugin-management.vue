@@ -2,7 +2,7 @@
   <Row style="padding:20px">
     <Spin size="large" fix v-if="isLoading">
       <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-      <div>加载中...</div>
+      <div>{{ $t("loading") }}</div>
     </Spin>
     <Col span="6">
       <Row>
