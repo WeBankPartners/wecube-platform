@@ -73,11 +73,11 @@ export default {
       categoryId: -1,
       catTypes: [
         {
-          label: this.$t("common_enum"),
+          label: this.$t("pub_enum"),
           value: 2
         },
         {
-          label: this.$t("private_enum"),
+          label: this.$t("pri_enum"),
           value: 3
         }
       ],
