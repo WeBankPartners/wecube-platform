@@ -1,8 +1,7 @@
-package com.webank.wecube.platform.core.domain.workflow;
+package com.webank.wecube.platform.core.entity.workflow;
 
 import java.util.Date;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
