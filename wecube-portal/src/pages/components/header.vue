@@ -76,10 +76,10 @@ export default {
     };
   },
   methods: {
-    changeLanguage(key) {
-      Vue.config.lang = key;
-      this.currentLanguage = this.language[key];
-      localStorage.setItem("lang", key);
+    changeLanguage(lan) {
+      Vue.config.lang = lan;
+      this.currentLanguage = this.language[lan];
+      localStorage.setItem("lang", lan);
     },
     getLocalLang() {
       let currentLangKey = localStorage.getItem("lang") || navigator.language;
