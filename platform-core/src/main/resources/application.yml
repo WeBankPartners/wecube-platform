@@ -21,6 +21,9 @@ spring:
     hibernate:
       ddl-auto: none
       use-new-id-generator-mappings: false
+      naming:
+         physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     open-in-view: false
 
   servlet:
