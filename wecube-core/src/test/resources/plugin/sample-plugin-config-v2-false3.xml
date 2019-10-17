@@ -98,7 +98,7 @@
     <plugins>
         <plugin id="task" name="task management">
             <interface name="create" path="/service-management/tasks" httpMethod='POST'>
-                <input-parameters>
+                <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>callbackUrl</parameter>
                     <parameter datatype="string" mappingType='context'  required='N'>description</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>name</parameter>
@@ -107,23 +107,23 @@
                     <parameter datatype="string" mappingType='context' required='Y'>processInstanceId</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>reporter</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>serviceRequestId</parameter>
-                </input-parameters>
-                <output-parameters>
+                </inputParameters>
+                <outputParameters>
                     <parameter datatype="string">status</parameter>
                     <parameter datatype="string">message</parameter>
-                </output-parameters>
+                </outputParameters>
             </interface>
         </plugin>
         <plugin id="service_request" name="service request management">
             <interface name="update" path="/service-management/service-requests/{service-request-id}/done" httpMethod='PUT'>
-                <input-parameters>
+                <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>service-request-id</parameter>
                     <parameter datatype="string" mappingType='context'  required='Y'>result</parameter>
-                </input-parameters>
-                <output-parameters>
+                </inputParameters>
+                <outputParameters>
                     <parameter datatype="string">status</parameter>
                     <parameter datatype="string">message</parameter>
-                </output-parameters>
+                </outputParameters>
             </interface>
         </plugin>
     </plugins>
