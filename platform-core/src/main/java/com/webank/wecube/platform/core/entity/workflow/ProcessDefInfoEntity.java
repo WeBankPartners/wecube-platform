@@ -22,14 +22,14 @@ public class ProcessDefInfoEntity extends BaseStatusFeaturedEntity {
     @Column(name = "ID")
     private String id;
 
-    @Column(name = "PROC_DEF_ID")
-    private String procDefId;
+    @Column(name = "PROC_DEF_KEY")
+    private String procDefKey;
 
     @Column(name = "PROC_DEF_NAME")
     private String procDefName;
 
-    @Column(name = "KERNEL_ID")
-    private String kernelProcDefId;
+    @Column(name = "PROC_DEF_KERNEL_ID")
+    private String procDefKernelId;
 
     @Column(name = "PROC_DEF_VER")
     private Integer procDefVersion;
@@ -51,20 +51,12 @@ public class ProcessDefInfoEntity extends BaseStatusFeaturedEntity {
         this.id = id;
     }
 
-    public String getProcDefId() {
-        return procDefId;
+    public String getProcDefKey() {
+        return procDefKey;
     }
 
-    public void setProcDefId(String procDefId) {
-        this.procDefId = procDefId;
-    }
-
-    public String getRootEntity() {
-        return rootEntity;
-    }
-
-    public void setRootEntity(String rootEntity) {
-        this.rootEntity = rootEntity;
+    public void setProcDefKey(String procDefKey) {
+        this.procDefKey = procDefKey;
     }
 
     public String getProcDefName() {
@@ -75,12 +67,28 @@ public class ProcessDefInfoEntity extends BaseStatusFeaturedEntity {
         this.procDefName = procDefName;
     }
 
+    public String getProcDefKernelId() {
+        return procDefKernelId;
+    }
+
+    public void setProcDefKernelId(String procDefKernelId) {
+        this.procDefKernelId = procDefKernelId;
+    }
+
     public Integer getProcDefVersion() {
         return procDefVersion;
     }
 
     public void setProcDefVersion(Integer procDefVersion) {
         this.procDefVersion = procDefVersion;
+    }
+
+    public String getRootEntity() {
+        return rootEntity;
+    }
+
+    public void setRootEntity(String rootEntity) {
+        this.rootEntity = rootEntity;
     }
 
     public String getProcDefData() {

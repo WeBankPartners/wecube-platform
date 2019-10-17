@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
-public class TaskNodeParamInfoDto {
+public class TaskNodeParamDto {
     private String id;
     private String nodeId;
 

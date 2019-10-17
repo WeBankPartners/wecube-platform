@@ -5,7 +5,8 @@ import java.util.List;
 
 public class TaskNodeInfoDto {
     private String id;
-    private String processId;
+    private String processDefKey;
+    private String processDefId;
 
     private String nodeId;
     private String nodeName;
@@ -19,10 +20,10 @@ public class TaskNodeInfoDto {
     private String description;
 
     private String timeoutExpression;
-    
+
     private String status;
 
-    private List<TaskNodeParamInfoDto> paramInfos = new ArrayList<>();
+    private List<TaskNodeParamDto> paramInfos = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -32,12 +33,20 @@ public class TaskNodeInfoDto {
         this.id = id;
     }
 
-    public String getProcessId() {
-        return processId;
+    public String getProcessDefKey() {
+        return processDefKey;
     }
 
-    public void setProcessId(String processId) {
-        this.processId = processId;
+    public void setProcessDefKey(String processDefKey) {
+        this.processDefKey = processDefKey;
+    }
+
+    public String getProcessDefId() {
+        return processDefId;
+    }
+
+    public void setProcessDefId(String processDefId) {
+        this.processDefId = processDefId;
     }
 
     public String getNodeId() {
@@ -104,14 +113,6 @@ public class TaskNodeInfoDto {
         this.timeoutExpression = timeoutExpression;
     }
 
-    public List<TaskNodeParamInfoDto> getParamInfos() {
-        return paramInfos;
-    }
-
-    public void setParamInfos(List<TaskNodeParamInfoDto> paramInfos) {
-        this.paramInfos = paramInfos;
-    }
-    
     public String getStatus() {
         return status;
     }
@@ -120,13 +121,23 @@ public class TaskNodeInfoDto {
         this.status = status;
     }
 
+    public List<TaskNodeParamDto> getParamInfos() {
+        return paramInfos;
+    }
+
+    public void setParamInfos(List<TaskNodeParamDto> paramInfos) {
+        this.paramInfos = paramInfos;
+    }
+
     @Override
     public String toString() {
-        return "TaskNodeInfoDto [id=" + id + ", processId=" + processId + ", nodeId=" + nodeId + ", nodeName="
-                + nodeName + ", serviceId=" + serviceId + ", serviceName=" + serviceName + ", routineExpression="
-                + routineExpression + ", routineRaw=" + routineRaw + ", description=" + description
-                + ", timeoutExpression=" + timeoutExpression + ", status=" + status + ", paramInfos=" + paramInfos
-                + "]";
+        return "TaskNodeInfoDto [id=" + id + ", processDefKey=" + processDefKey + ", processDefId=" + processDefId
+                + ", nodeId=" + nodeId + ", nodeName=" + nodeName + ", serviceId=" + serviceId + ", serviceName="
+                + serviceName + ", routineExpression=" + routineExpression + ", routineRaw=" + routineRaw
+                + ", description=" + description + ", timeoutExpression=" + timeoutExpression + ", status=" + status
+                + ", paramInfos=" + paramInfos + "]";
     }
+    
+    
 
 }
