@@ -1,15 +1,15 @@
 package com.webank.wecube.platform.core.dto;
 
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 
 class TrimmedPluginPackageEntityDto {
     private String packageName;
@@ -208,5 +208,10 @@ public class PluginPackageEntityDto {
 
     public void setReferenceByEntityList(Set<TrimmedPluginPackageEntityDto> referenceByEntityList) {
         this.referenceByEntityList = referenceByEntityList;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
     }
 }
