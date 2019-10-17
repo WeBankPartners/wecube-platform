@@ -1,11 +1,11 @@
-package com.webank.wecube.platform.core.jpa;
+package com.webank.wecube.platform.core.jpa.workflow;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.webank.wecube.platform.core.domain.workflow.ProcessTaskEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcessTaskEntity;
 
 public interface ProcessTaskEntityRepository extends JpaRepository<ProcessTaskEntity, Integer> {
 	
