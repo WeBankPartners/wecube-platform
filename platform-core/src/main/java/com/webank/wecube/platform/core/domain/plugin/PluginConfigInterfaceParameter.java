@@ -1,70 +1,147 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-@Data @NoArgsConstructor @AllArgsConstructor
+import javax.persistence.*;
+
 @Entity
-@Table(name = "plugin_cfg_inf_parameters")
+@Table(name = "plugin_config_interface_parameters")
 public class PluginConfigInterfaceParameter {
 
-    public static final String TYPE_INPUT = "INPUT";
-    public static final String TYPE_OUTPUT = "OUTPUT";
-    
-    public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
-    public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
-    public static final String MAPPING_TYPE_CMDB_ENUM_CODE = "CMDB_ENUM_CODE";
-    public static final String MAPPING_TYPE_RUNTIME = "RUNTIME";
+	public static final String TYPE_INPUT = "INPUT";
+	public static final String TYPE_OUTPUT = "OUTPUT";
 
-    @Id
-    @GeneratedValue
-    private Integer id;
+	public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
+	public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
+	public static final String MAPPING_TYPE_CMDB_ENUM_CODE = "CMDB_ENUM_CODE";
+	public static final String MAPPING_TYPE_RUNTIME = "RUNTIME";
 
-    @JsonIgnore @EqualsAndHashCode.Exclude @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "interface_id")
-    private PluginConfigInterface pluginConfigInterface;
+	@Id
+	@GeneratedValue
+	private Integer id;
 
-    @Column
-    private String type;
-    @Column
-    private String name;
-    @Column
-    private String datatype;
-    @Column
-    private String mappingType;
-    @Column
-    private String cmdbColumnName;
-    @Column
-    private String cmdbColumnSource;
-    @Column
-    private Integer cmdbCitypeId;
-    @Column
-    private Integer cmdbAttributeId;
-    @Column
-    private String cmdbCitypePath;
-    @Column
-    private Integer cmdbEnumCode;
+	@JsonIgnore
+	@EqualsAndHashCode.Exclude
+	@ToString.Exclude
+	@ManyToOne
+	@JoinColumn(name = "plugin_config_interface_id")
+	private PluginConfigInterface pluginConfigInterface;
 
-    @JsonInclude
-    @ToString.Include @EqualsAndHashCode.Include
-    public Integer getInterfaceId() {
-        return pluginConfigInterface == null ? null : pluginConfigInterface.getId();
-    }
+	@Column
+	private String type;
+	@Column
+	private String name;
+	@Column
+	private String dataType;
+	@Column
+	private String mappingType;
+	@Column
+	private String mappingEntityExpression;
+	@Column
+	private Integer mappingSystemVariableId;
+	@Column
+	private String required;
 
+	@JsonInclude
+	@ToString.Include
+	@EqualsAndHashCode.Include
+	public Integer getInterfaceId() {
+		return pluginConfigInterface == null ? null : pluginConfigInterface.getId();
+	}
+
+	public PluginConfigInterfaceParameter() {
+	}
+
+	public PluginConfigInterfaceParameter(Integer id, PluginConfigInterface pluginConfigInterface, String type, String name, String dataType, String mappingType, String mappingEntityExpression, Integer mappingSystemVariableId, String required) {
+		this.id = id;
+		this.pluginConfigInterface = pluginConfigInterface;
+		this.type = type;
+		this.name = name;
+		this.dataType = dataType;
+		this.mappingType = mappingType;
+		this.mappingEntityExpression = mappingEntityExpression;
+		this.mappingSystemVariableId = mappingSystemVariableId;
+		this.required = required;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public PluginConfigInterface getPluginConfigInterface() {
+		return pluginConfigInterface;
+	}
+
+	public void setPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
+		this.pluginConfigInterface = pluginConfigInterface;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+
+	public String getMappingType() {
+		return mappingType;
+	}
+
+	public void setMappingType(String mappingType) {
+		this.mappingType = mappingType;
+	}
+
+	public String getMappingEntityExpression() {
+		return mappingEntityExpression;
+	}
+
+	public void setMappingEntityExpression(String mappingEntityExpression) {
+		this.mappingEntityExpression = mappingEntityExpression;
+	}
+
+	public Integer getMappingSystemVariableId() {
+		return mappingSystemVariableId;
+	}
+
+	public void setMappingSystemVariableId(Integer mappingSystemVariableId) {
+		this.mappingSystemVariableId = mappingSystemVariableId;
+	}
+
+	public String getRequired() {
+		return required;
+	}
+
+	public void setRequired(String required) {
+		this.required = required;
+	}
+
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.toStringExclude(this, "pluginConfigInterface");
+	}
 }
