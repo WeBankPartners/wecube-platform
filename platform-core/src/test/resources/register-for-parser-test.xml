@@ -10,7 +10,9 @@
 
     <!-- 2.菜单注入 - 描述运行本插件包需要注入的菜单 -->
     <menus>
-        <menu code='JOBS_SERVICE_CATALOG_MANAGEMENT' cat='JOBS' displayName="Servive Catalog Management">/service-catalog</menu>
+        <menu code='JOBS_SERVICE_CATALOG_MANAGEMENT' cat='JOBS' displayName="Servive Catalog Management">
+            /service-catalog
+        </menu>
         <menu code='JOBS_TASK_MANAGEMENT' cat='JOBS' displayName="Task Management">/task-management</menu>
     </menus>
 
@@ -77,18 +79,20 @@
 
     <!-- 5.权限设定 -->
     <authorities>
-        <authority systemRoleName="admin" >
-            <menu code="JOBS_SERVICE_CATALOG_MANAGEMENT" />
-            <menu code="JOBS_TASK_MANAGEMENT" />
-        </authority >
-        <authority systemRoleName="wecube_operator" >
-            <menu code="JOBS_TASK_MANAGEMENT" />
-        </authority >
+        <authority systemRoleName="admin">
+            <menu code="JOBS_SERVICE_CATALOG_MANAGEMENT"/>
+            <menu code="JOBS_TASK_MANAGEMENT"/>
+        </authority>
+        <authority systemRoleName="wecube_operator">
+            <menu code="JOBS_TASK_MANAGEMENT"/>
+        </authority>
     </authorities>
 
     <!-- 6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等) -->
     <resourceDependencies>
-        <docker imageName="service_management" containerName="service_management" portBindings="22000:21000" volumeBindings="" envVariables="-e DATA_SOURCE_URL={%s} -e DB_USER={%s} -e DB_PWD={%s} -e CORE_ADDR={%s}"/>
+        <docker imageName="service_management" containerName="service_management" portBindings="22000:21000"
+                volumeBindings=""
+                envVariables="-e DATA_SOURCE_URL={%s} -e DB_USER={%s} -e DB_PWD={%s} -e CORE_ADDR={%s}"/>
         <mysql schema="service_management" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
         <s3 bucketName="service_management"/>
     </resourceDependencies>
@@ -98,10 +102,14 @@
         <plugin name="task">
             <interface name="create" path="/service-management/tasks" httpMethod='POST'>
                 <inputParameters>
-                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>callbackUrl</parameter>
-                    <parameter datatype="string" mappingType='context'  required='N'>description</parameter>
+                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>
+                        callbackUrl
+                    </parameter>
+                    <parameter datatype="string" mappingType='context' required='N'>description</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>name</parameter>
-                    <parameter datatype="string" mappingType='entity' mappingEntityExpression='name_xxx' required='Y'>operatorRoleId</parameter>
+                    <parameter datatype="string" mappingType='entity' mappingEntityExpression='name_xxx' required='Y'>
+                        operatorRoleId
+                    </parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>processDefinitionKey</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>processInstanceId</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>reporter</parameter>
@@ -114,10 +122,13 @@
             </interface>
         </plugin>
         <plugin name="service_request">
-            <interface name="update" path="/service-management/service-requests/{service-request-id}/done" httpMethod='PUT'>
+            <interface name="update" path="/service-management/service-requests/{service-request-id}/done"
+                       httpMethod='PUT'>
                 <inputParameters>
-                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>service-request-id</parameter>
-                    <parameter datatype="string" mappingType='context'  required='Y'>result</parameter>
+                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>
+                        service-request-id
+                    </parameter>
+                    <parameter datatype="string" mappingType='context' required='Y'>result</parameter>
                 </inputParameters>
                 <outputParameters>
                     <parameter datatype="string">status</parameter>

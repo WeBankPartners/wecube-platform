@@ -8,101 +8,101 @@ import javax.persistence.*;
 @Table(name = "plugin_package_runtime_resources_docker")
 public class PluginPackageRuntimeResourcesDocker {
 
-	@Id
-	@GeneratedValue
-	private Integer id;
+    @Id
+    @GeneratedValue
+    private Integer id;
 
-	@ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-	@JoinColumn(name = "plugin_package_id")
-	private PluginPackage pluginPackage;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinColumn(name = "plugin_package_id")
+    private PluginPackage pluginPackage;
 
-	@Column
-	private String imageName;
+    @Column
+    private String imageName;
 
-	@Column
-	private String containerName;
+    @Column
+    private String containerName;
 
-	@Column
-	private String portBindings;
+    @Column
+    private String portBindings;
 
-	@Column
-	private String volumeBindings;
+    @Column
+    private String volumeBindings;
 
-	@Column
-	private String envVariables;
+    @Column
+    private String envVariables;
 
-	public Integer getId() {
-		return id;
-	}
+    public Integer getId() {
+        return id;
+    }
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	public PluginPackage getPluginPackage() {
-		return pluginPackage;
-	}
+    public PluginPackage getPluginPackage() {
+        return pluginPackage;
+    }
 
-	public void setPluginPackage(PluginPackage pluginPackage) {
-		this.pluginPackage = pluginPackage;
-	}
+    public void setPluginPackage(PluginPackage pluginPackage) {
+        this.pluginPackage = pluginPackage;
+    }
 
-	public String getImageName() {
-		return imageName;
-	}
+    public String getImageName() {
+        return imageName;
+    }
 
-	public void setImageName(String imageName) {
-		this.imageName = imageName;
-	}
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
+    }
 
-	public String getContainerName() {
-		return containerName;
-	}
+    public String getContainerName() {
+        return containerName;
+    }
 
-	public void setContainerName(String containerName) {
-		this.containerName = containerName;
-	}
+    public void setContainerName(String containerName) {
+        this.containerName = containerName;
+    }
 
-	public String getPortBindings() {
-		return portBindings;
-	}
+    public String getPortBindings() {
+        return portBindings;
+    }
 
-	public void setPortBindings(String portBindings) {
-		this.portBindings = portBindings;
-	}
+    public void setPortBindings(String portBindings) {
+        this.portBindings = portBindings;
+    }
 
-	public String getVolumeBindings() {
-		return volumeBindings;
-	}
+    public String getVolumeBindings() {
+        return volumeBindings;
+    }
 
-	public void setVolumeBindings(String volumeBindings) {
-		this.volumeBindings = volumeBindings;
-	}
+    public void setVolumeBindings(String volumeBindings) {
+        this.volumeBindings = volumeBindings;
+    }
 
-	public String getEnvVariables() {
-		return envVariables;
-	}
+    public String getEnvVariables() {
+        return envVariables;
+    }
 
-	public void setEnvVariables(String envVariables) {
-		this.envVariables = envVariables;
-	}
+    public void setEnvVariables(String envVariables) {
+        this.envVariables = envVariables;
+    }
 
-	public PluginPackageRuntimeResourcesDocker() {
-		super();
-	}
+    public PluginPackageRuntimeResourcesDocker() {
+        super();
+    }
 
-	public PluginPackageRuntimeResourcesDocker(Integer id, PluginPackage pluginPackage, String imageName, String containerName, String portBindings, String volumeBindings, String envVariables) {
-		this.id = id;
-		this.pluginPackage = pluginPackage;
-		this.imageName = imageName;
-		this.containerName = containerName;
-		this.portBindings = portBindings;
-		this.volumeBindings = volumeBindings;
-		this.envVariables = envVariables;
-	}
+    public PluginPackageRuntimeResourcesDocker(Integer id, PluginPackage pluginPackage, String imageName, String containerName, String portBindings, String volumeBindings, String envVariables) {
+        this.id = id;
+        this.pluginPackage = pluginPackage;
+        this.imageName = imageName;
+        this.containerName = containerName;
+        this.portBindings = portBindings;
+        this.volumeBindings = volumeBindings;
+        this.envVariables = envVariables;
+    }
 
-	@Override
-	public String toString() {
-		return ReflectionToStringBuilder.toStringExclude(this, new String[] {"pluginPackage"});
-	}
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+    }
 }
