@@ -19,7 +19,7 @@ public class PluginPackageAttribute {
     private PluginPackageEntity pluginPackageEntity;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "reference_id")
+    @JoinColumn(name = "reference_id", referencedColumnName="id")
     private PluginPackageAttribute pluginPackageAttribute;
 
     @Column(name = "name")
