@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 import java.util.LinkedHashSet;
@@ -182,5 +183,10 @@ public class PluginPackage {
 
     public void setPluginInstances(Set<PluginInstance> pluginInstances) {
         this.pluginInstances = pluginInstances;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.reflectionToString(this);
     }
 }
