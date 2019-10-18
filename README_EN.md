@@ -4,10 +4,15 @@
 >WeCube是一套开源的，一站式IT架构管理和运维管理工具，主要用于简化分布式架构IT管理，并可以通过插件进行功能扩展。
 
 ## Introduction
-WeCube is an open source, one-stop management tool for IT architecture and operation. It aims to simplify the IT management of distributed architecture and its features can be easily extended with plugins.
+WeCube is an open source, one-stop tool for architecture management and IT operation, which  aims to simplify the IT management of distributed architecture. Its features can be easily extended by plugins.
 
 ## 起源
 微众银行在分布式架构实践的过程中，发现将银行核心系统构建于分布式架构之上，会遇到一些与传统单体应用不同的痛点（例如，服务器增多，部署难度大；调用链长，全链路跟踪困难； 系统复杂，问题定位时间长等），在逐步解决这些痛点的过程中，总结了一套IT管理的方法论和最佳实践，并研发了与之配套的IT管理工具体系。WeCube就是将该套方法论和最佳实践，从微众内部众多IT管理工具体系中提炼出来，整合成一套开箱即用的IT管理解决方案。
+
+## Origin
+During the implementation of distributed architecture, core banking systems are built in WeBank. Comparing this to the traditional monolithic architecture, there are quite a few different pain points, e.g. increasing number of servers, complicated deployment process, difficulties in service tracing and problem dignosis due to complex system and long invocation chain. 
+
+In the process of finding the solutions for these pain points, we have come up with a set of methodology and best practices for IT management in such scenarios and also developed necessary supporting tools. WeCube is the result of extracting the methodology and best practices form WeBank's internal tools, which is then packaged into an integrated out-of-box solution for IT management. 
 
 ## 设计理念
 ![WeCube设计理念](wecube-wiki/images/wecube_design.png) 
@@ -107,34 +112,58 @@ WeCube的功能菜单设计与设计理念保持一致。分别是任务、设�
 - 智慧（2019年下半年）
 
 
-## 快速入门
-WeCube采用容器化部署。
+>## 快速入门
+>WeCube采用容器化部署。
+>
+>如何编译WeCube，请查看以下文档
+>[WeCube编译文档](wecube-wiki/docs/install/wecube_compile_guide.md)
+>
+>如何安装WeCube， 请查看以下文档
+>[WeCube部署文档](wecube-wiki/docs/install/wecube_install_guide.md)
 
-如何编译WeCube，请查看以下文档
-[WeCube编译文档](wecube-wiki/docs/install/wecube_compile_guide.md)
+## Quick Start
+WeCube is using containerized deployment.
 
-如何安装WeCube， 请查看以下文档
-[WeCube部署文档](wecube-wiki/docs/install/wecube_install_guide.md)
+PLease refer to [WeCube Compilation Guide](wecube-wiki/docs/install/wecube_compile_guide.md) on how to compile WeCube.
 
-## 用户手册
-更多关于WeCube的使用和操作说明， 请查看以下文档
-[WeCube用户手册](wecube-wiki/docs/manual/wecube_user_guide.md)
+PLease refer to [WeCube Installation Guide](wecube-wiki/docs/install/wecube_install_guide.md) on how to install WeCube.
 
-## 开发者文档
-WeCube使用Java和VUE进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
+>## 用户手册
+>更多关于WeCube的使用和操作说明， 请查看以下文档
+>[WeCube用户手册](wecube-wiki/docs/manual/wecube_user_guide.md)
 
-请参考以下文档进行开发环境配置[WeCube开发环境配置](wecube-wiki/docs/developer/wecube_developer_guide.md)
+## User Manual
+Please refer to the [WeCube User Guide](wecube-wiki/docs/manual/wecube_user_guide.md) for guides on WeCube usage and operation.
 
-## API说明
-更多关于WeCube的使用和操作说明， 请查看以下文档
-[WeCube API手册](wecube-wiki/docs/api/wecube_api_guide.md)
+>## 开发者文档
+>WeCube使用Java和VUE进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
+>
+>请参考以下文档进行开发环境配置[WeCube开发环境配置](wecube-wiki/docs/developer/wecube_developer_guide.md)
+
+## Developer Documentation
+WeCube is developed with Java and Vue.js, it uses MySQL for data persistence and relies on Tomcat as the web application container.
+
+Please refer to the [WeCube Developer Guide](wecube-wiki/docs/developer/wecube_developer_guide.md) on how to set up the development environment.
+
+>## API说明
+>更多关于WeCube的使用和操作说明， 请查看以下文档
+>[WeCube API手册](wecube-wiki/docs/api/wecube_api_guide.md)
+
+## API Reference
+Please refer to the [WeCube API Guide](wecube-wiki/docs/api/wecube_api_guide.md) for details.
+
+>## License
+>WeCube是基于 Apache License 2.0 协议， 详情请参考
+>[LICENSE](LICENSE)
 
 ## License
-WeCube是基于 Apache License 2.0 协议， 详情请参考
-[LICENSE](LICENSE)
+WeCube is licensed uner the Apache License Version 2.0, please refer to [LICENSE](LICENSE) for details.
 
+>## 社区
+>- 如果您想得到最快的响应，请给我们提issue。
+>- 联系我们：fintech@webank.com
 
-## 社区
-- 如果您想得到最快的响应，请给我们提issue。
-- 联系我们：fintech@webank.com
+## Community
+- Please raise us an issue to get a quick response.
+- Contact us: fintech@webank.com
 
