@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
 import javax.persistence.*;
 import java.util.List;
 
@@ -91,5 +93,10 @@ public class PluginPackageEntity {
 
     public void setPluginPackageAttributeList(List<PluginPackageAttribute> pluginPackageAttributeList) {
         this.pluginPackageAttributeList = pluginPackageAttributeList;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
     }
 }
