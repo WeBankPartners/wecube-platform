@@ -147,3 +147,14 @@ CREATE TABLE `plugin_config_interface_parameters` (
 	`required` varchar(5),
 	PRIMARY KEY (`id`)
 );
+
+drop table if exists plugin_instances;
+create table plugin_instances (
+  id int auto_increment primary key,
+  instance_container_id varchar(64) not null,
+  package_id int,
+  host varchar(50) ,
+  port int ,
+  status varchar(50) not null,
+  unique key (host,port)
+);
