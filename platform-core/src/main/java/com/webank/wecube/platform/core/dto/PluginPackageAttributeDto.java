@@ -1,9 +1,9 @@
 package com.webank.wecube.platform.core.dto;
 
-import org.springframework.util.StringUtils;
-
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.springframework.util.StringUtils;
 
 public class PluginPackageAttributeDto {
     private String packageName;
@@ -176,5 +176,10 @@ public class PluginPackageAttributeDto {
 
     public void setRefPackageVersion(String refPackageVersion) {
         this.refPackageVersion = refPackageVersion;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
     }
 }
