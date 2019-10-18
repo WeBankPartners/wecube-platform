@@ -5,7 +5,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "plugin_authorities")
+@Table(name = "plugin_package_authorities")
 public class PluginPackageAuthority {
 
 	@Id
