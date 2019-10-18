@@ -6,6 +6,7 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
+import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
 import com.webank.wecube.platform.core.support.S3Client;
@@ -25,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -37,12 +39,15 @@ public class PluginPackageService {
     PluginPackageRepository pluginPackageRepository;
 
     @Autowired
+    PluginPackageEntityRepository pluginPackageEntityRepository;
+
+    @Autowired
     private PluginProperties pluginProperties;
 
     @Autowired
     ApplicationProperties.S3Properties s3Properties;
 
-
+    @Transactional
     public PluginPackageDto uploadPackage(MultipartFile pluginPackageFile) throws Exception {
         String pluginPackageFileName = pluginPackageFile.getName();
 
@@ -77,10 +82,11 @@ public class PluginPackageService {
         File pluginFile = new File(localFilePath + pluginPackageDto.getDockerImageFile());
         String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginFile.getName();
         log.info("keyname : {}", keyName);
-//        String url = uploadFileToMinIO(pluginProperties.getPluginPackageBucketName(), keyName, pluginFile);
-//        log.info("Plugin Package has uploaded to MinIO {}", url);
-//
-        pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
+        String url = uploadFileToMinIO(pluginProperties.getPluginPackageBucketName(), keyName, pluginFile);
+        log.info("Plugin Package has uploaded to MinIO {}", url);
+
+        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
+        pluginPackageEntityRepository.saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it->it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
 
         return pluginPackageDto;
     }
