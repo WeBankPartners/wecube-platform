@@ -229,5 +229,9 @@
   "sequence_graph": "时序图",
   "sequence_steps": "调用关系",
   "select_sequence_steps": "选择调用关系",
-  "select_sequence": "选择调用时序"
+  "select_sequence": "选择调用时序",
+  "start_with_open_curly": "请输入 { 开启过滤规则填充",
+  "start_with_open_curly_or_bracket": "请输入 { 或者 [ 开启过滤规则填充",
+  "press_space_start": "请点击空格键触发过滤规则连接",
+  "please_input_dot": "请输入正确的操作符 ."
 }
