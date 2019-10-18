@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.ProcessDefinitionInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeInfoDto;
+import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 import com.webank.wecube.platform.workflow.parse.BpmnParseAttachment;
 import com.webank.wecube.platform.workflow.parse.BpmnProcessModelCustomizer;
 import com.webank.wecube.platform.workflow.parse.SubProcessAdditionalInfo;
@@ -27,18 +28,28 @@ public class WorkflowService {
     private static final String BPMN_SUFFIX = ".bpmn20.xml";
 
     private String encoding = "UTF-8";
-    
+
     @Autowired
     private RepositoryService repositoryService;
-    
-    public ProcessDefinition deployProcessDefinition(ProcessDefinitionInfoDto procDefDto){
+
+    public ProcessDefinition deployProcessDefinition(ProcessDefinitionInfoDto procDefDto) {
+        try {
+            return doDeployProcessDefinition(procDefDto);
+        } catch (Exception e) {
+            log.error("errors while deploy process definition", e);
+            throw new BpmnCustomizationException(e.getMessage());
+        }
+    }
+
+    protected ProcessDefinition doDeployProcessDefinition(ProcessDefinitionInfoDto procDefDto) {
         String fileName = procDefDto.getProcDefName() + BPMN_SUFFIX;
         BpmnParseAttachment bpmnParseAttachment = buildBpmnParseAttachment(procDefDto.getTaskNodeInfos());
-        
-        BpmnProcessModelCustomizer customizer = new BpmnProcessModelCustomizer(fileName, procDefDto.getProcDefData(), encoding);
+
+        BpmnProcessModelCustomizer customizer = new BpmnProcessModelCustomizer(fileName, procDefDto.getProcDefData(),
+                encoding);
         customizer.setBpmnParseAttachment(bpmnParseAttachment);
         BpmnModelInstance procModelInstance = customizer.build();
-        
+
         DeploymentWithDefinitions deployment = repositoryService.createDeployment()
                 .addModelInstance(fileName, procModelInstance).deployWithResult();
         List<ProcessDefinition> processDefs = deployment.getDeployedProcessDefinitions();
@@ -47,32 +58,32 @@ public class WorkflowService {
             log.error("abnormally to parse process definition,request={}", procDefDto);
             throw new WecubeCoreException("process deploying failed");
         }
-        
+
         ProcessDefinition processDef = processDefs.get(0);
-        
+
         return processDef;
     }
-    
-    private BpmnParseAttachment buildBpmnParseAttachment(List<TaskNodeInfoDto> taskNodeInfoDtos){
+
+    private BpmnParseAttachment buildBpmnParseAttachment(List<TaskNodeInfoDto> taskNodeInfoDtos) {
         BpmnParseAttachment bpmnParseAttachment = new BpmnParseAttachment();
-        
-        for(TaskNodeInfoDto dto : taskNodeInfoDtos){
+
+        for (TaskNodeInfoDto dto : taskNodeInfoDtos) {
             SubProcessAdditionalInfo info = new SubProcessAdditionalInfo();
             info.setSubProcessNodeId(dto.getNodeId());
             info.setSubProcessNodeName(dto.getNodeName());
             info.setTimeoutExpression(convertIsoTimeFormat(dto.getTimeoutExpression()));
-            
+
             bpmnParseAttachment.addSubProcessAddtionalInfo(info);
         }
-        
+
         return bpmnParseAttachment;
     }
 
-    private String convertIsoTimeFormat(String timeoutExpression){
-        if(StringUtils.isBlank(timeoutExpression)){
+    private String convertIsoTimeFormat(String timeoutExpression) {
+        if (StringUtils.isBlank(timeoutExpression)) {
             return timeoutExpression;
         }
-        
-        return "PT"+timeoutExpression.trim()+"M";
+
+        return "PT" + timeoutExpression.trim() + "M";
     }
 }

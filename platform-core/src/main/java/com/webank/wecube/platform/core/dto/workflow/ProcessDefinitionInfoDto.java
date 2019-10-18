@@ -78,5 +78,14 @@ public class ProcessDefinitionInfoDto {
     public void setTaskNodeInfos(List<TaskNodeInfoDto> taskNodeInfos) {
         this.taskNodeInfos = taskNodeInfos;
     }
+    
+    public ProcessDefinitionInfoDto addTaskNodeInfo(TaskNodeInfoDto taskNodeInfo) {
+        if(this.taskNodeInfos == null){
+            this.taskNodeInfos = new ArrayList<>();
+        }
+        
+        this.taskNodeInfos.add(taskNodeInfo);
+        return this;
+    }
 
 }

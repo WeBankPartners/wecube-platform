@@ -11,6 +11,7 @@ public class TaskNodeParamEntity extends BaseStatusFeaturedEntity {
 
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";
+    public static final String PREDEPLOY_STATUS = "predeploy";
 
     @Id
     @Column(name = "ID")
@@ -22,8 +23,8 @@ public class TaskNodeParamEntity extends BaseStatusFeaturedEntity {
     @Column(name = "NODE_ID")
     private String nodeId;
 
-    @Column(name = "TASK_NODE_ID")
-    private String taskNodeId;
+    @Column(name = "TASK_NODE_DEF_ID")
+    private String taskNodeDefId;
 
     @Column(name = "PARAM_NAME")
     private String paramName;
@@ -71,12 +72,12 @@ public class TaskNodeParamEntity extends BaseStatusFeaturedEntity {
         this.paramExpression = paramExpression;
     }
 
-    public String getTaskNodeId() {
-        return taskNodeId;
+    public String getTaskNodeDefId() {
+        return taskNodeDefId;
     }
 
-    public void setTaskNodeId(String taskNodeId) {
-        this.taskNodeId = taskNodeId;
+    public void setTaskNodeDefId(String taskNodeDefId) {
+        this.taskNodeDefId = taskNodeDefId;
     }
 
 }

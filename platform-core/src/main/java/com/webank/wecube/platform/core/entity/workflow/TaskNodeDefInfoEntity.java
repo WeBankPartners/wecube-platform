@@ -11,6 +11,7 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
 
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";
+    public static final String PREDEPLOY_STATUS = "predeploy";
 
     public static final String NODE_TYPE_SERVICE_TASK = "serviceTask";
     public static final String NODE_TYPE_SUBPROCESS = "subprocess";
