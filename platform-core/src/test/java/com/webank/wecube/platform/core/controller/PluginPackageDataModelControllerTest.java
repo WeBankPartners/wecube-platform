@@ -13,13 +13,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_COLLABORATION_PLUGIN_MANAGEMENT})
+//@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_COLLABORATION_PLUGIN_MANAGEMENT})
 public class PluginPackageDataModelControllerTest extends AbstractControllerTest {
 
     @Test
     public void getAllDataModels() throws Exception {
         mockDataModel();
-        mvc.perform(get("/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/api/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[*].name", contains("entity_1", "entity_2", "entity_3")))
                 .andDo(print())
@@ -29,7 +29,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     @Test
     public void getDataModelById() throws Exception {
         mockDataModel();
-        mvc.perform(get("/packages/1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/api/packages/1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[*].packageName", contains("package_1", "package_1", "package_1")))
                 .andExpect(jsonPath("$.data[*].packageVersion", contains("1.0", "1.0", "1.0")))
