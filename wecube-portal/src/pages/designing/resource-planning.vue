@@ -2,18 +2,18 @@
   <div>
     <Row class="graph-select-row">
       <div class="graph-select-col">
-        <Select multiple v-model="selectedIdcs" placeholder="请选择IDC">
+        <Select multiple v-model="selectedIdcs" :placeholder="$t('select_idc')">
           <Option v-for="item in allIdcs" :value="item.guid" :key="item.guid">{{
             item.name
           }}</Option>
         </Select>
       </div>
-      <Button @click="onIdcDataChange" type="primary">查询</Button>
+      <Button @click="onIdcDataChange" type="primary">{{ $t("query") }}</Button>
     </Row>
     <Row class="graph-tabs">
       <Spin fix v-if="spinShow">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>加载中...</div>
+        <div>{{ $t("loading") }}</div>
       </Spin>
       <Tabs
         v-if="idcData.length"
@@ -22,7 +22,7 @@
         :closable="false"
         @on-click="handleTabClick"
       >
-        <TabPane label="资源规划图" name="resource-design">
+        <TabPane :label="$t('resource_planning_map')" name="resource-design">
           <Alert show-icon closable v-if="isDataChanged">
             Data has beed changed, click Reload button to reload graph.
             <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -655,7 +655,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("confirm_to_delete"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = {
