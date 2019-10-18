@@ -159,5 +159,21 @@
   "mins": "Mins",
   "preview": "Preview",
   "cannot_preview": "Can not preview",
-  "select_ci_first": "Please select CI first"
+  "select_ci_first": "Please select CI first",
+  "select_non_ci_attr": "Please select non CI Attributes",
+  "select_ci_type": "Please select CI Type",
+  "auto_fill_error_msg": "The connector only supports English case, number 0-9, English symbol. - Input, {trigger rule padding",
+  "please_select_enum": "Please select enum",
+  "please_input_dot_or_dash": "Please input correct operator . or -",
+  "please_input_right_close": "Please enter operator } to close the current rule",
+  "all": "All",
+  "attribute": "Attribute",
+  "ref_to": "Reference to",
+  "ref_by": "Reference by",
+  "select_flow": "Select Flow",
+  "sequence_design": "Sequence Design",
+  "sequence_graph": "Sequence Diagram",
+  "sequence_steps": "Sequence Steps",
+  "select_sequence_steps": "Select Sequence Steps",
+  "select_sequence": "Select Sequence"
 }

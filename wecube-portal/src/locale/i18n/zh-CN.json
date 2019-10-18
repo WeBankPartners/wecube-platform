@@ -159,5 +159,21 @@
   "mins": "分钟",
   "preview": "预览",
   "cannot_preview": "无法预览",
-  "select_ci_first": "请先选择CI类型"
+  "select_ci_first": "请先选择CI类型",
+  "select_non_ci_attr": "请选择非引用属性",
+  "select_ci_type": "请选择CI Type",
+  "auto_fill_error_msg": "连接符只支持英文字母大小写，数字0-9，英文符号 . - 的输入, { 触发规则填充",
+  "please_select_enum": "请选择枚举",
+  "please_input_dot_or_dash": "请输入正确的操作符 . 或 -",
+  "please_input_right_close": "请输入操作符 } 闭合当前规则",
+  "all": "所有",
+  "attribute": "属性",
+  "ref_to": "引用",
+  "ref_by": "被引用",
+  "select_flow": "选择编排",
+  "sequence_design": "调用设计",
+  "sequence_graph": "时序图",
+  "sequence_steps": "调用关系",
+  "select_sequence_steps": "选择调用关系",
+  "select_sequence": "选择调用时序"
 }

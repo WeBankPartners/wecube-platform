@@ -27,8 +27,8 @@
     </Col>
     <Col span="4" offset="1">
       <Select @on-change="mappingTypeChangeHandler" v-model="mappingType">
-        <Option value="CMDB_CI_TYPE" key="CMDB_CI_TYPE">CiType属性</Option>
-        <Option value="CMDB_ENUM_CODE" key="CMDB_ENUM_CODE">枚举类型</Option>
+        <Option value="CMDB_CI_TYPE" key="CMDB_CI_TYPE">Ci Type</Option>
+        <Option value="CMDB_ENUM_CODE" key="CMDB_ENUM_CODE">Enum</Option>
       </Select>
     </Col>
   </Row>
