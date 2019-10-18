@@ -32,19 +32,19 @@ In the process of finding the solutions for these pain points, we have come up w
 
 WeCube's design concept basically matches the lifecycle of IT system management and can be elaborated as "6 aspects with 1 core".
  
-- 1st aspect: "Workbench"
+- 1st aspect: "Workbench", it is an ITSM-like workbench that can aggregates all manual tasks so that their contents, importance and priorities are all clear at first glance.
 
-It is an ITSM-like workbench that can aggregate all manual tasks so that their contents, importance and priorities are all clear at first glance.
+- 2nd aspect: "Expectation", it is to plan, to design, to describe the expectations with models and specifications. By using standard and formal design language together with graphic visualizations, we try to make expectations on distributed architecture accurately and clearly.
 
-- 2nd aspect: "Expectation"
+- 3rd aspect: "Execution", it is to execute tasks in automated and standardized way so that expectations become realities without introducing errors or differences caused by people in this process.
 
-It is to plan, to design, to describe the expectations with models and specifications. By using a standard and formal design language together with graphic visualizations, we try to make expectations on distributed architecture accurately and clearly.
+- 4th aspect: "Watching", it is to uncover differences between realities and expectations by defining all-round metrics which can reflect the varying situation, then consistently collecting and keeping track of the information.
 
-- 3rd aspect: "Execution"
-- 4th aspect: "Watching"
-- 5th aspect: "Wisdom"
-- 6th aspect: "Equilibration"
-- the core: "Workflow Engine"
+- 5th aspect: "Wisdom", it is to 
+
+- 6th aspect: "Equilibration", 
+
+- the core: "Workflow Engine", 
 
 ## 技术实现
 WeCube分为核心功能模块和插件模块。
