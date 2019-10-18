@@ -12,4 +12,9 @@ public interface ProcessDefInfoRepository extends JpaRepository<ProcessDefInfoEn
     @Query("select t from ProcessDefInfoEntity t "
             + " where t.active = true and (t.status = 'deployed' or t.status = 'draft')")
     List<ProcessDefInfoEntity> findAllDeployedOrDraftProcDef();
+    
+//    @Transactional
+//    @Modifying
+//    @Query("delete from ProcessDefInfoEntity t where t.id = :id")
+//    void deleteByEntityId(@Param("id") String id);
 }
