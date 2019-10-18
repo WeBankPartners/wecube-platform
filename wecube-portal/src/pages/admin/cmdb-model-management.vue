@@ -902,7 +902,7 @@
       >
         <Input
           v-model="updatedLayerNameValue.code"
-          :placeholder="$('please_input')"
+          :placeholder="$t('please_input')"
         />
       </Modal>
 
@@ -914,7 +914,7 @@
       >
         <Input
           v-model="updatedCINameValue.name"
-          :placeholder="$('please_input')"
+          :placeholder="$t('please_input')"
         />
       </Modal>
       <enumGroupModal
