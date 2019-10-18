@@ -2,7 +2,7 @@
   <div>
     <Row style="margin-bottom: 10px">
       <Col span="6">
-        <span style="margin-right: 10px">编排名称</span>
+        <span style="margin-right: 10px">{{ $t("flow_name") }}</span>
         <Select
           filterable
           clearable
@@ -20,7 +20,7 @@
         </Select>
       </Col>
       <Col span="6" ofset="1">
-        <span style="margin-right: 10px">选择CI类型</span>
+        <span style="margin-right: 10px">{{ $t("ci_type") }}</span>
         <Select
           @on-change="onCISelect"
           label-in-value
@@ -41,13 +41,15 @@
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram">保存编排</Button>
-      <Button type="success" @click="calcFlow">表单计算</Button>
+      <Button type="info" @click="saveDiagram">{{ $t("save_flow") }}</Button>
+      <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button>
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">配置插件</a>
+        <a href="javascript:void(0);" @click="openPluginModal">{{
+          $t("config_plugin")
+        }}</a>
         <br />
       </div>
 
@@ -58,14 +60,18 @@
         </li>
       </ul>
     </div>
-    <Modal v-model="pluginModalVisible" title="插件配置" width="40">
+    <Modal v-model="pluginModalVisible" :title="$t('config_plugin')" width="40">
       <Form
         ref="pluginConfigForm"
         :model="pluginForm"
         label-position="left"
         :label-width="100"
       >
-        <FormItem label="节点类型" prop="nodeType" style="display: none">
+        <FormItem
+          :label="$t('node_type')"
+          prop="nodeType"
+          style="display: none"
+        >
           <Select filterable clearable v-model="pluginForm.nodeType">
             <Option
               v-for="item in allNodeTypes"
@@ -75,7 +81,7 @@
             >
           </Select>
         </FormItem>
-        <FormItem label="定位规则" prop="rules">
+        <FormItem :label="$t('locate_rules')" prop="rules">
           <div style="width: 100%">
             <AttrInput
               :allCiTypes="allCITypes"
@@ -89,7 +95,7 @@
             />
           </div>
         </FormItem>
-        <FormItem label="插件选择" prop="serviceName">
+        <FormItem :label="$t('plugin')" prop="serviceName">
           <Select filterable clearable v-model="pluginForm.serviceId">
             <Option
               v-for="item in allPlugins"
@@ -99,14 +105,14 @@
             >
           </Select>
         </FormItem>
-        <FormItem label="超时时间" prop="timeoutExpression">
+        <FormItem :label="$t('timeout')" prop="timeoutExpression">
           <Select clearable v-model="pluginForm.timeoutExpression">
             <Option v-for="item in timeSelection" :value="item" :key="item"
-              >{{ item }}分钟</Option
+              >{{ item }} {{ $t("mins") }}</Option
             >
           </Select>
         </FormItem>
-        <FormItem label="描述说明" prop="description">
+        <FormItem :label="$t('description')" prop="description">
           <Input v-model="pluginForm.description" />
         </FormItem>
       </Form>
@@ -119,7 +125,7 @@
     <Modal
       v-model="calcFlowModalVisible"
       width="60"
-      title="预览"
+      :title="$t('preview')"
       @on-ok="resetFlowCalcResult"
       @on-cancel="resetFlowCalcResult"
     >
@@ -375,7 +381,7 @@ export default {
       if (this.serviceTaskBindInfos.length < 1) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "无法预览"
+          desc: this.$t("cannot_preview")
         });
       } else {
         this.serviceTaskBindInfos.forEach(_ => {
@@ -446,7 +452,7 @@ export default {
       if (!this.selectedCI.value) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请先选择CI类型"
+          desc: this.$t("select_ci_first")
         });
       } else {
         this.pluginModalVisible = true;
