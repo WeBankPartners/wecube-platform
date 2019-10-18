@@ -8,53 +8,53 @@ import javax.persistence.*;
 @Table(name = "plugin_package_runtime_resources_s3")
 public class PluginPackageRuntimeResourcesS3 {
 
-	@Id
-	@GeneratedValue
-	private Integer id;
+    @Id
+    @GeneratedValue
+    private Integer id;
 
-	@ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-	@JoinColumn(name = "plugin_package_id")
-	private PluginPackage pluginPackage;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinColumn(name = "plugin_package_id")
+    private PluginPackage pluginPackage;
 
-	@Column
-	private String bucketName;
+    @Column
+    private String bucketName;
 
-	public Integer getId() {
-		return id;
-	}
+    public Integer getId() {
+        return id;
+    }
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	public PluginPackage getPluginPackage() {
-		return pluginPackage;
-	}
+    public PluginPackage getPluginPackage() {
+        return pluginPackage;
+    }
 
-	public void setPluginPackage(PluginPackage pluginPackage) {
-		this.pluginPackage = pluginPackage;
-	}
+    public void setPluginPackage(PluginPackage pluginPackage) {
+        this.pluginPackage = pluginPackage;
+    }
 
-	public String getBucketName() {
-		return bucketName;
-	}
+    public String getBucketName() {
+        return bucketName;
+    }
 
-	public void setBucketName(String bucketName) {
-		this.bucketName = bucketName;
-	}
+    public void setBucketName(String bucketName) {
+        this.bucketName = bucketName;
+    }
 
-	public PluginPackageRuntimeResourcesS3() {
-		super();
-	}
+    public PluginPackageRuntimeResourcesS3() {
+        super();
+    }
 
-	public PluginPackageRuntimeResourcesS3(Integer id, PluginPackage pluginPackage, String bucketName) {
-		this.id = id;
-		this.pluginPackage = pluginPackage;
-		this.bucketName = bucketName;
-	}
+    public PluginPackageRuntimeResourcesS3(Integer id, PluginPackage pluginPackage, String bucketName) {
+        this.id = id;
+        this.pluginPackage = pluginPackage;
+        this.bucketName = bucketName;
+    }
 
-	@Override
-	public String toString() {
-		return ReflectionToStringBuilder.toStringExclude(this, new String[] {"pluginPackage"});
-	}
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+    }
 }
