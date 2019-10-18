@@ -10,17 +10,22 @@
 
     <artifactId>platform-core</artifactId>
 
-
-
     <dependencyManagement>
         <dependencies>
-            <!--<dependency> -->
-            <!--<groupId>com.amazonaws</groupId> -->
-            <!--<artifactId>aws-java-sdk-bom</artifactId> -->
-            <!--&lt;!&ndash;<version>${aws.sdk.version}</version>&ndash;&gt; -->
-            <!--<type>pom</type> -->
-            <!--<scope>import</scope> -->
-            <!--</dependency> -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${sprinboot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.camunda.bpm</groupId>
+                <artifactId>camunda-bom</artifactId>
+                <scope>import</scope>
+                <type>pom</type>
+                <version>${version.camunda}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -172,7 +177,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
+            <version>1.4.199</version>
         </dependency>
 
 
