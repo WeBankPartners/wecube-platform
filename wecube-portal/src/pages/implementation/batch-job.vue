@@ -35,7 +35,7 @@
         </Select>
       </Col>
       <Col span="4" offset="1" class="select-col">
-        <span class="select-span">{{ $t("Select_a_plugin") }}</span>
+        <span class="select-span">{{ $t("select_a_plugin") }}</span>
         <Select
           v-model="selectedPlugin"
           filterable
@@ -242,17 +242,6 @@ import {
 } from "@/api/server";
 import { components } from "../../const/actions.js";
 
-const logInnerActions = [
-  {
-    label: this.$t("show_more"),
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "showLogDetail"
-  }
-];
-
 export default {
   components: {},
   data() {
@@ -264,7 +253,16 @@ export default {
       currentBatchJobId: -1,
       showLogResult: false,
       logTableData: [],
-      logInnerActions,
+      logInnerActions: [
+        {
+          label: this.$t("show_more"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "showLogDetail"
+        }
+      ],
       seachLogFilters: [],
       logDataDetailModal: false,
       logDetail: "",
