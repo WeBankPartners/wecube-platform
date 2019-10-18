@@ -47,9 +47,9 @@
         style="text-align: center;margin-top: 20px;"
       ></div>
       <div style="text-align: right;margin-top: 20px;">
-        <Button type="info" @click="startProcessHandler">{{
-          $t("execute")
-        }}</Button>
+        <Button type="info" @click="startProcessHandler">
+          {{ $t("execute") }}
+        </Button>
       </div>
     </Modal>
     <Modal
@@ -82,9 +82,9 @@
           {{ $t("repeat_prompt") }}
         </p>
 
-        <Button type="info" @click="workFlowActionHandler('retry')">{{
-          $t("retry")
-        }}</Button>
+        <Button type="info" @click="workFlowActionHandler('retry')">
+          {{ $t("retry") }}
+        </Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
@@ -126,33 +126,6 @@ const intermediateCatchEvent = require("../images/intermediateCatchEvent.png");
 const startEvent = require("../images/startEvent.png");
 const serviceTask = require("../images/serviceTask.png");
 
-const innerActions = [
-  {
-    label: this.$t("preview_execution"),
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "exePreview",
-    visible: {
-      key: "biz_key",
-      value: false
-    }
-  },
-  {
-    label: this.$t("query_execution"),
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "exeQuery",
-    visible: {
-      key: "biz_key",
-      value: true
-    }
-  }
-];
-
 export default {
   data() {
     return {
@@ -185,7 +158,33 @@ export default {
       g: {},
       currentNodeID: "",
       workflowActionModalVisible: false,
-      currentNodeStsatus: ""
+      currentNodeStsatus: "",
+      innerActions: [
+        {
+          label: this.$t("preview_execution"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "exePreview",
+          visible: {
+            key: "biz_key",
+            value: false
+          }
+        },
+        {
+          label: this.$t("query_execution"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "exeQuery",
+          visible: {
+            key: "biz_key",
+            value: true
+          }
+        }
+      ]
     };
   },
   computed: {
@@ -463,7 +462,7 @@ export default {
               }
             ])
           ),
-          innerActions: JSON.parse(JSON.stringify(innerActions)),
+          innerActions: JSON.parse(JSON.stringify(this.innerActions)),
           tableColumns: [],
           pagination: JSON.parse(JSON.stringify(pagination)),
           ascOptions: {}
