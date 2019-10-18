@@ -213,5 +213,14 @@
   "mins": "分钟",
   "preview": "预览",
   "cannot_preview": "无法预览",
-  "select_ci_first": "请先选择CI类型"
+  "select_ci_first": "请先选择CI类型",
+  "select_idc": "请选择IDC",
+  "query": "查询",
+  "resource_planning_map": "资源规划图",
+  "planning_and_design_drawing": "规划设计图",
+  "root_ci_type": "根CI类型",
+  "update": "更新",
+  "add_integrated_query_interface_name": "添加综合查询接口名称",
+  "integrated_query_deletion": "综合查询删除",
+  "explicit_message": "显示报文"
 }
