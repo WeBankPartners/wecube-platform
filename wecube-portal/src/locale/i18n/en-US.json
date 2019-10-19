@@ -242,5 +242,21 @@
   "start_with_open_curly": "Please start with { ",
   "start_with_open_curly_or_bracket": "Please start with { or [ ",
   "press_space_start": "Please click the space bar to trigger the rule",
-  "please_input_dot": "lease enter the correct operator '.'"
+  "please_input_dot": "lease enter the correct operator '.'",
+  "arch_update": "Architecture Update",
+  "fix_version": "Fix Version",
+  "app_logic_graph": "Application Logic Graph",
+  "sequence_graph_design": "Sequence Graph Design",
+  "sequence_list": "Sequence Graph Design List",
+  "current_invoke": "Current Invoke",
+  "privious_step": "Previous Step",
+  "next_step": "Next Step",
+  "return": "Return",
+  "physical_deploy_graph": "Physical Deploy Graph",
+  "env_type": "Environment Type",
+  "app_logic_tree_graph": "Application Logic Tree Graph",
+  "deploy_details": "Deploy Details",
+  "execute_flow": "Execute Flow",
+  "please_select_sys_design_and_env": "Please select system design and environment type first",
+  "start_execution": "Start execution"
 }
