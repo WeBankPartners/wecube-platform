@@ -48,7 +48,6 @@
             <DropdownItem
               v-for="(item, key) in language"
               :key="item.id"
-              :disabled="item === 'English'"
               @click.native="changeLanguage(key)"
               >{{ item }}</DropdownItem
             >
@@ -77,11 +76,10 @@ export default {
     };
   },
   methods: {
-    changeLanguage(key) {
-      if (key === "en-US") return;
-      Vue.config.lang = key;
-      this.currentLanguage = this.language[key];
-      localStorage.setItem("lang", key);
+    changeLanguage(lan) {
+      Vue.config.lang = lan;
+      this.currentLanguage = this.language[lan];
+      localStorage.setItem("lang", lan);
     },
     getLocalLang() {
       let currentLangKey = localStorage.getItem("lang") || navigator.language;
