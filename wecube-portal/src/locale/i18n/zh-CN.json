@@ -242,5 +242,21 @@
   "start_with_open_curly": "请输入 { 开启过滤规则填充",
   "start_with_open_curly_or_bracket": "请输入 { 或者 [ 开启过滤规则填充",
   "press_space_start": "请点击空格键触发过滤规则连接",
-  "please_input_dot": "请输入正确的操作符 ."
+  "please_input_dot": "请输入正确的操作符 .",
+  "arch_update": "架构变更",
+  "fix_version": "去定版",
+  "app_logic_graph": "应用逻辑图",
+  "sequence_graph_design": "调用时序设计",
+  "sequence_list": "调用时序设计序列",
+  "current_invoke": "当前调用",
+  "privious_step": "上一步",
+  "next_step": "下一步",
+  "return": "返回",
+  "physical_deploy_graph": "物理部署图",
+  "env_type": "环境类型",
+  "app_logic_tree_graph": "应用树状逻辑图",
+  "deploy_details": "部署详情",
+  "execute_flow": "执行流程",
+  "please_select_sys_design_and_env": "请先选择系统设计和环境类型",
+  "start_execution": "开始执行"
 }
