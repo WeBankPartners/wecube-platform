@@ -69,6 +69,10 @@
         </TabPane>
         <TabPane name="menus" label="菜单注入">
           <div>菜单注入</div>
+          <MenuInjection
+            v-if="currentTab === 'menus'"
+            :pkgId="currentPackageId"
+          ></MenuInjection>
         </TabPane>
         <TabPane name="models" label="数据模型">
           <DataModel
@@ -78,6 +82,10 @@
         </TabPane>
         <TabPane name="systemParameters" label="系统参数">
           <div>系统参数</div>
+          <SysParmas
+            v-if="currentTab === 'systemParameters'"
+            :pkgId="currentPackageId"
+          ></SysParmas>
         </TabPane>
         <TabPane name="authorities" label="权限设定">
           <div>权限设定</div>
@@ -360,11 +368,15 @@ const storageServiceColumns = [
 
 import DataModel from "./components/data-model.vue";
 import DependencyAnalysis from "./components/dependency-analysis.vue";
+import MenuInjection from "./components/menu-injection.vue";
+import SysParmas from "./components/system-params.vue";
 
 export default {
   components: {
     DataModel,
-    DependencyAnalysis
+    DependencyAnalysis,
+    MenuInjection,
+    SysParmas
   },
   data() {
     return {
