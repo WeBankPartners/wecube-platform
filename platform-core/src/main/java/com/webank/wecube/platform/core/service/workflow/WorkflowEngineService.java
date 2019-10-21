@@ -21,9 +21,9 @@ import com.webank.wecube.platform.workflow.parse.BpmnProcessModelCustomizer;
 import com.webank.wecube.platform.workflow.parse.SubProcessAdditionalInfo;
 
 @Service
-public class WorkflowService {
+public class WorkflowEngineService {
 
-    private static final Logger log = LoggerFactory.getLogger(WorkflowService.class);
+    private static final Logger log = LoggerFactory.getLogger(WorkflowEngineService.class);
 
     private static final String BPMN_SUFFIX = ".bpmn20.xml";
 

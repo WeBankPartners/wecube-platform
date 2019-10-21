@@ -40,7 +40,7 @@ public class WorkflowProcessDefinitionService {
     private TaskNodeParamRepository taskNodeParamRepo;
 
     @Autowired
-    private WorkflowService workflowService;
+    private WorkflowEngineService workflowService;
 
     public ProcessDefinitionInfoDto getProcessDefinition(String id) {
         Optional<ProcessDefInfoEntity> procDefEntityOptional = processDefInfoRepo.findById(id);
