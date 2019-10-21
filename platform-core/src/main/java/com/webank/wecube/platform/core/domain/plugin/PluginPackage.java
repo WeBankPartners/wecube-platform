@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -13,7 +14,10 @@ import java.util.Set;
 @Entity
 @Table(name = "plugin_packages")
 public class PluginPackage {
-
+    @JsonIgnore
+    private static final String DOCKER_IMAGE_FILE_NAME = "image.tar";
+    @JsonIgnore
+    private static final String UI_ZIP_FILE_NAME = "ui.zip";
     @Id
     @GeneratedValue
     private Integer id;
@@ -24,35 +28,49 @@ public class PluginPackage {
     @Column
     private String version;
 
+    @Column
+    private String pluginPackageImageUrl;
 
+    @Column
+    private String uiPackageUrl;
+
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageDependency> pluginPackageDependencies = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageMenu> pluginPackageMenus = new LinkedHashSet<>();
 
-//    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
-//    private Set<PluginPackageEntity> pluginPackageEntities = new LinkedHashSet<>();
+    @JsonManagedReference
+    @Transient
+    private Set<PluginPackageEntity> pluginPackageEntities = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<SystemVariable> systemVariables = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageAuthority> pluginPackageAuthorities = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3 = new LinkedHashSet<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginConfig> pluginConfigs = new LinkedHashSet<>();
 
-    @JsonIgnore
+    @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "pluginPackage")
@@ -66,9 +84,12 @@ public class PluginPackage {
         this.pluginInstances.add(pluginInstance);
     }
 
-    public String getDockerImageFile() {
-        //TODO
-        return "dockerfile.img";
+    public String getDockerImageFilename() {
+        return DOCKER_IMAGE_FILE_NAME;
+    }
+
+    public String getUiPackageFilename() {
+        return UI_ZIP_FILE_NAME;
     }
 
     public PluginPackage() {
@@ -113,6 +134,22 @@ public class PluginPackage {
         this.version = version;
     }
 
+    public String getPluginPackageImageUrl() {
+        return pluginPackageImageUrl;
+    }
+
+    public void setPluginPackageImageUrl(String pluginPackageImageUrl) {
+        this.pluginPackageImageUrl = pluginPackageImageUrl;
+    }
+
+    public String getUiPackageUrl() {
+        return uiPackageUrl;
+    }
+
+    public void setUiPackageUrl(String uiPackageUrl) {
+        this.uiPackageUrl = uiPackageUrl;
+    }
+
     public Set<PluginPackageDependency> getPluginPackageDependencies() {
         return pluginPackageDependencies;
     }
@@ -127,6 +164,14 @@ public class PluginPackage {
 
     public void setPluginPackageMenus(Set<PluginPackageMenu> pluginPackageMenus) {
         this.pluginPackageMenus = pluginPackageMenus;
+    }
+
+    public Set<PluginPackageEntity> getPluginPackageEntities() {
+        return pluginPackageEntities;
+    }
+
+    public void setPluginPackageEntities(Set<PluginPackageEntity> pluginPackageEntities) {
+        this.pluginPackageEntities = pluginPackageEntities;
     }
 
     public Set<SystemVariable> getSystemVariables() {
