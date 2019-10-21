@@ -49,13 +49,13 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         // map "{package}`{version}`{entity}`{attribute}" to attribute domain object
         Map<String, PluginPackageAttribute> nameToAttributeMap = new HashMap<>();
 
-        List<PluginPackageEntity> cancidateEntityList = new ArrayList<>();
+        List<PluginPackageEntity> candidateEntityList = new ArrayList<>();
 
-        buildReferenceMapping(inputEntityDtoList, referenceNameMap, nameToAttributeMap, cancidateEntityList);
+        buildReferenceMapping(inputEntityDtoList, referenceNameMap, nameToAttributeMap, candidateEntityList);
 
-        updateCandidateEntityList(referenceNameMap, nameToAttributeMap, cancidateEntityList);
+        updateCandidateEntityList(referenceNameMap, nameToAttributeMap, candidateEntityList);
 
-        return convertEntityDomainToDto(pluginPackageEntityRepository.saveAll(cancidateEntityList));
+        return convertEntityDomainToDto(pluginPackageEntityRepository.saveAll(candidateEntityList));
     }
 
 
@@ -82,9 +82,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         if (StringUtils.isEmpty(packageName)) {
             String msg = String.format("The package name: [%s] should not be null or empty.", packageName);
             logger.error(msg);
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("package name: [%s].", packageName));
-            }
             throw new WecubeCoreException(msg);
         }
         // then check the version
@@ -94,9 +91,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             if (!allByPluginPackage_name.isPresent()) {
                 String msg = String.format("Cannot find datamodel according to packageName: [%s].", packageName);
                 logger.error(msg);
-                if (logger.isDebugEnabled()) {
-                    logger.debug(String.format("package name: [%s].", packageName));
-                }
                 throw new WecubeCoreException(msg);
             }
             List<PluginPackageEntity> pluginPackageEntityList = allByPluginPackage_name.get();
@@ -108,9 +102,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         if (!allByPluginPackage_nameAndPluginPackage_version.isPresent()) {
             String msg = String.format("Cannot find datamodel according to packageName: [%s] and version: [%s].", packageName, version);
             logger.error(msg);
-            if (logger.isDebugEnabled()) {
-                logger.debug(String.format("package name: [%s] and version: [%s].", packageName, version));
-            }
             throw new WecubeCoreException(msg);
         }
         List<PluginPackageEntity> pluginPackageEntityList = allByPluginPackage_nameAndPluginPackage_version.get();
@@ -129,10 +120,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         if (!allByPluginPackage_id.isPresent()) {
             String msg = String.format("The data model of package ID: %d cannot be found.", packageId);
             logger.error(msg);
-            if (logger.isDebugEnabled()) {
-                logger.debug(String
-                        .format("package ID: %d", packageId));
-            }
             throw new WecubeCoreException(msg);
         }
         List<PluginPackageEntity> pluginPackageEntityList = allByPluginPackage_id.get();
@@ -168,9 +155,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                 if (allReferenceCount > 0) {
                     String msg = String.format("The attribute: [%s] from Package: [%s] with Version: [%s] and Entity: [%s]  is still referenced by others, delete operation will terminate.", attributeName, packageName, version, entityName);
                     logger.error(msg);
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(String.format("package: [%s], version: [%s], entity: [%s], attribute: [%s]", packageName, version, entityName, attributeName));
-                    }
                     throw new WecubeCoreException(msg);
                 }
             }
@@ -186,12 +170,12 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
      * @param inputEntityDtoList  the input entity dto list
      * @param referenceNameMap    map "{package}`{version}`{entity}`{attribute}" to another "{package}`{version}`{entity}`{attribute}"
      * @param nameToAttributeMap  map "{package}`{version}`{entity}`{attribute}" to attribute domain object
-     * @param cancidateEntityList the candidate entity list, will be inserted to DB later
+     * @param candidateEntityList the candidate entity list, will be inserted to DB later
      * @throws WecubeCoreException when missing reference name, missing datatype or datatype is not equal to "ref"
      */
     private void buildReferenceMapping(List<PluginPackageEntityDto> inputEntityDtoList,
                                        Map<String, String> referenceNameMap, Map<String, PluginPackageAttribute> nameToAttributeMap,
-                                       List<PluginPackageEntity> cancidateEntityList) throws WecubeCoreException {
+                                       List<PluginPackageEntity> candidateEntityList) throws WecubeCoreException {
         for (PluginPackageEntityDto inputEntityDto : inputEntityDtoList) {
             // update the referenceNameMap with self and referenceName, the referenceName was transfered into "packageName"."entityName"."attributeName"
             for (PluginPackageAttributeDto inputAttributeDto : inputEntityDto.getAttributeDtoList()) {
@@ -264,7 +248,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             }
 
             // add the transfered entity domain object with attribute domain objects into the List
-            cancidateEntityList.add(transferedEntity);
+            candidateEntityList.add(transferedEntity);
         }
     }
 
@@ -273,14 +257,14 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
      *
      * @param referenceNameMap    map "{package}`{version}`{entity}`{attribute}" to another "{package}`{version}`{entity}`{attribute}"
      * @param nameToAttributeMap  map "{package}`{version}`{entity}`{attribute}" to attribute domain object
-     * @param cancidateEntityList the candidate entity list, will be inserted to DB later
+     * @param candidateEntityList the candidate entity list, will be inserted to DB later
      * @throws WecubeCoreException when reference name the dto passed is invalid
      */
     private void updateCandidateEntityList(Map<String, String> referenceNameMap,
                                            Map<String, PluginPackageAttribute> nameToAttributeMap,
-                                           List<PluginPackageEntity> cancidateEntityList) throws WecubeCoreException {
+                                           List<PluginPackageEntity> candidateEntityList) throws WecubeCoreException {
         // update the attribtue domain object with pre-noted map
-        for (PluginPackageEntity pluginPackageEntity : cancidateEntityList) {
+        for (PluginPackageEntity pluginPackageEntity : candidateEntityList) {
             for (PluginPackageAttribute pluginPackageAttribute : pluginPackageEntity
                     .getPluginPackageAttributeList()) {
                 String selfName = pluginPackageAttribute.getPluginPackageEntity().getPluginPackage().getName() + "`"
