@@ -5,18 +5,18 @@
     @on-visible-change="visibleChangeHandler"
     :footer-hide="true"
     v-model="isVisible"
-    title="枚举管理"
+    :title="$t('enum_management')"
   >
     <div style="border-bottom: 1px solid grey;">
       <Form v-model="form">
         <Row>
           <Col span="5">
-            <FormItem :label-width="50" label="名称">
+            <FormItem :label-width="50" :label="$t('name')">
               <Input v-model="form.catName"></Input>
             </FormItem>
           </Col>
           <Col offset="1" span="6">
-            <FormItem :label-width="90" label="枚举类型">
+            <FormItem :label-width="90" :label="$t('enum_type')">
               <Select :disabled="!!category" v-model="form.catTypeId">
                 <Option
                   v-for="item in catTypes"
@@ -28,7 +28,7 @@
             </FormItem>
           </Col>
           <Col offset="1" span="5">
-            <FormItem :label-width="50" label="分组">
+            <FormItem :label-width="50" :label="$t('enum_group')">
               <Select filterable clearable v-model="form.catGroupId">
                 <Option
                   v-for="item in allCategory"
@@ -40,7 +40,9 @@
             </FormItem>
           </Col>
           <Col offset="1" span="5">
-            <Button type="primary" @click="saveCategoryHandler">保存</Button>
+            <Button type="primary" @click="saveCategoryHandler">{{
+              $t("save")
+            }}</Button>
           </Col>
         </Row>
       </Form>
@@ -71,11 +73,11 @@ export default {
       categoryId: -1,
       catTypes: [
         {
-          label: "公共枚举",
+          label: this.$t("pub_enum"),
           value: 2
         },
         {
-          label: "私有枚举",
+          label: this.$t("pri_enum"),
           value: 3
         }
       ],

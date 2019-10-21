@@ -2,7 +2,7 @@
   <Row style="padding:20px">
     <Spin size="large" fix v-if="isLoading">
       <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-      <div>加载中...</div>
+      <div>{{ $t("loading") }}</div>
     </Spin>
     <Col span="6">
       <Row>
@@ -35,7 +35,7 @@
         <div v-if="currentPlugin.children">
           <Row class="instances-container">
             <Card>
-              <p slot="title">实例</p>
+              <p slot="title">{{ $t("instance") }}</p>
               <Row>
                 <Select
                   @on-change="selectHost"
@@ -55,10 +55,10 @@
                   size="small"
                   type="success"
                   @click="getAvailablePortByHostIp"
-                  >端口预览</Button
+                  >{{ $t("port_preview") }}</Button
                 >
                 <div v-if="availiableHostsWithPort.length > 0">
-                  <p style="margin-top: 20px">可用端口:</p>
+                  <p style="margin-top: 20px">{{ $t("avaliable_port") }}:</p>
 
                   <div
                     v-for="item in availiableHostsWithPort"
@@ -71,7 +71,7 @@
                       <div class="instance-item">
                         {{ item.ip + ":" + item.port }}
                       </div>
-                      <span>启动参数:</span>
+                      <span>{{ $t("start_params") }}:</span>
                       <Input
                         type="textarea"
                         style="width: 50%"
@@ -96,7 +96,9 @@
               </Row>
               <Row>
                 <p style="margin-top: 20px">{{ $t("running_node") }}:</p>
-                <div v-if="allInstances.length === 0">暂无运行节点</div>
+                <div v-if="allInstances.length === 0">
+                  {{ $t("no_avaliable_instances") }}
+                </div>
                 <div v-else>
                   <div v-for="item in allInstances" :key="item.id">
                     <div class="instance-item-container">
@@ -115,7 +117,7 @@
             </Card>
 
             <Card style="margin-top: 20px">
-              <p slot="title">日志查询</p>
+              <p slot="title">{{ $t("log_query") }}</p>
               <div style="padding: 0 0 50px 0">
                 <WeTable
                   :tableData="tableData"
@@ -134,7 +136,7 @@
 
               <Modal
                 v-model="logDetailsModalVisible"
-                title="日志详情"
+                :title="$t('log_details')"
                 footer-hide
                 width="70"
               >
@@ -191,19 +193,19 @@
           <hr />
           <Row style="margin-bottom:10px;margin-top:10px">
             <Col span="3">
-              <span>操作</span>
+              <span>{{ $t("operation") }}</span>
             </Col>
             <Col span="2">
-              <span>参数类型</span>
+              <span>{{ $t("params_type") }}</span>
             </Col>
             <Col span="3">
-              <span>数据状态</span>
+              <span>{{ $t("data_status") }}</span>
             </Col>
             <Col span="3">
-              <span>参数名</span>
+              <span>{{ $t("params_name") }}</span>
             </Col>
             <Col span="5" offset="1">
-              <span>CMDB属性</span>
+              <span>{{ $t("cmdb_attr") }}</span>
             </Col>
           </Row>
           <Row
@@ -224,7 +226,7 @@
               <Row>
                 <Col span="2">
                   <FormItem :label-width="0">
-                    <span>输入参数</span>
+                    <span>{{ $t("input_params") }}</span>
                   </FormItem>
                 </Col>
                 <Col span="3">
@@ -282,7 +284,7 @@
               <Row>
                 <Col span="2">
                   <FormItem :label-width="0">
-                    <span>输出参数</span>
+                    <span>{{ $t("output_params") }}</span>
                   </FormItem>
                 </Col>
                 <Col span="3">
@@ -317,7 +319,6 @@
                       <FormItem :label-width="0">
                         <Select
                           style="width:150px"
-                          placeholder="请选择"
                           v-model="outPut.cmdbColumnSource"
                           clearable
                         >
@@ -345,7 +346,7 @@
                     currentPlugin.status === 'DECOMMISSIONED'
                 "
                 @click="pluginSave"
-                >保存</Button
+                >{{ $t("save") }}</Button
               >
               <Button
                 type="primary"
@@ -354,13 +355,13 @@
                     currentPlugin.status === 'DECOMMISSIONED'
                 "
                 @click="regist"
-                >注册</Button
+                >{{ $t("regist") }}</Button
               >
               <Button
                 type="error"
                 v-if="currentPlugin.status === 'ONLINE'"
                 @click="removePlugin"
-                >注销</Button
+                >{{ $t("decommission") }}</Button
               >
             </Col>
           </Row>
@@ -398,17 +399,6 @@ import {
 
 import refPayloadModal from "./components/ref-payload-modal.js";
 
-const innerActions = [
-  {
-    label: "显示详情",
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "showLogDetails"
-  }
-];
-
 export default {
   components: {
     AttrSelect,
@@ -439,51 +429,60 @@ export default {
       form: {},
       tableData: [],
       totalTableData: [],
-      innerActions,
+      innerActions: [
+        {
+          label: this.$t("show_details"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "showLogDetails"
+        }
+      ],
       tableColumns: [
         {
-          title: "插件运行实例",
+          title: this.$t("instance"),
           key: "instance",
           inputKey: "instance",
           searchSeqNo: 1,
           displaySeqNo: 1,
           component: "WeSelect",
           isMultiple: true,
-          placeholder: "插件运行实例",
+          placeholder: this.$t("instance"),
           span: 5,
           width: "200px",
           options: []
         },
         {
-          title: "文件名",
+          title: this.$t("file_name"),
           key: "file_name",
           inputKey: "file_name",
           searchSeqNo: 2,
           displaySeqNo: 2,
           component: "Input",
           isNotFilterable: true,
-          placeholder: "文件名",
+          placeholder: this.$t("file_name"),
           width: "200px"
         },
         {
-          title: "行号",
+          title: this.$t("line_number"),
           key: "line_number",
           inputKey: "line_number",
           searchSeqNo: 3,
           displaySeqNo: 3,
           component: "Input",
           isNotFilterable: true,
-          placeholder: "行号",
-          width: "100px"
+          placeholder: this.$t("line_number"),
+          width: "150px"
         },
         {
-          title: "匹配内容",
+          title: this.$t("match_text"),
           key: "log",
           inputKey: "log",
           searchSeqNo: 4,
           displaySeqNo: 4,
           component: "Input",
-          placeholder: "支持正则表达式"
+          placeholder: this.$t("match_text")
         }
       ],
       pagination: {
@@ -883,7 +882,11 @@ export default {
       if (createParams.indexOf("{{") >= 0 || createParams.indexOf("}}") >= 0) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请替换启动参数中的差异化参数（例如：{{parameter}}）"
+          desc:
+            this.$t("replace_key_in_params") +
+            "(" +
+            this.$t("for_example") +
+            "：{{parameter}}）"
         });
         errorFlag = true;
       }
