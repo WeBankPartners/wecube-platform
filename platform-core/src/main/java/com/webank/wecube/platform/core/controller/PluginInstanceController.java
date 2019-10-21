@@ -18,7 +18,7 @@ import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
 
 @RestController
 @Slf4j
-@RequestMapping("/v1/api/plugin")
+@RequestMapping("/v1/api")
 public class PluginInstanceController {
 
     @Autowired
