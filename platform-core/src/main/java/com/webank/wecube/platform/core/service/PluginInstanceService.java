@@ -62,7 +62,7 @@ public class PluginInstanceService {
     }
 
     public Integer getAvailablePortByHostIp(String hostIp) {
-        if (!(isIpValidity(hostIp))) {
+        if (!(isIpValid(hostIp))) {
             throw new RuntimeException("Invalid host ip");
         }
         ResourceServer resourceServer = resourceServerRepository.findOneByHost(hostIp);
@@ -90,7 +90,7 @@ public class PluginInstanceService {
         throw new WecubeCoreException("There is no available ports in specified host");
     }
 
-    public boolean isIpValidity(String ip) {
+    public boolean isIpValid(String ip) {
         if (ip != null && !ip.isEmpty()) {
             String ipValidityRegularExpression = "^(([1-9])|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))((\\.([0-9]|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))){3})$";
             return ip.matches(ipValidityRegularExpression);
