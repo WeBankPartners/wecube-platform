@@ -159,17 +159,29 @@ The main menu of WeCube matches its design concept, including Workbench, Expecta
 
 - System
   - CMDB model design: support cusomization and graphic visualization.
-  - Authorization: row-based data permision control for CRUD operations. For example, DBA can only operate on DB hosts instead application hosts in case that all hosts share one single CI type.  
-  - System parameters
+  - authorization: row-based data permision control for CRUD operations. For example, DBA can only operate on DB hosts instead application hosts in case that all hosts share one single CI type.  
+  - aystem parameters
 
 - Workflow
-  - Plugins: 
-  - Task orchestration
-  - Service channel
+  - plugin registration: to upload plugin packages and create their runtime environments in containers. 
+  - task orchestration: to design work flows to finish automated or semi-automated tasks, such as task orchestration create VPC, subnet and virtual machines on public cloud. Each node in the workflow is associated with a plugin for execution.
+  - service channel
 
 - Expectation
+  - data center design: to create a plan and design the sturcture for data center 
+  - data center resource plan: to instanciate the data center design and plan actual resources for a concrete data center
+  - application architecture design: to design the logical components of applications
+  - application deployment design: to design the deploment view and trigger deployment of applications
+  - CI data query and management: to query and manage data for a single CI type through a graph of CI model 
+  - CI integrated query: to configure queries involving multiple CI types, for example querying all hosts for a specific application
+  - enumeration query and danagement
 
 - Execution
+  - artifact management: to manage deployment packages for applications. Customization of configuration file and value substitution rules is supported to eliminate manual intervention.
+  - application deployment: to view deployment history, to skip or retry deployment tasks.
+  - batch execution: to execute simple operation tasks in a selected scope of targets. 
+  - high risk commands: to define high risk commands, so they will be blocked or extra approval is required.
+  - task orchestration execution: to execute complicated operations with predefined workflow and plugins. 
 
 - Tasks (2nd half of 2019)
 
