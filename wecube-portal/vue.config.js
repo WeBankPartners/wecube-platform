@@ -36,6 +36,9 @@ module.exports = {
       },
       "/auth": {
         target: "http://129.204.99.160:8889"
+      },
+      "/packages": {
+        target: "http://129.204.99.160:30000"
       }
     }
   },

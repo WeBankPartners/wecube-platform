@@ -27,6 +27,8 @@ public interface PluginPackageRepository extends CrudRepository<PluginPackage, I
         return Optional.ofNullable(pickLastOne(pluginPackages, new PluginPackageVersionComparator()));
     }
 
+    Optional<PluginPackage> findByNameAndVersion(String packageName, String version);
+
     long countByNameAndVersion(String name, String version);
 
     class PluginPackageVersionComparator implements Comparator<PluginPackage> {

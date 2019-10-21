@@ -22,8 +22,8 @@
       <Row class="plugins-tree-container" style="margin-top: 20px">
         <Card dis-hover>
           <p slot="title">{{ $t("plugins_list") }}</p>
-          <div style="height: 70%">
-            <Collapse accordion>
+          <div style="height: 70%; overflow: auto">
+            <Collapse accordion @on-change="pluginPackageChangeHandler">
               <Panel
                 :name="plugin.id + ''"
                 v-for="plugin in plugins"
@@ -60,15 +60,21 @@
       </Row>
     </Col>
     <Col span="17" offset="1" v-if="isShowConfigPanel">
-      <Tabs :value="currentTab" closable @on-click="handleTabClick">
-        <TabPane name="Dependency" label="依赖分析">
-          <div>依赖分析</div>
+      <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
+        <TabPane name="dependency" label="依赖分析">
+          <DependencyAnalysis
+            v-if="currentTab === 'dependency'"
+            :pkgId="currentPackageId"
+          ></DependencyAnalysis>
         </TabPane>
         <TabPane name="menus" label="菜单注入">
           <div>菜单注入</div>
         </TabPane>
         <TabPane name="models" label="数据模型">
-          <div>数据模型</div>
+          <DataModel
+            v-if="currentTab === 'models'"
+            :pkgId="currentPackageId"
+          ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" label="系统参数">
           <div>系统参数</div>
@@ -88,7 +94,7 @@
       <div v-if="Object.keys(currentPlugin).length > 0">
         <div v-if="currentPlugin.children">
           <Row class="instances-container">
-            <Collapse>
+            <Collapse value="1">
               <Panel name="1">
                 <span style="font-size: 14px; font-weight: 600">运行容器</span>
                 <p slot="content">
@@ -351,13 +357,21 @@ const storageServiceColumns = [
     key: "uploadTime"
   }
 ];
+
+import DataModel from "./components/data-model.vue";
+import DependencyAnalysis from "./components/dependency-analysis.vue";
+
 export default {
+  components: {
+    DataModel,
+    DependencyAnalysis
+  },
   data() {
     return {
       plugins: [],
       isShowConfigPanel: false,
       isShowRuntimeManagementPanel: false,
-      currentTab: "Dependency",
+      currentTab: "dependency",
       currentPlugin: {},
       tableData: [],
       totalTableData: [],
@@ -396,14 +410,17 @@ export default {
       this.isShowConfigPanel = isShowConfigPanel;
       this.isShowRuntimeManagementPanel = !isShowConfigPanel;
     },
-    deletePlugin(currentPluginId) {},
-    configPlugin(currentPluginId) {
+    deletePlugin(packageId) {},
+    configPlugin(packageId) {
       this.swapPanel(true);
+      this.currentPlugin = this.plugins.find(_ => _.id === packageId);
+      this.selectedCiType = this.currentPlugin.cmdbCiTypeId || "";
+      this.currentPackageId = this.currentPlugin.id;
     },
-    async manageRuntimePlugin(currentPluginId) {
+    async manageRuntimePlugin(packageId) {
       this.swapPanel(false);
 
-      let currentPlugin = this.plugins.find(_ => _.id === currentPluginId);
+      let currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
       this.currentPlugin = currentPlugin;
 
@@ -415,6 +432,11 @@ export default {
       }
       this.getAvailableContainerHosts();
       this.resetLogTable();
+    },
+    pluginPackageChangeHandler(key) {
+      console.log("key", key);
+      this.isShowConfigPanel = this.isShowRuntimeManagementPanel = false;
+      this.dbQueryCommandString = "";
     },
     async getAllInstancesByPackageId(id) {
       let { data, status, message } = await getAllInstancesByPackageId(id);

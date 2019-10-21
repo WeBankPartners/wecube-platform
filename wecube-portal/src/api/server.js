@@ -466,3 +466,7 @@ export const refreshProcessInstanceStatus = id =>
 export const restartProcessInstance = data =>
   req.post("/process/instances/restart", data);
 export const login = data => req.post("/auth/v1/api/login", data);
+
+export const getPluginPkgDataModel = id => req.get(`/packages/${id}/models`);
+export const getPluginPkgDependcy = id =>
+  req.get(`/packages/${id}/dependencies`);
