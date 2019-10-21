@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.domain;
 public class JsonResponse {
     public final static String STATUS_OK = "OK";
     public final static String STATUS_ERROR = "ERROR";
+    public static final String SUCCESS = "Success";
 
     private String status;
     private String message;
@@ -40,7 +41,7 @@ public class JsonResponse {
     public static JsonResponse okay() {
         JsonResponse result = new JsonResponse();
         result.setStatus(STATUS_OK);
-        result.setMessage("Success");
+        result.setMessage(SUCCESS);
         return result;
     }
 

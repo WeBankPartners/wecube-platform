@@ -45,7 +45,7 @@ public class PluginPackageService {
     private PluginProperties pluginProperties;
 
     @Autowired
-    ApplicationProperties.S3Properties s3Properties;
+    private S3Client s3Client;
 
     @Transactional
     public PluginPackageDto uploadPackage(MultipartFile pluginPackageFile) throws Exception {
@@ -82,8 +82,8 @@ public class PluginPackageService {
         File pluginFile = new File(localFilePath + pluginPackageDto.getDockerImageFile());
         String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginFile.getName();
         log.info("keyname : {}", keyName);
-        String url = uploadFileToMinIO(pluginProperties.getPluginPackageBucketName(), keyName, pluginFile);
-        log.info("Plugin Package has uploaded to MinIO {}", url);
+//        String url = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginFile);
+//        log.info("Plugin Package has uploaded to MinIO {}", url);
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
         pluginPackageEntityRepository.saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it->it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
@@ -185,8 +185,4 @@ public class PluginPackageService {
         log.info("Zip file has uploaded !");
     }
 
-    private String uploadFileToMinIO(String bucketName, String key, File file) {
-        S3Client s3 = new S3Client(s3Properties.getEndpoint(), s3Properties.getAccessKey(), s3Properties.getSecretKey());
-        return s3.uploadFile(bucketName, key, file);
-    }
 }
