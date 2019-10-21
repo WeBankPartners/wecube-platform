@@ -68,7 +68,6 @@
           ></DependencyAnalysis>
         </TabPane>
         <TabPane name="menus" label="菜单注入">
-          <div>菜单注入</div>
           <MenuInjection
             v-if="currentTab === 'menus'"
             :pkgId="currentPackageId"
@@ -81,7 +80,6 @@
           ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" label="系统参数">
-          <div>系统参数</div>
           <SysParmas
             v-if="currentTab === 'systemParameters'"
             :pkgId="currentPackageId"
@@ -91,7 +89,10 @@
           <div>权限设定</div>
         </TabPane>
         <TabPane name="runtimeResources" label="运行资源">
-          <div>运行资源</div>
+          <RuntimesResources
+            v-if="currentTab === 'runtimeResources'"
+            :pkgId="currentPackageId"
+          ></RuntimesResources>
         </TabPane>
         <TabPane name="plugins" label="插件注册">
           <div>插件注册</div>
@@ -370,13 +371,15 @@ import DataModel from "./components/data-model.vue";
 import DependencyAnalysis from "./components/dependency-analysis.vue";
 import MenuInjection from "./components/menu-injection.vue";
 import SysParmas from "./components/system-params.vue";
+import RuntimesResources from "./components/runtime-resource.vue";
 
 export default {
   components: {
     DataModel,
     DependencyAnalysis,
     MenuInjection,
-    SysParmas
+    SysParmas,
+    RuntimesResources
   },
   data() {
     return {
