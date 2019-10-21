@@ -31,100 +31,100 @@ import static org.apache.commons.lang3.StringUtils.trim;
 @Transactional
 public class PluginInstanceService {
 
-	@Autowired
-	private PluginProperties pluginProperties;
+    @Autowired
+    private PluginProperties pluginProperties;
 
-	@Autowired
-	PluginInstanceRepository pluginInstanceRepository;
-	@Autowired
-	PluginPackageRepository pluginPackageRepository;
-	@Autowired
-	PluginConfigRepository pluginConfigRepository;
-	@Autowired
-	ResourceServerRepository resourceServerRepository;
+    @Autowired
+    PluginInstanceRepository pluginInstanceRepository;
+    @Autowired
+    PluginPackageRepository pluginPackageRepository;
+    @Autowired
+    PluginConfigRepository pluginConfigRepository;
+    @Autowired
+    ResourceServerRepository resourceServerRepository;
 
-	@Autowired
-	ApplicationProperties.S3Properties s3Properties;
+    @Autowired
+    ApplicationProperties.S3Properties s3Properties;
 
-	@Autowired
-	private ResourceManagementService resourceManagementService;
+    @Autowired
+    private ResourceManagementService resourceManagementService;
 
-	private static final int PLUGIN_DEFAULT_START_PORT = 20000;
-	private static final int PLUGIN_DEFAULT_END_PORT = 30000;
+    private static final int PLUGIN_DEFAULT_START_PORT = 20000;
+    private static final int PLUGIN_DEFAULT_END_PORT = 30000;
 
-	public List<String> getAvailableContainerHosts() {
-		QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER);
-		List<String> hostList = new ArrayList<String>();
-		resourceManagementService.retrieveServers(queryRequest).getContents().forEach(rs -> {
-			hostList.add(rs.getHost());
-		});
-		return hostList;
-	}
+    public List<String> getAvailableContainerHosts() {
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER);
+        List<String> hostList = new ArrayList<String>();
+        resourceManagementService.retrieveServers(queryRequest).getContents().forEach(rs -> {
+            hostList.add(rs.getHost());
+        });
+        return hostList;
+    }
 
-	public Integer getAvailablePortByHostIp(String hostIp) {
-		if (!(isIpValidity(hostIp))) {
-			throw new RuntimeException("Invalid host ip");
-		}
-		ResourceServer resourceServer = resourceServerRepository.findOneByHost(hostIp);
-		if (null == resourceServer)
-			throw new WecubeCoreException(String.format("Host IP [%s] is not found", hostIp));
-		QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
-				.addEqualsFilter("resourceServerId", resourceServer.getId());
+    public Integer getAvailablePortByHostIp(String hostIp) {
+        if (!(isIpValidity(hostIp))) {
+            throw new RuntimeException("Invalid host ip");
+        }
+        ResourceServer resourceServer = resourceServerRepository.findOneByHost(hostIp);
+        if (null == resourceServer)
+            throw new WecubeCoreException(String.format("Host IP [%s] is not found", hostIp));
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
+                .addEqualsFilter("resourceServerId", resourceServer.getId());
 
-		List<Integer> hasUsedPorts = Lists.newArrayList();
-		resourceManagementService.retrieveItems(queryRequest).getContents().forEach(rs -> {
-			Arrays.asList(rs.getAdditionalPropertiesMap().get("portBindings").split(",")).forEach(port -> {
-				String[] portArray = port.split(":");
-				hasUsedPorts.add(Integer.valueOf(portArray[0]));
-			});
-		});
-		if (hasUsedPorts.size() == 0) {
-			return PLUGIN_DEFAULT_START_PORT;
-		}
+        List<Integer> hasUsedPorts = Lists.newArrayList();
+        resourceManagementService.retrieveItems(queryRequest).getContents().forEach(rs -> {
+            Arrays.asList(rs.getAdditionalPropertiesMap().get("portBindings").split(",")).forEach(port -> {
+                String[] portArray = port.split(":");
+                hasUsedPorts.add(Integer.valueOf(portArray[0]));
+            });
+        });
+        if (hasUsedPorts.size() == 0) {
+            return PLUGIN_DEFAULT_START_PORT;
+        }
 
-		for (int i = PLUGIN_DEFAULT_START_PORT; i < PLUGIN_DEFAULT_END_PORT; i++) {
-			if (!hasUsedPorts.contains(i)) {
-				return i;
-			}
-		}
-		throw new WecubeCoreException("There is no available ports in specified host");
-	}
+        for (int i = PLUGIN_DEFAULT_START_PORT; i < PLUGIN_DEFAULT_END_PORT; i++) {
+            if (!hasUsedPorts.contains(i)) {
+                return i;
+            }
+        }
+        throw new WecubeCoreException("There is no available ports in specified host");
+    }
 
-	public boolean isIpValidity(String ip) {
-		if (ip != null && !ip.isEmpty()) {
-			String ipValidityRegularExpression = "^(([1-9])|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))((\\.([0-9]|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))){3})$";
-			return ip.matches(ipValidityRegularExpression);
-		}
-		return false;
-	}
+    public boolean isIpValidity(String ip) {
+        if (ip != null && !ip.isEmpty()) {
+            String ipValidityRegularExpression = "^(([1-9])|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))((\\.([0-9]|([1-9][0-9])|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))){3})$";
+            return ip.matches(ipValidityRegularExpression);
+        }
+        return false;
+    }
 
-	public List<PluginInstance> getAllInstances() {
-		return Lists.newArrayList(pluginInstanceRepository.findAll());
-	}
+    public List<PluginInstance> getAllInstances() {
+        return Lists.newArrayList(pluginInstanceRepository.findAll());
+    }
 
-	public List<PluginInstance> getAvailableInstancesByPackageId(int packageId) {
-		return pluginInstanceRepository.findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, packageId);
-	}
+    public List<PluginInstance> getAvailableInstancesByPackageId(int packageId) {
+        return pluginInstanceRepository.findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, packageId);
+    }
 
-	public List<PluginInstance> getRunningPluginInstances(String pluginName) {
-		Optional<PluginPackage> pkg = pluginPackageRepository.findLatestVersionByName(pluginName);
-		if (!pkg.isPresent()) {
-			throw new WecubeCoreException(String.format("Plugin pacakge [%s] not found.", pluginName));
-		}
+    public List<PluginInstance> getRunningPluginInstances(String pluginName) {
+        Optional<PluginPackage> pkg = pluginPackageRepository.findLatestVersionByName(pluginName);
+        if (!pkg.isPresent()) {
+            throw new WecubeCoreException(String.format("Plugin pacakge [%s] not found.", pluginName));
+        }
 
-		List<PluginInstance> instances = pluginInstanceRepository
-				.findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, pkg.get().getId());
-		if (instances == null || instances.size() == 0) {
-			throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
-		}
-		return instances;
-	}
+        List<PluginInstance> instances = pluginInstanceRepository
+                .findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, pkg.get().getId());
+        if (instances == null || instances.size() == 0) {
+            throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
+        }
+        return instances;
+    }
 
-	public void createPluginInstance(Integer packageId, String hostIp, Integer port, String additionalStartParameters)
-			throws Exception {
-	}
+    public void createPluginInstance(Integer packageId, String hostIp, Integer port, String additionalStartParameters)
+            throws Exception {
+    }
 
-	public void removePluginInstanceById(Integer instanceId) throws Exception {
-	}
+    public void removePluginInstanceById(Integer instanceId) throws Exception {
+    }
 
 }
