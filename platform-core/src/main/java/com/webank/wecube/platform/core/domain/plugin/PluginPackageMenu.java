@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
@@ -12,6 +13,7 @@ public class PluginPackageMenu {
     @GeneratedValue
     private int id;
 
+    @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "plugin_package_id")
     private PluginPackage pluginPackage;
