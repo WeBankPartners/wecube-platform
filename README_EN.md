@@ -1,31 +1,12 @@
 # WeCube
 
->## 引言
->WeCube是一套开源的，一站式IT架构管理和运维管理工具，主要用于简化分布式架构IT管理，并可以通过插件进行功能扩展。
-
 ## Introduction
-WeCube is an open source, one-stop tool for architecture management and IT operation, which  aims to simplify the IT management of distributed architecture. Its features can be easily extended by plugins.
-
->## 起源
->微众银行在分布式架构实践的过程中，发现将银行核心系统构建于分布式架构之上，会遇到一些与传统单体应用不同的痛点（例如，服务器增多，部署难度大；调用链长，全链路跟踪困难； 系统复杂，问题定位时间长等），在逐步解决这些痛点的过程中，总结了一套IT管理的方法论和最佳实践，并研发了与之配套的IT管理工具体系。WeCube就是将该套方法论和最佳实践，从微众内部众多IT管理工具体系中提炼出来，整合成一套开箱即用的IT管理解决方案。
+WeCube is an open source, one-stop tool for architecture management and IT operation, which aims to simplify the IT management of distributed architecture. Its features can be easily extended by plugins.
 
 ## Origin
-During the implementation of distributed architecture, core banking systems are built in WeBank. Comparing this to the traditional monolithic architecture, there are quite a few different pain points, e.g. increasing number of servers, complicated deployment process, difficulties in service tracing and problem dignosis due to complex system and long invocation chain. 
+During the implementation of distributed architecture, core banking systems are built in WeBank. Comparing this to traditional monolithic architecture, there are quite a few different pain points, e.g. increasing number of servers, complicated deployment process, difficulties in service tracing and problem diagnosis due to complex systems and long invocation chains. 
 
 In the process of finding the solutions for these pain points, we have come up with a set of methodology and best practices for IT management in such scenarios and also developed necessary supporting tools. WeCube is the result of extracting the methodology and best practices form WeBank's internal tools, which is then packaged into an integrated out-of-box solution for IT management. 
-
->## 设计理念
->![WeCube设计理念](wecube-wiki/images/wecube_design.png) 
->
->WeCube的设计理念与IT系统生命周期管理基本一致。可以通过“六个维度和一个核心”来阐述。
->
->- 第一个维度：Workbench，汇聚任务、统一平台。就是将需要人员执行的任务全部汇聚在一个平台上。这样工作内容清晰可见，轻重缓急一目了然。 类似ITSM。
->- 第二个维度：Expectation，规划设计、描绘期望。就是定义模型和规范，形成标准化设计语言。通过规范化设计及图形化展示，清晰、准确描绘出对分布式架构的期望。 
->- 第三个维度：Execution，自动执行、驱动实现。就是通过各类自动化、标准化任务的执行，将期望设计变成现实存在，消除人员能力参差不齐导致的实现差异。 
->- 第四个维度：Watching，继续监测、发现差异。就是定义全方位的监测项指标，通过持续收集监测数据，精确反映现实存在的现状，并发现现实与期望的差异项。 
->- 第五个维度：Wisdom，赋予智慧、制定策略。就是应用机器学习等技术，赋予We3智慧的能力。通过数学建模，制定应差异项的处理策略。 比如资源扩容策略、故障处理策略。
->- 第六个维度：Equilibration，不断调整、保持对等。就是通过执行处理策略来不断进行动态调整，最终保持现实与设计的对等，进而使系统稳定运行。 
->- 一个核心：Workflow Engine，流程引擎、协同驱动。通过工作流引擎赋予We3协同驱动能力，从而高效组织以上六个维度组件的协同运行，减少人工处理环节，提高团队工作效率。 
 
 ## Design Concept
 ![WeCube Design Concept](wecube-wiki/images/wecube_design.png)
@@ -36,60 +17,34 @@ WeCube's design concept basically matches the lifecycle of IT system management 
 
 - 2nd aspect: "Expectation", it is to plan, to design, to describe the expectations with models and specifications. By using standard and formal design language together with graphic visualizations, we try to make expectations on distributed architecture accurately and clearly.
 
-- 3rd aspect: "Execution", it is to execute tasks in automated and standardized way so that expectations become realities without introducing errors or differences caused by people in this process.
+- 3rd aspect: "Execution", it is to execute tasks in automated and standardized way so that expectations become realities without introducing errors or deviations caused by people in this process.
 
-- 4th aspect: "Watching", it is to uncover differences between realities and expectations by defining all-round metrics which can reflect the varying situation, then consistently collecting and keeping track of the information.
+- 4th aspect: "Watching", it is to uncover differences between realities and expectations by defining all-round metrics which can reflect the varying runtime situation, then consistently collecting and keeping track of the information.
 
 - 5th aspect: "Wisdom", it is to add intelligence into WeCube by means of data modeling and machine learning, so that policies can be developed to deal with errors and deviations, such as policies for trouble shooting, cause analysis, resource scaling.
 
-- 6th aspect: "Equilibration", it is ensure that realities are conforming to design expectations by appling policies and making consistent adjustments, so that running systems are stable in a dynamic way. 
+- 6th aspect: "Equilibration", it is to ensure that realities are conforming to design expectations by applying policies and making consistent adjustments, so that running systems are stable in a dynamic way. 
 
-- the core: "Workflow Engine", it is to coordinate the tasks and improve collaborations in the 6 aspects, so that manual intervention is reduced and team efficency is increased.
-
->## 技术实现
->WeCube分为核心功能模块和插件模块。
->
->核心功能模块使用Java/MySQL/VUE开发，主要负责工作流程，可视化和核心数据存储。
->
->插件模块用于功能扩展，分为资源管理、数据整合、功能增强三类插件。对于插件，WeCube定义了一套接口规范，插件开发者可以在遵循规范的前提下，自行选择开发语言。目前已有的插件使用的开发语言包括GO语言和Java。
+- the core: "Workflow Engine", it is to coordinate tasks and improve collaborations in those 6 aspects, so that manual intervention is reduced and team efficency is increased.
 
 ## Implementations
-WeCube is composed of core framework and plugins for feature exetnsions.
+WeCube is composed of the core framework and plugins for feature exetnsions.
 
-The core framework is developed with Java/MySQL/Vue.js and reponsible for workflow, data visualization and core data persistence.
+The core framework is developed with Java/MySQL/Vue.js and reponsible for workflow management, data visualization and core data persistence.
 
-Plugins are introduced for feature extensions, they can be grouped into 3 categories: resource management, data integration and practice enhancement. By conforming to the interface specification defined in WeCube, plugin developers can choose their preferred programing languages. Existing plugins commonly use Go and Java.
-
->## 系统架构
->
->### WeCube 1.x版本
->WeCube1.0版本已经完成开发，整体架构如下图：
->
->![WeCube1.0整体逻辑架构](wecube-wiki/images/wecube_arch_1.png) 
->
->- WeCube1.0版本以WeCMDB为数据核心，配置数据都存储在WeCMDB中；
->- WeCube1.0版本需要CAS服务提供鉴权能力， 为保持权限数据的一致性， 建议与WeCMDB共用一个CAS服务。在WeCube1.1版本，会增加支持本地用户验证模式；
->- WeCube1.0版本需要一个对象存储服务（S3协议），用于存储物料包、执行脚本等。
->- WeCube1.0版本支持了两个插件：腾讯云插件、SaltStack插件。
->
->WeCube1.0版本已实现功能见下图：
->
->![WeCube1.0功能架构](wecube-wiki/images/wecube_arch_2.png) 
->
->### WeCube 2.0版本
->WeCube 2.0版本正在设计进行中， 敬请期待。
+Plugins are introduced for feature extensions, they can be grouped into 3 categories: resource management, data integration and practice enhancement. By conforming to the interface specification defined by WeCube, plugin developers can choose their preferred programing languages. Existing plugins commonly use Go and Java.
 
 ## System Architecture
 
 ### WeCube Version 1.x
-WeCube Version 1.0 is released, its architecture is elaborated as follows: 
+WeCube version 1.0 is released, its architecture is elaborated as follows: 
 
 ![WeCube1.0 Architecture](wecube-wiki/images/wecube_arch_1.png) 
 
-- WeCube Version 1.0 uses WeCMDB as the core of data persistence, configuration data are all managed by WeCMDB.
-- WeCube Version 1.0 requires a CAS server for authentication, in order to keep data permissions consistent, we suggest to share the same CAS server used by WeCMDB. In WeCube Version 1.1, a local user based authentication mode is supported.
-- WeCube Version 1.0 requires a S3 conformant object storge service for artifacts and scripts. 
-- WeCube Version 1.0 includes 2 plugins: Tencent Cloud plugin for resource mangement and SaltStack plugin for automated deployment. 
+- WeCube version 1.0 uses WeCMDB for data persistence, configuration data are all managed by WeCMDB.
+- WeCube version 1.0 requires a CAS server for authentication, in order to keep data permissions consistent, we suggest to share the same CAS server used by WeCMDB. In WeCube version 1.1, a local user based authentication mode is supported.
+- WeCube version 1.0 requires a S3-compatible object storge service for artifacts and scripts. 
+- WeCube version 1.0 includes 2 plugins: Tencent Cloud plugin for resource mangement and SaltStack plugin for automated deployment. 
 
 Implemented features in WeCube Version 1.0:
 
@@ -98,90 +53,34 @@ Implemented features in WeCube Version 1.0:
 ### WeCube Version 2.0
 WeCube Version 2.0 is under active development and will come soon.
 
->## 主要功能简介
->WeCube的功能菜单设计与设计理念保持一致。分别是任务、设计、执行、监测、智慧、调整、协同、系统。
->
->- 系统
->
->	CMDB模型设计, 是系统管理的核心功能，目前WeCube的CMDB模型设计支持完全自定义和图形化展示。
->
->	权限管理，数据权限控制增删改查执行，并且数据权限控制到行。比如DBA只能有数据库主机的权限，主机只需要一个CI模型就可以了。
->
->	基础数据，是一些系统参数。
->
->- 协同
->
->	插件注册，选择插件包上传，并通过容器运行，支持多实例，可以查看插件运行的日志。选择插件，通过插件运行的参数关联CMDB模型的属性值，形成注册。插件包更新历史关联会自动回填。降低升级成本。目前已经有腾讯云资源管理和应用部署服务的插件。
->
->	任务编排，比如设计一个VPC创建的编排。包括创建VPC、创建子网、创建VM。流程的每个执行节点需要关联插件。
->
->	服务通道
->
->- 设计
->
->	规划设计，用于设计机房结构。
->
->	资源规划,用于实例化一个机房，特别是两地三中心结构。
->
->	应用架构设计,用于设计一个应用的逻辑架构。
->
->	应用部署设计,用于实际部署一个应用。支持灰度发布。
->
->	CI数据管理/查询，通过模型图形进入单个数据管理以及查询。
->
->	CI综合查询管理/数据综合查询，用于配制多CI属性报表。比如一个应用使用到了哪些主机。
->
->	枚举数据管理/查询，通过对公共枚举和私有枚举进行管理以及查询。
->
->
->- 执行
->
->	物料管理，管理应用程序的包。可以定义各种文件，可以配置环境差异导致的变量替换规则，不需要人工处理。
->
->	应用部署，查看部署过程及异常，并作重试处理。
->
->	批量执行，通过综合查询选择目标。在通过特定插件来执行任务。比如某个应用的所有主机，执行一个用户权限变更。
->
->	高危命令配置，定义一些高危指令（如rm -rf），阻止执行或触发审批流程。
->	
->	编排任务执行，应该一般任务。比如重启某个资源集的5台主机。
->
->- 任务（2019年下半年）
->
->- 监测（2019年下半年）
->
->- 调整（2019年下半年）
->
->- 智慧（2019年下半年）
-
 ## Main Features
 The main menu of WeCube matches its design concept, including Workbench, Expectation, Execution, Watching, Wisdom, Equilibration, Workflow and System.
 
 - System
-  - CMDB model design: support cusomization and graphic visualization.
-  - authorization: row-based data permision control for CRUD operations. For example, DBA can only operate on DB hosts instead application hosts in case that all hosts share one single CI type.  
-  - aystem parameters
+  - CMDB model design: support customization and graphic visualization.
+  - authorization: row-based data permission control for CRUD operations. For example, DBA can only operate on DB hosts instead of application hosts in case that all hosts share one single CI type.  
+  - system parameters
 
 - Workflow
   - plugin registration: to upload plugin packages and create their runtime environments in containers. 
-  - task orchestration: to design work flows to finish automated or semi-automated tasks, such as task orchestration create VPC, subnet and virtual machines on public cloud. Each node in the workflow is associated with a plugin for execution.
+  - task orchestration: to design workflows to finish automated or semi-automated tasks, such as task orchestration to create VPC, subnet and virtual machines on public cloud. Each node in the workflow is associated with a plugin for execution.
   - service channel
 
 - Expectation
-  - data center design: to create a plan and design the sturcture for data center 
-  - data center resource plan: to instanciate the data center design and plan actual resources for a concrete data center
-  - application architecture design: to design the logical components of applications
-  - application deployment design: to design the deploment view and trigger deployment of applications
-  - CI data query and management: to query and manage data for a single CI type through a graph of CI model 
-  - CI integrated query: to configure queries involving multiple CI types, for example querying all hosts for a specific application
+  - data center design: to create a plan and to design the sturcture of data centers
+  - data center resource plan: to instanciate a data center design and plan actual resources for a specific data center
+  - application architecture design: to design logical architecture of applications
+  - application deployment design: to design the deployment architectural view and trigger deployment for applications
+  - CI data query and management: to query and manage data for a single CI type through the graph of CI model
+  - CI integrated query: to configure queries involving multiple CI types, for example to find out all hosts used by a specific application
   - enumeration query and danagement
 
 - Execution
   - artifact management: to manage deployment packages for applications. Customization of configuration file and value substitution rules is supported to eliminate manual intervention.
   - application deployment: to view deployment history, to skip or retry deployment tasks.
   - batch execution: to execute simple operation tasks in a selected scope of targets. 
-  - high risk commands: to define high risk commands, so they will be blocked or extra approval is required.
-  - task orchestration execution: to execute complicated operations with predefined workflow and plugins. 
+  - high risk commands: to define high risk commands, so they will be blocked or extra approval process will be raised.
+  - task orchestration execution: to execute complicated operations with predefined workflow and plugins.
 
 - Tasks (2nd half of 2019)
 
@@ -191,16 +90,6 @@ The main menu of WeCube matches its design concept, including Workbench, Expecta
 
 - Wisdom (2nd half of 2019)
 
-
->## 快速入门
->WeCube采用容器化部署。
->
->如何编译WeCube，请查看以下文档
->[WeCube编译文档](wecube-wiki/docs/install/wecube_compile_guide.md)
->
->如何安装WeCube， 请查看以下文档
->[WeCube部署文档](wecube-wiki/docs/install/wecube_install_guide.md)
-
 ## Quick Start
 WeCube is using containerized deployment.
 
@@ -208,42 +97,21 @@ PLease refer to [WeCube Compilation Guide](wecube-wiki/docs/install/wecube_compi
 
 PLease refer to [WeCube Installation Guide](wecube-wiki/docs/install/wecube_install_guide.md) on how to install WeCube.
 
->## 用户手册
->更多关于WeCube的使用和操作说明， 请查看以下文档
->[WeCube用户手册](wecube-wiki/docs/manual/wecube_user_guide.md)
-
 ## User Manual
 Please refer to the [WeCube User Guide](wecube-wiki/docs/manual/wecube_user_guide.md) for guides on WeCube usage and operation.
-
->## 开发者文档
->WeCube使用Java和VUE进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
->
->请参考以下文档进行开发环境配置[WeCube开发环境配置](wecube-wiki/docs/developer/wecube_developer_guide.md)
 
 ## Developer Documentation
 WeCube is developed with Java and Vue.js, it uses MySQL for data persistence and relies on Tomcat as the web application container.
 
 Please refer to the [WeCube Developer Guide](wecube-wiki/docs/developer/wecube_developer_guide.md) on how to set up the development environment.
 
->## API说明
->更多关于WeCube的使用和操作说明， 请查看以下文档
->[WeCube API手册](wecube-wiki/docs/api/wecube_api_guide.md)
-
 ## API Reference
 Please refer to the [WeCube API Guide](wecube-wiki/docs/api/wecube_api_guide.md) for details.
-
->## License
->WeCube是基于 Apache License 2.0 协议， 详情请参考
->[LICENSE](LICENSE)
 
 ## License
 WeCube is licensed uner the Apache License Version 2.0, please refer to [LICENSE](LICENSE) for details.
 
->## 社区
->- 如果您想得到最快的响应，请给我们提issue。
->- 联系我们：fintech@webank.com
-
 ## Community
-- Please raise us an issue to get a quick response.
+- Please raise us an issue to get quick response.
 - Contact us: fintech@webank.com
 
