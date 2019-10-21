@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.dto;
 
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -128,6 +129,35 @@ public class PluginPackageEntityDto {
         if (pluginPackageEntityDto.getAttributeDtoList() != null) {
             List<PluginPackageAttribute> pluginPackageAttributeList = new ArrayList<>();
             for (PluginPackageAttributeDto pluginPackageAttributeDto : pluginPackageEntityDto.getAttributeDtoList()) {
+                pluginPackageAttributeList.add(PluginPackageAttributeDto.toDomain(pluginPackageAttributeDto, null, pluginPackageEntity));
+            }
+            pluginPackageEntity.setPluginPackageAttributeList(pluginPackageAttributeList);
+        }
+        return pluginPackageEntity;
+    }
+
+    /**
+     *
+     * @return transformed entity domain object
+     */
+    public PluginPackageEntity toDomain(PluginPackage pluginPackage) {
+        PluginPackageEntity pluginPackageEntity = new PluginPackageEntity();
+        pluginPackageEntity.setPluginPackage(pluginPackage);
+
+        if (this.getName() != null) {
+            pluginPackageEntity.setName(this.getName());
+        }
+
+        if (this.getDescription() != null) {
+            pluginPackageEntity.setDescription(this.getDescription());
+        }
+
+        if (this.getDisplayName() != null) {
+            pluginPackageEntity.setDisplayName(this.getDisplayName());
+        }
+        if (this.getAttributeDtoList() != null) {
+            List<PluginPackageAttribute> pluginPackageAttributeList = new ArrayList<>();
+            for (PluginPackageAttributeDto pluginPackageAttributeDto : this.getAttributeDtoList()) {
                 pluginPackageAttributeList.add(PluginPackageAttributeDto.toDomain(pluginPackageAttributeDto, null, pluginPackageEntity));
             }
             pluginPackageEntity.setPluginPackageAttributeList(pluginPackageAttributeList);

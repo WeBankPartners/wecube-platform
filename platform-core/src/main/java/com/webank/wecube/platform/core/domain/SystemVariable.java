@@ -19,6 +19,11 @@ public class SystemVariable {
 	@GeneratedValue
 	private Integer id;
 
+	@JsonIgnore
+	@ManyToOne
+	@JoinColumn(name = "plugin_package_id")
+	private PluginPackage pluginPackage;
+
 	@Column
 	private String name;
 	@Column
@@ -29,11 +34,6 @@ public class SystemVariable {
 	private String scopeType;
 	@Column
 	private String scopeValue;
-
-	@JsonIgnore
-	@ManyToOne
-	@JoinColumn(name = "plugin_package_id")
-	private PluginPackage pluginPackage;
 
 	@Column
 	private Integer seqNo;

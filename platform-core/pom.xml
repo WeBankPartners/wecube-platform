@@ -10,8 +10,6 @@
 
     <artifactId>platform-core</artifactId>
 
-
-
     <dependencyManagement>
         <dependencies>
             <!--<dependency> -->

@@ -9,66 +9,66 @@ import javax.persistence.*;
 @Table(name = "plugin_package_dependencies")
 public class PluginPackageDependency {
 
-	@Id
-	@GeneratedValue
-	private int id;
+    @Id
+    @GeneratedValue
+    private int id;
 
-	@JsonIgnore
-	@ManyToOne
-	@JoinColumn(name = "plugin_package_id")
-	private PluginPackage pluginPackage;
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "plugin_package_id")
+    private PluginPackage pluginPackage;
 
-	@Column
-	private String dependencyPackageName;
+    @Column
+    private String dependencyPackageName;
 
-	@Column
-	private String dependencyPackageVersion;
+    @Column
+    private String dependencyPackageVersion;
 
-	public int getId() {
-		return id;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public PluginPackage getPluginPackage() {
-		return pluginPackage;
-	}
+    public PluginPackage getPluginPackage() {
+        return pluginPackage;
+    }
 
-	public void setPluginPackage(PluginPackage pluginPackage) {
-		this.pluginPackage = pluginPackage;
-	}
+    public void setPluginPackage(PluginPackage pluginPackage) {
+        this.pluginPackage = pluginPackage;
+    }
 
-	public String getDependencyPackageName() {
-		return dependencyPackageName;
-	}
+    public String getDependencyPackageName() {
+        return dependencyPackageName;
+    }
 
-	public void setDependencyPackageName(String dependencyPackageName) {
-		this.dependencyPackageName = dependencyPackageName;
-	}
+    public void setDependencyPackageName(String dependencyPackageName) {
+        this.dependencyPackageName = dependencyPackageName;
+    }
 
-	public String getDependencyPackageVersion() {
-		return dependencyPackageVersion;
-	}
+    public String getDependencyPackageVersion() {
+        return dependencyPackageVersion;
+    }
 
-	public void setDependencyPackageVersion(String dependencyPackageVersion) {
-		this.dependencyPackageVersion = dependencyPackageVersion;
-	}
+    public void setDependencyPackageVersion(String dependencyPackageVersion) {
+        this.dependencyPackageVersion = dependencyPackageVersion;
+    }
 
-	public PluginPackageDependency() {
-		super();
-	}
+    public PluginPackageDependency() {
+        super();
+    }
 
-	public PluginPackageDependency(int id, PluginPackage pluginPackage, String dependencyPackageName, String dependencyPackageVersion) {
-		this.id = id;
-		this.pluginPackage = pluginPackage;
-		this.dependencyPackageName = dependencyPackageName;
-		this.dependencyPackageVersion = dependencyPackageVersion;
-	}
+    public PluginPackageDependency(int id, PluginPackage pluginPackage, String dependencyPackageName, String dependencyPackageVersion) {
+        this.id = id;
+        this.pluginPackage = pluginPackage;
+        this.dependencyPackageName = dependencyPackageName;
+        this.dependencyPackageVersion = dependencyPackageVersion;
+    }
 
-	@Override
-	public String toString() {
-		return ReflectionToStringBuilder.toStringExclude(this, new String[] {"pluginPackage"});
-	}
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+    }
 }
