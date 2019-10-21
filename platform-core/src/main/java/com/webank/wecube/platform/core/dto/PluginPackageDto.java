@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.dto;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.checkerframework.checker.guieffect.qual.UI;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,11 +21,6 @@ public class PluginPackageDto {
     private PluginPackage pluginPackage;
 
     private Set<PluginPackageEntityDto> pluginPackageEntities = new HashSet<>();
-
-    public String getDockerImageFile() {
-        //TODO
-        return "dockerfile.img";
-    }
 
     public PluginPackageDto() {
     }
