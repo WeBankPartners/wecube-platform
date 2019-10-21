@@ -7,7 +7,7 @@
       @on-tab-remove="handleTabRemove"
       @on-click="handleTabClick"
     >
-      <TabPane :closable="false" name="CMDB" label="CMDB模型">
+      <TabPane :closable="false" name="CMDB" :label="$t('cmdb_model')">
         <div class="graph-container" id="graph"></div>
       </TabPane>
       <TabPane
@@ -47,7 +47,9 @@
         style="text-align: center;margin-top: 20px;"
       ></div>
       <div style="text-align: right;margin-top: 20px;">
-        <Button type="info" @click="startProcessHandler">执行</Button>
+        <Button type="info" @click="startProcessHandler">
+          {{ $t("execute") }}
+        </Button>
       </div>
     </Modal>
     <Modal
@@ -66,7 +68,7 @@
     </Modal>
 
     <Modal
-      title="请选择操作"
+      :title="$t('select_an_operation')"
       v-model="workflowActionModalVisible"
       :footer-hide="true"
       :mask-closable="false"
@@ -77,17 +79,17 @@
         style="text-align: center;margin-top: 20px;"
       >
         <p v-if="currentNodeStsatus === 'Completed'" style="margin: 25px 0px;">
-          此任务节点已成功执行，重复执行可能带来不确定结果，是否仍需重复执行？
+          {{ $t("repeat_prompt") }}
         </p>
 
-        <Button type="info" @click="workFlowActionHandler('retry')"
-          >重试</Button
-        >
+        <Button type="info" @click="workFlowActionHandler('retry')">
+          {{ $t("retry") }}
+        </Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
           style="margin-left: 20px"
-          >跳过</Button
+          >{{ $t("skip") }}</Button
         >
       </div>
     </Modal>
@@ -124,33 +126,6 @@ const intermediateCatchEvent = require("../images/intermediateCatchEvent.png");
 const startEvent = require("../images/startEvent.png");
 const serviceTask = require("../images/serviceTask.png");
 
-const innerActions = [
-  {
-    label: "执行预览",
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "exePreview",
-    visible: {
-      key: "biz_key",
-      value: false
-    }
-  },
-  {
-    label: "执行查询",
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "exeQuery",
-    visible: {
-      key: "biz_key",
-      value: true
-    }
-  }
-];
-
 export default {
   data() {
     return {
@@ -183,7 +158,33 @@ export default {
       g: {},
       currentNodeID: "",
       workflowActionModalVisible: false,
-      currentNodeStsatus: ""
+      currentNodeStsatus: "",
+      innerActions: [
+        {
+          label: this.$t("preview_execution"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "exePreview",
+          visible: {
+            key: "biz_key",
+            value: false
+          }
+        },
+        {
+          label: this.$t("query_execution"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "exeQuery",
+          visible: {
+            key: "biz_key",
+            value: true
+          }
+        }
+      ]
     };
   },
   computed: {
@@ -461,7 +462,7 @@ export default {
               }
             ])
           ),
-          innerActions: JSON.parse(JSON.stringify(innerActions)),
+          innerActions: JSON.parse(JSON.stringify(this.innerActions)),
           tableColumns: [],
           pagination: JSON.parse(JSON.stringify(pagination)),
           ascOptions: {}
@@ -523,7 +524,7 @@ export default {
           } else {
             this.$Notice.warning({
               title: "Warning",
-              desc: "该CI没有编排属性"
+              desc: this.$t("no_orchestration_properties")
             });
           }
         }
