@@ -1,8 +1,11 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 @Entity
@@ -37,7 +40,9 @@ public class ProcessDefInfoEntity extends BaseStatusFeaturedEntity {
     @Column(name = "ROOT_ENTITY")
     private String rootEntity;
 
-    @Column(name = "PROC_DEF_DATA")
+    @Lob
+    @Basic(fetch=FetchType.EAGER)
+    @Column(name = "PROC_DEF_DATA",columnDefinition="text")
     private String procDefData;
 
     @Column(name = "PROC_DEF_DATA_FMT")
