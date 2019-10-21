@@ -4,6 +4,8 @@ CREATE TABLE `plugin_packages` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(50) NOT NULL,
 	`version` VARCHAR(20) NOT NULL,
+	`plugin_package_image_url` VARCHAR(256) NOT NULL,
+	`ui_package_url` VARCHAR(256),
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `name` (`name`, `version`)
 );
