@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row>
-      <span style="margin-right: 10px">部署任务</span>
+      <span style="margin-right: 10px">{{ $t("deployment_tasks") }}</span>
       <Select
         filterable
         @on-change="onDeployTaskSelect"
