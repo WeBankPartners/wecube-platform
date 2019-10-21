@@ -2,7 +2,7 @@
   <div>
     <Row>
       <Col span="4" class="select-col">
-        <span class="select-span">执行目标类型</span>
+        <span class="select-span">{{ $t("execution_target_type") }}</span>
         <Select
           v-model="selectedTargetCI"
           filterable
@@ -18,7 +18,7 @@
         </Select>
       </Col>
       <Col span="4" offset="1" class="select-col">
-        <span class="select-span">执行目标定位属性</span>
+        <span class="select-span">{{ $t("target_location_properties") }}</span>
         <Select
           v-model="selectedTargetName"
           filterable
@@ -35,7 +35,7 @@
         </Select>
       </Col>
       <Col span="4" offset="1" class="select-col">
-        <span class="select-span">插件选择</span>
+        <span class="select-span">{{ $t("select_a_plugin") }}</span>
         <Select
           v-model="selectedPlugin"
           filterable
@@ -51,7 +51,7 @@
         </Select>
       </Col>
       <Col span="4" offset="1" class="select-col">
-        <span class="select-span">综合查询根CI</span>
+        <span class="select-span">{{ $t("comprehensive_query_root_Ci") }}</span>
         <Select
           v-model="selectedCI"
           filterable
@@ -68,7 +68,7 @@
         </Select>
       </Col>
       <Col span="4" offset="1" class="select-col">
-        <span class="select-span">综合查询名称</span>
+        <span class="select-span">{{ $t("comprehensive_query_name") }}</span>
         <Select
           v-model="selectedQueryName"
           filterable
@@ -107,18 +107,18 @@
         ref="table"
       ></WeTable>
 
-      <Modal v-model="originDataModal" title="原始数据" footer-hide>
+      <Modal v-model="originDataModal" :title="$t('raw_data')" footer-hide>
         <highlight-code lang="json">{{ showRowOriginData }}</highlight-code>
       </Modal>
 
       <Modal
         v-model="filtersAndResultModal"
-        title="报文"
+        :title="$t('packet')"
         footer-hide
         width="75"
       >
         <Row
-          >请求URL:
+          >{{ $t("request_url") }}
           <highlight-code lang="json">{{ requestURL }}</highlight-code>
         </Row>
         <Row>
@@ -138,20 +138,20 @@
       <Row>
         <span
           style="margin-right:30px;display:block;margin-top:30px;width:100px;text-align: center"
-          >操作管理</span
+          >{{ $t("operation_management") }}</span
         >
       </Row>
       <Row>
         <Col span="2">
           <span
             style="margin-right:30px;display:block;margin-top:30px;width:100px;text-align: center"
-            >执行命令</span
+            >{{ $t("execution_command") }}</span
           >
           <label style="position:relative">
             <input
               type="button"
               style="margin-right:30px;margin-top:95px;width:100px"
-              value="选择文件"
+              :value="$t('select_file')"
             />
             <input
               type="file"
@@ -169,7 +169,7 @@
             type="textarea"
             :rows="6"
             style="margin-top:30px;width:100%"
-            placeholder="请输入..."
+            :placeholder="$t('please_input')"
           ></Input>
         </Col>
         <Col span="5" offset="1">
@@ -178,20 +178,20 @@
               v-show="false"
               style="margin-top:50px;width:100px;height:80px"
               type="primary"
-              >高危检测</Button
+              >{{ $t("high_risk_detection") }}</Button
             >
             <div>
               <Button
                 v-show="false"
                 style="margin-left:30px;width:100px;height:30px;display:block;margin-top:50px"
                 type="primary"
-                >提交审批</Button
+                >{{ $t("submit_for_approval") }}</Button
               >
               <Button
                 style="margin-left:10px;width:100px;height:30px;display:block;margin-top:18px;margin-top:135px"
                 @click="executionShell"
                 type="primary"
-                >执行</Button
+                >{{ $t("execute") }}</Button
               >
             </div>
           </div>
@@ -216,7 +216,7 @@
 
         <Modal
           v-model="logDataDetailModal"
-          title="脚本执行结果详情"
+          :title="$t('execution_result_details')"
           footer-hide
         >
           <highlight-code lang="json">{{ logDetail }}</highlight-code>
@@ -242,17 +242,6 @@ import {
 } from "@/api/server";
 import { components } from "../../const/actions.js";
 
-const logInnerActions = [
-  {
-    label: "显示详情",
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "showLogDetail"
-  }
-];
-
 export default {
   components: {},
   data() {
@@ -264,43 +253,52 @@ export default {
       currentBatchJobId: -1,
       showLogResult: false,
       logTableData: [],
-      logInnerActions,
+      logInnerActions: [
+        {
+          label: this.$t("show_more"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "showLogDetail"
+        }
+      ],
       seachLogFilters: [],
       logDataDetailModal: false,
       logDetail: "",
       logTableColumns: [
         {
-          title: "对象",
+          title: this.$t("object"),
           key: "instance",
           inputKey: "instance",
           searchSeqNo: 1,
           displaySeqNo: 1,
           component: "WeSelect",
           isMultiple: true,
-          placeholder: "对象",
+          placeholder: this.$t("object"),
           span: 5,
           width: "200px",
           options: []
         },
         {
-          title: "行号",
+          title: this.$t("line_numbers"),
           key: "line_number",
           inputKey: "line_number",
           searchSeqNo: 2,
           displaySeqNo: 2,
           component: "Input",
           isNotFilterable: true,
-          placeholder: "行号",
+          placeholder: this.$t("line_numbers"),
           width: "100px"
         },
         {
-          title: "匹配内容",
+          title: this.$t("matching_content"),
           key: "log",
           inputKey: "log",
           searchSeqNo: 3,
           displaySeqNo: 3,
           component: "Input",
-          placeholder: "支持正则表达式"
+          placeholder: this.$t("regular_expression")
         }
       ],
 
@@ -499,7 +497,11 @@ export default {
           _ => _.ciTypeAttrId === this.selectedTargetName
         );
         const targetName = targetFound ? targetFound.name : "";
-        this.warningMessage = `该综合查询（${selectQueryName}）不包含执行目标定位属性（${targetName}）`;
+        this.warningMessage = `${this.$t(
+          "comprehensive_query"
+        )}(${selectQueryName})${this.$t(
+          "not_contain_property"
+        )}(${targetName})`;
         return false;
       } else {
         this.showTable = true;
@@ -666,14 +668,14 @@ export default {
       if (ipArray.length === 0) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请选择实例"
+          desc: this.$t("select_an_instance")
         });
         errorFlag = true;
       }
       if (command === "") {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请输入搜索关键字"
+          desc: this.$t("enter_search_keywords")
         });
         errorFlag = true;
       }
