@@ -2,7 +2,7 @@
   <Row class="artifact-management">
     <Col span="6">
       <Card>
-        <p slot="title">系统设计版本</p>
+        <p slot="title">{{ $t("system_design_version") }}</p>
         <Select
           @on-change="selectSystemDesignVersion"
           label-in-name
@@ -21,7 +21,7 @@
         </Select>
       </Card>
       <Card class="artifact-management-bottom-card">
-        <p slot="title">系统设计列表</p>
+        <p slot="title">{{ $t("system_design_list") }}</p>
         <div class="artifact-management-tree-body">
           <Tree :data="treeData" @on-select-change="selectTreeNode"></Tree>
           <Spin size="large" fix v-if="treeLoading">
@@ -39,7 +39,9 @@
           :on-success="uploadPackagesSuccess"
           slot="title"
         >
-          <Button icon="ios-cloud-upload-outline">上传新包</Button>
+          <Button icon="ios-cloud-upload-outline">{{
+            $t("new_package")
+          }}</Button>
         </Upload>
         <SimpleTable
           :loading="tableLoading"
@@ -52,47 +54,49 @@
         ></SimpleTable>
         <Modal
           v-model="isShowFilesModal"
-          title="脚本配置"
-          okText="保存"
+          :title="$t('script_configuration')"
+          :okText="$('save')"
           :loading="loadingForSave"
           @on-ok="saveConfigFiles"
           @on-cancel="closeModal"
         >
           <Card class="artifact-management-files-card">
             <div slot="title">
-              <span>差异化文件</span>
-              <Button @click="() => showTreeModal(0)" size="small"
-                >选择文件</Button
-              >
+              <span>{{ $t("differentiation_document") }}</span>
+              <Button @click="() => showTreeModal(0)" size="small">{{
+                $t("select_file")
+              }}</Button>
             </div>
-            <span>{{ currentPackage.diff_conf_file || "未选择" }}</span>
+            <span>{{
+              currentPackage.diff_conf_file || $t("not_selected")
+            }}</span>
           </Card>
           <Card class="artifact-management-files-card">
             <div slot="title">
-              <span>启动脚本</span>
-              <Button @click="() => showTreeModal(1)" size="small"
-                >选择文件</Button
-              >
+              <span>{{ $t("startup_script") }}</span>
+              <Button @click="() => showTreeModal(1)" size="small">{{
+                $t("select_file")
+              }}</Button>
             </div>
-            <span>{{ currentPackage.start_file || "未选择" }}</span>
+            <span>{{ currentPackage.start_file || $t("not_selected") }}</span>
           </Card>
           <Card class="artifact-management-files-card">
             <div slot="title">
-              <span>停止脚本</span>
-              <Button @click="() => showTreeModal(2)" size="small"
-                >选择文件</Button
-              >
+              <span>{{ $t("stop_script") }}</span>
+              <Button @click="() => showTreeModal(2)" size="small">{{
+                $t("select_file")
+              }}</Button>
             </div>
-            <span>{{ currentPackage.stop_file || "未选择" }}</span>
+            <span>{{ currentPackage.stop_file || $t("not_selected") }}</span>
           </Card>
           <Card class="artifact-management-files-card">
             <div slot="title">
-              <span>部署脚本</span>
-              <Button @click="() => showTreeModal(3)" size="small"
-                >选择文件</Button
-              >
+              <span>{{ $t("deployment_script") }}</span>
+              <Button @click="() => showTreeModal(3)" size="small">{{
+                $t("select_file")
+              }}</Button>
             </div>
-            <span>{{ currentPackage.deploy_file || "未选择" }}</span>
+            <span>{{ currentPackage.deploy_file || $t("not_selected") }}</span>
           </Card>
         </Modal>
         <Modal
@@ -167,22 +171,22 @@ export default {
       isShowTreeModal: false,
       treeModalOpt: [
         {
-          title: "选择差异化文件",
+          title: this.$t("select_differentiation_document"),
           key: "diff_conf_file",
           inputType: "checkbox"
         },
         {
-          title: "选择启动脚本",
+          title: this.$t("select_startup_script"),
           key: "start_file",
           inputType: "radio"
         },
         {
-          title: "选择停止脚本",
+          title: this.$t("select_stop_script"),
           key: "stop_file",
           inputType: "radio"
         },
         {
-          title: "选择部署脚本",
+          title: this.$t("select_deployment_script"),
           key: "deploy_file",
           inputType: "radio"
         }
@@ -192,40 +196,40 @@ export default {
       tableData: [],
       tableColumns: [
         {
-          title: "包名",
+          title: this.$t("package_name"),
           key: "name"
         },
         {
-          title: "上传时间",
+          title: this.$t("upload_time"),
           width: 150,
           key: "upload_time"
         },
         {
-          title: "MD5值",
+          title: this.$t("md5_value"),
           key: "md5_value"
         },
         {
-          title: "上传人",
+          title: this.$t("upload_by"),
           key: "updated_by"
         },
         {
-          title: "差异化文件",
+          title: this.$t("differentiation_document"),
           key: "diff_conf_file"
         },
         {
-          title: "启动脚本",
+          title: this.$t("startup_script"),
           key: "start_file"
         },
         {
-          title: "停止脚本",
+          title: this.$t("stop_script"),
           key: "stop_file"
         },
         {
-          title: "部署脚本",
+          title: this.$t("deployment_script"),
           key: "deploy_file"
         },
         {
-          title: "操作",
+          title: this.$t("table_action"),
           key: "state",
           width: 150,
           render: (h, params) => {
@@ -248,12 +252,12 @@ export default {
       selectNode: [],
       attrsTableColomnOptions: [
         {
-          title: "序号",
+          title: this.$t("index"),
           key: "index",
           width: 60
         },
         {
-          title: "文件行号",
+          title: this.$t("file_line_number"),
           key: "line"
         },
         {
@@ -290,7 +294,7 @@ export default {
                   style="margin-left:10px"
                   onClick={() => this.saveAttr(params.index)}
                 >
-                  保存
+                  {this.$t("save")}
                 </Button>
               </div>
             );
@@ -475,7 +479,7 @@ export default {
       if (status === "OK") {
         this.loadingForSave = false;
         this.$Notice.success({
-          title: "保存成功"
+          title: this.$t("save_successfully")
         });
       }
       this.queryPackages();
@@ -485,7 +489,7 @@ export default {
       let { status, data, message } = await saveDiffConfigEnumCodes(obj);
       if (status === "OK") {
         this.$Notice.success({
-          title: "保存成功"
+          title: this.$t("save_successfully")
         });
         this.getKeys(this.tabData[this.nowTab]);
       }
@@ -604,7 +608,7 @@ export default {
     },
     async handleDelete(row) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("confirm_to_delete"),
         "z-index": 1000000,
         onOk: async () => {
           const { status, data, message } = await deleteCiDatas({
@@ -747,7 +751,7 @@ export default {
           .map(_ => {
             return {
               type: _.code,
-              label: _.code !== "update" ? _.value : "配置",
+              label: _.code !== "update" ? _.value : this.$t("configuration"),
               props: {
                 type: buttonTypes[_.code] || "info",
                 size: "small"

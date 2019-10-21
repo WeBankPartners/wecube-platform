@@ -21,8 +21,6 @@ public class PluginPackageController {
 
     @Autowired
     private PluginProperties pluginProperties;
-//    @Autowired
-//    private PluginConfigService pluginConfigService;
 
     @Autowired
     private PluginPackageService pluginPackageService;
@@ -34,20 +32,6 @@ public class PluginPackageController {
         PluginPackage pluginPackage = pluginPackageService.uploadPackage(file).getPluginPackage();
         return okay().withData(pluginPackage);
     }
-
-//    @GetMapping("/")
-//    @ResponseBody
-//    public JsonResponse getAllPluginPackages() {
-//        Iterable<PluginPackage> pluginPackages = pluginConfigService.getPluginPackages();
-//        return okayWithData(pluginPackages);
-//    }
-//
-//    @DeleteMapping("/{package-id}")
-//    @ResponseBody
-//    public JsonResponse deletePluginPackage(@PathVariable(value = "package-id") int packageId) {
-//        pluginPackageService.deletePluginPackage(packageId);
-//        return okay();
-//    }
 
 }
 
