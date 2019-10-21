@@ -40,94 +40,144 @@ WeCube's design concept basically matches the lifecycle of IT system management 
 
 - 4th aspect: "Watching", it is to uncover differences between realities and expectations by defining all-round metrics which can reflect the varying situation, then consistently collecting and keeping track of the information.
 
-- 5th aspect: "Wisdom", it is to 
+- 5th aspect: "Wisdom", it is to add intelligence into WeCube by means of data modeling and machine learning, so that policies can be developed to deal with errors and deviations, such as policies for trouble shooting, cause analysis, resource scaling.
 
-- 6th aspect: "Equilibration", 
+- 6th aspect: "Equilibration", it is ensure that realities are conforming to design expectations by appling policies and making consistent adjustments, so that running systems are stable in a dynamic way. 
 
-- the core: "Workflow Engine", 
+- the core: "Workflow Engine", it is to coordinate the tasks and improve collaborations in the 6 aspects, so that manual intervention is reduced and team efficency is increased.
 
-## 技术实现
-WeCube分为核心功能模块和插件模块。
+>## 技术实现
+>WeCube分为核心功能模块和插件模块。
+>
+>核心功能模块使用Java/MySQL/VUE开发，主要负责工作流程，可视化和核心数据存储。
+>
+>插件模块用于功能扩展，分为资源管理、数据整合、功能增强三类插件。对于插件，WeCube定义了一套接口规范，插件开发者可以在遵循规范的前提下，自行选择开发语言。目前已有的插件使用的开发语言包括GO语言和Java。
 
-核心功能模块使用Java/MySQL/VUE开发，主要负责工作流程，可视化和核心数据存储。
+## Implementations
+WeCube is composed of core framework and plugins for feature exetnsions.
 
-插件模块用于功能扩展，分为资源管理、数据整合、功能增强三类插件。对于插件，WeCube定义了一套接口规范，插件开发者可以在遵循规范的前提下，自行选择开发语言。目前已有的插件使用的开发语言包括GO语言和Java。
+The core framework is developed with Java/MySQL/Vue.js and reponsible for workflow, data visualization and core data persistence.
 
+Plugins are introduced for feature extensions, they can be grouped into 3 categories: resource management, data integration and practice enhancement. By conforming to the interface specification defined in WeCube, plugin developers can choose their preferred programing languages. Existing plugins commonly use Go and Java.
 
-## 系统架构
+>## 系统架构
+>
+>### WeCube 1.x版本
+>WeCube1.0版本已经完成开发，整体架构如下图：
+>
+>![WeCube1.0整体逻辑架构](wecube-wiki/images/wecube_arch_1.png) 
+>
+>- WeCube1.0版本以WeCMDB为数据核心，配置数据都存储在WeCMDB中；
+>- WeCube1.0版本需要CAS服务提供鉴权能力， 为保持权限数据的一致性， 建议与WeCMDB共用一个CAS服务。在WeCube1.1版本，会增加支持本地用户验证模式；
+>- WeCube1.0版本需要一个对象存储服务（S3协议），用于存储物料包、执行脚本等。
+>- WeCube1.0版本支持了两个插件：腾讯云插件、SaltStack插件。
+>
+>WeCube1.0版本已实现功能见下图：
+>
+>![WeCube1.0功能架构](wecube-wiki/images/wecube_arch_2.png) 
+>
+>### WeCube 2.0版本
+>WeCube 2.0版本正在设计进行中， 敬请期待。
 
-### WeCube 1.x版本
-WeCube1.0版本已经完成开发，整体架构如下图：
+## System Architecture
 
-![WeCube1.0整体逻辑架构](wecube-wiki/images/wecube_arch_1.png) 
+### WeCube Version 1.x
+WeCube Version 1.0 is released, its architecture is elaborated as follows: 
 
-- WeCube1.0版本以WeCMDB为数据核心，配置数据都存储在WeCMDB中；
-- WeCube1.0版本需要CAS服务提供鉴权能力， 为保持权限数据的一致性， 建议与WeCMDB共用一个CAS服务。在WeCube1.1版本，会增加支持本地用户验证模式；
-- WeCube1.0版本需要一个对象存储服务（S3协议），用于存储物料包、执行脚本等。
-- WeCube1.0版本支持了两个插件：腾讯云插件、SaltStack插件。
+![WeCube1.0 Architecture](wecube-wiki/images/wecube_arch_1.png) 
 
-WeCube1.0版本已实现功能见下图：
+- WeCube Version 1.0 uses WeCMDB as the core of data persistence, configuration data are all managed by WeCMDB.
+- WeCube Version 1.0 requires a CAS server for authentication, in order to keep data permissions consistent, we suggest to share the same CAS server used by WeCMDB. In WeCube Version 1.1, a local user based authentication mode is supported.
+- WeCube Version 1.0 requires a S3 conformant object storge service for artifacts and scripts. 
+- WeCube Version 1.0 includes 2 plugins: Tencent Cloud plugin for resource mangement and SaltStack plugin for automated deployment. 
 
-![WeCube1.0功能架构](wecube-wiki/images/wecube_arch_2.png) 
+Implemented features in WeCube Version 1.0:
 
-### WeCube 2.0版本
-WeCube 2.0版本正在设计进行中， 敬请期待。
+![WeCube1.0 Logical Architecture](wecube-wiki/images/wecube_arch_2.png) 
 
-## 主要功能简介
-WeCube的功能菜单设计与设计理念保持一致。分别是任务、设计、执行、监测、智慧、调整、协同、系统。
+### WeCube Version 2.0
+WeCube Version 2.0 is under active development and will come soon.
 
-- 系统
+>## 主要功能简介
+>WeCube的功能菜单设计与设计理念保持一致。分别是任务、设计、执行、监测、智慧、调整、协同、系统。
+>
+>- 系统
+>
+>	CMDB模型设计, 是系统管理的核心功能，目前WeCube的CMDB模型设计支持完全自定义和图形化展示。
+>
+>	权限管理，数据权限控制增删改查执行，并且数据权限控制到行。比如DBA只能有数据库主机的权限，主机只需要一个CI模型就可以了。
+>
+>	基础数据，是一些系统参数。
+>
+>- 协同
+>
+>	插件注册，选择插件包上传，并通过容器运行，支持多实例，可以查看插件运行的日志。选择插件，通过插件运行的参数关联CMDB模型的属性值，形成注册。插件包更新历史关联会自动回填。降低升级成本。目前已经有腾讯云资源管理和应用部署服务的插件。
+>
+>	任务编排，比如设计一个VPC创建的编排。包括创建VPC、创建子网、创建VM。流程的每个执行节点需要关联插件。
+>
+>	服务通道
+>
+>- 设计
+>
+>	规划设计，用于设计机房结构。
+>
+>	资源规划,用于实例化一个机房，特别是两地三中心结构。
+>
+>	应用架构设计,用于设计一个应用的逻辑架构。
+>
+>	应用部署设计,用于实际部署一个应用。支持灰度发布。
+>
+>	CI数据管理/查询，通过模型图形进入单个数据管理以及查询。
+>
+>	CI综合查询管理/数据综合查询，用于配制多CI属性报表。比如一个应用使用到了哪些主机。
+>
+>	枚举数据管理/查询，通过对公共枚举和私有枚举进行管理以及查询。
+>
+>
+>- 执行
+>
+>	物料管理，管理应用程序的包。可以定义各种文件，可以配置环境差异导致的变量替换规则，不需要人工处理。
+>
+>	应用部署，查看部署过程及异常，并作重试处理。
+>
+>	批量执行，通过综合查询选择目标。在通过特定插件来执行任务。比如某个应用的所有主机，执行一个用户权限变更。
+>
+>	高危命令配置，定义一些高危指令（如rm -rf），阻止执行或触发审批流程。
+>	
+>	编排任务执行，应该一般任务。比如重启某个资源集的5台主机。
+>
+>- 任务（2019年下半年）
+>
+>- 监测（2019年下半年）
+>
+>- 调整（2019年下半年）
+>
+>- 智慧（2019年下半年）
 
-	CMDB模型设计, 是系统管理的核心功能，目前WeCube的CMDB模型设计支持完全自定义和图形化展示。
+## Main Features
+The main menu of WeCube matches its design concept, including Workbench, Expectation, Execution, Watching, Wisdom, Equilibration, Workflow and System.
 
-	权限管理，数据权限控制增删改查执行，并且数据权限控制到行。比如DBA只能有数据库主机的权限，主机只需要一个CI模型就可以了。
+- System
+  - CMDB model design: support cusomization and graphic visualization.
+  - Authorization: row-based data permision control for CRUD operations. For example, DBA can only operate on DB hosts instead application hosts in case that all hosts share one single CI type.  
+  - System parameters
 
-	基础数据，是一些系统参数。
+- Workflow
+  - Plugins: 
+  - Task orchestration
+  - Service channel
 
-- 协同
+- Expectation
 
-	插件注册，选择插件包上传，并通过容器运行，支持多实例，可以查看插件运行的日志。选择插件，通过插件运行的参数关联CMDB模型的属性值，形成注册。插件包更新历史关联会自动回填。降低升级成本。目前已经有腾讯云资源管理和应用部署服务的插件。
+- Execution
 
-	任务编排，比如设计一个VPC创建的编排。包括创建VPC、创建子网、创建VM。流程的每个执行节点需要关联插件。
+- Tasks (2nd half of 2019)
 
-	服务通道
+- Watching (2nd half of 2019)
 
-- 设计
+- Equilibration (2nd half of 2019)
 
-	规划设计，用于设计机房结构。
-
-	资源规划,用于实例化一个机房，特别是两地三中心结构。
-
-	应用架构设计,用于设计一个应用的逻辑架构。
-
-	应用部署设计,用于实际部署一个应用。支持灰度发布。
-
-	CI数据管理/查询，通过模型图形进入单个数据管理以及查询。
-
-	CI综合查询管理/数据综合查询，用于配制多CI属性报表。比如一个应用使用到了哪些主机。
-
-	枚举数据管理/查询，通过对公共枚举和私有枚举进行管理以及查询。
-
-
-- 执行
-
-	物料管理，管理应用程序的包。可以定义各种文件，可以配置环境差异导致的变量替换规则，不需要人工处理。
-
-	应用部署，查看部署过程及异常，并作重试处理。
-
-	批量执行，通过综合查询选择目标。在通过特定插件来执行任务。比如某个应用的所有主机，执行一个用户权限变更。
-
-	高危命令配置，定义一些高危指令（如rm -rf），阻止执行或触发审批流程。
-	
-	编排任务执行，应该一般任务。比如重启某个资源集的5台主机。
-
-- 任务（2019年下半年）
-
-- 监测（2019年下半年）
-
-- 调整（2019年下半年）
-
-- 智慧（2019年下半年）
+- Wisdom (2nd half of 2019)
 
 
 >## 快速入门
