@@ -20,8 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -32,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class PluginPackageControllerTest extends AbstractControllerTest {
     @ClassRule
-    public static TemporaryFolder folder= new TemporaryFolder();
+    public static TemporaryFolder folder = new TemporaryFolder();
 
     @Autowired
     private PluginPackageService pluginPackageService;
@@ -193,6 +192,49 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                 ",(21, 2, 'Vpc Management', 17, 'ONLINE')\n" +
                 ",(31, 3, 'Vpc Management', 16, 'NOT_CONFIGURED')\n" +
                 ";");
+    }
+
+    @Test
+    public void givenNormalPackageIdShouldReturnSuccess() throws Exception {
+        uploadCorrectPackage();
+        mvc.perform(get("/v1/api/packages/1/dependencies").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
+                .andExpect(jsonPath("$.data[*].dependencyPackageName", contains("xxx", "xxx233")))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    public void getDependenciesByWrongIdShouldReturnError() throws Exception {
+        String wrongQueryId = "2";
+        mvc.perform(get(String.format("/v1/api/packages/%s/dependencies", wrongQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("ERROR")))
+                .andExpect(jsonPath("$.message", is(String.format("Cannot find package by id: [%s]", wrongQueryId))))
+                .andExpect(jsonPath("$.data", is(nullValue())))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    @Test
+    public void getMenuByCorrectIdShouldReturnSuccess() throws Exception {
+        uploadCorrectPackage();
+        String wrongQueryId = "1";
+        mvc.perform(get(String.format("/v1/api/packages/%s/menus", wrongQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.status", is("ERROR")))
+//                .andExpect(jsonPath("$.message", is(String.format("Cannot find package by id: [%s]", wrongQueryId))))
+//                .andExpect(jsonPath("$.data", is(nullValue())))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    private void uploadCorrectPackage() throws Exception {
+        pluginPackageService.setS3Client(new FakeS3Client());
+        File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
+        MockMultipartFile mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
+        mvc.perform(MockMvcRequestBuilders.multipart("/v1/api/packages").file(mockPluginPackageFile));
     }
 
 }
