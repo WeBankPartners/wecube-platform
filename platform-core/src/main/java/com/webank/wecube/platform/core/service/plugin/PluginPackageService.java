@@ -2,10 +2,11 @@ package com.webank.wecube.platform.core.service.plugin;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
+import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
@@ -26,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -211,5 +213,48 @@ public class PluginPackageService {
 
     public void setS3Client(S3Client s3Client) {
         this.s3Client = s3Client;
+    }
+    public PluginPackage getPackageById(Integer packageId) throws WecubeCoreException {
+        Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
+        if (!packageFoundById.isPresent()) {
+            String msg = String.format("Cannot find package by id: [%d]", packageId);
+            log.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return packageFoundById.get();
+    }
+
+    public Set<PluginPackageDependency> getDependenciesById(Integer packageId) throws WecubeCoreException {
+        PluginPackage packageFoundById = getPackageById(packageId);
+        return packageFoundById.getPluginPackageDependencies();
+    }
+
+    public Set<PluginPackageMenu> getMenusById(Integer packageId) throws WecubeCoreException {
+        PluginPackage packageFoundById = getPackageById(packageId);
+        return packageFoundById.getPluginPackageMenus();
+    }
+
+
+    public Set<SystemVariable> getSystemVarsById(Integer packageId) {
+        PluginPackage packageFoundById = getPackageById(packageId);
+        return packageFoundById.getSystemVariables();
+    }
+
+    public Set<PluginPackageAuthority> getAuthoritiesById(Integer packageId) {
+        PluginPackage packageFoundById = getPackageById(packageId);
+        return packageFoundById.getPluginPackageAuthorities();
+    }
+
+    public PluginPackageRuntimeResouceDto getResourcesById(Integer packageId) {
+        PluginPackage packageFoundById = getPackageById(packageId);
+        Set<PluginPackageRuntimeResourcesDocker> dockerSet = packageFoundById.getPluginPackageRuntimeResourcesDocker();
+        Set<PluginPackageRuntimeResourcesMysql> mysqlSet = packageFoundById.getPluginPackageRuntimeResourcesMysql();
+        Set<PluginPackageRuntimeResourcesS3> s3Set = packageFoundById.getPluginPackageRuntimeResourcesS3();
+        return (new PluginPackageRuntimeResouceDto(dockerSet, mysqlSet, s3Set));
+    }
+
+    public Set<PluginConfig> getPluginsById(Integer packageId) {
+        PluginPackage packageFoundById = getPackageById(packageId);
+        return packageFoundById.getPluginConfigs();
     }
 }
