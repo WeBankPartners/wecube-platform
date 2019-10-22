@@ -1,17 +1,17 @@
 package com.webank.wecube.core.service.workflow;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.webank.wecube.core.commons.LocalIdGenerator;
-import com.webank.wecube.core.commons.WecubeCoreException;
-import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.core.domain.workflow.*;
-import com.webank.wecube.core.domain.workflow.entity.ServiceNodeStatusEntity;
-import com.webank.wecube.core.interceptor.UsernameStorage;
-import com.webank.wecube.core.jpa.TaskNodeExecLogEntityRepository;
-import com.webank.wecube.core.jpa.workflow.ServiceNodeStatusRepository;
-import com.webank.wecube.core.support.cmdb.dto.v2.*;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
@@ -31,10 +31,37 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webank.wecube.core.commons.WecubeCoreException;
+import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.core.domain.workflow.AttachVO;
+import com.webank.wecube.core.domain.workflow.CiRoutineItem;
+import com.webank.wecube.core.domain.workflow.FlowNodeVO;
+import com.webank.wecube.core.domain.workflow.ProcessDefinitionTaskServiceEntity;
+import com.webank.wecube.core.domain.workflow.ProcessInstanceOutline;
+import com.webank.wecube.core.domain.workflow.ProcessInstanceStartRequest;
+import com.webank.wecube.core.domain.workflow.ProcessInstanceStartResponse;
+import com.webank.wecube.core.domain.workflow.ProcessInstanceVO;
+import com.webank.wecube.core.domain.workflow.ProcessTaskEntity;
+import com.webank.wecube.core.domain.workflow.ProcessTaskVO;
+import com.webank.wecube.core.domain.workflow.ProcessTransactionEntity;
+import com.webank.wecube.core.domain.workflow.ProcessTransactionVO;
+import com.webank.wecube.core.domain.workflow.RestartProcessInstanceRequest;
+import com.webank.wecube.core.domain.workflow.StartProcessInstaceWithCiDataReq;
+import com.webank.wecube.core.domain.workflow.StartProcessInstaceWithCiDataReqChunk;
+import com.webank.wecube.core.domain.workflow.TaskNodeExecLogEntity;
+import com.webank.wecube.core.interceptor.UsernameStorage;
+import com.webank.wecube.core.jpa.TaskNodeExecLogEntityRepository;
+import com.webank.wecube.core.support.cmdb.dto.v2.AdhocIntegrationQueryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.CiTypeAttrDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.IntegrationQueryDto;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQuery;
+import com.webank.wecube.core.support.cmdb.dto.v2.PaginationQueryResult;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
+import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
 @Service
 public class ProcessInstanceService extends AbstractProcessService {

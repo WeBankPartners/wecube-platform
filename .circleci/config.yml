@@ -15,15 +15,15 @@ jobs: # a collection of steps
           # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
           key: circleci-wecube-core-{{ checksum "pom.xml" }}
       
-      - run: mvn -f wecube-core/pom.xml dependency:go-offline # gets the project dependencies
+      #- run: mvn -f wecube-core/pom.xml dependency:go-offline # gets the project dependencies
       
+      - run: mvn clean install  # run the actual tests
+
       - save_cache: # saves the project dependencies
           paths:
             - ~/.m2
           key: circleci-wecube-core-{{ checksum "pom.xml" }}
-      
-      - run: mvn package -f wecube-core/pom.xml -Dmaven.test.skip=true # run the actual tests
-      
+        
       - store_test_results: # uploads the test metadata from the `target/surefire-reports` directory so that it can show up in the CircleCI dashboard. 
       # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: target/surefire-reports
