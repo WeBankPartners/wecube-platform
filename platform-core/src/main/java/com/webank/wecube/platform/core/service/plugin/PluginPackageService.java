@@ -5,8 +5,10 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
@@ -24,10 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -46,6 +45,9 @@ public class PluginPackageService {
     PluginPackageEntityRepository pluginPackageEntityRepository;
 
     @Autowired
+    PluginPackageDependencyRepository pluginPackageDependencyRepository;
+
+    @Autowired
     private PluginProperties pluginProperties;
 
     @Autowired
@@ -57,7 +59,7 @@ public class PluginPackageService {
 
         // 1. save package file to local
         String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-        File  localFilePath  = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
+        File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
         log.info("tmpFilePath= {}", localFilePath.getName());
         if (!localFilePath.exists()) {
             if (localFilePath.mkdirs()) {
@@ -91,8 +93,8 @@ public class PluginPackageService {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginDockerImageFile.getName();
             log.info("keyname : {}", keyName);
             dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginDockerImageFile);
-        log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl);
-        pluginPackage.setPluginPackageImageUrl(dockerImageUrl);
+            log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl);
+            pluginPackage.setPluginPackageImageUrl(dockerImageUrl);
         }
 
         File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
@@ -102,8 +104,8 @@ public class PluginPackageService {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginUiPackageFile.getName();
             log.info("keyname : {}", keyName);
             uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
-        log.info("UI static package file has uploaded to MinIO {}", dockerImageUrl);
-        pluginPackage.setUiPackageUrl(uiPackageUrl);
+            log.info("UI static package file has uploaded to MinIO {}", dockerImageUrl);
+            pluginPackage.setUiPackageUrl(uiPackageUrl);
         }
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
@@ -214,6 +216,7 @@ public class PluginPackageService {
     public void setS3Client(S3Client s3Client) {
         this.s3Client = s3Client;
     }
+
     public PluginPackage getPackageById(Integer packageId) throws WecubeCoreException {
         Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
         if (!packageFoundById.isPresent()) {
@@ -224,9 +227,17 @@ public class PluginPackageService {
         return packageFoundById.get();
     }
 
-    public Set<PluginPackageDependency> getDependenciesById(Integer packageId) throws WecubeCoreException {
+    public PluginPackageDependencyDto getDependenciesById(Integer packageId) throws WecubeCoreException {
         PluginPackage packageFoundById = getPackageById(packageId);
-        return packageFoundById.getPluginPackageDependencies();
+        Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
+
+        PluginPackageDependencyDto dependencyDto = new PluginPackageDependencyDto();
+        dependencyDto.setPackageName(packageFoundById.getName());
+        dependencyDto.setVersion(packageFoundById.getVersion());
+        for (PluginPackageDependency pluginPackageDependency : dependencySet) {
+            updateDependencyDto(pluginPackageDependency, dependencyDto);
+        }
+        return dependencyDto;
     }
 
     public Set<PluginPackageMenu> getMenusById(Integer packageId) throws WecubeCoreException {
@@ -256,5 +267,24 @@ public class PluginPackageService {
     public Set<PluginConfig> getPluginsById(Integer packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         return packageFoundById.getPluginConfigs();
+    }
+
+    private void updateDependencyDto(PluginPackageDependency pluginPackageDependency, PluginPackageDependencyDto pluginPackageDependencyDto) {
+        // create new dependencyDto according to input dependency
+        String dependencyName = pluginPackageDependency.getDependencyPackageName();
+        String dependencyVersion = pluginPackageDependency.getDependencyPackageVersion();
+        PluginPackageDependencyDto dependencyDto = new PluginPackageDependencyDto();
+        dependencyDto.setPackageName(dependencyName);
+        dependencyDto.setVersion(dependencyVersion);
+
+        // update the current dto recursively
+        pluginPackageDependencyDto.getDependencies().add(dependencyDto);
+        Optional<List<PluginPackageDependency>> dependencySetFoundByNameAndVersion = pluginPackageDependencyRepository
+                .findAllByPluginPackageNameAndPluginPackageVersion(dependencyName, dependencyVersion);
+        dependencySetFoundByNameAndVersion.ifPresent(pluginPackageDependencies -> {
+            for (PluginPackageDependency dependency : pluginPackageDependencies) {
+                updateDependencyDto(dependency, dependencyDto);
+            }
+        });
     }
 }
