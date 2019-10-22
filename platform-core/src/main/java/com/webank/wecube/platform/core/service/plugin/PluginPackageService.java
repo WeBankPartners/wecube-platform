@@ -1,10 +1,10 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static com.google.common.collect.Sets.newLinkedHashSet;
+
 @Service
 @Transactional
 public class PluginPackageService {
@@ -48,7 +50,7 @@ public class PluginPackageService {
     private S3Client s3Client;
 
     @Transactional
-    public PluginPackageDto uploadPackage(MultipartFile pluginPackageFile) throws Exception {
+    public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
         String pluginPackageFileName = pluginPackageFile.getName();
 
         // 1. save package file to local
@@ -72,27 +74,49 @@ public class PluginPackageService {
         // 3. read xml file in plugin package
         byte[] pluginConfigFile = FileUtils.readFileToByteArray(new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile()));
         PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new ByteArrayInputStream(pluginConfigFile)).parsePluginPackage();
-        if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackageDto.getName())) {
+        PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
+        if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
             throw new WecubeCoreException(String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ", pluginPackageDto.getName()));
         }
-        if (isPluginPackageExists(pluginPackageDto.getName(), pluginPackageDto.getVersion())) {
+        if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.", pluginPackageDto.getName(), pluginPackageDto.getVersion()));
         }
         // 4.
-        File pluginFile = new File(localFilePath + pluginPackageDto.getDockerImageFile());
-        String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginFile.getName();
-        log.info("keyname : {}", keyName);
-//        String url = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginFile);
-//        log.info("Plugin Package has uploaded to MinIO {}", url);
+        File pluginDockerImageFile = new File(localFilePath + "/" + pluginPackage.getDockerImageFilename());
+        log.info("pluginDockerImageFile: {}", pluginDockerImageFile.getAbsolutePath());
+        String dockerImageUrl = "";
+        if (pluginDockerImageFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginDockerImageFile.getName();
+            log.info("keyname : {}", keyName);
+            dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginDockerImageFile);
+        log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl);
+        pluginPackage.setPluginPackageImageUrl(dockerImageUrl);
+        }
+
+        File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
+        log.info("pluginDockerImageFile: {}", pluginUiPackageFile.getAbsolutePath());
+        String uiPackageUrl = "";
+        if (pluginUiPackageFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginUiPackageFile.getName();
+            log.info("keyname : {}", keyName);
+            uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
+        log.info("UI static package file has uploaded to MinIO {}", dockerImageUrl);
+        pluginPackage.setUiPackageUrl(uiPackageUrl);
+        }
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
-        pluginPackageEntityRepository.saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it->it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
+        Iterable<PluginPackageEntity> pluginPackageEntities = pluginPackageEntityRepository.saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it -> it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
+        savedPluginPackage.setPluginPackageEntities(newLinkedHashSet(pluginPackageEntities));
 
-        return pluginPackageDto;
+        return savedPluginPackage;
     }
 
     private boolean isPluginPackageExists(String name, String version) {
         return pluginPackageRepository.countByNameAndVersion(name, version) > 0;
+    }
+
+    public Iterable<PluginPackage> getPluginPackages() {
+        return pluginPackageRepository.findAll();
     }
 
     public void preconfigurePluginPackage(int pluginPackageId) {
@@ -185,4 +209,7 @@ public class PluginPackageService {
         log.info("Zip file has uploaded !");
     }
 
+    public void setS3Client(S3Client s3Client) {
+        this.s3Client = s3Client;
+    }
 }
