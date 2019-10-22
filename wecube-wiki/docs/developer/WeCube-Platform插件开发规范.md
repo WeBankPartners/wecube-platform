@@ -21,11 +21,11 @@ WeCube-Platform作为一个一站式IT架构管理和运维管理工具平台，
  - 包目录结构如下（以ITSM插件、v1.0版本示例）：
 ```
 itsm-v1.0.zip 
- +-  register.xml                         -- 注册描述文件, 必须包含
- +-  image.tar                            -- 后端服务docker镜像包，命名必须是“插件包名-版本号”，单词之间使用“-”来连接， 必须包含
- +-  ui.zip                               -- 前端资源包， 可选
- +-  init.sql                             -- 初始化数据库表结构sql， 可选
- +-  upgrade.sql                          -- 连续版本升级数据库sql， 可选
+ +-  register.xml                         -- [必选] 注册描述文件
+ +-  image.tar                            -- [必选] 后端服务docker镜像包，命名必须是“image.tar”
+ +-  ui.zip                               -- [可选] 前端资源包
+ +-  init.sql                             -- [可选] 初始化数据库表结构sql
+ +-  upgrade.sql                          -- [可选] 连续版本升级数据库sql
 ```
 
 ##### 第二，若插件有前端，对前端资源包的要求有：
