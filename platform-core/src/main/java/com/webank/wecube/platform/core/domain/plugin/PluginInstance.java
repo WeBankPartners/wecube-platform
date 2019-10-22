@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ public class PluginInstance {
     @GeneratedValue
     private Integer id;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "package_id")
     private PluginPackage pluginPackage;

@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
@@ -13,7 +14,7 @@ public class PluginPackageDependency {
     @GeneratedValue
     private int id;
 
-    @JsonIgnore
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "plugin_package_id")
     private PluginPackage pluginPackage;
