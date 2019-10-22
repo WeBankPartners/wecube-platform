@@ -86,7 +86,10 @@
           <div>运行资源</div>
         </TabPane>
         <TabPane name="plugins" label="插件注册">
-          <div>插件注册</div>
+          <PluginRegister
+            v-if="currentTab === 'plugins'"
+            :pkgId="currentPackageId"
+          ></PluginRegister>
         </TabPane>
       </Tabs>
     </Col>
@@ -360,11 +363,13 @@ const storageServiceColumns = [
 
 import DataModel from "./components/data-model.vue";
 import DependencyAnalysis from "./components/dependency-analysis.vue";
+import PluginRegister from "./components/plugin-register.vue";
 
 export default {
   components: {
     DataModel,
-    DependencyAnalysis
+    DependencyAnalysis,
+    PluginRegister
   },
   data() {
     return {

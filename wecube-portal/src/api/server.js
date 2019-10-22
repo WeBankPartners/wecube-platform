@@ -470,3 +470,4 @@ export const login = data => req.post("/auth/v1/api/login", data);
 export const getPluginPkgDataModel = id => req.get(`/packages/${id}/models`);
 export const getPluginPkgDependcy = id =>
   req.get(`/packages/${id}/dependencies`);
+export const getAllPluginByPkgId = id => req.get(`/packages/${id}/interfaces`);
