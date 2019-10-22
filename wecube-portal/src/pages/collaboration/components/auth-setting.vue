@@ -33,39 +33,50 @@ export default {
     async getData() {
       // let { status, data, message } = await getPluginPkgDataModel(this.pkgId);
       let { status, data, message } = await getAuthSettings(3);
-      console.log(data);
 
       if (status === "OK") {
-        this.data = data;
+        let allRoles = [];
+        let allMenus = [];
+        allRoles = data.map(_ => _.roleName);
+        allMenus = data.map(_ => _.menuCode);
+        let roles = Array.from(new Set(allRoles));
+        let menus = Array.from(new Set(allMenus));
+
+        this.data = {
+          roles,
+          menus,
+          path: data
+        };
         this.initGraph();
       }
     },
 
     renderGraph() {
-      let nodesString = `digraph G {
-rankdir = LR;
-  subgraph cluster_0 {
-    rankdir = TB;
-    style=filled;
-    color=lightgrey;
-    node [style=filled,color=white];
-    a1  a2  a3;
-    label = "roles";
-  }
-
-  subgraph cluster_1 {
-
-    node [style=filled];
-    b1  b2  b3;
-    label = "menus";
-    color=blue
-  }
-
-  a1 -> b1;
-  a1 -> b2;
-  a2 -> b1;
-
-}`;
+      let genEdge = () => {
+        let pathAry = this.data.path.map(_ => {
+          return _.roleName + " -> " + _.menuCode;
+        });
+        return pathAry.toString().replace(/,/g, ";");
+      };
+      let nodesString =
+        `digraph G { rankdir = LR;
+                          subgraph cluster_0 {
+                            rankdir = TB;
+                            color=lightgrey;
+                            node [shape=plaintext, style=filled,color=lightgrey];` +
+        this.data.roles.toString().replace(/,/g, " ") +
+        `;
+                            label = "roles";
+                          }
+                          subgraph cluster_1 {
+                            color=lightgrey;
+                            node [shape=plaintext, style=filled,color=lightgrey];` +
+        this.data.menus.toString().replace(/,/g, " ") +
+        `;
+                            label = "menus";
+                          }` +
+        genEdge() +
+        `}`;
       this.graph.graphviz.renderDot(nodesString);
     },
     initGraph() {
