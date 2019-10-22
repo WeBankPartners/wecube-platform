@@ -217,9 +217,7 @@ export default {
         nodes.forEach((node, nodeIndex) => {
           if (node.layerId === _.layerId) {
             tempClusterObjForGraph[index].push(
-              `"${node.name}"[id="${node.ciTypeId}", image="${
-                node.form.imgSource
-              }.png", labelloc="b"]`
+              `"${node.name}"[id="${node.ciTypeId}", image="${node.form.imgSource}.png", labelloc="b"]`
             );
           }
           if (nodeIndex === nodes.length - 1) {
@@ -259,9 +257,9 @@ export default {
         '"->' +
         '"' +
         target.name.trim() +
-        '"[label="' +
+        '"[taillabel="' +
         labels +
-        '"];'
+        '", labeldistance=3];'
       );
     },
 

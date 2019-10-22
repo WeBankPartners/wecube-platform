@@ -1175,11 +1175,7 @@ export default {
               let fontcolor =
                 node.status === "notCreated" ? "#10a34e" : "black";
               tempClusterObjForGraph[index].push(
-                `"${node.name}"[id="${
-                  node.ciTypeId
-                }",fontcolor="${fontcolor}", image="${
-                  node.form.imgSource
-                }.png", labelloc="b"]`
+                `"${node.name}"[id="${node.ciTypeId}",fontcolor="${fontcolor}", image="${node.form.imgSource}.png", labelloc="b"]`
               );
             }
             if (nodeIndex === nodes.length - 1) {
@@ -1720,7 +1716,11 @@ export default {
         isRefreshable: form.isRefreshable === "yes",
         isDisplayed: form.isDisplayed === "yes",
         isAccessControlled:
-          form.inputType === "text" && form.isAccessControlled === "yes",
+          (form.inputType === "select" ||
+            form.inputType === "ref" ||
+            form.inputType === "multiSelect" ||
+            form.inputType === "multiRef") &&
+          form.isAccessControlled === "yes",
         isNullable: form.isNullable === "yes",
         isAuto: form.isAuto === "yes",
         isEditable: form.isEditable === "yes"
