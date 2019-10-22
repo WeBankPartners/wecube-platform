@@ -1,0 +1,28 @@
+server:
+   port: 8080
+   ssl:
+      enabled: false
+      key-alias: gw
+      key-store-password: 123456
+      key-store: classpath:gw-keystore.p12
+      key-store-type: PKCS12
+logging:
+   config: classpath:logback-spring.xml
+spring:
+   cloud:
+      gateway:
+         httpclient:
+            ssl:
+               useInsecureTrustManager: true
+         routes:
+         -  id: auth_server_route_1
+            uri: http://localhost:8080
+            predicates:
+            - Path=/auth/**
+#         -  id: wecube_cds_route
+#            uri: http://localhost:9000
+#            predicates:
+#            - Path=/wecube-cds/**
+#            filters:
+#            - StripPrefix=1
+#            - JwtSsoToken=true
