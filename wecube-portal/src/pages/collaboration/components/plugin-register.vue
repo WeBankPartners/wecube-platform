@@ -6,7 +6,11 @@
         :active-name="currentPlugin"
         @on-select="selectPlugin"
       >
-        <MenuItem v-for="plugin in plugins" :name="plugin.name">
+        <MenuItem
+          v-for="(plugin, index) in plugins"
+          :name="plugin.name"
+          :key="index"
+        >
           <Icon type="md-flower" />
           {{ plugin.name }}
         </MenuItem>
