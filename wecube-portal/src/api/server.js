@@ -471,3 +471,7 @@ export const getPluginPkgDataModel = id => req.get(`/packages/${id}/models`);
 export const getPluginPkgDependcy = id =>
   req.get(`/packages/${id}/dependencies`);
 export const getAllPluginByPkgId = id => req.get(`/packages/${id}/interfaces`);
+export const getMenuInjection = id => req.get(`/packages/${id}/menus`);
+export const getSysParams = id => req.get(`/packages/${id}/system-parameters`);
+export const getRuntimeResource = id =>
+  req.get(`/packages/${id}/runtime-resources`);
