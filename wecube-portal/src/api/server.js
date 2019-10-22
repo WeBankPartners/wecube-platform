@@ -73,7 +73,9 @@ export const deleteEnumRecord = (catTypeId, catId, codeId) =>
   );
 export const addEnumRecord = (catTypeId, data) =>
   req.post(
-    `/cmdb/enum/category-types/${catTypeId}/categories/${data.catId}/codes/create`,
+    `/cmdb/enum/category-types/${catTypeId}/categories/${
+      data.catId
+    }/codes/create`,
     data
   );
 export const getEnumCatList = () => req.get(`/cmdb/enum/all-categories`);
@@ -126,7 +128,9 @@ export const createPluginInstanceByPackageIdAndHostIp = (
   );
 export const savePluginInstance = data =>
   req.post(
-    `/plugin/configs/${data.configId}/save?cmdbCiTypeId=${data.cmdbCiTypeId}&cmdbCiTypeName=${data.cmdbCiTypeName}`,
+    `/plugin/configs/${data.configId}/save?cmdbCiTypeId=${
+      data.cmdbCiTypeId
+    }&cmdbCiTypeName=${data.cmdbCiTypeName}`,
     data.pluginRegisteringModels
   );
 export const decommissionPluginConfig = configId =>
@@ -429,7 +433,9 @@ export const getDeployDesignTabs = () => req.get(`/cmdb/deploy-designs/tabs`);
 
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/cmdb/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
+    `/cmdb/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${
+      data.envCode
+    }&system-design-guid=${data.systemDesignGuid}`,
     payload
   );
 
@@ -464,6 +470,7 @@ export const login = data => req.post("/auth/v1/api/login", data);
 export const getPluginPkgDataModel = id => req.get(`/packages/${id}/models`);
 export const getPluginPkgDependcy = id =>
   req.get(`/packages/${id}/dependencies`);
+export const getAllPluginByPkgId = id => req.get(`/packages/${id}/interfaces`);
 export const getMenuInjection = id => req.get(`/packages/${id}/menus`);
 export const getSysParams = id => req.get(`/packages/${id}/system-parameters`);
 export const getRuntimeResource = id =>
