@@ -87,6 +87,10 @@
         </TabPane>
         <TabPane name="authorities" label="权限设定">
           <div>权限设定</div>
+          <AuthSettings
+            v-if="currentTab === 'authorities'"
+            :pkgId="currentPackageId"
+          ></AuthSettings>
         </TabPane>
         <TabPane name="runtimeResources" label="运行资源">
           <RuntimesResources
@@ -372,6 +376,7 @@ import DependencyAnalysis from "./components/dependency-analysis.vue";
 import MenuInjection from "./components/menu-injection.vue";
 import SysParmas from "./components/system-params.vue";
 import RuntimesResources from "./components/runtime-resource.vue";
+import AuthSettings from "./components/auth-setting.vue";
 
 export default {
   components: {
@@ -379,7 +384,8 @@ export default {
     DependencyAnalysis,
     MenuInjection,
     SysParmas,
-    RuntimesResources
+    RuntimesResources,
+    AuthSettings
   },
   data() {
     return {

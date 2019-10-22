@@ -1,6 +1,7 @@
 {
-  "name": "vue-bpmn-flowchart",
-  "version": "0.1.0",
+  "name": "wecube-portal",
+  "version": "2.0.0",
+  "author": "wecube dev",
   "private": true,
   "scripts": {
     "start": "vue-cli-service serve",
