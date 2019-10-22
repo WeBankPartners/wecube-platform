@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
@@ -14,6 +15,7 @@ public class PluginPackageAttribute {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @JsonBackReference
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "entity_id")
     private PluginPackageEntity pluginPackageEntity;
