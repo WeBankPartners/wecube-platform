@@ -1,15 +1,23 @@
 # WeCube
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![](https://img.shields.io/badge/language-java-orange.svg)
+![](https://img.shields.io/badge/language-vue-green.svg)
+
+[中文](README.md) / English
+
 ## Introduction
 WeCube is an open source, one-stop tool for architecture management and IT operation, which aims to simplify the IT management of distributed architecture. Its features can be easily extended by plugins.
+
 
 ## Origin
 During the implementation of distributed architecture, core banking systems are built in WeBank. Comparing this to traditional monolithic architecture, there are quite a few different pain points, e.g. increasing number of servers, complicated deployment process, difficulties in service tracing and problem diagnosis due to complex systems and long invocation chains. 
 
 In the process of finding the solutions for these pain points, we have come up with a set of methodology and best practices for IT management in such scenarios and also developed necessary supporting tools. WeCube is the result of extracting the methodology and best practices form WeBank's internal tools, which is then packaged into an integrated out-of-box solution for IT management. 
 
+
 ## Design Concept
-![WeCube Design Concept](wecube-wiki/images/wecube_design.png)
+![WeCube Design Concept](wecube-wiki/images/wecube_design_en.png)
 
 WeCube's design concept basically matches the lifecycle of IT system management and can be elaborated as "6 aspects with 1 core".
  
@@ -27,6 +35,7 @@ WeCube's design concept basically matches the lifecycle of IT system management 
 
 - the core: "Workflow Engine", it is to coordinate tasks and improve collaborations in those 6 aspects, so that manual intervention is reduced and team efficency is increased.
 
+
 ## Implementations
 WeCube is composed of the core framework and plugins for feature exetnsions.
 
@@ -34,12 +43,13 @@ The core framework is developed with Java/MySQL/Vue.js and reponsible for workfl
 
 Plugins are introduced for feature extensions, they can be grouped into 3 categories: resource management, data integration and practice enhancement. By conforming to the interface specification defined by WeCube, plugin developers can choose their preferred programing languages. Existing plugins commonly use Go and Java.
 
+
 ## System Architecture
 
 ### WeCube Version 1.x
 WeCube version 1.0 is released, its architecture is elaborated as follows: 
 
-![WeCube1.0 Architecture](wecube-wiki/images/wecube_arch_1.png) 
+![WeCube1.0 Architecture](wecube-wiki/images/wecube_arch_1_en.png) 
 
 - WeCube version 1.0 uses WeCMDB for data persistence, configuration data are all managed by WeCMDB.
 - WeCube version 1.0 requires a CAS server for authentication, in order to keep data permissions consistent, we suggest to share the same CAS server used by WeCMDB. In WeCube version 1.1, a local user based authentication mode is supported.
@@ -48,10 +58,12 @@ WeCube version 1.0 is released, its architecture is elaborated as follows:
 
 Implemented features in WeCube Version 1.0:
 
-![WeCube1.0 Logical Architecture](wecube-wiki/images/wecube_arch_2.png) 
+![WeCube1.0 Logical Architecture](wecube-wiki/images/wecube_arch_2_en.png) 
+
 
 ### WeCube Version 2.0
 WeCube Version 2.0 is under active development and will come soon.
+
 
 ## Main Features
 The main menu of WeCube matches its design concept, including Workbench, Expectation, Execution, Watching, Wisdom, Equilibration, Workflow and System.
@@ -90,28 +102,35 @@ The main menu of WeCube matches its design concept, including Workbench, Expecta
 
 - Wisdom (2nd half of 2019)
 
+
 ## Quick Start
 WeCube is using containerized deployment.
 
-PLease refer to [WeCube Compilation Guide](wecube-wiki/docs/install/wecube_compile_guide.md) on how to compile WeCube.
+PLease refer to [WeCube Compilation Guide](wecube-wiki/docs/install/wecube_compile_guide_en.md) on how to compile WeCube.
 
-PLease refer to [WeCube Installation Guide](wecube-wiki/docs/install/wecube_install_guide.md) on how to install WeCube.
+PLease refer to [WeCube Installation Guide](wecube-wiki/docs/install/wecube_install_guide_en.md) on how to install WeCube.
+
 
 ## User Manual
 Please refer to the [WeCube User Guide](wecube-wiki/docs/manual/wecube_user_guide.md) for guides on WeCube usage and operation.
 
+
 ## Developer Documentation
 WeCube is developed with Java and Vue.js, it uses MySQL for data persistence and relies on Tomcat as the web application container.
 
-Please refer to the [WeCube Developer Guide](wecube-wiki/docs/developer/wecube_developer_guide.md) on how to set up the development environment.
+Please refer to the [WeCube Developer Guide](wecube-wiki/docs/developer/wecube_developer_guide_en.md) on how to set up the development environment.
 
-## API Reference
-Please refer to the [WeCube API Guide](wecube-wiki/docs/api/wecube_api_guide.md) for details.
 
 ## License
 WeCube is licensed uner the Apache License Version 2.0, please refer to [LICENSE](LICENSE) for details.
 
+
 ## Community
-- Please raise us an issue to get quick response.
+- For quick response, please [raise an issue](https://github.com/WeBankPartners/wecube-platform/issues/new/choose) to us, or you can also scan the following QR code to join our community, we will provide feedback as quickly as we can.
+
+  <div align="left">
+  <img src="wecube-wiki/images/wecube_qr_code.png"  height="200" width="200">
+  </div>
+
 - Contact us: fintech@webank.com
 
