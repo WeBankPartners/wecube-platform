@@ -4,6 +4,7 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginPrope
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.domain.SystemVariable;
@@ -67,7 +68,7 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/dependencies")
     @ResponseBody
     public JsonResponse getDependenciesById(@PathVariable(value = "id") Integer packageId) {
-        Set<PluginPackageDependency> dependencySetFoundById;
+        PluginPackageDependencyDto dependencySetFoundById;
         try {
             dependencySetFoundById = pluginPackageService.getDependenciesById(packageId);
         } catch (WecubeCoreException ex) {
@@ -79,13 +80,13 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/menus")
     @ResponseBody
     public JsonResponse getMenusById(@PathVariable(value = "id") Integer packageId) {
-        Set<PluginPackageMenu> menuSetFoundById;
+        Set<PluginPackageMenu> menuSet;
         try {
-            menuSetFoundById = pluginPackageService.getMenusById(packageId);
+            menuSet = pluginPackageService.getMenusById(packageId);
         } catch (WecubeCoreException ex) {
             return error(ex.getMessage());
         }
-        return okayWithData(menuSetFoundById);
+        return okayWithData(menuSet);
     }
 
     @GetMapping("/packages/{id}/system_parameters")
@@ -103,13 +104,13 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/authorities")
     @ResponseBody
     public JsonResponse getAuthorityById(@PathVariable(value = "id") Integer packageId) {
-        Set<PluginPackageAuthority> menuSet;
+        Set<PluginPackageAuthority> authoritySet;
         try {
-            menuSet = pluginPackageService.getAuthoritiesById(packageId);
+            authoritySet = pluginPackageService.getAuthoritiesById(packageId);
         } catch (WecubeCoreException ex) {
             return error(ex.getMessage());
         }
-        return okayWithData(menuSet);
+        return okayWithData(authoritySet);
     }
 
     @GetMapping("/packages/{id}/runtime_resources")
