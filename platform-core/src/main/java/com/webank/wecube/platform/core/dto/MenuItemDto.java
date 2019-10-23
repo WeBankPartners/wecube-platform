@@ -10,16 +10,16 @@ public class MenuItemDto {
     private String code;
     private String displayName;
     private String path;
-    private String menuState;
+    private String menuType;
 
     public MenuItemDto(Integer id, String category, String code, String displayName,
-                                String path, String menuState) {
+                                String path, String menuType) {
         this.id = id;
         this.category = category;
         this.code = code;
         this.displayName = displayName;
         this.path = path;
-        this.menuState = menuState;
+        this.menuType = menuType;
     }
 
     public MenuItemDto() {
@@ -35,7 +35,7 @@ public class MenuItemDto {
         pluginPackageMenuDto.setCode(systemMenu.getCode());
         pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
         pluginPackageMenuDto.setPath(null);
-        pluginPackageMenuDto.setMenuState("system");
+        pluginPackageMenuDto.setMenuType("system");
         return pluginPackageMenuDto;
     }
 
@@ -46,7 +46,7 @@ public class MenuItemDto {
         pluginPackageMenuDto.setCode(packageMenu.getCode());
         pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
         pluginPackageMenuDto.setPath(packageMenu.getPath());
-        pluginPackageMenuDto.setMenuState("package");
+        pluginPackageMenuDto.setMenuType("package");
         return pluginPackageMenuDto;
     }
 
@@ -90,11 +90,11 @@ public class MenuItemDto {
         this.path = path;
     }
 
-    public String getMenuState() {
-        return menuState;
+    public String getMenuType() {
+        return menuType;
     }
 
-    public void setMenuState(String menuState) {
-        this.menuState = menuState;
+    public void setMenuType(String menuType) {
+        this.menuType = menuType;
     }
 }
