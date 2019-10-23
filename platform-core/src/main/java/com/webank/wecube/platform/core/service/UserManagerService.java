@@ -112,7 +112,7 @@ public class UserManagerService {
         List<MenuItemDto> returnMenuDto = new ArrayList<>();
         Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
         for (MenuItem systemMenu : systemMenus) {
-            MenuItemDto systemMenuDto = MenuItemDto.fromCoreMenuItem(systemMenu);
+            MenuItemDto systemMenuDto = MenuItemDto.fromSystemMenuItem(systemMenu);
             returnMenuDto.add(systemMenuDto);
         }
         return returnMenuDto;
