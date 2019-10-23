@@ -3,7 +3,7 @@ package com.webank.wecube.platform.core.dto;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 
-public class PluginPackageMenuDto {
+public class MenuItemDto {
 
     private Integer id;
     private String category;
@@ -12,7 +12,7 @@ public class PluginPackageMenuDto {
     private String path;
     private String menuState;
 
-    public PluginPackageMenuDto(Integer id, String category, String code, String displayName,
+    public MenuItemDto(Integer id, String category, String code, String displayName,
                                 String path, String menuState) {
         this.id = id;
         this.category = category;
@@ -22,11 +22,11 @@ public class PluginPackageMenuDto {
         this.menuState = menuState;
     }
 
-    public PluginPackageMenuDto() {
+    public MenuItemDto() {
     }
 
-    public static PluginPackageMenuDto fromCoreMenuItem(MenuItem systemMenu) {
-        PluginPackageMenuDto pluginPackageMenuDto = new PluginPackageMenuDto();
+    public static MenuItemDto fromCoreMenuItem(MenuItem systemMenu) {
+        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
         pluginPackageMenuDto.setId(systemMenu.getId());
         Integer category = systemMenu.getParentId();
         if (category != null) {
@@ -39,8 +39,8 @@ public class PluginPackageMenuDto {
         return pluginPackageMenuDto;
     }
 
-    public static PluginPackageMenuDto fromPackageMenuItem(PluginPackageMenu packageMenu) {
-        PluginPackageMenuDto pluginPackageMenuDto = new PluginPackageMenuDto();
+    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu) {
+        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
         pluginPackageMenuDto.setId(packageMenu.getId());
         pluginPackageMenuDto.setCategory(packageMenu.getCategory());
         pluginPackageMenuDto.setCode(packageMenu.getCode());

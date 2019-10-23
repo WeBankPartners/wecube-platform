@@ -35,10 +35,10 @@ public class HomeController {
         return "home.html";
     }
 
-    @GetMapping("/my-menus")
+    @GetMapping("/api/v1/my-menus")
     @ResponseBody
     public JsonResponse getMenuItems(Principal principal) {
-        return okay().withData(userManagerService.getAllMenuItems());
+        return okay().withData(userManagerService.getAllSysMenus());
 //        if (principal != null) {
 //            return okay().withData(userManagerService.getMenuItemsByUsername(principal.getName(), true));
 //        }
