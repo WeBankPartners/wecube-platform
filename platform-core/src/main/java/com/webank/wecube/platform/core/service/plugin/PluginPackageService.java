@@ -55,7 +55,7 @@ public class PluginPackageService {
 
         // 1. save package file to local
         String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-        File  localFilePath  = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
+        File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
         log.info("tmpFilePath= {}", localFilePath.getName());
         if (!localFilePath.exists()) {
             if (localFilePath.mkdirs()) {
@@ -65,47 +65,60 @@ public class PluginPackageService {
             }
         }
         File dest = new File(localFilePath + "/" + pluginPackageFileName);
-        log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}", dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
+        log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
+                dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
         pluginPackageFile.transferTo(dest);
 
         // 2. unzip local package file
         unzipLocalFile(dest.getCanonicalPath(), localFilePath.getCanonicalPath() + "/");
 
         // 3. read xml file in plugin package
-        byte[] pluginConfigFile = FileUtils.readFileToByteArray(new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile()));
-        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new ByteArrayInputStream(pluginConfigFile)).parsePluginPackage();
+        byte[] pluginConfigFile = FileUtils.readFileToByteArray(
+                new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile()));
+        PluginPackageDto pluginPackageDto = PluginPackageXmlParser
+                .newInstance(new ByteArrayInputStream(pluginConfigFile)).parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
         if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
-            throw new WecubeCoreException(String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ", pluginPackageDto.getName()));
+            throw new WecubeCoreException(
+                    String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ",
+                            pluginPackageDto.getName()));
         }
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
-            throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.", pluginPackageDto.getName(), pluginPackageDto.getVersion()));
+            throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
+                    pluginPackageDto.getName(), pluginPackageDto.getVersion()));
         }
         // 4.
-        File pluginDockerImageFile = new File(localFilePath + "/" + pluginPackage.getDockerImageFilename());
+        File pluginDockerImageFile = new File(localFilePath + "/" + pluginProperties.getImageFile());
         log.info("pluginDockerImageFile: {}", pluginDockerImageFile.getAbsolutePath());
-        String dockerImageUrl = "";
+
         if (pluginDockerImageFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginDockerImageFile.getName();
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginDockerImageFile.getName();
             log.info("keyname : {}", keyName);
-            dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginDockerImageFile);
-        log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl);
-        pluginPackage.setPluginPackageImageUrl(dockerImageUrl);
+            String dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginDockerImageFile);
+            log.info("Plugin Package has uploaded to MinIO {}",
+                    pluginProperties.getPluginPackageBucketName() + dockerImageUrl);
+            pluginPackage.setImageS3KeyName(keyName);
         }
 
-        File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
+        File pluginUiPackageFile = new File(localFilePath + "/" + pluginProperties.getUiFile());
         log.info("pluginDockerImageFile: {}", pluginUiPackageFile.getAbsolutePath());
-        String uiPackageUrl = "";
+
         if (pluginUiPackageFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginUiPackageFile.getName();
-            log.info("keyname : {}", keyName);
-            uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
-        log.info("UI static package file has uploaded to MinIO {}", dockerImageUrl);
-        pluginPackage.setUiPackageUrl(uiPackageUrl);
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginUiPackageFile.getName();
+            String uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginUiPackageFile);
+            log.info("UI static package file has uploaded to MinIO {}",
+                    pluginProperties.getPluginPackageBucketName() + uiPackageUrl);
+            pluginPackage.setUiS3KeyName(keyName);
         }
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
-        Iterable<PluginPackageEntity> pluginPackageEntities = pluginPackageEntityRepository.saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it -> it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
+        Iterable<PluginPackageEntity> pluginPackageEntities = pluginPackageEntityRepository
+                .saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it -> it.toDomain(savedPluginPackage))
+                        .collect(Collectors.toSet()));
         savedPluginPackage.setPluginPackageEntities(newLinkedHashSet(pluginPackageEntities));
 
         return savedPluginPackage;
@@ -124,7 +137,8 @@ public class PluginPackageService {
         if (!pluginPackageOptional.isPresent())
             throw new WecubeCoreException("Plugin package not found, id=" + pluginPackageId);
         PluginPackage pluginPackage = pluginPackageOptional.get();
-        Optional<PluginPackage> latestVersionPluginPackage = pluginPackageRepository.findLatestVersionByName(pluginPackage.getName(), pluginPackage.getVersion());
+        Optional<PluginPackage> latestVersionPluginPackage = pluginPackageRepository
+                .findLatestVersionByName(pluginPackage.getName(), pluginPackage.getVersion());
         if (latestVersionPluginPackage.isPresent()) {
             new PluginConfigCopyHelper().copyPluginConfigs(latestVersionPluginPackage.get(), pluginPackage);
             pluginPackageRepository.save(pluginPackage);
@@ -140,7 +154,9 @@ public class PluginPackageService {
         PluginPackage pluginPackage = pluginPackageOptional.get();
         for (PluginConfig config : pluginPackage.getPluginConfigs()) {
             if (PluginConfig.Status.ONLINE.equals(config.getStatus())) {
-                String errorMessage = String.format("Failed to delete Plugin[%s/%s] due to [%s] is still in used. Please decommission it and try again.", pluginPackage.getName(), pluginPackage.getVersion(), config.getName());
+                String errorMessage = String.format(
+                        "Failed to delete Plugin[%s/%s] due to [%s] is still in used. Please decommission it and try again.",
+                        pluginPackage.getName(), pluginPackage.getVersion(), config.getName());
                 log.warn(errorMessage);
                 throw new WecubeCoreException(errorMessage);
             }
@@ -148,7 +164,8 @@ public class PluginPackageService {
         pluginPackageRepository.deleteById(pluginPackageId);
 
         // Remove related docker image file
-        String versionPath = SystemUtils.getTempFolderPath() + pluginPackage.getName() + "-" + pluginPackage.getVersion() + "/";
+        String versionPath = SystemUtils.getTempFolderPath() + pluginPackage.getName() + "-"
+                + pluginPackage.getVersion() + "/";
         File versionDirectory = new File(versionPath);
         try {
             log.info("Delete directory: {}", versionPath);
@@ -159,7 +176,8 @@ public class PluginPackageService {
         }
     }
 
-    private void uploadFileToLocal(String path, InputStream inputStream, String inputFileName) throws WecubeCoreException, IOException {
+    private void uploadFileToLocal(String path, InputStream inputStream, String inputFileName)
+            throws WecubeCoreException, IOException {
         String fileName = path + inputFileName;
         File localFile = new File(fileName);
         if (!localFile.exists() && !localFile.createNewFile()) {
@@ -183,7 +201,7 @@ public class PluginPackageService {
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
 
-            for (; entries.hasMoreElements(); ) {
+            for (; entries.hasMoreElements();) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
                 if (new File(destFilePath + zipEntryName).createNewFile()) {
@@ -194,7 +212,7 @@ public class PluginPackageService {
                 }
 
                 try (BufferedInputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-                     OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
+                        OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
                     byte[] buf = new byte[2048];
                     int len;
                     while ((len = inputStream.read(buf)) > 0) {
