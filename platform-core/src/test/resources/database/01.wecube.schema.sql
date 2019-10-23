@@ -170,3 +170,12 @@ create table menu_items
     description varchar(200),
     unique key uk_code (code)
 );
+
+drop table if exists role_menu;
+create table role_menu
+(
+    id      int auto_increment primary key,
+    role_id int not null,
+    menu_id int not null,
+    unique key uk_roleid_menuid (role_id, menu_id)
+);
