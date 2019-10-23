@@ -99,8 +99,8 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
-        <plugin name="task">
-            <interface name="create" path="/service-management/tasks" httpMethod='POST'>
+        <plugin name="task" >
+            <interface action="create" path="/service-management/tasks" httpMethod='POST'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>
                         callbackUrl
@@ -122,7 +122,7 @@
             </interface>
         </plugin>
         <plugin name="service_request">
-            <interface name="update" path="/service-management/service-requests/{service-request-id}/done"
+            <interface action="update" path="/service-management/service-requests/{service-request-id}/done"
                        httpMethod='PUT'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>
