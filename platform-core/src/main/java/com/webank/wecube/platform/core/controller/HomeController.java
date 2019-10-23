@@ -35,7 +35,7 @@ public class HomeController {
         return "home.html";
     }
 
-    @GetMapping("/api/v1/my-menus")
+    @GetMapping("/v1/api/my-menus")
     @ResponseBody
     public JsonResponse getMenuItems(Principal principal) {
         return okay().withData(userManagerService.getAllSysMenus());
