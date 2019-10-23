@@ -10,9 +10,9 @@ This installation guide starts the WeCube service by means of docker-compose. Yo
 2. The operating system version is recommended to be ubuntu16.04 or higher or centos7.3 or higher。
 3. The network needs to be able to access internet (need to download and install the software from internet。
 4. install docker and docker-compose。
-     - PLease refer to [docker install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker_install_guide.md) on how to install docker.
-     - PLease refer to [docker-compose install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker-compose_install_guide.md) on how to install docker-compose.
-5. Make sure we-cmdb hase been deployed and can access normally
+     - PLease refer to [docker install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker_install_guide_en.md) on how to install docker.
+     - PLease refer to [docker-compose install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker-compose_install_guide_en.md) on how to install docker-compose.
+5. Make sure we-cmdb has been deployed and can access normally
 	
 	Need to know the access ip and port of we-cmdb.
 
