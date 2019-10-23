@@ -80,30 +80,33 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     public void givenEmptyPluginPackageWhenUploadThenThrowException() {
         try {
             MockHttpServletResponse response = mvc.perform(post("/v1/api/packages").contentType(MediaType.MULTIPART_FORM_DATA))
-                    .andExpect(status().is4xxClientError())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("ERROR")))
+                    .andExpect(jsonPath("$.message", is("Required request part 'zip-file' is not present")))
                     .andDo(print())
                     .andReturn().getResponse();
-            assertThat(response.getErrorMessage()).isEqualTo("Required request part 'zip-file' is not present");
         } catch (Exception e) {
             fail("Failed to upload plugin package in PluginPackageController: " + e.getMessage());
         }
 
         try {
             MockHttpServletResponse response = mvc.perform(post("/v1/api/packages").contentType(MediaType.MULTIPART_FORM_DATA).content(new byte[0]))
-                    .andExpect(status().is4xxClientError())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("ERROR")))
+                    .andExpect(jsonPath("$.message", is("Required request part 'zip-file' is not present")))
                     .andDo(print())
                     .andReturn().getResponse();
-            assertThat(response.getErrorMessage()).isEqualTo("Required request part 'zip-file' is not present");
         } catch (Exception e) {
             fail("Failed to upload plugin package in PluginPackageController: " + e.getMessage());
         }
 
         try {
             MockHttpServletResponse response = mvc.perform(post("/v1/api/packages").contentType(MediaType.MULTIPART_FORM_DATA).content(new MockMultipartFile("zip-file", new byte[0]).getBytes()))
-                    .andExpect(status().is4xxClientError())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("ERROR")))
+                    .andExpect(jsonPath("$.message", is("Required request part 'zip-file' is not present")))
                     .andDo(print())
                     .andReturn().getResponse();
-            assertThat(response.getErrorMessage()).isEqualTo("Required request part 'zip-file' is not present");
         } catch (Exception e) {
             fail("Failed to upload plugin package in PluginPackageController: " + e.getMessage());
         }
@@ -129,8 +132,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("service-management")))
                     .andExpect(jsonPath("$.data.version", is("v0.1")))
-                    .andExpect(jsonPath("$.data.pluginPackageImageUrl", is("https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v0.1/image.tar")))
-                    .andExpect(jsonPath("$.data.uiPackageUrl", is("https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v0.1/ui.zip")))
                     .andDo(print())
                     .andReturn().getResponse();
         } catch (Exception e) {
@@ -178,30 +179,29 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(delete("/v1/api/packages/1"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.status", is("ERROR")))
+                    .andExpect(jsonPath("$.message", is("Failed to delete Plugin[cmdb/v1.0] due to [Vpc Management] is still in used. Please decommission it and try again.")))
                     .andDo(print())
                     .andReturn().getResponse();
-            fail("Should throw exception here.");
         } catch (Exception e) {
-            assertThat(e.getMessage()).contains("Failed to delete Plugin[cmdb/v1.0] due to [Vpc Management] is still in used. Please decommission it and try again.");
+            fail(e.getMessage());
         }
 
     }
 
     private void mockMultipleVersionPluginPackage() {
-        executeSql("insert into plugin_packages (id, name, version, plugin_package_image_url, ui_package_url) values\n" +
-                "  (1, 'cmdb', 'v1.0', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.0/image.tar', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.0/ui.zip')\n" +
-                " ,(2, 'cmdb', 'v1.1', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.1/image.tar', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.1/ui.zip')\n" +
-                " ,(3, 'cmdb', 'v1.2', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.2/image.tar', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.2/ui.zip')\n" +
+        executeSql("insert into plugin_packages (id, name, version) values\n" +
+                "  (1, 'cmdb', 'v1.0')\n" +
+                " ,(2, 'cmdb', 'v1.1')\n" +
+                " ,(3, 'cmdb', 'v1.2')\n" +
                 ";");
     }
 
     private void mockMultipleVersionPluginPackageWithReference() {
-        executeSql("insert into plugin_packages (id, name, version, plugin_package_image_url, ui_package_url) values\n" +
-                "  (1, 'cmdb', 'v1.0', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.0/image.tar', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.0/ui.zip')\n" +
-                " ,(2, 'cmdb', 'v1.1', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.1/image.tar', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.1/ui.zip')\n" +
-                " ,(3, 'cmdb', 'v1.2', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.2/image.tar', 'https://localhost:9000/s3/wecube-plugin-package-bucket/service-management/v1.2/ui.zip')\n" +
+        executeSql("insert into plugin_packages (id, name, version) values\n" +
+                "  (1, 'cmdb', 'v1.0')\n" +
+                " ,(2, 'cmdb', 'v1.1')\n" +
+                " ,(3, 'cmdb', 'v1.2')\n" +
                 ";\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
                 " (11, 1, 'Vpc Management', 16, 'ONLINE')\n" +
@@ -227,7 +227,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -244,7 +243,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -266,7 +264,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -283,7 +280,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -306,7 +302,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -328,7 +323,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -346,7 +340,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.docker[0].id", is(1)))
                     .andExpect(jsonPath("$.data.mysql[0].id", is(1)))
-                    .andExpect(jsonPath("$.data.mysql[0].schema", is("service_management")))
+                    .andExpect(jsonPath("$.data.mysql[0].schemaName", is("service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].initFileName", is("init.sql")))
                     .andExpect(jsonPath("$.data.mysql[0].upgradeFileName", is("upgrade.sql")))
                     .andExpect(jsonPath("$.data.s3[0].id", is(1)))
@@ -354,7 +348,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -379,7 +372,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
