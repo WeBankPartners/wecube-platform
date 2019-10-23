@@ -1,10 +1,18 @@
 # WeCube
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![](https://img.shields.io/badge/language-java-orange.svg)
+![](https://img.shields.io/badge/language-vue-green.svg)
+
+中文 / [English](README_EN.md)
+
 ## 引言
 WeCube是一套开源的，一站式IT架构管理和运维管理工具，主要用于简化分布式架构IT管理，并可以通过插件进行功能扩展。
 
+
 ## 起源
 微众银行在分布式架构实践的过程中，发现将银行核心系统构建于分布式架构之上，会遇到一些与传统单体应用不同的痛点（例如，服务器增多，部署难度大；调用链长，全链路跟踪困难； 系统复杂，问题定位时间长等），在逐步解决这些痛点的过程中，总结了一套IT管理的方法论和最佳实践，并研发了与之配套的IT管理工具体系。WeCube就是将该套方法论和最佳实践，从微众内部众多IT管理工具体系中提炼出来，整合成一套开箱即用的IT管理解决方案。
+
 
 ## 设计理念
 ![WeCube设计理念](wecube-wiki/images/wecube_design.png) 
@@ -46,6 +54,7 @@ WeCube1.0版本已实现功能见下图：
 
 ### WeCube 2.0版本
 WeCube 2.0版本正在设计进行中， 敬请期待。
+
 
 ## 主要功能简介
 WeCube的功能菜单设计与设计理念保持一致。分别是任务、设计、执行、监测、智慧、调整、协同、系统。
@@ -113,25 +122,28 @@ WeCube采用容器化部署。
 如何安装WeCube， 请查看以下文档
 [WeCube部署文档](wecube-wiki/docs/install/wecube_install_guide.md)
 
+
 ## 用户手册
 更多关于WeCube的使用和操作说明， 请查看以下文档
 [WeCube用户手册](wecube-wiki/docs/manual/wecube_user_guide.md)
+
 
 ## 开发者文档
 WeCube使用Java和VUE进行开发，数据存储于MySQL，并依赖Tomcat Web容器运行。
 
 请参考以下文档进行开发环境配置[WeCube开发环境配置](wecube-wiki/docs/developer/wecube_developer_guide.md)
 
-## API说明
-更多关于WeCube的使用和操作说明， 请查看以下文档
-[WeCube API手册](wecube-wiki/docs/api/wecube_api_guide.md)
 
 ## License
-WeCube是基于 Apache License 2.0 协议， 详情请参考
-[LICENSE](LICENSE)
+WeCube是基于 Apache License 2.0 协议， 详情请参考 [LICENSE](LICENSE)
 
 
 ## 社区
-- 如果您想得到最快的响应，请给我们提issue。
-- 联系我们：fintech@webank.com
+- 如果您想得到最快的响应，请给我们提[Issue](https://github.com/WeBankPartners/wecube-platform/issues/new/choose)或扫描下面的二维码，我们会第一时间反馈。
 
+	<div align="left">
+	<img src="wecube-wiki/images/wecube_qr_code.png"  height="200" width="200">
+	</div>
+
+
+- 联系我们：fintech@webank.com
