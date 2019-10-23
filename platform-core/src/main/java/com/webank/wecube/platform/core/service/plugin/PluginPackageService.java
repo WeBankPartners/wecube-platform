@@ -101,7 +101,6 @@ public class PluginPackageService {
             log.info("keyname : {}", keyName);
             dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginDockerImageFile);
             log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl);
-            pluginPackage.setPluginPackageImageUrl(dockerImageUrl);
         }
 
         File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
@@ -111,8 +110,7 @@ public class PluginPackageService {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginUiPackageFile.getName();
             log.info("keyname : {}", keyName);
             uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
-            log.info("UI static package file has uploaded to MinIO {}", dockerImageUrl);
-            pluginPackage.setUiPackageUrl(uiPackageUrl);
+            log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl);
         }
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
