@@ -28,12 +28,6 @@ public class PluginPackage {
     @Column
     private String version;
 
-    @Column
-    private String pluginPackageImageUrl;
-
-    @Column
-    private String uiPackageUrl;
-
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageDependency> pluginPackageDependencies = new LinkedHashSet<>();
@@ -132,22 +126,6 @@ public class PluginPackage {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public String getPluginPackageImageUrl() {
-        return pluginPackageImageUrl;
-    }
-
-    public void setPluginPackageImageUrl(String pluginPackageImageUrl) {
-        this.pluginPackageImageUrl = pluginPackageImageUrl;
-    }
-
-    public String getUiPackageUrl() {
-        return uiPackageUrl;
-    }
-
-    public void setUiPackageUrl(String uiPackageUrl) {
-        this.uiPackageUrl = uiPackageUrl;
     }
 
     public Set<PluginPackageDependency> getPluginPackageDependencies() {
