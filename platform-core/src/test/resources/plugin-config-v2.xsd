@@ -151,7 +151,7 @@
             <xs:element type="inputParametersType" name="inputParameters" minOccurs="0"/>
             <xs:element type="outputParametersType" name="outputParameters" minOccurs="0"/>
         </xs:sequence>
-        <xs:attribute type="xs:string" name="name"/>
+        <xs:attribute type="xs:string" name="action"/>
         <xs:attribute type="xs:string" name="path"/>
         <xs:attribute type="xs:string" name="httpMethod"/>
     </xs:complexType>
