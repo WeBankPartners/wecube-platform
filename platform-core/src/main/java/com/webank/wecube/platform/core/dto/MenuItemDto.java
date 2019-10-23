@@ -25,7 +25,7 @@ public class MenuItemDto {
     public MenuItemDto() {
     }
 
-    public static MenuItemDto fromCoreMenuItem(MenuItem systemMenu) {
+    public static MenuItemDto fromSystemMenuItem(MenuItem systemMenu) {
         MenuItemDto pluginPackageMenuDto = new MenuItemDto();
         pluginPackageMenuDto.setId(systemMenu.getId());
         Integer category = systemMenu.getParentId();
