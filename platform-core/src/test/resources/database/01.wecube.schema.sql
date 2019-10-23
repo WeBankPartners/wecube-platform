@@ -160,3 +160,13 @@ create table plugin_instances (
   status varchar(50) not null,
   unique key (host,port)
 );
+
+drop table if exists menu_items;
+create table menu_items
+(
+    id          int auto_increment primary key,
+    parent_id   int,
+    code        varchar(50) not null,
+    description varchar(200),
+    unique key uk_code (code)
+);
