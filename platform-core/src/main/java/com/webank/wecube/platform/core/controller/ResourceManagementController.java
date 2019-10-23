@@ -24,7 +24,7 @@ import com.webank.wecube.platform.core.service.resource.ResourceManagementServic
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
 
 @RestController
-@RequestMapping("/resource")
+@RequestMapping("/v1/api/resource")
 public class ResourceManagementController {
 
     @Autowired
