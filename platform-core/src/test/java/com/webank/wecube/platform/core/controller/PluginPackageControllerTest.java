@@ -49,7 +49,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     public void getMyMenusShouldReturnSuccess(){
         final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 42;
         try {
-            mvc.perform(get("/v1/api/my_menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get("/v1/api/my-menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data", is(iterableWithSize(MENU_NUM_WITH_BOTH_SYS_AND_CORE))))

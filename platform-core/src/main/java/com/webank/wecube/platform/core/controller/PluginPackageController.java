@@ -43,7 +43,7 @@ public class PluginPackageController {
     @Autowired
     private PluginPackageValidator validator;
 
-    @GetMapping("/my_menus")
+    @GetMapping("/my-menus")
     @ResponseBody
     public JsonResponse getMyMenus() {
         List<PluginPackageMenuDto> allSysMenus = pluginPackageService.getAllSysMenus();
