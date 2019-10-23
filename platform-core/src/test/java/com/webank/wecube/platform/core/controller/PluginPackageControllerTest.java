@@ -235,6 +235,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Test
     public void getMenuByCorrectPackageIdShouldReturnSuccess() {
+        final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 44;
         try {
             uploadCorrectPackage();
         } catch (Exception ex) {
@@ -244,11 +245,8 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/api/packages/%s/menus", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
-                    .andExpect(jsonPath("$.data[*].code", contains("JOBS_SERVICE_CATALOG_MANAGEMENT", "JOBS_TASK_MANAGEMENT")))
-                    .andExpect(jsonPath("$.data[*].category", contains("JOBS", "JOBS")))
-                    .andExpect(jsonPath("$.data[*].displayName", contains("Servive Catalog Management", "Task Management")))
-                    .andExpect(jsonPath("$.data[*].path", contains("/service-catalog", "/task-management")))
+                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data", is(iterableWithSize(MENU_NUM_WITH_BOTH_SYS_AND_CORE))))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
