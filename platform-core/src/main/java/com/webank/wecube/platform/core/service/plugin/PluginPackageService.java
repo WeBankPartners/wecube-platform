@@ -1,13 +1,17 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
+import com.webank.wecube.platform.core.dto.PluginPackageMenuDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
@@ -46,6 +50,9 @@ public class PluginPackageService {
 
     @Autowired
     PluginPackageDependencyRepository pluginPackageDependencyRepository;
+
+    @Autowired
+    MenuItemRepository menuItemRepository;
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -240,9 +247,27 @@ public class PluginPackageService {
         return dependencyDto;
     }
 
-    public Set<PluginPackageMenu> getMenusById(Integer packageId) throws WecubeCoreException {
+    public List<PluginPackageMenuDto> getMenusById(Integer packageId) throws WecubeCoreException {
+        List<PluginPackageMenuDto> returnMenuDto = new ArrayList<>();
+
+        // handling core's menus
+        Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
+
+        for (MenuItem systemMenu : systemMenus) {
+            PluginPackageMenuDto systemMenuDto = PluginPackageMenuDto.fromCoreMenuItem(systemMenu);
+            returnMenuDto.add(systemMenuDto);
+        }
+
+        // handling package's menus
         PluginPackage packageFoundById = getPackageById(packageId);
-        return packageFoundById.getPluginPackageMenus();
+        Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
+
+        for (PluginPackageMenu packageMenu : packageMenus) {
+            PluginPackageMenuDto packageMenuDto = PluginPackageMenuDto.fromPackageMenuItem(packageMenu);
+            returnMenuDto.add(packageMenuDto);
+        }
+
+        return returnMenuDto;
     }
 
 
