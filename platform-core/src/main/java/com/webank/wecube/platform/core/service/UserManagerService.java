@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service;
 
-
 import static com.webank.wecube.platform.core.service.permission.CiTypePermissionUtil.evaluatePartialActionPermissions;
 import static com.webank.wecube.platform.core.service.permission.CiTypePermissionUtil.mergeActionPermissions;
 import static com.webank.wecube.platform.core.support.cmdb.dto.v2.CiTypePermissions.DISABLED;
@@ -12,6 +11,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -35,6 +35,7 @@ import com.webank.wecube.platform.core.domain.Role;
 import com.webank.wecube.platform.core.domain.RoleMenu;
 import com.webank.wecube.platform.core.domain.RoleUser;
 import com.webank.wecube.platform.core.domain.User;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.support.cmdb.CmdbServiceV2Stub;
 import com.webank.wecube.platform.core.support.cmdb.dto.v2.CiTypeAttrDto;
@@ -65,19 +66,23 @@ public class UserManagerService {
 
     @Autowired
     CmdbServiceV2Stub cmdbServiceStub;
-    
+
     public List<User> createUser(User user) {
-        if (user == null ) throw new WecubeCoreException("User parameter should not be null.");
-        if (user.getUsername() == null ) throw new WecubeCoreException("Username should not be null.");
-        if (user.getFullName() == null ) user.setFullName(user.getUsername());
-        if (user.getDescription() == null) user.setDescription(user.getFullName());
+        if (user == null)
+            throw new WecubeCoreException("User parameter should not be null.");
+        if (user.getUsername() == null)
+            throw new WecubeCoreException("Username should not be null.");
+        if (user.getFullName() == null)
+            user.setFullName(user.getUsername());
+        if (user.getDescription() == null)
+            user.setDescription(user.getFullName());
         if (checkUserExists(user.getUsername())) {
             throw new WecubeCoreException(String.format("Username[%s] already exists.", user.getUsername()));
         }
-        
+
         return cmdbServiceStub.createUsers(user);
     }
-    
+
     public boolean checkUserExists(String username) {
         return cmdbServiceStub.getUserByUsername(username) != null;
     }
@@ -85,13 +90,17 @@ public class UserManagerService {
     public void deleteRole(int roleId) {
         List<User> users = cmdbServiceStub.getUsersByRoleId(roleId);
         if (isNotEmpty(users))
-            throw new WecubeCoreException(String.format("Failed to delete role[%d] because it is used for User: %s", roleId, users.stream().map(User::getUsername).collect(Collectors.joining(","))));
+            throw new WecubeCoreException(String.format("Failed to delete role[%d] because it is used for User: %s",
+                    roleId, users.stream().map(User::getUsername).collect(Collectors.joining(","))));
         List<String> menuItems = getMenuItemsByRoleId(roleId);
         if (isNotEmpty(menuItems))
-            throw new WecubeCoreException(String.format("Failed to delete role[%d] because it is used for Menu: %s", roleId, menuItems));
+            throw new WecubeCoreException(
+                    String.format("Failed to delete role[%d] because it is used for Menu: %s", roleId, menuItems));
         List<RoleCiTypeDto> roleCiTypes = getRoleCiTypesByRoleId(roleId);
         if (isNotEmpty(roleCiTypes))
-            throw new WecubeCoreException(String.format("Failed to delete role[%d] because it is used for CiType: %s", roleId, roleCiTypes.stream().map(p -> String.valueOf(p.getCiTypeId())).collect(Collectors.joining(","))));
+            throw new WecubeCoreException(String.format("Failed to delete role[%d] because it is used for CiType: %s",
+                    roleId,
+                    roleCiTypes.stream().map(p -> String.valueOf(p.getCiTypeId())).collect(Collectors.joining(","))));
         cmdbServiceStub.deleteRoles(roleId);
     }
 
@@ -99,8 +108,19 @@ public class UserManagerService {
         return Lists.newArrayList(menuItemRepository.findAll());
     }
 
+    public List<MenuItemDto> getAllSysMenus() {
+        List<MenuItemDto> returnMenuDto = new ArrayList<>();
+        Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
+        for (MenuItem systemMenu : systemMenus) {
+            MenuItemDto systemMenuDto = MenuItemDto.fromCoreMenuItem(systemMenu);
+            returnMenuDto.add(systemMenuDto);
+        }
+        return returnMenuDto;
+    }
+
     public List<String> getMenuItemsByRoleId(int roleId) {
-        return menuItemRepository.findMenuItemsByRoles(roleId).stream().map(MenuItem::getCode).collect(Collectors.toList());
+        return menuItemRepository.findMenuItemsByRoles(roleId).stream().map(MenuItem::getCode)
+                .collect(Collectors.toList());
     }
 
     public List<String> getMenuItemCodesByUsername(String username) {
@@ -135,7 +155,8 @@ public class UserManagerService {
 
     public List<RoleCiTypeDto> getRoleCiTypesByRoleId(int roleId) {
         List<RoleCiTypeDto> roleCiTypes = cmdbServiceStub.getRoleCiTypeByRoleId(roleId);
-        if (roleCiTypes == null) roleCiTypes = Lists.newArrayList();
+        if (roleCiTypes == null)
+            roleCiTypes = Lists.newArrayList();
 
         List<CiTypeDto> allCiTypes = cmdbServiceStub.getAllCiTypes(false, null);
         if (isNotEmpty(allCiTypes) && roleCiTypes.size() < allCiTypes.size()) {
@@ -182,12 +203,17 @@ public class UserManagerService {
         RoleCiTypeDto roleCiType = cmdbServiceStub.getRoleCiTypeById(roleCiTypeId);
         if (roleCiType == null)
             throw new WecubeCoreException("CiType permission not found for roleCiTypeId:" + roleCiTypeId);
-        List<CiTypeAttrDto> accessControlAttributes = cmdbServiceStub.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
+        List<CiTypeAttrDto> accessControlAttributes = cmdbServiceStub
+                .getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
 
-        List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = cmdbServiceStub.getRoleCiTypeCtrlAttributesByRoleCiTypeId(roleCiTypeId);
+        List<RoleCiTypeCtrlAttrDto> roleCiTypeCtrlAttrs = cmdbServiceStub
+                .getRoleCiTypeCtrlAttributesByRoleCiTypeId(roleCiTypeId);
         List<Map<String, Object>> roleCiTypeCtrlAttrsModels;
         if (isNotEmpty(roleCiTypeCtrlAttrs)) {
-            roleCiTypeCtrlAttrsModels = roleCiTypeCtrlAttrs.stream().map(roleCiTypeCtrlAttr -> convertRoleCiTypeCtrlAttrDtoToMap(roleCiTypeCtrlAttr, accessControlAttributes)).collect(toList());
+            roleCiTypeCtrlAttrsModels = roleCiTypeCtrlAttrs.stream()
+                    .map(roleCiTypeCtrlAttr -> convertRoleCiTypeCtrlAttrDtoToMap(roleCiTypeCtrlAttr,
+                            accessControlAttributes))
+                    .collect(toList());
         } else {
             roleCiTypeCtrlAttrsModels = Lists.newArrayList();
         }
@@ -198,10 +224,12 @@ public class UserManagerService {
         return result;
     }
 
-    private Map<String, Object> convertRoleCiTypeCtrlAttrDtoToMap(RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr, List<CiTypeAttrDto> accessControlAttributes) {
+    private Map<String, Object> convertRoleCiTypeCtrlAttrDtoToMap(RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr,
+            List<CiTypeAttrDto> accessControlAttributes) {
         Map<String, Object> model = new LinkedHashMap<>();
         if (isNotEmpty(accessControlAttributes)) {
-            Map<Integer, RoleCiTypeCtrlAttrConditionDto> conditionMap = asMap(roleCiTypeCtrlAttr.getConditions(), RoleCiTypeCtrlAttrConditionDto::getCiTypeAttrId);
+            Map<Integer, RoleCiTypeCtrlAttrConditionDto> conditionMap = asMap(roleCiTypeCtrlAttr.getConditions(),
+                    RoleCiTypeCtrlAttrConditionDto::getCiTypeAttrId);
             accessControlAttributes.forEach(attr -> {
                 RoleCiTypeCtrlAttrConditionDto condition = conditionMap.get(attr.getCiTypeAttrId());
                 if (condition == null) {
@@ -231,24 +259,22 @@ public class UserManagerService {
         String conditionValue = condition.getConditionValue();
         if (!StringUtils.isEmpty(conditionValue)) {
             String inputType = attribute.getInputType();
-            if (InputType.DROPLIST.getCode().equals(inputType) || InputType.MULT_SEL_DROPLIST.getCode().equals(inputType)) {
+            if (InputType.DROPLIST.getCode().equals(inputType)
+                    || InputType.MULT_SEL_DROPLIST.getCode().equals(inputType)) {
                 List<Integer> codeIds;
                 if (conditionValue.contains(",")) {
-                    codeIds = Stream.of(conditionValue.split(","))
-                            .map(String::trim)
-                            .map(Integer::valueOf)
+                    codeIds = Stream.of(conditionValue.split(",")).map(String::trim).map(Integer::valueOf)
                             .collect(Collectors.toList());
                 } else {
                     codeIds = Lists.newArrayList(Integer.parseInt(conditionValue));
                 }
                 condition.setConditionValueObject(Lists.newArrayList(cmdbServiceStub.getEnumCodesByIds(codeIds)));
-            } else if (InputType.REFERENCE.getCode().equals(inputType) || InputType.MULT_REF.getCode().equals(inputType)) {
+            } else if (InputType.REFERENCE.getCode().equals(inputType)
+                    || InputType.MULT_REF.getCode().equals(inputType)) {
                 Integer targetCiTypeId = attribute.getReferenceId();
                 List<String> guidList;
                 if (conditionValue.contains(",")) {
-                    guidList = Stream.of(conditionValue.split(","))
-                            .map(String::trim)
-                            .collect(toList());
+                    guidList = Stream.of(conditionValue.split(",")).map(String::trim).collect(toList());
                 } else {
                     guidList = Lists.newArrayList(conditionValue);
                 }
@@ -259,7 +285,8 @@ public class UserManagerService {
         }
     }
 
-    private RoleCiTypeCtrlAttrDto convertMapToRoleCiTypeCtrlAttrDto(int roleCiTypeId, Map<String, Object> model, List<CiTypeAttrDto> accessControlAttributes) {
+    private RoleCiTypeCtrlAttrDto convertMapToRoleCiTypeCtrlAttrDto(int roleCiTypeId, Map<String, Object> model,
+            List<CiTypeAttrDto> accessControlAttributes) {
         RoleCiTypeCtrlAttrDto roleCiTypeCtrlAttr = new RoleCiTypeCtrlAttrDto();
         roleCiTypeCtrlAttr.setRoleCiTypeId(roleCiTypeId);
         if (model.containsKey(CONSTANT_ROLE_CI_TYPE_CTRL_ATTR_ID))
@@ -270,21 +297,25 @@ public class UserManagerService {
         if (model.containsKey(CONSTANT_REMOVAL_PERMISSION))
             roleCiTypeCtrlAttr.setRemovalPermission(checkPermission((String) model.get(CONSTANT_REMOVAL_PERMISSION)));
         if (model.containsKey(CONSTANT_MODIFICATION_PERMISSION))
-            roleCiTypeCtrlAttr.setModificationPermission(checkPermission((String) model.get(CONSTANT_MODIFICATION_PERMISSION)));
+            roleCiTypeCtrlAttr
+                    .setModificationPermission(checkPermission((String) model.get(CONSTANT_MODIFICATION_PERMISSION)));
         if (model.containsKey(CONSTANT_ENQUIRY_PERMISSION))
             roleCiTypeCtrlAttr.setEnquiryPermission(checkPermission((String) model.get(CONSTANT_ENQUIRY_PERMISSION)));
         if (model.containsKey(CONSTANT_GRANT_PERMISSION))
             roleCiTypeCtrlAttr.setGrantPermission(checkPermission((String) model.get(CONSTANT_GRANT_PERMISSION)));
         if (model.containsKey(CONSTANT_EXECUTION_PERMISSION))
-            roleCiTypeCtrlAttr.setExecutionPermission(checkPermission((String) model.get(CONSTANT_EXECUTION_PERMISSION)));
+            roleCiTypeCtrlAttr
+                    .setExecutionPermission(checkPermission((String) model.get(CONSTANT_EXECUTION_PERMISSION)));
 
-        if (model.containsKey(CONSTANT_CALLBACK_ID)) roleCiTypeCtrlAttr.setCallbackId(String.valueOf(model.get(CONSTANT_CALLBACK_ID)));
+        if (model.containsKey(CONSTANT_CALLBACK_ID))
+            roleCiTypeCtrlAttr.setCallbackId(String.valueOf(model.get(CONSTANT_CALLBACK_ID)));
 
         if (isNotEmpty(accessControlAttributes)) {
             accessControlAttributes.forEach(attr -> {
                 Map conditionModel = (Map) model.get(attr.getPropertyName());
                 if (conditionModel != null) {
-                    roleCiTypeCtrlAttr.getConditions().add(convertMapToRoleCiTypeCtrlAttrConditionDto(conditionModel, attr));
+                    roleCiTypeCtrlAttr.getConditions()
+                            .add(convertMapToRoleCiTypeCtrlAttrConditionDto(conditionModel, attr));
                 }
             });
         }
@@ -295,28 +326,38 @@ public class UserManagerService {
         return isTrue(permission) ? ENABLED : DISABLED;
     }
 
-    private RoleCiTypeCtrlAttrConditionDto convertMapToRoleCiTypeCtrlAttrConditionDto(Map model, CiTypeAttrDto ciTypeAttr) {
+    private RoleCiTypeCtrlAttrConditionDto convertMapToRoleCiTypeCtrlAttrConditionDto(Map model,
+            CiTypeAttrDto ciTypeAttr) {
         RoleCiTypeCtrlAttrConditionDto condition = new RoleCiTypeCtrlAttrConditionDto();
         condition.setCiTypeAttrId(ciTypeAttr.getCiTypeAttrId());
         condition.setCiTypeAttrName(ciTypeAttr.getName());
-        if (model.containsKey("conditionId")) condition.setConditionId((Integer) model.get("conditionId"));
-        if (model.containsKey("conditionValue")) condition.setConditionValue((String) model.get("conditionValue"));
-        if (model.containsKey(CONSTANT_CALLBACK_ID)) condition.setCallbackId(String.valueOf(model.get(CONSTANT_CALLBACK_ID)));
+        if (model.containsKey("conditionId"))
+            condition.setConditionId((Integer) model.get("conditionId"));
+        if (model.containsKey("conditionValue"))
+            condition.setConditionValue((String) model.get("conditionValue"));
+        if (model.containsKey(CONSTANT_CALLBACK_ID))
+            condition.setCallbackId(String.valueOf(model.get(CONSTANT_CALLBACK_ID)));
         return condition;
     }
 
-    public List<Map<String, Object>> createRoleCiTypeCtrlAttributes(int roleCiTypeId, List<Map<String, Object>> roleCiTypeCtrlAttributes) {
+    public List<Map<String, Object>> createRoleCiTypeCtrlAttributes(int roleCiTypeId,
+            List<Map<String, Object>> roleCiTypeCtrlAttributes) {
         RoleCiTypeDto roleCiType = cmdbServiceStub.getRoleCiTypeById(roleCiTypeId);
-        List<CiTypeAttrDto> accessControlAttributes = cmdbServiceStub.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
+        List<CiTypeAttrDto> accessControlAttributes = cmdbServiceStub
+                .getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
 
         List<Map<String, Object>> addedCtrlAttrDtos = Lists.newArrayList();
         if (isNotEmpty(roleCiTypeCtrlAttributes)) {
             roleCiTypeCtrlAttributes.forEach(roleCiTypeCtrlAttribute -> {
-                RoleCiTypeCtrlAttrDto ctrlAttrDto = convertMapToRoleCiTypeCtrlAttrDto(roleCiTypeId, roleCiTypeCtrlAttribute, accessControlAttributes);
+                RoleCiTypeCtrlAttrDto ctrlAttrDto = convertMapToRoleCiTypeCtrlAttrDto(roleCiTypeId,
+                        roleCiTypeCtrlAttribute, accessControlAttributes);
                 RoleCiTypeCtrlAttrDto addedCtrlAttr = cmdbServiceStub.createRoleCiTypeCtrlAttribute(ctrlAttrDto);
                 if (isNotEmpty(ctrlAttrDto.getConditions())) {
-                    ctrlAttrDto.getConditions().forEach(condition -> condition.setRoleCiTypeCtrlAttrId(addedCtrlAttr.getRoleCiTypeCtrlAttrId()));
-                    List<RoleCiTypeCtrlAttrConditionDto> addedConditions = cmdbServiceStub.createRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions().toArray(new RoleCiTypeCtrlAttrConditionDto[ctrlAttrDto.getConditions().size()]));
+                    ctrlAttrDto.getConditions().forEach(
+                            condition -> condition.setRoleCiTypeCtrlAttrId(addedCtrlAttr.getRoleCiTypeCtrlAttrId()));
+                    List<RoleCiTypeCtrlAttrConditionDto> addedConditions = cmdbServiceStub
+                            .createRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions()
+                                    .toArray(new RoleCiTypeCtrlAttrConditionDto[ctrlAttrDto.getConditions().size()]));
                     addedCtrlAttr.setConditions(addedConditions);
                 }
                 addedCtrlAttrDtos.add(convertRoleCiTypeCtrlAttrDtoToMap(addedCtrlAttr, accessControlAttributes));
@@ -325,18 +366,24 @@ public class UserManagerService {
         return addedCtrlAttrDtos;
     }
 
-    public List<Map<String, Object>> updateRoleCiTypeCtrlAttributes(int roleCiTypeId, List<Map<String, Object>> roleCiTypeCtrlAttributes) {
+    public List<Map<String, Object>> updateRoleCiTypeCtrlAttributes(int roleCiTypeId,
+            List<Map<String, Object>> roleCiTypeCtrlAttributes) {
         RoleCiTypeDto roleCiType = cmdbServiceStub.getRoleCiTypeById(roleCiTypeId);
-        List<CiTypeAttrDto> accessControlAttributes = cmdbServiceStub.getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
+        List<CiTypeAttrDto> accessControlAttributes = cmdbServiceStub
+                .getCiTypeAccessControlAttributesByCiTypeId(roleCiType.getCiTypeId());
 
         List<Map<String, Object>> updateCtrlAttrDtos = Lists.newArrayList();
         if (isNotEmpty(roleCiTypeCtrlAttributes)) {
             roleCiTypeCtrlAttributes.forEach(roleCiTypeCtrlAttribute -> {
-                RoleCiTypeCtrlAttrDto ctrlAttrDto = convertMapToRoleCiTypeCtrlAttrDto(roleCiTypeId, roleCiTypeCtrlAttribute, accessControlAttributes);
+                RoleCiTypeCtrlAttrDto ctrlAttrDto = convertMapToRoleCiTypeCtrlAttrDto(roleCiTypeId,
+                        roleCiTypeCtrlAttribute, accessControlAttributes);
                 RoleCiTypeCtrlAttrDto updatedCtrlAttr = cmdbServiceStub.updateRoleCiTypeCtrlAttribute(ctrlAttrDto);
                 if (isNotEmpty(ctrlAttrDto.getConditions())) {
-                    ctrlAttrDto.getConditions().forEach(condition -> condition.setRoleCiTypeCtrlAttrId(updatedCtrlAttr.getRoleCiTypeCtrlAttrId()));
-                    List<RoleCiTypeCtrlAttrConditionDto> updatedConditions = cmdbServiceStub.updateRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions().toArray(new RoleCiTypeCtrlAttrConditionDto[ctrlAttrDto.getConditions().size()]));
+                    ctrlAttrDto.getConditions().forEach(
+                            condition -> condition.setRoleCiTypeCtrlAttrId(updatedCtrlAttr.getRoleCiTypeCtrlAttrId()));
+                    List<RoleCiTypeCtrlAttrConditionDto> updatedConditions = cmdbServiceStub
+                            .updateRoleCiTypeCtrlAttrConditions(ctrlAttrDto.getConditions()
+                                    .toArray(new RoleCiTypeCtrlAttrConditionDto[ctrlAttrDto.getConditions().size()]));
                     updatedCtrlAttr.setConditions(updatedConditions);
                 }
                 updateCtrlAttrDtos.add(convertRoleCiTypeCtrlAttrDtoToMap(updatedCtrlAttr, accessControlAttributes));
@@ -347,7 +394,8 @@ public class UserManagerService {
 
     public void grantRoleForUsers(int roleId, List<String> userIds) {
         if (isNotEmpty(userIds)) {
-            cmdbServiceStub.createRoleUsers(userIds.stream().map(u -> new RoleUser(roleId, u)).toArray(RoleUser[]::new));
+            cmdbServiceStub
+                    .createRoleUsers(userIds.stream().map(u -> new RoleUser(roleId, u)).toArray(RoleUser[]::new));
         } else {
             log.info("Do nothing due to userIds is empty.");
         }
@@ -355,13 +403,13 @@ public class UserManagerService {
 
     public void revokeRoleForUsers(int roleId, List<String> userIds) {
         if (isNotEmpty(userIds)) {
-            List<RoleUser> roleUsers = cmdbServiceStub.getRoleUsers(defaultQueryObject()
-                    .addEqualsFilter("roleId", roleId)
-                    .addInFilter("userId", userIds));
+            List<RoleUser> roleUsers = cmdbServiceStub.getRoleUsers(
+                    defaultQueryObject().addEqualsFilter("roleId", roleId).addInFilter("userId", userIds));
             if (isEmpty(roleUsers)) {
                 log.warn("Nothing to delete because no permission found for role {} and userIds {}", roleId, userIds);
             } else {
-                cmdbServiceStub.deleteRoleUsers(roleUsers.stream().map(RoleUser::getRoleUserId).toArray(Integer[]::new));
+                cmdbServiceStub
+                        .deleteRoleUsers(roleUsers.stream().map(RoleUser::getRoleUserId).toArray(Integer[]::new));
             }
         } else {
             log.info("Nothing to delete because userIds is empty.");
@@ -378,7 +426,8 @@ public class UserManagerService {
 
     private void assignMenuPermissionForRole(int roleId, String menuCode) {
         MenuItem menuItem = menuItemRepository.findByCode(menuCode);
-        if (menuItem == null) throw new WecubeCoreException("Unknown menu code " + menuCode);
+        if (menuItem == null)
+            throw new WecubeCoreException("Unknown menu code " + menuCode);
         RoleMenu roleMenu = new RoleMenu();
         roleMenu.setMenuItem(menuItem);
         roleMenu.setRoleId(roleId);
@@ -396,9 +445,10 @@ public class UserManagerService {
 
     private void removeMenuPermissionForRole(int roleId, String menuCode) {
         MenuItem menuItem = menuItemRepository.findByCode(menuCode);
-        if (menuItem == null) throw new WecubeCoreException("Unknown menu code " + menuCode);
+        if (menuItem == null)
+            throw new WecubeCoreException("Unknown menu code " + menuCode);
         if (roleId == 1 && "ADMIN_PERMISSION_MANAGEMENT".equals(menuCode))
-        	   throw new WecubeCoreException("Cannot be deleted as this is Admin permission menu.");
+            throw new WecubeCoreException("Cannot be deleted as this is Admin permission menu.");
         if (menuItem.getAssignedRoles() != null) {
             menuItem.getAssignedRoles().removeIf(roleMenu -> roleMenu.getRoleId().equals(roleId));
         }
@@ -408,7 +458,8 @@ public class UserManagerService {
     public void assignCiTypePermissionForRole(int roleId, int ciTypeId, String actionCode) {
         RoleCiTypeDto roleCiType = cmdbServiceStub.getRoleCiTypeByRoleIdAndCiTypeId(roleId, ciTypeId);
         if (roleCiType == null) {
-            throw new WecubeCoreException(String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId));
+            throw new WecubeCoreException(
+                    String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId));
         } else {
             roleCiType.enableActionPermission(actionCode);
             cmdbServiceStub.updateRoleCiTypes(roleCiType);
@@ -418,7 +469,8 @@ public class UserManagerService {
     public void removeCiTypePermissionForRole(int roleId, int ciTypeId, String actionCode) {
         RoleCiTypeDto roleCiType = cmdbServiceStub.getRoleCiTypeByRoleIdAndCiTypeId(roleId, ciTypeId);
         if (roleCiType == null) {
-            throw new WecubeCoreException(String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId));
+            throw new WecubeCoreException(
+                    String.format("Permission for role[%d] ciType[%d] not found.", roleId, ciTypeId));
         } else {
             roleCiType.disableActionPermission(actionCode);
             cmdbServiceStub.updateRoleCiTypes(roleCiType);
@@ -431,6 +483,5 @@ public class UserManagerService {
             return o1.getCiTypeId().compareTo(o2.getCiTypeId());
         }
     }
-
 
 }
