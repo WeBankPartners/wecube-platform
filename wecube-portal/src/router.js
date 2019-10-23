@@ -126,6 +126,13 @@ let router = new Router({
           path: "/implementation/workflow-execution",
           name: "workflowExecution",
           component: () => import("@/pages/implementation/workflow-execution")
+        },
+        ,
+        {
+          path: "/implementation/workflow-execution-new",
+          name: "workflowExecution-new",
+          component: () =>
+            import("@/pages/implementation/workflow-execution-new")
         }
       ]
     },
