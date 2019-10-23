@@ -106,9 +106,11 @@ public class ApplicationProperties {
         private String[] pluginHosts;
         private String pluginPackageBucketName;
         private String registerFile;
+        private String imageFile;
+        private String uiFile;
         private String pluginPackageNameOfDeploy;
-        private String defaultHostSshUser;
-        private String defaultHostSshPassword;
+//        private String defaultHostSshUser;
+//        private String defaultHostSshPassword;
         private Integer defaultHostSshPort;
     }
 

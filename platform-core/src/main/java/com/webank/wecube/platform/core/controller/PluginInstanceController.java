@@ -42,8 +42,7 @@ public class PluginInstanceController {
             @PathVariable(value = "host-ip") String hostIp, @PathVariable(value = "port") int port,
             @RequestBody CreateInstanceDto createContainerParameters) {
         try {
-            pluginInstanceService.createPluginInstance(packageId, hostIp, port,
-                    createContainerParameters.getAdditionalCreateContainerParameters());
+            pluginInstanceService.launchPluginInstance(packageId, hostIp, port);
         } catch (Exception e) {
             throw new WecubeCoreException("Create plugin package instance failed. Error is " + e.getMessage());
         }

@@ -68,15 +68,13 @@ wecube:
       max-total-connections: 200
 
     plugin:
-      plugin-deploy-path: /opt/
-      plugin-hosts: 10.0.0.1, 10.0.0.2, 10.0.0.3
+      plugin-deploy-path: /opt
       plugin-package-bucket-name: wecube-plugin-package-bucket
       register-file: register.xml
-      default-host-ssh-user: ssh-user
-      default-host-ssh-password: ssh-password
-      default-host-ssh-port: 22
-      configPath: /home/app/wecube-plugins/conf
-      logPath: /home/app/wecube-plugins/logs
+      image-file: image.tar
+      ui-file: ui.zip
+      init-db-sql: init.sql
+      upgrade-db-sql: upgrade.sql
 
     s3:
       endpoint: http://s3-server:9000
