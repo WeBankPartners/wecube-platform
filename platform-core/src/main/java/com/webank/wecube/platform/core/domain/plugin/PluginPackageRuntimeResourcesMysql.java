@@ -19,7 +19,7 @@ public class PluginPackageRuntimeResourcesMysql {
     private PluginPackage pluginPackage;
 
     @Column
-    private String schema;
+    private String schemaName;
 
     @Column
     private String initFileName;
@@ -43,12 +43,12 @@ public class PluginPackageRuntimeResourcesMysql {
         this.pluginPackage = pluginPackage;
     }
 
-    public String getSchema() {
-        return schema;
+    public String getSchemaName() {
+        return schemaName;
     }
 
-    public void setSchema(String schema) {
-        this.schema = schema;
+    public void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
     }
 
     public String getInitFileName() {
@@ -71,10 +71,10 @@ public class PluginPackageRuntimeResourcesMysql {
         super();
     }
 
-    public PluginPackageRuntimeResourcesMysql(Integer id, PluginPackage pluginPackage, String schema, String initFileName, String upgradeFileName) {
+    public PluginPackageRuntimeResourcesMysql(Integer id, PluginPackage pluginPackage, String schemaName, String initFileName, String upgradeFileName) {
         this.id = id;
         this.pluginPackage = pluginPackage;
-        this.schema = schema;
+        this.schemaName = schemaName;
         this.initFileName = initFileName;
         this.upgradeFileName = upgradeFileName;
     }
