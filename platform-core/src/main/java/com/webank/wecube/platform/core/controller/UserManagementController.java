@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-@RequestMapping("/admin")
+@RequestMapping("/v1/api/admin")
 //@RolesAllowed({MENU_ADMIN_PERMISSION_MANAGEMENT})
 public class UserManagementController {
 
