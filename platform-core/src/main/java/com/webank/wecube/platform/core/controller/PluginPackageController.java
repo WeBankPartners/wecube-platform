@@ -63,7 +63,7 @@ public class PluginPackageController {
     @GetMapping("/packages")
     @ResponseBody
     public JsonResponse getAllPluginPackages() {
-        Iterable<PluginPackage> pluginPackages = pluginConfigService.getPluginPackages();
+        Iterable<PluginPackage> pluginPackages = pluginPackageService.getPluginPackages();
         return okayWithData(pluginPackages);
     }
 

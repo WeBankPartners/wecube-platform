@@ -4,8 +4,6 @@ CREATE TABLE `plugin_packages` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(50) NOT NULL,
 	`version` VARCHAR(20) NOT NULL,
-	`plugin_package_image_url` VARCHAR(256) NOT NULL,
-	`ui_package_url` VARCHAR(256),
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `name` (`name`, `version`)
 );
@@ -99,7 +97,7 @@ drop table if exists plugin_package_runtime_resources_mysql;
 create table plugin_package_runtime_resources_mysql (
   id int auto_increment primary key,
   plugin_package_id int(11) not null,
-  schema varchar(128) not null,
+  schema_name varchar(128) not null,
   init_file_name varchar(256),
   upgrade_file_name varchar(256),
   PRIMARY KEY (`id`)
