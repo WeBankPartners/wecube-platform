@@ -14,10 +14,6 @@ import java.util.Set;
 @Entity
 @Table(name = "plugin_packages")
 public class PluginPackage {
-    @JsonIgnore
-    private static final String DOCKER_IMAGE_FILE_NAME = "image.tar";
-    @JsonIgnore
-    private static final String UI_ZIP_FILE_NAME = "ui.zip";
     @Id
     @GeneratedValue
     private Integer id;
@@ -29,10 +25,10 @@ public class PluginPackage {
     private String version;
 
     @Column
-    private String pluginPackageImageUrl;
+    private String imageS3KeyName;
 
     @Column
-    private String uiPackageUrl;
+    private String uiS3KeyName;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -84,18 +80,16 @@ public class PluginPackage {
         this.pluginInstances.add(pluginInstance);
     }
 
-    public String getDockerImageFilename() {
-        return DOCKER_IMAGE_FILE_NAME;
-    }
-
-    public String getUiPackageFilename() {
-        return UI_ZIP_FILE_NAME;
-    }
-
     public PluginPackage() {
     }
 
-    public PluginPackage(Integer id, String name, String version, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginInstance> pluginInstances) {
+    public PluginPackage(Integer id, String name, String version,
+            Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus,
+            Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities,
+            Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker,
+            Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql,
+            Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs,
+            Set<PluginInstance> pluginInstances) {
         this.id = id;
         this.name = name;
         this.version = version;
@@ -134,20 +128,20 @@ public class PluginPackage {
         this.version = version;
     }
 
-    public String getPluginPackageImageUrl() {
-        return pluginPackageImageUrl;
+    public String getImageS3KeyName() {
+        return imageS3KeyName;
     }
 
-    public void setPluginPackageImageUrl(String pluginPackageImageUrl) {
-        this.pluginPackageImageUrl = pluginPackageImageUrl;
+    public void setImageS3KeyName(String imageS3KeyName) {
+        this.imageS3KeyName = imageS3KeyName;
     }
 
-    public String getUiPackageUrl() {
-        return uiPackageUrl;
+    public String getUiS3KeyName() {
+        return uiS3KeyName;
     }
 
-    public void setUiPackageUrl(String uiPackageUrl) {
-        this.uiPackageUrl = uiPackageUrl;
+    public void setUiS3KeyName(String uiS3KeyName) {
+        this.uiS3KeyName = uiS3KeyName;
     }
 
     public Set<PluginPackageDependency> getPluginPackageDependencies() {
@@ -194,7 +188,8 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesDocker;
     }
 
-    public void setPluginPackageRuntimeResourcesDocker(Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker) {
+    public void setPluginPackageRuntimeResourcesDocker(
+            Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker) {
         this.pluginPackageRuntimeResourcesDocker = pluginPackageRuntimeResourcesDocker;
     }
 
@@ -202,7 +197,8 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesMysql;
     }
 
-    public void setPluginPackageRuntimeResourcesMysql(Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql) {
+    public void setPluginPackageRuntimeResourcesMysql(
+            Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql) {
         this.pluginPackageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysql;
     }
 
@@ -210,7 +206,8 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesS3;
     }
 
-    public void setPluginPackageRuntimeResourcesS3(Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3) {
+    public void setPluginPackageRuntimeResourcesS3(
+            Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3) {
         this.pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3;
     }
 
