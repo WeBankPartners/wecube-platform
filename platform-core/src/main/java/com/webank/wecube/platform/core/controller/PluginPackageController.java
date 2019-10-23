@@ -6,6 +6,7 @@ import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
+import com.webank.wecube.platform.core.dto.PluginPackageMenuDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import java.util.List;
 import java.util.Set;
 
 import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
@@ -80,13 +82,13 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/menus")
     @ResponseBody
     public JsonResponse getMenusById(@PathVariable(value = "id") Integer packageId) {
-        Set<PluginPackageMenu> menuSet;
+        List<PluginPackageMenuDto> menuList;
         try {
-            menuSet = pluginPackageService.getMenusById(packageId);
+            menuList = pluginPackageService.getMenusById(packageId);
         } catch (WecubeCoreException ex) {
             return error(ex.getMessage());
         }
-        return okayWithData(menuSet);
+        return okayWithData(menuList);
     }
 
     @GetMapping("/packages/{id}/system_parameters")
