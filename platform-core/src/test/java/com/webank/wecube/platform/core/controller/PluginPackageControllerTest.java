@@ -46,6 +46,22 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void getMyMenusShouldReturnSuccess(){
+        final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 42;
+        try {
+            mvc.perform(get("/v1/api/my_menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data", is(iterableWithSize(MENU_NUM_WITH_BOTH_SYS_AND_CORE))))
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
     public void givenZeroPluginPackageWhenQueryAllThenReturnSuccessWithZeroPluginPackage() {
         try {
             mvc.perform(get("/v1/api/packages").contentType(MediaType.APPLICATION_JSON).content("{}"))
