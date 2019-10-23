@@ -43,6 +43,13 @@ public class PluginPackageController {
     @Autowired
     private PluginPackageValidator validator;
 
+    @GetMapping("/my_menus")
+    @ResponseBody
+    public JsonResponse getMyMenus() {
+        List<PluginPackageMenuDto> allSysMenus = pluginPackageService.getAllSysMenus();
+        return okayWithData(allSysMenus);
+    }
+
     @PostMapping("/packages")
     @ResponseBody
     public JsonResponse uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file) throws Exception {

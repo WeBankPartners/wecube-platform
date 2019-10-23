@@ -248,15 +248,11 @@ public class PluginPackageService {
     }
 
     public List<PluginPackageMenuDto> getMenusById(Integer packageId) throws WecubeCoreException {
-        List<PluginPackageMenuDto> returnMenuDto = new ArrayList<>();
+        List<PluginPackageMenuDto> returnMenuDto;
 
         // handling core's menus
-        Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
-
-        for (MenuItem systemMenu : systemMenus) {
-            PluginPackageMenuDto systemMenuDto = PluginPackageMenuDto.fromCoreMenuItem(systemMenu);
-            returnMenuDto.add(systemMenuDto);
-        }
+        List<PluginPackageMenuDto> allSysMenus = getAllSysMenus();
+        returnMenuDto = new ArrayList<>(allSysMenus);
 
         // handling package's menus
         PluginPackage packageFoundById = getPackageById(packageId);
@@ -292,6 +288,19 @@ public class PluginPackageService {
     public Set<PluginConfig> getPluginsById(Integer packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         return packageFoundById.getPluginConfigs();
+    }
+
+    public List<PluginPackageMenuDto> getAllSysMenus() {
+        List<PluginPackageMenuDto> returnMenuDto = new ArrayList<>();
+
+        // handling core's menus
+        Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
+
+        for (MenuItem systemMenu : systemMenus) {
+            PluginPackageMenuDto systemMenuDto = PluginPackageMenuDto.fromCoreMenuItem(systemMenu);
+            returnMenuDto.add(systemMenuDto);
+        }
+        return returnMenuDto;
     }
 
     private void updateDependencyDto(PluginPackageDependency pluginPackageDependency, PluginPackageDependencyDto pluginPackageDependencyDto) {
