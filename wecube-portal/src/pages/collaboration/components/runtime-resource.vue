@@ -3,20 +3,20 @@
     <Collapse :value="[1, 2, 3]">
       <Panel name="1">
         <span style="font-size: 12px">运行容器</span>
-        <p slot="content">
-          {{ data.docker }}
+        <p slot="content" v-for="(item, index) in data.docker" :key="index">
+          {{ index + 1 + ": " + JSON.stringify(item) }}
         </p>
       </Panel>
       <Panel name="2">
         <span style="font-size: 12px">数据库</span>
-        <p slot="content">
-          {{ data.mysql }}
+        <p slot="content" v-for="(item, index) in data.mysql" :key="index">
+          {{ index + 1 + ": " + JSON.stringify(item) }}
         </p>
       </Panel>
       <Panel name="3">
         <span style="font-size: 12px">对象存储</span>
-        <p slot="content">
-          {{ data.s3 }}
+        <p slot="content" v-for="(item, index) in data.s3" :key="index">
+          {{ index + 1 + ": " + JSON.stringify(item) }}
         </p>
       </Panel>
     </Collapse>
@@ -50,8 +50,7 @@ export default {
   },
   methods: {
     async getData() {
-      // let { status, data, message } = await getRuntimeResource(this.pkgId);
-      let { status, data, message } = await getRuntimeResource(1);
+      let { status, data, message } = await getRuntimeResource(this.pkgId);
       if (status === "OK") {
         this.data = data;
       }
