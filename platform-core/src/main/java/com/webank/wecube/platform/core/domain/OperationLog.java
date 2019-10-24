@@ -12,7 +12,7 @@ import javax.persistence.*;
 @ToString
 public class OperationLog implements Serializable {
     private static final long serialVersionUID = 1L;
-    private String id;
+    private Integer id;
     private String operator;
     private Timestamp operateTime;
     private String category;
@@ -23,11 +23,11 @@ public class OperationLog implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public String getId() {
+    public Integer getId() {
         return this.id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
