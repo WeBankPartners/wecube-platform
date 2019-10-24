@@ -2,7 +2,7 @@
   <div>
     <Row>
       <Col span="6">
-        <span style="margin-right: 10px">根CI类型</span>
+        <span style="margin-right: 10px">{{ $t("root_ci_type") }}</span>
         <Select
           v-model="selectedCI.id"
           filterable
@@ -18,7 +18,9 @@
         </Select>
       </Col>
       <Col span="10" offset="1">
-        <span style="margin-right: 10px">综合查询名称</span>
+        <span style="margin-right: 10px">{{
+          $t("comprehensive_query_name")
+        }}</span>
         <Select
           v-model="selectedQuery.id"
           filterable
@@ -55,18 +57,20 @@
         <Button
           :disabled="!isNewIntQuery"
           @click="newGraphNameModalVisible = true"
-          >创建</Button
+          >{{ $t("create") }}</Button
         >
-        <Button :disabled="saveBtnDisable || isNewIntQuery" @click="saveGraph"
-          >更新</Button
+        <Button
+          :disabled="saveBtnDisable || isNewIntQuery"
+          @click="saveGraph"
+          >{{ $t("update") }}</Button
         >
         <Modal
           v-model="newGraphNameModalVisible"
-          title="添加综合查询接口名称"
+          :title="$t('add_integrated_query_interface_name')"
           @on-ok="saveGraph"
           @on-cancel="() => {}"
         >
-          <Input v-model="newGraphName" placeholder="请输入" />
+          <Input v-model="newGraphName" :placeholder="$t('please_input')" />
         </Modal>
       </Col>
     </Row>
@@ -302,9 +306,9 @@ export default {
     },
     async deleteIntQuery(item) {
       this.$Modal.confirm({
-        title: "综合查询删除",
+        title: this.$t("integrated_query_deletion"),
         "z-index": 1000000,
-        content: "<p>确认删除 ?</p>",
+        content: `<p>${this.$t("confirm_to_delete")}</p>`,
         onOk: async () => {
           const { status, data, message } = await deleteIntQuery(
             this.selectedCI.id,
@@ -338,16 +342,24 @@ export default {
     },
     async saveGraph() {
       const reqData = this.treeifyCiTypes();
-      const { status, data, message } = this.isNewIntQuery
-        ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
-        : await updateIntQuery(this.selectedQuery.id, reqData);
-      if (status === "OK") {
-        this.$Notice.success({
-          title: "Success",
-          desc: message
+      if (!reqData) {
+        this.$Notice.warning({
+          title: "Warning",
+          desc: "不合理的综合查询，请选择CI属性或引用关系"
         });
-        if (this.isNewIntQuery) {
-          this.getQueryNameList(this.selectedCI.id);
+        return;
+      } else {
+        const { status, data, message } = this.isNewIntQuery
+          ? await saveIntQuery(this.selectedCI.id, this.newGraphName, reqData)
+          : await updateIntQuery(this.selectedQuery.id, reqData);
+        if (status === "OK") {
+          this.$Notice.success({
+            title: "Success",
+            desc: message
+          });
+          if (this.isNewIntQuery) {
+            this.getQueryNameList(this.selectedCI.id);
+          }
         }
       }
     },
