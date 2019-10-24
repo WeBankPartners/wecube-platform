@@ -31,8 +31,7 @@ export default {
   },
   methods: {
     async getData() {
-      // let { status, data, message } = await getPluginPkgDataModel(this.pkgId);
-      let { status, data, message } = await getPluginPkgDataModel(2);
+      let { status, data, message } = await getPluginPkgDataModel(this.pkgId);
       if (status === "OK") {
         this.data = data.map(_ => {
           return {
@@ -108,7 +107,7 @@ export default {
         let graph;
         graph = d3.select(`#data-model-graph`);
         graph.on("dblclick.zoom", null);
-        this.graph.graphviz = graph.graphviz().zoom(false);
+        this.graph.graphviz = graph.graphviz().zoom(true);
       };
 
       initEvent();
