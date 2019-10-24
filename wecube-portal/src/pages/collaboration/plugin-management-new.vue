@@ -10,12 +10,12 @@
             name="zip-file"
             :on-success="onSuccess"
             :on-error="onError"
-            action="/plugin/upload"
+            action="v1/api/packages"
             :headers="setUploadActionHeader"
           >
-            <Button icon="ios-cloud-upload-outline">{{
-              $t("upload_plugin_btn")
-            }}</Button>
+            <Button icon="ios-cloud-upload-outline">
+              {{ $t("upload_plugin_btn") }}
+            </Button>
           </Upload>
         </Card>
       </Row>
@@ -23,7 +23,8 @@
         <Card dis-hover>
           <p slot="title">{{ $t("plugins_list") }}</p>
           <div style="height: 70%; overflow: auto">
-            <Collapse accordion @on-change="pluginPackageChangeHandler">
+            <span v-if="plugins.length < 1">暂无插件包</span>
+            <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
               <Panel
                 :name="plugin.id + ''"
                 v-for="plugin in plugins"
@@ -290,7 +291,8 @@ import {
   releasePluginConfig,
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
-  preconfigurePluginPackage
+  preconfigurePluginPackage,
+  deletePluginPkg
 } from "@/api/server.js";
 
 const innerActions = [
@@ -413,17 +415,25 @@ export default {
       dbQueryColumns: [],
       dbQueryData: [],
       storageServiceColumns,
-      storageServiceData: []
+      storageServiceData: [],
+      defaultCreateParams: "",
+      selectHosts: [],
+      availiableHostsWithPort: []
     };
   },
   methods: {
     async onSuccess(response, file, filelist) {
-      this.$Notice.success({
-        title: "Success",
-        desc: response.message || ""
-      });
       if (response.status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: response.message || ""
+        });
         this.getAllPluginPkgs();
+      } else {
+        this.$Notice.warning({
+          title: "Warning",
+          desc: response.message || ""
+        });
       }
     },
     onError(error, file, filelist) {
@@ -436,7 +446,49 @@ export default {
       this.isShowConfigPanel = isShowConfigPanel;
       this.isShowRuntimeManagementPanel = !isShowConfigPanel;
     },
-    deletePlugin(packageId) {},
+    async createPluginInstanceByPackageIdAndHostIp(ip, port, createParams) {
+      let errorFlag = false;
+      if (createParams.indexOf("{{") >= 0 || createParams.indexOf("}}") >= 0) {
+        this.$Notice.warning({
+          title: "Warning",
+          desc:
+            this.$t("replace_key_in_params") +
+            "(" +
+            this.$t("for_example") +
+            "：{{parameter}}）"
+        });
+        errorFlag = true;
+      }
+      if (errorFlag) return;
+      this.isLoading = true;
+      const payload = {
+        additionalCreateContainerParameters: createParams
+      };
+      const {
+        data,
+        status,
+        message
+      } = await createPluginInstanceByPackageIdAndHostIp(
+        this.currentPlugin.id,
+        ip,
+        port,
+        payload
+      );
+      if (status === "OK") {
+        this.getAllInstancesByPackageId(this.currentPackageId);
+      }
+      this.isLoading = false;
+    },
+    async deletePlugin(packageId) {
+      let { status, data, message } = await deletePluginPkg(packageId);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message || ""
+        });
+        this.getAllPluginPkgs();
+      }
+    },
     configPlugin(packageId) {
       this.swapPanel(true);
       this.currentPlugin = this.plugins.find(_ => _.id === packageId);
@@ -449,6 +501,10 @@ export default {
       let currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
       this.currentPlugin = currentPlugin;
+      let { status, data, message } = await getPluginInterfaces(packageId);
+      if (status === "OK") {
+        this.defaultCreateParams = currentPlugin.containerStartParam;
+      }
 
       if (currentPlugin.pluginConfigs) {
         this.selectHosts = [];
@@ -504,12 +560,47 @@ export default {
             port: data,
             createParams: this.defaultCreateParams
           });
+
+          console.log(
+            "this.availiableHostsWithPort",
+            this.availiableHostsWithPort
+          );
         }
       });
     },
     handleSubmit(data) {
       this.searchFilters = data;
       this.getTableData();
+    },
+    async getTableData() {
+      if (this.searchFilters.length < 2) return;
+      const payload = {
+        instanceIds: this.searchFilters[0].value,
+        pluginRequest: {
+          inputs: [
+            {
+              key_word: this.searchFilters[1].value
+            }
+          ]
+        }
+      };
+      let { status, data, message } = await queryLog(payload);
+      if (status === "OK") {
+        for (let i in data) {
+          let arr = [];
+          this.totalTableData = arr.concat(
+            data[i].outputs.map(_ => {
+              return {
+                instance: this.allInstances.find(j => j.id === +i).displayLabel,
+                instanceId: i,
+                ..._
+              };
+            })
+          );
+        }
+
+        this.handlePaginationByFE();
+      }
     },
     pageChange(current) {
       this.pagination.currentPage = current;

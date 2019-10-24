@@ -31,8 +31,7 @@ export default {
   },
   methods: {
     async getData() {
-      // let { status, data, message } = await getPluginPkgDataModel(this.pkgId);
-      let { status, data, message } = await getAuthSettings(3);
+      let { status, data, message } = await getAuthSettings(this.pkgId);
 
       if (status === "OK") {
         let allRoles = [];

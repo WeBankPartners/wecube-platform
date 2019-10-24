@@ -37,35 +37,36 @@ export default {
           if (i.dependencies) {
             this.data.push({
               ...i,
-              id: i.plugin_package,
+              id: i.packageName,
               tos: i.dependencies.map(j => {
-                return { ...j, id: j.plugin_package };
+                return { ...j, id: j.packageName };
               }),
               bys: []
             });
             i.dependencies.forEach(d => {
               this.data.push({
                 ...d,
-                id: d.plugin_package,
+                id: d.packageName,
                 tos: [],
                 bys: []
               });
             });
           }
-          return { ...i, id: i.plugin_package };
+          return { ...i, id: i.packageName };
         });
 
         this.data.push({
           ..._,
-          id: _.plugin_package,
+          id: _.packageName,
           tos: firstLevelTos,
           bys: []
         });
       });
     },
     async getData() {
-      // let { status, data, message } = await getPluginPkgDependcy(this.pkgId);
-      let { status, data, message } = await getPluginPkgDependcy(3);
+      let { status, data, message } = await getPluginPkgDependcy(this.pkgId);
+      console.log("data", data);
+
       if (status === "OK") {
         this.formatData(data);
         this.initGraph();

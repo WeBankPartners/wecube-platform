@@ -1,12 +1,21 @@
 <template>
   <div>
-    <Col span="3" v-for="(menuGroup, index) in menus" :key="menuGroup.category">
-      <List split :header="menuGroup.category" size="small">
+    <Col span="3" v-for="(menuGroup, index) in menus" :key="menuGroup.id">
+      <List size="small">
+        <h4 slot="header">{{ menuGroup.displayName }}</h4>
         <ListItem v-for="(menu, index) in menuGroup.children" :key="index">
           <Badge
-            :status="menu.menuType === 'plugin' ? 'success' : 'default'"
-            :text="menu.displayName"
-          />
+            :text="menu.menuType === 'package' ? 'new' : ''"
+            type="success"
+            :offset="[-5, -10]"
+          >
+            <span v-if="menu.menuType === 'package'" style="color: green">
+              {{ menu.displayName }}
+            </span>
+            <span v-else>
+              {{ menu.displayName }}
+            </span>
+          </Badge>
         </ListItem>
       </List>
     </Col>
@@ -15,6 +24,8 @@
 
 <script>
 import { getMenuInjection } from "@/api/server";
+import { MENUS } from "../../../const/menus.js";
+
 export default {
   name: "menu-injection",
   data() {
@@ -40,23 +51,37 @@ export default {
   },
   methods: {
     async getData() {
-      // let { status, data, message } = await getMenuInjection(this.pkgId);
-      let { status, data, message } = await getMenuInjection(4);
+      let { status, data, message } = await getMenuInjection(this.pkgId);
       if (status === "OK") {
-        let allCats = data.map(_ => _.category);
-        let cats = Array.from(new Set(allCats));
-        this.menus = cats.map(_ => {
-          let children = [];
+        let allCats = [];
+        data.forEach(_ => {
+          if (!_.category) {
+            const found = MENUS.find(m => m.code === _.code);
+            allCats.push({
+              id: _.id,
+              code: _.code,
+              displayName: this.$lang === "zh-CN" ? found.cnName : found.enName,
+              children: []
+            });
+          }
+        });
+
+        this.menus = allCats.map(_ => {
           data.forEach(item => {
-            if (item.category === _) {
-              children.push(item);
+            if (item.category === "" + _.id) {
+              if (item.menuType === "system") {
+                const found = MENUS.find(m => m.code === item.code);
+                if (found) {
+                  item.displayName =
+                    this.$lang === "zh-CN" ? found.cnName : found.enName;
+                }
+              }
+              _.children.push(item);
             }
           });
-          return {
-            category: _,
-            children: children
-          };
+          return _;
         });
+        console.log("sss", this.menus);
       }
     }
   }

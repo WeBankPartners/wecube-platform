@@ -53,8 +53,7 @@ export default {
   },
   methods: {
     async getData() {
-      // let { status, data, message } = await getSysParams(this.pkgId);
-      let { status, data, message } = await getSysParams(1);
+      let { status, data, message } = await getSysParams(this.pkgId);
       if (status === "OK") {
         this.tableData = data;
       }
