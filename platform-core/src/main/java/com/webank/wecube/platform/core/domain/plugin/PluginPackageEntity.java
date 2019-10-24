@@ -1,5 +1,9 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
 import javax.persistence.*;
 import java.util.List;
 
@@ -14,6 +18,7 @@ public class PluginPackageEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "plugin_package_id")
     private PluginPackage pluginPackage;
@@ -28,6 +33,7 @@ public class PluginPackageEntity {
     private String description;
 
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackageEntity", cascade = CascadeType.ALL)
     private List<PluginPackageAttribute> pluginPackageAttributeList;
 
@@ -91,5 +97,10 @@ public class PluginPackageEntity {
 
     public void setPluginPackageAttributeList(List<PluginPackageAttribute> pluginPackageAttributeList) {
         this.pluginPackageAttributeList = pluginPackageAttributeList;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
     }
 }

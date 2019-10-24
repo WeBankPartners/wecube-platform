@@ -8,9 +8,9 @@
           @input="inputHandler"
           :value="inputVal"
         ></textarea>
-        <span v-if="!isEndWithCIType" class="wecube-error-message"
-          >请选择非引用属性</span
-        >
+        <span v-if="!isEndWithCIType" class="wecube-error-message">{{
+          $t("select_non_ci_attr")
+        }}</span>
       </div>
       <div slot="content">
         <div v-if="rootCiType" class="attr-ul">
@@ -283,7 +283,7 @@ export default {
       }
       if (!(v.data === "." || v.data === "-")) {
         this.$Message.error({
-          content: "请输入正确的操作符 . 或 -"
+          content: this.$t("input_correct_operator")
         });
         this.$refs.textarea.value = this.inputVal;
       } else {

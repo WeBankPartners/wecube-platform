@@ -1,14 +1,14 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import lombok.*;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-@Data @NoArgsConstructor @AllArgsConstructor
-@Entity @Table(name = "plugin_cfg_interfaces")
+@Entity
+@Table(name = "plugin_config_interfaces")
 public class PluginConfigInterface {
 
     @Id
@@ -16,11 +16,11 @@ public class PluginConfigInterface {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "config_id")
+    @JoinColumn(name = "plugin_config_id")
     private PluginConfig pluginConfig;
 
     @Column
-    private String name;
+    private String action;
     @Column
     private String serviceName;
     @Column
@@ -28,11 +28,7 @@ public class PluginConfigInterface {
     @Column
     private String path;
     @Column
-    private Integer cmdbQueryTemplateId;
-    @Column
-    private String filterStatus;
-    @Column
-    private String resultStatus;
+    private String httpMethod;
 
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true)
     @Where(clause = "type = 'INPUT'")
@@ -50,5 +46,95 @@ public class PluginConfigInterface {
         this.outputParameters.add(parameter);
     }
 
+    public Integer getId() {
+        return id;
+    }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public PluginConfig getPluginConfig() {
+        return pluginConfig;
+    }
+
+    public void setPluginConfig(PluginConfig pluginConfig) {
+        this.pluginConfig = pluginConfig;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getServiceDisplayName() {
+        return serviceDisplayName;
+    }
+
+    public void setServiceDisplayName(String serviceDisplayName) {
+        this.serviceDisplayName = serviceDisplayName;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getHttpMethod() {
+        return httpMethod;
+    }
+
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
+    }
+
+    public Set<PluginConfigInterfaceParameter> getInputParameters() {
+        return inputParameters;
+    }
+
+    public void setInputParameters(Set<PluginConfigInterfaceParameter> inputParameters) {
+        this.inputParameters = inputParameters;
+    }
+
+    public Set<PluginConfigInterfaceParameter> getOutputParameters() {
+        return outputParameters;
+    }
+
+    public void setOutputParameters(Set<PluginConfigInterfaceParameter> outputParameters) {
+        this.outputParameters = outputParameters;
+    }
+
+    public PluginConfigInterface() {
+    }
+
+    public PluginConfigInterface(Integer id, PluginConfig pluginConfig, String action, String serviceName, String serviceDisplayName, String path, String httpMethod, Set<PluginConfigInterfaceParameter> inputParameters, Set<PluginConfigInterfaceParameter> outputParameters) {
+        this.id = id;
+        this.pluginConfig = pluginConfig;
+        this.action = action;
+        this.serviceName = serviceName;
+        this.serviceDisplayName = serviceDisplayName;
+        this.path = path;
+        this.httpMethod = httpMethod;
+        this.inputParameters = inputParameters;
+        this.outputParameters = outputParameters;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginConfig"});
+    }
 }
