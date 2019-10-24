@@ -2,7 +2,7 @@
   <div>
     <Row>
       <Col span="6">
-        <span style="margin-right: 10px">根CI类型</span>
+        <span style="margin-right: 10px">{{ $t("root_ci_type") }}</span>
         <Select
           v-model="selectedCI"
           filterable
@@ -18,7 +18,9 @@
         </Select>
       </Col>
       <Col span="17" offset="1">
-        <span style="margin-right: 10px">综合查询名称</span>
+        <span style="margin-right: 10px">{{
+          $t("comprehensive_query_name")
+        }}</span>
         <Select
           v-model="selectedQueryName"
           filterable
@@ -53,28 +55,28 @@
         ref="table"
       ></WeTable>
 
-      <Modal v-model="originDataModal" title="原始数据" footer-hide>
+      <Modal v-model="originDataModal" :title="$t('raw_data')" footer-hide>
         <highlight-code lang="json">{{ showRowOriginData }}</highlight-code>
       </Modal>
 
       <Modal
         v-model="filtersAndResultModal"
-        title="报文"
+        :title="$t('packet')"
         footer-hide
         width="75"
       >
         <div style="max-height: 600px; overflow: auto;">
-          <Row
-            >请求URL:
+          <Row>
+            {{ $t("request_url") }}
             <highlight-code lang="json">{{ requestURL }}</highlight-code>
           </Row>
           <Row>
-            <Col span="11"
-              >Payload:
+            <Col span="11">
+              Payload:
               <highlight-code lang="json">{{ payload }}</highlight-code>
             </Col>
-            <Col span="12" offset="1"
-              >Result:
+            <Col span="12" offset="1">
+              Result:
               <highlight-code lang="json">{{ tableData }}</highlight-code>
             </Col>
           </Row>
@@ -93,27 +95,6 @@ import {
   getEnumCodesByCategoryId
 } from "@/api/server";
 import { components } from "../../const/actions.js";
-const innerActions = [
-  {
-    label: "原始数据",
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "showOriginData"
-  }
-];
-const outerActions = [
-  {
-    label: "显示报文",
-    props: {
-      type: "success",
-      icon: "ios-eye",
-      disabled: false
-    },
-    actionType: "showFiltersAndResult"
-  }
-];
 export default {
   components: {},
   data() {
@@ -124,8 +105,6 @@ export default {
       queryNameList: [],
       tableData: [],
       tableColumns: [],
-      innerActions,
-      outerActions,
       pagination: {
         pageSize: 10,
         currentPage: 1,
@@ -147,7 +126,28 @@ export default {
       showRowOriginData: "",
       filtersAndResultModal: false,
       showfiltersAndResultModalData: "",
-      requestURL: ""
+      requestURL: "",
+      innerActions: [
+        {
+          label: this.$t("raw_data"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "showOriginData"
+        }
+      ],
+      outerActions: [
+        {
+          label: this.$t("explicit_message"),
+          props: {
+            type: "success",
+            icon: "ios-eye",
+            disabled: false
+          },
+          actionType: "showFiltersAndResult"
+        }
+      ]
     };
   },
   created() {

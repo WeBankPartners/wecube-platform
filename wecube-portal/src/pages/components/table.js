@@ -283,7 +283,7 @@ export default {
                 placement="bottom"
                 style="float: right;margin-right: 10px"
               >
-                <Tooltip content="过滤列" placement="top">
+                <Tooltip content={this.$t("filter_columns")} placement="top">
                   <Button {..._} />
                 </Tooltip>
                 <CheckboxGroup
@@ -434,7 +434,7 @@ export default {
                           this.isShowHiddenFilters = true;
                         }}
                       >
-                        更多条件
+                        {this.$t("more_filters")}
                       </Button>
                     </FormItem>
                   ) : (
@@ -448,7 +448,7 @@ export default {
                           this.isShowHiddenFilters = false;
                         }}
                       >
-                        更少条件
+                        {this.$t("less_filters")}
                       </Button>
                     </FormItem>
                   ))}
@@ -459,12 +459,12 @@ export default {
                     icon="ios-search"
                     onClick={() => this.handleSubmit("form")}
                   >
-                    搜索
+                    {this.$t("search")}
                   </Button>
                 </FormItem>
                 <FormItem style="position: relative; bottom: -22px;">
                   <Button icon="md-refresh" onClick={() => this.reset("form")}>
-                    重置
+                    {this.$t("reset")}
                   </Button>
                 </FormItem>
               </div>
@@ -533,7 +533,7 @@ export default {
       }
       this.tableInnerActions &&
         this.columns.push({
-          title: "Actions",
+          title: this.$t("actions"),
           fixed: "right",
           key: "actions",
           maxWidth: 500,

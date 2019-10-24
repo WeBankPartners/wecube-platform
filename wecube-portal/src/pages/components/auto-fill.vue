@@ -154,8 +154,7 @@ export default {
           } else {
             this.$refs.textarea.value = this.inputVal;
             this.$Message.error({
-              content:
-                "连接符只支持英文字母大小写，数字0-9，符号[/, \, -, _] 的输入, { 触发规则填充"
+              content: this.$t("auto_fill_error_msg")
             });
           }
         } else if (v.inputType === "deleteContentBackward") {
@@ -183,7 +182,7 @@ export default {
           if (!this.autoFillLastObjValue) {
             this.$refs.textarea.value = this.inputVal;
             this.$Message.error({
-              content: "请先选择一个ciType"
+              content: this.$t("select_ci_first")
             });
           } else {
             const objList = JSON.parse(this.autoFillLastObjValue);
@@ -206,7 +205,7 @@ export default {
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入正确的操作符 . 或 -"
+                  content: this.$t("please_input_dot_or_dash")
                 });
               }
             } else if (
@@ -217,7 +216,7 @@ export default {
             ) {
               this.$refs.textarea.value = this.inputVal;
               this.$Message.error({
-                content: "请选择枚举值"
+                content: this.$t("please_select_enum")
               });
             } else {
               if (v.data === "}") {
@@ -228,7 +227,7 @@ export default {
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入操作符 } 闭合当前规则"
+                  content: this.$t("please_input_right_close")
                 });
               }
             }
