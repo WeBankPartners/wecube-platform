@@ -91,7 +91,7 @@ public class PluginPackageController {
         return okayWithData(menuList);
     }
 
-    @GetMapping("/packages/{id}/system_parameters")
+    @GetMapping("/packages/{id}/system-parameters")
     @ResponseBody
     public JsonResponse getSystemParamsById(@PathVariable(value = "id") Integer packageId) {
         Set<SystemVariable> systemVariableSet;
@@ -115,7 +115,7 @@ public class PluginPackageController {
         return okayWithData(authoritySet);
     }
 
-    @GetMapping("/packages/{id}/runtime_resources")
+    @GetMapping("/packages/{id}/runtime-resources")
     @ResponseBody
     public JsonResponse getResourceById(@PathVariable(value = "id") Integer packageId) {
         PluginPackageRuntimeResouceDto resouceFoundById;
