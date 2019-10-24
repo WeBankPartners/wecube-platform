@@ -46,12 +46,12 @@ public class WorkflowProcessDefinitionService {
 
     @Autowired
     private WorkflowEngineService workflowService;
-    
-    public ProcDefOutlineDto getProcessDefinitionOutline(String procDefId){
-        if(StringUtils.isBlank(procDefId)){
+
+    public ProcDefOutlineDto getProcessDefinitionOutline(String procDefId) {
+        if (StringUtils.isBlank(procDefId)) {
             throw new WecubeCoreException("Process definition ID is blank.");
         }
-        
+
         Optional<ProcDefInfoEntity> procDefEntityOptional = processDefInfoRepo.findById(procDefId);
         if (!procDefEntityOptional.isPresent()) {
             log.debug("cannot find process def with id {}", procDefId);
@@ -59,29 +59,40 @@ public class WorkflowProcessDefinitionService {
         }
 
         ProcDefInfoEntity procDefEntity = procDefEntityOptional.get();
-        
+
         ProcessDefinition procDef = workflowService.retrieveProcessDefinition(procDefEntity.getProcDefKernelId());
-        
+
         ProcDefOutlineDto result = new ProcDefOutlineDto();
-        
+
         result.setProcDefId(procDefEntity.getId());
         result.setProcDefKey(procDef.getKey());
         result.setProcDefName(procDef.getName());
         result.setProcDefVersion(String.valueOf(procDef.getVersion()));
-//        result.setRootEntity(procDefInfoDto.getRootEntity());
+        // result.setRootEntity(procDefInfoDto.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
         //
         // result.setTaskNodeInfos(taskNodeInfos);
-        
+
         ProcDefOutline procDefOutline = workflowService.getProcDefOutline(procDef);
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDefEntity.getId());
 
         for (ProcFlowNode f : procDefOutline.getFlowNodes()) {
+
             FlowNodeDefDto fDto = new FlowNodeDefDto();
             fDto.setProcDefId(procDefEntity.getId());
             fDto.setProcDefKey(procDefEntity.getProcDefKey());
             fDto.setNodeId(f.getId());
             fDto.setNodeName(f.getNodeName());
             fDto.setNodeType(f.getNodeType());
+
+            if ("subProcess".equals(fDto.getNodeType())) {
+                TaskNodeDefInfoEntity entity = findNodeEntityByNodeId(nodeEntities, fDto.getNodeId());
+                if (entity != null) {
+                    fDto.setNodeDefId(entity.getId());
+                    fDto.setStatus(entity.getStatus());
+                    fDto.setOrderedNo(String.valueOf(entity.getOrderedNo()));
+                }
+            }
 
             for (ProcFlowNode pf : f.getPreviousFlowNodes()) {
                 fDto.addPreviousNodeIds(pf.getId());
@@ -90,8 +101,10 @@ public class WorkflowProcessDefinitionService {
             for (ProcFlowNode sf : f.getSucceedingFlowNodes()) {
                 fDto.addSucceedingNodeIds(sf.getId());
             }
+
+            result.addFlowNodes(fDto);
         }
-        
+
         return result;
     }
 
@@ -104,16 +117,50 @@ public class WorkflowProcessDefinitionService {
 
         ProcDefInfoEntity procDefEntity = procDefEntityOptional.get();
 
-        ProcDefInfoDto dto = new ProcDefInfoDto();
-        dto.setProcDefId(procDefEntity.getId());
-        dto.setProcDefKey(procDefEntity.getProcDefKey());
-        dto.setProcDefName(procDefEntity.getProcDefName());
-        dto.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVersion()));
-        dto.setRootEntity(procDefEntity.getRootEntity());
-        dto.setStatus(procDefEntity.getStatus());
-        dto.setProcDefData(procDefEntity.getProcDefData());
+        ProcDefInfoDto result = new ProcDefInfoDto();
+        result.setProcDefId(procDefEntity.getId());
+        result.setProcDefKey(procDefEntity.getProcDefKey());
+        result.setProcDefName(procDefEntity.getProcDefName());
+        result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVersion()));
+        result.setRootEntity(procDefEntity.getRootEntity());
+        result.setStatus(procDefEntity.getStatus());
+        result.setProcDefData(procDefEntity.getProcDefData());
 
-        return dto;
+        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.findAllByProcDefId(id);
+        for (TaskNodeDefInfoEntity e : taskNodeDefEntities) {
+            TaskNodeDefInfoDto tdto = new TaskNodeDefInfoDto();
+            tdto.setDescription(e.getDescription());
+            tdto.setNodeDefId(e.getProcDefId());
+            tdto.setNodeId(e.getNodeId());
+            tdto.setNodeName(e.getNodeName());
+            tdto.setNodeType(e.getNodeType());
+            tdto.setOrderedNo(e.getOrderedNo());
+            tdto.setProcDefKey(e.getProcDefKey());
+            tdto.setProcDefId(e.getProcDefId());
+            tdto.setRoutineExpression(e.getRoutineExpression());
+            tdto.setRoutineRaw(e.getRoutineRaw());
+            tdto.setServiceId(e.getServiceId());
+            tdto.setServiceName(e.getServiceName());
+            tdto.setStatus(e.getStatus());
+            tdto.setTimeoutExpression(e.getTimeoutExpression());
+
+            List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo.findAllByProcDefIdAndTaskNodeDefId(id,
+                    e.getId());
+            
+            for(TaskNodeParamEntity tnpe : taskNodeParamEntities){
+                TaskNodeDefParamDto pdto = new TaskNodeDefParamDto();
+                pdto.setId(tnpe.getId());
+                pdto.setNodeId(tnpe.getNodeId());
+                pdto.setParamName(tnpe.getParamName());
+                pdto.setParamExpression(tnpe.getParamExpression());
+                
+                tdto.addParamInfos(pdto);
+            }
+            
+            result.addTaskNodeInfo(tdto);
+        }
+
+        return result;
     }
 
     public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef) {
@@ -293,13 +340,14 @@ public class WorkflowProcessDefinitionService {
                 nodeEntity.setNodeId(nodeDto.getNodeId());
                 nodeEntity.setNodeName(nodeDto.getNodeName());
                 nodeEntity.setProcDefId(procDefEntity.getId());
-                nodeEntity.setProcDefKey(nodeDto.getProcessDefKey());
+                nodeEntity.setProcDefKey(nodeDto.getProcDefKey());
                 nodeEntity.setRoutineExpression(nodeDto.getRoutineExpression());
                 nodeEntity.setRoutineRaw(nodeDto.getRoutineRaw());
                 nodeEntity.setServiceId(nodeDto.getServiceId());
                 nodeEntity.setServiceName(nodeDto.getServiceName());
                 nodeEntity.setStatus(TaskNodeDefInfoEntity.PREDEPLOY_STATUS);
                 nodeEntity.setUpdatedTime(new Date());
+                nodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
 
                 taskNodeDefInfoRepo.save(nodeEntity);
 
@@ -404,23 +452,23 @@ public class WorkflowProcessDefinitionService {
                             procDefEntity.getId(), pfn.getId());
                     nodeEntity = new TaskNodeDefInfoEntity();
                     nodeEntity.setId(LocalIdGenerator.generateId());
-                    nodeEntity.setNodeId(pfn.getId());
-                    nodeEntity.setNodeName(pfn.getNodeName());
                     nodeEntity.setProcDefId(procDefEntity.getId());
                     nodeEntity.setProcDefKey(procDef.getKey());
-                    nodeEntity.setUpdatedTime(new Date());
+                    nodeEntity.setNodeId(pfn.getId());
+                }else{
+                    nodeEntity.setUpdatedTime(now);
                 }
+                nodeEntity.setNodeName(pfn.getNodeName());
+                nodeEntity.setNodeType(pfn.getNodeType());
                 nodeEntity.setStatus(TaskNodeDefInfoEntity.DEPLOYED_STATUS);
-                nodeEntity.setUpdatedTime(now);
                 nodeEntity.setProcDefKernelId(procDef.getId());
                 nodeEntity.setProcDefKey(procDef.getKey());
                 nodeEntity.setProcDefVersion(procDef.getVersion());
-                nodeEntity.setNodeType(pfn.getNodeType());
-                nodeEntity.setOrderedNo(orderedNo.getAndIncrement());
+                nodeEntity.setOrderedNo(String.valueOf(orderedNo.getAndIncrement()));
                 taskNodeDefInfoRepo.save(nodeEntity);
-                
+
                 FlowNodeDefDto nodeDefDto = result.findFlowNodeDefDto(pfn.getId());
-                if(nodeDefDto != null){
+                if (nodeDefDto != null) {
                     nodeDefDto.setNodeDefId(nodeEntity.getId());
                     nodeDefDto.setOrderedNo(String.valueOf(nodeEntity.getOrderedNo()));
                     nodeDefDto.setStatus(nodeEntity.getStatus());
