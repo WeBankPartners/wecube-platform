@@ -6,6 +6,11 @@ import java.util.concurrent.TimeUnit;
 
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public final class QueueHolder {
     private static BlockingQueue<ServiceInvocationEvent> serviceInvocationEventQueue = new LinkedBlockingQueue<ServiceInvocationEvent>();
     private static BlockingQueue<ServiceInvocationEvent> deferredServiceInvocationEventQueue = new LinkedBlockingQueue<ServiceInvocationEvent>();

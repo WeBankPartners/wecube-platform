@@ -9,6 +9,11 @@ import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public abstract class AbstractServiceNodeStartListener extends AbstractServiceNodeListener{
     protected void logServiceNodeStart(DelegateExecution execution) {
         String nodeId = execution.getCurrentActivityId();
