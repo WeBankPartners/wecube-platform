@@ -8,9 +8,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://db-server:3306/wecube_core_04?characterEncoding=utf8&serverTimezone=UTC
-    username: db-user
-    password: db-password
+#    url: jdbc:mysql://db-server:3306/wecube_core_04?characterEncoding=utf8&serverTimezone=UTC
+#    username: db-user
+#    password: db-password
 
   banner:
     location: classpath:/banner.txt
@@ -19,11 +19,11 @@ spring:
     database: mysql
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
       use-new-id-generator-mappings: false
       naming:
          physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+#    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     open-in-view: false
 
   servlet:
@@ -32,25 +32,29 @@ spring:
       max-request-size: 2GB
 
 camunda:
-  bpm:
-    application:
-      delete-upon-undeploy: false
-      scan-for-process-definitions: false
-      deploy-changed-only: true
-      resume-previous-versions: true
-      resume-previous-by: a value
-    history-level: full
-    admin-user:
-      id: demo
-      password: demo
-      first-name: Kermit
-    filter:
-      create: All tasks
-    job-execution:
+   bpm:
       enabled: true
-    auto-deployment-enabled: false
-    generate-unique-process-application-name: true
-    generate-unique-process-engine-name: true
+      application:
+         delete-upon-undeploy: false
+         scan-for-process-definitions: false
+         deploy-changed-only: true
+         resume-previous-versions: true
+         resume-previous-by: a value
+      history-level: full
+      database:
+         schema-update: true
+       
+      admin-user:
+         id: demo
+         password: demo
+         first-name: Kermit
+      filter:
+         create: All tasks
+      job-execution:
+         enabled: true
+      auto-deployment-enabled: true
+      generate-unique-process-application-name: true
+      generate-unique-process-engine-name: true
 
 wecube:
   core:
