@@ -127,4 +127,8 @@ public class PluginInstanceService {
     public void removePluginInstanceById(Integer instanceId) throws Exception {
     }
 
+    public String getInstanceAddress(PluginInstance instance) {
+        return trim(instance.getHost()) + ":" + trim(instance.getPort().toString());
+    }
+
 }
