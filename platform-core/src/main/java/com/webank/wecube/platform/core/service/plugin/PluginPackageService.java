@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
@@ -100,7 +99,7 @@ public class PluginPackageService {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginDockerImageFile.getName();
             log.info("keyname : {}", keyName);
             dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginDockerImageFile);
-            log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl);
+            log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
         }
 
         File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
@@ -110,7 +109,7 @@ public class PluginPackageService {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginUiPackageFile.getName();
             log.info("keyname : {}", keyName);
             uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
-            log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl);
+            log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
         }
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
