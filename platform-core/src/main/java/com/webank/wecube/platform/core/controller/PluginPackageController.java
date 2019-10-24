@@ -6,7 +6,7 @@ import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
-import com.webank.wecube.platform.core.dto.PluginPackageMenuDto;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
@@ -42,13 +42,6 @@ public class PluginPackageController {
 
     @Autowired
     private PluginPackageValidator validator;
-
-    @GetMapping("/my-menus")
-    @ResponseBody
-    public JsonResponse getMyMenus() {
-        List<PluginPackageMenuDto> allSysMenus = pluginPackageService.getAllSysMenus();
-        return okayWithData(allSysMenus);
-    }
 
     @PostMapping("/packages")
     @ResponseBody
@@ -89,7 +82,7 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/menus")
     @ResponseBody
     public JsonResponse getMenusById(@PathVariable(value = "id") Integer packageId) {
-        List<PluginPackageMenuDto> menuList;
+        List<MenuItemDto> menuList;
         try {
             menuList = pluginPackageService.getMenusById(packageId);
         } catch (WecubeCoreException ex) {

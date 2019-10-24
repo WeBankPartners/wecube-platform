@@ -8,7 +8,7 @@ import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
-import com.webank.wecube.platform.core.dto.PluginPackageMenuDto;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
@@ -231,7 +231,7 @@ public class PluginPackageService {
         return packageFoundById.get();
     }
 
-    public PluginPackageDependencyDto getDependenciesById(Integer packageId) throws WecubeCoreException {
+    public PluginPackageDependencyDto getDependenciesById(Integer packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
 
@@ -244,11 +244,11 @@ public class PluginPackageService {
         return dependencyDto;
     }
 
-    public List<PluginPackageMenuDto> getMenusById(Integer packageId) throws WecubeCoreException {
-        List<PluginPackageMenuDto> returnMenuDto;
+    public List<MenuItemDto> getMenusById(Integer packageId) {
+        List<MenuItemDto> returnMenuDto;
 
         // handling core's menus
-        List<PluginPackageMenuDto> allSysMenus = getAllSysMenus();
+        List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
 
         // handling package's menus
@@ -256,7 +256,7 @@ public class PluginPackageService {
         Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
 
         for (PluginPackageMenu packageMenu : packageMenus) {
-            PluginPackageMenuDto packageMenuDto = PluginPackageMenuDto.fromPackageMenuItem(packageMenu);
+            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
             returnMenuDto.add(packageMenuDto);
         }
 
@@ -287,14 +287,14 @@ public class PluginPackageService {
         return packageFoundById.getPluginConfigs();
     }
 
-    public List<PluginPackageMenuDto> getAllSysMenus() {
-        List<PluginPackageMenuDto> returnMenuDto = new ArrayList<>();
+    public List<MenuItemDto> getAllSysMenus() {
+        List<MenuItemDto> returnMenuDto = new ArrayList<>();
 
         // handling core's menus
         Iterable<MenuItem> systemMenus = menuItemRepository.findAll();
 
         for (MenuItem systemMenu : systemMenus) {
-            PluginPackageMenuDto systemMenuDto = PluginPackageMenuDto.fromCoreMenuItem(systemMenu);
+            MenuItemDto systemMenuDto = MenuItemDto.fromSystemMenuItem(systemMenu);
             returnMenuDto.add(systemMenuDto);
         }
         return returnMenuDto;
