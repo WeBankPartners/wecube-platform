@@ -45,7 +45,7 @@ export default {
       seachFilters: {},
       tableColumns: [
         {
-          title: "枚举名称",
+          title: this.$t("enum_name"),
           key: "catName",
           inputKey: "catId",
           searchSeqNo: 1,
@@ -58,7 +58,7 @@ export default {
           options: []
         },
         {
-          title: "枚举键",
+          title: this.$t("enum_key"),
           key: "code",
           inputKey: "code",
           searchSeqNo: 2,
@@ -68,7 +68,7 @@ export default {
           placeholder: "code"
         },
         {
-          title: "枚举值",
+          title: this.$t("enum_value"),
           key: "value",
           inputKey: "value",
           searchSeqNo: 3,
@@ -78,7 +78,7 @@ export default {
           placeholder: "value"
         },
         {
-          title: "枚举类型",
+          title: this.$t("enum_type"),
           key: "catTypeName",
           inputKey: "cat.catType.catTypeName",
           searchSeqNo: 0, // 不可作为搜索条件
@@ -89,7 +89,7 @@ export default {
           placeholder: "catTypeName"
         },
         {
-          title: "枚举组",
+          title: this.$t("enum_group"),
           key: "groupCodeId",
           inputKey: "groupCodeId",
           searchSeqNo: 5,
@@ -100,7 +100,7 @@ export default {
           optionKey: "catId"
         },
         {
-          title: "状态",
+          title: this.$t("enum_status"),
           key: "status",
           inputKey: "status",
           searchSeqNo: 6,
@@ -227,10 +227,10 @@ export default {
             ..._.cat,
             catTypeName:
               _.cat.catType.catTypeName === "sys"
-                ? "系统枚举"
+                ? this.$t("sys_enum")
                 : _.cat.catType.catTypeName === "common"
-                ? "公有枚举"
-                : "私有枚举-" + _.cat.catType.catTypeName
+                ? this.$t("pub_enum")
+                : this.$t("pri_enum") + "-" + _.cat.catType.catTypeName
           };
         });
       }
@@ -338,7 +338,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("confirm_to_delete"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = deleteData.map(_ => _.codeId);
