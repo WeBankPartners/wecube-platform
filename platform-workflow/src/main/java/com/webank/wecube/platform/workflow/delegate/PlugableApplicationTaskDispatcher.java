@@ -17,6 +17,11 @@ import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.parse.SpringApplicationContextUtil;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Component("taskDispatcher")
 public class PlugableApplicationTaskDispatcher implements JavaDelegate {
     private static final Logger log = LoggerFactory.getLogger(PlugableApplicationTaskDispatcher.class);
