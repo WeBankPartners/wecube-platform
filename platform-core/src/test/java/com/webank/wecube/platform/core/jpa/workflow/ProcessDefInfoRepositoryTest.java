@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.webank.wecube.platform.core.entity.workflow.ProcessDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -23,7 +23,7 @@ public class ProcessDefInfoRepositoryTest {
 
     @Test
     public void testFindAll() {
-        List<ProcessDefInfoEntity> entities = repo.findAll();
+        List<ProcDefInfoEntity> entities = repo.findAll();
         
         entities.forEach(e -> {
             log.info("entity:id={},data={}",e.getId(), e.getProcDefData());
