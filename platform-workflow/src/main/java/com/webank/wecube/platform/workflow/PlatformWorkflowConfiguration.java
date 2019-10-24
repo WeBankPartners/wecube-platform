@@ -27,7 +27,11 @@ import org.springframework.stereotype.Component;
 import com.webank.wecube.platform.workflow.parse.CustomSpringProcessEngineConfiguration;
 import com.webank.wecube.platform.workflow.parse.LocalBpmnParseListener;
 
-@Configuration
+/**
+ * 
+ * @author gavin
+ *
+ */
 @EnableProcessApplication
 @ComponentScan(basePackages = { "com.webank.wecube.platform.workflow" })
 @EntityScan(basePackages = { "com.webank.wecube.platform.workflow.entity" })
