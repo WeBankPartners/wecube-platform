@@ -10,7 +10,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "CORE_RE_PROC_DEF_INFO")
-public class ProcessDefInfoEntity extends BaseStatusFeaturedEntity {
+public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
 
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";

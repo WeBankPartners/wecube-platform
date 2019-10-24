@@ -1,10 +1,7 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class ProcessDefinitionInfoDto {
-    private String id;
+public abstract class BaseProcDefDto {
+    private String procDefId;
     private String procDefKey;
     private String procDefName;
     private String procDefVersion;
@@ -13,14 +10,12 @@ public class ProcessDefinitionInfoDto {
     private String procDefData;
     private String rootEntity;
 
-    private List<TaskNodeInfoDto> taskNodeInfos = new ArrayList<>();
-
-    public String getId() {
-        return id;
+    public String getProcDefId() {
+        return procDefId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setProcDefId(String procDefId) {
+        this.procDefId = procDefId;
     }
 
     public String getProcDefKey() {
@@ -69,23 +64,6 @@ public class ProcessDefinitionInfoDto {
 
     public void setRootEntity(String rootEntity) {
         this.rootEntity = rootEntity;
-    }
-
-    public List<TaskNodeInfoDto> getTaskNodeInfos() {
-        return taskNodeInfos;
-    }
-
-    public void setTaskNodeInfos(List<TaskNodeInfoDto> taskNodeInfos) {
-        this.taskNodeInfos = taskNodeInfos;
-    }
-    
-    public ProcessDefinitionInfoDto addTaskNodeInfo(TaskNodeInfoDto taskNodeInfo) {
-        if(this.taskNodeInfos == null){
-            this.taskNodeInfos = new ArrayList<>();
-        }
-        
-        this.taskNodeInfos.add(taskNodeInfo);
-        return this;
     }
 
 }

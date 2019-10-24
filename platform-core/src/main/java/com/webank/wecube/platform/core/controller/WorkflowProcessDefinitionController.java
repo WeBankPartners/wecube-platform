@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcessDefinitionInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcessDefinitionService;
 
 @RestController
@@ -26,24 +27,24 @@ public class WorkflowProcessDefinitionController {
     private WorkflowProcessDefinitionService procDefService;
 
     @PostMapping("/process/definitions/deploy")
-    public CommonResponseDto deployProcessDefinition(@RequestBody ProcessDefinitionInfoDto requestDto) {
+    public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(),requestDto.getRootEntity());
         }
         
-        ProcessDefinitionInfoDto result = procDefService.deployProcessDefinition(requestDto);
+        ProcDefOutlineDto result = procDefService.deployProcessDefinition(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
     @PostMapping("/process/definitions/draft")
-    public CommonResponseDto draftProcessDefinition(@RequestBody ProcessDefinitionInfoDto requestDto) {
+    public CommonResponseDto draftProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
         if(log.isDebugEnabled()){
             log.debug("draft process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(),requestDto.getRootEntity());
         }
         
-        ProcessDefinitionInfoDto result = procDefService.draftProcessDefinition(requestDto);
+        ProcDefInfoDto result = procDefService.draftProcessDefinition(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
@@ -52,13 +53,13 @@ public class WorkflowProcessDefinitionController {
             @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft) {
         
         boolean includeDraftProcDef = (includeDraft == 1? true : false);
-        List<ProcessDefinitionInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef);
+        List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef);
         return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/definitions/{id}")
     public CommonResponseDto getProcessDefinition(@PathVariable(name = "id") String id) {
-        ProcessDefinitionInfoDto result = procDefService.getProcessDefinition(id);
+        ProcDefInfoDto result = procDefService.getProcessDefinition(id);
         return CommonResponseDto.okayWithData(result);
     }
 

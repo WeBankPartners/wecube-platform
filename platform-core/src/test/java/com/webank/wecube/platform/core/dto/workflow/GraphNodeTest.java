@@ -100,6 +100,10 @@ public class GraphNodeTest {
         GraphNode disk2 = new GraphNode("DISK2");
         disk2.addSrcGraphNodes(host2);
         
+        GraphNode test1 = new GraphNode("test1");
+        test1.addSrcGraphNodes(disk2);
+        test1.addToGraphNodes(root);
+        
         return root;
         
     }
