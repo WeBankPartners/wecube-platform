@@ -210,19 +210,19 @@ export default {
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 开启过滤规则填充"
+                  content: this.$t("start_with_open_curly")
                 });
               }
             } else {
               if (val[val.length - 2] === "in") {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 或者 [ 开启过滤规则填充"
+                  content: this.$t("start_with_open_curly_or_bracket")
                 });
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 开启过滤规则填充"
+                  content: this.$t("start_with_open_curly")
                 });
               }
             }
@@ -237,7 +237,7 @@ export default {
             } else {
               this.$refs.textarea.value = this.inputVal;
               this.$Message.error({
-                content: "请输入 { 开启过滤规则填充"
+                content: this.$t("start_with_open_curly")
               });
             }
           } else {
@@ -249,23 +249,23 @@ export default {
               ) {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请点击空格键触发过滤规则连接"
+                  content: this.$t("press_space_start")
                 });
               } else if (val[val.length - 2] === "in") {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 或者 [ 开启过滤规则填充"
+                  content: this.$t("start_with_open_curly_or_bracket")
                 });
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入 { 开启过滤规则填充"
+                  content: this.$t("start_with_open_curly")
                 });
               }
             } else {
               this.$refs.textarea.value = this.inputVal;
               this.$Message.error({
-                content: "请输入 { 开启过滤规则填充"
+                content: this.$t("start_with_open_curly")
               });
             }
           }
@@ -379,7 +379,7 @@ export default {
                 } else {
                   this.$refs.textarea.value = this.inputVal;
                   this.$Message.error({
-                    content: "请输入正确的操作符 . "
+                    content: this.$t("please_input_dot")
                   });
                 }
               } else {
@@ -397,7 +397,7 @@ export default {
                 } else {
                   this.$refs.textarea.value = this.inputVal;
                   this.$Message.error({
-                    content: "请输入正确的操作符 . 或 -"
+                    content: this.$t("please_input_dot_or_dash")
                   });
                 }
               }
@@ -409,7 +409,7 @@ export default {
             ) {
               this.$refs.textarea.value = this.inputVal;
               this.$Message.error({
-                content: "请选择枚举值"
+                content: this.$t("please_select_enum")
               });
             } else {
               if (v.data === "}") {
@@ -438,7 +438,7 @@ export default {
               } else {
                 this.$refs.textarea.value = this.inputVal;
                 this.$Message.error({
-                  content: "请输入操作符 } 闭合当前规则"
+                  content: this.$t("please_input_right_close")
                 });
               }
             }
