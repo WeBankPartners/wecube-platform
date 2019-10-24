@@ -232,7 +232,7 @@ public class PluginPackageService {
         return packageFoundById.get();
     }
 
-    public PluginPackageDependencyDto getDependenciesById(Integer packageId) throws WecubeCoreException {
+    public PluginPackageDependencyDto getDependenciesById(Integer packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
 
@@ -245,7 +245,7 @@ public class PluginPackageService {
         return dependencyDto;
     }
 
-    public List<MenuItemDto> getMenusById(Integer packageId) throws WecubeCoreException {
+    public List<MenuItemDto> getMenusById(Integer packageId) {
         List<MenuItemDto> returnMenuDto;
 
         // handling core's menus
