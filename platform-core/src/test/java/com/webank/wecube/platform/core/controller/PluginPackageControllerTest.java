@@ -1,14 +1,11 @@
 package com.webank.wecube.platform.core.controller;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.support.FakeS3Client;
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -102,7 +99,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
         try {
             MockHttpServletResponse response = mvc.perform(post("/v1/api/packages").contentType(MediaType.MULTIPART_FORM_DATA).content(new MockMultipartFile("zip-file", new byte[0]).getBytes()))
-                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Required request part 'zip-file' is not present")))
                     .andDo(print())
@@ -361,7 +357,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/plugins", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/api/packages/%s/plugins", correctQueryId)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
                     .andExpect(jsonPath("$.data[0].entityId", is(nullValue())))
