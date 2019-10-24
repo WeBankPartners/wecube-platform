@@ -107,7 +107,7 @@ public class PluginPackageXmlParser {
                 Node mysqlNode = mysqlNodes.item(i);
 
                 PluginPackageRuntimeResourcesMysql mysql = new PluginPackageRuntimeResourcesMysql();
-                mysql.setSchema(getNonNullStringAttribute(mysqlNode, "./@schema", "Mysql schema"));
+                mysql.setSchemaName(getNonNullStringAttribute(mysqlNode, "./@schema", "Mysql schema"));
                 mysql.setInitFileName(getStringAttribute(mysqlNode, "./@initFileName"));
                 mysql.setUpgradeFileName(getStringAttribute(mysqlNode, "./@upgradeFileName"));
 
