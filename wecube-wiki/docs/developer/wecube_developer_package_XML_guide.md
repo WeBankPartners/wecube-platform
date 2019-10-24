@@ -1,7 +1,10 @@
+# 插件开发 xml 文件编写规范
+
+## 示例 xml 文件
+
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<package name="service-management" version="v0.1"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="plugin-config-v2.xsd">
+<package name="service-management" version="v0.2">
 
     <!-- 1.依赖分析 - 描述运行本插件包需要的其他插件包 -->
     <packageDependencies>
@@ -89,14 +92,14 @@
 
     <!-- 6.运行资源 - 描述部署运行本插件包需要的基础资源(如主机、虚拟机、容器、数据库等) -->
     <resourceDependencies>
-        <docker portBindings="22000:21000" volumeBindings="" env_variables="-e DATA_SOURCE_URL={%s} -e DB_USER={%s} -e DB_PWD={%s} -e CORE_ADDR={%s}"/>
+        <docker imageName="service_management" containerName="service_management" portBindings="22000:21000" volumeBindings="" envVariables="-e DATA_SOURCE_URL={%s} -e DB_USER={%s} -e DB_PWD={%s} -e CORE_ADDR={%s}"/>
         <mysql schema="service_management" initFileName="init.sql" upgradeFileName="upgrade.sql"/>
         <s3 bucketName="service_management"/>
     </resourceDependencies>
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
-        <plugin name="task management">
+        <plugin name="task">
             <interface name="create" path="/service-management/tasks" httpMethod='POST'>
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>callbackUrl</parameter>
@@ -128,3 +131,133 @@
         </plugin>
     </plugins>
 </package>
+```
+
+## 编写规范
+
+一个插件 xml 文件包含以下几个tag
+
+| tag 名称             | 描述     | 是否必须                   |
+| -------------------- | -------- | -------------------------- |
+| packageDependencies  | 依赖分析 | 否                         |
+| menus                | 菜单注入 | 否                         |
+| dataModel            | 数据模型 | 否                         |
+| systemParameters     | 系统参数 | 否                         |
+| authorities          | 权限设定 | 否                         |
+| resourceDependencies | 运行资源 | 是且必须要有`<docker>`资源 |
+| plugins              | 插件列表 | 否                         |
+
+### packageDependencies
+
+#### packageDependency
+
+| tag 名称 | 描述 | 是否必须 |
+| -------- | ---- | -------- |
+| name     | 名称 | 是       |
+| version  | 版本 | 是       |
+
+### menus
+
+#### menu
+
+| tag 名称    | 描述         | 是否必须 |
+| ----------- | ------------ | -------- |
+| code        | 菜单识别码   | 是       |
+| cat         | 菜单类别     | 否       |
+| displayName | 前端展示名称 | 否       |
+
+### dataModel
+
+#### entity
+
+| tag 名称    | 描述         | 是否必须 |
+| ----------- | ------------ | -------- |
+| name        | 名称         | 是       |
+| displayName | 前端展示名称 | 是       |
+| description | 描述         | 否       |
+
+#### attribute 
+
+| tag 名称    | 描述                  | 是否必须                        |
+| ----------- | --------------------- | ------------------------------- |
+| name        | 名称                  | 是                              |
+| dataType    | 数据类型              | 是 (`int`, `str`, `ref`)        |
+| description | 描述                  | 否                              |
+| refPackage  | 引用的插件包名称      | 否 (若 `dataType`为`ref`则必填) |
+| refVersion  | 引用的插件包版本      | 否 (若 `dataType`为`ref`则必填) |
+| refEntity   | 引用的`entity`名称    | 否 (若 `dataType`为`ref`则必填) |
+| ref         | 引用的`attribute`名称 | 否 (若 `dataType`为`ref`则必填) |
+
+### systemParameters
+
+#### systemParameter 
+
+| tag 名称     | 描述       | 是否必须 |
+| ------------ | ---------- | -------- |
+| name         | 名称       | 是       |
+| defaultValue | 默认值     | 否       |
+| scopeType    | 作用域类型 | 是       |
+
+### authorities
+
+#### authority 
+
+`authority `tag 包含 `menu` tag，具体属性参考`menu`
+
+
+
+### resourceDependencies
+
+#### docker
+
+| tag 名称       | 描述       | 是否必须 |
+| -------------- | ---------- | -------- |
+| imageName      | 镜像名称   | 是       |
+| containerName  | 容器名称   | 是       |
+| portBindings   | 绑定端口号 | 是       |
+| volumnBindings | 绑定数据卷 | 否       |
+| envVariables   | 环境参数   | 否       |
+
+#### mysql
+
+| tag 名称        | 描述           | 是否必须 |
+| --------------- | -------------- | -------- |
+| schema          | 数据库名称     | 是       |
+| initFileName    | 初始化脚本名称 | 是       |
+| upgradeFileName | 更新脚本名称   | 否       |
+
+#### s3
+
+| tag 名称   | 描述       | 是否必须 |
+| ---------- | ---------- | -------- |
+| bucketName | 存储桶名称 | 是       |
+
+### plugins
+
+#### plugin
+
+| tag 名称 | 描述     | 是否必须 |
+| -------- | -------- | -------- |
+| name     | 名称     | 是       |
+
+##### interface
+
+一个 plugin 里可有多个 interfaces
+
+
+
+###### inputParameters 与 outputParameters
+
+两个 tag 都使用了 `parameter` 的 tag
+
+parameter：
+
+`<parameter> </parameter>` 之间应当填写参数名称
+
+| tag 名称              | 描述               | 是否必须 |
+| --------------------- | ------------------ | -------- |
+| dataType              | 数据类型           | 否       |
+| mappingType           | 映射类型           | 否       |
+| mappingSystemVariable | 映射系统参数id     | 否       |
+| required              | 该paramter是否必须 | 是       |
+
