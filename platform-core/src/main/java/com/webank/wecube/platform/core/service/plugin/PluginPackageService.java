@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
@@ -245,22 +244,36 @@ public class PluginPackageService {
         return dependencyDto;
     }
 
-    public List<MenuItemDto> getMenusById(Integer packageId) {
+    public List<MenuItemDto> getMenusById(Integer packageId) throws WecubeCoreException {
         List<MenuItemDto> returnMenuDto;
+
 
         // handling core's menus
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
+
+        // update categoryToId mapping, which is system menu's category to its latest id
+        Map<String, Integer> categoryToId = updateCategoryToIdMapping(returnMenuDto);
 
         // handling package's menus
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
 
         for (PluginPackageMenu packageMenu : packageMenus) {
-            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
+            String transformedParentId = null;
+            Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
+            if (parentId == null) {
+                String msg = String.format("Cannot find system menu item by package menu's category: [%s]", packageMenu.getCategory());
+                log.error(msg);
+                throw new WecubeCoreException(msg);
+            }
+            transformedParentId = parentId.toString();
+            Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
+            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId, foundTopMenuId);
+            categoryToId.put(transformedParentId, foundTopMenuId);
             returnMenuDto.add(packageMenuDto);
         }
-
+        Collections.sort(returnMenuDto);
         return returnMenuDto;
     }
 
@@ -318,5 +331,23 @@ public class PluginPackageService {
                 updateDependencyDto(dependency, dependencyDto);
             }
         });
+    }
+
+    private Map<String, Integer> updateCategoryToIdMapping(List<MenuItemDto> inputMenuItemDto) {
+        Map<String, Integer> categoryToId = new HashMap<>();
+        for (int i = 1; i <= 8; i++) {
+            categoryToId.put(Integer.toString(i), 0);
+        }
+        for (MenuItemDto menuItemDto : inputMenuItemDto) {
+            String menuCategory = menuItemDto.getCategory();
+            Integer menuId = menuItemDto.getId();
+            if (!org.springframework.util.StringUtils.isEmpty(menuCategory)) {
+                if (menuId > categoryToId.get(menuCategory)) {
+                    categoryToId.put(menuCategory, menuId + 1);
+                }
+            }
+
+        }
+        return categoryToId;
     }
 }
