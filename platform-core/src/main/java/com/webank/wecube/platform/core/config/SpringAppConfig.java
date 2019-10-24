@@ -18,7 +18,7 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.HttpClientP
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.S3Properties;
-//import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
+import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
 
 @Configuration
 @EnableConfigurationProperties({
@@ -33,7 +33,7 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.S3Propertie
 @ComponentScan({ "com.webank.wecube.platform.core.service" })
 @EntityScan(basePackages = { "com.webank.wecube.platform.core" })
 @EnableJpaRepositories(basePackages = { "com.webank.wecube.platform.core" })
-//@EnablePlatformWorkflowApplication
+@EnablePlatformWorkflowApplication
 public class SpringAppConfig {
 
     @Autowired

@@ -11,6 +11,11 @@ import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.parse.SpringApplicationContextUtil;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public abstract class AbstractServiceExceptionHandleDelegate {
     protected void logServiceNodeException(DelegateExecution execution, TraceStatus traceStatus, String idPrefix){
         String activityId = execution.getCurrentActivityId();
