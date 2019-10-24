@@ -58,7 +58,7 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
     private String nodeType;
 
     @Column(name = "ORDERED_NO")
-    private Integer orderedNo;
+    private String orderedNo;
 
     public String getId() {
         return id;
@@ -172,11 +172,11 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
         this.nodeType = nodeType;
     }
 
-    public Integer getOrderedNo() {
+    public String getOrderedNo() {
         return orderedNo;
     }
 
-    public void setOrderedNo(Integer orderedNo) {
+    public void setOrderedNo(String orderedNo) {
         this.orderedNo = orderedNo;
     }
 
