@@ -1,4 +1,5 @@
 import vis from "vis";
+import Vue from "vue";
 import { getRefCiTypeFrom, getRefCiTypeTo, getCiTypeAttr } from "@/api/server";
 
 const visOptions = {
@@ -243,7 +244,6 @@ export default {
       if (e.nodes.length === 0) return;
       this.savedClickedNode = this.savedRenderedNodes[e.nodes[0]];
       if (!this.savedClickedNode) {
-        // 从from和to中寻找当前点击node label === e.nodes[0]
         const keys = Object.keys(this.savedRenderedNodes);
         for (let i = 0; i < keys.length; i++) {
           const key = keys[i];
@@ -324,7 +324,7 @@ export default {
       ].to;
       let data = [
         {
-          title: "所有",
+          title: Vue.t("all"),
           id: "all",
           expand: true,
           children: this.referTos.map(_ => {
@@ -357,7 +357,7 @@ export default {
       ].from;
       let data = [
         {
-          title: "所有",
+          title: Vue.t("all"),
           id: "all",
           expand: true,
           children: this.referBys.map(_ => {
@@ -387,7 +387,7 @@ export default {
       ].node.attrs;
       let data = [
         {
-          title: "所有",
+          title: Vue.t("all"),
           id: "all",
           expand: true,
           children: this.ciTypeAttrs
@@ -479,7 +479,6 @@ export default {
                 currentIndex = `${childIndexBase}-1`;
               }
 
-              // 如果已经存在froms中 则不重复计算
               const existNode = this.savedClickedNode.from.find(
                 _ => _.ciTypeId == by.ciTypeId
               );
@@ -545,7 +544,6 @@ export default {
               } else {
                 currentIndex = `${childIndexBase}-1`;
               }
-              //如果已经存在froms中 则不重复计算
               const existNode = this.savedClickedNode.to.find(
                 _ => _.referenceId === to.ciTypeId && _.name === to.name
               );
@@ -634,13 +632,13 @@ export default {
         >
           <div>
             <Tabs value="name1">
-              <TabPane label="属性" name="name1">
+              <TabPane label={this.$t("attribute")} name="name1">
                 {isSwitcherOpen && this.renderAttrs()}
               </TabPane>
-              <TabPane label="引用" name="name2">
+              <TabPane label={this.$t("ref_to")} name="name2">
                 {isSwitcherOpen && this.renderTos()}
               </TabPane>
-              <TabPane label="被引用" name="name3">
+              <TabPane label={this.$t("ref_by")} name="name3">
                 {isSwitcherOpen && this.renderBys()}
               </TabPane>
             </Tabs>

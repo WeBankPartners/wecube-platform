@@ -6,8 +6,11 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Data @NoArgsConstructor @AllArgsConstructor
-@Entity @Table(name = "plugin_cfg_filter_rules")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "plugin_cfg_filter_rules")
 public class PluginConfigFilteringRule {
 
     @Id
