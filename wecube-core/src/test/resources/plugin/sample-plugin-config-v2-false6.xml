@@ -72,8 +72,8 @@
 
     <!-- 4.系统参数 - 描述运行本插件包需要的系统参数 -->
     <systemParameters>
-        <systemParameter name="xxx" defaultValue='xxxx'/>
-        <systemParameter name="xxx" defaultValue='xxxx'/>
+        <systemParameter name="xxx" defaultValue='xxxx' scopeType='global'/>
+        <systemParameter name="xxx" defaultValue='xxxx' scopeType='plugin-package'/>
     </systemParameters>
 
     <!-- 5.权限设定 -->
@@ -95,9 +95,9 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
-        <plugin id="task" name="task management">
+        <plugin name="task management">
             <interface name="create" path="/service-management/tasks" httpMethod='POST'>
-                <input-parameters>
+                <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>callbackUrl</parameter>
                     <parameter datatype="string" mappingType='context'  required='N'>description</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>name</parameter>
@@ -106,23 +106,23 @@
                     <parameter datatype="string" mappingType='context' required='Y'>processInstanceId</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>reporter</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>serviceRequestId</parameter>
-                </input-parameters>
-                <output-parameters>
+                </inputParameters>
+                <outputParameters>
                     <parameter datatype="string">status</parameter>
                     <parameter datatype="string">message</parameter>
-                </output-parameters>
+                </outputParameters>
             </interface>
         </plugin>
-        <plugin id="service_request" name="service request management">
+        <plugin name="service request management">
             <interface name="update" path="/service-management/service-requests/{service-request-id}/done" httpMethod='PUT'>
-                <input-parameters>
+                <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>service-request-id</parameter>
                     <parameter datatype="string" mappingType='context'  required='Y'>result</parameter>
-                </input-parameters>
-                <output-parameters>
+                </inputParameters>
+                <outputParameters>
                     <parameter datatype="string">status</parameter>
                     <parameter datatype="string">message</parameter>
-                </output-parameters>
+                </outputParameters>
             </interface>
         </plugin>
     </plugins>

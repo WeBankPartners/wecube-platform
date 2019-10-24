@@ -1,11 +1,12 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.Setter;
 
 import javax.persistence.*;
 
-@Data @NoArgsConstructor @AllArgsConstructor
-@Entity @Table(name = "plugin_instances")
+@Entity
+@Table(name = "plugin_instances")
 @Setter
 public class PluginInstance {
     public static final String STATUS_RUNNING = "RUNNING";
@@ -15,6 +16,7 @@ public class PluginInstance {
     @GeneratedValue
     private Integer id;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "package_id")
     private PluginPackage pluginPackage;
@@ -27,4 +29,64 @@ public class PluginInstance {
     private Integer port;
     @Column
     private String status;
+
+    public PluginInstance() {
+    }
+
+    public PluginInstance(Integer id, PluginPackage pluginPackage, String instanceContainerId, String host, Integer port, String status) {
+        this.id = id;
+        this.pluginPackage = pluginPackage;
+        this.instanceContainerId = instanceContainerId;
+        this.host = host;
+        this.port = port;
+        this.status = status;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public PluginPackage getPluginPackage() {
+        return pluginPackage;
+    }
+
+    public void setPluginPackage(PluginPackage pluginPackage) {
+        this.pluginPackage = pluginPackage;
+    }
+
+    public String getInstanceContainerId() {
+        return instanceContainerId;
+    }
+
+    public void setInstanceContainerId(String instanceContainerId) {
+        this.instanceContainerId = instanceContainerId;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
+    public void setPort(Integer port) {
+        this.port = port;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

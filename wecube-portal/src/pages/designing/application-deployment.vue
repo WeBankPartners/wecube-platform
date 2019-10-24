@@ -2,7 +2,7 @@
   <div>
     <Row class="artifact-management">
       <Col span="6">
-        <span style="margin-right: 10px">系统设计</span>
+        <span style="margin-right: 10px">{{ $t("system_design_list") }}</span>
         <Select
           filterable
           @on-change="onSystemDesignSelect"
@@ -19,7 +19,7 @@
         </Select>
       </Col>
       <Col span="6" offset="1">
-        <span style="margin-right: 10px">环境类型</span>
+        <span style="margin-right: 10px">{{ $t("env_type") }}</span>
         <Select
           @on-change="onEnvSelect"
           v-model="env"
@@ -32,7 +32,7 @@
         </Select>
       </Col>
       <Col span="3" offset="1">
-        <Button type="info" @click="querySysTree">查询</Button>
+        <Button type="info" @click="querySysTree">{{ $t("query") }}</Button>
       </Col>
     </Row>
     <hr style="margin: 10px 0" />
@@ -42,7 +42,7 @@
       :closable="false"
       @on-click="handleTabClick"
     >
-      <TabPane label="应用逻辑图" name="logic-graph" :index="1">
+      <TabPane :label="$t('app_logic_graph')" name="logic-graph" :index="1">
         <Alert show-icon closable v-if="isDataChanged">
           Data has beed changed, click Reload button to reload graph.
           <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -51,11 +51,15 @@
         <div class="graph-container" id="graph">
           <Spin size="large" fix v-if="spinShow">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
         </div>
       </TabPane>
-      <TabPane label="应用树状逻辑图" name="logic-tree-graph" :index="2">
+      <TabPane
+        :label="$t('app_logic_tree_graph')"
+        name="logic-tree-graph"
+        :index="2"
+      >
         <Alert show-icon closable v-if="isDataChanged">
           Data has beed changed, click Reload button to reload graph.
           <Button slot="desc" @click="reloadHandler">Reload</Button>
@@ -64,11 +68,15 @@
         <div class="graph-container" id="graphTree">
           <Spin size="large" fix v-if="treeSpinShow">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
         </div>
       </TabPane>
-      <TabPane label="物理部署图" name="physicalGraph" :index="3">
+      <TabPane
+        :label="$t('physical_deploy_graph')"
+        name="physicalGraph"
+        :index="3"
+      >
         <div id="physicalGraph">
           <PhysicalGraph
             v-if="physicalGraphData.length"
@@ -78,11 +86,11 @@
           ></PhysicalGraph>
           <Spin size="large" fix v-if="physicalSpin">
             <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-            <div>加载中...</div>
+            <div>{{ $t("loading") }}</div>
           </Spin>
         </div>
       </TabPane>
-      <TabPane label="部署详情" name="deploy-detail" :index="4">
+      <TabPane :label="$t('deploy_details')" name="deploy-detail" :index="4">
         <Row style="max-height: 500px">
           <Tree
             :data="deployTree"
@@ -97,7 +105,7 @@
             icon="md-eye"
             @click="previewDeploy"
             :disabled="this.selectedDeployItems.length < 1"
-            >预览</Button
+            >{{ $t("preview") }}</Button
           >
         </Row>
         <Row>
@@ -122,7 +130,7 @@
             type="info"
             @click="executeDeploy"
             :disabled="this.selectedDeployItems.length < 1"
-            >执行流程</Button
+            >{{ $t("execute_flow") }}</Button
           >
         </Row>
       </TabPane>
@@ -515,7 +523,7 @@ export default {
       if (!this.systemDesignVersion || !this.env) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请先选择系统设计和环境类型"
+          desc: this.$t("please_select_sys_design_and_env")
         });
         return;
       }
@@ -643,7 +651,7 @@ export default {
       } = await startProcessInstancesWithCiDataInbatch(payload);
       if (status === "OK") {
         this.$Notice.success({
-          title: "开始执行",
+          title: this.$t("start_execution"),
           desc: message
         });
       }
@@ -1043,7 +1051,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("confirm_to_delete"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = {
@@ -1284,7 +1292,7 @@ export default {
       if (this.env === "" || this.systemDesignVersion === "") {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请先选择系统设计和环境类型"
+          desc: this.$t("please_select_sys_design_and_env")
         });
         return;
       }

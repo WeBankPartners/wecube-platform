@@ -1,17 +1,10 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
+import javax.persistence.*;
 
 @Entity
 @Table(name = "plugin_package_attributes", uniqueConstraints = {
@@ -22,12 +15,13 @@ public class PluginPackageAttribute {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @JsonBackReference
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "entity_id")
     private PluginPackageEntity pluginPackageEntity;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "reference_id")
+    @JoinColumn(name = "reference_id", referencedColumnName="id")
     private PluginPackageAttribute pluginPackageAttribute;
 
     @Column(name = "name")
@@ -101,5 +95,10 @@ public class PluginPackageAttribute {
 
     public void setDataType(String dataType) {
         this.dataType = DataModelDataType.fromCode(dataType).getCode();
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackageEntity", "pluginPackageAttribute"});
     }
 }

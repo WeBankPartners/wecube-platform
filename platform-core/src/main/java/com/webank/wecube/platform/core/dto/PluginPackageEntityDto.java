@@ -1,15 +1,16 @@
 package com.webank.wecube.platform.core.dto;
 
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 
 class TrimmedPluginPackageEntityDto {
     private String packageName;
@@ -135,6 +136,35 @@ public class PluginPackageEntityDto {
         return pluginPackageEntity;
     }
 
+    /**
+     *
+     * @return transformed entity domain object
+     */
+    public PluginPackageEntity toDomain(PluginPackage pluginPackage) {
+        PluginPackageEntity pluginPackageEntity = new PluginPackageEntity();
+        pluginPackageEntity.setPluginPackage(pluginPackage);
+
+        if (this.getName() != null) {
+            pluginPackageEntity.setName(this.getName());
+        }
+
+        if (this.getDescription() != null) {
+            pluginPackageEntity.setDescription(this.getDescription());
+        }
+
+        if (this.getDisplayName() != null) {
+            pluginPackageEntity.setDisplayName(this.getDisplayName());
+        }
+        if (this.getAttributeDtoList() != null) {
+            List<PluginPackageAttribute> pluginPackageAttributeList = new ArrayList<>();
+            for (PluginPackageAttributeDto pluginPackageAttributeDto : this.getAttributeDtoList()) {
+                pluginPackageAttributeList.add(PluginPackageAttributeDto.toDomain(pluginPackageAttributeDto, null, pluginPackageEntity));
+            }
+            pluginPackageEntity.setPluginPackageAttributeList(pluginPackageAttributeList);
+        }
+        return pluginPackageEntity;
+    }
+
     public void updateReferenceBy(String packageName, String packageVersion, String name, String displayName) {
         TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(packageName, packageVersion, name, displayName);
         this.referenceByEntityList.add(trimmedPluginPackageEntityDto);
@@ -208,5 +238,10 @@ public class PluginPackageEntityDto {
 
     public void setReferenceByEntityList(Set<TrimmedPluginPackageEntityDto> referenceByEntityList) {
         this.referenceByEntityList = referenceByEntityList;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
     }
 }

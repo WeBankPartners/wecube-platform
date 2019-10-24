@@ -7,7 +7,7 @@
       @on-tab-remove="handleTabRemove"
       @on-click="handleTabClick"
     >
-      <TabPane :closable="false" name="CMDB" label="CMDB模型">
+      <TabPane :closable="false" name="CMDB" :label="$t('cmdb_model')">
         <div class="graph-container" id="graph"></div>
       </TabPane>
       <TabPane
@@ -217,9 +217,7 @@ export default {
         nodes.forEach((node, nodeIndex) => {
           if (node.layerId === _.layerId) {
             tempClusterObjForGraph[index].push(
-              `"${node.name}"[id="${node.ciTypeId}", image="${
-                node.form.imgSource
-              }.png", labelloc="b"]`
+              `"${node.name}"[id="${node.ciTypeId}", image="${node.form.imgSource}.png", labelloc="b"]`
             );
           }
           if (nodeIndex === nodes.length - 1) {
@@ -259,9 +257,9 @@ export default {
         '"->' +
         '"' +
         target.name.trim() +
-        '"[label="' +
+        '"[taillabel="' +
         labels +
-        '"];'
+        '", labeldistance=3];'
       );
     },
 
@@ -520,7 +518,7 @@ export default {
     },
     deleteHandler(deleteData) {
       this.$Modal.confirm({
-        title: "确认删除？",
+        title: this.$t("confirm_to_delete"),
         "z-index": 1000000,
         onOk: async () => {
           const payload = {

@@ -1,73 +1,74 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.webank.wecube.platform.core.domain.SystemVariable;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+import javax.persistence.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "plugin_packages")
 public class PluginPackage {
-
+    @JsonIgnore
+    private static final String DOCKER_IMAGE_FILE_NAME = "image.tar";
+    @JsonIgnore
+    private static final String UI_ZIP_FILE_NAME = "ui.zip";
     @Id
     @GeneratedValue
     private Integer id;
 
     @Column
     private String name;
+
     @Column
     private String version;
 
-    @Column
-    private String dockerImageFile;
-
-    @Column
-    private String dockerImageRepository;
-
-    @Column
-    private String dockerImageTag;
-
-    @Column
-    private String containerPort;
-
-    @Column
-    private String containerConfigDirectory;
-
-    @Column
-    private String containerLogDirectory;
-
-    @Column
-    private String containerDataDirectory;
-
-    @Column
-    private String containerStartParam;
-
+    @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<PluginConfig> pluginConfigs = new ArrayList<>();
+    private Set<PluginPackageDependency> pluginPackageDependencies = new LinkedHashSet<>();
 
-    @JsonIgnore
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<PluginPackageMenu> pluginPackageMenus = new LinkedHashSet<>();
+
+    @JsonManagedReference
+    @Transient
+    private Set<PluginPackageEntity> pluginPackageEntities = new LinkedHashSet<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<SystemVariable> systemVariables = new LinkedHashSet<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<PluginPackageAuthority> pluginPackageAuthorities = new LinkedHashSet<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker = new LinkedHashSet<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql = new LinkedHashSet<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3 = new LinkedHashSet<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<PluginConfig> pluginConfigs = new LinkedHashSet<>();
+
+    @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "pluginPackage")
-    private List<PluginInstance> pluginInstances = new ArrayList<>();
+    private Set<PluginInstance> pluginInstances = new LinkedHashSet<>();
 
     public void addPluginConfig(PluginConfig pluginConfig) {
         this.pluginConfigs.add(pluginConfig);
@@ -77,4 +78,138 @@ public class PluginPackage {
         this.pluginInstances.add(pluginInstance);
     }
 
+    public String getDockerImageFilename() {
+        return DOCKER_IMAGE_FILE_NAME;
+    }
+
+    public String getUiPackageFilename() {
+        return UI_ZIP_FILE_NAME;
+    }
+
+    public PluginPackage() {
+    }
+
+    public PluginPackage(Integer id, String name, String version, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginInstance> pluginInstances) {
+        this.id = id;
+        this.name = name;
+        this.version = version;
+        this.pluginPackageDependencies = pluginPackageDependencies;
+        this.pluginPackageMenus = pluginPackageMenus;
+        this.systemVariables = systemVariables;
+        this.pluginPackageAuthorities = pluginPackageAuthorities;
+        this.pluginPackageRuntimeResourcesDocker = pluginPackageRuntimeResourcesDocker;
+        this.pluginPackageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysql;
+        this.pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3;
+        this.pluginConfigs = pluginConfigs;
+        this.pluginInstances = pluginInstances;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public Set<PluginPackageDependency> getPluginPackageDependencies() {
+        return pluginPackageDependencies;
+    }
+
+    public void setPluginPackageDependencies(Set<PluginPackageDependency> pluginPackageDependencies) {
+        this.pluginPackageDependencies = pluginPackageDependencies;
+    }
+
+    public Set<PluginPackageMenu> getPluginPackageMenus() {
+        return pluginPackageMenus;
+    }
+
+    public void setPluginPackageMenus(Set<PluginPackageMenu> pluginPackageMenus) {
+        this.pluginPackageMenus = pluginPackageMenus;
+    }
+
+    public Set<PluginPackageEntity> getPluginPackageEntities() {
+        return pluginPackageEntities;
+    }
+
+    public void setPluginPackageEntities(Set<PluginPackageEntity> pluginPackageEntities) {
+        this.pluginPackageEntities = pluginPackageEntities;
+    }
+
+    public Set<SystemVariable> getSystemVariables() {
+        return systemVariables;
+    }
+
+    public void setSystemVariables(Set<SystemVariable> systemVariables) {
+        this.systemVariables = systemVariables;
+    }
+
+    public Set<PluginPackageAuthority> getPluginPackageAuthorities() {
+        return pluginPackageAuthorities;
+    }
+
+    public void setPluginPackageAuthorities(Set<PluginPackageAuthority> pluginPackageAuthorities) {
+        this.pluginPackageAuthorities = pluginPackageAuthorities;
+    }
+
+    public Set<PluginPackageRuntimeResourcesDocker> getPluginPackageRuntimeResourcesDocker() {
+        return pluginPackageRuntimeResourcesDocker;
+    }
+
+    public void setPluginPackageRuntimeResourcesDocker(Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker) {
+        this.pluginPackageRuntimeResourcesDocker = pluginPackageRuntimeResourcesDocker;
+    }
+
+    public Set<PluginPackageRuntimeResourcesMysql> getPluginPackageRuntimeResourcesMysql() {
+        return pluginPackageRuntimeResourcesMysql;
+    }
+
+    public void setPluginPackageRuntimeResourcesMysql(Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql) {
+        this.pluginPackageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysql;
+    }
+
+    public Set<PluginPackageRuntimeResourcesS3> getPluginPackageRuntimeResourcesS3() {
+        return pluginPackageRuntimeResourcesS3;
+    }
+
+    public void setPluginPackageRuntimeResourcesS3(Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3) {
+        this.pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3;
+    }
+
+    public Set<PluginConfig> getPluginConfigs() {
+        return pluginConfigs;
+    }
+
+    public void setPluginConfigs(Set<PluginConfig> pluginConfigs) {
+        this.pluginConfigs = pluginConfigs;
+    }
+
+    public Set<PluginInstance> getPluginInstances() {
+        return pluginInstances;
+    }
+
+    public void setPluginInstances(Set<PluginInstance> pluginInstances) {
+        this.pluginInstances = pluginInstances;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.reflectionToString(this);
+    }
 }
