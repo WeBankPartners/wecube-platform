@@ -293,7 +293,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/system_parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/api/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
                     .andExpect(jsonPath("$.data[*].name", contains("xxx", "xxx")))
@@ -338,7 +338,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/runtime_resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/api/packages/%s/runtime-resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.docker[0].id", is(1)))
                     .andExpect(jsonPath("$.data.mysql[0].id", is(1)))
