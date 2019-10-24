@@ -3,13 +3,10 @@ package com.webank.wecube.platform.core.dto.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskNodeInfoDto {
-    private String id;
+public class TaskNodeDefInfoDto extends BaseNodeDefDto{
+    private String nodeDefId;
     private String processDefKey;
     private String processDefId;
-
-    private String nodeId;
-    private String nodeName;
 
     private String serviceId;
     private String serviceName;
@@ -22,15 +19,17 @@ public class TaskNodeInfoDto {
     private String timeoutExpression;
 
     private String status;
+    
+    private int orderedNo;
 
-    private List<TaskNodeParamDto> paramInfos = new ArrayList<>();
+    private List<TaskNodeDefParamDto> paramInfos = new ArrayList<>();
 
-    public String getId() {
-        return id;
+    public String getNodeDefId() {
+        return nodeDefId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setNodeDefId(String id) {
+        this.nodeDefId = id;
     }
 
     public String getProcessDefKey() {
@@ -49,21 +48,7 @@ public class TaskNodeInfoDto {
         this.processDefId = processDefId;
     }
 
-    public String getNodeId() {
-        return nodeId;
-    }
-
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
-    }
-
-    public String getNodeName() {
-        return nodeName;
-    }
-
-    public void setNodeName(String nodeName) {
-        this.nodeName = nodeName;
-    }
+   
 
     public String getServiceId() {
         return serviceId;
@@ -121,23 +106,35 @@ public class TaskNodeInfoDto {
         this.status = status;
     }
 
-    public List<TaskNodeParamDto> getParamInfos() {
+    public List<TaskNodeDefParamDto> getParamInfos() {
         return paramInfos;
     }
 
-    public void setParamInfos(List<TaskNodeParamDto> paramInfos) {
+    public void setParamInfos(List<TaskNodeDefParamDto> paramInfos) {
         this.paramInfos = paramInfos;
+    }
+
+   
+    
+    
+
+    public int getOrderedNo() {
+        return orderedNo;
+    }
+
+    public void setOrderedNo(int orderedNo) {
+        this.orderedNo = orderedNo;
     }
 
     @Override
     public String toString() {
-        return "TaskNodeInfoDto [id=" + id + ", processDefKey=" + processDefKey + ", processDefId=" + processDefId
-                + ", nodeId=" + nodeId + ", nodeName=" + nodeName + ", serviceId=" + serviceId + ", serviceName="
-                + serviceName + ", routineExpression=" + routineExpression + ", routineRaw=" + routineRaw
-                + ", description=" + description + ", timeoutExpression=" + timeoutExpression + ", status=" + status
-                + ", paramInfos=" + paramInfos + "]";
+        return "TaskNodeDefInfoDto [nodeDefId=" + nodeDefId + ", processDefKey=" + processDefKey + ", processDefId="
+                + processDefId + ", serviceId=" + serviceId + ", serviceName=" + serviceName + ", routineExpression="
+                + routineExpression + ", routineRaw=" + routineRaw + ", description=" + description
+                + ", timeoutExpression=" + timeoutExpression + ", status=" + status + ", orderedNo=" + orderedNo
+                + ", paramInfos=" + paramInfos + ", toString()=" + super.toString() + "]";
     }
-    
-    
+
+   
 
 }
