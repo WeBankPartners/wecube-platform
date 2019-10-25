@@ -9,7 +9,7 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
 
 wecube:
   core:
