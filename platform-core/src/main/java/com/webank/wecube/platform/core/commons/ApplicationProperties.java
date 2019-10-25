@@ -21,11 +21,11 @@ public class ApplicationProperties {
     private String casRedirectAppAddr = "";
     private DataSize maxFileSize = DataSize.ofKilobytes(64);
     private boolean securityEnabled = true;
-    
+
     public boolean isAuthenticationProviderLocal() {
         return AUTH_PROVIDER_LOCAL.equalsIgnoreCase(authenticationProvider);
     }
-    
+
     public boolean isAuthenticationProviderCAS() {
         return AUTH_PROVIDER_CAS.equalsIgnoreCase(authenticationProvider);
     }
@@ -61,7 +61,7 @@ public class ApplicationProperties {
         private Integer ciTypeIdOfZoneLink = 18;
         private Integer ciTypeIdOfZoneDesign = 23;
 
-        //for getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode()
+        // for getApplicationDeploymentDesignDataTreeBySystemDesignGuidAndEnvCode()
         private Integer ciTypeIdOfHost = 12;
         private Integer ciTypeIdOfInstance = 15;
         private Integer ciTypeIdOfUnit = 8;
@@ -98,20 +98,23 @@ public class ApplicationProperties {
         private Map<String, String> customHeaders = new LinkedHashMap<>();
         private Set<String> sensitiveHeaders = null;
     }
-    
+
     @Data
     @ConfigurationProperties(prefix = "wecube.core.plugin")
     public class PluginProperties {
-        private String pluginDeployPath;
-        private String[] pluginHosts;
-        private String pluginPackageBucketName;
-        private String registerFile;
-        private String imageFile;
-        private String uiFile;
+        private String pluginDeployPath = "/opt";
+        private String pluginPackageBucketName = "wecube-plugin-package-bucket";
+        private String registerFile = "register.xml";
+        private String imageFile = "image.tar";
+        private String uiFile = "ui.zip";
+        private String initDbSql = "init.sql";
+        private String upgradeDbSql = "upgrade.sql";
         private String pluginPackageNameOfDeploy;
-//        private String defaultHostSshUser;
-//        private String defaultHostSshPassword;
-        private Integer defaultHostSshPort;
+        private String staticResourceServerIp;
+        private String staticResourceServerUser;
+        private String staticResourceServerPassword;
+        private Integer staticResourceServerPort;
+        private String staticResourceServerPath;
     }
 
     @Data
