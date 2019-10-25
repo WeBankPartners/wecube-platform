@@ -109,6 +109,7 @@ CREATE TABLE `plugin_configs` (
   `plugin_package_id` INT(11) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
   `entity_id` INT(11) NULL DEFAULT NULL,
+  `entity_name` VARCHAR(100) NOT NULL,
   `status` VARCHAR(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
