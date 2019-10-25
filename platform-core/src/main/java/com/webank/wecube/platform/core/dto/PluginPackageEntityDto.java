@@ -13,17 +13,27 @@ import java.util.List;
 import java.util.Set;
 
 class TrimmedPluginPackageEntityDto {
+    private Integer id;
     private String packageName;
     private String packageVersion;
     private String name;
     private String displayName;
 
 
-    public TrimmedPluginPackageEntityDto(String packageName, String packageVersion, String name, String displayName) {
+    public TrimmedPluginPackageEntityDto(Integer entityId, String packageName, String packageVersion, String name, String displayName) {
+        this.id = entityId;
         this.packageName = packageName;
         this.name = name;
         this.displayName = displayName;
         this.packageVersion = packageVersion;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getPackageName() {
@@ -68,6 +78,7 @@ class TrimmedPluginPackageEntityDto {
 }
 
 public class PluginPackageEntityDto {
+    private Integer id;
     private String packageName;
     private String name;
     private String displayName;
@@ -79,7 +90,8 @@ public class PluginPackageEntityDto {
     private List<PluginPackageAttributeDto> attributeDtoList = new ArrayList<>();
 
 
-    public PluginPackageEntityDto(String name, String displayName, String description, String state, List<PluginPackageAttributeDto> attributeDtoList) {
+    public PluginPackageEntityDto(Integer id, String name, String displayName, String description, String state, List<PluginPackageAttributeDto> attributeDtoList) {
+        this.id = id;
         this.name = name;
         this.displayName = displayName;
         this.description = description;
@@ -95,6 +107,7 @@ public class PluginPackageEntityDto {
      */
     public static PluginPackageEntityDto fromDomain(PluginPackageEntity pluginPackageEntity) {
         PluginPackageEntityDto pluginPackageEntityDto = new PluginPackageEntityDto();
+        pluginPackageEntityDto.setId(pluginPackageEntity.getId());
         pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackage().getName());
         pluginPackageEntityDto.setName(pluginPackageEntity.getName());
         pluginPackageEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
@@ -137,7 +150,6 @@ public class PluginPackageEntityDto {
     }
 
     /**
-     *
      * @return transformed entity domain object
      */
     public PluginPackageEntity toDomain(PluginPackage pluginPackage) {
@@ -165,16 +177,23 @@ public class PluginPackageEntityDto {
         return pluginPackageEntity;
     }
 
-    public void updateReferenceBy(String packageName, String packageVersion, String name, String displayName) {
-        TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(packageName, packageVersion, name, displayName);
+    public void updateReferenceBy(Integer entityId, String packageName, String packageVersion, String name, String displayName) {
+        TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, packageVersion, name, displayName);
         this.referenceByEntityList.add(trimmedPluginPackageEntityDto);
     }
 
-    public void updateReferenceTo(String packageName, String packageVersion, String name, String displayName) {
-        TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(packageName, packageVersion, name, displayName);
+    public void updateReferenceTo(Integer entityId, String packageName, String packageVersion, String name, String displayName) {
+        TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, packageVersion, name, displayName);
         this.referenceToEntityList.add(trimmedPluginPackageEntityDto);
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getPackageName() {
         return packageName;
