@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -154,7 +155,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
     public static PluginPackage mockPluginPackage(String name, String version) {
         PluginPackage mockPluginPackage = new PluginPackage(null, name, version, newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, NOT_CONFIGURED, newArrayList());
+        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, NOT_CONFIGURED, new HashSet<>());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
         mockPluginPackage.addPluginConfig(mockPlugin);
 
