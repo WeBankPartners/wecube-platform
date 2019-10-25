@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -29,8 +31,10 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourcePro
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
+import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
@@ -39,6 +43,7 @@ import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
@@ -76,6 +81,8 @@ public class PluginInstanceService {
 
     @Autowired
     private ResourceManagementService resourceManagementService;
+    @Autowired
+    private ResourceItemRepository resourceItemRepository;
 
     private static final int PLUGIN_DEFAULT_START_PORT = 20000;
     private static final int PLUGIN_DEFAULT_END_PORT = 30000;
@@ -181,16 +188,20 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Plugin package id does not exist, id = " + packageId);
         PluginPackage pluginPackage = pluginPackageResult.get();
 
-        // 1. create MySql DB
+        PluginInstance instance = new PluginInstance();
+        instance.setPluginPackage(pluginPackage);
 
-        pluginPackage.getPluginPackageRuntimeResourcesMysql().forEach(mysqlInfo -> {
-            createPluginMysqlDatabase(mysqlInfo);
-        });
+        // 1. create MySql DB
+        PluginMysqlInstance mysqlInstance = createPluginMysqlDatabase(
+                pluginPackage.getPluginPackageRuntimeResourcesMysql().iterator().next());
+        Set<PluginMysqlInstance> mysqlInstanceSet = new HashSet<PluginMysqlInstance>();
+        mysqlInstanceSet.add(mysqlInstance);
+        instance.setPluginMysqlInstance(mysqlInstanceSet);
 
         // 2. create S3 bucket
-        pluginPackage.getPluginPackageRuntimeResourcesS3().forEach(s3Info -> {
-            createPluginS3Bucket(s3Info);
-        });
+        PluginPackageRuntimeResourcesS3 s3Info = pluginPackage.getPluginPackageRuntimeResourcesS3().iterator().next();
+        Integer resourceItemId = createPluginS3Bucket(s3Info);
+        instance.setS3BucketResourceId(resourceItemId);
 
         // 3. create docker instance
         pluginPackage.getPluginPackageRuntimeResourcesDocker().forEach(dockerInfo -> {
@@ -204,26 +215,33 @@ public class PluginInstanceService {
 
         // 4. deploy UI package
 
+        deployUiPackage(pluginPackage);
+
         // 5. insert to DB
 
         // TODO - 6. notify gateway
 
     }
 
-    private void createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo) {
+    private PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo) {
         String dbPassword = genRandomPassword();
-
         ResourceItemDto createResourceItem = new ResourceItemDto(mysqlInfo.getSchemaName(),
                 ResourceItemType.MYSQL_DATABASE.getCode(),
                 buildAdditionalPropertiesForMysqlDatabase(mysqlInfo.getPluginPackage().getName(),
                         mysqlInfo.getSchemaName(), dbPassword),
-                null, "purpose");
+                null, String.format("Build MySQL database for plugin[%s]", mysqlInfo.getSchemaName()));
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createResourceItem));
-
+        return new PluginMysqlInstance(mysqlInfo.getSchemaName(),
+                resourceItemRepository.findById(result.get(0).getId()).get(), mysqlInfo.getSchemaName(), dbPassword,
+                "active");
     }
 
-    private void createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
-
+    private Integer createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
+        ResourceItemDto createResourceItem = new ResourceItemDto(s3Info.getBucketName(),
+                ResourceItemType.S3_BUCKET.getCode(), null, null,
+                String.format("Build S3 bucket for plugin[%s]", s3Info.getBucketName()));
+        List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createResourceItem));
+        return result.get(0).getId();
     }
 
     private void createPluginDockerInstance(PluginPackage pluginPackage, String hostIp, Integer port) throws Exception {
@@ -274,6 +292,33 @@ public class PluginInstanceService {
                 result.get(0).getAdditionalPropertiesMap().get("containerId"), hostIp, port,
                 PluginInstance.STATUS_RUNNING);
         pluginInstanceRepository.save(newPluginInstance);
+    }
+
+    private void deployUiPackage(PluginPackage pluginPackage) {
+        // download UI package from MinIO
+        String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        String tmpFilePath = getTempFolderPath() + tmpFolderName + File.separator + pluginPackage.getName().trim()
+                + File.separator + pluginProperties.getImageFile();
+
+        logger.info("bucketName={}, tmpFilePath= {}", pluginProperties.getPluginPackageBucketName(), tmpFilePath);
+
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), pluginPackage.getName() + File.separator
+                + pluginPackage.getVersion() + File.separator + pluginProperties.getUiFile(), tmpFilePath);
+
+        // unzip file
+        
+        
+        logger.info("scp from local:{} to remote{}", tmpFilePath, pluginProperties.getPluginDeployPath());
+        try {
+            scpService.put(pluginProperties.getStaticResourceServerIp(), pluginProperties.getStaticResourceServerPort(),
+                    pluginProperties.getStaticResourceServerUser(), pluginProperties.getStaticResourceServerPassword(),
+                    tmpFilePath, pluginProperties.getStaticResourceServerPath());
+        } catch (Exception e) {
+            throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage());
+        }
+        
+        
+
     }
 
     public void removePluginInstanceById(Integer instanceId) throws Exception {

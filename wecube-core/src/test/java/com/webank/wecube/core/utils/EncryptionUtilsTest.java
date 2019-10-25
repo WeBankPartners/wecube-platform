@@ -2,6 +2,9 @@ package com.webank.wecube.core.utils;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Date;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Test;
 
 public class EncryptionUtilsTest {
@@ -20,5 +23,17 @@ public class EncryptionUtilsTest {
         String seed = "testSeed";
         String password = EncryptionUtils.decryptWithAes(encryptedPassword, seed, "testSalt");
         assertEquals("testPassword", password);
+    }
+
+    @Test
+    public void genRandomPasswordSuccess() {
+        String nowTimeString = new Date().toString();
+        System.out.println(System.currentTimeMillis());
+        String md5String = genRandomPassword(nowTimeString);
+        System.out.println(md5String);
+    }
+
+    private String genRandomPassword(String nowTimeString) {
+        return DigestUtils.md5Hex(nowTimeString).substring(0, 16);
     }
 }
