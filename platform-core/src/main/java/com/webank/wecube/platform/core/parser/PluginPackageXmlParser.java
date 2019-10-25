@@ -300,9 +300,8 @@ public class PluginPackageXmlParser {
 
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
-                pluginConfig.setInterfaces(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig));
+                pluginConfig.setInterfaces(new HashSet<>(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig)));
             }
-
 
             pluginConfigs.add(pluginConfig);
         }
