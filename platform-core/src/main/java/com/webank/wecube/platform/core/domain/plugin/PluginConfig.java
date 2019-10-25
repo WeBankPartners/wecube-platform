@@ -1,9 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -43,10 +40,10 @@ public class PluginConfig {
     @Column(nullable = false)
     private Status status;
 
-    @JsonIgnore
+    @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<PluginConfigInterface> interfaces = new ArrayList<>();
 
     public void addPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
