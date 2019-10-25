@@ -7,8 +7,9 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-
+import java.util.Set;
 
 @JsonIgnoreType
 @Entity
@@ -44,7 +45,7 @@ public class PluginConfig {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<PluginConfigInterface> interfaces = new ArrayList<>();
+    private Set<PluginConfigInterface> interfaces = new LinkedHashSet<>();
 
     public void addPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
         this.interfaces.add(pluginConfigInterface);
@@ -97,18 +98,19 @@ public class PluginConfig {
         this.status = status;
     }
 
-    public List<PluginConfigInterface> getInterfaces() {
+    public Set<PluginConfigInterface> getInterfaces() {
         return interfaces;
     }
 
-    public void setInterfaces(List<PluginConfigInterface> interfaces) {
+    public void setInterfaces(Set<PluginConfigInterface> interfaces) {
         this.interfaces = interfaces;
     }
 
     public PluginConfig() {
     }
 
-    public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, Status status, List<PluginConfigInterface> interfaces) {
+    public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, Status status,
+            Set<PluginConfigInterface> interfaces) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.name = name;
@@ -119,6 +121,6 @@ public class PluginConfig {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
     }
 }
