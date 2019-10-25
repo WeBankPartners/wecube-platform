@@ -1745,7 +1745,11 @@ export default {
         isRefreshable: form.isRefreshable === "yes",
         isDisplayed: form.isDisplayed === "yes",
         isAccessControlled:
-          form.inputType === "text" && form.isAccessControlled === "yes",
+          (form.inputType === "select" ||
+            form.inputType === "ref" ||
+            form.inputType === "multiSelect" ||
+            form.inputType === "multiRef") &&
+          form.isAccessControlled === "yes",
         isNullable: form.isNullable === "yes",
         isAuto: form.isAuto === "yes",
         isEditable: form.isEditable === "yes"
