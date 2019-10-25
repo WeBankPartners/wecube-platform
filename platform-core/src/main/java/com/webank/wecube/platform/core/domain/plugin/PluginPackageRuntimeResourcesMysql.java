@@ -71,10 +71,10 @@ public class PluginPackageRuntimeResourcesMysql {
         super();
     }
 
-    public PluginPackageRuntimeResourcesMysql(Integer id, PluginPackage pluginPackage, String schema, String initFileName, String upgradeFileName) {
+    public PluginPackageRuntimeResourcesMysql(Integer id, PluginPackage pluginPackage, String schemaName, String initFileName, String upgradeFileName) {
         this.id = id;
         this.pluginPackage = pluginPackage;
-        this.schemaName = schema;
+        this.schemaName = schemaName;
         this.initFileName = initFileName;
         this.upgradeFileName = upgradeFileName;
     }
