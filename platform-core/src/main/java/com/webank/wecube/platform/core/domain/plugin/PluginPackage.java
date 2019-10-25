@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import lombok.EqualsAndHashCode;
@@ -23,12 +22,6 @@ public class PluginPackage {
 
     @Column
     private String version;
-
-    @Column
-    private String imageS3KeyName;
-
-    @Column
-    private String uiS3KeyName;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -126,22 +119,6 @@ public class PluginPackage {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public String getImageS3KeyName() {
-        return imageS3KeyName;
-    }
-
-    public void setImageS3KeyName(String imageS3KeyName) {
-        this.imageS3KeyName = imageS3KeyName;
-    }
-
-    public String getUiS3KeyName() {
-        return uiS3KeyName;
-    }
-
-    public void setUiS3KeyName(String uiS3KeyName) {
-        this.uiS3KeyName = uiS3KeyName;
     }
 
     public Set<PluginPackageDependency> getPluginPackageDependencies() {
