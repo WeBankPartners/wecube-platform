@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,7 +70,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     @Test
     public void findMaxPortByHost() {
         PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, NOT_CONFIGURED, null);
+        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", NOT_CONFIGURED, null);
 
         pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
         pluginPackageRepository.save(pluginPackage);
@@ -86,7 +85,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     @Test
     public void findByPackageIdAndStatus() {
         PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, NOT_CONFIGURED, null);
+        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", NOT_CONFIGURED, null);
         pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
         pluginPackageRepository.save(pluginPackage);
 
@@ -155,7 +154,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
     public static PluginPackage mockPluginPackage(String name, String version) {
         PluginPackage mockPluginPackage = new PluginPackage(null, name, version, newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, NOT_CONFIGURED, new HashSet<>());
+        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity", NOT_CONFIGURED, newLinkedHashSet());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
         mockPluginPackage.addPluginConfig(mockPlugin);
 
