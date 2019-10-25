@@ -3,15 +3,15 @@
 ## preparation
 1. install JDK
 	
-	PLease refer to [JDK install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/jdk_install_guide.md) on how to install JDK.
+	PLease refer to [JDK install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/jdk_install_guide_en.md) on how to install JDK.
 
 2. install Eclipse
 	
-	PLease refer to [Eclipse install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/eclipse_install_guide.md) on how to install Eclipse.
+	PLease refer to [Eclipse install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/eclipse_install_guide_en.md) on how to install Eclipse.
 
 3. install Mysql
 	
-	PLease refer to [Mysql install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/mysql_install_guide.md) on how to install Mysql.
+	PLease refer to [Mysql install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/developer/mysql_install_guide_en.md) on how to install Mysql.
 
 4. install node.js
 	
@@ -34,7 +34,7 @@
 	
 	Running WeCube on a local development computer requires We-CMDB support.
 	
-	You can use WeCMDB deployed on a remote server or run WeCMDB on a local development computer. PLease refer to [We-CMDB guide](https://github.com/WeBankPartners/we-cmdb/blob/master/README.md), chapter “Quick Start” and “Developer Guide”。
+	You can use WeCMDB deployed on a remote server or run WeCMDB on a local development computer. PLease refer to [We-CMDB guide](https://github.com/WeBankPartners/we-cmdb/blob/master/README_EN.md), chapter “Quick Start” and “Developer Guide”。
 	
 	Note: The local IP address needs to be added to the WeCMDB whitelist, so WeCube can call the WeCMDB API interface.。
 
