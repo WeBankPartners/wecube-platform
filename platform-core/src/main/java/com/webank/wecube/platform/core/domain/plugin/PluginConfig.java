@@ -6,9 +6,7 @@ import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 @JsonIgnoreType
@@ -36,6 +34,9 @@ public class PluginConfig {
 
     @Column
     private Integer entityId;
+
+    @Column
+    private String entityName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -122,5 +123,13 @@ public class PluginConfig {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
     }
 }
