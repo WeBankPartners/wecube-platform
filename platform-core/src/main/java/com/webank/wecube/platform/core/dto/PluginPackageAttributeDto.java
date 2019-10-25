@@ -6,6 +6,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.springframework.util.StringUtils;
 
 public class PluginPackageAttributeDto {
+    private Integer id;
     private String packageName;
     private String packageVersion;
     private String entityName;
@@ -17,13 +18,15 @@ public class PluginPackageAttributeDto {
     private String refAttributeName;
     private String refPackageVersion;
 
-    public PluginPackageAttributeDto(String name,
+    public PluginPackageAttributeDto(Integer attributeId,
+                                     String name,
                                      String description,
                                      String dataType,
                                      String referencePackageName,
                                      String referencePackageVersion,
                                      String referenceEntityName,
                                      String referenceAttributeName) {
+        this.id = attributeId;
         this.name = name;
         this.description = description;
         this.dataType = dataType;
@@ -43,6 +46,7 @@ public class PluginPackageAttributeDto {
      */
     public static PluginPackageAttributeDto fromDomain(PluginPackageAttribute pluginPackageAttribute) {
         PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
+        pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
         pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackage().getName());
         pluginPackageAttributeDto.setPackageVersion(pluginPackageAttribute.getPluginPackageEntity().getPluginPackage().getVersion());
         pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntity().getName());
@@ -95,6 +99,14 @@ public class PluginPackageAttributeDto {
         }
 
         return pluginPackageAttribute;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getName() {
