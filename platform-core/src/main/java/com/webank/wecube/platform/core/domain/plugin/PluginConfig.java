@@ -91,6 +91,14 @@ public class PluginConfig {
         this.entityId = entityId;
     }
 
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
     public Status getStatus() {
         return status;
     }
@@ -110,12 +118,12 @@ public class PluginConfig {
     public PluginConfig() {
     }
 
-    public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, Status status,
-            Set<PluginConfigInterface> interfaces) {
+    public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, String entityName, Status status, Set<PluginConfigInterface> interfaces) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.name = name;
         this.entityId = entityId;
+        this.entityName = entityName;
         this.status = status;
         this.interfaces = interfaces;
     }
@@ -125,11 +133,4 @@ public class PluginConfig {
         return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
     }
 
-    public String getEntityName() {
-        return entityName;
-    }
-
-    public void setEntityName(String entityName) {
-        this.entityName = entityName;
-    }
 }
