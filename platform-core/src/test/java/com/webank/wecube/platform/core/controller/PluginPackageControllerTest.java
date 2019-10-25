@@ -223,7 +223,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -240,7 +239,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -262,7 +260,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -279,7 +276,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -302,7 +298,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -324,7 +319,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -350,7 +344,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -375,7 +368,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
