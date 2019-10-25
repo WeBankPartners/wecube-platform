@@ -1,20 +1,17 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDto;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
-import com.webank.wecube.platform.core.jpa.MenuItemRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.jpa.*;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
+import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
+import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
@@ -45,13 +42,16 @@ public class PluginPackageService {
     PluginPackageRepository pluginPackageRepository;
 
     @Autowired
-    PluginPackageEntityRepository pluginPackageEntityRepository;
+    PluginPackageDataModelService pluginPackageDataModelService;
 
     @Autowired
     PluginPackageDependencyRepository pluginPackageDependencyRepository;
 
     @Autowired
     MenuItemRepository menuItemRepository;
+
+    @Autowired
+    private PluginConfigRepository pluginConfigRepository;
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -112,9 +112,24 @@ public class PluginPackageService {
             log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
         }
 
-        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
-        Iterable<PluginPackageEntity> pluginPackageEntities = pluginPackageEntityRepository.saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it -> it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
-        savedPluginPackage.setPluginPackageEntities(newLinkedHashSet(pluginPackageEntities));
+        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
+
+        List<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelService.register(new ArrayList<>(pluginPackageDto.getPluginPackageEntities()));
+
+        Set<PluginConfig> pluginConfigs = newLinkedHashSet();
+        for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
+            for (PluginPackageEntityDto pluginPackageEntityDto : pluginPackageEntityDtos) {
+                String entityNameFromPluginConfig = pluginConfig.getEntityName();
+                String nameFromDto = pluginPackageEntityDto.getName();
+                if (entityNameFromPluginConfig.equals(nameFromDto)){
+                    pluginConfig.setEntityId(pluginPackageEntityDto.getId());
+                }
+            }
+            pluginConfigs.add(pluginConfig);
+        }
+        pluginConfigRepository.saveAll(pluginConfigs);
+
+        savedPluginPackage.setPluginPackageEntities(pluginPackageEntityDtos.stream().map(it->it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
 
         return savedPluginPackage;
     }
