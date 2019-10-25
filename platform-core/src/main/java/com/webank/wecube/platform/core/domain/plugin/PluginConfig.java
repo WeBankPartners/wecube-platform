@@ -43,7 +43,7 @@ public class PluginConfig {
     @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<PluginConfigInterface> interfaces = new ArrayList<>();
 
     public void addPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
