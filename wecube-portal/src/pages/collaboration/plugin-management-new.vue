@@ -87,7 +87,6 @@
           ></SysParmas>
         </TabPane>
         <TabPane name="authorities" label="权限设定">
-          <div>权限设定</div>
           <AuthSettings
             v-if="currentTab === 'authorities'"
             :pkgId="currentPackageId"
