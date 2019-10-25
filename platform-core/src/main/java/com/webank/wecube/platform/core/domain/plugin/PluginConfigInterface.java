@@ -34,12 +34,12 @@ public class PluginConfigInterface {
     private String httpMethod;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Where(clause = "type = 'INPUT'")
     private Set<PluginConfigInterfaceParameter> inputParameters = new LinkedHashSet<>();
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Where(clause = "type = 'OUTPUT'")
     private Set<PluginConfigInterfaceParameter> outputParameters = new LinkedHashSet<>();
 
