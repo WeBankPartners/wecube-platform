@@ -5,37 +5,46 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aop.ThrowsAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.support.S3Client;
+import com.webank.wecube.platform.core.utils.EncryptionUtils;
+import com.webank.wecube.platform.core.utils.JsonUtils;
+
+import javassist.expr.NewArray;
+
 import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.CommandService;
+import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
-import com.webank.wecube.platform.core.service.resource.DockerContainerManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
+import com.webank.wecube.platform.core.service.resource.ResourceServerType;
+
+import static org.apache.commons.lang3.StringUtils.trim;
 
 @Service
 @Transactional
@@ -55,13 +64,15 @@ public class PluginInstanceService {
     ResourceServerRepository resourceServerRepository;
 
     @Autowired
-    ApplicationProperties.S3Properties s3Properties;
+    private ApplicationProperties.S3Properties s3Properties;
     @Autowired
     private S3Client s3Client;
     @Autowired
-    ScpService scpService;
+    private ScpService scpService;
     @Autowired
-    CommandService commandService;
+    private CommandService commandService;
+    @Autowired
+    private ResourceProperties resourceProperties;
 
     @Autowired
     private ResourceManagementService resourceManagementService;
@@ -85,7 +96,7 @@ public class PluginInstanceService {
         ResourceServer resourceServer = resourceServerRepository.findOneByHost(hostIp);
         if (null == resourceServer)
             throw new WecubeCoreException(String.format("Host IP [%s] is not found", hostIp));
-        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.DOCKER)
                 .addEqualsFilter("resourceServerId", resourceServer.getId());
 
         List<Integer> hasUsedPorts = Lists.newArrayList();
@@ -137,51 +148,81 @@ public class PluginInstanceService {
         return instances;
     }
 
+    private boolean isContainerHostValid(String hostIp) {
+        if (isIpValid(hostIp) && isHostIpAvailable(hostIp)) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isPortValid(String hostIp, Integer port) {
+        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByHostAndPort(hostIp, port);
+        if (pluginInstances.size() == 0 || null == pluginInstances) {
+            return true;
+        }
+        return false;
+    }
+
+    private String genRandomPassword() {
+        return DigestUtils.md5Hex(String.valueOf(System.currentTimeMillis())).substring(0, 16);
+    }
+
     public void launchPluginInstance(Integer packageId, String hostIp, Integer port) throws Exception {
         // 0. checking
-        if (!isIpValid(hostIp)) {
-            throw new WecubeCoreException("Invalid IP: " + hostIp);
-        }
+        if (!isContainerHostValid(hostIp))
+            throw new WecubeCoreException("Unavailable container host ip");
 
-        if (!isHostIpAvailable(hostIp)) {
-            throw new WecubeCoreException("Unavailable host ip");
-        }
+        if (!isPortValid(hostIp, port))
+            throw new IllegalArgumentException(String.format(
+                    "The port[%d] of host[%s] is already in used, please try to reassignment port", port, hostIp));
 
         Optional<PluginPackage> pluginPackageResult = pluginPackageRepository.findById(packageId);
         if (!pluginPackageResult.isPresent())
             throw new WecubeCoreException("Plugin package id does not exist, id = " + packageId);
         PluginPackage pluginPackage = pluginPackageResult.get();
 
-        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByHostAndPort(hostIp, port);
-        if (pluginInstances.size() != 0) {
-            throw new IllegalArgumentException(String.format(
-                    "The port[%d] of host[%s] is already in use by container[%s], please try to reassignment port",
-                    port, hostIp, pluginInstances.get(0).getInstanceContainerId()));
-        }
+        // 1. create MySql DB
 
         pluginPackage.getPluginPackageRuntimeResourcesMysql().forEach(mysqlInfo -> {
-
-            // 1. create MySql DB
             createPluginMysqlDatabase(mysqlInfo);
-
         });
-        
+
+        // 2. create S3 bucket
+        pluginPackage.getPluginPackageRuntimeResourcesS3().forEach(s3Info -> {
+            createPluginS3Bucket(s3Info);
+        });
+
+        // 3. create docker instance
         pluginPackage.getPluginPackageRuntimeResourcesDocker().forEach(dockerInfo -> {
-            // 2. create docker instance
             try {
                 createPluginDockerInstance(pluginPackage, hostIp, port);
             } catch (Exception e) {
-                // TODO Auto-generated catch block
+                logger.error("Creating docker container instance meet error");
                 e.printStackTrace();
             }
         });
-        ;
 
-        // 3. deploy UI package
+        // 4. deploy UI package
+
+        // 5. insert to DB
+
+        // TODO - 6. notify gateway
 
     }
 
     private void createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo) {
+        String dbPassword = genRandomPassword();
+
+        ResourceItemDto createResourceItem = new ResourceItemDto(mysqlInfo.getSchemaName(),
+                ResourceItemType.MYSQL_DATABASE.getCode(),
+                buildAdditionalPropertiesForMysqlDatabase(mysqlInfo.getPluginPackage().getName(),
+                        mysqlInfo.getSchemaName(), dbPassword),
+                null, "purpose");
+        List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createResourceItem));
+
+    }
+
+    private void createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
 
     }
 
@@ -202,8 +243,8 @@ public class PluginInstanceService {
 
         logger.info("bucketName={}, tmpFilePath= {}", pluginProperties.getPluginPackageBucketName(), tmpFilePath);
 
-        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), pluginPackage.getImageS3KeyName(),
-                tmpFilePath);
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), pluginPackage.getName() + File.separator
+                + pluginPackage.getVersion() + File.separator + pluginProperties.getImageFile(), tmpFilePath);
 
         logger.info("scp from local:{} to remote{}", tmpFilePath, pluginProperties.getPluginDeployPath());
         try {
@@ -215,8 +256,8 @@ public class PluginInstanceService {
 
         // load image at remote host
         String loadCmd = "docker load -i " + pluginProperties.getPluginDeployPath().trim() + File.separator
-                + pluginPackage.getImageS3KeyName();
-        logger.info("Run command: " + loadCmd);
+                + pluginProperties.getImageFile();
+        logger.info("Run docker load command: " + loadCmd);
         try {
             commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(), hostInfo.getLoginPassword(),
                     Integer.valueOf(hostInfo.getPort()), loadCmd);
@@ -259,9 +300,25 @@ public class PluginInstanceService {
         return tmpFolder;
     }
 
-    private String buildAdditionalProperties() {
+    private String buildAdditionalPropertiesForMysqlDatabase(String name, String username, String password) {
+        HashMap<String, String> additionalProperties = new HashMap<String, String>();
+        additionalProperties.put("username", username);
+        additionalProperties.put("password",
+                EncryptionUtils.encryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(), name));
+        return JsonUtils.toJsonString(additionalProperties);
+    }
 
+    private String buildAdditionalProperties() {
+        // TODO
+        // -p 21000:21000 -e
+        // DATA_SOURCE_URL='jdbc:mysql://129.204.99.160:3306/service_management?characterEncoding=utf8&serverTimezone=UTC'
+        // -e DB_USER='xxxx' -e DB_PWD='xxxxx' -e CORE_ADDR='localhost' -v
+        // /root/haixinhuang/service-management/wecube-plugins-service-management/log:/log:rw
         return "";
+    }
+
+    public String getInstanceAddress(PluginInstance instance) {
+        return trim(instance.getHost()) + ":" + trim(instance.getPort().toString());
     }
 
 }
