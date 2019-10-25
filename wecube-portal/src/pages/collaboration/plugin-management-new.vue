@@ -515,7 +515,6 @@ export default {
       this.resetLogTable();
     },
     pluginPackageChangeHandler(key) {
-      console.log("key", key);
       this.isShowConfigPanel = this.isShowRuntimeManagementPanel = false;
       this.dbQueryCommandString = "";
     },
@@ -559,11 +558,6 @@ export default {
             port: data,
             createParams: this.defaultCreateParams
           });
-
-          console.log(
-            "this.availiableHostsWithPort",
-            this.availiableHostsWithPort
-          );
         }
       });
     },
