@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.NOT_CONFIGURED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.UNREGISTERED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
@@ -70,7 +70,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     @Test
     public void findMaxPortByHost() {
         PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", NOT_CONFIGURED, null);
+        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", UNREGISTERED, null);
 
         pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
         pluginPackageRepository.save(pluginPackage);
@@ -85,7 +85,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     @Test
     public void findByPackageIdAndStatus() {
         PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", NOT_CONFIGURED, null);
+        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", UNREGISTERED, null);
         pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
         pluginPackageRepository.save(pluginPackage);
 
@@ -154,7 +154,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
     public static PluginPackage mockPluginPackage(String name, String version) {
         PluginPackage mockPluginPackage = new PluginPackage(null, name, version, newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity", NOT_CONFIGURED, newLinkedHashSet());
+        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity", UNREGISTERED, newLinkedHashSet());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
         mockPluginPackage.addPluginConfig(mockPlugin);
 
