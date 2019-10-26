@@ -13,9 +13,9 @@
             action="v1/api/packages"
             :headers="setUploadActionHeader"
           >
-            <Button icon="ios-cloud-upload-outline">
-              {{ $t("upload_plugin_btn") }}
-            </Button>
+            <Button icon="ios-cloud-upload-outline">{{
+              $t("upload_plugin_btn")
+            }}</Button>
           </Upload>
         </Card>
       </Row>
@@ -23,7 +23,9 @@
         <Card dis-hover>
           <p slot="title">{{ $t("plugins_list") }}</p>
           <div style="height: 70%; overflow: auto">
-            <span v-if="plugins.length < 1">暂无插件包</span>
+            <span v-if="plugins.length < 1">{{
+              $t("no_plugin_packages")
+            }}</span>
             <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
               <Panel
                 :name="plugin.id + ''"
@@ -32,7 +34,7 @@
               >
                 {{ plugin.name + "_" + plugin.version }}
                 <span style="float: right; margin-right: 10px">
-                  <Tooltip content="删除插件" placement="top-start">
+                  <Tooltip placement="top-start">
                     <Button
                       @click.stop.prevent="deletePlugin(plugin.id)"
                       size="small"
@@ -45,13 +47,13 @@
                     @click="configPlugin(plugin.id)"
                     size="small"
                     icon="ios-construct"
-                    >注册配置</Button
+                    >{{ $t("regist_config") }}</Button
                   >
                   <Button
                     @click="manageRuntimePlugin(plugin.id)"
                     size="small"
                     icon="ios-settings"
-                    >运行管理</Button
+                    >{{ $t("runtime_manage") }}</Button
                   >
                 </p>
               </Panel>
@@ -62,43 +64,43 @@
     </Col>
     <Col span="17" offset="1" v-if="isShowConfigPanel">
       <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
-        <TabPane name="dependency" label="依赖分析">
+        <TabPane name="dependency" :label="$t('dependencies_analysis')">
           <DependencyAnalysis
             v-if="currentTab === 'dependency'"
             :pkgId="currentPackageId"
           ></DependencyAnalysis>
         </TabPane>
-        <TabPane name="menus" label="菜单注入">
+        <TabPane name="menus" :label="$t('menu_injection')">
           <MenuInjection
             v-if="currentTab === 'menus'"
             :pkgId="currentPackageId"
           ></MenuInjection>
         </TabPane>
-        <TabPane name="models" label="数据模型">
+        <TabPane name="models" :label="$t('data_model')">
           <DataModel
             v-if="currentTab === 'models'"
             :pkgId="currentPackageId"
           ></DataModel>
         </TabPane>
-        <TabPane name="systemParameters" label="系统参数">
+        <TabPane name="systemParameters" :label="$t('system_params')">
           <SysParmas
             v-if="currentTab === 'systemParameters'"
             :pkgId="currentPackageId"
           ></SysParmas>
         </TabPane>
-        <TabPane name="authorities" label="权限设定">
+        <TabPane name="authorities" :label="$t('auth_setting')">
           <AuthSettings
             v-if="currentTab === 'authorities'"
             :pkgId="currentPackageId"
           ></AuthSettings>
         </TabPane>
-        <TabPane name="runtimeResources" label="运行资源">
+        <TabPane name="runtimeResources" :label="$t('runtime_resource')">
           <RuntimesResources
             v-if="currentTab === 'runtimeResources'"
             :pkgId="currentPackageId"
           ></RuntimesResources>
         </TabPane>
-        <TabPane name="plugins" label="插件注册">
+        <TabPane name="plugins" :label="$t('plugin_regist')">
           <PluginRegister
             v-if="currentTab === 'plugins'"
             :pkgId="currentPackageId"
@@ -112,12 +114,13 @@
           <Row class="instances-container">
             <Collapse value="1">
               <Panel name="1">
-                <span style="font-size: 14px; font-weight: 600">运行容器</span>
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("runtime_container")
+                }}</span>
                 <p slot="content">
                   <Card dis-hover>
                     <Row>
                       <Select
-                        placeholder="请选择实例"
                         @on-change="selectHost"
                         multiple
                         style="width: 40%"
@@ -135,10 +138,12 @@
                         size="small"
                         type="success"
                         @click="getAvailablePortByHostIp"
-                        >端口预览</Button
+                        >{{ $t("port_preview") }}</Button
                       >
                       <div v-if="availiableHostsWithPort.length > 0">
-                        <p style="margin-top: 20px">可用端口:</p>
+                        <p style="margin-top: 20px">
+                          {{ $t("avaliable_port") }}:
+                        </p>
 
                         <div
                           v-for="item in availiableHostsWithPort"
@@ -151,7 +156,7 @@
                             <div class="instance-item">
                               {{ item.ip + ":" + item.port }}
                             </div>
-                            <span>启动参数:</span>
+                            <span>{{ $t("start_params") }}:</span>
                             <Input
                               type="textarea"
                               style="width: 50%"
@@ -176,7 +181,9 @@
                     </Row>
                     <Row>
                       <p style="margin-top: 20px">{{ $t("running_node") }}:</p>
-                      <div v-if="allInstances.length === 0">暂无运行节点</div>
+                      <div v-if="allInstances.length === 0">
+                        {{ $t("no_avaliable_instances") }}
+                      </div>
                       <div v-else>
                         <div v-for="item in allInstances" :key="item.id">
                           <div class="instance-item-container">
@@ -197,7 +204,7 @@
                   </Card>
 
                   <Card style="margin-top: 20px">
-                    <p>插件日志查询</p>
+                    <p>{{ $t("log_query") }}</p>
                     <div style="padding: 0 0 50px 0;margin-top: 20px">
                       <WeTable
                         :tableData="tableData"
@@ -216,7 +223,7 @@
 
                     <Modal
                       v-model="logDetailsModalVisible"
-                      title="日志详情"
+                      :title="$t('log_details')"
                       footer-hide
                       width="70"
                     >
@@ -230,22 +237,26 @@
                 </p>
               </Panel>
               <Panel name="2">
-                <span style="font-size: 14px; font-weight: 600">数据库</span>
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("database")
+                }}</span>
                 <Row slot="content">
                   <Row>
                     <Col span="16">
                       <Input
                         v-model="dbQueryCommandString"
                         type="textarea"
-                        placeholder="显示使用的数据库,限定只能执行select"
+                        :placeholder="$t('only_select')"
                       />
                     </Col>
                     <Col span="4" offset="1">
-                      <Button @click="queryDBHandler">执行</Button>
+                      <Button @click="queryDBHandler">{{
+                        $t("execute")
+                      }}</Button>
                     </Col>
                   </Row>
                   <Row>
-                    查询结果
+                    {{ $t("search_result") }}
                     <Table
                       :columns="dbQueryColumns"
                       :data="dbQueryData"
@@ -254,7 +265,9 @@
                 </Row>
               </Panel>
               <Panel name="3">
-                <span style="font-size: 14px; font-weight: 600">对象存储</span>
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("storage_service")
+                }}</span>
                 <Row slot="content">
                   <Table
                     :columns="storageServiceColumns"
@@ -294,86 +307,11 @@ import {
   deletePluginPkg
 } from "@/api/server.js";
 
-const innerActions = [
-  {
-    label: "显示详情",
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "showLogDetails"
-  }
-];
-
-const logTableColumns = [
-  {
-    title: "插件运行实例",
-    key: "instance",
-    inputKey: "instance",
-    searchSeqNo: 1,
-    displaySeqNo: 1,
-    component: "WeSelect",
-    isMultiple: true,
-    placeholder: "插件运行实例",
-    span: 5,
-    width: "200px",
-    options: []
-  },
-  {
-    title: "文件名",
-    key: "file_name",
-    inputKey: "file_name",
-    searchSeqNo: 2,
-    displaySeqNo: 2,
-    component: "Input",
-    isNotFilterable: true,
-    placeholder: "文件名",
-    width: "200px"
-  },
-  {
-    title: "行号",
-    key: "line_number",
-    inputKey: "line_number",
-    searchSeqNo: 3,
-    displaySeqNo: 3,
-    component: "Input",
-    isNotFilterable: true,
-    placeholder: "行号",
-    width: "100px"
-  },
-  {
-    title: "匹配内容",
-    key: "log",
-    inputKey: "log",
-    searchSeqNo: 4,
-    displaySeqNo: 4,
-    component: "Input",
-    placeholder: "支持正则表达式"
-  }
-];
 const pagination = {
   pageSize: 10,
   currentPage: 1,
   total: 0
 };
-const storageServiceColumns = [
-  {
-    title: "文件",
-    key: "file"
-  },
-  {
-    title: "路径",
-    key: "path"
-  },
-  {
-    title: "hash",
-    key: "hash"
-  },
-  {
-    title: "上传时间",
-    key: "uploadTime"
-  }
-];
 
 import DataModel from "./components/data-model.vue";
 import DependencyAnalysis from "./components/dependency-analysis.vue";
@@ -402,8 +340,62 @@ export default {
       currentPlugin: {},
       tableData: [],
       totalTableData: [],
-      innerActions,
-      logTableColumns,
+      innerActions: [
+        {
+          label: this.$t("show_details"),
+          props: {
+            type: "info",
+            size: "small"
+          },
+          actionType: "showLogDetails"
+        }
+      ],
+      logTableColumns: [
+        {
+          title: this.$t("instance"),
+          key: "instance",
+          inputKey: "instance",
+          searchSeqNo: 1,
+          displaySeqNo: 1,
+          component: "WeSelect",
+          isMultiple: true,
+          placeholder: this.$t("instance"),
+          span: 5,
+          width: "200px",
+          options: []
+        },
+        {
+          title: this.$t("file_name"),
+          key: "file_name",
+          inputKey: "file_name",
+          searchSeqNo: 2,
+          displaySeqNo: 2,
+          component: "Input",
+          isNotFilterable: true,
+          placeholder: this.$t("file_name"),
+          width: "200px"
+        },
+        {
+          title: this.$t("line_number"),
+          key: "line_number",
+          inputKey: "line_number",
+          searchSeqNo: 3,
+          displaySeqNo: 3,
+          component: "Input",
+          isNotFilterable: true,
+          placeholder: this.$t("line_number"),
+          width: "150px"
+        },
+        {
+          title: this.$t("match_text"),
+          key: "log",
+          inputKey: "log",
+          searchSeqNo: 4,
+          displaySeqNo: 4,
+          component: "Input",
+          placeholder: this.$t("match_text")
+        }
+      ],
       pagination,
       allAvailiableHosts: [],
       allInstances: [],
@@ -413,7 +405,24 @@ export default {
       dbQueryCommandString: "",
       dbQueryColumns: [],
       dbQueryData: [],
-      storageServiceColumns,
+      storageServiceColumns: [
+        {
+          title: this.$t("file_name"),
+          key: "file"
+        },
+        {
+          title: this.$t("path"),
+          key: "path"
+        },
+        {
+          title: "hash",
+          key: "hash"
+        },
+        {
+          title: this.$t("upload_time"),
+          key: "uploadTime"
+        }
+      ],
       storageServiceData: [],
       defaultCreateParams: "",
       selectHosts: [],
@@ -486,6 +495,7 @@ export default {
           desc: message || ""
         });
         this.getAllPluginPkgs();
+        this.isShowConfigPanel = this.isShowRuntimeManagementPanel = false;
       }
     },
     configPlugin(packageId) {
