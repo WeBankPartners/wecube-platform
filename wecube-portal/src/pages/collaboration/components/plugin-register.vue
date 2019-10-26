@@ -45,7 +45,7 @@
           <Col span="3">
             <strong style="font-size:15px;">参数类型</strong>
           </Col>
-          <Col span="3">
+          <Col span="4" offset="1">
             <strong style="font-size:15px;">参数名</strong>
           </Col>
           <Col span="5" offset="1">
@@ -58,7 +58,9 @@
           :key="index"
         >
           <Col span="3">
-            <span>{{ interfaces.action }}</span>
+            <FormItem :label-width="0">
+              <span>{{ interfaces.action }}</span>
+            </FormItem>
           </Col>
           <Col span="21">
             <Row>
@@ -67,12 +69,12 @@
                   <span>输入参数</span>
                 </FormItem>
               </Col>
-              <Col span="17" offset="1">
+              <Col span="16" offset="1">
                 <Row
                   v-for="param in interfaces['inputParameters']"
                   :key="param.id"
                 >
-                  <Col span="5">
+                  <Col span="6">
                     <FormItem :label-width="0">
                       <Tooltip :content="param.name">
                         <span
@@ -83,14 +85,16 @@
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="18">
-                    <span v-if="param.mappingType === 'system_variable'">{{
-                      param.mappingSystemVariableId || "N/A"
-                    }}</span>
-                    <span v-if="param.mappingType === 'entity'">{{
-                      param.mappingEntityExpression || "N/A"
-                    }}</span>
-                    <span v-if="param.mappingType === 'context'">N/A</span>
+                  <Col span="15" offset="3">
+                    <FormItem :label-width="0">
+                      <span v-if="param.mappingType === 'system_variable'">{{
+                        param.mappingSystemVariableId || "N/A"
+                      }}</span>
+                      <span v-if="param.mappingType === 'entity'">{{
+                        param.mappingEntityExpression || "N/A"
+                      }}</span>
+                      <span v-if="param.mappingType === 'context'">N/A</span>
+                    </FormItem>
                   </Col>
                 </Row>
               </Col>
