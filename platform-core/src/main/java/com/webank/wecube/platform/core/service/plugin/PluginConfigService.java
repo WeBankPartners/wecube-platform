@@ -82,7 +82,7 @@ public class PluginConfigService {
         return pluginConfigRepository.save(pluginConfig);
     }
 
-    public void deletePlugin(int pluginConfigId) {
+    public void deprecatePlugin(int pluginConfigId) {
         if (!pluginConfigRepository.existsById(pluginConfigId)) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
         }
