@@ -81,7 +81,6 @@ export default {
           });
           return _;
         });
-        console.log("sss", this.menus);
       }
     }
   }
