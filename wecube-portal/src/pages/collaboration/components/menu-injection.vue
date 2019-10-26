@@ -3,19 +3,35 @@
     <Col span="3" v-for="(menuGroup, index) in menus" :key="menuGroup.id">
       <List size="small">
         <h4 slot="header">{{ menuGroup.displayName }}</h4>
-        <ListItem v-for="(menu, index) in menuGroup.children" :key="index">
-          <Badge
-            :text="menu.menuType === 'package' ? 'new' : ''"
-            type="success"
-            :offset="[-5, -10]"
+        <ListItem
+          v-for="(menu, index) in menuGroup.children"
+          :key="index"
+          style="padding-right: 10px"
+        >
+          <Tooltip
+            :content="menu.displayName"
+            placement="bottom"
+            style="width: 100%"
           >
-            <span v-if="menu.menuType === 'package'" style="color: green">
+            <p
+              v-if="menu.menuType === 'package'"
+              style="color: green;width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;"
+            >
               {{ menu.displayName }}
-            </span>
-            <span v-else>
+            </p>
+            <p
+              v-else
+              style="width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;"
+            >
               {{ menu.displayName }}
-            </span>
-          </Badge>
+            </p>
+          </Tooltip>
         </ListItem>
       </List>
     </Col>
