@@ -48,8 +48,7 @@ router.beforeEach((to, from, next) => {
       isHasPermission ||
       to.path === "/404" ||
       to.path === "/login" ||
-      to.path === "/homepage" ||
-      to.path === "/collaboration/plugin-management-new"
+      to.path === "/homepage"
     ) {
       /* has permission*/
       next();
