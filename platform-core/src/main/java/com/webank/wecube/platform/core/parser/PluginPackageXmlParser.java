@@ -230,10 +230,10 @@ public class PluginPackageXmlParser {
             pluginPackageAttribute.setDataType(getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type"));
             pluginPackageAttribute.setDescription(getNonNullStringAttribute(attributeNode, "./@description", "Entity attribute description"));
 
-            pluginPackageAttribute.setRefPackageName(getStringAttribute(attributeNode, "./refPackage"));
-            pluginPackageAttribute.setRefPackageVersion(getStringAttribute(attributeNode, "./refVersion"));
-            pluginPackageAttribute.setRefEntityName(getStringAttribute(attributeNode, "./refEntity"));
-            pluginPackageAttribute.setRefAttributeName(getStringAttribute(attributeNode, "./ref"));
+            pluginPackageAttribute.setRefPackageName(getStringAttribute(attributeNode, "./@refPackage"));
+            pluginPackageAttribute.setRefPackageVersion(getStringAttribute(attributeNode, "./@refVersion"));
+            pluginPackageAttribute.setRefEntityName(getStringAttribute(attributeNode, "./@refEntity"));
+            pluginPackageAttribute.setRefAttributeName(getStringAttribute(attributeNode, "./@ref"));
 
             pluginPackageAttributes.add(pluginPackageAttribute);
         }
@@ -297,12 +297,12 @@ public class PluginPackageXmlParser {
             pluginConfig.setPluginPackage(pluginPackage);
             pluginConfig.setStatus(NOT_CONFIGURED);
             pluginConfig.setName(getNonNullStringAttribute(pluginConfigNode, "./@name", "Plugin name"));
+            pluginConfig.setEntityName(getNonNullStringAttribute(pluginConfigNode, "./@entity", "Entity name"));
 
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
-                pluginConfig.setInterfaces(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig));
+                pluginConfig.setInterfaces(new HashSet<>(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig)));
             }
-
 
             pluginConfigs.add(pluginConfig);
         }

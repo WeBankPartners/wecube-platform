@@ -69,8 +69,8 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
     @Test
     public void findMaxPortByHost() {
-        PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), null);
-        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, NOT_CONFIGURED, null);
+        PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
+        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", NOT_CONFIGURED, null);
 
         pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
         pluginPackageRepository.save(pluginPackage);
@@ -84,8 +84,8 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
     @Test
     public void findByPackageIdAndStatus() {
-        PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), null);
-        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, NOT_CONFIGURED, null);
+        PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
+        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", NOT_CONFIGURED, null);
         pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
         pluginPackageRepository.save(pluginPackage);
 
@@ -153,8 +153,8 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
 
     public static PluginPackage mockPluginPackage(String name, String version) {
-        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), null);
-        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, NOT_CONFIGURED, newArrayList());
+        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
+        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity", NOT_CONFIGURED, newLinkedHashSet());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
         mockPluginPackage.addPluginConfig(mockPlugin);
 

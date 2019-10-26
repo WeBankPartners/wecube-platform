@@ -289,7 +289,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/system_parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/api/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
                     .andExpect(jsonPath("$.data[*].name", contains("xxx", "xxx")))
@@ -332,7 +332,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/runtime_resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/api/packages/%s/runtime-resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.docker[0].id", is(1)))
                     .andExpect(jsonPath("$.data.mysql[0].id", is(1)))
@@ -360,8 +360,8 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
             mvc.perform(get(String.format("/v1/api/packages/%s/plugins", correctQueryId)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
-                    .andExpect(jsonPath("$.data[0].entityId", is(nullValue())))
-                    .andExpect(jsonPath("$.data[1].entityId", is(nullValue())))
+                    .andExpect(jsonPath("$.data[0].entityId", is(5)))
+                    .andExpect(jsonPath("$.data[1].entityId", is(4)))
                     .andExpect(jsonPath("$.data[*].name", contains("task", "service_request")))
                     .andExpect(jsonPath("$.data[*].status", contains("NOT_CONFIGURED", "NOT_CONFIGURED")))
                     .andExpect(jsonPath("$.data[*].pluginPackageId", contains(1, 1)))
