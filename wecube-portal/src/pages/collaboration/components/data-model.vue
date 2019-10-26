@@ -36,7 +36,7 @@ export default {
         this.data = data.map(_ => {
           return {
             ..._,
-            id: _.packageName + "_" + _.name,
+            id: "[" + _.packageName + "]" + _.name,
             tos: _.referenceToEntityList.map(_ => {
               return { ..._, id: _.packageName + "_" + _.name };
             }),
@@ -53,7 +53,7 @@ export default {
       var dots = [
         "digraph  {",
         'bgcolor="transparent";',
-        'Node [fontname=Arial,shape="none",width="0.8", height="0.8", color="#273c75" ,fontsize=10];',
+        'Node [fontname=Arial,shape="none",width="0.7", height="0.8", color="#273c75" ,fontsize=10];',
         'Edge [fontname=Arial, minlen="1", color="#000", fontsize=10];'
       ];
       let drawConnection = (from, to) => {
@@ -62,7 +62,7 @@ export default {
       let addNodeAttr = node => {
         const color = "#273c75";
         return `"${node.id}" [id="${node.id}" label="${node.id +
-          "_v" +
+          "_" +
           node.packageVersion}" shape="box" fontcolor="${color}"];`;
       };
       const nodeMap = new Map();
@@ -107,7 +107,10 @@ export default {
         let graph;
         graph = d3.select(`#data-model-graph`);
         graph.on("dblclick.zoom", null);
-        this.graph.graphviz = graph.graphviz().zoom(true);
+        this.graph.graphviz = graph
+          .graphviz()
+          .zoom(true)
+          .scale(0.8);
       };
 
       initEvent();

@@ -65,8 +65,6 @@ export default {
     },
     async getData() {
       let { status, data, message } = await getPluginPkgDependcy(this.pkgId);
-      console.log("data", data);
-
       if (status === "OK") {
         this.formatData(data);
         this.initGraph();
