@@ -39,7 +39,7 @@ public class PluginConfigController {
     @DeleteMapping("/plugins/{plugin-config-id}")
     @ResponseBody
     public JsonResponse decommissionPlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
-        pluginConfigService.deletePlugin(pluginConfigId);
+        pluginConfigService.deprecatePlugin(pluginConfigId);
         return okay();
     }
 

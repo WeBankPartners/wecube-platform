@@ -74,6 +74,7 @@ public class PluginPackage {
         return UI_ZIP_FILE_NAME;
     }
 
+    @JsonIgnore
     public String getStatus() {
         String status = PluginConfig.Status.UNREGISTERED.name();
         if (null != pluginConfigs && pluginConfigs.size() > 0) {
