@@ -72,7 +72,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("Vpc Management")))
                     .andExpect(jsonPath("$.data.entityId", is(EXISTING_ENTITY_ID)))
-                    .andExpect(jsonPath("$.data.status", is("NOT_CONFIGURED")))
+                    .andExpect(jsonPath("$.data.status", is("CONFIGURED")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -99,7 +99,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
             mvc.perform(post("/v1/api/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("Not allow to register plugin with status: ONLINE")))
+                    .andExpect(jsonPath("$.message", is("Not allow to update plugin with status: ONLINE")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -119,7 +119,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/api/plugins/register").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
+            mvc.perform(post("/v1/api/plugins/register/" + 11))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Not allow to register pluginConfig with status: ONLINE")))
@@ -134,7 +134,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public void givenNormalEntitySetWhenRegisterThenReturnSuccess() {
         mockMultipleVersionPluginConfig();
 
-        int existingPluginConfigId = 41;
+        int existingPluginConfigId = 32;
         Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(existingPluginConfigId);
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
@@ -143,13 +143,13 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/api/plugins/register").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
+            mvc.perform(post("/v1/api/plugins/register/"+existingPluginConfigId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("Vpc Management")))
                     .andExpect(jsonPath("$.data.entityId", is(EXISTING_ENTITY_ID)))
-                    .andExpect(jsonPath("$.data.status", is("CONFIGURED")))
+                    .andExpect(jsonPath("$.data.status", is("ONLINE")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -241,7 +241,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
                 " (11, 1, 'Vpc Management', 1, 'ONLINE')\n" +
                 ",(21, 2, 'Vpc Management', 17, 'ONLINE')\n" +
-                ",(31, 3, 'Vpc Management', 16, 'NOT_CONFIGURED');\n" +
+                ",(31, 3, 'Vpc Management', 16, 'NOT_CONFIGURED')\n" +
+                ",(32, 4, 'Vpc Management', 16, 'CONFIGURED');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, status) values\n" +
                 "(41, 3, 'Vpc Management', 'NOT_CONFIGURED');\n" +
