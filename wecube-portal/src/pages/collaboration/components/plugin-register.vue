@@ -165,6 +165,7 @@
               type="primary"
               v-if="
                 currentPluginObj.status === 'NOT_CONFIGURED' ||
+                  currentPluginObj.status === 'CONFIGURED' ||
                   currentPluginObj.status === 'DECOMMISSIONED'
               "
               @click="regist"
