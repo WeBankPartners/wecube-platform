@@ -88,12 +88,8 @@ public class PluginConfigService {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
         }
 
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfigId);
-        PluginConfig pluginConfig = pluginConfigOptional.get();
+        PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
 
-        if (ONLINE.equals(pluginConfig.getStatus())) {
-            throw new WecubeCoreException("Not allow to delete pluginConfig with status: " + pluginConfig.getStatus());
-        }
         pluginConfig.setStatus(DECOMMISSIONED);
         pluginConfigRepository.save(pluginConfig);
     }

@@ -178,22 +178,16 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void givenPluginConfigIsStillONLINEWheDeleteThenReturnError() {
+    public void givenPluginConfigIdNotExistWheDeleteThenReturnError() {
         mockMultipleVersionPluginConfig();
 
-        int existingPluginConfigId = 11;
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(existingPluginConfigId);
-        assertThat(pluginConfigOptional.isPresent()).isTrue();
-
-        PluginConfig pluginConfig = pluginConfigOptional.get();
-
-        pluginConfig.setEntityId(EXISTING_ENTITY_ID);
+        assertThat(pluginConfigRepository.existsById(NON_EXIST_PLUGIN_CONFIG_ID)).isFalse();
 
         try {
-            mvc.perform(delete("/v1/api/plugins/" + existingPluginConfigId).contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
+            mvc.perform(delete("/v1/api/plugins/" + NON_EXIST_PLUGIN_CONFIG_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("Not allow to delete pluginConfig with status: ONLINE")))
+                    .andExpect(jsonPath("$.message", is("PluginConfig not found for id: " + NON_EXIST_PLUGIN_CONFIG_ID)))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
