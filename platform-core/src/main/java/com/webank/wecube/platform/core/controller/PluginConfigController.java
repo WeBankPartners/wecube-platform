@@ -25,15 +25,15 @@ public class PluginConfigController {
         return okayWithData(pluginConfigService.savePluginConfig(pluginConfig));
     }
 
-    @PostMapping("/plugins/register")
+    @PostMapping("/plugins/register/{plugin-config-id}")
     @ResponseBody
-    public JsonResponse registerPlugin(@RequestBody PluginConfig pluginConfig) {
-        return okayWithData(pluginConfigService.registerPlugin(pluginConfig));
+    public JsonResponse registerPlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
+        return okayWithData(pluginConfigService.registerPlugin(pluginConfigId));
     }
 
     @DeleteMapping("/plugins/{plugin-config-id}")
     @ResponseBody
-    public JsonResponse deletePlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
+    public JsonResponse decommissionPlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
         pluginConfigService.deletePlugin(pluginConfigId);
         return okay();
     }
