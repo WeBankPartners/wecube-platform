@@ -62,17 +62,17 @@ export default {
                           subgraph cluster_0 {
                             rankdir = TB;
                             color=lightgrey;
-                            node [shape=plaintext, style=filled,color=lightgrey];` +
+                            node [shape=box,fontname=Arial, style=filled,color=lightgrey];` +
         this.data.roles.toString().replace(/,/g, " ") +
         `;
-                            label = "roles";
+                            label = "Roles";
                           }
                           subgraph cluster_1 {
                             color=lightgrey;
-                            node [shape=plaintext, style=filled,color=lightgrey];` +
+                            node [shape=box,fontname=Arial, style=filled,color=lightgrey];` +
         this.data.menus.toString().replace(/,/g, " ") +
         `;
-                            label = "menus";
+                            label = "Menus";
                           }` +
         genEdge() +
         `}`;
@@ -83,7 +83,10 @@ export default {
         let graph;
         graph = d3.select(`#auth-setting-graph`);
         graph.on("dblclick.zoom", null);
-        this.graph.graphviz = graph.graphviz().zoom(false);
+        this.graph.graphviz = graph
+          .graphviz()
+          .zoom(false)
+          .scale(0.8);
       };
 
       initEvent();
