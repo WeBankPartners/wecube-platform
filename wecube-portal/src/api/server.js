@@ -479,3 +479,4 @@ export const getAuthSettings = id => req.get(`/packages/${id}/authorities`);
 export const getAllDataModels = id => req.get(`/models`);
 export const registerPlugin = id => req.post(`/plugins/register/${id}`);
 export const deletePlugin = id => req.delete(`/plugins/${id}`);
+export const savePluginConfig = data => req.post(`/plugins`, data);
