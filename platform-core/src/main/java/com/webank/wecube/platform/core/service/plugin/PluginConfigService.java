@@ -4,6 +4,7 @@ package com.webank.wecube.platform.core.service.plugin;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
@@ -35,10 +36,12 @@ public class PluginConfigService {
         return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
     }
 
-    public PluginConfig savePluginConfig(PluginConfig pluginConfig) {
+    public PluginConfig savePluginConfig(PluginConfig pluginConfig) throws WecubeCoreException {
         ensurePluginConfigIsValid(pluginConfig);
+        Integer packageId = pluginConfig.getPluginPackageId();
+        pluginPackageRepository.findById(packageId).ifPresent(pluginConfig::setPluginPackage);
         PluginConfig pluginConfigFromDatabase = pluginConfigRepository.findById(pluginConfig.getId()).get();
-        if (ONLINE.equals(pluginConfigFromDatabase.getStatus())){
+        if (ONLINE.equals(pluginConfigFromDatabase.getStatus())) {
             throw new WecubeCoreException("Not allow to update plugin with status: ONLINE");
         }
         pluginConfig.setStatus(CONFIGURED);
@@ -62,7 +65,6 @@ public class PluginConfigService {
         if (!pluginPackageEntityOptional.isPresent()) {
             throw new WecubeCoreException("PluginPackageEntity not found for id: " + entityId);
         }
-
     }
 
     public PluginConfig registerPlugin(int pluginConfigId) {
@@ -74,7 +76,7 @@ public class PluginConfigService {
         PluginConfig pluginConfig = pluginConfigOptional.get();
 
         ensurePluginConfigIsValid(pluginConfig);
-        if (!CONFIGURED.equals(pluginConfig.getStatus())){
+        if (!CONFIGURED.equals(pluginConfig.getStatus())) {
             throw new WecubeCoreException("Not allow to register pluginConfig with status: " + pluginConfig.getStatus());
         }
         pluginConfig.setStatus(ONLINE);
@@ -89,7 +91,7 @@ public class PluginConfigService {
         Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfigId);
         PluginConfig pluginConfig = pluginConfigOptional.get();
 
-        if (ONLINE.equals(pluginConfig.getStatus())){
+        if (ONLINE.equals(pluginConfig.getStatus())) {
             throw new WecubeCoreException("Not allow to delete pluginConfig with status: " + pluginConfig.getStatus());
         }
         pluginConfig.setStatus(DECOMMISSIONED);

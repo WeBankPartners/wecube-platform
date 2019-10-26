@@ -59,6 +59,11 @@ public class PluginConfig {
         return pluginPackage == null ? null : pluginPackage.getId();
     }
 
+    public void setPluginPackageId(Integer pluginPackageId) {
+        this.pluginPackage = new PluginPackage();
+        this.pluginPackage.setId(pluginPackageId);
+    }
+
     public Integer getId() {
         return id;
     }
