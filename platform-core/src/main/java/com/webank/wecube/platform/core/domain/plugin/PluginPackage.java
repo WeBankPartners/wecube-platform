@@ -74,6 +74,16 @@ public class PluginPackage {
         return UI_ZIP_FILE_NAME;
     }
 
+    public String getStatus() {
+        String status = PluginConfig.Status.UNREGISTERED.name();
+        if (null != pluginConfigs && pluginConfigs.size() > 0) {
+            if (pluginConfigs.stream().anyMatch(config -> config.getStatus() == PluginConfig.Status.REGISTERED)) {
+                status = PluginConfig.Status.REGISTERED.name();
+            }
+        }
+        return status;
+    }
+
     public PluginPackage() {
     }
 
