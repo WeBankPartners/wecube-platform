@@ -72,7 +72,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("Vpc Management")))
                     .andExpect(jsonPath("$.data.entityId", is(EXISTING_ENTITY_ID)))
-                    .andExpect(jsonPath("$.data.status", is("CONFIGURED")))
+                    .andExpect(jsonPath("$.data.status", is("UNREGISTERED")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -99,7 +99,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
             mvc.perform(post("/v1/api/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("Not allow to update plugin with status: ONLINE")))
+                    .andExpect(jsonPath("$.message", is("Not allow to update plugin with status: REGISTERED")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -122,7 +122,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
             mvc.perform(post("/v1/api/plugins/register/" + 11))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("Not allow to register pluginConfig with status: ONLINE")))
+                    .andExpect(jsonPath("$.message", is("Not allow to register pluginConfig with status: REGISTERED")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -149,7 +149,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("Vpc Management")))
                     .andExpect(jsonPath("$.data.entityId", is(EXISTING_ENTITY_ID)))
-                    .andExpect(jsonPath("$.data.status", is("ONLINE")))
+                    .andExpect(jsonPath("$.data.status", is("REGISTERED")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -205,7 +205,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
         PluginConfig pluginConfig = pluginConfigOptional.get();
-        assertThat(pluginConfig.getStatus()).isNotEqualTo(PluginConfig.Status.ONLINE);
+        assertThat(pluginConfig.getStatus()).isNotEqualTo(PluginConfig.Status.REGISTERED);
 
         try {
             mvc.perform(delete("/v1/api/plugins/" + existingPluginConfigId))
@@ -233,13 +233,13 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 " ,(4, 'cmdb', 'v2.0');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
-                " (11, 1, 'Vpc Management', 1, 'ONLINE')\n" +
-                ",(21, 2, 'Vpc Management', 17, 'ONLINE')\n" +
-                ",(31, 3, 'Vpc Management', 16, 'NOT_CONFIGURED')\n" +
-                ",(32, 4, 'Vpc Management', 16, 'CONFIGURED');\n" +
+                " (11, 1, 'Vpc Management', 1, 'REGISTERED')\n" +
+                ",(21, 2, 'Vpc Management', 17, 'REGISTERED')\n" +
+                ",(31, 3, 'Vpc Management', 16, 'UNREGISTERED')\n" +
+                ",(32, 4, 'Vpc Management', 16, 'UNREGISTERED');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, status) values\n" +
-                "(41, 3, 'Vpc Management', 'NOT_CONFIGURED');\n" +
+                "(41, 3, 'Vpc Management', 'UNREGISTERED');\n" +
                 "\n" +
                 "INSERT INTO plugin_package_entities(id, plugin_package_id, name, display_name, description) VALUES\n" +
                 " (1, 1, 'entity_1', 'entity_1', 'entity_1_description')\n" +
