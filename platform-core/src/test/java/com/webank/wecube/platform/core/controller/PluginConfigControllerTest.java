@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
 import java.util.Optional;
 
 import static com.webank.wecube.platform.core.utils.JsonUtils.toJsonString;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
