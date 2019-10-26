@@ -4,7 +4,6 @@ package com.webank.wecube.platform.core.service.plugin;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
@@ -41,10 +40,10 @@ public class PluginConfigService {
         Integer packageId = pluginConfig.getPluginPackageId();
         pluginPackageRepository.findById(packageId).ifPresent(pluginConfig::setPluginPackage);
         PluginConfig pluginConfigFromDatabase = pluginConfigRepository.findById(pluginConfig.getId()).get();
-        if (ONLINE.equals(pluginConfigFromDatabase.getStatus())) {
-            throw new WecubeCoreException("Not allow to update plugin with status: ONLINE");
+        if (REGISTERED.equals(pluginConfigFromDatabase.getStatus())) {
+            throw new WecubeCoreException("Not allow to update plugin with status: REGISTERED");
         }
-        pluginConfig.setStatus(CONFIGURED);
+        pluginConfig.setStatus(UNREGISTERED);
 
         return pluginConfigRepository.save(pluginConfig);
     }
@@ -76,10 +75,10 @@ public class PluginConfigService {
         PluginConfig pluginConfig = pluginConfigOptional.get();
 
         ensurePluginConfigIsValid(pluginConfig);
-        if (!CONFIGURED.equals(pluginConfig.getStatus())) {
+        if (!UNREGISTERED.equals(pluginConfig.getStatus())) {
             throw new WecubeCoreException("Not allow to register pluginConfig with status: " + pluginConfig.getStatus());
         }
-        pluginConfig.setStatus(ONLINE);
+        pluginConfig.setStatus(REGISTERED);
         return pluginConfigRepository.save(pluginConfig);
     }
 
