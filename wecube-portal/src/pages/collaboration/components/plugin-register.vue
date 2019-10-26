@@ -21,17 +21,17 @@
       <Form v-if="currentPlugin.length > 0" :model="form">
         <Row>
           <Col span="10" offset="0">
-            <FormItem :label-width="100" label="目标对象类型">
+            <FormItem :label-width="100" label="目标对象类型:">
               <Select
                 @on-change="selectCiType"
-                label-in-value
                 v-model="selectedCiType"
+                disabled
               >
                 <Option
                   v-for="(ci, index) in ciTypes"
-                  :value="ci.name || ''"
+                  :value="ci.id || ''"
                   :key="index"
-                  >{{ ci.name }}</Option
+                  >{{ ci.displayName }}</Option
                 >
               </Select>
             </FormItem>
@@ -54,7 +54,7 @@
         </Row>
         <Row
           style="margin-top:20px; border-bottom: 1px solid #2c3e50"
-          v-for="(interfaces, index) in pluginInterfaces"
+          v-for="(interfaces, index) in currentPluginObj.interfaces"
           :key="index"
         >
           <Col span="3">
@@ -156,22 +156,22 @@
                 "
                 @click="pluginSave"
                 >保存</Button
-              >
-              <Button
-                type="primary"
-                v-if="
-                  currentPlugin.status === 'CONFIGURED' ||
-                    currentPlugin.status === 'DECOMMISSIONED'
-                "
-                @click="regist"
-                >注册</Button
-              >
-              <Button
-                type="error"
-                v-if="currentPlugin.status === 'ONLINE'"
-                @click="removePlugin"
-                >注销</Button
               > -->
+            <Button
+              type="primary"
+              v-if="
+                currentPluginObj.status === 'NOT_CONFIGURED' ||
+                  currentPluginObj.status === 'DECOMMISSIONED'
+              "
+              @click="regist"
+              >注册</Button
+            >
+            <Button
+              type="error"
+              v-if="currentPluginObj.status === 'ONLINE'"
+              @click="removePlugin"
+              >注销</Button
+            >
           </Col>
         </Row>
       </Form>
@@ -184,7 +184,8 @@ import {
   getAllSystemEnumCodes,
   getAllDataModels,
   registerPlugin,
-  deletePlugin
+  deletePlugin,
+  savePluginConfig
 } from "@/api/server";
 export default {
   data() {
@@ -199,11 +200,11 @@ export default {
     };
   },
   computed: {
-    pluginInterfaces() {
+    currentPluginObj() {
       const found = this.plugins.find(
         plugin => plugin.name === this.currentPlugin
       );
-      return found ? found.interfaces : [];
+      return found ? found : {};
     }
   },
   props: {
@@ -213,6 +214,33 @@ export default {
   },
   watch: {},
   methods: {
+    async regist() {
+      const saveRes = await savePluginConfig(this.currentPluginObj);
+      if (saveRes.status === "OK") {
+        const { data, status, message } = await registerPlugin(
+          this.currentPluginObj.id
+        );
+        if (status === "OK") {
+          this.$Notice.success({
+            title: "Success",
+            desc: message
+          });
+          this.getAllPluginByPkgId();
+        }
+      }
+    },
+    async removePlugin() {
+      const { data, status, message } = await deletePlugin(
+        this.currentPluginObj.id
+      );
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message
+        });
+        this.getAllPluginByPkgId();
+      }
+    },
     async getAllPluginByPkgId() {
       const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
       if (status === "OK") {
@@ -221,6 +249,9 @@ export default {
     },
     selectPlugin(val) {
       this.currentPlugin = val;
+      this.selectedCiType = this.plugins.find(
+        plugin => plugin.name === val
+      ).entityId;
     },
     selectCiType(val) {},
     async getAllDataModels() {
