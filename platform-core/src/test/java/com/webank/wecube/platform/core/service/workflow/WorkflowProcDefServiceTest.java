@@ -12,12 +12,12 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class WorkflowProcessDefinitionServiceTest {
+public class WorkflowProcDefServiceTest {
     
     ObjectMapper objectMapper = new ObjectMapper();
     
     @Autowired
-    WorkflowProcessDefinitionService service;
+    WorkflowProcDefService service;
 
     @Test
     public void testGetProcessDefinitionOutline() throws JsonProcessingException {
