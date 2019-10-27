@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
-public class FlowNodeInstanceDto extends FlowNodeDefDto{
+public class FlowNodeInstDto extends FlowNodeDefDto{
 
     private String procInstId;
     private String procInstKey;

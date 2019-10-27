@@ -3,7 +3,7 @@ package com.webank.wecube.platform.core.dto.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StartProcInstanceRequestDto {
+public class StartProcInstRequestDto {
     private String procDefId;
     private String rootObjectId;
     private List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
