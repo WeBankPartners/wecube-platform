@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
-public class TaskNodeInstanceDto extends FlowNodeInstanceDto{
+public class TaskNodeInstDto extends FlowNodeInstDto{
 
     private Integer id;
     
