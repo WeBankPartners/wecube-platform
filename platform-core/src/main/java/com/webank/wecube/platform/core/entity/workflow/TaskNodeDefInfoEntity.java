@@ -59,6 +59,12 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
 
     @Column(name = "ORDERED_NO")
     private String orderedNo;
+    
+    @Column(name = "PREV_NODE_IDS")
+    private String previousNodeIds;
+    
+    @Column(name="SUCCEED_NODE_IDS")
+    private String succeedingNodeIds;
 
     public String getId() {
         return id;
@@ -178,6 +184,22 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
 
     public void setOrderedNo(String orderedNo) {
         this.orderedNo = orderedNo;
+    }
+
+    public String getPreviousNodeIds() {
+        return previousNodeIds;
+    }
+
+    public void setPreviousNodeIds(String previousNodeIds) {
+        this.previousNodeIds = previousNodeIds;
+    }
+
+    public String getSucceedingNodeIds() {
+        return succeedingNodeIds;
+    }
+
+    public void setSucceedingNodeIds(String succeedingNodeIds) {
+        this.succeedingNodeIds = succeedingNodeIds;
     }
 
 }

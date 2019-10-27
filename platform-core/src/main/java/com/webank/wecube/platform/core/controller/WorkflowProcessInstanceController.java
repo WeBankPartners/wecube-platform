@@ -11,32 +11,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcessInstanceInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.StartProcInstanceRequestDto;
-import com.webank.wecube.platform.core.service.workflow.WorkflowProcessInstanceService;
+import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
+import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 
 @RestController
 @RequestMapping("/v1/api")
 public class WorkflowProcessInstanceController {
 
     @Autowired
-    private WorkflowProcessInstanceService procInstService;
+    private WorkflowProcInstService procInstService;
 
     @PostMapping("/process/instances")
-    public CommonResponseDto createProcessInstance(StartProcInstanceRequestDto requestDto) {
-        ProcessInstanceInfoDto result = procInstService.createProcessInstance(requestDto);
+    public CommonResponseDto createProcessInstance(StartProcInstRequestDto requestDto) {
+        ProcInstInfoDto result = procInstService.createProcessInstance(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/instances")
     public CommonResponseDto getProcessInstances() {
-        List<ProcessInstanceInfoDto> result = procInstService.getProcessInstances();
+        List<ProcInstInfoDto> result = procInstService.getProcessInstances();
         return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/instances/{id}")
     public CommonResponseDto getProcessInstance(@PathVariable(name="id") Integer procInstId) {
-        ProcessInstanceInfoDto result = procInstService.getProcessInstanceById(procInstId);
+        ProcInstInfoDto result = procInstService.getProcessInstanceById(procInstId);
         if(result == null){
             return CommonResponseDto.error(String.format("Process instance [%s] does not exist.", procInstId));
         }
