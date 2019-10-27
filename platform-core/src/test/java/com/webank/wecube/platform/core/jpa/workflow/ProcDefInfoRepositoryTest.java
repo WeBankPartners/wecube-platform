@@ -14,12 +14,12 @@ import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ProcessDefInfoRepositoryTest {
+public class ProcDefInfoRepositoryTest {
     
     Logger log = LoggerFactory.getLogger(getClass());
     
     @Autowired
-    ProcessDefInfoRepository repo;
+    ProcDefInfoRepository repo;
 
     @Test
     public void testFindAll() {

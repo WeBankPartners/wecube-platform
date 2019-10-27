@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
-import com.webank.wecube.platform.core.service.workflow.WorkflowProcessDefinitionService;
+import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefService;
 
 @RestController
 @RequestMapping("/v1/api")
@@ -24,7 +24,7 @@ public class WorkflowProcessDefinitionController {
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcessDefinitionController.class);
 
     @Autowired
-    private WorkflowProcessDefinitionService procDefService;
+    private WorkflowProcDefService procDefService;
 
     @PostMapping("/process/definitions/deploy")
     public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
@@ -57,9 +57,15 @@ public class WorkflowProcessDefinitionController {
         return CommonResponseDto.okayWithData(result);
     }
 
-    @GetMapping("/process/definitions/{id}")
+    @GetMapping("/process/definitions/{id}/detail")
     public CommonResponseDto getProcessDefinition(@PathVariable(name = "id") String id) {
         ProcDefInfoDto result = procDefService.getProcessDefinition(id);
+        return CommonResponseDto.okayWithData(result);
+    }
+    
+    @GetMapping("/process/definitions/{id}/outline")
+    public CommonResponseDto getProcessDefinitionOutline(@PathVariable(name = "id") String id) {
+        ProcDefOutlineDto result = procDefService.getProcessDefinitionOutline(id);
         return CommonResponseDto.okayWithData(result);
     }
 

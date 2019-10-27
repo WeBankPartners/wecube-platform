@@ -10,6 +10,7 @@ import org.camunda.bpm.engine.repository.DeploymentWithDefinitions;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.repository.ProcessDefinitionQuery;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.FlowNode;
 import org.camunda.bpm.model.bpmn.instance.StartEvent;
@@ -27,6 +28,8 @@ import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 import com.webank.wecube.platform.workflow.parse.BpmnParseAttachment;
 import com.webank.wecube.platform.workflow.parse.BpmnProcessModelCustomizer;
 import com.webank.wecube.platform.workflow.parse.SubProcessAdditionalInfo;
+import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
 @Service
 public class WorkflowEngineService {
@@ -38,10 +41,16 @@ public class WorkflowEngineService {
     private String encoding = "UTF-8";
 
     @Autowired
-    private RepositoryService repositoryService;
+    protected RepositoryService repositoryService;
 
     @Autowired
     protected RuntimeService runtimeService;
+
+    @Autowired
+    protected ProcessInstanceStatusRepository processInstanceStatusRepository;
+
+    @Autowired
+    protected ServiceNodeStatusRepository serviceNodeStatusRepository;
 
     public ProcessDefinition deployProcessDefinition(ProcDefInfoDto procDefDto) {
         try {
@@ -50,6 +59,23 @@ public class WorkflowEngineService {
             log.error("errors while deploy process definition", e);
             throw new BpmnCustomizationException(e.getMessage());
         }
+    }
+
+    public ProcessInstance retrieveProcessInstance(String processInstanceId) {
+        if (StringUtils.isBlank(processInstanceId)) {
+            throw new IllegalArgumentException("Process instance ID is blank.");
+        }
+
+        ProcessInstanceQuery query = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId);
+
+        ProcessInstance procInst = query.singleResult();
+
+        if (procInst == null) {
+            throw new WecubeCoreException(
+                    String.format("Such process instance with id [%s] does not exist.", processInstanceId));
+        }
+        
+        return procInst;
     }
 
     public ProcessDefinition retrieveProcessDefinition(String processDefinitionId) {
@@ -142,27 +168,27 @@ public class WorkflowEngineService {
 
     protected void populateFlowNodes(ProcDefOutline outline, FlowNode flowNode) {
         ProcFlowNode pfn = outline.findFlowNode(flowNode.getId());
-        if(pfn == null){
+        if (pfn == null) {
             pfn = buildProcFlowNode(flowNode);
             outline.addFlowNodes(pfn);
         }
-        
+
         Collection<FlowNode> succeedingFlowNodes = flowNode.getSucceedingNodes().list();
 
-        for(FlowNode fn : succeedingFlowNodes){
+        for (FlowNode fn : succeedingFlowNodes) {
             ProcFlowNode childPfn = outline.findFlowNode(fn.getId());
-            if(childPfn == null){
+            if (childPfn == null) {
                 childPfn = buildProcFlowNode(fn);
                 outline.addFlowNodes(childPfn);
             }
-            
+
             pfn.addSucceedingFlowNodes(childPfn);
-            
+
             populateFlowNodes(outline, fn);
         }
-        
+
     }
-    
+
     protected ProcFlowNode buildProcFlowNode(FlowNode fn) {
         ProcFlowNode pfn = new ProcFlowNode();
         pfn.setId(fn.getId());

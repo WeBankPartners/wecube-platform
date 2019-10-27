@@ -7,11 +7,11 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 
-public interface ProcessDefInfoRepository extends JpaRepository<ProcDefInfoEntity, String> {
+public interface ProcDefInfoRepository extends JpaRepository<ProcDefInfoEntity, String> {
 
     @Query("select t from ProcDefInfoEntity t "
             + " where t.active = true and (t.status = 'deployed' or t.status = 'draft')")
-    List<ProcDefInfoEntity> findAllDeployedOrDraftProcDef();
+    List<ProcDefInfoEntity> findAllDeployedOrDraftProcDefs();
     
 //    @Transactional
 //    @Modifying
