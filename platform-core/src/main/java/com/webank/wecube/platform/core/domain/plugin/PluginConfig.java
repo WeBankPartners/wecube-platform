@@ -15,7 +15,7 @@ import java.util.Set;
 public class PluginConfig {
 
     public enum Status {
-        UNREGISTERED, REGISTERED, DECOMMISSIONED
+        DISABLED, ENABLED
     }
 
     @Id
