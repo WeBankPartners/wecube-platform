@@ -178,17 +178,6 @@
                 </Select>
               </FormItem>
             </Col>
-            <Col
-              style="margin-top:-5px"
-              span="6"
-              offset="1"
-              v-if="selectedCiType !== ''"
-            >
-              <refPayloadModal
-                :ciRulesFilters="ciRulesFilters"
-                @handleSubmit="getCIRulesPayload"
-              ></refPayloadModal>
-            </Col>
           </Row>
           <hr />
           <Row style="margin-bottom:10px;margin-top:10px">
@@ -397,13 +386,10 @@ import {
   preconfigurePluginPackage
 } from "@/api/server.js";
 
-import refPayloadModal from "./components/ref-payload-modal.js";
-
 export default {
   components: {
     AttrSelect,
     AttrInput,
-    refPayloadModal,
     CmdbAttrInput
   },
   data() {
