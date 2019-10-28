@@ -35,13 +35,15 @@ public class PluginConfigService {
         return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
     }
 
-    public PluginConfig savePluginConfig(PluginConfig pluginConfig) {
+    public PluginConfig savePluginConfig(PluginConfig pluginConfig) throws WecubeCoreException {
         ensurePluginConfigIsValid(pluginConfig);
+        Integer packageId = pluginConfig.getPluginPackageId();
+        pluginPackageRepository.findById(packageId).ifPresent(pluginConfig::setPluginPackage);
         PluginConfig pluginConfigFromDatabase = pluginConfigRepository.findById(pluginConfig.getId()).get();
-        if (ONLINE.equals(pluginConfigFromDatabase.getStatus())){
-            throw new WecubeCoreException("Not allow to update plugin with status: ONLINE");
+        if (REGISTERED.equals(pluginConfigFromDatabase.getStatus())) {
+            throw new WecubeCoreException("Not allow to update plugin with status: REGISTERED");
         }
-        pluginConfig.setStatus(CONFIGURED);
+        pluginConfig.setStatus(UNREGISTERED);
 
         return pluginConfigRepository.save(pluginConfig);
     }
@@ -62,7 +64,6 @@ public class PluginConfigService {
         if (!pluginPackageEntityOptional.isPresent()) {
             throw new WecubeCoreException("PluginPackageEntity not found for id: " + entityId);
         }
-
     }
 
     public PluginConfig registerPlugin(int pluginConfigId) {
@@ -74,24 +75,20 @@ public class PluginConfigService {
         PluginConfig pluginConfig = pluginConfigOptional.get();
 
         ensurePluginConfigIsValid(pluginConfig);
-        if (!CONFIGURED.equals(pluginConfig.getStatus())){
+        if (!UNREGISTERED.equals(pluginConfig.getStatus())) {
             throw new WecubeCoreException("Not allow to register pluginConfig with status: " + pluginConfig.getStatus());
         }
-        pluginConfig.setStatus(ONLINE);
+        pluginConfig.setStatus(REGISTERED);
         return pluginConfigRepository.save(pluginConfig);
     }
 
-    public void deletePlugin(int pluginConfigId) {
+    public void deprecatePlugin(int pluginConfigId) {
         if (!pluginConfigRepository.existsById(pluginConfigId)) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
         }
 
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfigId);
-        PluginConfig pluginConfig = pluginConfigOptional.get();
+        PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
 
-        if (ONLINE.equals(pluginConfig.getStatus())){
-            throw new WecubeCoreException("Not allow to delete pluginConfig with status: " + pluginConfig.getStatus());
-        }
         pluginConfig.setStatus(DECOMMISSIONED);
         pluginConfigRepository.save(pluginConfig);
     }
