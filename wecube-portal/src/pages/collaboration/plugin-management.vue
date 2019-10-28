@@ -2,7 +2,7 @@
   <Row style="padding:20px">
     <Col span="6">
       <Row>
-        <Card>
+        <Card dis-hover>
           <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
           <Upload
             show-upload-list
@@ -112,10 +112,12 @@
       </Tabs>
     </Col>
     <Col span="17" offset="1" v-if="isShowServicePanel">
-      <PluginRegister
-        v-if="isShowServicePanel"
-        :pkgId="currentPackageId"
-      ></PluginRegister>
+      <Card dis-hover>
+        <PluginRegister
+          v-if="isShowServicePanel"
+          :pkgId="currentPackageId"
+        ></PluginRegister>
+      </Card>
     </Col>
     <Col span="17" offset="1" v-if="isShowRuntimeManagementPanel">
       <div v-if="Object.keys(currentPlugin).length > 0">
