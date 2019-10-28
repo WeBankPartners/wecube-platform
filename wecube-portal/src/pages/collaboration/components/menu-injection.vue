@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Col span="3" v-for="(menuGroup, index) in menus" :key="menuGroup.id">
+    <Col span="4" v-for="(menuGroup, index) in menus" :key="menuGroup.id">
       <List size="small">
         <h4 slot="header">{{ menuGroup.displayName }}</h4>
         <ListItem
@@ -70,8 +70,8 @@ export default {
       let { status, data, message } = await getMenuInjection(this.pkgId);
       if (status === "OK") {
         let allCats = [];
-        data.forEach(_ => {
-          if (!_.category) {
+        data.forEach((_, index) => {
+          if (!_.category && _.code !== "COLLABORATION" && _.code !== "ADMIN") {
             const found = MENUS.find(m => m.code === _.code);
             allCats.push({
               id: _.id,

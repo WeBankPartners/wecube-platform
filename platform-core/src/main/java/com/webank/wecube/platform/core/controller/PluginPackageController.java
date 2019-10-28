@@ -5,7 +5,6 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.domain.SystemVariable;
@@ -50,7 +49,7 @@ public class PluginPackageController {
         if (file == null || file.isEmpty()) throw new IllegalArgumentException("zip-file required.");
 
         PluginPackage pluginPackage = pluginPackageService.uploadPackage(file);
-        return okay().withData(pluginPackage);
+        return okayWithData(pluginPackage);
     }
 
     @GetMapping("/packages")
@@ -60,10 +59,26 @@ public class PluginPackageController {
         return okayWithData(pluginPackages);
     }
 
-    @DeleteMapping("/packages/{package-id}")
+    @PostMapping("/packages/register/{package-id}")
     @ResponseBody
-    public JsonResponse deletePluginPackage(@PathVariable(value = "package-id") int packageId) {
-        pluginPackageService.deletePluginPackage(packageId);
+    public JsonResponse registerPluginPackage(@PathVariable(value = "package-id") int packageId) {
+        PluginPackage pluginPackage = null;
+        try {
+            pluginPackage = pluginPackageService.registerPluginPackage(packageId);
+        } catch (Exception e) {
+            return error(String.format("Failed to register plugin package with error message [%s]", e.getMessage()));
+        }
+        return okayWithData(pluginPackage);
+    }
+
+    @PostMapping("/packages/decommission/{package-id}")
+    @ResponseBody
+    public JsonResponse decommissionPluginPackage(@PathVariable(value = "package-id") int packageId) {
+        try {
+            pluginPackageService.decommissionPluginPackage(packageId);
+        } catch (Exception e) {
+            return error(String.format("Failed to decommission plugin package with error message [%s]", e.getMessage()));
+        }
         return okay();
     }
 
