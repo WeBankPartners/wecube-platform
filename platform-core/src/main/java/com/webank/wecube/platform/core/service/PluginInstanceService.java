@@ -342,7 +342,9 @@ public class PluginInstanceService {
                 + pluginProperties.getImageFile();
         logger.info("Run docker load command: " + loadCmd);
         try {
-            commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(), hostInfo.getLoginPassword(),
+            commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(),
+                    EncryptionUtils.decryptWithAes(hostInfo.getLoginPassword(),
+                            resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName()),
                     Integer.valueOf(hostInfo.getPort()), loadCmd);
         } catch (Exception e) {
             logger.error("Run command [{}] meet error: {}", loadCmd, e.getMessage());
