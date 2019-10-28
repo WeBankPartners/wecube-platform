@@ -229,7 +229,7 @@ public class PluginInstanceService {
             instance.setPluginMysqlInstanceResourceId(mysqlInstance.getId());
             ResourceServer dbServer = resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
                     .getResourceServer();
-            dbInfo.connectString = String.format("jdbc:mysql://%s:%d/%s?characterEncoding=utf8&serverTimezone=UTC",
+            dbInfo.connectString = String.format("jdbc:mysql://%s:%s/%s?characterEncoding=utf8&serverTimezone=UTC",
                     dbServer.getHost(), dbServer.getPort(), mysqlInstance.getSchemaName());
             dbInfo.user = mysqlInstance.getUsername();
             dbInfo.password = mysqlInstance.getPassword();
