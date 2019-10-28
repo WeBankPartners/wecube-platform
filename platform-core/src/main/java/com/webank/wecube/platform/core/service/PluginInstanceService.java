@@ -291,6 +291,7 @@ public class PluginInstanceService {
         PluginMysqlInstance mysqlInstance = new PluginMysqlInstance(mysqlInfo.getSchemaName(), result.get(0).getId(),
                 mysqlInfo.getSchemaName(), dbPassword, "active");
         pluginMysqlInstanceRepository.save(mysqlInstance);
+        logger.info("createPluginMysqlDatabase done...");
         return mysqlInstance;
     }
 
@@ -428,9 +429,9 @@ public class PluginInstanceService {
 
     private String buildAdditionalPropertiesForMysqlDatabase(String name, String username, String password) {
         HashMap<String, String> additionalProperties = new HashMap<String, String>();
-        additionalProperties.put("username", username);
+        additionalProperties.put("username", username.substring(0, 16));
         additionalProperties.put("password",
-                EncryptionUtils.encryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(), name));
+                EncryptionUtils.encryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(), username));
         return JsonUtils.toJsonString(additionalProperties);
     }
 
