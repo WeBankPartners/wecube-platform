@@ -14,7 +14,7 @@ export default {
       tableColumns: [
         {
           title: "归属",
-          key: "scope_type"
+          key: "scopeType"
         },
         {
           title: "参数名称",
