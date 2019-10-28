@@ -32,10 +32,10 @@ import com.webank.wecube.platform.workflow.model.ProcFlowNode;
 import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 
 @Service
-public class WorkflowProcDefService {
+public class WorkflowProcDefService extends AbstractWorkflowService{
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcDefService.class);
 
-    private static final String NODE_IDS_DELIMITER = ",";
+    
 
     @Autowired
     private ProcDefInfoRepository processDefInfoRepo;
@@ -486,20 +486,7 @@ public class WorkflowProcDefService {
         return sb.toString();
     }
 
-    protected List<String> unmarshalNodeIds(String nodeIdsAsString) {
-        List<String> nodeIds = new ArrayList<>();
-        if (StringUtils.isBlank(nodeIdsAsString)) {
-            return nodeIds;
-        }
-
-        String[] parts = nodeIdsAsString.split(NODE_IDS_DELIMITER);
-
-        for (int i = 0; i < parts.length; i++) {
-            nodeIds.add(parts[i]);
-        }
-
-        return nodeIds;
-    }
+    
 
     private TaskNodeDefInfoEntity findNodeEntityByNodeId(List<TaskNodeDefInfoEntity> nodeEntities, String nodeId) {
         if (nodeEntities == null) {

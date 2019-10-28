@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcInstOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 
@@ -43,6 +44,13 @@ public class WorkflowProcessInstanceController {
         
         return CommonResponseDto.okayWithData(result);
     }
+    
+//    @GetMapping("/process/instances/{id}/outline")
+//    public CommonResponseDto getProcessInstanceOutline(@PathVariable(name="id") Integer procInstId){
+//        ProcInstOutlineDto result = procInstService.getProcessInstanceOutline(procInstId);
+//        
+//        
+//    }
 
     @PutMapping("/process/instances/{id}")
     public CommonResponseDto modifyProcessInstance() {
