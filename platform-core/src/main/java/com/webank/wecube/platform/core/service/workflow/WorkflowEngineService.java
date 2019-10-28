@@ -108,8 +108,40 @@ public class WorkflowEngineService {
         result.setProcDefName(procDef.getName());
 
         populateFlowNodeInsts(result, startEvent);
+        refreshFlowNodeStatus(result);
 
         return result;
+    }
+
+    protected void refreshFlowNodeStatus(ProcInstOutline outline) {
+        for (ProcFlowNodeInst n : outline.getNodeInsts()) {
+            if (n.getStatus() != null) {
+                continue;
+            }
+
+            String nodeStatus = null;
+
+            for (ProcFlowNode child : n.getPreviousFlowNodes()) {
+                ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
+                if (!TraceStatus.Completed.name().equals(fi.getStatus())) {
+                    nodeStatus = TraceStatus.NotStarted.name();
+                    break;
+                }
+            }
+
+            for (ProcFlowNode child : n.getSucceedingFlowNodes()) {
+                ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
+                if (!TraceStatus.NotStarted.name().equals(fi.getStatus())) {
+                    nodeStatus = TraceStatus.Completed.name();
+                    break;
+                }
+            }
+            
+            if(nodeStatus != null){
+                n.setStatus(nodeStatus);
+            }
+
+        }
     }
 
     protected void populateFlowNodeInsts(ProcInstOutline outline, FlowNode flowNode) {
@@ -124,8 +156,8 @@ public class WorkflowEngineService {
 
         ServiceNodeStatusEntity nodeStatus = serviceNodeStatusRepository
                 .findOneByProcInstanceIdAndNodeId(outline.getId(), pfn.getId());
-        
-        if(nodeStatus != null){
+
+        if (nodeStatus != null) {
             pfn.setStartTime(nodeStatus.getStartTime());
             pfn.setEndTime(nodeStatus.getEndTime());
             pfn.setStatus(nodeStatus.getStatus().name());
@@ -135,9 +167,9 @@ public class WorkflowEngineService {
             ProcFlowNodeInst childPfn = outline.findProcFlowNodeInstByNodeId(fn.getId());
             if (childPfn == null) {
                 childPfn = new ProcFlowNodeInst();
-                pfn.setId(fn.getId());
-                pfn.setNodeType(fn.getElementType().getTypeName());
-                pfn.setNodeName(fn.getName() == null ? "" : fn.getName());
+                childPfn.setId(fn.getId());
+                childPfn.setNodeType(fn.getElementType().getTypeName());
+                childPfn.setNodeName(fn.getName() == null ? "" : fn.getName());
                 outline.addNodeInsts(childPfn);
             }
 
