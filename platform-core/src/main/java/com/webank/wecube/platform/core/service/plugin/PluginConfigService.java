@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.*;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
 
 @Service
 @Transactional
@@ -40,10 +42,10 @@ public class PluginConfigService {
         Integer packageId = pluginConfig.getPluginPackageId();
         pluginPackageRepository.findById(packageId).ifPresent(pluginConfig::setPluginPackage);
         PluginConfig pluginConfigFromDatabase = pluginConfigRepository.findById(pluginConfig.getId()).get();
-        if (REGISTERED.equals(pluginConfigFromDatabase.getStatus())) {
-            throw new WecubeCoreException("Not allow to update plugin with status: REGISTERED");
+        if (ENABLED == pluginConfigFromDatabase.getStatus()) {
+            throw new WecubeCoreException("Not allow to update plugin with status: ENABLED");
         }
-        pluginConfig.setStatus(UNREGISTERED);
+        pluginConfig.setStatus(DISABLED);
 
         return pluginConfigRepository.save(pluginConfig);
     }
@@ -66,30 +68,33 @@ public class PluginConfigService {
         }
     }
 
-    public PluginConfig registerPlugin(int pluginConfigId) {
-        if (!pluginConfigRepository.existsById(pluginConfigId)) {
-            throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
-        }
-
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfigId);
-        PluginConfig pluginConfig = pluginConfigOptional.get();
-
-        ensurePluginConfigIsValid(pluginConfig);
-        if (!UNREGISTERED.equals(pluginConfig.getStatus())) {
-            throw new WecubeCoreException("Not allow to register pluginConfig with status: " + pluginConfig.getStatus());
-        }
-        pluginConfig.setStatus(REGISTERED);
-        return pluginConfigRepository.save(pluginConfig);
-    }
-
-    public void deprecatePlugin(int pluginConfigId) {
+    public PluginConfig enablePlugin(int pluginConfigId) {
         if (!pluginConfigRepository.existsById(pluginConfigId)) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
         }
 
         PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
 
-        pluginConfig.setStatus(DECOMMISSIONED);
-        pluginConfigRepository.save(pluginConfig);
+        if (pluginConfig.getPluginPackage() == null || UNREGISTERED == pluginConfig.getPluginPackage().getStatus() || DECOMMISSIONED == pluginConfig.getPluginPackage().getStatus()) {
+            throw new WecubeCoreException("Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
+        }
+
+        ensurePluginConfigIsValid(pluginConfig);
+        if (DISABLED != pluginConfig.getStatus()) {
+            throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
+        }
+        pluginConfig.setStatus(ENABLED);
+        return pluginConfigRepository.save(pluginConfig);
+    }
+
+    public PluginConfig disablePlugin(int pluginConfigId) {
+        if (!pluginConfigRepository.existsById(pluginConfigId)) {
+            throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
+        }
+
+        PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
+
+        pluginConfig.setStatus(DISABLED);
+        return pluginConfigRepository.save(pluginConfig);
     }
 }
