@@ -91,14 +91,14 @@ public class ProcInstOutline {
     public void setEndTime(Date endTime) {
         this.endTime = endTime;
     }
-    
-    public ProcFlowNodeInst findProcFlowNodeInstByNodeId(String nodeId){
-        for(ProcFlowNodeInst n : this.getNodeInsts()){
-            if(n.getId().equals(nodeId)){
+
+    public ProcFlowNodeInst findProcFlowNodeInstByNodeId(String nodeId) {
+        for (ProcFlowNodeInst n : this.getNodeInsts()) {
+            if (n.getId().equals(nodeId)) {
                 return n;
             }
         }
-        
+
         return null;
     }
 
@@ -108,7 +108,14 @@ public class ProcInstOutline {
         }
 
         for (ProcFlowNodeInst n : nodeInsts) {
-            if (n != null && !this.nodeInsts.contains(n)) {
+            if (n == null) {
+                continue;
+            }
+
+            if (n.getId() == null) {
+                throw new IllegalArgumentException("Node id is null.");
+            }
+            if (!this.nodeInsts.contains(n)) {
                 this.nodeInsts.add(n);
             }
         }
