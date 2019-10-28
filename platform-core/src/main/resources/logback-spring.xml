@@ -18,10 +18,10 @@
     <appender name="rollingFile"
         class="ch.qos.logback.core.rolling.RollingFileAppender">
         
-        <File>logs/wecube-cds.log</File>
+        <File>logs/wecube.log</File>
         <rollingPolicy
             class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>logs/wecube-cds.log-%d{yyyyMMdd}.log
+            <FileNamePattern>logs/wecube.log-%d{yyyyMMdd}.log
             </FileNamePattern>
             <MaxHistory>2</MaxHistory>
         </rollingPolicy>
@@ -56,7 +56,7 @@
     <root level="debug">
         <appender-ref ref="console"/>
         <!-- 
-        <appender-ref ref="rollingFile"/>
          -->
+        <appender-ref ref="rollingFile"/>
     </root>
 </configuration>
