@@ -4,8 +4,10 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.repository.DeploymentWithDefinitions;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.repository.ProcessDefinitionQuery;
@@ -50,6 +52,9 @@ public class WorkflowEngineService {
 
     @Autowired
     protected RuntimeService runtimeService;
+    
+    @Autowired
+    protected HistoryService historyService;
 
     @Autowired
     protected ProcessInstanceStatusRepository processInstanceStatusRepository;
@@ -134,6 +139,21 @@ public class WorkflowEngineService {
                 if (!TraceStatus.NotStarted.name().equals(fi.getStatus())) {
                     nodeStatus = TraceStatus.Completed.name();
                     break;
+                }
+            }
+            
+            if(nodeStatus == null){
+                Collection<HistoricActivityInstance> activities = historyService.createHistoricActivityInstanceQuery()
+                        .processDefinitionId(outline.getProcDefKernelId()).processInstanceId(outline.getId())
+                        .activityId(n.getId()).finished().list();
+                HistoricActivityInstance activity = null;
+
+                if (activities.size() > 0) {
+                    activity = activities.iterator().next();
+                }
+
+                if (activity != null) {
+                    nodeStatus = TraceStatus.Completed.name();
                 }
             }
             
