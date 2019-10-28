@@ -6,6 +6,7 @@ import java.util.List;
 
 @Data
 public class CreateInstanceDto {
-    private String additionalCreateContainerParameters;
-
+    private String portBindingParameters;
+    private String volumeBindingParameters;
+    private String envVariableParameters;
 }
