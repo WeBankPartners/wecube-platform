@@ -43,8 +43,10 @@ public class MysqlAccountManagementService implements ResourceItemService {
 
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
-            String rawPassword = EncryptionUtils.decryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(), item.getName());
-            statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", item.getName(), rawPassword));
+            log.info("password before decrypt={}", password);
+            String rawPassword = EncryptionUtils.decryptWithAes(password,
+                    resourceProperties.getPasswordEncryptionSeed(), item.getName());
+            statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, rawPassword));
             statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s", item.getName(), username));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", item.getName());
@@ -69,16 +71,15 @@ public class MysqlAccountManagementService implements ResourceItemService {
     private DriverManagerDataSource newDatasource(ResourceItem item) {
         String password;
         try {
-            password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+            password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(),
+                    resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         } catch (Exception e) {
-            throw new WecubeCoreException(String.format("Failed to decrypt the login password of server [%s].", item.getResourceServer()), e);
+            throw new WecubeCoreException(
+                    String.format("Failed to decrypt the login password of server [%s].", item.getResourceServer()), e);
         }
 
-        DriverManagerDataSource dataSource = newMysqlDatasource(
-                item.getResourceServer().getHost(),
-                item.getResourceServer().getPort(),
-                item.getResourceServer().getLoginUsername(),
-                password);
+        DriverManagerDataSource dataSource = newMysqlDatasource(item.getResourceServer().getHost(),
+                item.getResourceServer().getPort(), item.getResourceServer().getLoginUsername(), password);
         return dataSource;
     }
 
