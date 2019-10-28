@@ -70,6 +70,10 @@ public class PluginPackage {
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginConfig> pluginConfigs = new LinkedHashSet<>();
 
+    @JsonManagedReference
+    @Transient
+    private Set<PluginPackageResourceFile> pluginPackageResourceFiles = new LinkedHashSet<>();
+
     public void addPluginConfig(PluginConfig pluginConfig) {
         this.pluginConfigs.add(pluginConfig);
     }
@@ -85,18 +89,21 @@ public class PluginPackage {
     public PluginPackage() {
     }
 
-    public PluginPackage(Integer id, String name, String version, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs) {
+    public PluginPackage(Integer id, String name, String version, Status status, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<PluginPackageEntity> pluginPackageEntities, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
         this.id = id;
         this.name = name;
         this.version = version;
+        this.status = status;
         this.pluginPackageDependencies = pluginPackageDependencies;
         this.pluginPackageMenus = pluginPackageMenus;
+        this.pluginPackageEntities = pluginPackageEntities;
         this.systemVariables = systemVariables;
         this.pluginPackageAuthorities = pluginPackageAuthorities;
         this.pluginPackageRuntimeResourcesDocker = pluginPackageRuntimeResourcesDocker;
         this.pluginPackageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysql;
         this.pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3;
         this.pluginConfigs = pluginConfigs;
+        this.pluginPackageResourceFiles = pluginPackageResourceFiles;
     }
 
     public Integer getId() {
@@ -201,6 +208,14 @@ public class PluginPackage {
 
     public void setPluginConfigs(Set<PluginConfig> pluginConfigs) {
         this.pluginConfigs = pluginConfigs;
+    }
+
+    public Set<PluginPackageResourceFile> getPluginPackageResourceFiles() {
+        return pluginPackageResourceFiles;
+    }
+
+    public void setPluginPackageResourceFiles(Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
+        this.pluginPackageResourceFiles = pluginPackageResourceFiles;
     }
 
     @Override

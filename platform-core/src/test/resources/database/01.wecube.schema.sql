@@ -179,3 +179,13 @@ create table role_menu
     menu_id int not null,
     unique key uk_roleid_menuid (role_id, menu_id)
 );
+
+drop table if exists plugin_package_resource_files;
+create table plugin_package_resource_files
+(
+  id int auto_increment primary key,
+  plugin_package_id int(11) not null,
+  source varchar(64) not null,
+  related_path varchar(64) not null,
+  PRIMARY KEY (`id`)
+);

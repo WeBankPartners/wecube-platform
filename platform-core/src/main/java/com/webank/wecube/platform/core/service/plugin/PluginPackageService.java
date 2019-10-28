@@ -53,6 +53,9 @@ public class PluginPackageService {
     private PluginConfigRepository pluginConfigRepository;
 
     @Autowired
+    private PluginPackageResourceFileRepository pluginPackageResourceFileRepository;
+
+    @Autowired
     private PluginProperties pluginProperties;
 
     @Autowired
@@ -81,8 +84,11 @@ public class PluginPackageService {
         unzipLocalFile(dest.getCanonicalPath(), localFilePath.getCanonicalPath() + "/");
 
         // 3. read xml file in plugin package
-        byte[] pluginConfigFile = FileUtils.readFileToByteArray(new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile()));
-        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new ByteArrayInputStream(pluginConfigFile)).parsePluginPackage();
+        File registerXmlFile = new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile());
+        if (!registerXmlFile.exists()) {
+            throw new WecubeCoreException(String.format("Plugin package definition file: [%s] does not exist.", pluginProperties.getRegisterFile()));
+        }
+        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile)).parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
         if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
             throw new WecubeCoreException(String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ", pluginPackageDto.getName()));
@@ -102,11 +108,13 @@ public class PluginPackageService {
         }
 
         File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
-        log.info("pluginDockerImageFile: {}", pluginUiPackageFile.getAbsolutePath());
+        log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
         String uiPackageUrl = "";
+        Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
         if (pluginUiPackageFile.exists()) {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginUiPackageFile.getName();
             log.info("keyname : {}", keyName);
+            pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage, pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
             uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
             log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
         }
@@ -129,6 +137,10 @@ public class PluginPackageService {
         pluginConfigRepository.saveAll(pluginConfigs);
 
         savedPluginPackage.setPluginPackageEntities(pluginPackageEntityDtos.stream().map(it->it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
+        if (pluginPackageResourceFilesOptional.isPresent()) {
+            Set<PluginPackageResourceFile> pluginPackageResourceFiles = newLinkedHashSet(pluginPackageResourceFileRepository.saveAll(pluginPackageResourceFilesOptional.get()));
+            savedPluginPackage.setPluginPackageResourceFiles(pluginPackageResourceFiles);
+        }
 
         return savedPluginPackage;
     }
@@ -187,11 +199,12 @@ public class PluginPackageService {
             for (; entries.hasMoreElements(); ) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
+                if (entry.isDirectory() || !(zipEntryName.contains(".xml") || zipEntryName.contains(".tar") || zipEntryName.contains(".zip") || zipEntryName.contains(".sql"))) {
+                    continue;
+                }
+
                 if (new File(destFilePath + zipEntryName).createNewFile()) {
                     log.info("Create new temporary file: {}", destFilePath + zipEntryName);
-                }
-                if (entry.isDirectory() || !(zipEntryName.contains(".xml") || zipEntryName.contains(".tar"))) {
-                    continue;
                 }
 
                 try (BufferedInputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
@@ -208,6 +221,34 @@ public class PluginPackageService {
         }
 
         log.info("Zip file has uploaded !");
+    }
+
+    private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage, String sourceZipFile, String sourceZipFileName) throws Exception {
+        Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
+        try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
+            Enumeration entries = zipFile.entries();
+            Set<PluginPackageResourceFile> pluginPackageResourceFiles = null;
+            if (entries.hasMoreElements()) {
+                pluginPackageResourceFiles = newLinkedHashSet();
+            }
+            for (; entries.hasMoreElements(); ) {
+                ZipEntry entry = (ZipEntry) entries.nextElement();
+                if (!entry.isDirectory()) {
+                    String zipEntryName = entry.getName();
+                    PluginPackageResourceFile pluginPackageResourceFile = new PluginPackageResourceFile();
+                    pluginPackageResourceFile.setPluginPackage(pluginPackage);
+                    pluginPackageResourceFile.setSource(sourceZipFileName);
+                    pluginPackageResourceFile.setRelatedPath(zipEntryName);
+
+                    log.info("File in ui package [{}] : {}", sourceZipFileName, zipEntryName);
+
+                    pluginPackageResourceFiles.add(pluginPackageResourceFile);
+                }
+            }
+            pluginPackageResourceFilesOptional = Optional.ofNullable(pluginPackageResourceFiles);
+        }
+
+        return pluginPackageResourceFilesOptional;
     }
 
     public void setS3Client(S3Client s3Client) {
