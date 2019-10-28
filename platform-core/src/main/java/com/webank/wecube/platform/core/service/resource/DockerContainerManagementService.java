@@ -15,6 +15,7 @@ import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.dockerfile.DockerfileStatement.Env;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -44,6 +45,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         String imageName = additionalProperties.get("imageName");
         List<String> portBindings = Arrays.asList(additionalProperties.get("portBindings").split(","));
         List<String> volumeBindings = Arrays.asList(additionalProperties.get("volumeBindings").split(","));
+        List<String> envVariables = Arrays.asList(additionalProperties.get("envVariables").split(","));
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
@@ -74,7 +76,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         }
 
         String containerId = dockerClient.createContainerCmd(imageName).withName(containerName)
-                .withVolumes(containerVolumes)
+                .withVolumes(containerVolumes).withEnv(envVariables)
                 .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings)).exec()
                 .getId();
         additionalProperties.put("containerId", containerId);
