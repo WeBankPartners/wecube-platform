@@ -1,14 +1,9 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import com.webank.wecube.platform.core.domain.ResourceItem;
-
-import lombok.Setter;
-
 import javax.persistence.*;
 
 @Entity
 @Table(name = "plugin_mysql_instances")
-@Setter
 public class PluginMysqlInstance {
 
     @Id
@@ -22,8 +17,7 @@ public class PluginMysqlInstance {
     private PluginInstance pluginInstance;
 
     @Column
-    @JoinColumn(name = "mysql_resource_id")
-    private ResourceItem mysqlResource;
+    private Integer resourceItemId;
     @Column
     private String username;
     @Column
@@ -34,10 +28,10 @@ public class PluginMysqlInstance {
     public PluginMysqlInstance() {
     }
 
-    public PluginMysqlInstance(String schemaName, ResourceItem mysqlResource, String username, String password,
+    public PluginMysqlInstance(String schemaName, Integer resourceItemId, String username, String password,
             String status) {
         this.schemaName = schemaName;
-        this.mysqlResource = mysqlResource;
+        this.resourceItemId = resourceItemId;
         this.username = username;
         this.password = password;
         this.status = status;
@@ -55,10 +49,6 @@ public class PluginMysqlInstance {
         return pluginInstance;
     }
 
-    public ResourceItem getMysqlResource() {
-        return mysqlResource;
-    }
-
     public String getUsername() {
         return username;
     }
@@ -69,6 +59,38 @@ public class PluginMysqlInstance {
 
     public String getStatus() {
         return status;
+    }
+
+    public Integer getResourceItemId() {
+        return resourceItemId;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
+    }
+
+    public void setPluginInstance(PluginInstance pluginInstance) {
+        this.pluginInstance = pluginInstance;
+    }
+
+    public void setResourceItemId(Integer resourceItemId) {
+        this.resourceItemId = resourceItemId;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
 }
