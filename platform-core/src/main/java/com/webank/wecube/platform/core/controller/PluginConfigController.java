@@ -22,26 +22,37 @@ public class PluginConfigController {
     @PostMapping("/plugins")
     @ResponseBody
     public JsonResponse savePluginConfig(@RequestBody PluginConfig pluginConfig) {
-        try{
-            pluginConfigService.savePluginConfig(pluginConfig);
-        } catch (WecubeCoreException ex){
-            return error(ex.getMessage());
+        PluginConfig savedPluginConfig;
+        try {
+            savedPluginConfig = pluginConfigService.savePluginConfig(pluginConfig);
+        } catch (WecubeCoreException e) {
+            return error(e.getMessage());
         }
-        return okayWithData(pluginConfigService.savePluginConfig(pluginConfig));
+        return okayWithData(savedPluginConfig);
     }
 
-    @PostMapping("/plugins/register/{plugin-config-id}")
+    @PostMapping("/plugins/enable/{plugin-config-id}")
     @ResponseBody
-    public JsonResponse registerPlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
-        return okayWithData(pluginConfigService.registerPlugin(pluginConfigId));
+    public JsonResponse enablePlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
+        PluginConfig savedPluginConfig;
+        try {
+            savedPluginConfig = pluginConfigService.enablePlugin(pluginConfigId);
+        } catch (WecubeCoreException e) {
+            return error(e.getMessage());
+        }
+        return okayWithData(savedPluginConfig);
     }
 
-    @DeleteMapping("/plugins/{plugin-config-id}")
+    @PostMapping("/plugins/disable/{plugin-config-id}")
     @ResponseBody
-    public JsonResponse decommissionPlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
-        pluginConfigService.deprecatePlugin(pluginConfigId);
-        return okay();
+    public JsonResponse disablePlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
+        PluginConfig savedPluginConfig;
+        try {
+            savedPluginConfig = pluginConfigService.disablePlugin(pluginConfigId);
+        } catch (WecubeCoreException e) {
+            return error(e.getMessage());
+        }
+        return okayWithData(savedPluginConfig);
     }
-
 
 }
