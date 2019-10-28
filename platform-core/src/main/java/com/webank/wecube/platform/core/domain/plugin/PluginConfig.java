@@ -15,7 +15,7 @@ import java.util.Set;
 public class PluginConfig {
 
     public enum Status {
-        NOT_CONFIGURED, CONFIGURED, ONLINE, DECOMMISSIONED
+        UNREGISTERED, REGISTERED, DECOMMISSIONED
     }
 
     @Id
@@ -57,6 +57,11 @@ public class PluginConfig {
     @ToString.Include
     public Integer getPluginPackageId() {
         return pluginPackage == null ? null : pluginPackage.getId();
+    }
+
+    public void setPluginPackageId(Integer pluginPackageId) {
+        this.pluginPackage = new PluginPackage();
+        this.pluginPackage.setId(pluginPackageId);
     }
 
     public Integer getId() {
