@@ -276,5 +276,8 @@
   "storage_service": "对象存储",
   "belongs": "归属",
   "params_value": "参数值",
-  "status": "状态"
+  "status": "状态",
+  "plugin_config_check": "插件配置",
+  "service_regist": "服务注册",
+  "confirm_to_regist_plugin": "确认注册插件包"
 }
