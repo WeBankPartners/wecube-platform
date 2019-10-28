@@ -4,6 +4,7 @@ CREATE TABLE `plugin_packages` (
     `id` INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     `name` VARCHAR(50) NOT NULL,
     `version` VARCHAR(20) NOT NULL,
+    `status` VARCHAR(20) NOT NULL default 'UNREGISTERED',
     UNIQUE INDEX `name` (`name`, `version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
@@ -110,7 +111,7 @@ CREATE TABLE `plugin_configs` (
   `name` VARCHAR(100) NOT NULL,
   `entity_id` INT(11) NULL DEFAULT NULL,
   `entity_name` VARCHAR(100) NOT NULL,
-  `status` VARCHAR(50) NOT NULL
+  `status` VARCHAR(20) NOT NULL default 'DISABLED',
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_config_interfaces;

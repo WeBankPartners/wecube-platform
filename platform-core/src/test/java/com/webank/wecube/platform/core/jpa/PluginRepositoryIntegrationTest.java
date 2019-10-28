@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.UNREGISTERED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
@@ -68,6 +67,25 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
                 .findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfig.getId());
 
         assertThat(interfaces).containsExactlyElementsOf(pluginConfig.getInterfaces());
+    }
+
+    @Test
+    public void findMaxPortByHost() {
+        PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1",
+                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(),
+                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
+        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM",
+                PluginConfig.Status.DISABLED, null);
+
+        pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
+        pluginPackageRepository.save(pluginPackage);
+
+        PluginInstance pluginInstance = new PluginInstance(null, pluginPackage, "test-instance-container-id",
+                "localhost", 29999, "running");
+        pluginInstanceRepository.save(pluginInstance);
+
+        Integer foundPluginInstancePort = pluginInstanceRepository.findMaxPortByHost("localhost");
+        assertThat(foundPluginInstancePort).isEqualTo(pluginInstance.getPort());
     }
 
     @Test
@@ -135,7 +153,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
                 newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(),
                 newLinkedHashSet());
         PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity",
-                UNREGISTERED, newLinkedHashSet());
+                PluginConfig.Status.DISABLED, newLinkedHashSet());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
         mockPluginPackage.addPluginConfig(mockPlugin);
 
