@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.webank.wecube.platform.core.domain.ResourceItem;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -23,29 +24,35 @@ public class PluginInstance {
     @JoinColumn(name = "package_id")
     private PluginPackage pluginPackage;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "mysql_instance_resource_id", fetch = FetchType.EAGER)
-    private Set<PluginMysqlInstance> pluginMysqlInstance = new LinkedHashSet<>();
+    @Column
+    private String instanceName;
+
+    @Column
+    private String host;
+
+    @Column
+    private Integer port;
+
+    @Column
+    private Integer pluginMysqlInstanceResourceId;
 
     @Column
     private Integer s3BucketResourceId;
+
     @Column
-    private String instanceContainerId;
-    @Column
-    private String host;
-    @Column
-    private Integer port;
+    private Integer dockerInstanceResourceId;
+
     @Column
     private String status;
 
     public PluginInstance() {
     }
 
-    public PluginInstance(Integer id, PluginPackage pluginPackage, String instanceContainerId, String host,
-            Integer port, String status) {
+    public PluginInstance(Integer id, PluginPackage pluginPackage, String instanceName, String host, Integer port,
+            String status) {
         this.id = id;
         this.pluginPackage = pluginPackage;
-        this.instanceContainerId = instanceContainerId;
+        this.instanceName = instanceName;
         this.host = host;
         this.port = port;
         this.status = status;
@@ -67,12 +74,36 @@ public class PluginInstance {
         this.pluginPackage = pluginPackage;
     }
 
-    public String getInstanceContainerId() {
-        return instanceContainerId;
+    public String getStatus() {
+        return status;
     }
 
-    public void setInstanceContainerId(String instanceContainerId) {
-        this.instanceContainerId = instanceContainerId;
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public static String getStatusRunning() {
+        return STATUS_RUNNING;
+    }
+
+    public static String getStatusRemoved() {
+        return STATUS_REMOVED;
+    }
+
+    public Integer getS3BucketResourceId() {
+        return s3BucketResourceId;
+    }
+
+    public void setS3BucketResourceId(Integer s3BucketResourceId) {
+        this.s3BucketResourceId = s3BucketResourceId;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
+    }
+
+    public void setInstanceName(String instanceName) {
+        this.instanceName = instanceName;
     }
 
     public String getHost() {
@@ -91,36 +122,20 @@ public class PluginInstance {
         this.port = port;
     }
 
-    public String getStatus() {
-        return status;
+    public Integer getDockerInstanceResourceId() {
+        return dockerInstanceResourceId;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setDockerInstanceResourceId(Integer dockerInstanceResourceId) {
+        this.dockerInstanceResourceId = dockerInstanceResourceId;
     }
 
-    public static String getStatusRunning() {
-        return STATUS_RUNNING;
+    public Integer getPluginMysqlInstanceResourceId() {
+        return pluginMysqlInstanceResourceId;
     }
 
-    public static String getStatusRemoved() {
-        return STATUS_REMOVED;
-    }
-
-    public Set<PluginMysqlInstance> getPluginMysqlInstance() {
-        return pluginMysqlInstance;
-    }
-
-    public Integer getS3BucketResourceId() {
-        return s3BucketResourceId;
-    }
-
-    public void setPluginMysqlInstance(Set<PluginMysqlInstance> pluginMysqlInstance) {
-        this.pluginMysqlInstance = pluginMysqlInstance;
-    }
-
-    public void setS3BucketResourceId(Integer s3BucketResourceId) {
-        this.s3BucketResourceId = s3BucketResourceId;
+    public void setPluginMysqlInstanceResourceId(Integer pluginMysqlInstanceResourceId) {
+        this.pluginMysqlInstanceResourceId = pluginMysqlInstanceResourceId;
     }
 
 }
