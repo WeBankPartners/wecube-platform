@@ -35,12 +35,15 @@ public class PluginConfigService {
         return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
     }
 
-    public PluginConfig savePluginConfig(PluginConfig pluginConfig) {
+    public PluginConfig savePluginConfig(PluginConfig pluginConfig) throws WecubeCoreException {
         ensurePluginConfigIsValid(pluginConfig);
-        if (ONLINE.equals(pluginConfig.getStatus()) || DECOMMISSIONED.equals(pluginConfig.getStatus())){
-            throw new WecubeCoreException("Not allow to register plugin with status: " + pluginConfig.getStatus());
+        Integer packageId = pluginConfig.getPluginPackageId();
+        pluginPackageRepository.findById(packageId).ifPresent(pluginConfig::setPluginPackage);
+        PluginConfig pluginConfigFromDatabase = pluginConfigRepository.findById(pluginConfig.getId()).get();
+        if (REGISTERED.equals(pluginConfigFromDatabase.getStatus())) {
+            throw new WecubeCoreException("Not allow to update plugin with status: REGISTERED");
         }
-        pluginConfig.setStatus(NOT_CONFIGURED);
+        pluginConfig.setStatus(UNREGISTERED);
 
         return pluginConfigRepository.save(pluginConfig);
     }
@@ -49,8 +52,7 @@ public class PluginConfigService {
         if (null == pluginConfig.getId() || pluginConfig.getId() < 1) {
             throw new WecubeCoreException("Invalid pluginConfig with id: " + pluginConfig.getId());
         }
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfig.getId());
-        if (!pluginConfigOptional.isPresent()) {
+        if (!pluginConfigRepository.existsById(pluginConfig.getId())) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfig.getId());
         }
 
@@ -62,27 +64,31 @@ public class PluginConfigService {
         if (!pluginPackageEntityOptional.isPresent()) {
             throw new WecubeCoreException("PluginPackageEntity not found for id: " + entityId);
         }
-
     }
 
-    public PluginConfig registerPlugin(PluginConfig pluginConfig) {
+    public PluginConfig registerPlugin(int pluginConfigId) {
+        if (!pluginConfigRepository.existsById(pluginConfigId)) {
+            throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
+        }
+
+        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfigId);
+        PluginConfig pluginConfig = pluginConfigOptional.get();
+
         ensurePluginConfigIsValid(pluginConfig);
-        if (!NOT_CONFIGURED.equals(pluginConfig.getStatus()) && !CONFIGURED.equals(pluginConfig.getStatus())){
+        if (!UNREGISTERED.equals(pluginConfig.getStatus())) {
             throw new WecubeCoreException("Not allow to register pluginConfig with status: " + pluginConfig.getStatus());
         }
-        pluginConfig.setStatus(CONFIGURED);
+        pluginConfig.setStatus(REGISTERED);
         return pluginConfigRepository.save(pluginConfig);
     }
 
-    public void deletePlugin(int pluginConfigId) {
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfigId);
-        if (!pluginConfigOptional.isPresent()) {
+    public void deprecatePlugin(int pluginConfigId) {
+        if (!pluginConfigRepository.existsById(pluginConfigId)) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
         }
-        PluginConfig pluginConfig = pluginConfigOptional.get();
-        if (ONLINE.equals(pluginConfig.getStatus())){
-            throw new WecubeCoreException("Not allow to delete pluginConfig with status: " + pluginConfig.getStatus());
-        }
+
+        PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
+
         pluginConfig.setStatus(DECOMMISSIONED);
         pluginConfigRepository.save(pluginConfig);
     }
