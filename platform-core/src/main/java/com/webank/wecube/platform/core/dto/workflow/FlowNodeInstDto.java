@@ -2,14 +2,14 @@ package com.webank.wecube.platform.core.dto.workflow;
 
 public class FlowNodeInstDto extends FlowNodeDefDto{
 
-    private String procInstId;
+    private Integer procInstId;
     private String procInstKey;
 
-    public String getProcInstId() {
+    public Integer getProcInstId() {
         return procInstId;
     }
 
-    public void setProcInstId(String procInstId) {
+    public void setProcInstId(Integer procInstId) {
         this.procInstId = procInstId;
     }
 
