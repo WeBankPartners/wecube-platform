@@ -15,7 +15,7 @@ public class PluginConfigCopyHelper {
         Map<String, PluginConfig> sourceConfigMap = CollectionUtils.asMap(sourcePackage.getPluginConfigs(), PluginConfig::getName);
         for (PluginConfig targetPlugin : targetPackage.getPluginConfigs()) {
             String pluginName = targetPlugin.getName();
-            if (targetPlugin.getStatus() != PluginConfig.Status.NOT_CONFIGURED) {
+            if (targetPlugin.getStatus() != PluginConfig.Status.UNREGISTERED) {
                 log.info("Configuration of plugin[%s/%s] has already been configured. Skipped.", pluginName, sourcePackage.getVersion());
                 continue;
             }
