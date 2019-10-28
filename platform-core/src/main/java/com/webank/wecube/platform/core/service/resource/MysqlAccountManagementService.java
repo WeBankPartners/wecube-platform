@@ -49,7 +49,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
             statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, rawPassword));
             statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s", item.getName(), username));
         } catch (Exception e) {
-            String errorMessage = String.format("Failed to create account [username = %s]", item.getName());
+            String errorMessage = String.format("Failed to create account [username = %s]", username);
             log.error(errorMessage);
             throw new WecubeCoreException(errorMessage, e);
         }

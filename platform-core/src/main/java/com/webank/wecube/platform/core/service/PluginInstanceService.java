@@ -227,7 +227,6 @@ public class PluginInstanceService {
         if (mysqlSet.size() != 0) {
             PluginMysqlInstance mysqlInstance = createPluginMysqlDatabase(mysqlSet.iterator().next());
             instance.setPluginMysqlInstanceResourceId(mysqlInstance.getId());
-
             ResourceServer dbServer = resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
                     .getResourceServer();
             dbInfo.connectString = String.format("jdbc:mysql://%s:%d/%s?characterEncoding=utf8&serverTimezone=UTC",
@@ -290,15 +289,20 @@ public class PluginInstanceService {
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
         PluginMysqlInstance mysqlInstance = new PluginMysqlInstance(mysqlInfo.getSchemaName(), result.get(0).getId(),
                 mysqlInfo.getSchemaName(), dbPassword, "active");
-        pluginMysqlInstanceRepository.save(mysqlInstance);
+        pluginMysqlInstanceRepository.saveAndFlush(mysqlInstance);
+
         logger.info("createPluginMysqlDatabase done...");
         return mysqlInstance;
     }
 
     private Integer createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.S3);
+        ResourceServerDto s3Server = resourceManagementService.retrieveServers(queryRequest).getContents().get(0);
+
         ResourceItemDto createS3BucketDto = new ResourceItemDto(s3Info.getBucketName(),
-                ResourceItemType.S3_BUCKET.getCode(), null, null,
+                ResourceItemType.S3_BUCKET.getCode(), null, s3Server.getId(),
                 String.format("Build S3 bucket for plugin[%s]", s3Info.getBucketName()));
+        createS3BucketDto.setResourceServer(s3Server);
         logger.info("createS3BucketDto = " + createS3BucketDto);
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createS3BucketDto));
