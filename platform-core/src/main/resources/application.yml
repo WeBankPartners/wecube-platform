@@ -75,10 +75,10 @@ wecube:
       init-db-sql: init.sql
       upgrade-db-sql: upgrade.sql
       plugin-package-name-of-deploy: deployment-plugin-name
-      static-resource-server-ip: 129.204.99.160
+      static-resource-server-ip: 192.168.0.17
       static-resource-server-user: root
       static-resource-server-password: password
-      static-resource-server-port: 1022
+      static-resource-server-port: 22
       static-resource-server-path: /root/app/plugins
 
     s3:
