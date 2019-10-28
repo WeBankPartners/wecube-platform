@@ -27,7 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 public class DockerContainerManagementService implements ResourceItemService, ResourceItemOperationService {
 
     public DockerClient newDockerClient(String host, String port) {
-        String url = String.format("tcp://%s:%s", host, port);
+//        String url = String.format("tcp://%s:%s", host, port);
+        String url = String.format("tcp://%s:2375", host);
         return DockerClientBuilder.getInstance(url).build();
     }
 
