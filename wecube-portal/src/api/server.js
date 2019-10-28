@@ -2,7 +2,7 @@ import req from "./base";
 
 export const getMyMenus = () =>
   process.env.NODE_ENV === "development"
-    ? req.get("/admin/menus")
+    ? req.get("/my-menus")
     : req.get("/my-menus");
 // init page
 
@@ -104,7 +104,7 @@ export const addCIRecord = (ciTypeId, data) =>
 export const deleteCIRecord = (ciTypeId, ciId) =>
   req.delete(`/cmdb/ci-types/${ciTypeId}/ci-data/${ciId}`);
 // plugin manager
-export const getAllPluginPkgs = () => req.get("/plugin/packages");
+export const getAllPluginPkgs = () => req.get("/packages");
 export const getPluginInterfaces = id =>
   req.get(`/plugin/configs/${id}/interfaces`);
 export const getRefCiTypeFrom = id =>
@@ -115,7 +115,7 @@ export const getCiTypeAttr = id => req.get(`/cmdb/ci-types/${id}/attributes`);
 export const preconfigurePluginPackage = id =>
   req.post(`/plugin/packages/${id}/preconfigure`);
 export const getAllInstancesByPackageId = packageId =>
-  req.get(`/plugin/packages/${packageId}/instances`);
+  req.get(`/instances/packages/${packageId}`);
 export const createPluginInstanceByPackageIdAndHostIp = (
   packageId,
   ip,
@@ -123,7 +123,7 @@ export const createPluginInstanceByPackageIdAndHostIp = (
   payload
 ) =>
   req.post(
-    `/plugin/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch`,
+    `/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch`,
     payload
   );
 export const savePluginInstance = data =>
@@ -146,9 +146,9 @@ export const getPluginInstanceLogDetail = (id, data) =>
 export const getCiTypeAttrRefAndSelect = id =>
   req.get(`/cmdb/ci-types/${id}/attributes?accept-input-types=select,ref`);
 export const getAvailableContainerHosts = () =>
-  req.get(`/plugin/available-container-hosts`);
+  req.get(`/available-container-hosts`);
 export const getAvailablePortByHostIp = ip =>
-  req.get(`/plugin/hosts/${ip}/next-available-port`);
+  req.get(`/hosts/${ip}/next-available-port`);
 export const getLatestOnlinePluginInterfaces = ciTypeId =>
   req.get(`/plugin/latest-online-interfaces?ci-type-id=${ciTypeId || ""}`);
 
@@ -466,3 +466,17 @@ export const refreshProcessInstanceStatus = id =>
 export const restartProcessInstance = data =>
   req.post("/process/instances/restart", data);
 export const login = data => req.post("/auth/v1/api/login", data);
+export const deletePluginPkg = id => req.delete(`/packages/${id}`);
+export const getPluginPkgDataModel = id => req.get(`/packages/${id}/models`);
+export const getPluginPkgDependcy = id =>
+  req.get(`/packages/${id}/dependencies`);
+export const getAllPluginByPkgId = id => req.get(`/packages/${id}/plugins`);
+export const getMenuInjection = id => req.get(`/packages/${id}/menus`);
+export const getSysParams = id => req.get(`/packages/${id}/system-parameters`);
+export const getRuntimeResource = id =>
+  req.get(`/packages/${id}/runtime-resources`);
+export const getAuthSettings = id => req.get(`/packages/${id}/authorities`);
+export const getAllDataModels = id => req.get(`/models`);
+export const registerPlugin = id => req.post(`/plugins/register/${id}`);
+export const deletePlugin = id => req.delete(`/plugins/${id}`);
+export const savePluginConfig = data => req.post(`/plugins`, data);

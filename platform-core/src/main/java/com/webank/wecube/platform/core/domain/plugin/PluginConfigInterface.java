@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Where;
 
@@ -15,6 +17,7 @@ public class PluginConfigInterface {
     @GeneratedValue
     private Integer id;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "plugin_config_id")
     private PluginConfig pluginConfig;
@@ -30,11 +33,13 @@ public class PluginConfigInterface {
     @Column
     private String httpMethod;
 
-    @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Where(clause = "type = 'INPUT'")
     private Set<PluginConfigInterfaceParameter> inputParameters = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Where(clause = "type = 'OUTPUT'")
     private Set<PluginConfigInterfaceParameter> outputParameters = new LinkedHashSet<>();
 

@@ -1,9 +1,8 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
@@ -13,6 +12,10 @@ import java.util.Set;
 @Entity
 @Table(name = "plugin_packages")
 public class PluginPackage {
+    @JsonIgnore
+    private static final String DOCKER_IMAGE_FILE_NAME = "image.tar";
+    @JsonIgnore
+    private static final String UI_ZIP_FILE_NAME = "ui.zip";
     @Id
     @GeneratedValue
     private Integer id;
@@ -59,18 +62,27 @@ public class PluginPackage {
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginConfig> pluginConfigs = new LinkedHashSet<>();
 
-    @JsonManagedReference
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(mappedBy = "pluginPackage")
-    private Set<PluginInstance> pluginInstances = new LinkedHashSet<>();
-
     public void addPluginConfig(PluginConfig pluginConfig) {
         this.pluginConfigs.add(pluginConfig);
     }
 
-    public void addPluginInstance(PluginInstance pluginInstance) {
-        this.pluginInstances.add(pluginInstance);
+    public String getDockerImageFilename() {
+        return DOCKER_IMAGE_FILE_NAME;
+    }
+
+    public String getUiPackageFilename() {
+        return UI_ZIP_FILE_NAME;
+    }
+
+    @JsonIgnore
+    public String getStatus() {
+        String status = PluginConfig.Status.UNREGISTERED.name();
+        if (null != pluginConfigs && pluginConfigs.size() > 0) {
+            if (pluginConfigs.stream().anyMatch(config -> config.getStatus() == PluginConfig.Status.REGISTERED)) {
+                status = PluginConfig.Status.REGISTERED.name();
+            }
+        }
+        return status;
     }
 
     public PluginPackage() {
@@ -81,8 +93,7 @@ public class PluginPackage {
             Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities,
             Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker,
             Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql,
-            Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs,
-            Set<PluginInstance> pluginInstances) {
+            Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs) {
         this.id = id;
         this.name = name;
         this.version = version;
@@ -94,7 +105,6 @@ public class PluginPackage {
         this.pluginPackageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysql;
         this.pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3;
         this.pluginConfigs = pluginConfigs;
-        this.pluginInstances = pluginInstances;
     }
 
     public Integer getId() {
@@ -194,14 +204,6 @@ public class PluginPackage {
 
     public void setPluginConfigs(Set<PluginConfig> pluginConfigs) {
         this.pluginConfigs = pluginConfigs;
-    }
-
-    public Set<PluginInstance> getPluginInstances() {
-        return pluginInstances;
-    }
-
-    public void setPluginInstances(Set<PluginInstance> pluginInstances) {
-        this.pluginInstances = pluginInstances;
     }
 
     @Override

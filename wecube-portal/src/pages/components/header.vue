@@ -90,7 +90,7 @@ export default {
       if (status === "OK") {
         this.user = user;
         data.forEach(_ => {
-          if (!_.parentId) {
+          if (!_.category) {
             let menuObj = MENUS.find(m => m.code === _.code);
             if (menuObj) {
               this.menus.push({
@@ -111,11 +111,11 @@ export default {
           }
         });
         data.forEach(_ => {
-          if (_.parentId) {
+          if (_.category) {
             let menuObj = MENUS.find(m => m.code === _.code);
             if (menuObj) {
               this.menus.forEach(h => {
-                if (_.parentId === h.id) {
+                if (_.category === "" + h.id) {
                   h.submenus.push({
                     title:
                       this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
@@ -127,7 +127,7 @@ export default {
               });
             } else {
               this.menus.forEach(h => {
-                if (_.parentId === h.id) {
+                if (_.category === "" + h.id) {
                   h.submenus.push({
                     title: _.code,
                     id: _.id,

@@ -6,15 +6,10 @@ import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDto;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
-import com.webank.wecube.platform.core.jpa.MenuItemRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.jpa.*;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
+import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
@@ -45,13 +40,16 @@ public class PluginPackageService {
     PluginPackageRepository pluginPackageRepository;
 
     @Autowired
-    PluginPackageEntityRepository pluginPackageEntityRepository;
+    PluginPackageDataModelService pluginPackageDataModelService;
 
     @Autowired
     PluginPackageDependencyRepository pluginPackageDependencyRepository;
 
     @Autowired
     MenuItemRepository menuItemRepository;
+
+    @Autowired
+    private PluginConfigRepository pluginConfigRepository;
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -125,11 +123,26 @@ public class PluginPackageService {
             log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
         }
 
-        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
-        Iterable<PluginPackageEntity> pluginPackageEntities = pluginPackageEntityRepository
-                .saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it -> it.toDomain(savedPluginPackage))
-                        .collect(Collectors.toSet()));
-        savedPluginPackage.setPluginPackageEntities(newLinkedHashSet(pluginPackageEntities));
+        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
+
+        List<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelService
+                .register(new ArrayList<>(pluginPackageDto.getPluginPackageEntities()));
+
+        Set<PluginConfig> pluginConfigs = newLinkedHashSet();
+        for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
+            for (PluginPackageEntityDto pluginPackageEntityDto : pluginPackageEntityDtos) {
+                String entityNameFromPluginConfig = pluginConfig.getEntityName();
+                String nameFromDto = pluginPackageEntityDto.getName();
+                if (entityNameFromPluginConfig.equals(nameFromDto)) {
+                    pluginConfig.setEntityId(pluginPackageEntityDto.getId());
+                }
+            }
+            pluginConfigs.add(pluginConfig);
+        }
+        pluginConfigRepository.saveAll(pluginConfigs);
+
+        savedPluginPackage.setPluginPackageEntities(pluginPackageEntityDtos.stream()
+                .map(it -> it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
 
         return savedPluginPackage;
     }
@@ -163,7 +176,7 @@ public class PluginPackageService {
             throw new WecubeCoreException("Plugin package id not found, id = " + pluginPackageId);
         PluginPackage pluginPackage = pluginPackageOptional.get();
         for (PluginConfig config : pluginPackage.getPluginConfigs()) {
-            if (PluginConfig.Status.ONLINE.equals(config.getStatus())) {
+            if (PluginConfig.Status.REGISTERED.equals(config.getStatus())) {
                 String errorMessage = String.format(
                         "Failed to delete Plugin[%s/%s] due to [%s] is still in used. Please decommission it and try again.",
                         pluginPackage.getName(), pluginPackage.getVersion(), config.getName());
@@ -264,22 +277,37 @@ public class PluginPackageService {
         return dependencyDto;
     }
 
-    public List<MenuItemDto> getMenusById(Integer packageId) {
+    public List<MenuItemDto> getMenusById(Integer packageId) throws WecubeCoreException {
         List<MenuItemDto> returnMenuDto;
 
         // handling core's menus
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
 
+        // update categoryToId mapping, which is system menu's category to its latest id
+        Map<String, Integer> categoryToId = updateCategoryToIdMapping(returnMenuDto);
+
         // handling package's menus
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
 
         for (PluginPackageMenu packageMenu : packageMenus) {
-            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
+            String transformedParentId = null;
+            Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
+            if (parentId == null) {
+                String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                        packageMenu.getCategory());
+                log.error(msg);
+                throw new WecubeCoreException(msg);
+            }
+            transformedParentId = parentId.toString();
+            Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
+            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId,
+                    foundTopMenuId);
+            categoryToId.put(transformedParentId, foundTopMenuId);
             returnMenuDto.add(packageMenuDto);
         }
-
+        Collections.sort(returnMenuDto);
         return returnMenuDto;
     }
 
@@ -337,5 +365,23 @@ public class PluginPackageService {
                 updateDependencyDto(dependency, dependencyDto);
             }
         });
+    }
+
+    private Map<String, Integer> updateCategoryToIdMapping(List<MenuItemDto> inputMenuItemDto) {
+        Map<String, Integer> categoryToId = new HashMap<>();
+        for (int i = 1; i <= 8; i++) {
+            categoryToId.put(Integer.toString(i), 0);
+        }
+        for (MenuItemDto menuItemDto : inputMenuItemDto) {
+            String menuCategory = menuItemDto.getCategory();
+            Integer menuId = menuItemDto.getId();
+            if (!org.springframework.util.StringUtils.isEmpty(menuCategory)) {
+                if (menuId > categoryToId.get(menuCategory)) {
+                    categoryToId.put(menuCategory, menuId + 1);
+                }
+            }
+
+        }
+        return categoryToId;
     }
 }
