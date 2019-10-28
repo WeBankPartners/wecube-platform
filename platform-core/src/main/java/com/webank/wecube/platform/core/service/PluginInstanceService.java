@@ -284,6 +284,7 @@ public class PluginInstanceService {
                 buildAdditionalPropertiesForMysqlDatabase(mysqlInfo.getPluginPackage().getName(),
                         mysqlInfo.getSchemaName(), dbPassword),
                 mysqlServer.getId(), String.format("Build MySQL database for plugin[%s]", mysqlInfo.getSchemaName()));
+        createMysqlDto.setResourceServer(mysqlServer);
         logger.info("createMysqlDto = " + createMysqlDto);
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
@@ -396,6 +397,12 @@ public class PluginInstanceService {
     }
 
     public void removePluginInstanceById(Integer instanceId) throws Exception {
+
+        ResourceItemDto createDockerInstanceDto = new ResourceItemDto();
+        logger.info("createDockerInstanceDto = " + createDockerInstanceDto.toString());
+
+        List<ResourceItemDto> result = resourceManagementService
+                .createItems(Lists.newArrayList(createDockerInstanceDto));
     }
 
     private boolean isHostIpAvailable(String hostIp) {
