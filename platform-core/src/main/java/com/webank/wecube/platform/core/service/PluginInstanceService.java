@@ -325,8 +325,14 @@ public class PluginInstanceService {
 
         logger.info("scp from local:{} to remote: {}", tmpFilePath, pluginProperties.getPluginDeployPath());
         try {
+            logger.info(hostIp + "+" + Integer.valueOf(hostInfo.getPort()) + "+" + hostInfo.getLoginUsername() + "+"
+                    + EncryptionUtils.decryptWithAes(hostInfo.getLoginPassword(),
+                            resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName())
+                    + "+" + tmpFilePath + "+" + pluginProperties.getPluginDeployPath());
             scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(),
-                    hostInfo.getLoginPassword(), tmpFilePath, pluginProperties.getPluginDeployPath());
+                    EncryptionUtils.decryptWithAes(hostInfo.getLoginPassword(),
+                            resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName()),
+                    tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {
             throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage());
         }
