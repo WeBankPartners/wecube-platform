@@ -276,5 +276,8 @@
   "storage_service": "Storage Service",
   "belongs": "Belongs",
   "params_value": "Value",
-  "status": "Status"
+  "status": "Status",
+  "plugin_config_check": "Plugin Config",
+  "service_regist": "Service Regist",
+  "confirm_to_regist_plugin": "Confirm Regist Plugin Package"
 }
