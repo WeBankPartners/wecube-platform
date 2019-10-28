@@ -73,9 +73,7 @@ export const deleteEnumRecord = (catTypeId, catId, codeId) =>
   );
 export const addEnumRecord = (catTypeId, data) =>
   req.post(
-    `/cmdb/enum/category-types/${catTypeId}/categories/${
-      data.catId
-    }/codes/create`,
+    `/cmdb/enum/category-types/${catTypeId}/categories/${data.catId}/codes/create`,
     data
   );
 export const getEnumCatList = () => req.get(`/cmdb/enum/all-categories`);
@@ -128,9 +126,7 @@ export const createPluginInstanceByPackageIdAndHostIp = (
   );
 export const savePluginInstance = data =>
   req.post(
-    `/plugin/configs/${data.configId}/save?cmdbCiTypeId=${
-      data.cmdbCiTypeId
-    }&cmdbCiTypeName=${data.cmdbCiTypeName}`,
+    `/plugin/configs/${data.configId}/save?cmdbCiTypeId=${data.cmdbCiTypeId}&cmdbCiTypeName=${data.cmdbCiTypeName}`,
     data.pluginRegisteringModels
   );
 export const decommissionPluginConfig = configId =>
@@ -433,9 +429,7 @@ export const getDeployDesignTabs = () => req.get(`/cmdb/deploy-designs/tabs`);
 
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/cmdb/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${
-      data.envCode
-    }&system-design-guid=${data.systemDesignGuid}`,
+    `/cmdb/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
     payload
   );
 
@@ -466,7 +460,7 @@ export const refreshProcessInstanceStatus = id =>
 export const restartProcessInstance = data =>
   req.post("/process/instances/restart", data);
 export const login = data => req.post("/auth/v1/api/login", data);
-export const deletePluginPkg = id => req.delete(`/packages/${id}`);
+export const deletePluginPkg = id => req.post(`/packages/decommission/${id}`);
 export const getPluginPkgDataModel = id => req.get(`/packages/${id}/models`);
 export const getPluginPkgDependcy = id =>
   req.get(`/packages/${id}/dependencies`);
@@ -477,6 +471,7 @@ export const getRuntimeResource = id =>
   req.get(`/packages/${id}/runtime-resources`);
 export const getAuthSettings = id => req.get(`/packages/${id}/authorities`);
 export const getAllDataModels = id => req.get(`/models`);
-export const registerPlugin = id => req.post(`/plugins/register/${id}`);
-export const deletePlugin = id => req.delete(`/plugins/${id}`);
+export const registerPlugin = id => req.post(`/plugins/enable/${id}`);
+export const deletePlugin = id => req.post(`/plugins/disable/${id}`);
 export const savePluginConfig = data => req.post(`/plugins`, data);
+export const registPluginPackage = id => req.post(`/packages/register/${id}`);
