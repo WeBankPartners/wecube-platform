@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.NOT_CONFIGURED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.UNREGISTERED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static org.apache.commons.lang3.StringUtils.trim;
 
@@ -230,10 +230,10 @@ public class PluginPackageXmlParser {
             pluginPackageAttribute.setDataType(getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type"));
             pluginPackageAttribute.setDescription(getNonNullStringAttribute(attributeNode, "./@description", "Entity attribute description"));
 
-            pluginPackageAttribute.setRefPackageName(getStringAttribute(attributeNode, "./refPackage"));
-            pluginPackageAttribute.setRefPackageVersion(getStringAttribute(attributeNode, "./refVersion"));
-            pluginPackageAttribute.setRefEntityName(getStringAttribute(attributeNode, "./refEntity"));
-            pluginPackageAttribute.setRefAttributeName(getStringAttribute(attributeNode, "./ref"));
+            pluginPackageAttribute.setRefPackageName(getStringAttribute(attributeNode, "./@refPackage"));
+            pluginPackageAttribute.setRefPackageVersion(getStringAttribute(attributeNode, "./@refVersion"));
+            pluginPackageAttribute.setRefEntityName(getStringAttribute(attributeNode, "./@refEntity"));
+            pluginPackageAttribute.setRefAttributeName(getStringAttribute(attributeNode, "./@ref"));
 
             pluginPackageAttributes.add(pluginPackageAttribute);
         }
@@ -295,14 +295,14 @@ public class PluginPackageXmlParser {
 
             PluginConfig pluginConfig = new PluginConfig();
             pluginConfig.setPluginPackage(pluginPackage);
-            pluginConfig.setStatus(NOT_CONFIGURED);
+            pluginConfig.setStatus(UNREGISTERED);
             pluginConfig.setName(getNonNullStringAttribute(pluginConfigNode, "./@name", "Plugin name"));
+            pluginConfig.setEntityName(getNonNullStringAttribute(pluginConfigNode, "./@entity", "Entity name"));
 
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
-                pluginConfig.setInterfaces(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig));
+                pluginConfig.setInterfaces(new HashSet<>(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig)));
             }
-
 
             pluginConfigs.add(pluginConfig);
         }
