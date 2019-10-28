@@ -84,7 +84,7 @@ export default {
       let addNodeAttr = node => {
         const color = node.status === "active" ? "#19be6b" : "#c5c8ce";
         return `"${node.id}" [id="${node.id}" label="${node.id +
-          "_v" +
+          "_" +
           node.version}" shape="ellipse" color="${color}" style="filled"];`;
       };
       const nodeMap = new Map();
