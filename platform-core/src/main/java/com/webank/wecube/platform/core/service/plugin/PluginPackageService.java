@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
@@ -11,7 +10,6 @@ import com.webank.wecube.platform.core.dto.*;
 import com.webank.wecube.platform.core.jpa.*;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
-import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
@@ -162,7 +160,7 @@ public class PluginPackageService {
             throw new WecubeCoreException("Plugin package id not found, id = " + pluginPackageId);
         PluginPackage pluginPackage = pluginPackageOptional.get();
         for (PluginConfig config : pluginPackage.getPluginConfigs()) {
-            if (PluginConfig.Status.ONLINE.equals(config.getStatus())) {
+            if (PluginConfig.Status.REGISTERED.equals(config.getStatus())) {
                 String errorMessage = String.format("Failed to delete Plugin[%s/%s] due to [%s] is still in used. Please decommission it and try again.", pluginPackage.getName(), pluginPackage.getVersion(), config.getName());
                 log.warn(errorMessage);
                 throw new WecubeCoreException(errorMessage);
