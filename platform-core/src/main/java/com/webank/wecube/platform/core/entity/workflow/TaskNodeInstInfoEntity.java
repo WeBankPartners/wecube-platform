@@ -17,6 +17,12 @@ public class TaskNodeInstInfoEntity extends BaseInstanceStatusEntity {
     @Column(name = "NODE_NAME")
     private String nodeName;
 
+    @Column(name = "NODE_TYPE")
+    private String nodeType;
+
+    @Column(name = "ORDERED_NO")
+    private String orderedNo;
+
     @Column(name = "PROC_INST_ID")
     private Integer procInstId;
 
@@ -105,6 +111,22 @@ public class TaskNodeInstInfoEntity extends BaseInstanceStatusEntity {
 
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;
+    }
+
+    public String getNodeType() {
+        return nodeType;
+    }
+
+    public void setNodeType(String nodeType) {
+        this.nodeType = nodeType;
+    }
+
+    public String getOrderedNo() {
+        return orderedNo;
+    }
+
+    public void setOrderedNo(String orderedNo) {
+        this.orderedNo = orderedNo;
     }
 
 }

@@ -22,8 +22,13 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
+import com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity;
+import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.ProcDefOutline;
 import com.webank.wecube.platform.workflow.model.ProcFlowNode;
+import com.webank.wecube.platform.workflow.model.ProcFlowNodeInst;
+import com.webank.wecube.platform.workflow.model.ProcInstOutline;
+import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 import com.webank.wecube.platform.workflow.parse.BpmnParseAttachment;
 import com.webank.wecube.platform.workflow.parse.BpmnProcessModelCustomizer;
@@ -52,6 +57,103 @@ public class WorkflowEngineService {
     @Autowired
     protected ServiceNodeStatusRepository serviceNodeStatusRepository;
 
+    public ProcInstOutline getProcInstOutline(String procInstId) {
+        if (procInstId == null) {
+            throw new IllegalArgumentException("Process instance is null.");
+        }
+
+        ProcessInstanceStatusEntity procInstStatusEntity = processInstanceStatusRepository
+                .findOneByprocInstanceId(procInstId);
+
+        String processInstanceId = null;
+        String processDefinitionId = null;
+        if (TraceStatus.Completed.equals(procInstStatusEntity.getStatus())) {
+            processInstanceId = procInstStatusEntity.getProcInstanceId();
+            processDefinitionId = procInstStatusEntity.getProcDefinitionId();
+        } else {
+            ProcessInstance existProcInst = getProcessInstanceByProcInstId(procInstId);
+
+            if (existProcInst == null) {
+                log.error("such process instance does not exist,procInstId={}", procInstId);
+                throw new WecubeCoreException("Such process instance does not exist.");
+            }
+
+            processInstanceId = existProcInst.getId();
+            processDefinitionId = existProcInst.getProcessDefinitionId();
+        }
+
+        ProcessDefinition procDef = getProcessDefinitionByProcId(processDefinitionId);
+
+        if (procDef == null) {
+            log.error("such process definition does not exist,procDefId={}", processDefinitionId);
+            throw new WecubeCoreException("Such process definition does not exist.");
+        }
+
+        BpmnModelInstance bpmnModel = repositoryService.getBpmnModelInstance(procDef.getId());
+
+        Collection<org.camunda.bpm.model.bpmn.instance.Process> processes = bpmnModel
+                .getModelElementsByType(org.camunda.bpm.model.bpmn.instance.Process.class);
+
+        org.camunda.bpm.model.bpmn.instance.Process process = processes.iterator().next();
+
+        Collection<StartEvent> startEvents = process.getChildElementsByType(StartEvent.class);
+
+        StartEvent startEvent = startEvents.iterator().next();
+
+        ProcInstOutline result = new ProcInstOutline();
+        result.setId(processInstanceId);
+        result.setProcInstKey(procInstStatusEntity.getProcInstanceBizKey());
+        result.setProcDefKernelId(procDef.getId());
+        result.setProcDefKey(procDef.getKey());
+        result.setProcDefName(procDef.getName());
+
+        populateFlowNodeInsts(result, startEvent);
+
+        return result;
+    }
+
+    protected void populateFlowNodeInsts(ProcInstOutline outline, FlowNode flowNode) {
+        ProcFlowNodeInst pfn = outline.findProcFlowNodeInstByNodeId(flowNode.getId());
+        if (pfn == null) {
+            pfn = new ProcFlowNodeInst();
+            pfn.setId(flowNode.getId());
+            pfn.setNodeType(flowNode.getElementType().getTypeName());
+            pfn.setNodeName(flowNode.getName() == null ? "" : flowNode.getName());
+            outline.addNodeInsts(pfn);
+        }
+
+        ServiceNodeStatusEntity nodeStatus = serviceNodeStatusRepository
+                .findOneByProcInstanceIdAndNodeId(outline.getId(), pfn.getId());
+        
+        if(nodeStatus != null){
+            pfn.setStartTime(nodeStatus.getStartTime());
+            pfn.setEndTime(nodeStatus.getEndTime());
+            pfn.setStatus(nodeStatus.getStatus().name());
+        }
+
+        for (FlowNode fn : flowNode.getSucceedingNodes().list()) {
+            ProcFlowNodeInst childPfn = outline.findProcFlowNodeInstByNodeId(fn.getId());
+            if (childPfn == null) {
+                childPfn = new ProcFlowNodeInst();
+                pfn.setId(fn.getId());
+                pfn.setNodeType(fn.getElementType().getTypeName());
+                pfn.setNodeName(fn.getName() == null ? "" : fn.getName());
+                outline.addNodeInsts(childPfn);
+            }
+
+            pfn.addSucceedingFlowNodes(childPfn);
+
+            populateFlowNodeInsts(outline, fn);
+        }
+
+    }
+
+    protected ProcessInstance getProcessInstanceByProcInstId(String processInstanceId) {
+        ProcessInstance procInst = runtimeService.createProcessInstanceQuery().processInstanceId(processInstanceId)
+                .singleResult();
+        return procInst;
+    }
+
     public ProcessDefinition deployProcessDefinition(ProcDefInfoDto procDefDto) {
         try {
             return doDeployProcessDefinition(procDefDto);
@@ -74,7 +176,7 @@ public class WorkflowEngineService {
             throw new WecubeCoreException(
                     String.format("Such process instance with id [%s] does not exist.", processInstanceId));
         }
-        
+
         return procInst;
     }
 
@@ -187,6 +289,12 @@ public class WorkflowEngineService {
             populateFlowNodes(outline, fn);
         }
 
+    }
+
+    protected ProcessDefinition getProcessDefinitionByProcId(String processDefinitionId) {
+        ProcessDefinition procDef = repositoryService.createProcessDefinitionQuery()
+                .processDefinitionId(processDefinitionId).singleResult();
+        return procDef;
     }
 
     protected ProcFlowNode buildProcFlowNode(FlowNode fn) {

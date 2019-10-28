@@ -17,34 +17,36 @@ import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepositor
  *
  */
 public abstract class AbstractServiceExceptionHandleDelegate {
-    protected void logServiceNodeException(DelegateExecution execution, TraceStatus traceStatus, String idPrefix){
+    protected void logServiceNodeException(DelegateExecution execution, TraceStatus traceStatus, String idPrefix) {
         String activityId = execution.getCurrentActivityId();
-        if(activityId == null){
+        if (activityId == null) {
             return;
         }
-        
-        if(!activityId.startsWith(idPrefix)){
+
+        if (!activityId.startsWith(idPrefix)) {
             return;
         }
-        
+
         String nodeId = activityId.substring(idPrefix.length());
         String procInstanceBizKey = execution.getProcessBusinessKey();
-        
-        ServiceNodeStatusRepository repository = SpringApplicationContextUtil.getBean(ServiceNodeStatusRepository.class);
-        
+
+        ServiceNodeStatusRepository repository = SpringApplicationContextUtil
+                .getBean(ServiceNodeStatusRepository.class);
+
         ServiceNodeStatusEntity entity = repository.findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
-        
-        if(entity == null){
-            getLogger().error("{} doesnt exist for procInstanceBizKey={},nodeId={}", procInstanceBizKey, nodeId);
-            throw new IllegalStateException("entity doesnt exist");
+
+        if (entity == null) {
+            getLogger().error("{} doesnt exist for procInstanceBizKey={},nodeId={}",
+                    ServiceNodeStatusEntity.class.getSimpleName(), procInstanceBizKey, nodeId);
+            throw new IllegalStateException("Entity doesnt exist");
         }
-        
+
         entity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         entity.setUpdatedTime(new Date());
         entity.setStatus(traceStatus);
-        
+
         repository.save(entity);
     }
-    
+
     protected abstract Logger getLogger();
 }
