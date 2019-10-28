@@ -4,6 +4,7 @@ CREATE TABLE `plugin_packages` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(50) NOT NULL,
 	`version` VARCHAR(20) NOT NULL,
+    `status` VARCHAR(20) NOT NULL default 'UNREGISTERED',
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `name` (`name`, `version`)
 );
@@ -119,7 +120,7 @@ CREATE TABLE `plugin_configs` (
   `name` VARCHAR(100) NOT NULL,
   `entity_id` INT(11) NULL DEFAULT NULL,
   `entity_name` VARCHAR(100) NOT NULL,
-  `status` VARCHAR(50) NOT NULL,
+  `status` VARCHAR(20) NOT NULL default 'DISABLED',
   PRIMARY KEY (`id`)
 );
 

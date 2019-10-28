@@ -12,6 +12,10 @@ import java.util.Set;
 @Entity
 @Table(name = "plugin_packages")
 public class PluginPackage {
+    public enum Status {
+        UNREGISTERED, REGISTERED, RUNNING, STOPPED, DECOMMISSIONED
+    }
+
     @JsonIgnore
     private static final String DOCKER_IMAGE_FILE_NAME = "image.tar";
     @JsonIgnore
@@ -25,6 +29,10 @@ public class PluginPackage {
 
     @Column
     private String version;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -74,17 +82,6 @@ public class PluginPackage {
         return UI_ZIP_FILE_NAME;
     }
 
-    @JsonIgnore
-    public String getStatus() {
-        String status = PluginConfig.Status.UNREGISTERED.name();
-        if (null != pluginConfigs && pluginConfigs.size() > 0) {
-            if (pluginConfigs.stream().anyMatch(config -> config.getStatus() == PluginConfig.Status.REGISTERED)) {
-                status = PluginConfig.Status.REGISTERED.name();
-            }
-        }
-        return status;
-    }
-
     public PluginPackage() {
     }
 
@@ -124,6 +121,14 @@ public class PluginPackage {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public Set<PluginPackageDependency> getPluginPackageDependencies() {

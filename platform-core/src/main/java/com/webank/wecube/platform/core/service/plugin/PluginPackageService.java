@@ -30,6 +30,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
 
 @Service
 @Transactional
@@ -140,33 +141,32 @@ public class PluginPackageService {
         return pluginPackageRepository.findAll();
     }
 
-    public void preconfigurePluginPackage(int pluginPackageId) {
-        Optional<PluginPackage> pluginPackageOptional = pluginPackageRepository.findById(pluginPackageId);
-        if (!pluginPackageOptional.isPresent())
-            throw new WecubeCoreException("Plugin package not found, id=" + pluginPackageId);
-        PluginPackage pluginPackage = pluginPackageOptional.get();
-        Optional<PluginPackage> latestVersionPluginPackage = pluginPackageRepository.findLatestVersionByName(pluginPackage.getName(), pluginPackage.getVersion());
-        if (latestVersionPluginPackage.isPresent()) {
-            new PluginConfigCopyHelper().copyPluginConfigs(latestVersionPluginPackage.get(), pluginPackage);
-            pluginPackageRepository.save(pluginPackage);
-        } else {
-            log.info("Latest plugin package not found. Ignored.");
+    public PluginPackage registerPluginPackage(int pluginPackageId) {
+        if (!pluginPackageRepository.existsById(pluginPackageId)) {
+            throw new WecubeCoreException(String.format("Plugin package id not found for id [%s]", pluginPackageId));
         }
+        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+        if (UNREGISTERED != pluginPackage.getStatus()) {
+            String errorMessage = String.format("Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]", pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
+            log.warn(errorMessage);
+            throw new WecubeCoreException(errorMessage);
+        }
+        pluginPackage.setStatus(REGISTERED);
+        return pluginPackageRepository.save(pluginPackage);
     }
 
-    public void deletePluginPackage(int pluginPackageId) {
-        Optional<PluginPackage> pluginPackageOptional = pluginPackageRepository.findById(pluginPackageId);
-        if (!pluginPackageOptional.isPresent())
-            throw new WecubeCoreException("Plugin package id not found, id = " + pluginPackageId);
-        PluginPackage pluginPackage = pluginPackageOptional.get();
-        for (PluginConfig config : pluginPackage.getPluginConfigs()) {
-            if (PluginConfig.Status.REGISTERED.equals(config.getStatus())) {
-                String errorMessage = String.format("Failed to delete Plugin[%s/%s] due to [%s] is still in used. Please decommission it and try again.", pluginPackage.getName(), pluginPackage.getVersion(), config.getName());
-                log.warn(errorMessage);
-                throw new WecubeCoreException(errorMessage);
-            }
+    public void decommissionPluginPackage(int pluginPackageId) {
+        if (!pluginPackageRepository.existsById(pluginPackageId)) {
+            throw new WecubeCoreException(String.format("Plugin package id not found for id [%s] ", pluginPackageId));
         }
-        pluginPackageRepository.deleteById(pluginPackageId);
+        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+        if (RUNNING.equals(pluginPackage.getStatus())) {
+            String errorMessage = String.format("Failed to decommission Plugin[%s/%s] due to package is RUNNING", pluginPackage.getName(), pluginPackage.getVersion());
+            log.warn(errorMessage);
+            throw new WecubeCoreException(errorMessage);
+        }
+        pluginPackage.setStatus(DECOMMISSIONED);
+        pluginPackageRepository.save(pluginPackage);
 
         // Remove related docker image file
         String versionPath = SystemUtils.getTempFolderPath() + pluginPackage.getName() + "-" + pluginPackage.getVersion() + "/";
@@ -177,26 +177,6 @@ public class PluginPackageService {
         } catch (IOException e) {
             log.error("Remove plugin package file failed: {}", e);
             throw new WecubeCoreException("Remove plugin package file failed.");
-        }
-    }
-
-    private void uploadFileToLocal(String path, InputStream inputStream, String inputFileName) throws WecubeCoreException, IOException {
-        String fileName = path + inputFileName;
-        File localFile = new File(fileName);
-        if (!localFile.exists() && !localFile.createNewFile()) {
-            throw new WecubeCoreException(String.format("File[%s] already exists", fileName));
-        }
-
-        try (BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(localFile))) {
-            int length = 0;
-            byte[] buffer = new byte[1024];
-            while ((length = inputStream.read(buffer)) != -1) {
-                stream.write(buffer, 0, length);
-            }
-            stream.flush();
-            log.info("File save to temporary directory: " + localFile.getAbsolutePath());
-        } catch (IOException e) {
-            throw new WecubeCoreException("uploadFileToLocale meet IOException: ", e);
         }
     }
 
