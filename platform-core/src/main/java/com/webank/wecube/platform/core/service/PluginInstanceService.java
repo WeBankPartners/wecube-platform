@@ -224,6 +224,8 @@ public class PluginInstanceService {
                 dockerInfo.getEnvVariables().replace("{{data_source_url}}", dbInfo.getConnectString())
                         .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword()));
         createContainerParameters.setVolumeBindingParameters(dockerInfo.getVolumeBindings());
+        createContainerParameters.setContainerName(dockerInfo.getContainerName());
+        createContainerParameters.setImageName(dockerInfo.getImageName());
         try {
             logger.info("pluginPackage:", pluginPackage);
             logger.info("hostIp:", hostIp);
@@ -293,9 +295,6 @@ public class PluginInstanceService {
             CreateInstanceDto createContainerParameters) throws Exception {
         ResourceServer hostInfo = resourceServerRepository.findByHost(hostIp).get(0);
 
-        PluginPackageRuntimeResourcesDocker dockerInfo = pluginPackage.getPluginPackageRuntimeResourcesDocker()
-                .iterator().next();
-
         // download package from MinIO
         String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
         String tmpFilePath = SystemUtils.getTempFolderPath() + tmpFolderName + "/" + pluginProperties.getImageFile();
@@ -308,10 +307,6 @@ public class PluginInstanceService {
 
         logger.info("scp from local:{} to remote: {}", tmpFilePath, pluginProperties.getPluginDeployPath());
         try {
-            logger.info(hostIp + "+" + Integer.valueOf(hostInfo.getPort()) + "+" + hostInfo.getLoginUsername() + "+"
-                    + EncryptionUtils.decryptWithAes(hostInfo.getLoginPassword(),
-                            resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName())
-                    + "+" + tmpFilePath + "+" + pluginProperties.getPluginDeployPath());
             scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(),
                     EncryptionUtils.decryptWithAes(hostInfo.getLoginPassword(),
                             resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName()),
@@ -334,9 +329,9 @@ public class PluginInstanceService {
             throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
         }
 
-        ResourceItemDto createDockerInstanceDto = new ResourceItemDto(dockerInfo.getContainerName(),
-                ResourceItemType.DOCKER_CONTAINER.getCode(), buildAdditionalPropertiesForDocker(dockerInfo),
-                hostInfo.getId(), null);
+        ResourceItemDto createDockerInstanceDto = new ResourceItemDto(createContainerParameters.getContainerName(),
+                ResourceItemType.DOCKER_CONTAINER.getCode(),
+                buildAdditionalPropertiesForDocker(createContainerParameters), hostInfo.getId(), null);
         logger.info("createDockerInstanceDto = " + createDockerInstanceDto.toString());
 
         List<ResourceItemDto> result = resourceManagementService
@@ -414,12 +409,12 @@ public class PluginInstanceService {
         return JsonUtils.toJsonString(additionalProperties);
     }
 
-    private String buildAdditionalPropertiesForDocker(PluginPackageRuntimeResourcesDocker dockerInfo) {
+    private String buildAdditionalPropertiesForDocker(CreateInstanceDto createContainerParameters) {
         HashMap<String, String> additionalProperties = new HashMap<String, String>();
-        additionalProperties.put("imageName", dockerInfo.getImageName());
-        additionalProperties.put("portBindings", dockerInfo.getPortBindings());
-        additionalProperties.put("volumeBindings", dockerInfo.getVolumeBindings());
-        additionalProperties.put("envVariables", dockerInfo.getEnvVariables());
+        additionalProperties.put("imageName", createContainerParameters.getImageName());
+        additionalProperties.put("portBindings", createContainerParameters.getPortBindingParameters());
+        additionalProperties.put("volumeBindings", createContainerParameters.getVolumeBindingParameters());
+        additionalProperties.put("envVariables", createContainerParameters.getEnvVariableParameters());
 
         return JsonUtils.toJsonString(additionalProperties);
     }
