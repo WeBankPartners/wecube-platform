@@ -15,7 +15,7 @@ import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DockerClientBuilder;
-import com.github.dockerjava.core.dockerfile.DockerfileStatement.Env;
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -26,8 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class DockerContainerManagementService implements ResourceItemService, ResourceItemOperationService {
 
-    public DockerClient newDockerClient(String host, String port) {
-//        String url = String.format("tcp://%s:%s", host, port);
+    public DockerClient newDockerClient(String host) {
         String url = String.format("tcp://%s:2375", host);
         return DockerClientBuilder.getInstance(url).build();
     }
@@ -39,14 +38,20 @@ public class DockerContainerManagementService implements ResourceItemService, Re
     @Override
     public ResourceItem createItem(ResourceItem item) {
         Map<String, String> additionalProperties = item.getAdditionalPropertiesMap();
-        DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost(),
-                item.getResourceServer().getPort());
+        DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost());
 
         String containerName = item.getName();
         String imageName = additionalProperties.get("imageName");
-        List<String> portBindings = Arrays.asList(additionalProperties.get("portBindings").split(","));
-        List<String> volumeBindings = Arrays.asList(additionalProperties.get("volumeBindings").split(","));
-        List<String> envVariables = Arrays.asList(additionalProperties.get("envVariables").split(","));
+        String portBindingsString = additionalProperties.get("portBindings");
+        String volumeBindingsString = additionalProperties.get("volumeBindings");
+        String envVariablesString = additionalProperties.get("envVariables");
+
+        List<String> portBindings = (null == portBindingsString ? Lists.newArrayList()
+                : Arrays.asList(portBindingsString.split(",")));
+        List<String> volumeBindings = (null == volumeBindingsString ? Lists.newArrayList()
+                : Arrays.asList(volumeBindingsString.split(",")));
+        List<String> envVariables = (null == envVariablesString ? Lists.newArrayList()
+                : Arrays.asList(envVariablesString.split(",")));
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
@@ -88,8 +93,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
     @Override
     public void deleteItem(ResourceItem item) {
         String containerName = item.getName();
-        DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost(),
-                item.getResourceServer().getPort());
+        DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost());
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
@@ -111,8 +115,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
     @Override
     public void startItem(ResourceItem item) {
         String containerName = item.getName();
-        DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost(),
-                item.getResourceServer().getPort());
+        DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost());
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
         if (containers.isEmpty()) {
@@ -131,8 +134,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
     @Override
     public void stopItem(ResourceItem item) {
         String containerName = item.getName();
-        DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost(),
-                item.getResourceServer().getPort());
+        DockerClient dockerClient = newDockerClient(item.getResourceServer().getHost());
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
         if (containers.isEmpty()) {
