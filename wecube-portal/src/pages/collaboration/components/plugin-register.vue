@@ -163,17 +163,13 @@
               > -->
             <Button
               type="primary"
-              v-if="
-                currentPluginObj.status === 'NOT_CONFIGURED' ||
-                  currentPluginObj.status === 'CONFIGURED' ||
-                  currentPluginObj.status === 'DECOMMISSIONED'
-              "
+              v-if="currentPluginObj.status === 'DISABLED'"
               @click="regist"
               >注册</Button
             >
             <Button
               type="error"
-              v-if="currentPluginObj.status === 'ONLINE'"
+              v-if="currentPluginObj.status === 'ENABLED'"
               @click="removePlugin"
               >注销</Button
             >
@@ -250,6 +246,7 @@ export default {
       const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
       if (status === "OK") {
         this.plugins = data;
+        this.selectPlugin(data[0].name || "");
       }
     },
     selectPlugin(val) {
