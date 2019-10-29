@@ -175,8 +175,7 @@ public class PluginInstanceService {
         return DigestUtils.md5Hex(String.valueOf(System.currentTimeMillis())).substring(0, 16);
     }
 
-    public void launchPluginInstance(Integer packageId, String hostIp, Integer port,
-            CreateInstanceDto createContainerParameters) throws Exception {
+    public void launchPluginInstance(Integer packageId, String hostIp, Integer port) throws Exception {
         // 0. checking
         if (!isContainerHostValid(hostIp))
             throw new WecubeCoreException("Unavailable container host ip");
@@ -216,23 +215,28 @@ public class PluginInstanceService {
             instance.setS3BucketResourceId(createPluginS3Bucket(s3Set.iterator().next()));
         }
         // 3. create docker instance
-        createContainerParameters.setPortBindingParameters(
-                createContainerParameters.getPortBindingParameters().replace("{{host_port}}", String.valueOf(port)));
-        createContainerParameters.setEnvVariableParameters(createContainerParameters.getEnvVariableParameters()
-                .replace("{{data_source_url}}", dbInfo.getConnectString()).replace("{{db_user}}", dbInfo.getUser())
-                .replace("{{db_password}}", dbInfo.getPassword()));
-        pluginPackage.getPluginPackageRuntimeResourcesDocker().forEach(dockerInfo -> {
-            try {
-                ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
-                        createContainerParameters);
-                instance.setDockerInstanceResourceId(dockerResourceDto.getId());
-                instance.setHost(hostIp);
-                instance.setPort(port);
-            } catch (Exception e) {
-                logger.error("Creating docker container instance meet error: ", e.getMessage());
-                e.printStackTrace();
-            }
-        });
+        PluginPackageRuntimeResourcesDocker dockerInfo = pluginPackage.getPluginPackageRuntimeResourcesDocker()
+                .iterator().next();
+        CreateInstanceDto createContainerParameters = new CreateInstanceDto();
+        createContainerParameters
+                .setPortBindingParameters(dockerInfo.getPortBindings().replace("{{host_port}}", String.valueOf(port)));
+        createContainerParameters.setEnvVariableParameters(
+                dockerInfo.getEnvVariables().replace("{{data_source_url}}", dbInfo.getConnectString())
+                        .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword()));
+        createContainerParameters.setVolumeBindingParameters(dockerInfo.getVolumeBindings());
+        try {
+            logger.info("pluginPackage:", pluginPackage);
+            logger.info("hostIp:", hostIp);
+            logger.info("createContainerParameters:", pluginPackage);
+            ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
+                    createContainerParameters);
+            instance.setDockerInstanceResourceId(dockerResourceDto.getId());
+            instance.setHost(hostIp);
+            instance.setPort(port);
+        } catch (Exception e) {
+            logger.error("Creating docker container instance meet error: ", e.getMessage());
+            e.printStackTrace();
+        }
 
         // 4. deploy UI package
 
