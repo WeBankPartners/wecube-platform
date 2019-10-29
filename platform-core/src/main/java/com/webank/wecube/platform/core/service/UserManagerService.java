@@ -136,7 +136,8 @@ public class UserManagerService {
 
         Map<String, Integer> categoryToId = pluginPackageService.updateCategoryToIdMapping(returnMenuDto);
 
-        PluginPackage.Status[] statusArray = { PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING };
+        PluginPackage.Status[] statusArray = { PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
+                PluginPackage.Status.STOPPED };
         List<PluginPackage> packages = pluginPackageRepository.findAllByStatus(statusArray);
 
         for (PluginPackage packageDomain : packages) {
