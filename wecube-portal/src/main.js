@@ -4,10 +4,13 @@ import "vue-highlight.js/lib/allLanguages";
 import "highlight.js/styles/default.css";
 import App from "./App.vue";
 import router from "./router";
-import iView from "iview";
-import "iview/dist/styles/iview.css";
+
+import ViewUI from "view-design";
+// import style
+import "view-design/dist/styles/iview.css";
+
 import VueI18n from "vue-i18n";
-import locale from "iview/dist/locale/en-US";
+import locale from "view-design/dist/locale/en-US";
 import "./locale/i18n";
 
 import WeSelect from "../src/pages/components/select.vue";
@@ -27,7 +30,7 @@ Vue.component("sequenceDiagram", sequenceDiagram);
 Vue.component("orchestration", orchestration);
 Vue.config.productionTip = false;
 
-Vue.use(iView, {
+Vue.use(ViewUI, {
   transfer: true,
   size: "default",
   VueI18n,

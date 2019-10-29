@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.EqualsAndHashCode;
@@ -24,7 +25,7 @@ public class PluginConfigInterfaceParameter {
     @GeneratedValue
     private Integer id;
 
-    @JsonIgnore
+    @JsonBackReference
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
