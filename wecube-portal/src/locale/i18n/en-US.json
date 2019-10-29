@@ -279,5 +279,6 @@
   "status": "Status",
   "plugin_config_check": "Plugin Config",
   "service_regist": "Service Regist",
-  "confirm_to_regist_plugin": "Confirm Regist Plugin Package"
+  "confirm_to_regist_plugin": "Confirm Regist Plugin Package",
+  "is_show_decomissioned_pkg": "Show Decommissioned Package"
 }
