@@ -38,7 +38,8 @@ public class CommandService {
         log.info("Execute '{}' command successful", command);
     }
 
-    public String runAtRemote(String host, String user, String password, Integer port, String command) throws Exception {
+    public String runAtRemote(String host, String user, String password, Integer port, String command)
+            throws Exception {
         RemoteCommandExecutorConfig config = new RemoteCommandExecutorConfig();
         config.setRemoteHost(host);
         config.setUser(user);
@@ -53,14 +54,31 @@ public class CommandService {
 
         executor.destroy();
 
-        log.info("result container ID is: " + result);
+        log.info("result is: " + result);
+        return result;
+    }
+
+    public String runAtRemoteHasReturn(String host, String user, String password, Integer port, String command)
+            throws Exception {
+        RemoteCommandExecutorConfig config = new RemoteCommandExecutorConfig();
+        config.setRemoteHost(host);
+        config.setUser(user);
+        config.setPsword(password);
+        config.setPort(port);
+
+        RemoteCommand cmd = new SimpleRemoteCommand(command);
+        PooledRemoteCommandExecutor executor = new PooledRemoteCommandExecutor();
+        executor.init(config);
+
+        String result = executor.execute(cmd);
+
+        executor.destroy();
+
+        log.info("result is: " + result);
         if (result == "" || result.isEmpty()) {
-            throw new WecubeCoreException("return container ID is empty, please check !");
+            throw new WecubeCoreException("return is empty, please check !");
         } else {
             return result;
         }
     }
 }
-
-
-
