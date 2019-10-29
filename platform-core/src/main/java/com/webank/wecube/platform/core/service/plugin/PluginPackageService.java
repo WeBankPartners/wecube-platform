@@ -367,7 +367,7 @@ public class PluginPackageService {
         });
     }
 
-    private Map<String, Integer> updateCategoryToIdMapping(List<MenuItemDto> inputMenuItemDto) {
+    public Map<String, Integer> updateCategoryToIdMapping(List<MenuItemDto> inputMenuItemDto) {
         Map<String, Integer> categoryToId = new HashMap<>();
         for (int i = 1; i <= 8; i++) {
             categoryToId.put(Integer.toString(i), 0);
