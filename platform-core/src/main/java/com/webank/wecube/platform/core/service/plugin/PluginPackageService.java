@@ -1,21 +1,15 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDto;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
-import com.webank.wecube.platform.core.jpa.MenuItemRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.jpa.*;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
+import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
@@ -36,6 +30,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
 
 @Service
 @Transactional
@@ -46,13 +41,19 @@ public class PluginPackageService {
     PluginPackageRepository pluginPackageRepository;
 
     @Autowired
-    PluginPackageEntityRepository pluginPackageEntityRepository;
+    PluginPackageDataModelService pluginPackageDataModelService;
 
     @Autowired
     PluginPackageDependencyRepository pluginPackageDependencyRepository;
 
     @Autowired
     MenuItemRepository menuItemRepository;
+
+    @Autowired
+    private PluginConfigRepository pluginConfigRepository;
+
+    @Autowired
+    private PluginPackageResourceFileRepository pluginPackageResourceFileRepository;
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -83,8 +84,11 @@ public class PluginPackageService {
         unzipLocalFile(dest.getCanonicalPath(), localFilePath.getCanonicalPath() + "/");
 
         // 3. read xml file in plugin package
-        byte[] pluginConfigFile = FileUtils.readFileToByteArray(new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile()));
-        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new ByteArrayInputStream(pluginConfigFile)).parsePluginPackage();
+        File registerXmlFile = new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile());
+        if (!registerXmlFile.exists()) {
+            throw new WecubeCoreException(String.format("Plugin package definition file: [%s] does not exist.", pluginProperties.getRegisterFile()));
+        }
+        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile)).parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
         if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
             throw new WecubeCoreException(String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ", pluginPackageDto.getName()));
@@ -100,22 +104,43 @@ public class PluginPackageService {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginDockerImageFile.getName();
             log.info("keyname : {}", keyName);
             dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginDockerImageFile);
-            log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl);
+            log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
         }
 
         File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
-        log.info("pluginDockerImageFile: {}", pluginUiPackageFile.getAbsolutePath());
+        log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
         String uiPackageUrl = "";
+        Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
         if (pluginUiPackageFile.exists()) {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginUiPackageFile.getName();
             log.info("keyname : {}", keyName);
+            pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage, pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
             uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
-            log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl);
+            log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
         }
 
-        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackageDto.getPluginPackage());
-        Iterable<PluginPackageEntity> pluginPackageEntities = pluginPackageEntityRepository.saveAll(pluginPackageDto.getPluginPackageEntities().stream().map(it -> it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
-        savedPluginPackage.setPluginPackageEntities(newLinkedHashSet(pluginPackageEntities));
+        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
+
+        List<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelService.register(new ArrayList<>(pluginPackageDto.getPluginPackageEntities()));
+
+        Set<PluginConfig> pluginConfigs = newLinkedHashSet();
+        for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
+            for (PluginPackageEntityDto pluginPackageEntityDto : pluginPackageEntityDtos) {
+                String entityNameFromPluginConfig = pluginConfig.getEntityName();
+                String nameFromDto = pluginPackageEntityDto.getName();
+                if (entityNameFromPluginConfig.equals(nameFromDto)){
+                    pluginConfig.setEntityId(pluginPackageEntityDto.getId());
+                }
+            }
+            pluginConfigs.add(pluginConfig);
+        }
+        pluginConfigRepository.saveAll(pluginConfigs);
+
+        savedPluginPackage.setPluginPackageEntities(pluginPackageEntityDtos.stream().map(it->it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
+        if (pluginPackageResourceFilesOptional.isPresent()) {
+            Set<PluginPackageResourceFile> pluginPackageResourceFiles = newLinkedHashSet(pluginPackageResourceFileRepository.saveAll(pluginPackageResourceFilesOptional.get()));
+            savedPluginPackage.setPluginPackageResourceFiles(pluginPackageResourceFiles);
+        }
 
         return savedPluginPackage;
     }
@@ -128,33 +153,32 @@ public class PluginPackageService {
         return pluginPackageRepository.findAll();
     }
 
-    public void preconfigurePluginPackage(int pluginPackageId) {
-        Optional<PluginPackage> pluginPackageOptional = pluginPackageRepository.findById(pluginPackageId);
-        if (!pluginPackageOptional.isPresent())
-            throw new WecubeCoreException("Plugin package not found, id=" + pluginPackageId);
-        PluginPackage pluginPackage = pluginPackageOptional.get();
-        Optional<PluginPackage> latestVersionPluginPackage = pluginPackageRepository.findLatestVersionByName(pluginPackage.getName(), pluginPackage.getVersion());
-        if (latestVersionPluginPackage.isPresent()) {
-            new PluginConfigCopyHelper().copyPluginConfigs(latestVersionPluginPackage.get(), pluginPackage);
-            pluginPackageRepository.save(pluginPackage);
-        } else {
-            log.info("Latest plugin package not found. Ignored.");
+    public PluginPackage registerPluginPackage(int pluginPackageId) {
+        if (!pluginPackageRepository.existsById(pluginPackageId)) {
+            throw new WecubeCoreException(String.format("Plugin package id not found for id [%s]", pluginPackageId));
         }
+        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+        if (UNREGISTERED != pluginPackage.getStatus()) {
+            String errorMessage = String.format("Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]", pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
+            log.warn(errorMessage);
+            throw new WecubeCoreException(errorMessage);
+        }
+        pluginPackage.setStatus(REGISTERED);
+        return pluginPackageRepository.save(pluginPackage);
     }
 
-    public void deletePluginPackage(int pluginPackageId) {
-        Optional<PluginPackage> pluginPackageOptional = pluginPackageRepository.findById(pluginPackageId);
-        if (!pluginPackageOptional.isPresent())
-            throw new WecubeCoreException("Plugin package id not found, id = " + pluginPackageId);
-        PluginPackage pluginPackage = pluginPackageOptional.get();
-        for (PluginConfig config : pluginPackage.getPluginConfigs()) {
-            if (PluginConfig.Status.ONLINE.equals(config.getStatus())) {
-                String errorMessage = String.format("Failed to delete Plugin[%s/%s] due to [%s] is still in used. Please decommission it and try again.", pluginPackage.getName(), pluginPackage.getVersion(), config.getName());
-                log.warn(errorMessage);
-                throw new WecubeCoreException(errorMessage);
-            }
+    public void decommissionPluginPackage(int pluginPackageId) {
+        if (!pluginPackageRepository.existsById(pluginPackageId)) {
+            throw new WecubeCoreException(String.format("Plugin package id not found for id [%s] ", pluginPackageId));
         }
-        pluginPackageRepository.deleteById(pluginPackageId);
+        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+        if (RUNNING.equals(pluginPackage.getStatus())) {
+            String errorMessage = String.format("Failed to decommission Plugin[%s/%s] due to package is RUNNING", pluginPackage.getName(), pluginPackage.getVersion());
+            log.warn(errorMessage);
+            throw new WecubeCoreException(errorMessage);
+        }
+        pluginPackage.setStatus(DECOMMISSIONED);
+        pluginPackageRepository.save(pluginPackage);
 
         // Remove related docker image file
         String versionPath = SystemUtils.getTempFolderPath() + pluginPackage.getName() + "-" + pluginPackage.getVersion() + "/";
@@ -168,26 +192,6 @@ public class PluginPackageService {
         }
     }
 
-    private void uploadFileToLocal(String path, InputStream inputStream, String inputFileName) throws WecubeCoreException, IOException {
-        String fileName = path + inputFileName;
-        File localFile = new File(fileName);
-        if (!localFile.exists() && !localFile.createNewFile()) {
-            throw new WecubeCoreException(String.format("File[%s] already exists", fileName));
-        }
-
-        try (BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(localFile))) {
-            int length = 0;
-            byte[] buffer = new byte[1024];
-            while ((length = inputStream.read(buffer)) != -1) {
-                stream.write(buffer, 0, length);
-            }
-            stream.flush();
-            log.info("File save to temporary directory: " + localFile.getAbsolutePath());
-        } catch (IOException e) {
-            throw new WecubeCoreException("uploadFileToLocale meet IOException: ", e);
-        }
-    }
-
     private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
@@ -195,11 +199,12 @@ public class PluginPackageService {
             for (; entries.hasMoreElements(); ) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
+                if (entry.isDirectory() || !(zipEntryName.contains(".xml") || zipEntryName.contains(".tar") || zipEntryName.contains(".zip") || zipEntryName.contains(".sql"))) {
+                    continue;
+                }
+
                 if (new File(destFilePath + zipEntryName).createNewFile()) {
                     log.info("Create new temporary file: {}", destFilePath + zipEntryName);
-                }
-                if (entry.isDirectory() || !(zipEntryName.contains(".xml") || zipEntryName.contains(".tar"))) {
-                    continue;
                 }
 
                 try (BufferedInputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
@@ -216,6 +221,34 @@ public class PluginPackageService {
         }
 
         log.info("Zip file has uploaded !");
+    }
+
+    private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage, String sourceZipFile, String sourceZipFileName) throws Exception {
+        Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
+        try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
+            Enumeration entries = zipFile.entries();
+            Set<PluginPackageResourceFile> pluginPackageResourceFiles = null;
+            if (entries.hasMoreElements()) {
+                pluginPackageResourceFiles = newLinkedHashSet();
+            }
+            for (; entries.hasMoreElements(); ) {
+                ZipEntry entry = (ZipEntry) entries.nextElement();
+                if (!entry.isDirectory()) {
+                    String zipEntryName = entry.getName();
+                    PluginPackageResourceFile pluginPackageResourceFile = new PluginPackageResourceFile();
+                    pluginPackageResourceFile.setPluginPackage(pluginPackage);
+                    pluginPackageResourceFile.setSource(sourceZipFileName);
+                    pluginPackageResourceFile.setRelatedPath(zipEntryName);
+
+                    log.info("File in ui package [{}] : {}", sourceZipFileName, zipEntryName);
+
+                    pluginPackageResourceFiles.add(pluginPackageResourceFile);
+                }
+            }
+            pluginPackageResourceFilesOptional = Optional.ofNullable(pluginPackageResourceFiles);
+        }
+
+        return pluginPackageResourceFilesOptional;
     }
 
     public void setS3Client(S3Client s3Client) {
@@ -245,22 +278,36 @@ public class PluginPackageService {
         return dependencyDto;
     }
 
-    public List<MenuItemDto> getMenusById(Integer packageId) {
+    public List<MenuItemDto> getMenusById(Integer packageId) throws WecubeCoreException {
         List<MenuItemDto> returnMenuDto;
+
 
         // handling core's menus
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
+
+        // update categoryToId mapping, which is system menu's category to its latest id
+        Map<String, Integer> categoryToId = updateCategoryToIdMapping(returnMenuDto);
 
         // handling package's menus
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
 
         for (PluginPackageMenu packageMenu : packageMenus) {
-            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
+            String transformedParentId = null;
+            Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
+            if (parentId == null) {
+                String msg = String.format("Cannot find system menu item by package menu's category: [%s]", packageMenu.getCategory());
+                log.error(msg);
+                throw new WecubeCoreException(msg);
+            }
+            transformedParentId = parentId.toString();
+            Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
+            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId, foundTopMenuId);
+            categoryToId.put(transformedParentId, foundTopMenuId);
             returnMenuDto.add(packageMenuDto);
         }
-
+        Collections.sort(returnMenuDto);
         return returnMenuDto;
     }
 
@@ -318,5 +365,23 @@ public class PluginPackageService {
                 updateDependencyDto(dependency, dependencyDto);
             }
         });
+    }
+
+    private Map<String, Integer> updateCategoryToIdMapping(List<MenuItemDto> inputMenuItemDto) {
+        Map<String, Integer> categoryToId = new HashMap<>();
+        for (int i = 1; i <= 8; i++) {
+            categoryToId.put(Integer.toString(i), 0);
+        }
+        for (MenuItemDto menuItemDto : inputMenuItemDto) {
+            String menuCategory = menuItemDto.getCategory();
+            Integer menuId = menuItemDto.getId();
+            if (!org.springframework.util.StringUtils.isEmpty(menuCategory)) {
+                if (menuId > categoryToId.get(menuCategory)) {
+                    categoryToId.put(menuCategory, menuId + 1);
+                }
+            }
+
+        }
+        return categoryToId;
     }
 }
