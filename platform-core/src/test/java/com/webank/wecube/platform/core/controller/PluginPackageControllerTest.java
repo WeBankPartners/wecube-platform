@@ -5,6 +5,7 @@ import com.webank.wecube.platform.core.support.FakeS3Client;
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,15 +137,15 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void givenThreePackagesWhenQueryThenReturnAllPackages() {
+    public void givenFourPackagesWhenQueryThenReturnAllPackages() {
         mockMultipleVersionPluginPackage();
 
         try {
             mvc.perform(get("/v1/api/packages").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains(1, 2, 3)))
-                    .andExpect(jsonPath("$.data[*].name", contains("cmdb", "cmdb", "cmdb")))
-                    .andExpect(jsonPath("$.data[*].version", contains("v1.0", "v1.1", "v1.2")))
+                    .andExpect(jsonPath("$.data[*].id", contains(1, 2, 3, 4)))
+                    .andExpect(jsonPath("$.data[*].name", contains("cmdb", "cmdb", "cmdb", "cmdb")))
+                    .andExpect(jsonPath("$.data[*].version", contains("v1.0", "v1.1", "v1.2", "v1.3")))
                     .andDo(print())
                     .andReturn().getResponse();
         } catch (Exception e) {
@@ -153,30 +154,63 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void givenNoConnectedReferenceWhenDeleteThenReturnSuccessful() {
+    public void givenPluginPackageIsUNREGISTEREDWhenRegisterThenReturnSuccessful() {
         mockMultipleVersionPluginPackage();
 
         try {
-            mvc.perform(delete("/v1/api/packages/1"))
+            mvc.perform(post("/v1/api/packages/register/1"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andDo(print())
                     .andReturn().getResponse();
         } catch (Exception e) {
-            fail("Failed to upload plugin package in PluginPackageController: " + e.getMessage());
+            fail("Failed to decommission plugin package in PluginPackageController: " + e.getMessage());
         }
     }
 
     @Test
-    public void givenConnectedReferenceWhenDeleteThenReturnFailed() {
+    public void givenPluginPackageIsRUNNINGWhenRegisterThenReturnError() {
+        mockMultipleVersionPluginPackage();
+
+        try {
+            mvc.perform(post("/v1/api/packages/register/1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK")))
+                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andDo(print())
+                    .andReturn().getResponse();
+        } catch (Exception e) {
+            fail("Failed to decommission plugin package in PluginPackageController: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void givenNoConnectedReferenceWhenDecommissionThenReturnSuccessful() {
+        mockMultipleVersionPluginPackage();
+
+        try {
+            mvc.perform(post("/v1/api/packages/decommission/1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK")))
+                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andDo(print())
+                    .andReturn().getResponse();
+        } catch (Exception e) {
+            fail("Failed to decommission plugin package in PluginPackageController: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void givenPluginPackageIsRunningWhenDecommissionThenReturnFailed() {
         mockMultipleVersionPluginPackageWithReference();
 
         try {
-            mvc.perform(delete("/v1/api/packages/1"))
+            int pluginPackageIdInRUNNINGStatus = 4;
+            mvc.perform(post("/v1/api/packages/decommission/" + pluginPackageIdInRUNNINGStatus))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("Failed to delete Plugin[cmdb/v1.0] due to [Vpc Management] is still in used. Please decommission it and try again.")))
+                    .andExpect(jsonPath("$.message", is("Failed to decommission plugin package with error message [Failed to decommission Plugin[cmdb/v1.3] due to package is RUNNING]")))
                     .andDo(print())
                     .andReturn().getResponse();
         } catch (Exception e) {
@@ -186,23 +220,25 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     }
 
     private void mockMultipleVersionPluginPackage() {
-        executeSql("insert into plugin_packages (id, name, version) values\n" +
-                "  (1, 'cmdb', 'v1.0')\n" +
-                " ,(2, 'cmdb', 'v1.1')\n" +
-                " ,(3, 'cmdb', 'v1.2')\n" +
+        executeSql("insert into plugin_packages (id, name, version, status) values\n" +
+                "  (1, 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
+                " ,(2, 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
+                " ,(3, 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
+                " ,(4, 'cmdb', 'v1.3', 'RUNNING')\n" +
                 ";");
     }
 
     private void mockMultipleVersionPluginPackageWithReference() {
-        executeSql("insert into plugin_packages (id, name, version) values\n" +
-                "  (1, 'cmdb', 'v1.0')\n" +
-                " ,(2, 'cmdb', 'v1.1')\n" +
-                " ,(3, 'cmdb', 'v1.2')\n" +
+        executeSql("insert into plugin_packages (id, name, version, status) values\n" +
+                "  (1, 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
+                " ,(2, 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
+                " ,(3, 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
+                " ,(4, 'cmdb', 'v1.3', 'RUNNING')\n" +
                 ";\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
-                " (11, 1, 'Vpc Management', 16, 'ONLINE')\n" +
-                ",(21, 2, 'Vpc Management', 17, 'ONLINE')\n" +
-                ",(31, 3, 'Vpc Management', 16, 'NOT_CONFIGURED')\n" +
+                " (11, 1, 'Vpc Management', 16, 'ENABLED')\n" +
+                ",(21, 2, 'Vpc Management', 17, 'ENABLED')\n" +
+                ",(31, 3, 'Vpc Management', 16, 'DISABLED')\n" +
                 ";");
     }
 
@@ -223,7 +259,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -240,7 +275,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -262,7 +296,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -279,7 +312,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -293,7 +325,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/system_parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/api/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
                     .andExpect(jsonPath("$.data[*].name", contains("xxx", "xxx")))
@@ -302,7 +334,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -324,7 +355,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -338,7 +368,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/runtime_resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/api/packages/%s/runtime-resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.docker[0].id", is(1)))
                     .andExpect(jsonPath("$.data.mysql[0].id", is(1)))
@@ -350,7 +380,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
@@ -367,15 +396,14 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
             mvc.perform(get(String.format("/v1/api/packages/%s/plugins", correctQueryId)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
-                    .andExpect(jsonPath("$.data[0].entityId", is(nullValue())))
-                    .andExpect(jsonPath("$.data[1].entityId", is(nullValue())))
+                    .andExpect(jsonPath("$.data[0].entityId", is(5)))
+                    .andExpect(jsonPath("$.data[1].entityId", is(4)))
                     .andExpect(jsonPath("$.data[*].name", contains("task", "service_request")))
-                    .andExpect(jsonPath("$.data[*].status", contains("NOT_CONFIGURED", "NOT_CONFIGURED")))
+                    .andExpect(jsonPath("$.data[*].status", contains("DISABLED", "DISABLED")))
                     .andExpect(jsonPath("$.data[*].pluginPackageId", contains(1, 1)))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         }
     }
