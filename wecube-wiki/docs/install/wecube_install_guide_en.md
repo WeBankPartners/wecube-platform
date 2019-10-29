@@ -6,52 +6,48 @@ This installation guide starts the WeCube service by means of docker-compose. Yo
 
 
 ## Before installation
-1. one Linux host, resource configuration is recommended 4 cores 8GB or more for speed up the compilation；
-2. The operating system version is recommended to be ubuntu16.04 or higher or centos7.3 or higher。
-3. The network needs to be able to access internet (need to download and install the software from internet。
-4. install docker and docker-compose。
-     - PLease refer to [docker install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker_install_guide.md) on how to install docker.
-     - PLease refer to [docker-compose install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker-compose_install_guide.md) on how to install docker-compose.
-5. Make sure we-cmdb hase been deployed and can access normally
+
+1. One Linux host with the Internet connection, resource configuration is recommended 4 cores 8GB or more for speed up the compilation；
+2. Ubuntu 16.04+ or Centos 7.3+.
+4. Install docker and docker-compose.
+     - Please refer to [docker install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker_install_guide_en.md) on how to install docker.
+     - Please refer to [docker-compose install guide](https://github.com/WeBankPartners/we-cmdb/blob/master/cmdb-wiki/docs/install/docker-compose_install_guide_en.md) on how to install docker-compose.
+5. Make sure we-cmdb has been deployed and can access normally
 	
-	Need to know the access ip and port of we-cmdb.
+	You to know the access ip and port of we-cmdb.
 
 	Confirm that the we-cmdb ip whitelist already contains the ip of the wecube deployment host.
 	
 	You can check the configuration items in the configuration file cmdb.cfg in the installation documentation of we-cmdb：
 
-	```
-	cmdb_ip_whitelists={$cmdb_ip_whitelists}
-	```
+	`cmdb_ip_whitelists={$cmdb_ip_whitelists}`
 
-	If we-cmdb is already running, need to modify this configuration, you need to enter the application container of we-cmdb, modify the configuration parameters in the script file start.sh
+	If we-cmdb is already running, you need to modify this configuration, enter the application container of we-cmdb, modify the configuration parameters in the script file start.sh
 	
-	```
-	--cas-server.whitelist-ipaddress=127.0.0.1
-	```
+	`--cas-server.whitelist-ipaddress=127.0.0.1`
 
-	Replace 127.0.0.1 to wecube's host ip，restart we-cmdb service.
+	Replace `127.0.0.1` to wecube's host ip, restart we-cmdb service.
 
 
 ## Load images
     
-   Load docker image from files , execute the command as following：
+Load docker image from files, execute the command as following：
 
-   ```
-   docker load --input wecube-platform.tar
-   docker load --input wecube-db.tar 
-   ```
+```shell script
+docker load --input wecube-platform.tar
+docker load --input wecube-db.tar 
+```
 
-   Execute command'docker images' ，Can see that the image has been imported：
+Execute command `docker images`, you can see that the image has been imported：
 
-   ![wecube-platform_images](images/wecube-platform_images.png)
+![wecube-platform_images](images/wecube-platform_images.png)
 
-	Make a note of the image name and TAG in the mirror list, which is needed in the following configuration.
+Make a note of the image name and TAG in the mirror list, which is needed in the following configuration.
 
 ## Configuration
-1. create installation directory and files
+1. Create installation directory and files
    
-	Create an installation directory on the deployment machine and create the following three files.:
+    Create an installation directory on the deployment machine and create the following files:
 
 	[wecube.cfg](../../../build/wecube.cfg)
 
@@ -62,7 +58,7 @@ This installation guide starts the WeCube service by means of docker-compose. Yo
 	[docker-compose.tpl](../../../build/docker-compose.tpl)
 
 
-2. config wecube.cfg as follows
+2. Config `wecube.cfg`:
 
 	```
 	#wecube-core
@@ -89,21 +85,21 @@ This installation guide starts the WeCube service by means of docker-compose. Yo
 	config items               |desc
 	---------------------------|--------------------
 	wecube_server_port         |port of wecube's service
-	wecube_image_name          |wecube's docker image name and TAG， such as：wecube-platform:bd4fbec
-	wecube_plugin_hosts        |plugin host's ip， make sure docker has been installedon every host
+	wecube_image_name          |wecube's docker image name and TAG,  such as：wecube-platform:bd4fbec
+	wecube_plugin_hosts        |plugin host's ip,  make sure docker has been installedon every host
 	wecube_plugin_host_port    |plugin host's ssh port
-	wecube_plugin_host_user    |plugin host's ssh user，it is best to be the root user. If it is another user, please ensure that the user has the right to execute the docker command and the read/write permission of the /opt directory.
+	wecube_plugin_host_user    |plugin host's ssh user, it is best to be the root user. If it is another user, please ensure that the user has the right to execute the docker command and the read/write permission of the /opt directory.
 	wecube_plugin_host_pwd     |plugin host's ssh password
 	cmdb_url                   |we-cmdb's url
-	database_image_name        |wecube's database docker image name and TAG，such as：wecube-db:dev
+	database_image_name        |wecube's database docker image name and TAG, such as：wecube-db:dev
 	database_init_password     |wecube database password
 	s3_url                     |object storage server's ip address, docker-compose.tpl already contains minio S3 service configuration
 	s3_access_key              |minio's access_key
 	s3_secret_key              |minio's secret_key
 
-3. config install.sh as follows：
+3. Config `install.sh`:
 
-	```
+	```shell script
 	#!/bin/bash
 	set -ex
 	if ! docker --version &> /dev/null
@@ -137,16 +133,16 @@ This installation guide starts the WeCube service by means of docker-compose. Yo
 	
 	```
 
-4. config uninstall.sh as follows
+4. Config `uninstall.sh`:
 	
-	```
+	```shell script
 	#!/bin/bash
 	docker-compose -f docker-compose.yml down -v
 	```
 
-5. config docker-compose.tpl as follows
+5. Config `docker-compose.tpl`:
 	
-	The service to be installed is configured in this file: wecube, mysql, minio。
+	The service to be installed is configured in this file: wecube, mysql, minio.
 
 	If you already have minio and mysql, comment out the two paragraphs in the file. In the environment configuration of the wecube, manually modify the s3 and database configuration.
 	
@@ -213,34 +209,34 @@ This installation guide starts the WeCube service by means of docker-compose. Yo
 	      - S3_SECRET_KEY={{S3_SECRET_KEY}}
 	```
 
-## installation
-1. Execute the following command to start the WeCube service through docker-compose
+## Installation
+1. Execute the following command to start the WeCube service through docker-compose:
 
-	```
-	/bin/bash ./install.sh
-	```
+    ```shell script
+    /bin/bash ./install.sh
+    ```
 
-2. check
+2. Open WeCube frontend client:
 	
-	Visit WeCube's url http://wecube_server_ip:wecube_server_port to confirm that the page is accessed normally.
+	Visit WeCube's url `http://wecube_server_ip:{wecube_server_port}` to confirm that the page is accessed normally.
 
 
-## uninstall
+## Uninstall
 Execute the following command to stop the WeCube service through docker-compose.
 
-```
+```shell script
 /bin/bash ./uninstall.sh
 ```
 
-## restart
+## Restart
 Execute the following command to stop the WeCube service through docker-compose.
 
-```
+```shell script
 /bin/bash ./uninstall.sh
 ```
 
-Modify the wecube.cfg configuration file as needed to restart the service
+Modify the `wecube.cfg` configuration file as needed to restart the service.
 
-```
+```shell script
 /bin/bash ./install.sh
 ```

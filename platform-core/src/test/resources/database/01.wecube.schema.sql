@@ -4,6 +4,7 @@ CREATE TABLE `plugin_packages` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(50) NOT NULL,
 	`version` VARCHAR(20) NOT NULL,
+    `status` VARCHAR(20) NOT NULL default 'UNREGISTERED',
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `name` (`name`, `version`)
 );
@@ -118,7 +119,8 @@ CREATE TABLE `plugin_configs` (
   `plugin_package_id` INT(11) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
   `entity_id` INT(11) NULL DEFAULT NULL,
-  `status` VARCHAR(50) NOT NULL,
+  `entity_name` VARCHAR(100) NOT NULL,
+  `status` VARCHAR(20) NOT NULL default 'DISABLED',
   PRIMARY KEY (`id`)
 );
 
@@ -176,4 +178,14 @@ create table role_menu
     role_id int not null,
     menu_id int not null,
     unique key uk_roleid_menuid (role_id, menu_id)
+);
+
+drop table if exists plugin_package_resource_files;
+create table plugin_package_resource_files
+(
+  id int auto_increment primary key,
+  plugin_package_id int(11) not null,
+  source varchar(64) not null,
+  related_path varchar(64) not null,
+  PRIMARY KEY (`id`)
 );

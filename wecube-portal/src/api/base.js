@@ -1,6 +1,6 @@
 import Vue from "vue";
 import axios from "axios";
-const baseURL = "";
+const baseURL = "v1/api/";
 const req = axios.create({
   withCredentials: true,
   baseURL,

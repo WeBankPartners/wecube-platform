@@ -1,12 +1,8 @@
 <template>
   <Row style="padding:20px">
-    <Spin size="large" fix v-if="isLoading">
-      <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-      <div>{{ $t("loading") }}</div>
-    </Spin>
     <Col span="6">
       <Row>
-        <Card>
+        <Card dis-hover>
           <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
           <Upload
             show-upload-list
@@ -14,366 +10,290 @@
             name="zip-file"
             :on-success="onSuccess"
             :on-error="onError"
-            action="/plugin/upload"
+            action="v1/api/packages"
             :headers="setUploadActionHeader"
           >
-            <Button icon="ios-cloud-upload-outline">
-              {{ $t("upload_plugin_btn") }}
-            </Button>
+            <Button icon="ios-cloud-upload-outline">{{
+              $t("upload_plugin_btn")
+            }}</Button>
           </Upload>
         </Card>
       </Row>
-      <Row class="plugins-tree-container">
-        <Card>
+      <Row class="plugins-tree-container" style="margin-top: 20px">
+        <Card dis-hover>
           <p slot="title">{{ $t("plugins_list") }}</p>
-          <Tree :data="plugins" @on-select-change="selectPlugin"></Tree>
+          <div style="height: 70%; overflow: auto">
+            <span v-if="plugins.length < 1">{{
+              $t("no_plugin_packages")
+            }}</span>
+            <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
+              <Panel
+                :name="plugin.id + ''"
+                v-for="plugin in plugins"
+                :key="plugin.id"
+              >
+                {{ plugin.name + "_" + plugin.version }}
+                <span style="float: right; margin-right: 10px">
+                  <Button
+                    @click.stop.prevent="deletePlugin(plugin.id)"
+                    size="small"
+                    icon="ios-trash"
+                  ></Button>
+                </span>
+                <p slot="content">
+                  <Button
+                    @click="configPlugin(plugin.id)"
+                    size="small"
+                    icon="ios-checkmark-circle"
+                    >{{ $t("plugin_config_check") }}</Button
+                  >
+                  <Button
+                    @click="manageService(plugin.id)"
+                    size="small"
+                    icon="ios-construct"
+                    >{{ $t("service_regist") }}</Button
+                  >
+                  <Button
+                    @click="manageRuntimePlugin(plugin.id)"
+                    size="small"
+                    icon="ios-settings"
+                    >{{ $t("runtime_manage") }}</Button
+                  >
+                </p>
+              </Panel>
+            </Collapse>
+          </div>
         </Card>
       </Row>
     </Col>
-    <Col span="17" offset="1">
+    <Col span="17" offset="1" v-if="isShowConfigPanel">
+      <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
+        <TabPane name="dependency" :label="$t('dependencies_analysis')">
+          <DependencyAnalysis
+            v-if="currentTab === 'dependency'"
+            :pkgId="currentPackageId"
+          ></DependencyAnalysis>
+        </TabPane>
+        <TabPane name="menus" :label="$t('menu_injection')">
+          <MenuInjection
+            v-if="currentTab === 'menus'"
+            :pkgId="currentPackageId"
+          ></MenuInjection>
+        </TabPane>
+        <TabPane name="models" :label="$t('data_model')">
+          <DataModel
+            v-if="currentTab === 'models'"
+            :pkgId="currentPackageId"
+          ></DataModel>
+        </TabPane>
+        <TabPane name="systemParameters" :label="$t('system_params')">
+          <SysParmas
+            v-if="currentTab === 'systemParameters'"
+            :pkgId="currentPackageId"
+          ></SysParmas>
+        </TabPane>
+        <TabPane name="authorities" :label="$t('auth_setting')">
+          <AuthSettings
+            v-if="currentTab === 'authorities'"
+            :pkgId="currentPackageId"
+          ></AuthSettings>
+        </TabPane>
+        <TabPane name="runtimeResources" :label="$t('runtime_resource')">
+          <RuntimesResources
+            v-if="currentTab === 'runtimeResources'"
+            :pkgId="currentPackageId"
+          ></RuntimesResources>
+        </TabPane>
+        <TabPane name="confirm" :label="$t('confirm')">
+          <Button type="info" @click="registPackage()">{{
+            $t("confirm_to_regist_plugin")
+          }}</Button>
+        </TabPane>
+      </Tabs>
+    </Col>
+    <Col span="17" offset="1" v-if="isShowServicePanel">
+      <Card dis-hover>
+        <PluginRegister
+          v-if="isShowServicePanel"
+          :pkgId="currentPackageId"
+        ></PluginRegister>
+      </Card>
+    </Col>
+    <Col span="17" offset="1" v-if="isShowRuntimeManagementPanel">
       <div v-if="Object.keys(currentPlugin).length > 0">
         <div v-if="currentPlugin.children">
           <Row class="instances-container">
-            <Card>
-              <p slot="title">{{ $t("instance") }}</p>
-              <Row>
-                <Select
-                  @on-change="selectHost"
-                  multiple
-                  style="width: 40%"
-                  :max-tag-count="4"
-                  v-model="selectHosts"
-                >
-                  <Option
-                    v-for="item in allAvailiableHosts"
-                    :value="item"
-                    :key="item"
-                    >{{ item }}</Option
-                  >
-                </Select>
-                <Button
-                  size="small"
-                  type="success"
-                  @click="getAvailablePortByHostIp"
-                  >{{ $t("port_preview") }}</Button
-                >
-                <div v-if="availiableHostsWithPort.length > 0">
-                  <p style="margin-top: 20px">{{ $t("avaliable_port") }}:</p>
-
-                  <div
-                    v-for="item in availiableHostsWithPort"
-                    :key="item.ip + item.port"
-                  >
-                    <div
-                      class="instance-item-container"
-                      style="border-bottom: 1px solid gray; padding: 10px 0"
-                    >
-                      <div class="instance-item">
-                        {{ item.ip + ":" + item.port }}
-                      </div>
-                      <span>{{ $t("start_params") }}:</span>
-                      <Input
-                        type="textarea"
-                        style="width: 50%"
-                        :autosize="true"
-                        v-model="item.createParams"
-                      />
+            <Collapse value="1">
+              <Panel name="1">
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("runtime_container")
+                }}</span>
+                <p slot="content">
+                  <Card dis-hover>
+                    <Row>
+                      <Select
+                        @on-change="selectHost"
+                        multiple
+                        style="width: 40%"
+                        :max-tag-count="4"
+                        v-model="selectHosts"
+                      >
+                        <Option
+                          v-for="item in allAvailiableHosts"
+                          :value="item"
+                          :key="item"
+                          >{{ item }}</Option
+                        >
+                      </Select>
                       <Button
                         size="small"
                         type="success"
-                        @click="
-                          createPluginInstanceByPackageIdAndHostIp(
-                            item.ip,
-                            item.port,
-                            item.createParams
-                          )
-                        "
-                        >{{ $t("create") }}</Button
+                        @click="getAvailablePortByHostIp"
+                        >{{ $t("port_preview") }}</Button
                       >
+                      <div v-if="availiableHostsWithPort.length > 0">
+                        <p style="margin-top: 20px">
+                          {{ $t("avaliable_port") }}:
+                        </p>
+
+                        <div
+                          v-for="item in availiableHostsWithPort"
+                          :key="item.ip + item.port"
+                        >
+                          <div
+                            class="instance-item-container"
+                            style="border-bottom: 1px solid gray; padding: 10px 0"
+                          >
+                            <div class="instance-item">
+                              {{ item.ip + ":" + item.port }}
+                            </div>
+                            <span>{{ $t("start_params") }}:</span>
+                            <Input
+                              type="textarea"
+                              style="width: 50%"
+                              :autosize="true"
+                              v-model="item.createParams"
+                            />
+                            <Button
+                              size="small"
+                              type="success"
+                              @click="
+                                createPluginInstanceByPackageIdAndHostIp(
+                                  item.ip,
+                                  item.port,
+                                  item.createParams
+                                )
+                              "
+                              >{{ $t("create") }}</Button
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </Row>
+                    <Row>
+                      <p style="margin-top: 20px">{{ $t("running_node") }}:</p>
+                      <div v-if="allInstances.length === 0">
+                        {{ $t("no_avaliable_instances") }}
+                      </div>
+                      <div v-else>
+                        <div v-for="item in allInstances" :key="item.id">
+                          <div class="instance-item-container">
+                            <div class="instance-item">
+                              {{ item.displayLabel }}
+                            </div>
+
+                            <Button
+                              size="small"
+                              type="error"
+                              @click="removePluginInstance(item.id)"
+                              >{{ $t("ternmiante") }}</Button
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </Row>
+                  </Card>
+
+                  <Card style="margin-top: 20px">
+                    <p>{{ $t("log_query") }}</p>
+                    <div style="padding: 0 0 50px 0;margin-top: 20px">
+                      <WeTable
+                        :tableData="tableData"
+                        :tableInnerActions="innerActions"
+                        :tableColumns="logTableColumns"
+                        :pagination="pagination"
+                        @actionFun="actionFun"
+                        @handleSubmit="handleSubmit"
+                        @pageChange="pageChange"
+                        @pageSizeChange="pageSizeChange"
+                        :showCheckbox="false"
+                        tableHeight="650"
+                        ref="table"
+                      ></WeTable>
                     </div>
-                  </div>
-                </div>
-              </Row>
-              <Row>
-                <p style="margin-top: 20px">{{ $t("running_node") }}:</p>
-                <div v-if="allInstances.length === 0">
-                  {{ $t("no_avaliable_instances") }}
-                </div>
-                <div v-else>
-                  <div v-for="item in allInstances" :key="item.id">
-                    <div class="instance-item-container">
-                      <div class="instance-item">{{ item.displayLabel }}</div>
 
-                      <Button
-                        size="small"
-                        type="error"
-                        @click="removePluginInstance(item.id)"
-                        >{{ $t("ternmiante") }}</Button
-                      >
-                    </div>
-                  </div>
-                </div>
-              </Row>
-            </Card>
-
-            <Card style="margin-top: 20px">
-              <p slot="title">{{ $t("log_query") }}</p>
-              <div style="padding: 0 0 50px 0">
-                <WeTable
-                  :tableData="tableData"
-                  :tableInnerActions="innerActions"
-                  :tableColumns="tableColumns"
-                  :pagination="pagination"
-                  @actionFun="actionFun"
-                  @handleSubmit="handleSubmit"
-                  @pageChange="pageChange"
-                  @pageSizeChange="pageSizeChange"
-                  :showCheckbox="false"
-                  tableHeight="650"
-                  ref="table"
-                ></WeTable>
-              </div>
-
-              <Modal
-                v-model="logDetailsModalVisible"
-                :title="$t('log_details')"
-                footer-hide
-                width="70"
-              >
-                <div
-                  lang="json"
-                  style="white-space: pre-wrap;"
-                  v-html="logDetails"
-                ></div>
-              </Modal>
-            </Card>
+                    <Modal
+                      v-model="logDetailsModalVisible"
+                      :title="$t('log_details')"
+                      footer-hide
+                      width="70"
+                    >
+                      <div
+                        lang="json"
+                        style="white-space: pre-wrap;"
+                        v-html="logDetails"
+                      ></div>
+                    </Modal>
+                  </Card>
+                </p>
+              </Panel>
+              <Panel name="2">
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("database")
+                }}</span>
+                <Row slot="content">
+                  <Row>
+                    <Col span="16">
+                      <Input
+                        v-model="dbQueryCommandString"
+                        type="textarea"
+                        :placeholder="$t('only_select')"
+                      />
+                    </Col>
+                    <Col span="4" offset="1">
+                      <Button @click="queryDBHandler">{{
+                        $t("execute")
+                      }}</Button>
+                    </Col>
+                  </Row>
+                  <Row>
+                    {{ $t("search_result") }}
+                    <Table
+                      :columns="dbQueryColumns"
+                      :data="dbQueryData"
+                    ></Table>
+                  </Row>
+                </Row>
+              </Panel>
+              <Panel name="3">
+                <span style="font-size: 14px; font-weight: 600">{{
+                  $t("storage_service")
+                }}</span>
+                <Row slot="content">
+                  <Table
+                    :columns="storageServiceColumns"
+                    :data="storageServiceData"
+                  ></Table>
+                </Row>
+              </Panel>
+            </Collapse>
           </Row>
         </div>
-        <Form v-else :model="form">
-          <Row>
-            <Col span="6" offset="0">
-              <FormItem :label-width="50" label="Plugin">
-                <Input v-model="currentPlugin.name" disabled />
-              </FormItem>
-            </Col>
-            <Col span="6" offset="1">
-              <FormItem :label-width="100" label="CI Type">
-                <Select
-                  @on-change="selectCiType"
-                  label-in-value
-                  v-model="selectedCiType"
-                >
-                  <OptionGroup
-                    v-for="ci in ciTypes"
-                    :label="ci.value || '-'"
-                    :key="ci.code"
-                  >
-                    <Option
-                      v-for="item in ci.ciTypes"
-                      :value="item.ciTypeId || ''"
-                      :key="item.ciTypeId"
-                      >{{ item.name }}</Option
-                    >
-                  </OptionGroup>
-                </Select>
-              </FormItem>
-            </Col>
-            <Col
-              style="margin-top:-5px"
-              span="6"
-              offset="1"
-              v-if="selectedCiType !== ''"
-            >
-              <refPayloadModal
-                :ciRulesFilters="ciRulesFilters"
-                @handleSubmit="getCIRulesPayload"
-              ></refPayloadModal>
-            </Col>
-          </Row>
-          <hr />
-          <Row style="margin-bottom:10px;margin-top:10px">
-            <Col span="3">
-              <span>{{ $t("operation") }}</span>
-            </Col>
-            <Col span="2">
-              <span>{{ $t("params_type") }}</span>
-            </Col>
-            <Col span="3">
-              <span>{{ $t("data_status") }}</span>
-            </Col>
-            <Col span="3">
-              <span>{{ $t("params_name") }}</span>
-            </Col>
-            <Col span="5" offset="1">
-              <span>{{ $t("cmdb_attr") }}</span>
-            </Col>
-          </Row>
-          <Row
-            style="margin-top:20px; border-bottom: 1px solid #2c3e50"
-            v-for="(interfaces, index) in pluginInterfaces"
-            :key="interfaces.id"
-          >
-            <Col span="3">
-              <Tooltip :content="interfaces.name">
-                <span
-                  style="display: inline-block;max-width: 95%;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                >
-                  {{ interfaces.name }}
-                </span>
-              </Tooltip>
-            </Col>
-            <Col span="21">
-              <Row>
-                <Col span="2">
-                  <FormItem :label-width="0">
-                    <span>{{ $t("input_params") }}</span>
-                  </FormItem>
-                </Col>
-                <Col span="3">
-                  <FormItem :label-width="0">
-                    <Select v-model="interfaces.filterStatus" clearable>
-                      <Option
-                        v-for="item in ciStatus"
-                        :value="item.value.toString()"
-                        :key="item.value"
-                        >{{ item.label }}</Option
-                      >
-                    </Select>
-                  </FormItem>
-                </Col>
-                <Col span="17" offset="1">
-                  <Row
-                    v-for="param in interfaces.inputParameters"
-                    :key="param.id"
-                  >
-                    <Col span="5">
-                      <FormItem :label-width="0">
-                        <Tooltip :content="param.name">
-                          <span
-                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                          >
-                            {{ param.name }}
-                          </span>
-                        </Tooltip>
-                      </FormItem>
-                    </Col>
-                    <Col span="18">
-                      <FormItem :label-width="0">
-                        <!-- <AttrInput
-                          :allCiTypes="ciTypes"
-                          :cmdbColumnSource="param.cmdbColumnSource"
-                          :rootCiType="selectedCiType"
-                          v-model="param.cmdbAttr"
-                          :ciTypesObj="ciTypesObj"
-                          :ciTypeAttributeObj="ciTypeAttributeObj"
-                        /> -->
-                        <CmdbAttrInput
-                          :allCodes="allCodes"
-                          :allCiTypes="ciTypes"
-                          :paramData="param"
-                          :rootCiType="selectedCiType"
-                          v-model="param.cmdbAttr"
-                          :ciTypesObj="ciTypesObj"
-                          :ciTypeAttributeObj="ciTypeAttributeObj"
-                        />
-                      </FormItem>
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-              <Row>
-                <Col span="2">
-                  <FormItem :label-width="0">
-                    <span>{{ $t("output_params") }}</span>
-                  </FormItem>
-                </Col>
-                <Col span="3">
-                  <FormItem :label-width="0">
-                    <Select v-model="interfaces.resultStatus" clearable>
-                      <Option
-                        v-for="item in ciStatus"
-                        :value="item.value.toString()"
-                        :key="item.value"
-                        >{{ item.label }}</Option
-                      >
-                    </Select>
-                  </FormItem>
-                </Col>
-                <Col span="17" offset="1">
-                  <Row
-                    v-for="outPut in interfaces.outputParameters"
-                    :key="outPut.id + 1000"
-                  >
-                    <Col span="5">
-                      <FormItem :label-width="0">
-                        <Tooltip :content="outPut.name">
-                          <span
-                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                          >
-                            {{ outPut.name }}
-                          </span>
-                        </Tooltip>
-                      </FormItem>
-                    </Col>
-                    <Col span="18">
-                      <FormItem :label-width="0">
-                        <Select
-                          style="width:150px"
-                          v-model="outPut.cmdbColumnSource"
-                          clearable
-                        >
-                          <Option
-                            v-for="attr in currentCiTyPeAttr"
-                            :key="attr.propertyName"
-                            :value="attr.propertyName"
-                            :label="attr.name"
-                          ></Option>
-                        </Select>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-          <Row style="margin:20px auto">
-            <Col span="5" offset="10">
-              <Button
-                type="primary"
-                v-if="
-                  currentPlugin.status === 'NOT_CONFIGURED' ||
-                    currentPlugin.status === 'CONFIGURED' ||
-                    currentPlugin.status === 'DECOMMISSIONED'
-                "
-                @click="pluginSave"
-                >{{ $t("save") }}</Button
-              >
-              <Button
-                type="primary"
-                v-if="
-                  currentPlugin.status === 'CONFIGURED' ||
-                    currentPlugin.status === 'DECOMMISSIONED'
-                "
-                @click="regist"
-                >{{ $t("regist") }}</Button
-              >
-              <Button
-                type="error"
-                v-if="currentPlugin.status === 'ONLINE'"
-                @click="removePlugin"
-                >{{ $t("decommission") }}</Button
-              >
-            </Col>
-          </Row>
-        </Form>
       </div>
     </Col>
   </Row>
 </template>
 <script>
-import AttrSelect from "../components/attr-select";
-import AttrInput from "../components/attr-input";
-import CmdbAttrInput from "../components/cmdb-attr-input";
 import {
   getAllCITypesByLayerWithAttr,
   getAllPluginPkgs,
@@ -394,39 +314,43 @@ import {
   releasePluginConfig,
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
-  preconfigurePluginPackage
+  preconfigurePluginPackage,
+  deletePluginPkg,
+  registPluginPackage
 } from "@/api/server.js";
 
-import refPayloadModal from "./components/ref-payload-modal.js";
+const pagination = {
+  pageSize: 10,
+  currentPage: 1,
+  total: 0
+};
+
+import DataModel from "./components/data-model.vue";
+import DependencyAnalysis from "./components/dependency-analysis.vue";
+import PluginRegister from "./components/plugin-register.vue";
+import MenuInjection from "./components/menu-injection.vue";
+import SysParmas from "./components/system-params.vue";
+import RuntimesResources from "./components/runtime-resource.vue";
+import AuthSettings from "./components/auth-setting.vue";
 
 export default {
   components: {
-    AttrSelect,
-    AttrInput,
-    refPayloadModal,
-    CmdbAttrInput
+    DataModel,
+    DependencyAnalysis,
+    PluginRegister,
+    MenuInjection,
+    SysParmas,
+    RuntimesResources,
+    AuthSettings
   },
   data() {
     return {
-      allCodes: [],
-      ciTypesObj: {},
-      ciTypeAttributeObj: {},
-      allAvailiableHosts: [],
-      selectHosts: [],
-      availiableHostsWithPort: [],
-      ciStatus: [],
       plugins: [],
-      ciTypes: [],
-      pluginInterfaces: [],
-      selectedCiType: "",
-      selectedCiTypeIdAndName: {},
+      isShowConfigPanel: false,
+      isShowServicePanel: false,
+      isShowRuntimeManagementPanel: false,
+      currentTab: "dependency",
       currentPlugin: {},
-      currentCiTyPeAttr: [],
-      allInstances: [],
-      currentPackageId: 0,
-      currentInstanceId: 0,
-      createIpValue: "",
-      form: {},
       tableData: [],
       totalTableData: [],
       innerActions: [
@@ -439,7 +363,7 @@ export default {
           actionType: "showLogDetails"
         }
       ],
-      tableColumns: [
+      logTableColumns: [
         {
           title: this.$t("instance"),
           key: "instance",
@@ -485,397 +409,64 @@ export default {
           placeholder: this.$t("match_text")
         }
       ],
-      pagination: {
-        pageSize: 10,
-        currentPage: 1,
-        total: 0
-      },
+      pagination,
+      allAvailiableHosts: [],
+      allInstances: [],
       searchFilters: [],
       logDetailsModalVisible: false,
       logDetails: "",
-      ciRulesFilters: [],
-      ciRulesPayload: [],
-      isLoading: false,
-      defaultCreateParams: ""
+      dbQueryCommandString: "",
+      dbQueryColumns: [],
+      dbQueryData: [],
+      storageServiceColumns: [
+        {
+          title: this.$t("file_name"),
+          key: "file"
+        },
+        {
+          title: this.$t("path"),
+          key: "path"
+        },
+        {
+          title: "hash",
+          key: "hash"
+        },
+        {
+          title: this.$t("upload_time"),
+          key: "uploadTime"
+        }
+      ],
+      storageServiceData: [],
+      defaultCreateParams: "",
+      selectHosts: [],
+      availiableHostsWithPort: []
     };
   },
-  watch: {
-    currentPlugin: {
-      handler(val) {},
-      deep: true
-    },
-    selectedCiType: {
-      handler(val) {
-        this.selectCiType({ value: val });
-      },
-      immediate: true
-    }
-  },
   methods: {
-    async getAllCITypesByLayerWithAttr() {
-      let { status, data, message } = await getAllCITypesByLayerWithAttr([
-        "notCreated",
-        "created",
-        "dirty",
-        "decommissioned"
-      ]);
-      if (status === "OK") {
-        let ciTypes = {};
-        let ciTypeAttrs = {};
-
-        let tempCITypes = JSON.parse(JSON.stringify(data));
-        tempCITypes.forEach(_ => {
-          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
-        });
-        this.ciTypes = tempCITypes;
-
-        data.forEach(layer => {
-          if (layer.ciTypes instanceof Array) {
-            layer.ciTypes.forEach(citype => {
-              ciTypes[citype.ciTypeId] = citype;
-              if (citype.attributes instanceof Array) {
-                citype.attributes.forEach(citypeAttr => {
-                  ciTypeAttrs[citypeAttr.ciTypeAttrId] = citypeAttr;
-                });
-              }
-            });
-          }
-        });
-        this.ciTypesObj = ciTypes;
-        this.ciTypeAttributeObj = ciTypeAttrs;
-      }
-    },
-    pageChange(current) {
-      this.pagination.currentPage = current;
-      this.handlePaginationByFE();
-    },
-    pageSizeChange(size) {
-      this.pagination.pageSize = size;
-      this.handlePaginationByFE();
-    },
-    actionFun(type, data) {
-      if (type === "showLogDetails") {
-        this.getLogDetail(data);
-      }
-    },
-    getCIRulesPayload(data) {
-      this.ciRulesPayload = [];
-      for (let i in data) {
-        this.ciRulesPayload.push({
-          cmdbAttributeId: i,
-          filteringValues: data[i]
-        });
-      }
-    },
-    async getCiStatus(id) {
-      // getAllSystemEnumCodes
-      const payload = {
-        filters: [{ name: "cat.catId", operator: "eq", value: id }]
-      };
-      let { data, status, message } = await getAllSystemEnumCodes(payload);
-      if (status === "OK") {
-        this.ciStatus = data.contents.map(_ => {
-          return {
-            value: _.codeId,
-            label: _.value || ""
-          };
-        });
-      }
-    },
-    async getAllCodes() {
-      // getAllSystemEnumCodes
-      const payload = {
-        filters: [],
-        paging: false
-      };
-      let { data, status, message } = await getAllSystemEnumCodes(payload);
-      if (status === "OK") {
-        this.allCodes = data.contents
-          .map(_ => {
-            return {
-              codeId: _.codeId,
-              value: _.codeId,
-              label: _.value || "",
-              catName: _.cat.catName
-            };
-          })
-          .filter(i => i.catName != "tab_query_of_architecture_design")
-          .filter(j => j.catName != "tab_query_of_deploy_design");
-      }
-    },
-    async getLogDetail(logData) {
-      const payload = {
-        inputs: [
-          {
-            file_name: logData.file_name,
-            line_number: logData.line_number,
-            relate_line_count: 10
-          }
-        ]
-      };
-
-      let { data, status, message } = await getPluginInstanceLogDetail(
-        logData.instanceId,
-        payload
-      );
-      if (status === "OK") {
-        this.logDetailsModalVisible = true;
-        let re = new RegExp(this.searchFilters[1].value, "g");
-        this.logDetails = data.outputs[0].logs
-          .toString()
-          .replace(
-            re,
-            `<span style="background-color: #ff0">${
-              this.searchFilters[1].value
-            }</span>`
-          );
-      }
-    },
-    handleSubmit(data) {
-      this.searchFilters = data;
-      this.getTableData();
-    },
-    async regist() {
-      const saveRes = await this.pluginSave();
-      if (saveRes.status === "OK") {
-        let { status, data, message } = await releasePluginConfig(
-          this.currentPlugin.id
-        );
-        if (status === "OK") {
-          this.$Notice.success({
-            title: "Success",
-            desc: message
-          });
-          this.queryPluginAffterUpdate();
-        }
-      }
-    },
-    async pluginSave() {
-      let payload = [];
-      payload = this.pluginInterfaces.map(i => {
-        return {
-          interfaceFilterStatus: i.filterStatus
-            ? i.filterStatus.toString()
-            : "",
-          interfaceResultStatus: i.resultStatus
-            ? i.resultStatus.toString()
-            : "",
-          inputParameterMappings: i.inputParameters.map(inp => {
-            const params = inp.cmdbAttr.cmdbColumnCriteria;
-            const routine = params
-              ? params.routine.length === 1
-                ? params.routine
-                : params.routine.slice(0, -1)
-              : null;
-            return {
-              routine: routine,
-              mappingType: inp.cmdbAttr.mappingType,
-              cmdbEnumCode: inp.cmdbAttr.cmdbEnumCode,
-              cmdbAttributeId: params ? params.attribute.attrId : null,
-              cmdbCiTypeId:
-                routine &&
-                routine[routine.length - 1] &&
-                routine[routine.length - 1].ciTypeId,
-              cmdbColumnSource: inp.cmdbAttr.cmdbColumnSource
-                ? JSON.stringify(inp.cmdbAttr.cmdbColumnSource)
-                : null,
-              parameterId: inp.id
-            };
-          }),
-          interfaceId: i.id.toString(),
-          interfaceName: i.name,
-          outputParameterMappings: i.outputParameters.map(out => {
-            return {
-              cmdbColumnSource: out.cmdbColumnSource,
-              parameterId: out.id
-            };
-          })
-        };
-      });
-      const requestData = {
-        cmdbCiTypeId: this.selectedCiTypeIdAndName.value,
-        cmdbCiTypeName: this.selectedCiTypeIdAndName.label,
-        configId: this.currentPlugin.id,
-        pluginRegisteringModels: {
-          filteringRuleConfigs: this.ciRulesPayload,
-          interfaceConfigs: payload
-        }
-      };
-      let { status, data, message } = await savePluginInstance(requestData);
-      if (status === "OK") {
+    async onSuccess(response, file, filelist) {
+      if (response.status === "OK") {
         this.$Notice.success({
           title: "Success",
-          desc: message
+          desc: response.message || ""
         });
-        this.queryPluginAffterUpdate();
-      }
-      return { status, data, message };
-    },
-    async removePlugin() {
-      let { status, data, message } = await decommissionPluginConfig(
-        this.currentPlugin.id
-      );
-      if (status === "OK") {
-        this.$Notice.success({
-          title: "Success",
-          desc: message
-        });
-        this.queryPluginAffterUpdate();
-      }
-    },
-    async queryPluginAffterUpdate() {
-      let { status, data, message } = await getAllPluginPkgs();
-      if (status === "OK") {
-        this.plugins = data.map(_ => {
-          return {
-            ..._,
-            title: `${_.name}[${_.version}]`,
-            id: _.id,
-            expand: false,
-            checked: false,
-            children: _.pluginConfigs.map(i => {
-              return {
-                ...i,
-                title: i.name,
-                id: i.id,
-                expand: true,
-                checked: false
-              };
-            })
-          };
-        });
-        this.plugins.forEach(_ => {
-          const found = _.pluginConfigs.find(
-            p => p.id === this.currentPlugin.id
-          );
-          if (found) {
-            this.currentPlugin = found;
-            return;
-          }
+        this.getAllPluginPkgs();
+      } else {
+        this.$Notice.warning({
+          title: "Warning",
+          desc: response.message || ""
         });
       }
     },
-    async selectCiType(c) {
-      if (c && c.value) {
-        this.pluginInterfaces.forEach(_ => {
-          _.inputParameters.forEach(inparams => {
-            this.$set(inparams, "cmdbAttr", inparams);
-          });
-          // _.outputParameters.forEach(outparams => {
-          //   this.$set(outparams, "cmdbColumnSource", _.cmdbColumnSource||'');
-          // });
-        });
-        this.selectedCiTypeIdAndName = c;
-        const ciTypeAttr = await getCiTypeAttr(c.value);
-        if (ciTypeAttr.status === "OK") {
-          this.currentCiTyPeAttr = ciTypeAttr.data;
-          const statusId = ciTypeAttr.data.find(
-            attr => attr.propertyName === "state"
-          ).referenceId;
-          this.getCiStatus(statusId);
-        }
-        this.setCiRulesFilters(c.value);
-      }
-    },
-    async setCiRulesFilters(id) {
-      let getRefAndSelectData = refAndSelectData => {
-        this.ciRulesFilters = [];
-        refAndSelectData.forEach(async (item, index) => {
-          if (item.inputType === "select") {
-            const { status, message, data } = await getEnumCodesByCategoryId(
-              0,
-              item.referenceId
-            );
-
-            item["options"] = data
-              .filter(j => j.status === "active")
-              .map(i => {
-                return {
-                  label: i.code,
-                  value: i.codeId
-                };
-              });
-
-            this.ciRulesFilters.push(item);
-          } else {
-            this.ciRulesFilters.push(item);
-          }
-        });
-      };
-
-      let refAndSelectRes = await getCiTypeAttrRefAndSelect(id);
-      if (refAndSelectRes.status === "OK") {
-        getRefAndSelectData(refAndSelectRes.data);
-      }
-    },
-    async selectPlugin(plugins, currentPlugin) {
-      this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
-      this.currentPlugin = currentPlugin;
-      let { status, data, message } = await getPluginInterfaces(
-        currentPlugin.id
-      );
-      if (status === "OK") {
-        this.pluginInterfaces = data.map(d => {
-          return {
-            ...d,
-            inputParameters: d.inputParameters.sort((a, b) => a.id - b.id),
-            outputParameters: d.outputParameters.sort((a, b) => a.id - b.id)
-          };
-        });
-        this.defaultCreateParams = currentPlugin.containerStartParam;
-      }
-      const ciTypeId = currentPlugin.cmdbCiTypeId;
-      if (ciTypeId) {
-        this.setCiRulesFilters(ciTypeId);
-        this.ciTypes.forEach(_ => {
-          const found =
-            _.ciTypes && _.ciTypes.find(c => c.ciTypeId === ciTypeId);
-          if (found) {
-            this.selectedCiTypeIdAndName = {
-              value: found.ciTypeId,
-              label: found.name
-            };
-          }
-        });
-        const ciTypeAttr = await getCiTypeAttr(ciTypeId);
-        this.currentCiTyPeAttr = ciTypeAttr.data;
-      }
-
-      if (currentPlugin.pluginConfigs) {
-        this.selectHosts = [];
-        this.availiableHostsWithPort = [];
-        this.currentPackageId = currentPlugin.id;
-        this.getAllInstancesByPackageId(this.currentPackageId);
-      }
-      this.getAvailableContainerHosts();
-      this.resetLogTable();
-    },
-    resetLogTable() {
-      this.tableData = [];
-      this.totalTableData = [];
-      this.$refs.table && this.$refs.table.reset();
-    },
-    async getAvailableContainerHosts() {
-      const { data, status, message } = await getAvailableContainerHosts();
-      if (status === "OK") {
-        this.allAvailiableHosts = data;
-      }
-    },
-    selectHost(v) {
-      this.selectHosts = v;
-    },
-    getAvailablePortByHostIp() {
-      this.availiableHostsWithPort = [];
-      this.selectHosts.forEach(async _ => {
-        const { data, status, message } = await getAvailablePortByHostIp(_);
-        if (status === "OK") {
-          this.availiableHostsWithPort.push({
-            ip: _,
-            port: data,
-            createParams: this.defaultCreateParams
-          });
-        }
+    onError(error, file, filelist) {
+      this.$Notice.error({
+        title: "Error",
+        desc: file.message || ""
       });
+    },
+    swapPanel(panel) {
+      this.isShowServicePanel = panel === "servicePanel";
+      this.isShowConfigPanel = panel === "pluginConfigPanel";
+      this.isShowRuntimeManagementPanel = panel === "runtimeManagePanel";
     },
     async createPluginInstanceByPackageIdAndHostIp(ip, port, createParams) {
       let errorFlag = false;
@@ -910,8 +501,63 @@ export default {
       }
       this.isLoading = false;
     },
+    async registPackage() {
+      console.log("currentPackageId", this.currentPackageId);
+      let { status, data, message } = await registPluginPackage(
+        this.currentPackageId
+      );
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message || ""
+        });
+      }
+    },
+    async deletePlugin(packageId) {
+      let { status, data, message } = await deletePluginPkg(packageId);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message || ""
+        });
+        this.getAllPluginPkgs();
+        this.swapPanel("");
+      }
+    },
+    configPlugin(packageId) {
+      this.swapPanel("pluginConfigPanel");
+      this.currentPlugin = this.plugins.find(_ => _.id === packageId);
+      this.selectedCiType = this.currentPlugin.cmdbCiTypeId || "";
+      this.currentPackageId = this.currentPlugin.id;
+    },
+    manageService(packageId) {
+      this.swapPanel("servicePanel");
+    },
+    async manageRuntimePlugin(packageId) {
+      this.swapPanel("runtimeManagePanel");
+
+      let currentPlugin = this.plugins.find(_ => _.id === packageId);
+      this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
+      this.currentPlugin = currentPlugin;
+      let { status, data, message } = await getPluginInterfaces(packageId);
+      if (status === "OK") {
+        this.defaultCreateParams = currentPlugin.containerStartParam;
+      }
+
+      if (currentPlugin.pluginConfigs) {
+        this.selectHosts = [];
+        this.availiableHostsWithPort = [];
+        this.currentPackageId = currentPlugin.id;
+        this.getAllInstancesByPackageId(this.currentPackageId);
+      }
+      this.getAvailableContainerHosts();
+      this.resetLogTable();
+    },
+    pluginPackageChangeHandler(key) {
+      this.swapPanel("");
+      this.dbQueryCommandString = "";
+    },
     async getAllInstancesByPackageId(id) {
-      this.isLoading = true;
       let { data, status, message } = await getAllInstancesByPackageId(id);
       if (status === "OK") {
         this.allInstances = data.map(_ => {
@@ -926,25 +572,37 @@ export default {
         });
         this.getHostsForTableFilter();
       }
-      this.isLoading = false;
     },
     getHostsForTableFilter() {
-      this.tableColumns[0].options = this.allInstances.map(_ => {
+      this.logTableColumns[0].options = this.allInstances.map(_ => {
         return {
           label: _.hostIp + ":" + _.port,
           value: _.id
         };
       });
     },
-    async removePluginInstance(instanceId) {
-      let { data, status, message } = await removePluginInstance(instanceId);
+    async getAvailableContainerHosts() {
+      const { data, status, message } = await getAvailableContainerHosts();
       if (status === "OK") {
-        this.$Notice.success({
-          title: "Success",
-          desc: message
-        });
-        this.getAllInstancesByPackageId(this.currentPackageId);
+        this.allAvailiableHosts = data;
       }
+    },
+    getAvailablePortByHostIp() {
+      this.availiableHostsWithPort = [];
+      this.selectHosts.forEach(async _ => {
+        const { data, status, message } = await getAvailablePortByHostIp(_);
+        if (status === "OK") {
+          this.availiableHostsWithPort.push({
+            ip: _,
+            port: data,
+            createParams: this.defaultCreateParams
+          });
+        }
+      });
+    },
+    handleSubmit(data) {
+      this.searchFilters = data;
+      this.getTableData();
     },
     async getTableData() {
       if (this.searchFilters.length < 2) return;
@@ -976,13 +634,29 @@ export default {
         this.handlePaginationByFE();
       }
     },
-    handlePaginationByFE() {
-      this.pagination.total = this.totalTableData.length;
-      let temp = Array.from(this.totalTableData);
-      this.tableData = temp.splice(
-        (this.pagination.currentPage - 1) * this.pagination.pageSize,
-        this.pagination.pageSize
-      );
+    pageChange(current) {
+      this.pagination.currentPage = current;
+      this.handlePaginationByFE();
+    },
+    pageSizeChange(size) {
+      this.pagination.pageSize = size;
+      this.handlePaginationByFE();
+    },
+    actionFun(type, data) {
+      if (type === "showLogDetails") {
+        this.getLogDetail(data);
+      }
+    },
+    resetLogTable() {
+      this.tableData = [];
+      this.totalTableData = [];
+      this.$refs.table && this.$refs.table.reset();
+    },
+    selectHost(v) {
+      this.selectHosts = v;
+    },
+    handleTabClick(name) {
+      this.currentTab = name;
     },
     async getAllPluginPkgs() {
       let { status, data, message } = await getAllPluginPkgs();
@@ -1007,33 +681,12 @@ export default {
         });
       }
     },
-
-    async onSuccess(response, file, filelist) {
-      this.$Notice.success({
-        title: "Success",
-        desc: response.message || ""
-      });
-      if (response.status === "OK") {
-        const { message, status, data } = await preconfigurePluginPackage(
-          response.data.id
-        );
-        this.getAllPluginPkgs();
-      }
-    },
-    onError(error, file, filelist) {
-      this.$Notice.error({
-        title: "Error",
-        desc: file.message || ""
-      });
+    queryDBHandler() {
+      console.log("db query", this.dbQueryCommandString);
     }
   },
-
   created() {
-    this.getAllCITypesByLayerWithAttr();
     this.getAllPluginPkgs();
-  },
-  mounted() {
-    this.getAllCodes();
   },
   computed: {
     setUploadActionHeader() {
@@ -1047,35 +700,4 @@ export default {
   }
 };
 </script>
-
-<style lang="scss" scoped>
-.plugins-tree-container {
-  margin-top: 30px;
-}
-
-.instances-container {
-  height: 300px;
-  .instance-query-input {
-    width: 200px;
-    margin-right: 20px;
-  }
-  .instance-item-container {
-    line-height: 30px;
-    overflow-y: auto;
-
-    .instance-item {
-      width: 220px;
-      display: inline-block;
-    }
-  }
-}
-
-.result-container {
-  max-height: 700px;
-  overflow-y: auto;
-}
-.ivu-form-item {
-  margin-bottom: 10px;
-  margin-top: -6px;
-}
-</style>
+<style lang="scss"></style>
