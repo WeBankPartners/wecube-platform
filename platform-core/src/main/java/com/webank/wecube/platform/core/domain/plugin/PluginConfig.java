@@ -1,17 +1,13 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.*;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @JsonIgnoreType
 @Entity
@@ -19,7 +15,7 @@ import java.util.List;
 public class PluginConfig {
 
     public enum Status {
-        NOT_CONFIGURED, CONFIGURED, ONLINE, DECOMMISSIONED
+        DISABLED, ENABLED
     }
 
     @Id
@@ -39,15 +35,18 @@ public class PluginConfig {
     @Column
     private Integer entityId;
 
+    @Column
+    private String entityName;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
 
-    @JsonIgnore
+    @JsonManagedReference
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PluginConfigInterface> interfaces = new ArrayList<>();
+    @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<PluginConfigInterface> interfaces = new LinkedHashSet<>();
 
     public void addPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
         this.interfaces.add(pluginConfigInterface);
@@ -58,6 +57,11 @@ public class PluginConfig {
     @ToString.Include
     public Integer getPluginPackageId() {
         return pluginPackage == null ? null : pluginPackage.getId();
+    }
+
+    public void setPluginPackageId(Integer pluginPackageId) {
+        this.pluginPackage = new PluginPackage();
+        this.pluginPackage.setId(pluginPackageId);
     }
 
     public Integer getId() {
@@ -92,6 +96,14 @@ public class PluginConfig {
         this.entityId = entityId;
     }
 
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
     public Status getStatus() {
         return status;
     }
@@ -100,28 +112,30 @@ public class PluginConfig {
         this.status = status;
     }
 
-    public List<PluginConfigInterface> getInterfaces() {
+    public Set<PluginConfigInterface> getInterfaces() {
         return interfaces;
     }
 
-    public void setInterfaces(List<PluginConfigInterface> interfaces) {
+    public void setInterfaces(Set<PluginConfigInterface> interfaces) {
         this.interfaces = interfaces;
     }
 
     public PluginConfig() {
     }
 
-    public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, Status status, List<PluginConfigInterface> interfaces) {
+    public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, String entityName, Status status, Set<PluginConfigInterface> interfaces) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.name = name;
         this.entityId = entityId;
+        this.entityName = entityName;
         this.status = status;
         this.interfaces = interfaces;
     }
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
     }
+
 }

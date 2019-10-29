@@ -334,6 +334,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             allAttributeReferenceByList.ifPresent(attributeList -> attributeList.forEach(attribute -> {
                 // the process of found reference by info
                 PluginPackageEntity referenceByEntity = attribute.getPluginPackageEntity();
+                Integer referenceByPackageId = referenceByEntity.getId();
                 String referenceByPackageName = referenceByEntity.getPluginPackage().getName();
                 String referenceByPackageVersion = referenceByEntity.getPluginPackage().getVersion();
                 String referenceByEntityName = referenceByEntity.getName();
@@ -343,6 +344,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                         !entityName.equals(referenceByEntityName)) {
                     // only add the dto to set when the attribute doesn't belong to this input entity
                     inputEntityDto.updateReferenceBy(
+                            referenceByPackageId,
                             referenceByPackageName,
                             referenceByPackageVersion,
                             referenceByEntityName,
@@ -363,6 +365,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                     entityReferenceTo.ifPresent(entity -> {
                         PluginPackageEntityDto entityReferenceToDto = PluginPackageEntityDto.fromDomain(entity);
                         inputEntityDto.updateReferenceTo(
+                                entityReferenceToDto.getId(),
                                 entityReferenceToDto.getPackageName(),
                                 entityReferenceToDto.getPackageVersion(),
                                 entityReferenceToDto.getName(),
