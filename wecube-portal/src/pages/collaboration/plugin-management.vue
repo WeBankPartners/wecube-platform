@@ -2,7 +2,7 @@
   <Row style="padding:20px">
     <Col span="6">
       <Row>
-        <Card>
+        <Card dis-hover>
           <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
           <Upload
             show-upload-list
@@ -34,20 +34,24 @@
               >
                 {{ plugin.name + "_" + plugin.version }}
                 <span style="float: right; margin-right: 10px">
-                  <Tooltip placement="top-start">
-                    <Button
-                      @click.stop.prevent="deletePlugin(plugin.id)"
-                      size="small"
-                      icon="ios-trash"
-                    ></Button>
-                  </Tooltip>
+                  <Button
+                    @click.stop.prevent="deletePlugin(plugin.id)"
+                    size="small"
+                    icon="ios-trash"
+                  ></Button>
                 </span>
                 <p slot="content">
                   <Button
                     @click="configPlugin(plugin.id)"
                     size="small"
+                    icon="ios-checkmark-circle"
+                    >{{ $t("plugin_config_check") }}</Button
+                  >
+                  <Button
+                    @click="manageService(plugin.id)"
+                    size="small"
                     icon="ios-construct"
-                    >{{ $t("regist_config") }}</Button
+                    >{{ $t("service_regist") }}</Button
                   >
                   <Button
                     @click="manageRuntimePlugin(plugin.id)"
@@ -100,13 +104,20 @@
             :pkgId="currentPackageId"
           ></RuntimesResources>
         </TabPane>
-        <TabPane name="plugins" :label="$t('plugin_regist')">
-          <PluginRegister
-            v-if="currentTab === 'plugins'"
-            :pkgId="currentPackageId"
-          ></PluginRegister>
+        <TabPane name="confirm" :label="$t('confirm')">
+          <Button type="info" @click="registPackage()">{{
+            $t("confirm_to_regist_plugin")
+          }}</Button>
         </TabPane>
       </Tabs>
+    </Col>
+    <Col span="17" offset="1" v-if="isShowServicePanel">
+      <Card dis-hover>
+        <PluginRegister
+          v-if="isShowServicePanel"
+          :pkgId="currentPackageId"
+        ></PluginRegister>
+      </Card>
     </Col>
     <Col span="17" offset="1" v-if="isShowRuntimeManagementPanel">
       <div v-if="Object.keys(currentPlugin).length > 0">
@@ -304,7 +315,8 @@ import {
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
   preconfigurePluginPackage,
-  deletePluginPkg
+  deletePluginPkg,
+  registPluginPackage
 } from "@/api/server.js";
 
 const pagination = {
@@ -335,6 +347,7 @@ export default {
     return {
       plugins: [],
       isShowConfigPanel: false,
+      isShowServicePanel: false,
       isShowRuntimeManagementPanel: false,
       currentTab: "dependency",
       currentPlugin: {},
@@ -450,9 +463,10 @@ export default {
         desc: file.message || ""
       });
     },
-    swapPanel(isShowConfigPanel) {
-      this.isShowConfigPanel = isShowConfigPanel;
-      this.isShowRuntimeManagementPanel = !isShowConfigPanel;
+    swapPanel(panel) {
+      this.isShowServicePanel = panel === "servicePanel";
+      this.isShowConfigPanel = panel === "pluginConfigPanel";
+      this.isShowRuntimeManagementPanel = panel === "runtimeManagePanel";
     },
     async createPluginInstanceByPackageIdAndHostIp(ip, port, createParams) {
       let errorFlag = false;
@@ -487,6 +501,18 @@ export default {
       }
       this.isLoading = false;
     },
+    async registPackage() {
+      console.log("currentPackageId", this.currentPackageId);
+      let { status, data, message } = await registPluginPackage(
+        this.currentPackageId
+      );
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message || ""
+        });
+      }
+    },
     async deletePlugin(packageId) {
       let { status, data, message } = await deletePluginPkg(packageId);
       if (status === "OK") {
@@ -495,17 +521,20 @@ export default {
           desc: message || ""
         });
         this.getAllPluginPkgs();
-        this.isShowConfigPanel = this.isShowRuntimeManagementPanel = false;
+        this.swapPanel("");
       }
     },
     configPlugin(packageId) {
-      this.swapPanel(true);
+      this.swapPanel("pluginConfigPanel");
       this.currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = this.currentPlugin.cmdbCiTypeId || "";
       this.currentPackageId = this.currentPlugin.id;
     },
+    manageService(packageId) {
+      this.swapPanel("servicePanel");
+    },
     async manageRuntimePlugin(packageId) {
-      this.swapPanel(false);
+      this.swapPanel("runtimeManagePanel");
 
       let currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
@@ -525,7 +554,7 @@ export default {
       this.resetLogTable();
     },
     pluginPackageChangeHandler(key) {
-      this.isShowConfigPanel = this.isShowRuntimeManagementPanel = false;
+      this.swapPanel("");
       this.dbQueryCommandString = "";
     },
     async getAllInstancesByPackageId(id) {
