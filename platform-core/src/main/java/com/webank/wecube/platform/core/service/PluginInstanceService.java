@@ -190,6 +190,10 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Plugin package id does not exist, id = " + packageId);
         PluginPackage pluginPackage = pluginPackageResult.get();
 
+        if (pluginPackage.getStatus().equals(PluginPackage.Status.DECOMMISSIONED)
+                || pluginPackage.getStatus().equals(PluginPackage.Status.UNREGISTERED))
+            throw new WecubeCoreException("'DECOMMISSIONED' or 'UNREGISTERED' state can not launch plugin instance ");
+
         PluginInstance instance = new PluginInstance();
         instance.setPluginPackage(pluginPackage);
 
@@ -261,7 +265,7 @@ public class PluginInstanceService {
                 mysqlInfo.getSchemaName(), dbPassword, "active");
         pluginMysqlInstanceRepository.saveAndFlush(mysqlInstance);
 
-        logger.info("createPluginMysqlDatabase done...");
+        logger.info("Mysql Database schema creation has done...");
         return mysqlInstance;
     }
 
@@ -276,6 +280,8 @@ public class PluginInstanceService {
         logger.info("createS3BucketDto = " + createS3BucketDto);
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createS3BucketDto));
+
+        logger.info("S3 bucket creation has done...");
         return result.get(0).getId();
     }
 
@@ -332,6 +338,7 @@ public class PluginInstanceService {
         List<ResourceItemDto> result = resourceManagementService
                 .createItems(Lists.newArrayList(createDockerInstanceDto));
 
+        logger.info("Container creation has done...");
         return result.get(0);
     }
 
@@ -378,6 +385,7 @@ public class PluginInstanceService {
             logger.error("Run command [unzip] meet error: ", e.getMessage());
             throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
         }
+        logger.info("UI package deployment has done...");
     }
 
     public void removePluginInstanceById(Integer instanceId) throws Exception {
