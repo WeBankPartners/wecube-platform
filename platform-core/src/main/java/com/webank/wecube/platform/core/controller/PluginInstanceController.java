@@ -52,8 +52,6 @@ public class PluginInstanceController {
     @DeleteMapping("/packages/instances/{instance-id}")
     @ResponseBody
     public JsonResponse removePluginInstance(@PathVariable(value = "instance-id") int instanceId) {
-
-        log.info("instanceId={}", instanceId);
         try {
             pluginInstanceService.removePluginInstanceById(instanceId);
         } catch (Exception e) {
@@ -63,18 +61,16 @@ public class PluginInstanceController {
         return okay();
     }
 
-    @GetMapping("/instances/packages/{package-id}")
-    @ResponseBody
-    public JsonResponse getInstancesByPackageId() {
-        List<PluginInstance> allInstances = pluginInstanceService.getAllInstances();
-        return okayWithData(allInstances);
-    }
+//    @GetMapping("/instances/packages/{package-id}")
+//    @ResponseBody
+//    public JsonResponse getInstancesByPackageId() {
+//        return okayWithData(pluginInstanceService.getAllInstances());
+//    }
 
     @GetMapping("/packages/{package-id}/instances")
     @ResponseBody
     public JsonResponse getAvailableInstancesByPackageId(@PathVariable(value = "package-id") int packageId) {
-        List<PluginInstance> allInstances = pluginInstanceService.getAvailableInstancesByPackageId(packageId);
-        return okayWithData(allInstances);
+        return okayWithData(pluginInstanceService.getAvailableInstancesByPackageId(packageId));
     }
 
 }
