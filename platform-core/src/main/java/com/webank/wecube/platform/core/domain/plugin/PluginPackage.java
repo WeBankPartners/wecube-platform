@@ -3,8 +3,6 @@ package com.webank.wecube.platform.core.domain.plugin;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
@@ -14,6 +12,10 @@ import java.util.Set;
 @Entity
 @Table(name = "plugin_packages")
 public class PluginPackage {
+    public enum Status {
+        UNREGISTERED, REGISTERED, RUNNING, STOPPED, DECOMMISSIONED
+    }
+
     @JsonIgnore
     private static final String DOCKER_IMAGE_FILE_NAME = "image.tar";
     @JsonIgnore
@@ -28,11 +30,9 @@ public class PluginPackage {
     @Column
     private String version;
 
-    @Column
-    private String pluginPackageImageUrl;
-
-    @Column
-    private String uiPackageUrl;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -71,17 +71,11 @@ public class PluginPackage {
     private Set<PluginConfig> pluginConfigs = new LinkedHashSet<>();
 
     @JsonManagedReference
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(mappedBy = "pluginPackage")
-    private Set<PluginInstance> pluginInstances = new LinkedHashSet<>();
+    @Transient
+    private Set<PluginPackageResourceFile> pluginPackageResourceFiles = new LinkedHashSet<>();
 
     public void addPluginConfig(PluginConfig pluginConfig) {
         this.pluginConfigs.add(pluginConfig);
-    }
-
-    public void addPluginInstance(PluginInstance pluginInstance) {
-        this.pluginInstances.add(pluginInstance);
     }
 
     public String getDockerImageFilename() {
@@ -95,19 +89,21 @@ public class PluginPackage {
     public PluginPackage() {
     }
 
-    public PluginPackage(Integer id, String name, String version, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginInstance> pluginInstances) {
+    public PluginPackage(Integer id, String name, String version, Status status, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<PluginPackageEntity> pluginPackageEntities, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
         this.id = id;
         this.name = name;
         this.version = version;
+        this.status = status;
         this.pluginPackageDependencies = pluginPackageDependencies;
         this.pluginPackageMenus = pluginPackageMenus;
+        this.pluginPackageEntities = pluginPackageEntities;
         this.systemVariables = systemVariables;
         this.pluginPackageAuthorities = pluginPackageAuthorities;
         this.pluginPackageRuntimeResourcesDocker = pluginPackageRuntimeResourcesDocker;
         this.pluginPackageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysql;
         this.pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3;
         this.pluginConfigs = pluginConfigs;
-        this.pluginInstances = pluginInstances;
+        this.pluginPackageResourceFiles = pluginPackageResourceFiles;
     }
 
     public Integer getId() {
@@ -134,20 +130,12 @@ public class PluginPackage {
         this.version = version;
     }
 
-    public String getPluginPackageImageUrl() {
-        return pluginPackageImageUrl;
+    public Status getStatus() {
+        return status;
     }
 
-    public void setPluginPackageImageUrl(String pluginPackageImageUrl) {
-        this.pluginPackageImageUrl = pluginPackageImageUrl;
-    }
-
-    public String getUiPackageUrl() {
-        return uiPackageUrl;
-    }
-
-    public void setUiPackageUrl(String uiPackageUrl) {
-        this.uiPackageUrl = uiPackageUrl;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public Set<PluginPackageDependency> getPluginPackageDependencies() {
@@ -222,12 +210,12 @@ public class PluginPackage {
         this.pluginConfigs = pluginConfigs;
     }
 
-    public Set<PluginInstance> getPluginInstances() {
-        return pluginInstances;
+    public Set<PluginPackageResourceFile> getPluginPackageResourceFiles() {
+        return pluginPackageResourceFiles;
     }
 
-    public void setPluginInstances(Set<PluginInstance> pluginInstances) {
-        this.pluginInstances = pluginInstances;
+    public void setPluginPackageResourceFiles(Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
+        this.pluginPackageResourceFiles = pluginPackageResourceFiles;
     }
 
     @Override

@@ -4,8 +4,7 @@ CREATE TABLE `plugin_packages` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(50) NOT NULL,
 	`version` VARCHAR(20) NOT NULL,
-	`plugin_package_image_url` VARCHAR(256) NOT NULL,
-	`ui_package_url` VARCHAR(256),
+    `status` VARCHAR(20) NOT NULL default 'UNREGISTERED',
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `name` (`name`, `version`)
 );
@@ -99,7 +98,7 @@ drop table if exists plugin_package_runtime_resources_mysql;
 create table plugin_package_runtime_resources_mysql (
   id int auto_increment primary key,
   plugin_package_id int(11) not null,
-  schema varchar(128) not null,
+  schema_name varchar(128) not null,
   init_file_name varchar(256),
   upgrade_file_name varchar(256),
   PRIMARY KEY (`id`)
@@ -120,7 +119,8 @@ CREATE TABLE `plugin_configs` (
   `plugin_package_id` INT(11) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
   `entity_id` INT(11) NULL DEFAULT NULL,
-  `status` VARCHAR(50) NOT NULL,
+  `entity_name` VARCHAR(100) NOT NULL,
+  `status` VARCHAR(20) NOT NULL default 'DISABLED',
   PRIMARY KEY (`id`)
 );
 
@@ -159,4 +159,33 @@ create table plugin_instances (
   port int ,
   status varchar(50) not null,
   unique key (host,port)
+);
+
+drop table if exists menu_items;
+create table menu_items
+(
+    id          int auto_increment primary key,
+    parent_id   int,
+    code        varchar(50) not null,
+    description varchar(200),
+    unique key uk_code (code)
+);
+
+drop table if exists role_menu;
+create table role_menu
+(
+    id      int auto_increment primary key,
+    role_id int not null,
+    menu_id int not null,
+    unique key uk_roleid_menuid (role_id, menu_id)
+);
+
+drop table if exists plugin_package_resource_files;
+create table plugin_package_resource_files
+(
+  id int auto_increment primary key,
+  plugin_package_id int(11) not null,
+  source varchar(64) not null,
+  related_path varchar(64) not null,
+  PRIMARY KEY (`id`)
 );
