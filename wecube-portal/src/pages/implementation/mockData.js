@@ -69,75 +69,104 @@ export const modelData = [
 
 export const flowData = [
   {
-    id: 1,
+    id: 0,
     name: "开始",
-    toGraphNodeIds: [2],
+    toGraphNodeIds: [1],
     refGraphNodeIds: []
   },
   {
-    id: 2,
+    id: 1,
     name: "创建虚拟机",
-    toGraphNodeIds: [3],
+    toGraphNodeIds: [2],
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
-    id: 3,
+    id: 2,
     name: "创建挂载磁盘",
-    toGraphNodeIds: [4],
+    toGraphNodeIds: [3],
     refGraphNodeIds: ["DISK1", "DISK2"]
   },
   {
-    id: 4,
+    id: 3,
     name: "安装 saltstack agent",
-    toGraphNodeIds: [5],
+    toGraphNodeIds: [4],
     refGraphNodeIds: ["INS1", "INS2"]
+  },
+  {
+    id: 4,
+    name: "安装监控agent",
+    toGraphNodeIds: [5],
+    refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 5,
-    name: "安装监控agent",
+    name: "创建部署用户",
     toGraphNodeIds: [6],
-    refGraphNodeIds: ["INS1", "INS2"]
+    refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 6,
-    name: "创建部署用户",
+    name: "差异化变量替换",
     toGraphNodeIds: [7],
-    refGraphNodeIds: []
+    refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 7,
-    name: "差异化变量替换",
+    name: "物料包分发解压",
     toGraphNodeIds: [8],
-    refGraphNodeIds: []
+    refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 8,
-    name: "物料包分发解压",
+    name: "执行部署脚本",
     toGraphNodeIds: [9],
-    refGraphNodeIds: []
+    refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 9,
-    name: "执行部署脚本",
+    name: "执行启动脚本",
     toGraphNodeIds: [10],
-    refGraphNodeIds: []
+    refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 10,
-    name: "执行启动脚本",
+    name: "启动应用监控",
     toGraphNodeIds: [11],
-    refGraphNodeIds: []
+    refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 11,
-    name: "启动应用监控",
-    toGraphNodeIds: [12],
-    refGraphNodeIds: []
-  },
-  {
-    id: 12,
     name: "结束",
     toGraphNodeIds: [],
     refGraphNodeIds: []
+  }
+];
+
+export const allFlows = [
+  {
+    id: 1,
+    orchestration: {
+      orchestrationId: 1001,
+      orchestrationName: "应用部署"
+    },
+    target: {
+      targetId: 2001,
+      targetName: "存款系统-核心子系统-APP单元"
+    },
+    timestamp: "2018.01.01 12:22:23",
+    createBy: "刘超"
+  },
+  {
+    id: 2,
+    orchestration: {
+      orchestrationId: 1002,
+      orchestrationName: "安全区域创建"
+    },
+    target: {
+      targetId: 2002,
+      targetName: "SZ1-DMZ"
+    },
+    timestamp: "2018.12.12 16:44:23",
+    createBy: "张桐"
   }
 ];
