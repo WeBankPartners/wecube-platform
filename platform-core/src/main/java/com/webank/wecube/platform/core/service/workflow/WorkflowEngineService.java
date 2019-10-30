@@ -1,16 +1,21 @@
 package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.HistoryService;
+import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.repository.DeploymentWithDefinitions;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.repository.ProcessDefinitionQuery;
+import org.camunda.bpm.engine.runtime.EventSubscription;
+import org.camunda.bpm.engine.runtime.EventSubscriptionQuery;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
@@ -24,12 +29,14 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.ProcDefOutline;
 import com.webank.wecube.platform.workflow.model.ProcFlowNode;
 import com.webank.wecube.platform.workflow.model.ProcFlowNodeInst;
 import com.webank.wecube.platform.workflow.model.ProcInstOutline;
+import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 import com.webank.wecube.platform.workflow.parse.BpmnParseAttachment;
@@ -42,6 +49,9 @@ import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepositor
 public class WorkflowEngineService {
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowEngineService.class);
+    
+    public static final int SERVICE_TASK_EXECUTE_SUCC = 0;
+    public static final int SERVICE_TASK_EXECUTE_ERR = 1;
 
     private static final String BPMN_SUFFIX = ".bpmn20.xml";
 
@@ -55,20 +65,105 @@ public class WorkflowEngineService {
     
     @Autowired
     protected HistoryService historyService;
+    
+    @Autowired
+    protected ManagementService managementService;
 
     @Autowired
     protected ProcessInstanceStatusRepository processInstanceStatusRepository;
 
     @Autowired
     protected ServiceNodeStatusRepository serviceNodeStatusRepository;
+    
+    public void handleServiceInvocationResult(ServiceInvocationEvent event){
+        
+        String procInstId = event.getInstanceId();
+        String procInstKey = event.getBusinessKey();
+        String executionId = event.getExecutionId();
+        
+        int resultCode = event.getResult();
+        
+        boolean successful = (resultCode == 0);
+        
+        ProcessInstance instance = null;
+
+        int repeatTimes = 6;
+
+        while (repeatTimes > 0) {
+            instance = runtimeService.createProcessInstanceQuery().processInstanceId(procInstId)
+                    .singleResult();
+            if (instance != null) {
+                break;
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                log.warn("meet exception, InterruptedException: " + e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+
+            repeatTimes--;
+        }
+
+        if (instance == null) {
+            log.error("cannot find process instance with such id, procInstKey={}", procInstKey);
+            throw new RuntimeException("none process instance found");
+        }
+
+        EventSubscription signalEventSubscription = null;
+
+        for (int i = 0; i < 10; i++) {
+            EventSubscriptionQuery eventSubscriptionQuery = runtimeService.createEventSubscriptionQuery()
+                    .eventType("signal").processInstanceId(instance.getProcessInstanceId());
+
+            if (StringUtils.isNotBlank(executionId)) {
+                eventSubscriptionQuery = eventSubscriptionQuery.activityId(executionId);
+            }
+            List<EventSubscription> signalEventSubscriptions = eventSubscriptionQuery.list();
+
+            if (!signalEventSubscriptions.isEmpty()) {
+                signalEventSubscription = signalEventSubscriptions.get(0);
+            }
+
+            if (signalEventSubscription != null) {
+                break;
+            }
+
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                log.error("sleep error", e);
+            }
+        }
+
+        if (signalEventSubscription == null) {
+            log.error("such subscription have not found for event={}", event);
+            return;
+        }
+
+        String eventName = signalEventSubscription.getEventName();
+        Map<String, Object> boundVariables = new HashMap<String, Object>();
+
+        boundVariables.put(WorkflowConstants.VAR_KEY_SERVICE_OK, successful);
+        log.info("delivered signal event for {} {} {}", eventName, signalEventSubscription.getExecutionId(), successful);
+
+        runtimeService.createSignalEvent(eventName).executionId(signalEventSubscription.getExecutionId())
+                .setVariables(boundVariables).send();
+    }
 
     public ProcInstOutline getProcInstOutline(String procInstId) {
         if (procInstId == null) {
-            throw new IllegalArgumentException("Process instance is null.");
+            throw new WecubeCoreException("Process instance is null.");
         }
 
         ProcessInstanceStatusEntity procInstStatusEntity = processInstanceStatusRepository
                 .findOneByprocInstanceId(procInstId);
+        
+        if(procInstStatusEntity == null){
+            log.error("cannot find such process instance record with procInstId={}", procInstId);
+            throw new WecubeCoreException("Such process instance record does not exist.");
+        }
 
         String processInstanceId = null;
         String processDefinitionId = null;
