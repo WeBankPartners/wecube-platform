@@ -56,6 +56,9 @@ window.addRoutes = (route, name) => {
     }
   ]);
 };
+window.component = (name, comp) => {
+  Vue.component(name, comp);
+};
 
 const findPath = (routes, path) => {
   let found;
@@ -76,7 +79,6 @@ const findPath = (routes, path) => {
 
 router.beforeEach((to, from, next) => {
   const found = findPath(router.options.routes, to.path);
-  console.log(found);
   if (!found) {
     window.location.href = window.location.origin + "#/homepage";
     next("/homepage");
@@ -87,7 +89,6 @@ router.beforeEach((to, from, next) => {
       let isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus))
         .find(_ => _.link === to.path);
-
       if (
         isHasPermission ||
         to.path === "/404" ||
