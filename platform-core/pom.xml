@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>wecube-platform</artifactId>
@@ -13,7 +12,6 @@
 
     <dependencyManagement>
         <dependencies>
-
         </dependencies>
     </dependencyManagement>
 
@@ -21,10 +19,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-commons</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -184,15 +178,6 @@
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
-                    <!-- <execution> <id>copy frontend content</id> <phase>generate-resources</phase> 
-                        <goals> <goal>copy-resources</goal> </goals> <configuration> <outputDirectory>src/main/resources/static</outputDirectory> 
-                        <overwrite>true</overwrite> <resources> <resource> <directory>${project.parent.basedir}/wecube-portal/dist</directory> 
-                        <includes> <include>**/*</include> </includes> </resource> </resources> </configuration> 
-                        </execution> <execution> <id>copy frontend content - index.html</id> <phase>generate-resources</phase> 
-                        <goals> <goal>copy-resources</goal> </goals> <configuration> <outputDirectory>src/main/resources/templates</outputDirectory> 
-                        <overwrite>true</overwrite> <resources> <resource> <directory>${project.parent.basedir}/wecube-portal/dist</directory> 
-                        <includes> <include>index.html</include> </includes> </resource> </resources> 
-                        </configuration> </execution> -->
                 </executions>
             </plugin>
         </plugins>
