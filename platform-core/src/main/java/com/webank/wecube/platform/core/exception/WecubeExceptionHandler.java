@@ -13,8 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import static com.webank.wecube.platform.core.domain.JsonResponse.error;
 
-@RestController
-@ControllerAdvice
+//@RestController
+//@ControllerAdvice
 public class WecubeExceptionHandler {
     private Logger logger = LoggerFactory.getLogger(WecubeExceptionHandler.class);
 
