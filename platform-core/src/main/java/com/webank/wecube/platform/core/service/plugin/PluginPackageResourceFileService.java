@@ -1,9 +1,7 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageResourceFile;
-import com.webank.wecube.platform.core.dto.PluginPackageResourceFilesDto;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageResourceFileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
 
 @Service
 @Transactional
@@ -24,21 +25,22 @@ public class PluginPackageResourceFileService {
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
 
-    public PluginPackageResourceFilesDto getAllResourceFilesByPluginPackageId(int pluginPackageId) {
-        if (!pluginPackageRepository.existsById(pluginPackageId)) {
-            throw new WecubeCoreException(String.format("Plugin Package not found for id [%s]", pluginPackageId));
-        }
-        PluginPackageResourceFilesDto pluginPackageResourceFilesDto = new PluginPackageResourceFilesDto();
-        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
-        pluginPackageResourceFilesDto.setPluginPackageId(pluginPackageId);
-        pluginPackageResourceFilesDto.setPluginPackageName(pluginPackage.getName());
-        pluginPackageResourceFilesDto.setPluginPackageVersion(pluginPackage.getVersion());
+    public Set<PluginPackageResourceFile> getAllPluginPackageResourceFiles() {
+        Optional<Set<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findLatestPluginPackagesByStatusGroupByPackageName(REGISTERED, RUNNING, STOPPED);
+        if (pluginPackagesOptional.isPresent()) {
+            Set<Integer> pluginPackageIds = pluginPackagesOptional.get().stream().map(p->p.getId()).collect(Collectors.toSet());
 
-        Optional<List<PluginPackageResourceFile>> pluginPackageResourceFileOptional = pluginPackageResourceFileRepository.findAllByPluginPackageId(pluginPackageId);
-        if (pluginPackageResourceFileOptional.isPresent()) {
-            pluginPackageResourceFilesDto.setPluginPackageResourceFiles(newLinkedHashSet(pluginPackageResourceFileOptional.get()));
+            if (null != pluginPackageIds && pluginPackageIds.size() > 0) {
+                Optional<List<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = pluginPackageResourceFileRepository.findPluginPackageResourceFileByPluginPackageIds(pluginPackageIds.toArray(new Integer[pluginPackageIds.size()]));
+                if (pluginPackageResourceFilesOptional.isPresent()) {
+                    List<PluginPackageResourceFile> pluginPackageResourceFiles = pluginPackageResourceFilesOptional.get();
+                    if (null != pluginPackageResourceFiles && pluginPackageResourceFiles.size() > 0) {
+                        return newLinkedHashSet(pluginPackageResourceFiles);
+                    }
+                }
+            }
         }
 
-        return pluginPackageResourceFilesDto;
+        return null;
     }
 }
