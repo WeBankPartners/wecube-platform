@@ -13,28 +13,43 @@
             action="v1/api/packages"
             :headers="setUploadActionHeader"
           >
-            <Button icon="ios-cloud-upload-outline">{{
-              $t("upload_plugin_btn")
-            }}</Button>
+            <Button icon="ios-cloud-upload-outline">
+              {{ $t("upload_plugin_btn") }}
+            </Button>
           </Upload>
         </Card>
       </Row>
       <Row class="plugins-tree-container" style="margin-top: 20px">
         <Card dis-hover>
-          <p slot="title">{{ $t("plugins_list") }}</p>
+          <Row slot="title">
+            <Col span="12">{{ $t("plugins_list") }}</Col>
+            <Col style="float: right">
+              <Checkbox
+                style="width: max-content"
+                v-model="isShowDecomissionedPackage"
+                @on-change="isShowDecomissionedPackageChange"
+                >{{ $t("is_show_decomissioned_pkg") }}</Checkbox
+              >
+            </Col>
+          </Row>
           <div style="height: 70%; overflow: auto">
-            <span v-if="plugins.length < 1">{{
-              $t("no_plugin_packages")
-            }}</span>
+            <span v-if="plugins.length < 1">
+              {{ $t("no_plugin_packages") }}
+            </span>
             <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
               <Panel
                 :name="plugin.id + ''"
                 v-for="plugin in plugins"
+                v-if="
+                  plugin.status !== 'DECOMMISSIONED' ||
+                    isShowDecomissionedPackage
+                "
                 :key="plugin.id"
               >
                 {{ plugin.name + "_" + plugin.version }}
                 <span style="float: right; margin-right: 10px">
                   <Button
+                    v-if="plugin.status !== 'DECOMMISSIONED'"
                     @click.stop.prevent="deletePlugin(plugin.id)"
                     size="small"
                     icon="ios-trash"
@@ -71,43 +86,47 @@
         <TabPane name="dependency" :label="$t('dependencies_analysis')">
           <DependencyAnalysis
             v-if="currentTab === 'dependency'"
-            :pkgId="currentPackageId"
+            :pkgId="currentPlugin.id"
           ></DependencyAnalysis>
         </TabPane>
         <TabPane name="menus" :label="$t('menu_injection')">
           <MenuInjection
             v-if="currentTab === 'menus'"
-            :pkgId="currentPackageId"
+            :pkgId="currentPlugin.id"
           ></MenuInjection>
         </TabPane>
         <TabPane name="models" :label="$t('data_model')">
           <DataModel
             v-if="currentTab === 'models'"
-            :pkgId="currentPackageId"
+            :pkgId="currentPlugin.id"
           ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" :label="$t('system_params')">
           <SysParmas
             v-if="currentTab === 'systemParameters'"
-            :pkgId="currentPackageId"
+            :pkgId="currentPlugin.id"
           ></SysParmas>
         </TabPane>
         <TabPane name="authorities" :label="$t('auth_setting')">
           <AuthSettings
             v-if="currentTab === 'authorities'"
-            :pkgId="currentPackageId"
+            :pkgId="currentPlugin.id"
           ></AuthSettings>
         </TabPane>
         <TabPane name="runtimeResources" :label="$t('runtime_resource')">
           <RuntimesResources
             v-if="currentTab === 'runtimeResources'"
-            :pkgId="currentPackageId"
+            :pkgId="currentPlugin.id"
           ></RuntimesResources>
         </TabPane>
-        <TabPane name="confirm" :label="$t('confirm')">
-          <Button type="info" @click="registPackage()">{{
-            $t("confirm_to_regist_plugin")
-          }}</Button>
+        <TabPane
+          v-if="currentPlugin.status !== 'DECOMMISSIONED'"
+          name="confirm"
+          :label="$t('confirm')"
+        >
+          <Button type="info" @click="registPackage()">
+            {{ $t("confirm_to_regist_plugin") }}
+          </Button>
         </TabPane>
       </Tabs>
     </Col>
@@ -115,7 +134,7 @@
       <Card dis-hover>
         <PluginRegister
           v-if="isShowServicePanel"
-          :pkgId="currentPackageId"
+          :pkgId="currentPlugin.id"
         ></PluginRegister>
       </Card>
     </Col>
@@ -125,9 +144,9 @@
           <Row class="instances-container">
             <Collapse value="1">
               <Panel name="1">
-                <span style="font-size: 14px; font-weight: 600">{{
-                  $t("runtime_container")
-                }}</span>
+                <span style="font-size: 14px; font-weight: 600">
+                  {{ $t("runtime_container") }}
+                </span>
                 <p slot="content">
                   <Card dis-hover>
                     <Row>
@@ -248,9 +267,9 @@
                 </p>
               </Panel>
               <Panel name="2">
-                <span style="font-size: 14px; font-weight: 600">{{
-                  $t("database")
-                }}</span>
+                <span style="font-size: 14px; font-weight: 600">
+                  {{ $t("database") }}
+                </span>
                 <Row slot="content">
                   <Row>
                     <Col span="16">
@@ -261,9 +280,9 @@
                       />
                     </Col>
                     <Col span="4" offset="1">
-                      <Button @click="queryDBHandler">{{
-                        $t("execute")
-                      }}</Button>
+                      <Button @click="queryDBHandler">
+                        {{ $t("execute") }}
+                      </Button>
                     </Col>
                   </Row>
                   <Row>
@@ -276,9 +295,9 @@
                 </Row>
               </Panel>
               <Panel name="3">
-                <span style="font-size: 14px; font-weight: 600">{{
-                  $t("storage_service")
-                }}</span>
+                <span style="font-size: 14px; font-weight: 600">
+                  {{ $t("storage_service") }}
+                </span>
                 <Row slot="content">
                   <Table
                     :columns="storageServiceColumns"
@@ -439,10 +458,14 @@ export default {
       storageServiceData: [],
       defaultCreateParams: "",
       selectHosts: [],
-      availiableHostsWithPort: []
+      availiableHostsWithPort: [],
+      isShowDecomissionedPackage: true
     };
   },
   methods: {
+    isShowDecomissionedPackageChange(status) {
+      console.log("status", status);
+    },
     async onSuccess(response, file, filelist) {
       if (response.status === "OK") {
         this.$Notice.success({
@@ -497,14 +520,13 @@ export default {
         payload
       );
       if (status === "OK") {
-        this.getAllInstancesByPackageId(this.currentPackageId);
+        this.getAllInstancesByPackageId(this.currentPlugin.id);
       }
       this.isLoading = false;
     },
     async registPackage() {
-      console.log("currentPackageId", this.currentPackageId);
       let { status, data, message } = await registPluginPackage(
-        this.currentPackageId
+        this.currentPlugin.id
       );
       if (status === "OK") {
         this.$Notice.success({
@@ -528,7 +550,6 @@ export default {
       this.swapPanel("pluginConfigPanel");
       this.currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = this.currentPlugin.cmdbCiTypeId || "";
-      this.currentPackageId = this.currentPlugin.id;
     },
     manageService(packageId) {
       this.swapPanel("servicePanel");
@@ -547,8 +568,7 @@ export default {
       if (currentPlugin.pluginConfigs) {
         this.selectHosts = [];
         this.availiableHostsWithPort = [];
-        this.currentPackageId = currentPlugin.id;
-        this.getAllInstancesByPackageId(this.currentPackageId);
+        this.getAllInstancesByPackageId(this.currentPlugin.id);
       }
       this.getAvailableContainerHosts();
       this.resetLogTable();
