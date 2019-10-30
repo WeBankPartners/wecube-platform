@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import com.google.common.collect.Sets;
@@ -16,6 +17,8 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.utils.VersionUtils;
 
 public interface PluginPackageRepository extends CrudRepository<PluginPackage, Integer> {
+    @Query("SELECT DISTINCT package FROM PluginPackage package WHERE package.status IN :status")
+    List<PluginPackage> findAllByStatus(PluginPackage.Status... status);
 
     List<PluginPackage> findAllByName(String name);
 
