@@ -263,6 +263,7 @@ public class PluginInstanceService {
                 buildAdditionalPropertiesForMysqlDatabase(mysqlInfo.getPluginPackage().getName(),
                         mysqlInfo.getSchemaName(), dbPassword),
                 mysqlServer.getId(), String.format("Build MySQL database for plugin[%s]", mysqlInfo.getSchemaName()));
+        mysqlServer.setResourceItemDtos(null);
         createMysqlDto.setResourceServer(mysqlServer);
         logger.info("createMysqlDto = " + createMysqlDto);
 
