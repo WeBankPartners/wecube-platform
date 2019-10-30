@@ -130,8 +130,9 @@ export default {
               this.menus.forEach(h => {
                 if (_.category === "" + h.id) {
                   h.submenus.push({
-                    title: _.code,
+                    title: _.displayName,
                     id: _.id,
+                    link: _.path,
                     ..._
                   });
                 }
@@ -139,7 +140,6 @@ export default {
             }
           }
         });
-
         this.$emit("allMenus", this.menus);
         window.myMenus = this.menus;
       }
@@ -158,8 +158,8 @@ export default {
     if (window.needReLoad) {
       const baseUrl = "http://localhost:8888/js/";
       const baseCss = "http://localhost:8888/css/";
-      const urls = ["chunk-vendors.7217e5a3.js", "app.1e47a63a.js"];
-      const cssUrls = ["chunk-vendors.9b6f8599.css", "app.7e7e255d.css"];
+      const urls = ["chunk-vendors.99098a81.js", "app.181b536c.js"];
+      const cssUrls = ["chunk-vendors.4b6472ad.css", "app.f724c7a4.css"];
       for (var i = 0; i < cssUrls.length; i++) {
         let contains = document.createElement("link");
         contains.type = "text/css";
