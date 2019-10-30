@@ -31,7 +31,12 @@ public interface PluginPackageRepository extends CrudRepository<PluginPackage, I
         return Optional.ofNullable(pickLastOne(pluginPackages, new PluginPackageVersionComparator()));
     }
 
-    Optional<PluginPackage> findByNameAndVersion(String packageName, String version);
+    @Query(value = "SELECT package.name " +
+            "FROM PluginPackage package " +
+            "GROUP BY package.name")
+    Optional<List<String>> findAllDistinctPackage();
+
+    Optional<PluginPackage> findTop1ByNameOrderByVersionDesc(String packageName);
 
     long countByNameAndVersion(String name, String version);
 
