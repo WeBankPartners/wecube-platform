@@ -89,6 +89,7 @@ public class PluginPackage {
     public PluginPackage() {
     }
 
+
     public PluginPackage(Integer id, String name, String version, Status status, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<PluginPackageEntity> pluginPackageEntities, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
         this.id = id;
         this.name = name;
@@ -182,7 +183,8 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesDocker;
     }
 
-    public void setPluginPackageRuntimeResourcesDocker(Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker) {
+    public void setPluginPackageRuntimeResourcesDocker(
+            Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker) {
         this.pluginPackageRuntimeResourcesDocker = pluginPackageRuntimeResourcesDocker;
     }
 
@@ -190,7 +192,8 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesMysql;
     }
 
-    public void setPluginPackageRuntimeResourcesMysql(Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql) {
+    public void setPluginPackageRuntimeResourcesMysql(
+            Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql) {
         this.pluginPackageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysql;
     }
 
@@ -198,7 +201,8 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesS3;
     }
 
-    public void setPluginPackageRuntimeResourcesS3(Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3) {
+    public void setPluginPackageRuntimeResourcesS3(
+            Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3) {
         this.pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3;
     }
 

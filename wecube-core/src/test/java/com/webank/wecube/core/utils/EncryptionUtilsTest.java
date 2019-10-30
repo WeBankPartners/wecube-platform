@@ -21,4 +21,5 @@ public class EncryptionUtilsTest {
         String password = EncryptionUtils.decryptWithAes(encryptedPassword, seed, "testSalt");
         assertEquals("testPassword", password);
     }
+
 }
