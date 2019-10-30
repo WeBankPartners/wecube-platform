@@ -33,13 +33,14 @@ create table plugin_package_menus (
 DROP TABLE IF EXISTS plugin_package_entities;
 CREATE TABLE plugin_package_entities
 (
-    id                INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-    plugin_package_id INTEGER                        NOT NULL,
-    name              VARCHAR(100)                   NOT NULL,
-    display_name      VARCHAR(100)                   NOT NULL,
-    description       VARCHAR(256)                   NOT NULL,
-    CONSTRAINT fk_package_id FOREIGN KEY (plugin_package_id) REFERENCES plugin_packages (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_package_entity (plugin_package_id, name)
+    id                 INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    plugin_package_id  INTEGER                        NOT NULL,
+    name               VARCHAR(100)                   NOT NULL,
+    display_name       VARCHAR(100)                   NOT NULL,
+    description        VARCHAR(256)                   NOT NULL,
+    data_model_version INTEGER                        NOT NULL DEFAULT 1,
+    CONSTRAINT fk_package_id FOREIGN KEY (plugin_package_id) REFERENCES plugin_packages(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE uk_package_entity(plugin_package_id, name, data_model_version)
 
 );
 
