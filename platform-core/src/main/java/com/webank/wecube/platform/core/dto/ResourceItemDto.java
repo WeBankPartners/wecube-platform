@@ -43,7 +43,8 @@ public class ResourceItemDto {
         if (resourceItem.getResourceServer() != null) {
             resourceItemDto.setResourceServer(ResourceServerDto.fromDomain(resourceItem.getResourceServer()));
         }
-        resourceItemDto.setIsAllocated(resourceItem.getIsAllocated() != null && resourceItem.getIsAllocated() == 1 ? true : false);
+        resourceItemDto.setIsAllocated(
+                resourceItem.getIsAllocated() != null && resourceItem.getIsAllocated() == 1 ? true : false);
         resourceItemDto.setPurpose(resourceItem.getPurpose());
         resourceItemDto.setStatus(resourceItem.getStatus());
         return resourceItemDto;
@@ -77,7 +78,8 @@ public class ResourceItemDto {
         }
 
         if (resourceItemDto.getIsAllocated() != null) {
-            resourceItem.setIsAllocated(resourceItemDto.getIsAllocated() != null && resourceItemDto.getIsAllocated() ? 1 : 0);
+            resourceItem.setIsAllocated(
+                    resourceItemDto.getIsAllocated() != null && resourceItemDto.getIsAllocated() ? 1 : 0);
         }
 
         if (resourceItemDto.getPurpose() != null) {
@@ -134,7 +136,20 @@ public class ResourceItemDto {
         try {
             return JsonUtils.toObject(additionalProperties, Map.class);
         } catch (IOException e) {
-            throw new WecubeCoreException(String.format("Failed to parse resource_item.additional_properties [%s] : Invalid json format.", additionalProperties), e);
+            throw new WecubeCoreException(
+                    String.format("Failed to parse resource_item.additional_properties [%s] : Invalid json format.",
+                            additionalProperties),
+                    e);
         }
+    }
+
+    public ResourceItemDto(String name, String type, String additionalProperties, Integer resourceServerId,
+            String purpose) {
+        super();
+        this.name = name;
+        this.type = type;
+        this.additionalProperties = additionalProperties;
+        this.resourceServerId = resourceServerId;
+        this.purpose = purpose;
     }
 }
