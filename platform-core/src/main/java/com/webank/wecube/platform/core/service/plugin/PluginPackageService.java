@@ -77,7 +77,8 @@ public class PluginPackageService {
             }
         }
         File dest = new File(localFilePath + "/" + pluginPackageFileName);
-        log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}", dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
+        log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
+                dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
         pluginPackageFile.transferTo(dest);
 
         // 2. unzip local package file
@@ -91,19 +92,25 @@ public class PluginPackageService {
         PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile)).parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
         if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
-            throw new WecubeCoreException(String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ", pluginPackageDto.getName()));
+            throw new WecubeCoreException(
+                    String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ",
+                            pluginPackageDto.getName()));
         }
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
-            throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.", pluginPackageDto.getName(), pluginPackageDto.getVersion()));
+            throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
+                    pluginPackageDto.getName(), pluginPackageDto.getVersion()));
         }
         // 4.
-        File pluginDockerImageFile = new File(localFilePath + "/" + pluginPackage.getDockerImageFilename());
+        File pluginDockerImageFile = new File(localFilePath + "/" + pluginProperties.getImageFile());
         log.info("pluginDockerImageFile: {}", pluginDockerImageFile.getAbsolutePath());
-        String dockerImageUrl = "";
+
         if (pluginDockerImageFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginDockerImageFile.getName();
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginDockerImageFile.getName();
             log.info("keyname : {}", keyName);
-            dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginDockerImageFile);
+
+            String dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginDockerImageFile);
             log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
         }
 
@@ -112,8 +119,11 @@ public class PluginPackageService {
         String uiPackageUrl = "";
         Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
         if (pluginUiPackageFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginUiPackageFile.getName();
+
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginUiPackageFile.getName();
             log.info("keyname : {}", keyName);
+
             pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage, pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
             uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
             log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
@@ -121,14 +131,15 @@ public class PluginPackageService {
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
 
-        List<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelService.register(new ArrayList<>(pluginPackageDto.getPluginPackageEntities()));
+        List<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelService
+                .register(new ArrayList<>(pluginPackageDto.getPluginPackageEntities()));
 
         Set<PluginConfig> pluginConfigs = newLinkedHashSet();
         for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
             for (PluginPackageEntityDto pluginPackageEntityDto : pluginPackageEntityDtos) {
                 String entityNameFromPluginConfig = pluginConfig.getEntityName();
                 String nameFromDto = pluginPackageEntityDto.getName();
-                if (entityNameFromPluginConfig.equals(nameFromDto)){
+                if (entityNameFromPluginConfig.equals(nameFromDto)) {
                     pluginConfig.setEntityId(pluginPackageEntityDto.getId());
                 }
             }
@@ -159,7 +170,9 @@ public class PluginPackageService {
         }
         PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
         if (UNREGISTERED != pluginPackage.getStatus()) {
-            String errorMessage = String.format("Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]", pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
+            String errorMessage = String.format(
+                    "Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]",
+                    pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
             log.warn(errorMessage);
             throw new WecubeCoreException(errorMessage);
         }
@@ -173,7 +186,8 @@ public class PluginPackageService {
         }
         PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
         if (RUNNING.equals(pluginPackage.getStatus())) {
-            String errorMessage = String.format("Failed to decommission Plugin[%s/%s] due to package is RUNNING", pluginPackage.getName(), pluginPackage.getVersion());
+            String errorMessage = String.format("Failed to decommission Plugin[%s/%s] due to package is RUNNING",
+                    pluginPackage.getName(), pluginPackage.getVersion());
             log.warn(errorMessage);
             throw new WecubeCoreException(errorMessage);
         }
@@ -181,7 +195,8 @@ public class PluginPackageService {
         pluginPackageRepository.save(pluginPackage);
 
         // Remove related docker image file
-        String versionPath = SystemUtils.getTempFolderPath() + pluginPackage.getName() + "-" + pluginPackage.getVersion() + "/";
+        String versionPath = SystemUtils.getTempFolderPath() + pluginPackage.getName() + "-"
+                + pluginPackage.getVersion() + "/";
         File versionDirectory = new File(versionPath);
         try {
             log.info("Delete directory: {}", versionPath);
@@ -196,7 +211,7 @@ public class PluginPackageService {
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
 
-            for (; entries.hasMoreElements(); ) {
+            for (; entries.hasMoreElements();) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
                 if (entry.isDirectory() || !(zipEntryName.contains(".xml") || zipEntryName.contains(".tar") || zipEntryName.contains(".zip") || zipEntryName.contains(".sql"))) {
@@ -208,7 +223,7 @@ public class PluginPackageService {
                 }
 
                 try (BufferedInputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-                     OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
+                        OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
                     byte[] buf = new byte[2048];
                     int len;
                     while ((len = inputStream.read(buf)) > 0) {
@@ -281,7 +296,6 @@ public class PluginPackageService {
     public List<MenuItemDto> getMenusById(Integer packageId) throws WecubeCoreException {
         List<MenuItemDto> returnMenuDto;
 
-
         // handling core's menus
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
@@ -297,20 +311,21 @@ public class PluginPackageService {
             String transformedParentId = null;
             Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
             if (parentId == null) {
-                String msg = String.format("Cannot find system menu item by package menu's category: [%s]", packageMenu.getCategory());
+                String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                        packageMenu.getCategory());
                 log.error(msg);
                 throw new WecubeCoreException(msg);
             }
             transformedParentId = parentId.toString();
             Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
-            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId, foundTopMenuId);
+            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId,
+                    foundTopMenuId);
             categoryToId.put(transformedParentId, foundTopMenuId);
             returnMenuDto.add(packageMenuDto);
         }
         Collections.sort(returnMenuDto);
         return returnMenuDto;
     }
-
 
     public Set<SystemVariable> getSystemVarsById(Integer packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
@@ -348,7 +363,8 @@ public class PluginPackageService {
         return returnMenuDto;
     }
 
-    private void updateDependencyDto(PluginPackageDependency pluginPackageDependency, PluginPackageDependencyDto pluginPackageDependencyDto) {
+    private void updateDependencyDto(PluginPackageDependency pluginPackageDependency,
+            PluginPackageDependencyDto pluginPackageDependencyDto) {
         // create new dependencyDto according to input dependency
         String dependencyName = pluginPackageDependency.getDependencyPackageName();
         String dependencyVersion = pluginPackageDependency.getDependencyPackageVersion();

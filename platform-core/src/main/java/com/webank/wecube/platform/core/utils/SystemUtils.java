@@ -13,5 +13,4 @@ public class SystemUtils {
         }
         return TEMP_FOLDER_PATH;
     }
-
 }

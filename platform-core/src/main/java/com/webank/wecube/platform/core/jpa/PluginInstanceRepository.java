@@ -12,7 +12,6 @@ public interface PluginInstanceRepository extends CrudRepository<PluginInstance,
 
     List<PluginInstance> findByHostAndPort(String host, Integer port);
 
-
     @Query("SELECT max(port) FROM PluginInstance instance WHERE instance.host IN :hosts")
     Integer findMaxPortByHost(String hosts);
 
