@@ -5,6 +5,7 @@ CREATE TABLE `plugin_packages` (
 	`name` VARCHAR(50) NOT NULL,
 	`version` VARCHAR(20) NOT NULL,
     `status` VARCHAR(20) NOT NULL default 'UNREGISTERED',
+    `upload_timestamp` timestamp not null default current_timestamp,
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `name` (`name`, `version`)
 );
@@ -108,7 +109,7 @@ drop table if exists plugin_package_runtime_resources_s3;
 create table plugin_package_runtime_resources_s3 (
   id int auto_increment primary key,
   plugin_package_id int(11) not null,
-  bucket_name varchar(32) not null,
+  bucket_name varchar(63) not null,
   PRIMARY KEY (`id`)
 );
 
@@ -185,7 +186,9 @@ create table plugin_package_resource_files
 (
   id int auto_increment primary key,
   plugin_package_id int(11) not null,
+  package_name varchar(50) not null,
+  package_version varchar(20) not null,
   source varchar(64) not null,
-  related_path varchar(64) not null,
+  related_path varchar(1024) not null,
   PRIMARY KEY (`id`)
 );
