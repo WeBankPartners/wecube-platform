@@ -16,9 +16,12 @@ spring:
                useInsecureTrustManager: true
          routes:
          -  id: auth_server_route_1
-            uri: http://localhost:8080
+            uri: http://localhost:19999
             predicates:
             - Path=/auth/**
+            filters:
+            - DynamicRoute=true
+            - JwtSsoToken=false
 #         -  id: wecube_cds_route
 #            uri: http://localhost:9000
 #            predicates:
