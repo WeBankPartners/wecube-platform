@@ -232,7 +232,7 @@ public class PluginPackageXmlParser {
             pluginPackageAttribute.setDescription(getNonNullStringAttribute(attributeNode, "./@description", "Entity attribute description"));
 
             pluginPackageAttribute.setRefPackageName(getStringAttribute(attributeNode, "./@refPackage"));
-            pluginPackageAttribute.setRefPackageVersion(getStringAttribute(attributeNode, "./@refVersion"));
+//            pluginPackageAttribute.setRefPackageVersion(getStringAttribute(attributeNode, "./@refVersion"));
             pluginPackageAttribute.setRefEntityName(getStringAttribute(attributeNode, "./@refEntity"));
             pluginPackageAttribute.setRefAttributeName(getStringAttribute(attributeNode, "./@ref"));
 
