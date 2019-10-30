@@ -72,7 +72,8 @@ export default {
         "zh-CN": "简体中文",
         "en-US": "English"
       },
-      menus: []
+      menus: [],
+      needLoad: true
     };
   },
   methods: {
@@ -151,6 +152,30 @@ export default {
   watch: {
     $lang: function(lang) {
       this.$router.go(0);
+    }
+  },
+  mounted() {
+    if (window.needReLoad) {
+      const baseUrl = "http://localhost:8888/js/";
+      const baseCss = "http://localhost:8888/css/";
+      const urls = ["chunk-vendors.7217e5a3.js", "app.1e47a63a.js"];
+      const cssUrls = ["chunk-vendors.9b6f8599.css", "app.7e7e255d.css"];
+      for (var i = 0; i < cssUrls.length; i++) {
+        let contains = document.createElement("link");
+        contains.type = "text/css";
+        contains.rel = "stylesheet";
+        contains.href = baseCss + cssUrls[i];
+        const eleContain = document.getElementsByTagName("body");
+        eleContain[0].appendChild(contains);
+      }
+      for (var j = 0; j < urls.length; j++) {
+        let contains = document.createElement("script");
+        contains.type = "text/javascript";
+        contains.src = baseUrl + urls[j];
+        const eleContain = document.getElementsByTagName("body");
+        eleContain[0].appendChild(contains);
+      }
+      window.needReLoad = false;
     }
   }
 };
