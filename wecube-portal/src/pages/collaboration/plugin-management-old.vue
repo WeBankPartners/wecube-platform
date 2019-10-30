@@ -611,7 +611,9 @@ export default {
           .toString()
           .replace(
             re,
-            `<span style="background-color: #ff0">${this.searchFilters[1].value}</span>`
+            `<span style="background-color: #ff0">${
+              this.searchFilters[1].value
+            }</span>`
           );
       }
     },
