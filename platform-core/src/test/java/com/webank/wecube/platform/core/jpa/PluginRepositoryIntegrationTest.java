@@ -47,11 +47,13 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         PluginPackage pluginPackageV3 = mockPluginPackage("mockPluginPackage-findLatestPluginPackageByName", "V9.1");
         pluginPackageRepository.saveAll(newArrayList(pluginPackageV1, pluginPackageV2, pluginPackageV3));
 
-        Optional<PluginPackage> latestVersion = pluginPackageRepository.findLatestVersionByName("mockPluginPackage-findLatestPluginPackageByName");
+        Optional<PluginPackage> latestVersion = pluginPackageRepository
+                .findLatestVersionByName("mockPluginPackage-findLatestPluginPackageByName");
         assertThat(latestVersion).isPresent();
         assertThat(latestVersion.get().getVersion()).isEqualTo("v10.0");
 
-        latestVersion = pluginPackageRepository.findLatestVersionByName("mockPluginPackage-findLatestPluginPackageByName", "v10.0");
+        latestVersion = pluginPackageRepository
+                .findLatestVersionByName("mockPluginPackage-findLatestPluginPackageByName", "v10.0");
         assertThat(latestVersion).isPresent();
         assertThat(latestVersion.get().getVersion()).isEqualTo("V9.1");
     }
@@ -62,38 +64,10 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         pluginPackageRepository.save(pluginPackage);
 
         PluginConfig pluginConfig = pluginPackage.getPluginConfigs().iterator().next();
-        List<PluginConfigInterface> interfaces = pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfig.getId());
+        List<PluginConfigInterface> interfaces = pluginConfigRepository
+                .findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfig.getId());
 
         assertThat(interfaces).containsExactlyElementsOf(pluginConfig.getInterfaces());
-    }
-
-    @Test
-    public void findMaxPortByHost() {
-        PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", UNREGISTERED, newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", PluginConfig.Status.DISABLED, null);
-
-        pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
-        pluginPackageRepository.save(pluginPackage);
-
-        PluginInstance pluginInstance = new PluginInstance(null, pluginPackage, "test-instance-container-id", "localhost", 29999, "running");
-        pluginInstanceRepository.save(pluginInstance);
-
-        Integer foundPluginInstancePort = pluginInstanceRepository.findMaxPortByHost("localhost");
-        assertThat(foundPluginInstancePort).isEqualTo(pluginInstance.getPort());
-    }
-
-    @Test
-    public void findByPackageIdAndStatus() {
-        PluginPackage pluginPackage = new PluginPackage(null, "test-findSavedInstanceByContainerId", "v1", UNREGISTERED, newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig pluginConfig = new PluginConfig(null, pluginPackage, "VM", null, "VM", PluginConfig.Status.DISABLED, null);
-        pluginPackage.setPluginConfigs(newLinkedHashSet(pluginConfig));
-        pluginPackageRepository.save(pluginPackage);
-
-        PluginInstance pluginInstance = new PluginInstance(null, pluginPackage, "test-instance-container-id", "localhost", 20000, "RUNNING");
-        pluginInstanceRepository.save(pluginInstance);
-
-        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByStatusAndPackageId("RUNNING", pluginPackage.getId());
-        assertThat(pluginInstances.get(0).getInstanceContainerId()).isEqualTo(pluginInstance.getInstanceContainerId());
     }
 
     @Test
@@ -135,25 +109,33 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     public void dataModelDataTypeTest() {
         // when correct data type is declared
         PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
-        PluginPackageEntity pluginPackageEntity_1 = new PluginPackageEntity(package_1, "entity_1", "entity_1", "entity_1_description");
-        PluginPackageAttribute pluginPackageAttribute_1 = new PluginPackageAttribute(pluginPackageEntity_1, null, "attribute_1", "attribute_1_description", "str");
-        assertThat(pluginPackageRepository.save(package_1)).isEqualTo(pluginPackageRepository.findAll().iterator().next());
-
+        PluginPackageEntity pluginPackageEntity_1 = new PluginPackageEntity(package_1, "entity_1", "entity_1",
+                "entity_1_description");
+        PluginPackageAttribute pluginPackageAttribute_1 = new PluginPackageAttribute(pluginPackageEntity_1, null,
+                "attribute_1", "attribute_1_description", "str");
+        assertThat(pluginPackageRepository.save(package_1))
+                .isEqualTo(pluginPackageRepository.findAll().iterator().next());
 
         // when wrong data type is declared
         PluginPackage package_2 = mockPluginPackage("package_1", "1.0");
         String fail_code = "should_failed";
         try {
-            PluginPackageEntity pluginPackageEntity_2 = new PluginPackageEntity(package_2, "entity_1", "entity_1", "entity_1_description");
-            PluginPackageAttribute pluginPackageAttribute_2 = new PluginPackageAttribute(pluginPackageEntity_2, null, "attribute_1", "attribute_1_description", fail_code);
+            PluginPackageEntity pluginPackageEntity_2 = new PluginPackageEntity(package_2, "entity_1", "entity_1",
+                    "entity_1_description");
+            PluginPackageAttribute pluginPackageAttribute_2 = new PluginPackageAttribute(pluginPackageEntity_2, null,
+                    "attribute_1", "attribute_1_description", fail_code);
         } catch (IllegalArgumentException argException) {
-            assertThat(argException.getMessage()).isEqualTo(String.format("Cannot find the data model data type from code %s", fail_code));
+            assertThat(argException.getMessage())
+                    .isEqualTo(String.format("Cannot find the data model data type from code %s", fail_code));
         }
     }
 
     public static PluginPackage mockPluginPackage(String name, String version) {
-        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
-        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity", PluginConfig.Status.DISABLED, newLinkedHashSet());
+        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, newLinkedHashSet(),
+                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(),
+                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
+        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity",
+                PluginConfig.Status.DISABLED, newLinkedHashSet());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
         mockPluginPackage.addPluginConfig(mockPlugin);
 
@@ -161,29 +143,42 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     }
 
     public static PluginConfigInterface mockPluginConfigInterface(PluginConfig pluginConfig) {
-        PluginConfigInterface pluginConfigInterface = new PluginConfigInterface(null, pluginConfig, "create", "'create", "Qcloud_vpc_create", "/v1/qcloud/vpc/create", "POST", newLinkedHashSet(), newLinkedHashSet());
-        pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_INPUT, "provider_params", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y"));
-        pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_INPUT, "name", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y"));
-        pluginConfigInterface.addOutputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface, TYPE_OUTPUT, "id", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y"));
+        PluginConfigInterface pluginConfigInterface = new PluginConfigInterface(null, pluginConfig, "create", "'create",
+                "Qcloud_vpc_create", "/v1/qcloud/vpc/create", "POST", newLinkedHashSet(), newLinkedHashSet());
+        pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_INPUT, "provider_params", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y"));
+        pluginConfigInterface.addInputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_INPUT, "name", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y"));
+        pluginConfigInterface.addOutputParameter(new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_OUTPUT, "id", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y"));
         return pluginConfigInterface;
     }
 
     public static List<PluginPackageEntity> mockPluginPackageEntityList(PluginPackage pluginPackage) {
         List<PluginPackageEntity> pluginPackageEntityList = new ArrayList<>();
-        pluginPackageEntityList.add(new PluginPackageEntity(pluginPackage, "entity_1", "entity_1", "entity_1_description"));
-        pluginPackageEntityList.add(new PluginPackageEntity(pluginPackage, "entity_2", "entity_2", "entity_2_description"));
-        pluginPackageEntityList.add(new PluginPackageEntity(pluginPackage, "entity_3", "entity_3", "entity_3_description"));
+        pluginPackageEntityList
+                .add(new PluginPackageEntity(pluginPackage, "entity_1", "entity_1", "entity_1_description"));
+        pluginPackageEntityList
+                .add(new PluginPackageEntity(pluginPackage, "entity_2", "entity_2", "entity_2_description"));
+        pluginPackageEntityList
+                .add(new PluginPackageEntity(pluginPackage, "entity_3", "entity_3", "entity_3_description"));
         return pluginPackageEntityList;
     }
 
     public static void mockPluginPackageEntityListWithAttributeList(List<PluginPackageEntity> pluginPackageEntityList) {
         for (PluginPackageEntity pluginPackageEntity : pluginPackageEntityList) {
-            PluginPackageAttribute attribute_1 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_1", "attribute_1_description", "str");
-            PluginPackageAttribute attribute_2 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_2", "attribute_2_description", "str");
-            PluginPackageAttribute attribute_3 = new PluginPackageAttribute(pluginPackageEntity, attribute_1, "attribute_3", "attribute_3_description", "ref");
-            PluginPackageAttribute attribute_4 = new PluginPackageAttribute(pluginPackageEntity, attribute_1, "attribute_4", "attribute_4_description", "ref");
-            PluginPackageAttribute attribute_5 = new PluginPackageAttribute(pluginPackageEntity, attribute_2, "attribute_5", "attribute_5_description", "ref");
-            pluginPackageEntity.setPluginPackageAttributeList(new ArrayList<>(Arrays.asList(attribute_1, attribute_2, attribute_3, attribute_4, attribute_5)));
+            PluginPackageAttribute attribute_1 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_1",
+                    "attribute_1_description", "str");
+            PluginPackageAttribute attribute_2 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_2",
+                    "attribute_2_description", "str");
+            PluginPackageAttribute attribute_3 = new PluginPackageAttribute(pluginPackageEntity, attribute_1,
+                    "attribute_3", "attribute_3_description", "ref");
+            PluginPackageAttribute attribute_4 = new PluginPackageAttribute(pluginPackageEntity, attribute_1,
+                    "attribute_4", "attribute_4_description", "ref");
+            PluginPackageAttribute attribute_5 = new PluginPackageAttribute(pluginPackageEntity, attribute_2,
+                    "attribute_5", "attribute_5_description", "ref");
+            pluginPackageEntity.setPluginPackageAttributeList(
+                    new ArrayList<>(Arrays.asList(attribute_1, attribute_2, attribute_3, attribute_4, attribute_5)));
         }
     }
 

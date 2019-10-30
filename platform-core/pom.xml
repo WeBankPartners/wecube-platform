@@ -12,13 +12,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!--<dependency> -->
-            <!--<groupId>com.amazonaws</groupId> -->
-            <!--<artifactId>aws-java-sdk-bom</artifactId> -->
-            <!--&lt;!&ndash;<version>${aws.sdk.version}</version>&ndash;&gt; -->
-            <!--<type>pom</type> -->
-            <!--<scope>import</scope> -->
-            <!--</dependency> -->
         </dependencies>
     </dependencyManagement>
 
@@ -185,46 +178,6 @@
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
-                    <!-- 
-                    <execution>
-                        <id>copy frontend content</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>src/main/resources/static</outputDirectory>
-                            <overwrite>true</overwrite>
-                            <resources>
-                                <resource>
-                                    <directory>${project.parent.basedir}/wecube-portal/dist</directory>
-                                    <includes>
-                                        <include>**/*</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>copy frontend content - index.html</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>src/main/resources/templates</outputDirectory>
-                            <overwrite>true</overwrite>
-                            <resources>
-                                <resource>
-                                    <directory>${project.parent.basedir}/wecube-portal/dist</directory>
-                                    <includes>
-                                        <include>index.html</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                     -->
                 </executions>
             </plugin>
         </plugins>
