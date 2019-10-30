@@ -279,5 +279,6 @@
   "status": "状态",
   "plugin_config_check": "插件配置",
   "service_regist": "服务注册",
-  "confirm_to_regist_plugin": "确认注册插件包"
+  "confirm_to_regist_plugin": "确认注册插件包",
+  "is_show_decomissioned_pkg": "显示已停止的包"
 }
