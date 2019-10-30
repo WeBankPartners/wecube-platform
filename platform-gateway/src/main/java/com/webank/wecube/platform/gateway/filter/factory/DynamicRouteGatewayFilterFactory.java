@@ -10,8 +10,18 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.webank.wecube.platform.gateway.dto.GenericResponseDto;
+import com.webank.wecube.platform.gateway.dto.RouteItemInfoDto;
 
 public class DynamicRouteGatewayFilterFactory
         extends AbstractGatewayFilterFactory<DynamicRouteGatewayFilterFactory.Config> {
@@ -19,6 +29,8 @@ public class DynamicRouteGatewayFilterFactory
     private static final Logger log = LoggerFactory.getLogger(DynamicRouteGatewayFilterFactory.class);
 
     public static final String ENABLED_KEY = "enabled";
+
+    private DynamicRouteProperties dynamicRouteProperties;
 
     public DynamicRouteGatewayFilterFactory() {
         super(Config.class);
@@ -31,7 +43,8 @@ public class DynamicRouteGatewayFilterFactory
         }
         return ((exchange, chain) -> {
             ServerHttpRequest req = exchange.getRequest();
-            log.info("Filter-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(), req.getURI().toString());
+            log.info("Filter-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
+                    req.getURI().toString());
 
             boolean enabled = config.isEnabled();
 
@@ -42,17 +55,15 @@ public class DynamicRouteGatewayFilterFactory
             Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
 
             if (route == null) {
-                log.info("none route found.");
+                log.warn("There is none route found for filter:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName());
                 return chain.filter(exchange);
             }
-            
+
             log.info("route:{} {}", route.getId(), route.getUri().toString());
 
-            
             ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
 
             String newPath = req.getURI().getRawPath();
-            log.info("raw path:{}", newPath);
             String baseUrl = determineBaseUrl(newPath);
             URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).build().toUri();
 
@@ -68,8 +79,58 @@ public class DynamicRouteGatewayFilterFactory
     }
 
     protected String determineBaseUrl(String path) {
-        // TODO
-        return "http://localhost:9999";
+        String componentPath = calculateComponentPath(path);
+        RestTemplate client = new RestTemplate();
+
+        String url = dynamicRouteProperties.getRouteConfigServer() + dynamicRouteProperties.getRouteConfigUri() + "/"
+                + componentPath;
+
+        HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        header.add("Authorization", String.format("Bearer %s", dynamicRouteProperties.getRouteConfigAccessKey()));
+
+        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(header);
+
+        ResponseEntity<RouteConfigInfoResponseDto> responseEntity = client.exchange(url, HttpMethod.GET, httpEntity,
+                RouteConfigInfoResponseDto.class);
+
+        RouteConfigInfoResponseDto responseDto = responseEntity.getBody();
+
+        List<RouteItemInfoDto> routeItemInfoDtos = responseDto.getData();
+        if (log.isInfoEnabled()) {
+            if (routeItemInfoDtos != null) {
+                routeItemInfoDtos.forEach(ri -> {
+                    log.info("Route Item:{}", ri);
+                });
+            }
+        }
+
+        String baseUrl = "";
+        if (routeItemInfoDtos != null && !routeItemInfoDtos.isEmpty()) {
+            RouteItemInfoDto item = routeItemInfoDtos.get(0);
+            baseUrl = String.format("%s://%s:%s", item.getSchema(), item.getHost(), item.getPort());
+        }
+        return baseUrl;
+    }
+
+    protected String calculateComponentPath(String path) {
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+
+        if (path.indexOf("/") >= 0) {
+            path = path.substring(0, path.indexOf("/"));
+        }
+
+        return path;
+    }
+
+    public DynamicRouteProperties getDynamicRouteProperties() {
+        return dynamicRouteProperties;
+    }
+
+    public void setDynamicRouteProperties(DynamicRouteProperties dynamicRouteProperties) {
+        this.dynamicRouteProperties = dynamicRouteProperties;
     }
 
     public List<String> shortcutFieldOrder() {
@@ -86,6 +147,10 @@ public class DynamicRouteGatewayFilterFactory
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
         }
+
+    }
+
+    private static class RouteConfigInfoResponseDto extends GenericResponseDto<List<RouteItemInfoDto>> {
 
     }
 
