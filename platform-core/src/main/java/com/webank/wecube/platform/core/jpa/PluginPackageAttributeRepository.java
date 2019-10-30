@@ -27,11 +27,11 @@ public interface PluginPackageAttributeRepository extends CrudRepository<PluginP
             "LEFT OUTER JOIN PluginPackageAttribute refAttribute ON attribute.pluginPackageAttribute.id=refAttribute.id " +
             "LEFT OUTER JOIN PluginPackageEntity entity ON refAttribute.pluginPackageEntity.id=entity.id " +
             "LEFT OUTER JOIN PluginPackage package ON entity.pluginPackage.id=package.id " +
-            "WHERE package.name=:packageName AND package.version = :packageVersion AND entity.name=:entityName")
+            "WHERE package.name=:packageName AND entity.name=:entityName AND entity.dataModelVersion=:dataModelVersion")
     Optional<List<PluginPackageAttribute>> findAllReferenceByAttribute(
             @Param("packageName") String packageName,
-            @Param("packageVersion") String packageVersion,
-            @Param("entityName") String entityName);
+            @Param("entityName") String entityName,
+            @Param("dataModelVersion") long dataModelVersion);
 
     // find all "reference by" info by package name, package version
     @Query("SELECT attribute FROM PluginPackageAttribute attribute " +

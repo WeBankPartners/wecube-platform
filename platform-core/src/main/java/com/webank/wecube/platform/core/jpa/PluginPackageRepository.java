@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
@@ -34,7 +35,12 @@ public interface PluginPackageRepository extends CrudRepository<PluginPackage, I
         return Optional.ofNullable(pickLastOne(pluginPackages, new PluginPackageVersionComparator()));
     }
 
-    Optional<PluginPackage> findByNameAndVersion(String packageName, String version);
+    @Query(value = "SELECT package.name " +
+            "FROM PluginPackage package " +
+            "GROUP BY package.name")
+    Optional<List<String>> findAllDistinctPackage();
+
+    Optional<PluginPackage> findTop1ByNameOrderByVersionDesc(String packageName);
 
     long countByNameAndVersion(String name, String version);
 
