@@ -39,13 +39,11 @@ public class PluginInstanceController {
     @PostMapping("/packages/{package-id}/hosts/{host-ip}/ports/{port}/instance/launch")
     @ResponseBody
     public JsonResponse createPluginInstanceByPackageIdAndHostIp(@PathVariable(value = "package-id") int packageId,
-            @PathVariable(value = "host-ip") String hostIp, @PathVariable(value = "port") int port,
-            @RequestBody CreateInstanceDto createContainerParameters) {
+            @PathVariable(value = "host-ip") String hostIp, @PathVariable(value = "port") int port) {
         try {
-            pluginInstanceService.createPluginInstance(packageId, hostIp, port,
-                    createContainerParameters.getAdditionalCreateContainerParameters());
+            pluginInstanceService.launchPluginInstance(packageId, hostIp, port);
         } catch (Exception e) {
-            throw new WecubeCoreException("Create plugin package instance failed. Error is " + e.getMessage());
+            throw new WecubeCoreException("Create plugin instance failed. Error is " + e.getMessage());
         }
         return okay();
     }
@@ -53,8 +51,6 @@ public class PluginInstanceController {
     @DeleteMapping("/packages/instances/{instance-id}")
     @ResponseBody
     public JsonResponse removePluginInstance(@PathVariable(value = "instance-id") int instanceId) {
-
-        log.info("instanceId={}", instanceId);
         try {
             pluginInstanceService.removePluginInstanceById(instanceId);
         } catch (Exception e) {
@@ -64,18 +60,16 @@ public class PluginInstanceController {
         return okay();
     }
 
-    @GetMapping("/instances/packages/{package-id}")
-    @ResponseBody
-    public JsonResponse getInstancesByPackageId() {
-        List<PluginInstance> allInstances = pluginInstanceService.getAllInstances();
-        return okayWithData(allInstances);
-    }
+//    @GetMapping("/instances/packages/{package-id}")
+//    @ResponseBody
+//    public JsonResponse getInstancesByPackageId() {
+//        return okayWithData(pluginInstanceService.getAllInstances());
+//    }
 
     @GetMapping("/packages/{package-id}/instances")
     @ResponseBody
     public JsonResponse getAvailableInstancesByPackageId(@PathVariable(value = "package-id") int packageId) {
-        List<PluginInstance> allInstances = pluginInstanceService.getAvailableInstancesByPackageId(packageId);
-        return okayWithData(allInstances);
+        return okayWithData(pluginInstanceService.getAvailableInstancesByPackageId(packageId));
     }
 
 }
