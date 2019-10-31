@@ -51,12 +51,12 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
 
     private static final String URI_REFRESH_TOKEN = "/v1/api/token";
 
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     
-    private AuthServerProperties authServerProperties;
+    private final AuthServerProperties authServerProperties;
 
     private final JwtBuilder jwtBuilder;
 
