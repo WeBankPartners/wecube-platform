@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>platfrom-auth-client</artifactId>
+    <artifactId>platform-auth-client</artifactId>
     <packaging>jar</packaging>
 
     <properties>
