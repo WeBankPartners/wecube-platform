@@ -83,7 +83,7 @@ public class PluginPackageEntityDto {
     private String name;
     private String displayName;
     private String description;
-    // plugin model attribute list
+
     private String packageVersion;
     private Set<TrimmedPluginPackageEntityDto> referenceToEntityList = new HashSet<>();
     private Set<TrimmedPluginPackageEntityDto> referenceByEntityList = new HashSet<>();
