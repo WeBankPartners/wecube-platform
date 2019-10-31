@@ -17,6 +17,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
 import java.util.*;
 
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
@@ -52,6 +53,7 @@ public class PluginPackageXmlParser {
         pluginPackageDto.setVersion(trimmedVersion);
         pluginPackage.setVersion(trimmedVersion);
         pluginPackage.setStatus(PluginPackage.Status.UNREGISTERED);
+        pluginPackage.setUploadTimestamp(new Timestamp(System.currentTimeMillis()));
 
         NodeList packageDependencyNodes = xPathEvaluator.getNodeList("/package/packageDependencies/packageDependency");
         if (null != packageDependencyNodes && packageDependencyNodes.getLength() > 0) {
