@@ -135,6 +135,7 @@ public class PluginPackageService {
                     pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
             uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
                     pluginUiPackageFile);
+            pluginPackage.setUiPackageIncluded(true);
             log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
         }
 
@@ -188,7 +189,7 @@ public class PluginPackageService {
             throw new WecubeCoreException(errorMessage);
         }
 
-        if (pluginPackage.getPluginPackageResourceFiles().size() != 0) {
+        if (pluginPackage.isUiPackageIncluded()) {
             deployPluginUiResources(pluginPackage);
         }
         pluginPackage.setStatus(REGISTERED);
@@ -220,8 +221,9 @@ public class PluginPackageService {
             log.error("Remove plugin package file failed: {}", e);
             throw new WecubeCoreException("Remove plugin package file failed.");
         }
-        if (pluginPackage.getPluginPackageResourceFiles().size() != 0)
+        if (pluginPackage.isUiPackageIncluded()) {
             removePluginUiResources(pluginPackage);
+        }
     }
 
     private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {
