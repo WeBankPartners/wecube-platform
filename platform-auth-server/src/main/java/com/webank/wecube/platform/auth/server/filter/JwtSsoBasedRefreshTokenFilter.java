@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationToken;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+import com.webank.wecube.platform.auth.server.config.AuthServerProperties;
 import com.webank.wecube.platform.auth.server.config.SpringApplicationContextUtil;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 import com.webank.wecube.platform.auth.server.dto.JwtTokenDto;
@@ -54,13 +55,16 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
 
 
     private ObjectMapper objectMapper = new ObjectMapper();
+    
+    private AuthServerProperties authServerProperties;
 
-    private JwtBuilder jwtBuilder = new DefaultJwtBuilder();
+    private final JwtBuilder jwtBuilder;
 
-    public JwtSsoBasedRefreshTokenFilter(AuthenticationManager authenticationManager) {
+    public JwtSsoBasedRefreshTokenFilter(AuthenticationManager authenticationManager, AuthServerProperties authServerProperties) {
         super(new AntPathRequestMatcher(URI_REFRESH_TOKEN, "GET"));
 
         this.authenticationManager = authenticationManager;
+        this.authServerProperties = authServerProperties;
 
         Assert.notNull(this.authenticationManager, "authentication manager must provide.");
 
@@ -68,6 +72,8 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
             log.info("Filter: {} applied", JwtSsoBasedRefreshTokenFilter.class.getSimpleName());
             log.info("AuthenticationManager: {} applied", authenticationManager.getClass().getSimpleName());
         }
+        
+        jwtBuilder = new DefaultJwtBuilder(this.authServerProperties.getJwtToken());
     }
 
     @Override
