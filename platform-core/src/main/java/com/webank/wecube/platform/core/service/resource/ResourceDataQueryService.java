@@ -49,7 +49,7 @@ public class ResourceDataQueryService {
     
     
     public QueryResponse<List<String>> queryDB(int packageId, SqlQueryRequest sqlQueryRequest){
-        //DataSource dataSource = getDataSource(packageId);
+        DataSource dataSource = getDataSource(packageId);
         return queryDB(dataSource,sqlQueryRequest);
     }
     
