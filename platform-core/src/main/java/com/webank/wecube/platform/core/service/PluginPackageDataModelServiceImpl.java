@@ -109,7 +109,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                                        List<PluginPackageEntity> candidateEntityList) throws WecubeCoreException {
         for (PluginPackageEntityDto inputEntityDto : inputEntityDtoList) {
             // update the referenceNameMap with self and referenceName, the referenceName was transfered into "packageName"."entityName"."attributeName"
-            for (PluginPackageAttributeDto inputAttributeDto : inputEntityDto.getAttributeDtoList()) {
+            for (PluginPackageAttributeDto inputAttributeDto : inputEntityDto.getAttributes()) {
                 if (StringUtils.isEmpty(inputAttributeDto.getDataType())) {
                     String msg = String.format(
                             "The DataType should not be empty or null while registering he package [%s] with version: [%s]",
@@ -305,7 +305,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             }));
 
             // query for the referenceTo info
-            List<PluginPackageAttributeDto> attributeDtoList = inputEntityDto.getAttributeDtoList();
+            List<PluginPackageAttributeDto> attributeDtoList = inputEntityDto.getAttributes();
             if (!CollectionUtils.isEmpty(attributeDtoList)) {
                 for (PluginPackageAttributeDto attributeDto : attributeDtoList) {
                     Optional<PluginPackageEntity> entityReferenceTo = pluginPackageEntityRepository.findTop1ByPluginPackage_NameAndNameOrderByDataModelVersionDesc(
