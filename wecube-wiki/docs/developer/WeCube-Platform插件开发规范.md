@@ -22,7 +22,7 @@ WeCube-Platform作为一个一站式IT架构管理和运维管理工具平台，
 ```
 itsm-v1.0.zip 
  +-  register.xml                         -- [必选] 注册描述文件
- +-  image.tar                            -- [必选] 后端服务docker镜像包，命名必须是“image.tar”
+ +-  image.tar                            -- [必选] 后端服务docker镜像包，命名必须是“image.tar”，docker load出来的image要求：repository必须是插件包名，tag是版本号
  +-  ui.zip                               -- [可选] 前端资源包
  +-  init.sql                             -- [可选] 初始化数据库表结构sql
  +-  upgrade.sql                          -- [可选] 连续版本升级数据库sql
@@ -91,3 +91,5 @@ PUT /service-management/tasks/{task-id}/process
 GET /service-management/service-requests/{service-request-id}/attach-file
 ```
 它们都是以/service-management开头的。
+
+##### 第四，插件包需要提供日志查询API；
