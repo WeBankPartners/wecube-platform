@@ -8,13 +8,15 @@ import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.dto.*;
 import com.webank.wecube.platform.core.jpa.*;
+import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
+import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.support.S3Client;
-import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +58,9 @@ public class PluginPackageService {
     private PluginPackageResourceFileRepository pluginPackageResourceFileRepository;
 
     @Autowired
+    private PluginPackageValidator pluginPackageValidator;
+
+    @Autowired
     private PluginProperties pluginProperties;
 
     @Autowired
@@ -89,16 +94,17 @@ public class PluginPackageService {
         if (!registerXmlFile.exists()) {
             throw new WecubeCoreException(String.format("Plugin package definition file: [%s] does not exist.", pluginProperties.getRegisterFile()));
         }
+
+        new PluginConfigXmlValidator().validate(new FileInputStream(registerXmlFile));
+
         PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile)).parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
-        if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
-            throw new WecubeCoreException(
-                    String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ",
-                            pluginPackageDto.getName()));
-        }
+
+        pluginPackageValidator.validatePluginPackage(pluginPackage);
+
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
-                    pluginPackageDto.getName(), pluginPackageDto.getVersion()));
+                    pluginPackage.getName(), pluginPackage.getVersion()));
         }
         // 4.
         File pluginDockerImageFile = new File(localFilePath + "/" + pluginProperties.getImageFile());
@@ -391,7 +397,7 @@ public class PluginPackageService {
         for (MenuItemDto menuItemDto : inputMenuItemDto) {
             String menuCategory = menuItemDto.getCategory();
             Integer menuId = menuItemDto.getId();
-            if (!org.springframework.util.StringUtils.isEmpty(menuCategory)) {
+            if (!StringUtils.isEmpty(menuCategory)) {
                 if (menuId > categoryToId.get(menuCategory)) {
                     categoryToId.put(menuCategory, menuId + 1);
                 }
