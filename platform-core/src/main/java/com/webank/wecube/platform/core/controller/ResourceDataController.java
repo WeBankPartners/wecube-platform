@@ -34,8 +34,8 @@ public class ResourceDataController {
 
     @GetMapping("/s3/files")
     @ResponseBody
-    public QueryResponse<List<String>> queryS3Files(@PathVariable("package_id")int packageId, @RequestBody ResourceQueryRequest resourceQueryRequest){
-        return resourceDataQueryService.queryS3Files(packageId, resourceQueryRequest);
+    public List<List<String>> queryS3Files(@PathVariable("package_id")int packageId){
+        return resourceDataQueryService.queryS3Files(packageId);
     }
     
     
