@@ -87,15 +87,15 @@ public class PluginPackageEntityDto {
     private String packageVersion;
     private Set<TrimmedPluginPackageEntityDto> referenceToEntityList = new HashSet<>();
     private Set<TrimmedPluginPackageEntityDto> referenceByEntityList = new HashSet<>();
-    private List<PluginPackageAttributeDto> attributeDtoList = new ArrayList<>();
+    private List<PluginPackageAttributeDto> attributes = new ArrayList<>();
 
 
-    public PluginPackageEntityDto(Integer id, String name, String displayName, String description, String state, List<PluginPackageAttributeDto> attributeDtoList) {
+    public PluginPackageEntityDto(Integer id, String name, String displayName, String description, String state, List<PluginPackageAttributeDto> attributes) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
         this.description = description;
-        this.attributeDtoList = attributeDtoList;
+        this.attributes = attributes;
     }
 
     public PluginPackageEntityDto() {
@@ -115,7 +115,7 @@ public class PluginPackageEntityDto {
         pluginPackageEntityDto.setPackageVersion(pluginPackageEntity.getPluginPackage().getVersion());
         if (pluginPackageEntity.getPluginPackageAttributeList() != null) {
             pluginPackageEntity.getPluginPackageAttributeList()
-                    .forEach(pluginPackageAttribute -> pluginPackageEntityDto.attributeDtoList
+                    .forEach(pluginPackageAttribute -> pluginPackageEntityDto.attributes
                             .add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
         }
         return pluginPackageEntityDto;
@@ -139,9 +139,9 @@ public class PluginPackageEntityDto {
         if (pluginPackageEntityDto.getDisplayName() != null) {
             pluginPackageEntity.setDisplayName(pluginPackageEntityDto.getDisplayName());
         }
-        if (pluginPackageEntityDto.getAttributeDtoList() != null) {
+        if (pluginPackageEntityDto.getAttributes() != null) {
             List<PluginPackageAttribute> pluginPackageAttributeList = new ArrayList<>();
-            for (PluginPackageAttributeDto pluginPackageAttributeDto : pluginPackageEntityDto.getAttributeDtoList()) {
+            for (PluginPackageAttributeDto pluginPackageAttributeDto : pluginPackageEntityDto.getAttributes()) {
                 pluginPackageAttributeList.add(PluginPackageAttributeDto.toDomain(pluginPackageAttributeDto, null, pluginPackageEntity));
             }
             pluginPackageEntity.setPluginPackageAttributeList(pluginPackageAttributeList);
@@ -167,9 +167,9 @@ public class PluginPackageEntityDto {
         if (this.getDisplayName() != null) {
             pluginPackageEntity.setDisplayName(this.getDisplayName());
         }
-        if (this.getAttributeDtoList() != null) {
+        if (this.getAttributes() != null) {
             List<PluginPackageAttribute> pluginPackageAttributeList = new ArrayList<>();
-            for (PluginPackageAttributeDto pluginPackageAttributeDto : this.getAttributeDtoList()) {
+            for (PluginPackageAttributeDto pluginPackageAttributeDto : this.getAttributes()) {
                 pluginPackageAttributeList.add(PluginPackageAttributeDto.toDomain(pluginPackageAttributeDto, null, pluginPackageEntity));
             }
             pluginPackageEntity.setPluginPackageAttributeList(pluginPackageAttributeList);
@@ -227,12 +227,12 @@ public class PluginPackageEntityDto {
         this.packageVersion = packageVersion;
     }
 
-    public List<PluginPackageAttributeDto> getAttributeDtoList() {
-        return attributeDtoList;
+    public List<PluginPackageAttributeDto> getAttributes() {
+        return attributes;
     }
 
-    public void setAttributeDtoList(List<PluginPackageAttributeDto> attributeDtoList) {
-        this.attributeDtoList = attributeDtoList;
+    public void setAttributes(List<PluginPackageAttributeDto> attributes) {
+        this.attributes = attributes;
     }
 
     public String getDisplayName() {
