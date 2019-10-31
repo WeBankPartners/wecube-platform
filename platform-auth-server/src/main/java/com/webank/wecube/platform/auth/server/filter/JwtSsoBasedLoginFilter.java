@@ -42,11 +42,10 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
 
     private static final String URI_LOGIN = "/v1/api/login";
 
-    private AuthenticationManager authenticationManager;
-    
-    private AuthServerProperties authServerProperties;
-
+    private final AuthenticationManager authenticationManager;
+    private final AuthServerProperties authServerProperties;
     private ObjectMapper objectMapper = new ObjectMapper();
+    private final JwtBuilder jwtBuilder;
 
     public JwtSsoBasedLoginFilter(AuthenticationManager authenticationManager, AuthServerProperties authServerProperties) {
         super(new AntPathRequestMatcher(URI_LOGIN, "POST"));
@@ -58,6 +57,8 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
             log.info("Filter: {} applied", JwtSsoBasedLoginFilter.class.getSimpleName());
             log.info("AuthenticationManager: {} applied", authenticationManager.getClass().getSimpleName());
         }
+        
+        jwtBuilder = new DefaultJwtBuilder(this.authServerProperties.getJwtToken());
     }
 
     @Override
@@ -124,7 +125,6 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
-        JwtBuilder jwtBuilder = new DefaultJwtBuilder(this.authServerProperties.getJwtToken());
         JwtTokenDto refreshToken = jwtTokenDto(jwtBuilder.buildRefreshToken(authResult));
         JwtTokenDto accessToken = jwtTokenDto(jwtBuilder.buildAccessToken(authResult));
 
