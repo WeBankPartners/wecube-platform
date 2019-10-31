@@ -20,16 +20,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.google.common.base.Strings;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
+import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
 import com.webank.wecube.platform.core.dto.PageInfo;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.ResourceQueryRequest;
 import com.webank.wecube.platform.core.dto.SqlQueryRequest;
+import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
+import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
 @Service
@@ -42,6 +47,12 @@ public class ResourceDataQueryService {
     private ResourceProperties resourceProperties;
     @Autowired
     private MysqlAccountManagementService mysqlAcctMngService;
+    
+    @Autowired
+    private S3Client s3client;
+    
+    @Autowired
+    private PluginInstanceRepository pluginInstanceRepository;
     
     //for test
     @Autowired
@@ -177,8 +188,47 @@ public class ResourceDataQueryService {
         return mysqlAcctMngService.newMysqlDatasource(mysqlHost, mysqlPort, dbUsername, password);
     }
 
-    public QueryResponse<List<String>> queryS3Files(int packageId, ResourceQueryRequest resourceQueryRequest) {
-        return null;
+    public List<List<String>> queryS3Files(int packageId) {
+        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByPackageId(packageId);
+        if(pluginInstances == null || pluginInstances.size()==0) {
+            throw new WecubeCoreException(String.format("Can not find out plugin instance for packageId:%d", packageId));
+        }
+        
+        String bucketName = null;
+        for(PluginInstance ps:pluginInstances) {
+            if(ps.getS3ResourceItem() != null) {
+                bucketName = ps.getS3ResourceItem().getName();
+                break;
+            }
+        }
+        
+        if(Strings.isNullOrEmpty(bucketName)) {
+            throw new WecubeCoreException(String.format("Can not find out bucket name for packageId:%d", packageId));
+        }
+        
+        List<S3ObjectSummary> s3Objs = s3client.listObjects(bucketName);
+        List<List<String>> response = new LinkedList<>();
+        SimpleDateFormat datetimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        for(S3ObjectSummary s3ObjSum:s3Objs) {
+            List<String> rowVal = new ArrayList<>(4);
+            String key = s3ObjSum.getKey();
+            int lastSplitPos = key.lastIndexOf("/");
+            String path = "";
+            String fileName = "";
+            if(lastSplitPos > 0) {
+                path = key.substring(0,lastSplitPos+1);
+                fileName = key.substring(lastSplitPos+1);
+            }else {
+                path = "/";
+                fileName = key;
+            }
+            rowVal.add(fileName);
+            rowVal.add(path);
+            rowVal.add(s3ObjSum.getETag());
+            rowVal.add(datetimeFormat.format(s3ObjSum.getLastModified()));
+            response.add(rowVal);
+        }
+        return response;
     }
     
 }
