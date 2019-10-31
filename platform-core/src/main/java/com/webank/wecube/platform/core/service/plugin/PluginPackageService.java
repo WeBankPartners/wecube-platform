@@ -66,8 +66,6 @@ public class PluginPackageService {
     @Autowired
     private CommandService commandService;
 
-    @Autowired
-
     @Transactional
     public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
         String pluginPackageFileName = pluginPackageFile.getName();
