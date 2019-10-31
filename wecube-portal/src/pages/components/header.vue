@@ -59,7 +59,7 @@
 </template>
 <script>
 import Vue from "vue";
-import { getMyMenus } from "@/api/server.js";
+import { getMyMenus, getAllPluginPackageResourceFiles } from "@/api/server.js";
 
 import { MENUS } from "../../const/menus.js";
 
@@ -143,6 +143,32 @@ export default {
         this.$emit("allMenus", this.menus);
         window.myMenus = this.menus;
       }
+    },
+    async getAllPluginPackageResourceFiles() {
+      const {
+        status,
+        message,
+        data
+      } = await getAllPluginPackageResourceFiles();
+      if (status === "OK") {
+        const baseUrl = "http://129.204.99.160:8888";
+        const eleContain = document.getElementsByTagName("body");
+        data.forEach(file => {
+          if (file.relatedPath.indexOf(".js") > -1) {
+            let contains = document.createElement("script");
+            contains.type = "text/javascript";
+            contains.src = file.relatedPath;
+            eleContain[0].appendChild(contains);
+          }
+          if (file.relatedPath.indexOf(".css") > -1) {
+            let contains = document.createElement("link");
+            contains.type = "text/css";
+            contains.rel = "stylesheet";
+            contains.href = file.relatedPath;
+            eleContain[0].appendChild(contains);
+          }
+        });
+      }
     }
   },
   async created() {
@@ -156,25 +182,7 @@ export default {
   },
   mounted() {
     if (window.needReLoad) {
-      const baseUrl = "http://localhost:8888/js/";
-      const baseCss = "http://localhost:8888/css/";
-      const urls = ["chunk-vendors.99098a81.js", "app.181b536c.js"];
-      const cssUrls = ["chunk-vendors.4b6472ad.css", "app.f724c7a4.css"];
-      for (var i = 0; i < cssUrls.length; i++) {
-        let contains = document.createElement("link");
-        contains.type = "text/css";
-        contains.rel = "stylesheet";
-        contains.href = baseCss + cssUrls[i];
-        const eleContain = document.getElementsByTagName("body");
-        eleContain[0].appendChild(contains);
-      }
-      for (var j = 0; j < urls.length; j++) {
-        let contains = document.createElement("script");
-        contains.type = "text/javascript";
-        contains.src = baseUrl + urls[j];
-        const eleContain = document.getElementsByTagName("body");
-        eleContain[0].appendChild(contains);
-      }
+      this.getAllPluginPackageResourceFiles();
       window.needReLoad = false;
     }
   }
