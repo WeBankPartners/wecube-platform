@@ -280,10 +280,12 @@ public class PluginInstanceService {
         ResourceServerDto mysqlServer = resourceManagementService.retrieveServers(queryRequest).getContents().get(0);
 
         String dbPassword = genRandomPassword();
+        String dbUser = mysqlInfo.getSchemaName();
+
         ResourceItemDto createMysqlDto = new ResourceItemDto(mysqlInfo.getSchemaName(),
                 ResourceItemType.MYSQL_DATABASE.getCode(),
-                buildAdditionalPropertiesForMysqlDatabase(mysqlInfo.getPluginPackage().getName(),
-                        mysqlInfo.getSchemaName(), dbPassword),
+                buildAdditionalPropertiesForMysqlDatabase(dbUser.length() > 16 ? dbUser.substring(0, 16) : dbUser,
+                        dbPassword),
                 mysqlServer.getId(), String.format("Build MySQL database for plugin[%s]", mysqlInfo.getSchemaName()));
         mysqlServer.setResourceItemDtos(null);
         createMysqlDto.setResourceServer(mysqlServer);
@@ -384,9 +386,9 @@ public class PluginInstanceService {
         return false;
     }
 
-    private String buildAdditionalPropertiesForMysqlDatabase(String name, String username, String password) {
+    private String buildAdditionalPropertiesForMysqlDatabase(String username, String password) {
         HashMap<String, String> additionalProperties = new HashMap<String, String>();
-        additionalProperties.put("username", username.substring(0, 16));
+        additionalProperties.put("username", username);
         additionalProperties.put("password",
                 EncryptionUtils.encryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(), username));
         return JsonUtils.toJsonString(additionalProperties);
