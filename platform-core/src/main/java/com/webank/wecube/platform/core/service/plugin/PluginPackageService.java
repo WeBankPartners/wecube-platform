@@ -220,8 +220,8 @@ public class PluginPackageService {
             log.error("Remove plugin package file failed: {}", e);
             throw new WecubeCoreException("Remove plugin package file failed.");
         }
-
-        removePluginUiResources(pluginPackage);
+        if (pluginPackage.getPluginPackageResourceFiles().size() != 0)
+            removePluginUiResources(pluginPackage);
     }
 
     private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {
