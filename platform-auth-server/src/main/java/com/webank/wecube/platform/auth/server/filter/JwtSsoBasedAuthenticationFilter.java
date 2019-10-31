@@ -40,7 +40,7 @@ import io.jsonwebtoken.Jws;
 public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedAuthenticationFilter.class);
 
-    private AuthServerProperties authServerProperties;
+    private final AuthServerProperties authServerProperties;
     private final JwtBuilder jwtBuilder;
 
     public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager,
