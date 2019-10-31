@@ -5,7 +5,8 @@ CREATE TABLE `plugin_packages` (
     `name` VARCHAR(50) NOT NULL,
     `version` VARCHAR(20) NOT NULL,
     `status` VARCHAR(20) NOT NULL default 'UNREGISTERED',
-    `upload_timestamp` timestamp not null default current_timestamp,
+    `upload_timestamp` timestamp default current_timestamp,
+    `ui_package_included` TINYINT(1) default 0,
     UNIQUE INDEX `name` (`name`, `version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
