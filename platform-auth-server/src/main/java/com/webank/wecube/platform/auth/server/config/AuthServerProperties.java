@@ -5,6 +5,8 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties(prefix = "platform.auth.server")
 public class AuthServerProperties {
+    private String privateKey;
+    private String publicKey;
 
     @NestedConfigurationProperty
     private JwtTokenProperties jwtToken = new JwtTokenProperties();
@@ -16,6 +18,24 @@ public class AuthServerProperties {
     public void setJwtToken(JwtTokenProperties jwtToken) {
         this.jwtToken = jwtToken;
     }
+    
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+
 
     public static class JwtTokenProperties {
         private int userRefreshToken = 30;
