@@ -272,7 +272,7 @@ public class PluginPackageService {
                     PluginPackageResourceFile pluginPackageResourceFile = new PluginPackageResourceFile();
                     pluginPackageResourceFile.setPluginPackage(pluginPackage);
                     pluginPackageResourceFile.setSource(sourceZipFileName);
-                    pluginPackageResourceFile.setRelatedPath(pluginPackage.getName() + File.separator
+                    pluginPackageResourceFile.setRelatedPath("/ui-resources/" + pluginPackage.getName() + File.separator
                             + pluginPackage.getVersion() + File.separator + zipEntryName);
 
                     log.info("File in ui package [{}] : {}", sourceZipFileName, zipEntryName);
