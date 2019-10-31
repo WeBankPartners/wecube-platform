@@ -24,6 +24,9 @@ public class PluginInstance {
     @JoinColumn(name = "package_id")
     private PluginPackage pluginPackage;
 
+    @Column(name = "package_id", updatable=false,insertable=false)
+    private String packageId;
+    
     @Column
     private String instanceName;
 
@@ -136,6 +139,14 @@ public class PluginInstance {
 
     public void setPluginMysqlInstanceResourceId(Integer pluginMysqlInstanceResourceId) {
         this.pluginMysqlInstanceResourceId = pluginMysqlInstanceResourceId;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
     }
 
 }
