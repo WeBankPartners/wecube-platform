@@ -16,7 +16,7 @@ public class PluginPackageAttributeDto {
     private String refPackageName;
     private String refEntityName;
     private String refAttributeName;
-    private String refPackageVersion;
+//    private String refPackageVersion;
 
     public PluginPackageAttributeDto(Integer attributeId,
                                      String name,
@@ -31,7 +31,7 @@ public class PluginPackageAttributeDto {
         this.description = description;
         this.dataType = dataType;
         this.refPackageName = referencePackageName;
-        this.refPackageVersion = referencePackageVersion;
+//        this.refPackageVersion = referencePackageVersion;
         this.refEntityName = referenceEntityName;
         this.refAttributeName = referenceAttributeName;
     }
@@ -55,7 +55,7 @@ public class PluginPackageAttributeDto {
         pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
         if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
             pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackage().getName());
-            pluginPackageAttributeDto.setRefPackageVersion(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackage().getVersion());
+//            pluginPackageAttributeDto.setRefPackageVersion(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackage().getVersion());
             pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
             pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
         }
@@ -182,13 +182,13 @@ public class PluginPackageAttributeDto {
         this.refAttributeName = refAttributeName;
     }
 
-    public String getRefPackageVersion() {
-        return refPackageVersion;
-    }
-
-    public void setRefPackageVersion(String refPackageVersion) {
-        this.refPackageVersion = refPackageVersion;
-    }
+//    public String getRefPackageVersion() {
+//        return refPackageVersion;
+//    }
+//
+//    public void setRefPackageVersion(String refPackageVersion) {
+//        this.refPackageVersion = refPackageVersion;
+//    }
 
     @Override
     public String toString() {

@@ -2,10 +2,12 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.google.common.base.Objects;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -33,6 +35,9 @@ public class PluginPackage {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
+
+    @Column
+    private Timestamp uploadTimestamp;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -89,12 +94,20 @@ public class PluginPackage {
     public PluginPackage() {
     }
 
-
-    public PluginPackage(Integer id, String name, String version, Status status, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<PluginPackageEntity> pluginPackageEntities, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
+    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp) {
         this.id = id;
         this.name = name;
         this.version = version;
         this.status = status;
+        this.uploadTimestamp = uploadTimestamp;
+    }
+
+    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<PluginPackageEntity> pluginPackageEntities, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
+        this.id = id;
+        this.name = name;
+        this.version = version;
+        this.status = status;
+        this.uploadTimestamp = uploadTimestamp;
         this.pluginPackageDependencies = pluginPackageDependencies;
         this.pluginPackageMenus = pluginPackageMenus;
         this.pluginPackageEntities = pluginPackageEntities;
@@ -137,6 +150,14 @@ public class PluginPackage {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Timestamp getUploadTimestamp() {
+        return uploadTimestamp;
+    }
+
+    public void setUploadTimestamp(Timestamp uploadTimestamp) {
+        this.uploadTimestamp = uploadTimestamp;
     }
 
     public Set<PluginPackageDependency> getPluginPackageDependencies() {
@@ -183,8 +204,7 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesDocker;
     }
 
-    public void setPluginPackageRuntimeResourcesDocker(
-            Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker) {
+    public void setPluginPackageRuntimeResourcesDocker(Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker) {
         this.pluginPackageRuntimeResourcesDocker = pluginPackageRuntimeResourcesDocker;
     }
 
@@ -192,8 +212,7 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesMysql;
     }
 
-    public void setPluginPackageRuntimeResourcesMysql(
-            Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql) {
+    public void setPluginPackageRuntimeResourcesMysql(Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql) {
         this.pluginPackageRuntimeResourcesMysql = pluginPackageRuntimeResourcesMysql;
     }
 
@@ -201,8 +220,7 @@ public class PluginPackage {
         return pluginPackageRuntimeResourcesS3;
     }
 
-    public void setPluginPackageRuntimeResourcesS3(
-            Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3) {
+    public void setPluginPackageRuntimeResourcesS3(Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3) {
         this.pluginPackageRuntimeResourcesS3 = pluginPackageRuntimeResourcesS3;
     }
 
@@ -220,6 +238,20 @@ public class PluginPackage {
 
     public void setPluginPackageResourceFiles(Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
         this.pluginPackageResourceFiles = pluginPackageResourceFiles;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PluginPackage that = (PluginPackage) o;
+        return Objects.equal(name, that.name) &&
+                Objects.equal(version, that.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name, version);
     }
 
     @Override

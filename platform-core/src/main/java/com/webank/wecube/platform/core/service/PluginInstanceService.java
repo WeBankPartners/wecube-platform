@@ -263,6 +263,7 @@ public class PluginInstanceService {
                 buildAdditionalPropertiesForMysqlDatabase(mysqlInfo.getPluginPackage().getName(),
                         mysqlInfo.getSchemaName(), dbPassword),
                 mysqlServer.getId(), String.format("Build MySQL database for plugin[%s]", mysqlInfo.getSchemaName()));
+        mysqlServer.setResourceItemDtos(null);
         createMysqlDto.setResourceServer(mysqlServer);
         logger.info("createMysqlDto = " + createMysqlDto);
 
@@ -352,7 +353,7 @@ public class PluginInstanceService {
         s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3UiPackagePath, downloadUiZipPath);
 
         String remotePath = pluginProperties.getStaticResourceServerPath() + File.separator + pluginPackage.getName()
-                + File.separator + pluginPackage.getVersion() + File.separator;
+                + File.separator;
 
         // mkdir at remote host
         String mkdirCmd = String.format("mkdir -p %s", remotePath);
