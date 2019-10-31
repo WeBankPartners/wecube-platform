@@ -91,3 +91,5 @@ PUT /service-management/tasks/{task-id}/process
 GET /service-management/service-requests/{service-request-id}/attach-file
 ```
 它们都是以/service-management开头的。
+
+##### 第四，插件包需要提供日志查询API；
