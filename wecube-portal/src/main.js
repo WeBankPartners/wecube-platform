@@ -84,11 +84,11 @@ router.beforeEach((to, from, next) => {
     next("/homepage");
     // next()
   } else {
-    next();
     if (window.myMenus) {
       let isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus))
         .find(_ => _.link === to.path);
+      console.log(isHasPermission);
       if (
         isHasPermission ||
         to.path === "/404" ||
