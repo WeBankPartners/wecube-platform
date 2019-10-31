@@ -481,3 +481,5 @@ export const registerPlugin = id => req.post(`/plugins/enable/${id}`);
 export const deletePlugin = id => req.post(`/plugins/disable/${id}`);
 export const savePluginConfig = data => req.post(`/plugins`, data);
 export const registPluginPackage = id => req.post(`/packages/register/${id}`);
+export const getAllPluginPackageResourceFiles = () =>
+  req.get("/resource-files");
