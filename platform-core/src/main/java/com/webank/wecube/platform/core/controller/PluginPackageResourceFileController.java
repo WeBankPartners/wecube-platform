@@ -2,7 +2,6 @@ package com.webank.wecube.platform.core.controller;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.dto.PluginPackageResourceFilesDto;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageResourceFileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,16 +19,15 @@ public class PluginPackageResourceFileController {
     @Autowired
     private PluginPackageResourceFileService resourceFileService;
 
-    @GetMapping("/resource-files/{plugin-package-id}")
+    @GetMapping("/resource-files")
     @ResponseBody
-    public JsonResponse savePluginConfig(@PathVariable("plugin-package-id") int pluginPackageId) {
-        PluginPackageResourceFilesDto pluginPackageResourceFilesDto;
+    public JsonResponse getAllPluginPackageResourceFiles() {
         try {
-            pluginPackageResourceFilesDto = resourceFileService.getAllResourceFilesByPluginPackageId(pluginPackageId);
+            return okayWithData(resourceFileService.getAllPluginPackageResourceFiles());
         } catch (WecubeCoreException e) {
+            log.error("Failed to get all PluginPackage resource files.");
             return error(e.getMessage());
         }
-        return okayWithData(pluginPackageResourceFilesDto);
     }
 
 }
