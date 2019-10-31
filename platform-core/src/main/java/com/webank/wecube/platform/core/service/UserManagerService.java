@@ -11,14 +11,8 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Array;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,8 +29,12 @@ import com.webank.wecube.platform.core.domain.Role;
 import com.webank.wecube.platform.core.domain.RoleMenu;
 import com.webank.wecube.platform.core.domain.RoleUser;
 import com.webank.wecube.platform.core.domain.User;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.support.cmdb.CmdbServiceV2Stub;
 import com.webank.wecube.platform.core.support.cmdb.dto.v2.CiTypeAttrDto;
 import com.webank.wecube.platform.core.support.cmdb.dto.v2.CiTypeDto;
@@ -66,6 +64,11 @@ public class UserManagerService {
 
     @Autowired
     CmdbServiceV2Stub cmdbServiceStub;
+
+    @Autowired
+    PluginPackageService pluginPackageService;
+    @Autowired
+    PluginPackageRepository pluginPackageRepository;
 
     public List<User> createUser(User user) {
         if (user == null)
@@ -104,7 +107,7 @@ public class UserManagerService {
         cmdbServiceStub.deleteRoles(roleId);
     }
 
-    public List<MenuItem> getAllMenuItems() {
+    public List<MenuItem> getAllSysMenuItems() {
         return Lists.newArrayList(menuItemRepository.findAll());
     }
 
@@ -115,6 +118,45 @@ public class UserManagerService {
             MenuItemDto systemMenuDto = MenuItemDto.fromSystemMenuItem(systemMenu);
             returnMenuDto.add(systemMenuDto);
         }
+        return returnMenuDto;
+    }
+
+    public List<MenuItemDto> getAllMenus() {
+        List<MenuItemDto> returnMenuDto;
+
+        List<MenuItemDto> allSysMenus = getAllSysMenus();
+        returnMenuDto = new ArrayList<>(allSysMenus);
+
+        Map<String, Integer> categoryToId = pluginPackageService.updateCategoryToIdMapping(returnMenuDto);
+
+        PluginPackage.Status[] statusArray = {PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
+                PluginPackage.Status.STOPPED};
+        Optional<List<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findAllByStatus(statusArray);
+        if (pluginPackagesOptional.isPresent()) {
+            List<PluginPackage> packages = pluginPackagesOptional.get();
+
+            for (PluginPackage packageDomain : packages) {
+                Set<PluginPackageMenu> packageMenus = packageDomain.getPluginPackageMenus();
+                for (PluginPackageMenu packageMenu : packageMenus) {
+                    String transformedParentId = null;
+                    Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
+                    if (parentId == null) {
+                        String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                                packageMenu.getCategory());
+                        log.error(msg);
+                        throw new WecubeCoreException(msg);
+                    }
+                    transformedParentId = parentId.toString();
+                    Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
+                    MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId,
+                            foundTopMenuId);
+                    categoryToId.put(transformedParentId, foundTopMenuId);
+                    returnMenuDto.add(packageMenuDto);
+                }
+            }
+        }
+        Collections.sort(returnMenuDto);
+
         return returnMenuDto;
     }
 

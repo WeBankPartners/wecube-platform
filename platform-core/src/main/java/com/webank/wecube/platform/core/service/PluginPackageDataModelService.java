@@ -12,10 +12,10 @@ public interface PluginPackageDataModelService {
 
     List<PluginPackageEntityDto> overview();
 
-    List<PluginPackageEntityDto> packageView(String packageName, String version);
+//    List<PluginPackageEntityDto> packageView(String packageName, String version);
 
     List<PluginPackageEntityDto> packageView(int packageId);
 
-    void deleteModel(String packageName, String version);
+//    void deleteModel(String packageName, String version);
 
 }

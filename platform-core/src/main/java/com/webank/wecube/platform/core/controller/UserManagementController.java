@@ -77,7 +77,7 @@ public class UserManagementController {
     @GetMapping("/menus")
     @ResponseBody
     public JsonResponse getAllMenuItems() {
-        List<MenuItem> allMenuItems = userManagerService.getAllMenuItems();
+        List<MenuItem> allMenuItems = userManagerService.getAllSysMenuItems();
         return okayWithData(allMenuItems);
     }
 
