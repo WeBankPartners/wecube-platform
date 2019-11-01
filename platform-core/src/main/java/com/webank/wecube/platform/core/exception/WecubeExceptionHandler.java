@@ -21,14 +21,14 @@ public class WecubeExceptionHandler {
     @ExceptionHandler(value = WecubeCoreException.class)
     @ResponseBody
     public JsonResponse baseErrorHandler(HttpServletRequest req, Exception e) throws Exception {
-        logger.error("---BaseException Handler---Host {} invokes url {} ERROR: {}", req.getRemoteHost(), req.getRequestURL(), e.getMessage());
+        logger.error(String.format("---BaseException Handler---Host %s invokes url %s ERROR: %s", req.getRemoteHost(), req.getRequestURL(), e.getMessage()),e);
         return error(e.getMessage());
     }
 
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
     public JsonResponse defaultErrorHandler(HttpServletRequest req, Exception e) throws Exception {
-        logger.error("---DefaultException Handler---Host {} invokes url {} ERROR: {}", req.getRemoteHost(), req.getRequestURL(), e.getMessage());
+        logger.error(String.format("---DefaultException Handler---Host %s invokes url %s ERROR: %s", req.getRemoteHost(), req.getRequestURL(), e.getMessage()),e);
         return error(e.getMessage());
     }
 }
