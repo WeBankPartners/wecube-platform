@@ -40,5 +40,17 @@ public class EncryptionUtilsTest extends DatabaseBasedTest {
         assertThat(EncryptionUtils.decryptWithAes(encryptedPassword, resourceProperties.getPasswordEncryptionSeed(),
                 additionalSalt)).isEqualTo(password);
     }
+    
+    @Test
+    public void decryptPasswordTest() {
+        ***REMOVED***;
+        String additionalSalt = "service_manageme";
+        String password = EncryptionUtils.decryptWithAes(enPassword,
+                resourceProperties.getPasswordEncryptionSeed(), additionalSalt);
+        log.info("decryptedPassword: " + password);
+        
+        assertThat(EncryptionUtils.encryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(),
+                additionalSalt)).isEqualTo(enPassword);
+    }
 
 }
