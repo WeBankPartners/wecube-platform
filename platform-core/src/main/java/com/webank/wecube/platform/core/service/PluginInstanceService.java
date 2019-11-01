@@ -295,7 +295,7 @@ public class PluginInstanceService {
                 "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
                         + "?characterEncoding=utf8&serverTimezone=UTC",
                 mysqlInstance.getUsername(), EncryptionUtils.decryptWithAes(mysqlInstance.getPassword(),
-                        resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getUsername()));
+                        resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName()));
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
         List<Resource> scipts = newArrayList(new ClassPathResource(initSqlPath));
