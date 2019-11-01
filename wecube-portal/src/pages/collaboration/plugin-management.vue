@@ -184,27 +184,22 @@
                             style="border-bottom: 1px solid gray; padding: 10px 0"
                           >
                             <div class="instance-item">
-                              {{ item.ip + ":" + item.port }}
+                              <Col span="4">
+                                {{ item.ip + ":" + item.port }}
+                              </Col>
+                              <Button
+                                size="small"
+                                type="success"
+                                @click="
+                                  createPluginInstanceByPackageIdAndHostIp(
+                                    item.ip,
+                                    item.port,
+                                    item.createParams
+                                  )
+                                "
+                                >{{ $t("create") }}</Button
+                              >
                             </div>
-                            <span>{{ $t("start_params") }}:</span>
-                            <Input
-                              type="textarea"
-                              style="width: 50%"
-                              :autosize="true"
-                              v-model="item.createParams"
-                            />
-                            <Button
-                              size="small"
-                              type="success"
-                              @click="
-                                createPluginInstanceByPackageIdAndHostIp(
-                                  item.ip,
-                                  item.port,
-                                  item.createParams
-                                )
-                              "
-                              >{{ $t("create") }}</Button
-                            >
                           </div>
                         </div>
                       </div>
@@ -232,25 +227,24 @@
                       </div>
                     </Row>
                   </Card>
-
+                  <!--
                   <Card style="margin-top: 20px">
                     <p>{{ $t("log_query") }}</p>
                     <div style="padding: 0 0 50px 0;margin-top: 20px">
                       <WeTable
-                        :tableData="tableData"
+                        :tableData="logTableData"
                         :tableInnerActions="innerActions"
                         :tableColumns="logTableColumns"
-                        :pagination="pagination"
+                        :pagination="logTablePagination"
                         @actionFun="actionFun"
-                        @handleSubmit="handleSubmit"
-                        @pageChange="pageChange"
-                        @pageSizeChange="pageSizeChange"
+                        @handleSubmit="handleLogTableSubmit"
+                        @pageChange="onLogTableChange"
+                        @pageSizeChange="onLogTablePageSizeChange"
                         :showCheckbox="false"
                         tableHeight="650"
                         ref="table"
                       ></WeTable>
                     </div>
-
                     <Modal
                       v-model="logDetailsModalVisible"
                       :title="$t('log_details')"
@@ -263,7 +257,7 @@
                         v-html="logDetails"
                       ></div>
                     </Modal>
-                  </Card>
+                  </Card>-->
                 </p>
               </Panel>
               <Panel name="2">
@@ -280,17 +274,28 @@
                       />
                     </Col>
                     <Col span="4" offset="1">
-                      <Button @click="queryDBHandler">
+                      <Button @click="getDBTableData">
                         {{ $t("execute") }}
                       </Button>
                     </Col>
                   </Row>
-                  <Row>
-                    {{ $t("search_result") }}
+                  <Row style="margin-top: 20px">
+                    {{ $t("search_result") + ":" }}
                     <Table
                       :columns="dbQueryColumns"
                       :data="dbQueryData"
                     ></Table>
+                    <Page
+                      :total="dbTablePagination.total"
+                      :current="dbTablePagination.currentPage"
+                      :page-size="dbTablePagination.pageSize"
+                      @on-change="onDBTablePageChange"
+                      @on-page-size-change="onDBTablePageSizeChange"
+                      show-elevator
+                      show-sizer
+                      show-total
+                      style="float: right; margin: 10px 0;"
+                    />
                   </Row>
                 </Row>
               </Panel>
@@ -335,10 +340,17 @@ import {
   getAvailablePortByHostIp,
   preconfigurePluginPackage,
   deletePluginPkg,
-  registPluginPackage
+  registPluginPackage,
+  getAvailableInstancesByPackageId,
+  queryDataBaseByPackageId,
+  queryStorageFilesByPackageId
 } from "@/api/server.js";
-
-const pagination = {
+const logTablePagination = {
+  pageSize: 10,
+  currentPage: 1,
+  total: 0
+};
+const dbTablePagination = {
   pageSize: 10,
   currentPage: 1,
   total: 0
@@ -351,7 +363,6 @@ import MenuInjection from "./components/menu-injection.vue";
 import SysParmas from "./components/system-params.vue";
 import RuntimesResources from "./components/runtime-resource.vue";
 import AuthSettings from "./components/auth-setting.vue";
-
 export default {
   components: {
     DataModel,
@@ -370,8 +381,8 @@ export default {
       isShowRuntimeManagementPanel: false,
       currentTab: "dependency",
       currentPlugin: {},
-      tableData: [],
-      totalTableData: [],
+      logTableData: [],
+      totalLogTableData: [],
       innerActions: [
         {
           label: this.$t("show_details"),
@@ -428,7 +439,8 @@ export default {
           placeholder: this.$t("match_text")
         }
       ],
-      pagination,
+      logTablePagination,
+      dbTablePagination,
       allAvailiableHosts: [],
       allInstances: [],
       searchFilters: [],
@@ -556,29 +568,81 @@ export default {
     },
     async manageRuntimePlugin(packageId) {
       this.swapPanel("runtimeManagePanel");
-
       let currentPlugin = this.plugins.find(_ => _.id === packageId);
       this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
       this.currentPlugin = currentPlugin;
-      let { status, data, message } = await getPluginInterfaces(packageId);
-      if (status === "OK") {
-        this.defaultCreateParams = currentPlugin.containerStartParam;
-      }
-
       if (currentPlugin.pluginConfigs) {
         this.selectHosts = [];
         this.availiableHostsWithPort = [];
-        this.getAllInstancesByPackageId(this.currentPlugin.id);
+        this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
       this.getAvailableContainerHosts();
       this.resetLogTable();
+      // get storage table data
+      this.getStorageTableData(packageId);
+    },
+    async getStorageTableData(packageId) {
+      let { status, data, message } = await queryStorageFilesByPackageId(
+        packageId
+      );
+      if (status === "OK") {
+        this.storageServiceData = data.map(_ => {
+          return {
+            file: _[0],
+            path: _[1],
+            hash: _[2],
+            uploadTime: _[3]
+          };
+        });
+        console.log("storageServiceData", this.storageServiceData);
+      }
+    },
+    async getDBTableData() {
+      let payload = {
+        sqlQuery: this.dbQueryCommandString,
+        pageable: {
+          pageSize: this.dbTablePagination.pageSize,
+          startIndex:
+            this.dbTablePagination.pageSize *
+            (this.dbTablePagination.currentPage - 1)
+        }
+      };
+      let { status, data, message } = await queryDataBaseByPackageId(
+        this.currentPlugin.id,
+        payload
+      );
+      if (status === "OK") {
+        this.dbTablePagination.total = data.pageInfo.totalRows;
+        this.dbQueryColumns = data.headers;
+        this.dbQueryData = data.contents;
+      }
+    },
+    onDBTablePageChange(currentPage) {
+      this.dbTablePagination.currentPage = currentPage;
+      this.getDBTableData();
+    },
+    onDBTablePageSizeChange(pageSize) {
+      this.dbTablePagination.pageSize = pageSize;
+      this.getDBTableData();
     },
     pluginPackageChangeHandler(key) {
       this.swapPanel("");
       this.dbQueryCommandString = "";
     },
-    async getAllInstancesByPackageId(id) {
-      let { data, status, message } = await getAllInstancesByPackageId(id);
+    async removePluginInstance(instanceId) {
+      let { data, status, message } = await removePluginInstance(instanceId);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message
+        });
+        this.getAllInstancesByPackageId(this.currentPackageId);
+      }
+    },
+    async getAvailableInstancesByPackageId(id) {
+      let { data, status, message } = await getAvailableInstancesByPackageId(
+        id
+      );
       if (status === "OK") {
         this.allInstances = data.map(_ => {
           if (_.status !== "REMOVED") {
@@ -620,11 +684,11 @@ export default {
         }
       });
     },
-    handleSubmit(data) {
+    handleLogTableSubmit(data) {
       this.searchFilters = data;
-      this.getTableData();
+      this.getLogTableData();
     },
-    async getTableData() {
+    async getLogTableData() {
       if (this.searchFilters.length < 2) return;
       const payload = {
         instanceIds: this.searchFilters[0].value,
@@ -640,7 +704,7 @@ export default {
       if (status === "OK") {
         for (let i in data) {
           let arr = [];
-          this.totalTableData = arr.concat(
+          this.totalLogTableData = arr.concat(
             data[i].outputs.map(_ => {
               return {
                 instance: this.allInstances.find(j => j.id === +i).displayLabel,
@@ -650,17 +714,25 @@ export default {
             })
           );
         }
-
-        this.handlePaginationByFE();
+        this.handleLogTablePagination();
       }
     },
-    pageChange(current) {
-      this.pagination.currentPage = current;
-      this.handlePaginationByFE();
+    onLogTableChange(current) {
+      this.logTablePagination.currentPage = current;
+      this.handleLogTablePagination();
     },
-    pageSizeChange(size) {
-      this.pagination.pageSize = size;
-      this.handlePaginationByFE();
+    onLogTablePageSizeChange(size) {
+      this.logTablePagination.pageSize = size;
+      this.handleLogTablePagination();
+    },
+    handleLogTablePagination() {
+      this.logTablePagination.total = this.totalLogTableData.length;
+      let temp = Array.from(this.totalLogTableData);
+      this.logTableData = temp.splice(
+        (this.logTablePagination.currentPage - 1) *
+          this.logTablePagination.pageSize,
+        this.logTablePagination.pageSize
+      );
     },
     actionFun(type, data) {
       if (type === "showLogDetails") {
@@ -668,8 +740,8 @@ export default {
       }
     },
     resetLogTable() {
-      this.tableData = [];
-      this.totalTableData = [];
+      this.logTableData = [];
+      this.totalLogTableData = [];
       this.$refs.table && this.$refs.table.reset();
     },
     selectHost(v) {
@@ -700,9 +772,6 @@ export default {
           };
         });
       }
-    },
-    queryDBHandler() {
-      console.log("db query", this.dbQueryCommandString);
     }
   },
   created() {
