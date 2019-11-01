@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -297,8 +299,10 @@ public class PluginInstanceService {
                 mysqlInstance.getUsername(), EncryptionUtils.decryptWithAes(mysqlInstance.getPassword(),
                         resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName()));
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-
-        List<Resource> scipts = newArrayList(new ClassPathResource(initSqlPath));
+        logger.info("dataSource=" + dataSource.toString());
+        logger.info("initSqlPath=" + initSqlPath);
+        File initSqlFile = new File(initSqlPath);
+        List<Resource> scipts = newArrayList(new FileSystemResource(initSqlFile));
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         populator.setContinueOnError(false);
         populator.setIgnoreFailedDrops(false);
