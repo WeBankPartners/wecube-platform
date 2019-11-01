@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
@@ -188,7 +189,8 @@ public class ResourceDataQueryService {
     public List<List<String>> queryS3Files(int packageId) {
         List<PluginInstance> pluginInstances = pluginInstanceRepository.findByPackageId(packageId);
         if(pluginInstances == null || pluginInstances.size()==0) {
-            throw new WecubeCoreException(String.format("Can not find out plugin instance for packageId:%d", packageId));
+            logger.info(String.format("Can not find out plugin instance for packageId:%d", packageId));
+            return Lists.newArrayList();
         }
         
         String bucketName = null;
