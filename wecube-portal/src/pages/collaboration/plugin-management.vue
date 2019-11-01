@@ -27,7 +27,6 @@
               <Checkbox
                 style="width: max-content"
                 v-model="isShowDecomissionedPackage"
-                @on-change="isShowDecomissionedPackageChange"
                 >{{ $t("is_show_decomissioned_pkg") }}</Checkbox
               >
             </Col>
@@ -351,7 +350,7 @@ const logTablePagination = {
   total: 0
 };
 const dbTablePagination = {
-  pageSize: 10,
+  pageSize: 5,
   currentPage: 1,
   total: 0
 };
@@ -475,9 +474,6 @@ export default {
     };
   },
   methods: {
-    isShowDecomissionedPackageChange(status) {
-      console.log("status", status);
-    },
     async onSuccess(response, file, filelist) {
       if (response.status === "OK") {
         this.$Notice.success({
@@ -594,7 +590,6 @@ export default {
             uploadTime: _[3]
           };
         });
-        console.log("storageServiceData", this.storageServiceData);
       }
     },
     async getDBTableData() {
@@ -613,8 +608,19 @@ export default {
       );
       if (status === "OK") {
         this.dbTablePagination.total = data.pageInfo.totalRows;
-        this.dbQueryColumns = data.headers;
-        this.dbQueryData = data.contents;
+        this.dbQueryColumns = data.headers.map(_ => {
+          return {
+            key: _,
+            title: _
+          };
+        });
+        this.dbQueryData = data.contents.map(_ => {
+          let tempObj = {};
+          _.forEach((i, index) => {
+            tempObj[this.dbQueryColumns[index].key] = i;
+          });
+          return tempObj;
+        });
       }
     },
     onDBTablePageChange(currentPage) {
