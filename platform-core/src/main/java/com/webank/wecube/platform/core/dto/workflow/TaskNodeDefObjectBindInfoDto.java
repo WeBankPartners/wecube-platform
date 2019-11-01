@@ -3,14 +3,14 @@ package com.webank.wecube.platform.core.dto.workflow;
 public class TaskNodeDefObjectBindInfoDto {
 
     private String nodeDefId;
-    private int orderedNo;
+    private String orderedNo;
     private String objectId;
 
-    public int getOrderedNo() {
+    public String getOrderedNo() {
         return orderedNo;
     }
 
-    public void setOrderedNo(int orderedNo) {
+    public void setOrderedNo(String orderedNo) {
         this.orderedNo = orderedNo;
     }
 
