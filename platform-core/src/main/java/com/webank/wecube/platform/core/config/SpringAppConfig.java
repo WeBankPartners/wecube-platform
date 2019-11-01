@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.config;
 
-import com.webank.wecube.platform.core.support.PluginPackageValidator;
+import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.support.RealS3Client;
 import com.webank.wecube.platform.core.support.S3Client;
 import org.springframework.beans.factory.annotation.Autowired;
