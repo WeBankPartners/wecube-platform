@@ -31,12 +31,12 @@ let router = new Router({
           params: {},
           props: true
         },
-        {
-          path: "/designing/application-deployment",
-          name: "deploymentDesign",
-          component: () => import("@/pages/designing/application-deployment"),
-          props: true
-        },
+        // {
+        //   path: "/designing/application-deployment",
+        //   name: "deploymentDesign",
+        //   component: () => import("@/pages/designing/application-deployment"),
+        //   props: true
+        // },
         {
           path: "/collaboration/workflow-orchestration",
           name: "flowManage",
@@ -54,11 +54,11 @@ let router = new Router({
           name: "pluginManage",
           component: () => import("@/pages/collaboration/plugin-management")
         },
-        {
-          path: "/admin/cmdb-model-management",
-          name: "ciDesign",
-          component: () => import("@/pages/admin/cmdb-model-management")
-        },
+        // {
+        //   path: "/admin/cmdb-model-management",
+        //   name: "ciDesign",
+        //   component: () => import("@/pages/admin/cmdb-model-management")
+        // },
         {
           path: "/admin/base-data-management",
           name: "baseData",
@@ -74,48 +74,48 @@ let router = new Router({
           name: "enumEnquiry",
           component: () => import("@/pages/admin/enums")
         },
-        {
-          path: "/designing/ci-data-management",
-          name: "ciDataManage",
-          component: () => import("@/pages/designing/ci-data")
-        },
-        {
-          path: "/designing/ci-data-enquiry",
-          name: "ciDataEnquiry",
-          component: () => import("@/pages/designing/ci-data")
-        },
-        {
-          path: "/designing/ci-integrated-query-execution",
-          name: "integrateQuery",
-          component: () =>
-            import("@/pages/designing/ci-integrated-query-execution")
-        },
-        {
-          path: "/designing/ci-integrated-query-management",
-          name: "integrateQueryMgmt",
-          component: () =>
-            import("@/pages/designing/ci-integrated-query-management")
-        },
-        {
-          path: "/designing/application-architecture",
-          name: "architectureDesign",
-          component: () => import("@/pages/designing/application-architecture")
-        },
+        // {
+        //   path: "/designing/ci-data-management",
+        //   name: "ciDataManage",
+        //   component: () => import("@/pages/designing/ci-data")
+        // },
+        // {
+        //   path: "/designing/ci-data-enquiry",
+        //   name: "ciDataEnquiry",
+        //   component: () => import("@/pages/designing/ci-data")
+        // },
+        // {
+        //   path: "/designing/ci-integrated-query-execution",
+        //   name: "integrateQuery",
+        //   component: () =>
+        //     import("@/pages/designing/ci-integrated-query-execution")
+        // },
+        // {
+        //   path: "/designing/ci-integrated-query-management",
+        //   name: "integrateQueryMgmt",
+        //   component: () =>
+        //     import("@/pages/designing/ci-integrated-query-management")
+        // },
+        // {
+        //   path: "/designing/application-architecture",
+        //   name: "architectureDesign",
+        //   component: () => import("@/pages/designing/application-architecture")
+        // },
         {
           path: "/implementation/artifact-management",
           name: "artifactManagement",
           component: () => import("@/pages/implementation/artifact-management")
         },
-        {
-          path: "/designing/planning",
-          name: "designPlanning",
-          component: () => import("@/pages/designing/planning")
-        },
-        {
-          path: "/designing/resource-planning",
-          name: "resourcePlanning",
-          component: () => import("@/pages/designing/resource-planning")
-        },
+        // {
+        //   path: "/designing/planning",
+        //   name: "designPlanning",
+        //   component: () => import("@/pages/designing/planning")
+        // },
+        // {
+        //   path: "/designing/resource-planning",
+        //   name: "resourcePlanning",
+        //   component: () => import("@/pages/designing/resource-planning")
+        // },
         {
           path: "/implementation/application-deployment",
           name: "deployment",
