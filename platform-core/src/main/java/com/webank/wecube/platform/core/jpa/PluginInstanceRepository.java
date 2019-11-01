@@ -21,4 +21,5 @@ public interface PluginInstanceRepository extends CrudRepository<PluginInstance,
     @Query("SELECT instance FROM PluginInstance instance WHERE instance.status = :status and instance.pluginPackage.id = :packageId")
     List<PluginInstance> findByStatusAndPackageId(String status, Integer packageId);
 
+    List<PluginInstance> findByPackageId(int packageId);
 }
