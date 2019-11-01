@@ -30,7 +30,6 @@ import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
 import com.webank.wecube.platform.core.dto.PageInfo;
 import com.webank.wecube.platform.core.dto.QueryResponse;
-import com.webank.wecube.platform.core.dto.ResourceQueryRequest;
 import com.webank.wecube.platform.core.dto.SqlQueryRequest;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
@@ -53,11 +52,6 @@ public class ResourceDataQueryService {
     
     @Autowired
     private PluginInstanceRepository pluginInstanceRepository;
-    
-    //for test
-    @Autowired
-    private DataSource dataSource;
-    
     
     public QueryResponse<List<String>> queryDB(int packageId, SqlQueryRequest sqlQueryRequest){
         DataSource dataSource = getDataSource(packageId);
@@ -148,17 +142,20 @@ public class ResourceDataQueryService {
     }
 
 
-    private int queryTotalCount(Statement statement, String sqlQuery) throws SQLException {
+    private int queryTotalCount(Statement statement, String sqlQuery) {
         StringBuilder countSqlBuilder = new StringBuilder();
         countSqlBuilder.append("select count(1) from ")
             .append("(")
             .append(sqlQuery)
             .append(") alias");
-        ResultSet rs = statement.executeQuery(countSqlBuilder.toString());
-        if(rs.first()) {
-            int totalCount = rs.getInt(1);
-            return totalCount;
-        }else {
+        try(ResultSet rs = statement.executeQuery(countSqlBuilder.toString())){
+            if(rs.first()) {
+                int totalCount = rs.getInt(1);
+                return totalCount;
+            }else {
+                throw new WecubeCoreException(String.format("Failed to get total count of query: %s",sqlQuery));
+            }
+        }catch(Exception ex) {
             throw new WecubeCoreException(String.format("Failed to get total count of query: %s",sqlQuery));
         }
     }
