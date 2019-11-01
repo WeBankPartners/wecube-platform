@@ -120,7 +120,7 @@ public class PluginInstanceService {
         ResourceServer resourceServer = resourceServerRepository.findByHost(hostIp).get(0);
         if (null == resourceServer)
             throw new WecubeCoreException(String.format("Host IP [%s] is not found", hostIp));
-        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.DOCKER)
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
                 .addEqualsFilter("resourceServerId", resourceServer.getId());
 
         List<Integer> hasUsedPorts = Lists.newArrayList();
