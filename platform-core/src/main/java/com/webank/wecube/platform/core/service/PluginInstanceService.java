@@ -105,7 +105,7 @@ public class PluginInstanceService {
     private static final String SPACE = " ";
 
     public List<String> getAvailableContainerHosts() {
-        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER);
+        QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.DOCKER);
         List<String> hostList = new ArrayList<String>();
         resourceManagementService.retrieveServers(queryRequest).getContents().forEach(rs -> {
             hostList.add(rs.getHost());
