@@ -2,31 +2,93 @@
   <div>
     <Card dis-hover>
       <Row>
-        <Col span="2">
-          <span>选择编排</span>
-        </Col>
         <Col span="20">
-          <Select label="" v-model="selectedFlow" style="width:200px">
-            <Option v-for="item in allFlows" :value="item.id" :key="item.id">{{
-              item.orchestration.orchestrationName +
-                " " +
-                item.target.targetName +
-                " " +
-                item.timestamp +
-                " " +
-                item.createBy
-            }}</Option>
-          </Select>
+          <Form>
+            <FormItem :label-width="100" label="任务编排">
+              <Select label v-model="selectedFlow" style="width:600px">
+                <Option
+                  v-for="item in allFlows"
+                  :value="item.id"
+                  :key="item.id"
+                >
+                  {{
+                    item.orchestration.orchestrationName +
+                      " " +
+                      item.target.targetName +
+                      " " +
+                      item.timestamp +
+                      " " +
+                      item.createBy
+                  }}
+                </Option>
+              </Select>
+              <Button type="info">查询</Button>
+              <Button type="info">新建</Button>
+            </FormItem>
+          </Form>
         </Col>
       </Row>
-      <hr style="margin: 15px 0" />
-      <Row>
-        <Col span="6">
-          <div class="graph-container" id="flow"></div>
-        </Col>
-        <Col span="18">
-          <div class="graph-container" id="graph"></div>
-        </Col>
+      <Row style="border:1px solid #ebe7e7;border-radius:3px; padding:20px">
+        <Row>
+          <Form>
+            <Col span="6">
+              <FormItem :label-width="100" label="选择编排">
+                <Select label v-model="selectedFlow">
+                  <Option
+                    v-for="item in allFlows"
+                    :value="item.id"
+                    :key="item.id"
+                  >
+                    {{
+                      item.orchestration.orchestrationName +
+                        " " +
+                        item.target.targetName +
+                        " " +
+                        item.timestamp +
+                        " " +
+                        item.createBy
+                    }}
+                  </Option>
+                </Select>
+              </FormItem>
+            </Col>
+            <Col span="8">
+              <FormItem :label-width="100" label="目标对象">
+                <Select label v-model="selectedFlow">
+                  <Option
+                    v-for="item in allFlows"
+                    :value="item.id"
+                    :key="item.id"
+                  >
+                    {{
+                      item.orchestration.orchestrationName +
+                        " " +
+                        item.target.targetName +
+                        " " +
+                        item.timestamp +
+                        " " +
+                        item.createBy
+                    }}
+                  </Option>
+                </Select>
+              </FormItem>
+            </Col>
+            <Col span="2" offset="1">
+              <Button type="info">构建任务</Button>
+            </Col>
+          </Form>
+        </Row>
+        <Row style="border:1px solid #d3cece;border-radius:3px; padding:20px">
+          <Col span="6" style="border-right:1px solid #d3cece;">
+            <div class="graph-container" id="flow"></div>
+          </Col>
+          <Col span="18">
+            <div class="graph-container" id="graph"></div>
+            <div style="text-align: center;margin-top: 60px">
+              <Button type="info">执行</Button>
+            </div>
+          </Col>
+        </Row>
       </Row>
     </Card>
   </div>
@@ -46,7 +108,8 @@ export default {
       flowData,
       allFlows,
       currentFlowNodeId: "",
-      foundRefAry: []
+      foundRefAry: [],
+      selectedFlow: ""
     };
   },
   mounted() {
@@ -65,16 +128,16 @@ export default {
     },
     renderModelGraph() {
       let nodes = this.modelData.map((_, index) => {
-        let color = _.isHighlight ? "green" : "black";
+        let color = _.isHighlight ? "#5DB400" : "black";
         const isRecord = _.refFlowNodeIds.length > 0;
         const shape = isRecord ? "Mrecord" : "ellipse";
         const label =
           _.refFlowNodeIds.toString().replace(/,/g, "\\n") +
           (isRecord ? "|" : "") +
           _.id;
-        console.log("label: " + index, label);
-
-        return `${_.id} [label="${label}" class="model" id="${_.id}" color="${color}" shape="${shape}" ]`;
+        return `${_.id} [label="${label}" class="model" id="${
+          _.id
+        }" color="${color}" shape="${shape}" ]`;
       });
       let genEdge = () => {
         let pathAry = [];
@@ -104,6 +167,13 @@ export default {
       this.graph.graphviz.renderDot(nodesString).fit(true);
     },
     renderFlowGraph() {
+      const statusColor = {
+        Completed: "#5DB400",
+        NotStarted: "#7F8A96",
+        InProgress: "#3C83F8",
+        Faulted: "#FF6262",
+        Timeouted: "#F7B500"
+      };
       let nodes = this.flowData.map((_, index) => {
         if (index === 0 || index === this.flowData.length - 1) {
           return `${_.id} [label="${(_.id > 1 && _.id < this.flowData.length
@@ -115,9 +185,9 @@ export default {
         } else {
           return `${_.id} [label="${(_.id > 0 && _.id < this.flowData.length
             ? _.id + "、"
-            : "") + _.name}" fontsize="10" class="flow" color=${
-            _.id === this.currentFlowNodeId * 1 ? "green" : "black"
-          } shape="record" id="${_.id}"] height=.2`;
+            : "") + _.name}" fontsize="10" class="flow" style="filled" color="${
+            statusColor[_.status]
+          }"  shape="record" id="${_.id}"] height=.2`;
         }
       });
       let genEdge = () => {
@@ -126,7 +196,7 @@ export default {
           if (_.toGraphNodeIds.length > 0) {
             let current = [];
             current = _.toGraphNodeIds.map(to => {
-              return _.id + " -> " + to;
+              return _.id + " -> " + `${to} [color="${statusColor[_.status]}"]`;
             });
             pathAry.push(current);
           }
@@ -217,3 +287,8 @@ export default {
   }
 };
 </script>
+<style lang="scss" scoped>
+body {
+  color: #15a043;
+}
+</style>
