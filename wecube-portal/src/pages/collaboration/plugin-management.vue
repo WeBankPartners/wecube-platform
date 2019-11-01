@@ -561,6 +561,8 @@ export default {
     },
     manageService(packageId) {
       this.swapPanel("servicePanel");
+      this.currentPlugin = this.plugins.find(_ => _.id === packageId);
+      this.selectedCiType = this.currentPlugin.cmdbCiTypeId || "";
     },
     async manageRuntimePlugin(packageId) {
       this.swapPanel("runtimeManagePanel");
