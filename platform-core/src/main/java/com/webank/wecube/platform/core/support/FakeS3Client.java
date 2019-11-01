@@ -1,10 +1,13 @@
 package com.webank.wecube.platform.core.support;
 
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 
 public class FakeS3Client implements S3Client{
     public static final String FILE_EXISTS = "exists";
@@ -38,5 +41,10 @@ public class FakeS3Client implements S3Client{
     @Override
     public String getUrlFromS3(String bucketName, String s3KeyName) {
         return FAKE_S3_URL + bucketName + "/" + s3KeyName;
+    }
+
+    @Override
+    public List<S3ObjectSummary> listObjects(String bucketName) {
+        return new ArrayList<S3ObjectSummary>();
     }
 }

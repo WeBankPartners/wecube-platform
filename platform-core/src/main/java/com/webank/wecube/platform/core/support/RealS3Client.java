@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 
 public class RealS3Client implements S3Client {
     private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -108,5 +109,11 @@ public class RealS3Client implements S3Client {
         GeneratePresignedUrlRequest httpRequest = new GeneratePresignedUrlRequest(bucketName, s3KeyName);
         String url = s3Client.generatePresignedUrl(httpRequest).toString();//临时链接
         return url;
+    }
+
+    @Override
+    public List<S3ObjectSummary> listObjects(String bucketName) {
+        ObjectListing objectListing = s3Client.listObjects(bucketName);
+        return objectListing.getObjectSummaries();
     }
 }
