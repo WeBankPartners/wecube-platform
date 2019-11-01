@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.service;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +18,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +64,7 @@ import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.lang3.StringUtils.trim;
 
 @Service
@@ -264,10 +271,48 @@ public class PluginInstanceService {
                                 dbServer.getHost(), dbServer.getPort(), mysqlInstance.getSchemaName()),
                         mysqlInstance.getUsername(), mysqlInstance.getPassword()));
 
+                // execute init.sql
+                initMysqlDatabaseTables(dbServer, mysqlInstance, pluginPackage);
                 return initPaasResourceReturn;
             }
         }
         return new InitPaasResourceReturn();
+    }
+
+    private void initMysqlDatabaseTables(ResourceServer dbServer, PluginMysqlInstance mysqlInstance,
+            PluginPackage pluginPackage) {
+
+        String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        String initSqlPath = SystemUtils.getTempFolderPath() + tmpFolderName + "/" + pluginProperties.getInitDbSql();
+
+        String s3KeyName = pluginPackage.getName() + File.separator + pluginPackage.getVersion() + File.separator
+                + pluginProperties.getInitDbSql();
+        logger.info("Download init.sql from S3: {}", s3KeyName);
+
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
+
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
+                        + "?characterEncoding=utf8&serverTimezone=UTC",
+                mysqlInstance.getUsername(), EncryptionUtils.decryptWithAes(mysqlInstance.getPassword(),
+                        resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getUsername()));
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
+        List<Resource> scipts = newArrayList(new ClassPathResource(initSqlPath));
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+        populator.setContinueOnError(false);
+        populator.setIgnoreFailedDrops(false);
+        populator.setSeparator(";");
+        scipts.forEach(populator::addScript);
+        try {
+            populator.execute(dataSource);
+        } catch (Exception e) {
+            String errorMessage = String.format("Failed to execute init.sql for schema[%s]",
+                    mysqlInstance.getSchemaName());
+            logger.error(errorMessage);
+            throw new WecubeCoreException(errorMessage, e);
+        }
+        logger.info(String.format("Init database[%s] tables has done..", mysqlInstance.getSchemaName()));
     }
 
     private Integer initS3BucketResource(PluginInstance instance, InitPaasResourceReturn initPaasResourceReturn) {
@@ -393,8 +438,7 @@ public class PluginInstanceService {
     private String buildAdditionalPropertiesForMysqlDatabase(String username, String password) {
         HashMap<String, String> additionalProperties = new HashMap<String, String>();
         additionalProperties.put("username", username);
-        additionalProperties.put("password",
-                EncryptionUtils.encryptWithAes(password, resourceProperties.getPasswordEncryptionSeed(), username));
+        additionalProperties.put("password", password);
         return JsonUtils.toJsonString(additionalProperties);
     }
 
