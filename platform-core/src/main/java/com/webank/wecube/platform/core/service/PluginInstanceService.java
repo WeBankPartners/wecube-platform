@@ -173,7 +173,8 @@ public class PluginInstanceService {
     }
 
     private String genRandomPassword() {
-        return DigestUtils.md5Hex(String.valueOf(System.currentTimeMillis())).substring(0, 16);
+        String md5String = DigestUtils.md5Hex(String.valueOf(System.currentTimeMillis()));
+        return md5String.length() > 16 ? md5String.substring(0, 16) : md5String;
     }
 
     private void validateLauchPluginInstanceParameters(PluginPackage pluginPackage, String hostIp, Integer port)
