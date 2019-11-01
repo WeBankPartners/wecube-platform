@@ -56,7 +56,8 @@ public class MysqlAccountManagementService implements ResourceItemService {
             String rawPassword = EncryptionUtils.decryptWithAes(password,
                     resourceProperties.getPasswordEncryptionSeed(), item.getName());
             statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, rawPassword));
-            statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s", item.getName(), username));
+            statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s'", item.getName(),
+                    username, rawPassword));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
             log.error(errorMessage);
