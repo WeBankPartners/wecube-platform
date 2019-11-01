@@ -11,7 +11,7 @@ import javax.persistence.Table;
 public class ProcExecBindingEntity extends BaseTraceableEntity {
 
     public static final String BIND_TYPE_PROC_INSTANCE = "process";
-    public static final String BIND_TYPE_TASK_NODE_INSTANCE = "task";
+    public static final String BIND_TYPE_TASK_NODE_INSTANCE = "taskNode";
 
     @Id
     @Column(name = "ID")
