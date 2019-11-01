@@ -1,5 +1,14 @@
 package com.webank.wecube.platform.core.support.plugin;
 
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import com.webank.wecube.platform.core.support.plugin.dto.PluginRequest;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginRequest.DefaultPluginRequest;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginRequest.PluginLoggingInfoRequest;
@@ -9,21 +18,10 @@ import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.PluginR
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginRunScriptOutput;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
-import java.util.Map;
-
 @Service
-@Slf4j
-@Setter
-@Getter
 public class PluginServiceStub {
+    
+    private static final Logger log = LoggerFactory.getLogger(PluginServiceStub.class);
 
     @Autowired
     RestTemplate restTemplate;
@@ -77,7 +75,7 @@ public class PluginServiceStub {
         return callPluginInterface(asPluginServerUrl(instanceAddress, path), new DefaultPluginRequest().withInputs(parameters));
     }
 
-    private ResultData<Object> callPluginInterface(String targetUrl, PluginRequest parameters) {
+    private ResultData<Object> callPluginInterface(String targetUrl, PluginRequest<?> parameters) {
         log.info("About to call {} with parameters: {} ", targetUrl, parameters);
         PluginResponse<Object> response = restTemplate.postForObject(targetUrl, parameters, DefaultPluginResponse.class);
         log.info("Plugin response: {} ", response);
@@ -86,7 +84,7 @@ public class PluginServiceStub {
         return response.getResultData();
     }
 
-    private void validatePluginResponse(PluginResponse pluginResponse, boolean dataRequired) {
+    private void validatePluginResponse(PluginResponse<?> pluginResponse, boolean dataRequired) {
         if (pluginResponse == null) {
             throw new PluginRemoteCallException("Plugin call failure due to no response.");
         }
