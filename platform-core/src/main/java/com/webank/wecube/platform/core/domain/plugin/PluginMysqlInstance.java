@@ -46,12 +46,13 @@ public class PluginMysqlInstance {
     }
 
     public PluginMysqlInstance(String schemaName, Integer resourceItemId, String username, String password,
-            String status) {
+            String status, PluginPackage pluginPackage) {
         this.schemaName = schemaName;
         this.resourceItemId = resourceItemId;
         this.username = username;
         this.password = password;
         this.status = status;
+        this.pluginPackage = pluginPackage;
     }
 
     public Integer getId() {
