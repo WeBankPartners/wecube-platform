@@ -43,8 +43,8 @@ public class EncryptionUtilsTest extends DatabaseBasedTest {
     
     @Test
     public void decryptPasswordTest() {
-        String enPassword = "HUqnpiX0nWoQXQJN11FeXg==";
-        String additionalSalt = "service_manageme";
+        ***REMOVED***
+        String additionalSalt = "service_mgmt";
         String password = EncryptionUtils.decryptWithAes(enPassword,
                 resourceProperties.getPasswordEncryptionSeed(), additionalSalt);
         log.info("decryptedPassword: " + password);
