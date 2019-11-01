@@ -221,6 +221,8 @@ public class PluginInstanceService {
         try {
             ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
                     createContainerParameters);
+
+            instance.setInstanceName(dockerInfo.getContainerName());
             instance.setDockerInstanceResourceId(dockerResourceDto.getId());
             instance.setHost(hostIp);
             instance.setPort(port);
@@ -287,7 +289,7 @@ public class PluginInstanceService {
                 ResourceItemType.MYSQL_DATABASE.getCode(),
                 buildAdditionalPropertiesForMysqlDatabase(dbUser.length() > 16 ? dbUser.substring(0, 16) : dbUser,
                         dbPassword),
-                mysqlServer.getId(), String.format("Build MySQL database for plugin[%s]", mysqlInfo.getSchemaName()));
+                mysqlServer.getId(), String.format("Create MySQL database for plugin[%s]", mysqlInfo.getSchemaName()));
         mysqlServer.setResourceItemDtos(null);
         createMysqlDto.setResourceServer(mysqlServer);
         logger.info("Mysql Database schema creating...");
@@ -309,7 +311,7 @@ public class PluginInstanceService {
 
         ResourceItemDto createS3BucketDto = new ResourceItemDto(s3Info.getBucketName(),
                 ResourceItemType.S3_BUCKET.getCode(), null, s3Server.getId(),
-                String.format("Build S3 bucket for plugin[%s]", s3Info.getBucketName()));
+                String.format("Create S3 bucket for plugin[%s]", s3Info.getBucketName()));
         createS3BucketDto.setResourceServer(s3Server);
         logger.info("S3 bucket creating...");
         if (logger.isDebugEnabled())
@@ -361,7 +363,8 @@ public class PluginInstanceService {
 
         ResourceItemDto createDockerInstanceDto = new ResourceItemDto(createContainerParameters.getContainerName(),
                 ResourceItemType.DOCKER_CONTAINER.getCode(),
-                buildAdditionalPropertiesForDocker(createContainerParameters), hostInfo.getId(), null);
+                buildAdditionalPropertiesForDocker(createContainerParameters), hostInfo.getId(),
+                String.format("Create docker instance for plugin[%s]", pluginPackage.getName()));
         logger.info("Container creating...");
         if (logger.isDebugEnabled())
             logger.info("Request parameters= " + createDockerInstanceDto.toString());
