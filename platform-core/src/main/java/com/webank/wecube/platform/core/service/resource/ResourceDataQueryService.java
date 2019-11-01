@@ -182,7 +182,7 @@ public class ResourceDataQueryService {
         
         String mysqlHost = resourceServer.getHost();
         String mysqlPort = resourceServer.getPort();
-        return mysqlAcctMngService.newMysqlDatasource(mysqlHost, mysqlPort, dbUsername, password);
+        return mysqlAcctMngService.newMysqlDatasource(mysqlHost, mysqlPort, dbUsername, password,pluginMysqlInstance.getSchemaName());
     }
 
     public List<List<String>> queryS3Files(int packageId) {
