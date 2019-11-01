@@ -24,6 +24,9 @@ public class PluginInstance {
     @JoinColumn(name = "package_id")
     private PluginPackage pluginPackage;
 
+    @Column(name = "package_id", updatable=false,insertable=false)
+    private Integer packageId;
+    
     @Column
     private String instanceName;
 
@@ -36,8 +39,12 @@ public class PluginInstance {
     @Column
     private Integer pluginMysqlInstanceResourceId;
 
-    @Column
+    @Column(name="s3bucket_resource_id")
     private Integer s3BucketResourceId;
+    
+    @ManyToOne
+    @JoinColumn(name = "s3bucket_resource_id",insertable=false,updatable=false)
+    private ResourceItem s3ResourceItem;
 
     @Column
     private Integer dockerInstanceResourceId;
@@ -136,6 +143,22 @@ public class PluginInstance {
 
     public void setPluginMysqlInstanceResourceId(Integer pluginMysqlInstanceResourceId) {
         this.pluginMysqlInstanceResourceId = pluginMysqlInstanceResourceId;
+    }
+
+    public Integer getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(Integer packageId) {
+        this.packageId = packageId;
+    }
+
+    public ResourceItem getS3ResourceItem() {
+        return s3ResourceItem;
+    }
+
+    public void setS3ResourceItem(ResourceItem s3ResourceItem) {
+        this.s3ResourceItem = s3ResourceItem;
     }
 
 }

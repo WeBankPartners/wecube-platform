@@ -1,6 +1,15 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.webank.wecube.platform.core.domain.ResourceItem;
 
 @Entity
 @Table(name = "plugin_mysql_instances")
@@ -15,9 +24,17 @@ public class PluginMysqlInstance {
     @ManyToOne
     @JoinColumn(name = "plugun_package_id")
     private PluginPackage pluginPackage;
+    
+    @Column(name="plugun_package_id",insertable=false,updatable=false)
+    private int pluginPackageId;
 
-    @Column
+    @Column(name = "resource_item_id")
     private Integer resourceItemId;
+
+    @ManyToOne
+    @JoinColumn(name = "resource_item_id",insertable=false,updatable=false)
+    private ResourceItem resourceItem;
+    
     @Column
     private String username;
     @Column
@@ -84,6 +101,22 @@ public class PluginMysqlInstance {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public ResourceItem getResourceItem() {
+        return resourceItem;
+    }
+
+    public void setResourceItem(ResourceItem resourceItem) {
+        this.resourceItem = resourceItem;
+    }
+
+    public int getPluginPackageId() {
+        return pluginPackageId;
+    }
+
+    public void setPluginPackageId(int pluginPackageId) {
+        this.pluginPackageId = pluginPackageId;
     }
 
     public PluginPackage getPluginPackage() {

@@ -194,3 +194,14 @@ create table plugin_package_resource_files
   related_path varchar(1024) not null,
   PRIMARY KEY (`id`)
 );
+
+drop table if exists plugin_datamodel_table;
+create table plugin_datamodel_table
+(
+    `id`      int auto_increment primary key,
+	`name`    VARCHAR(50) NOT NULL,
+	`value`   double,
+	`date`    date,
+	`time`    timestamp,
+	PRIMARY KEY (`id`)
+);

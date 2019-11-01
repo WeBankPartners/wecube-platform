@@ -20,6 +20,8 @@ import SimpleTable from "../src/pages/components/simple-table.vue";
 import AttrInput from "../src/pages/components/attr-input";
 import sequenceDiagram from "../src/pages/components/sequence-diagram.vue";
 import orchestration from "../src/pages/components/orchestration.vue";
+import indexCom from "./pages/index";
+import req from "./api/base";
 
 Vue.component("WeSelect", WeSelect);
 Vue.component("RefSelect", RefSelect);
@@ -38,26 +40,70 @@ Vue.use(ViewUI, {
 });
 
 Vue.use(VueHighlightJS);
+window.request = req;
+window.needReLoad = true;
+window.routers = [];
+
+window.addRoutes = (route, name) => {
+  window.routers = window.routers.concat(route);
+  router.addRoutes([
+    {
+      path: "/",
+      name: name,
+      redirect: "/homepage",
+      component: indexCom,
+      children: route
+    }
+  ]);
+};
+window.component = (name, comp) => {
+  Vue.component(name, comp);
+};
+
+const findPath = (routes, path) => {
+  let found;
+  window.routers.concat(routes).forEach(route => {
+    if (route.children) {
+      route.children.forEach(child => {
+        if (child.path === path) {
+          found = true;
+        }
+      });
+    }
+    if (route.path === path) {
+      found = true;
+    }
+  });
+  return found;
+};
 
 router.beforeEach((to, from, next) => {
-  if (window.myMenus) {
-    let isHasPermission = []
-      .concat(...window.myMenus.map(_ => _.submenus))
-      .find(_ => _.link === to.path);
-    if (
-      isHasPermission ||
-      to.path === "/404" ||
-      to.path === "/login" ||
-      to.path === "/homepage"
-    ) {
-      /* has permission*/
-      next();
-    } else {
-      /* has no permission*/
-      next("/404");
-    }
+  const found = findPath(router.options.routes, to.path);
+  if (!found) {
+    window.location.href = window.location.origin + "#/homepage";
+    next("/homepage");
+    // next()
   } else {
-    next();
+    if (window.myMenus) {
+      let isHasPermission = []
+        .concat(...window.myMenus.map(_ => _.submenus))
+        .find(_ => _.link === to.path);
+      console.log(isHasPermission);
+      if (
+        isHasPermission ||
+        to.path === "/404" ||
+        to.path === "/login" ||
+        to.path === "/homepage"
+      ) {
+        /* has permission*/
+        next();
+      } else {
+        /* has no permission*/
+        next("/404");
+      }
+    } else {
+      next();
+    }
   }
 });
 
