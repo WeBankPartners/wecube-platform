@@ -1,17 +1,12 @@
 package com.webank.wecube.platform.core.service;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.sql.Connection;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -19,7 +14,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -33,18 +27,12 @@ import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
-import com.webank.wecube.platform.core.utils.ZipFileUtils;
-
-import javassist.expr.NewArray;
-import net.bytebuddy.asm.Advice.Return;
 
 import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
-import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
@@ -299,8 +287,6 @@ public class PluginInstanceService {
                 mysqlInstance.getUsername(), EncryptionUtils.decryptWithAes(mysqlInstance.getPassword(),
                         resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName()));
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        logger.info("dataSource=" + dataSource.toString());
-        logger.info("initSqlPath=" + initSqlPath);
         File initSqlFile = new File(initSqlPath);
         List<Resource> scipts = newArrayList(new FileSystemResource(initSqlFile));
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
