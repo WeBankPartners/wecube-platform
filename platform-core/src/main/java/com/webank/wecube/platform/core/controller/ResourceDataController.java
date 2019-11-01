@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.controller;
 
-import java.util.List;
+import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.wecube.platform.core.dto.QueryResponse;
-import com.webank.wecube.platform.core.dto.ResourceQueryRequest;
+import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.dto.SqlQueryRequest;
 import com.webank.wecube.platform.core.service.resource.ResourceDataQueryService;
 
@@ -28,14 +27,14 @@ public class ResourceDataController {
     
     @PostMapping("/mysql/query")
     @ResponseBody
-    public QueryResponse<List<String>> queryDB(@PathVariable("package_id")int packageId, @RequestBody SqlQueryRequest sqlQueryRequest){
-        return resourceDataQueryService.queryDB(packageId, sqlQueryRequest);
+    public JsonResponse queryDB(@PathVariable("package_id")int packageId, @RequestBody SqlQueryRequest sqlQueryRequest){
+        return okayWithData(resourceDataQueryService.queryDB(packageId, sqlQueryRequest));
     }
 
     @GetMapping("/s3/files")
     @ResponseBody
-    public List<List<String>> queryS3Files(@PathVariable("package_id")int packageId){
-        return resourceDataQueryService.queryS3Files(packageId);
+    public JsonResponse queryS3Files(@PathVariable("package_id")int packageId){
+        return okayWithData(resourceDataQueryService.queryS3Files(packageId));
     }
     
     
