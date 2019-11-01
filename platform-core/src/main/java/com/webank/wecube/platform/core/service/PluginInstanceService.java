@@ -343,7 +343,9 @@ public class PluginInstanceService {
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
         PluginMysqlInstance mysqlInstance = new PluginMysqlInstance(mysqlInfo.getSchemaName(), result.get(0).getId(),
-                mysqlInfo.getSchemaName(), dbPassword, "active", mysqlInfo.getPluginPackage());
+                mysqlInfo.getSchemaName(), EncryptionUtils.encryptWithAes(dbPassword,
+                        resourceProperties.getPasswordEncryptionSeed(), mysqlInfo.getSchemaName()),
+                "active", mysqlInfo.getPluginPackage());
         pluginMysqlInstanceRepository.saveAndFlush(mysqlInstance);
 
         logger.info("Mysql Database schema creation has done...");
