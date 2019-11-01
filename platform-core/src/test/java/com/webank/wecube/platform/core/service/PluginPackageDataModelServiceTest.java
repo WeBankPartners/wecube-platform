@@ -13,7 +13,6 @@ import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +100,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         whenRegisterDataModelShouldSuccess();
         List<PluginPackageEntityDto> registeredAllDataModelList = pluginPackageDataModelService.overview();
         assertThat(registeredAllDataModelList.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE * (PACKAGE_SIZE - 1));  // because the package 2 hasn't been registered to database
-        registeredAllDataModelList.forEach(registeredDataModel -> assertThat(registeredDataModel.getAttributeDtoList().size()).isEqualTo(3));
+        registeredAllDataModelList.forEach(registeredDataModel -> assertThat(registeredDataModel.getAttributes().size()).isEqualTo(3));
     }
 
 
@@ -176,7 +175,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
                 }
                 pluginPackageAttributeDtoList.add(attributeDto);
             }
-            entityDto.setAttributeDtoList(pluginPackageAttributeDtoList);
+            entityDto.setAttributes(pluginPackageAttributeDtoList);
             pluginPackageEntityDtoList.add(entityDto);
         }
 
@@ -208,7 +207,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
                 }
                 pluginPackageAttributeDtoList.add(attributeDto);
             }
-            entityDto.setAttributeDtoList(pluginPackageAttributeDtoList);
+            entityDto.setAttributes(pluginPackageAttributeDtoList);
             pluginPackageEntityDtoList.add(entityDto);
         }
 
@@ -234,7 +233,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
                 attributeDto.setDataType("str");
                 pluginPackageAttributeDtoList.add(attributeDto);
             }
-            entityDto.setAttributeDtoList(pluginPackageAttributeDtoList);
+            entityDto.setAttributes(pluginPackageAttributeDtoList);
             pluginPackageEntityDtoList.add(entityDto);
         }
 
@@ -269,7 +268,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
                 }
                 pluginPackageAttributeDtoList.add(attributeDto);
             }
-            entityDto.setAttributeDtoList(pluginPackageAttributeDtoList);
+            entityDto.setAttributes(pluginPackageAttributeDtoList);
             pluginPackageEntityDtoList.add(entityDto);
         }
 
