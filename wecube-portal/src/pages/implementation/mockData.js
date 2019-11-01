@@ -71,6 +71,7 @@ export const flowData = [
   {
     id: 0,
     name: "开始",
+    status: "Completed",
     toGraphNodeIds: [1],
     refGraphNodeIds: []
   },
@@ -78,59 +79,69 @@ export const flowData = [
     id: 1,
     name: "创建虚拟机",
     toGraphNodeIds: [2],
+    status: "Completed",
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 2,
     name: "创建挂载磁盘",
+    status: "Completed",
     toGraphNodeIds: [3],
     refGraphNodeIds: ["DISK1", "DISK2"]
   },
   {
     id: 3,
     name: "安装 saltstack agent",
+    status: "NotStarted",
     toGraphNodeIds: [4],
     refGraphNodeIds: ["INS1", "INS2"]
   },
   {
     id: 4,
     name: "安装监控agent",
+    status: "NotStarted",
     toGraphNodeIds: [5],
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 5,
     name: "创建部署用户",
+    status: "NotStarted",
     toGraphNodeIds: [6],
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 6,
     name: "差异化变量替换",
+    status: "NotStarted",
     toGraphNodeIds: [7],
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 7,
     name: "物料包分发解压",
+    status: "NotStarted",
     toGraphNodeIds: [8],
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 8,
     name: "执行部署脚本",
+    status: "NotStarted",
     toGraphNodeIds: [9],
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 9,
     name: "执行启动脚本",
+    status: "NotStarted",
     toGraphNodeIds: [10],
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 10,
     name: "启动应用监控",
+    status: "NotStarted",
     toGraphNodeIds: [11],
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
