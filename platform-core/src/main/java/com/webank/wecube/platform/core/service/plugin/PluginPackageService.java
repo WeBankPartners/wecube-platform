@@ -428,6 +428,7 @@ public class PluginPackageService {
         String tmpFolderName = SystemUtils.getTempFolderPath()
                 + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
         String downloadUiZipPath = tmpFolderName + File.separator + pluginProperties.getUiFile();
+        log.info("Download UI.zip from S3 to " + downloadUiZipPath);
 
         String s3UiPackagePath = pluginPackage.getName() + File.separator + pluginPackage.getVersion() + File.separator
                 + pluginProperties.getUiFile();
@@ -435,10 +436,12 @@ public class PluginPackageService {
 
         String remotePath = pluginProperties.getStaticResourceServerPath() + File.separator + pluginPackage.getName()
                 + File.separator + pluginPackage.getVersion() + File.separator;
+        log.info("Upload UI.zip from local to static server:" + remotePath);
 
         // mkdir at remote host
         if (!remotePath.equals("/") && !remotePath.equals(".")) {
             String mkdirCmd = String.format("rm -rf %s && mkdir -p %s", remotePath, remotePath);
+
             try {
                 commandService.runAtRemote(pluginProperties.getStaticResourceServerIp(),
                         pluginProperties.getStaticResourceServerUser(),
@@ -458,6 +461,7 @@ public class PluginPackageService {
         } catch (Exception e) {
             throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage());
         }
+        log.info("scp UI.zip to Static Resource Server - Done");
 
         // unzip file
         String unzipCmd = String.format("cd %s && unzip %s", remotePath, pluginProperties.getUiFile());
