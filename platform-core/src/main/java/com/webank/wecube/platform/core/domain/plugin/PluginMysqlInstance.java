@@ -21,11 +21,11 @@ public class PluginMysqlInstance {
     @Column
     private String schemaName;
 
-//    @ManyToOne
-//    @JoinColumn(name = "plugun_package_id")
-//    private PluginInstance pluginInstance;
-//    
-    @Column(name="plugun_package_id")
+    @ManyToOne
+    @JoinColumn(name = "plugun_package_id")
+    private PluginPackage pluginPackage;
+    
+    @Column(name="plugun_package_id",insertable=false,updatable=false)
     private int pluginPackageId;
 
     @Column(name = "resource_item_id")
@@ -62,10 +62,6 @@ public class PluginMysqlInstance {
         return schemaName;
     }
 
-//    public PluginInstance getPluginInstance() {
-//        return pluginInstance;
-//    }
-
     public String getUsername() {
         return username;
     }
@@ -89,10 +85,6 @@ public class PluginMysqlInstance {
     public void setSchemaName(String schemaName) {
         this.schemaName = schemaName;
     }
-
-//    public void setPluginInstance(PluginInstance pluginInstance) {
-//        this.pluginInstance = pluginInstance;
-//    }
 
     public void setResourceItemId(Integer resourceItemId) {
         this.resourceItemId = resourceItemId;
@@ -124,6 +116,14 @@ public class PluginMysqlInstance {
 
     public void setPluginPackageId(int pluginPackageId) {
         this.pluginPackageId = pluginPackageId;
+    }
+
+    public PluginPackage getPluginPackage() {
+        return pluginPackage;
+    }
+
+    public void setPluginPackage(PluginPackage pluginPackage) {
+        this.pluginPackage = pluginPackage;
     }
 
 }
