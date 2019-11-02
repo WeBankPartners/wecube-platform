@@ -71,7 +71,7 @@ export const flowData = [
   {
     id: 0,
     name: "开始",
-    status: "Completed",
+    status: "NotStarted",
     toGraphNodeIds: [1],
     refGraphNodeIds: []
   },
@@ -79,13 +79,13 @@ export const flowData = [
     id: 1,
     name: "创建虚拟机",
     toGraphNodeIds: [2],
-    status: "Completed",
+    status: "NotStarted",
     refGraphNodeIds: ["HOST1", "HOST2"]
   },
   {
     id: 2,
     name: "创建挂载磁盘",
-    status: "Completed",
+    status: "NotStarted",
     toGraphNodeIds: [3],
     refGraphNodeIds: ["DISK1", "DISK2"]
   },
