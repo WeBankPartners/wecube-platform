@@ -85,7 +85,9 @@
           <Col span="18">
             <div class="graph-container" id="graph"></div>
             <div style="text-align: center;margin-top: 60px">
-              <Button type="info">执行</Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow"
+                >执行</Button
+              >
             </div>
           </Col>
         </Row>
@@ -109,7 +111,8 @@ export default {
       allFlows,
       currentFlowNodeId: "",
       foundRefAry: [],
-      selectedFlow: ""
+      selectedFlow: "",
+      showExcution: true
     };
   },
   mounted() {
@@ -166,7 +169,7 @@ export default {
         "}";
       this.graph.graphviz.renderDot(nodesString).fit(true);
     },
-    renderFlowGraph() {
+    renderFlowGraph(excution) {
       const statusColor = {
         Completed: "#5DB400",
         NotStarted: "#7F8A96",
@@ -178,15 +181,22 @@ export default {
         if (index === 0 || index === this.flowData.length - 1) {
           return `${_.id} [label="${(_.id > 1 && _.id < this.flowData.length
             ? _.id + "、"
-            : "") +
-            _.name}", fontsize="10", class="flow", shape="circle", id="${
-            _.id
-          }"]`;
+            : "") + _.name}", fontsize="10", class="flow",style="${
+            excution ? "filled" : "none"
+          }" color="${
+            excution ? statusColor[_.status] : "black"
+          }" shape="circle", id="${_.id}"]`;
         } else {
           return `${_.id} [label="${(_.id > 0 && _.id < this.flowData.length
             ? _.id + "、"
-            : "") + _.name}" fontsize="10" class="flow" style="filled" color="${
-            statusColor[_.status]
+            : "") + _.name}" fontsize="10" class="flow" style="${
+            excution ? "filled" : "none"
+          }" color="${
+            excution
+              ? statusColor[_.status]
+              : _.id === this.currentFlowNodeId * 1
+              ? "#5DB400"
+              : "black"
           }"  shape="record" id="${_.id}"] height=.2`;
         }
       });
@@ -196,7 +206,11 @@ export default {
           if (_.toGraphNodeIds.length > 0) {
             let current = [];
             current = _.toGraphNodeIds.map(to => {
-              return _.id + " -> " + `${to} [color="${statusColor[_.status]}"]`;
+              return (
+                _.id +
+                " -> " +
+                `${to} [color="${excution ? statusColor[_.status] : "black"}"]`
+              );
             });
             pathAry.push(current);
           }
@@ -216,6 +230,18 @@ export default {
         genEdge() +
         "}";
       this.flowGraph.graphviz.renderDot(nodesString).fit(true);
+    },
+    excutionFlow() {
+      this.showExcution = false;
+      this.flowData.forEach((_, index) => {
+        setTimeout(() => {
+          if (index > 0) {
+            this.flowData[index - 1].status = "Completed";
+          }
+          _.status = "InProgress";
+          this.renderFlowGraph(true);
+        }, 3000 * index);
+      });
     },
     bindEvents() {
       addEvent(".flow", "mouseover", e => {
