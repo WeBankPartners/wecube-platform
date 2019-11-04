@@ -126,7 +126,7 @@ public class PluginPackageService {
             log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
         }
 
-        File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
+        File pluginUiPackageFile = new File(localFilePath + "/" + pluginProperties.getUiFile());
         log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
         String uiPackageUrl = "";
         Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
@@ -142,6 +142,26 @@ public class PluginPackageService {
                     pluginUiPackageFile);
             pluginPackage.setUiPackageIncluded(true);
             log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
+        }
+
+        File pluginInitSqlFile = new File(localFilePath + File.separator + pluginProperties.getInitDbSql());
+        if (pluginInitSqlFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginProperties.getInitDbSql();
+            log.info("Uploading init sql {} to MinIO {}", pluginInitSqlFile.getAbsolutePath(), keyName);
+            String initSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginInitSqlFile);
+            log.info("Init sql {} has been uploaded to MinIO {}", pluginProperties.getInitDbSql(), initSqlUrl);
+        } else {
+            log.info("Init sql {} is not included in package.", pluginProperties.getInitDbSql());
+        }
+
+        File pluginUpgradeSqlFile = new File(localFilePath + File.separator + pluginProperties.getUpgradeDbSql());
+        if (pluginUpgradeSqlFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginProperties.getUpgradeDbSql();
+            log.info("Uploading upgrade sql {} to MinIO {}", pluginUpgradeSqlFile.getAbsolutePath(), keyName);
+            String upgradeSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUpgradeSqlFile);
+            log.info("Upgrade sql {} has been uploaded to MinIO {}", pluginProperties.getUpgradeDbSql(), upgradeSqlUrl);
+        } else {
+            log.info("Upgrade sql {} is not included in package.", pluginProperties.getUpgradeDbSql());
         }
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
