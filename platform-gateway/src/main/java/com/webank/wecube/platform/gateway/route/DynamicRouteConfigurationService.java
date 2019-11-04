@@ -1,25 +1,21 @@
 package com.webank.wecube.platform.gateway.route;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
-import org.springframework.cloud.gateway.filter.FilterDefinition;
-import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
+import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 
+import com.webank.wecube.platform.gateway.filter.factory.DynamicRouteProperties;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -28,7 +24,10 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     private Logger log = LoggerFactory.getLogger(DynamicRouteConfigurationService.class);
 
     @Resource
-    private RouteDefinitionWriter routeDefinitionWriter;
+    private RouteDefinitionRepository routeDefinitionRepository;
+    
+    @Autowired
+    private DynamicRouteProperties dynamicRouteProperties;
 
     private ApplicationEventPublisher publisher;
 
@@ -43,6 +42,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     protected void loadRoutes() {
         log.info("start to load routes...");
+        Flux<RouteDefinition> routeDefinitions = routeDefinitionRepository.getRouteDefinitions();
     }
 
     private void notifyChanged() {
@@ -50,19 +50,19 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     }
 
     public String add(RouteDefinition definition) {
-        routeDefinitionWriter.save(Mono.just(definition)).subscribe();
+        routeDefinitionRepository.save(Mono.just(definition)).subscribe();
         notifyChanged();
         return "success";
     }
 
     public String update(RouteDefinition definition) {
         try {
-            this.routeDefinitionWriter.delete(Mono.just(definition.getId()));
+            this.routeDefinitionRepository.delete(Mono.just(definition.getId()));
         } catch (Exception e) {
             return "update fail,not find route  routeId: " + definition.getId();
         }
         try {
-            routeDefinitionWriter.save(Mono.just(definition)).subscribe();
+            routeDefinitionRepository.save(Mono.just(definition)).subscribe();
             notifyChanged();
             return "success";
         } catch (Exception e) {
@@ -73,7 +73,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     public String delete(String id) {
         try {
-            this.routeDefinitionWriter.delete(Mono.just(id));
+            this.routeDefinitionRepository.delete(Mono.just(id));
 
             notifyChanged();
             return "delete success";

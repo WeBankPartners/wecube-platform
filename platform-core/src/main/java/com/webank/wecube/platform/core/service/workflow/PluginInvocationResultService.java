@@ -12,14 +12,19 @@ import com.webank.wecube.platform.workflow.model.ServiceInvocationEventImpl;
 @Service
 public class PluginInvocationResultService {
     private static final Logger log = LoggerFactory.getLogger(PluginInvocationResultService.class);
-    
+
     @Autowired
     private WorkflowEngineService workflowEngineService;
 
-
     public void responsePluginInterfaceInvocation(PluginInvocationResult result) {
-        log.info("response plugin interface invocation:{}", result);
+        if (log.isInfoEnabled()) {
+            log.info("response plugin interface invocation:{}", result);
+        }
         
+        if(result == null){
+            throw new IllegalArgumentException();
+        }
+
         ServiceInvocationEventImpl event = new ServiceInvocationEventImpl();
         event.setBusinessKey(result.getProcInstKey());
         event.setDefinitionId(result.getProcDefId());
@@ -30,7 +35,7 @@ public class PluginInvocationResultService {
         event.setInstanceId(result.getProcInstId());
         event.setResult(result.getResultCode());
         event.setExecutionId(result.getExecutionId());
-        
+
         workflowEngineService.handleServiceInvocationResult(event);
     }
 
