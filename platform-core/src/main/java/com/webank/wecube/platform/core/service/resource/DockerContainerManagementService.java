@@ -85,6 +85,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 .withVolumes(containerVolumes).withEnv(envVariables)
                 .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings)).exec()
                 .getId();
+        dockerClient.startContainerCmd(containerId).exec();
         additionalProperties.put("containerId", containerId);
         item.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
         return item;
