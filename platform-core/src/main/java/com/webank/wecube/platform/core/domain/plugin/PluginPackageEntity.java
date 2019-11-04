@@ -9,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "plugin_package_entities", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"plugin_package_id", "name"})
+        @UniqueConstraint(columnNames = {"plugin_package_id", "name", "data_model_version"})
 })
 public class PluginPackageEntity {
 
@@ -31,6 +31,9 @@ public class PluginPackageEntity {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "data_model_version")
+    private long dataModelVersion = 1;
 
 
     @JsonManagedReference
@@ -90,7 +93,6 @@ public class PluginPackageEntity {
         this.description = description;
     }
 
-
     public List<PluginPackageAttribute> getPluginPackageAttributeList() {
         return pluginPackageAttributeList;
     }
@@ -102,5 +104,13 @@ public class PluginPackageEntity {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+    }
+
+    public long getDataModelVersion() {
+        return dataModelVersion;
+    }
+
+    public void setDataModelVersion(long dataModelVersion) {
+        this.dataModelVersion = dataModelVersion;
     }
 }
