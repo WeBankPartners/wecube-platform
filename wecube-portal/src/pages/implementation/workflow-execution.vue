@@ -80,7 +80,7 @@
             <Col span="2" offset="1">
               <Button
                 v-if="!isEnqueryPage"
-                type="create"
+                type="success"
                 @click="createFlowHandler"
                 >{{ $t("create_job") }}</Button
               >
@@ -242,7 +242,7 @@ export default {
               ? statusColor[_.status]
               : _.id === this.currentFlowNodeId * 1
               ? "#5DB400"
-              : "black"
+              : "#7F8A96"
           }"  shape="record" id="${_.id}"] height=.2`;
         }
       });
@@ -279,6 +279,9 @@ export default {
       this.bindFlowEvent();
     },
     excutionFlow() {
+      if (!this.isEnqueryPage) {
+        this.selectedFlow = 1;
+      }
       this.showExcution = false;
       this.isEnqueryPage = true;
       this.flowData.forEach((_, index) => {
@@ -290,10 +293,6 @@ export default {
           this.renderFlowGraph(true);
         }, 3000 * index);
       });
-
-      if (!this.isEnqueryPage) {
-        this.selectedFlow = 1;
-      }
     },
     bindFlowEvent() {
       if (this.isEnqueryPage !== true) {
