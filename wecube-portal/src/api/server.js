@@ -73,9 +73,7 @@ export const deleteEnumRecord = (catTypeId, catId, codeId) =>
   );
 export const addEnumRecord = (catTypeId, data) =>
   req.post(
-    `/cmdb/enum/category-types/${catTypeId}/categories/${
-      data.catId
-    }/codes/create`,
+    `/cmdb/enum/category-types/${catTypeId}/categories/${data.catId}/codes/create`,
     data
   );
 export const getEnumCatList = () => req.get(`/cmdb/enum/all-categories`);
@@ -116,6 +114,8 @@ export const preconfigurePluginPackage = id =>
   req.post(`/plugin/packages/${id}/preconfigure`);
 export const getAllInstancesByPackageId = packageId =>
   req.get(`/instances/packages/${packageId}`);
+export const getAvailableInstancesByPackageId = packageId =>
+  req.get(`/packages/${packageId}/instances`);
 export const createPluginInstanceByPackageIdAndHostIp = (
   packageId,
   ip,
@@ -128,9 +128,7 @@ export const createPluginInstanceByPackageIdAndHostIp = (
   );
 export const savePluginInstance = data =>
   req.post(
-    `/plugin/configs/${data.configId}/save?cmdbCiTypeId=${
-      data.cmdbCiTypeId
-    }&cmdbCiTypeName=${data.cmdbCiTypeName}`,
+    `/plugin/configs/${data.configId}/save?cmdbCiTypeId=${data.cmdbCiTypeId}&cmdbCiTypeName=${data.cmdbCiTypeName}`,
     data.pluginRegisteringModels
   );
 export const decommissionPluginConfig = configId =>
@@ -138,7 +136,7 @@ export const decommissionPluginConfig = configId =>
 export const releasePluginConfig = configId =>
   req.post(`/plugin/configs/${configId}/release`);
 export const removePluginInstance = instanceId =>
-  req.delete(`/plugin/packages/instances/${instanceId}`);
+  req.delete(`/packages/instances/${instanceId}`);
 export const queryLog = data =>
   req.post(`/plugin/packages/instances/log`, data);
 export const getPluginInstanceLogDetail = (id, data) =>
@@ -433,9 +431,7 @@ export const getDeployDesignTabs = () => req.get(`/cmdb/deploy-designs/tabs`);
 
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/cmdb/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${
-      data.envCode
-    }&system-design-guid=${data.systemDesignGuid}`,
+    `/cmdb/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
     payload
   );
 
@@ -481,3 +477,9 @@ export const registerPlugin = id => req.post(`/plugins/enable/${id}`);
 export const deletePlugin = id => req.post(`/plugins/disable/${id}`);
 export const savePluginConfig = data => req.post(`/plugins`, data);
 export const registPluginPackage = id => req.post(`/packages/register/${id}`);
+export const queryDataBaseByPackageId = (id, payload) =>
+  req.post(`/packages/${id}/resources/mysql/query`, payload);
+export const queryStorageFilesByPackageId = (id, payload) =>
+  req.get(`/packages/${id}/resources/s3/files`, payload);
+export const getAllPluginPackageResourceFiles = () =>
+  req.get("/resource-files");
