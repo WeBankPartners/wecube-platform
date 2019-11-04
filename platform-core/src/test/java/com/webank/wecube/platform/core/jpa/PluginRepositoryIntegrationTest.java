@@ -6,6 +6,7 @@ import com.webank.wecube.platform.core.domain.plugin.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -131,9 +132,9 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     }
 
     public static PluginPackage mockPluginPackage(String name, String version) {
-        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, newLinkedHashSet(),
+        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, new Timestamp(System.currentTimeMillis()), false,
                 newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(),
-                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
+                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
         PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity",
                 PluginConfig.Status.DISABLED, newLinkedHashSet());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
