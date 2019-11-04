@@ -16,6 +16,11 @@ public class DataModelExpressionDto {
         this.returnedJson = returnedJson;
     }
 
+    public DataModelExpressionDto(String expression, List<Map<String, String>> returnedJson) {
+        this.expression = expression;
+        this.returnedJson = returnedJson;
+    }
+
     public DataModelExpressionDto() {
     }
 
