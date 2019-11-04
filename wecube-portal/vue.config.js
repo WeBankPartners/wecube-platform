@@ -36,6 +36,9 @@ module.exports = {
       },
       "/batch-job": {
         target: baseURL
+      },
+      "ui-resources": {
+        target: "http://129.204.99.160:8888"
       }
       // "/auth": {
       //   target: "http://129.204.99.160:8889"
