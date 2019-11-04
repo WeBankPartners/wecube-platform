@@ -4,7 +4,7 @@
       <Row>
         <Col span="20">
           <Form>
-            <FormItem :label-width="100" label="任务编排">
+            <FormItem :label-width="150" :label="$t('orchs')">
               <Select
                 label
                 v-model="selectedFlow"
@@ -27,8 +27,12 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">查询</Button>
-              <Button type="info" @click="createHandler">新建</Button>
+              <Button type="info" @click="queryHandler">{{
+                $t("query_orch")
+              }}</Button>
+              <Button type="success" @click="createHandler">{{
+                $t("create_orch")
+              }}</Button>
             </FormItem>
           </Form>
         </Col>
@@ -40,7 +44,7 @@
         <Row>
           <Form>
             <Col span="6">
-              <FormItem :label-width="100" label="选择编排">
+              <FormItem :label-width="100" :label="$t('select_orch')">
                 <Select
                   label
                   v-model="selectedOrchestration"
@@ -57,7 +61,7 @@
               </FormItem>
             </Col>
             <Col span="8">
-              <FormItem :label-width="100" label="目标对象">
+              <FormItem :label-width="100" :label="$t('target_object')">
                 <Select
                   label
                   v-model="selectedTarget"
@@ -76,9 +80,9 @@
             <Col span="2" offset="1">
               <Button
                 v-if="!isEnqueryPage"
-                type="info"
+                type="create"
                 @click="createFlowHandler"
-                >构建任务</Button
+                >{{ $t("create_job") }}</Button
               >
             </Col>
           </Form>
@@ -96,9 +100,9 @@
           >
             <div class="graph-container" id="graph"></div>
             <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow"
-                >执行</Button
-              >
+              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
+                $t("execute")
+              }}</Button>
             </div>
           </Col>
         </Row>
