@@ -5,6 +5,8 @@ CREATE TABLE `plugin_packages` (
 	`name` VARCHAR(50) NOT NULL,
 	`version` VARCHAR(20) NOT NULL,
     `status` VARCHAR(20) NOT NULL default 'UNREGISTERED',
+    `upload_timestamp` timestamp default current_timestamp,
+    `ui_package_included` TINYINT(1) default 0,
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX `name` (`name`, `version`)
 );
@@ -33,13 +35,14 @@ create table plugin_package_menus (
 DROP TABLE IF EXISTS plugin_package_entities;
 CREATE TABLE plugin_package_entities
 (
-    id                INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-    plugin_package_id INTEGER                        NOT NULL,
-    name              VARCHAR(100)                   NOT NULL,
-    display_name      VARCHAR(100)                   NOT NULL,
-    description       VARCHAR(256)                   NOT NULL,
-    CONSTRAINT fk_package_id FOREIGN KEY (plugin_package_id) REFERENCES plugin_packages (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_package_entity (plugin_package_id, name)
+    id                 INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    plugin_package_id  INTEGER                        NOT NULL,
+    name               VARCHAR(100)                   NOT NULL,
+    display_name       VARCHAR(100)                   NOT NULL,
+    description        VARCHAR(256)                   NOT NULL,
+    data_model_version INTEGER                        NOT NULL DEFAULT 1,
+    CONSTRAINT fk_package_id FOREIGN KEY (plugin_package_id) REFERENCES plugin_packages(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE uk_package_entity(plugin_package_id, name, data_model_version)
 
 );
 
@@ -108,7 +111,7 @@ drop table if exists plugin_package_runtime_resources_s3;
 create table plugin_package_runtime_resources_s3 (
   id int auto_increment primary key,
   plugin_package_id int(11) not null,
-  bucket_name varchar(32) not null,
+  bucket_name varchar(63) not null,
   PRIMARY KEY (`id`)
 );
 
@@ -185,7 +188,20 @@ create table plugin_package_resource_files
 (
   id int auto_increment primary key,
   plugin_package_id int(11) not null,
+  package_name varchar(50) not null,
+  package_version varchar(20) not null,
   source varchar(64) not null,
-  related_path varchar(64) not null,
+  related_path varchar(1024) not null,
   PRIMARY KEY (`id`)
+);
+
+drop table if exists plugin_datamodel_table;
+create table plugin_datamodel_table
+(
+    `id`      int auto_increment primary key,
+	`name`    VARCHAR(50) NOT NULL,
+	`value`   double,
+	`date`    date,
+	`time`    timestamp,
+	PRIMARY KEY (`id`)
 );
