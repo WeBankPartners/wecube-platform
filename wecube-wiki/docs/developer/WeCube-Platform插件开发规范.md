@@ -48,7 +48,7 @@ ui.zip
 ##### 第四，若插件需要S3存储库，要求有：
  - 必须register.xml中声明
 
-##### 第二，register.xml要求必须包含7部分内容,[示例在此](https://github.com/WeBankPartners/wecube-platform/blob/420_plugin_dev_standard/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)。
+##### 第二，register.xml要求必须包含7部分内容,[示例在此](https://github.com/WeBankPartners/wecube-platform/blob/dev/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)。
  - 1.依赖说明
  主要描述本插件运行时依赖的其他插件（插件名和版本）；
  - 2.插件菜单
