@@ -18,10 +18,6 @@ public class PluginPackage {
         UNREGISTERED, REGISTERED, RUNNING, STOPPED, DECOMMISSIONED
     }
 
-    @JsonIgnore
-    private static final String DOCKER_IMAGE_FILE_NAME = "image.tar";
-    @JsonIgnore
-    private static final String UI_ZIP_FILE_NAME = "ui.zip";
     @Id
     @GeneratedValue
     private Integer id;
@@ -84,14 +80,6 @@ public class PluginPackage {
 
     public void addPluginConfig(PluginConfig pluginConfig) {
         this.pluginConfigs.add(pluginConfig);
-    }
-
-    public String getDockerImageFilename() {
-        return DOCKER_IMAGE_FILE_NAME;
-    }
-
-    public String getUiPackageFilename() {
-        return UI_ZIP_FILE_NAME;
     }
 
     public PluginPackage() {
