@@ -5,16 +5,19 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.dto.*;
 import com.webank.wecube.platform.core.jpa.*;
+import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
+import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
+import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
+import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.support.S3Client;
-import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,10 +59,17 @@ public class PluginPackageService {
     private PluginPackageResourceFileRepository pluginPackageResourceFileRepository;
 
     @Autowired
+    private PluginPackageValidator pluginPackageValidator;
+
+    @Autowired
     private PluginProperties pluginProperties;
 
     @Autowired
     private S3Client s3Client;
+    @Autowired
+    private ScpService scpService;
+    @Autowired
+    private CommandService commandService;
 
     @Transactional
     public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
@@ -87,18 +97,20 @@ public class PluginPackageService {
         // 3. read xml file in plugin package
         File registerXmlFile = new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile());
         if (!registerXmlFile.exists()) {
-            throw new WecubeCoreException(String.format("Plugin package definition file: [%s] does not exist.", pluginProperties.getRegisterFile()));
+            throw new WecubeCoreException(String.format("Plugin package definition file: [%s] does not exist.",
+                    pluginProperties.getRegisterFile()));
         }
+
+        new PluginConfigXmlValidator().validate(new FileInputStream(registerXmlFile));
+
         PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile)).parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
-        if (!StringUtils.containsOnlyAlphanumericOrHyphen(pluginPackage.getName())) {
-            throw new WecubeCoreException(
-                    String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') is allowed. ",
-                            pluginPackageDto.getName()));
-        }
+
+        pluginPackageValidator.validatePluginPackage(pluginPackage);
+
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
-                    pluginPackageDto.getName(), pluginPackageDto.getVersion()));
+                    pluginPackage.getName(), pluginPackage.getVersion()));
         }
         // 4.
         File pluginDockerImageFile = new File(localFilePath + "/" + pluginProperties.getImageFile());
@@ -114,7 +126,7 @@ public class PluginPackageService {
             log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
         }
 
-        File pluginUiPackageFile = new File(localFilePath + "/" + pluginPackage.getUiPackageFilename());
+        File pluginUiPackageFile = new File(localFilePath + "/" + pluginProperties.getUiFile());
         log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
         String uiPackageUrl = "";
         Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
@@ -124,9 +136,32 @@ public class PluginPackageService {
                     + pluginUiPackageFile.getName();
             log.info("keyname : {}", keyName);
 
-            pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage, pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
-            uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUiPackageFile);
+            pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage,
+                    pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
+            uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginUiPackageFile);
+            pluginPackage.setUiPackageIncluded(true);
             log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
+        }
+
+        File pluginInitSqlFile = new File(localFilePath + File.separator + pluginProperties.getInitDbSql());
+        if (pluginInitSqlFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginProperties.getInitDbSql();
+            log.info("Uploading init sql {} to MinIO {}", pluginInitSqlFile.getAbsolutePath(), keyName);
+            String initSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginInitSqlFile);
+            log.info("Init sql {} has been uploaded to MinIO {}", pluginProperties.getInitDbSql(), initSqlUrl);
+        } else {
+            log.info("Init sql {} is not included in package.", pluginProperties.getInitDbSql());
+        }
+
+        File pluginUpgradeSqlFile = new File(localFilePath + File.separator + pluginProperties.getUpgradeDbSql());
+        if (pluginUpgradeSqlFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginProperties.getUpgradeDbSql();
+            log.info("Uploading upgrade sql {} to MinIO {}", pluginUpgradeSqlFile.getAbsolutePath(), keyName);
+            String upgradeSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUpgradeSqlFile);
+            log.info("Upgrade sql {} has been uploaded to MinIO {}", pluginProperties.getUpgradeDbSql(), upgradeSqlUrl);
+        } else {
+            log.info("Upgrade sql {} is not included in package.", pluginProperties.getUpgradeDbSql());
         }
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
@@ -147,9 +182,11 @@ public class PluginPackageService {
         }
         pluginConfigRepository.saveAll(pluginConfigs);
 
-        savedPluginPackage.setPluginPackageEntities(pluginPackageEntityDtos.stream().map(it->it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
+        savedPluginPackage.setPluginPackageEntities(pluginPackageEntityDtos.stream()
+                .map(it -> it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
         if (pluginPackageResourceFilesOptional.isPresent()) {
-            Set<PluginPackageResourceFile> pluginPackageResourceFiles = newLinkedHashSet(pluginPackageResourceFileRepository.saveAll(pluginPackageResourceFilesOptional.get()));
+            Set<PluginPackageResourceFile> pluginPackageResourceFiles = newLinkedHashSet(
+                    pluginPackageResourceFileRepository.saveAll(pluginPackageResourceFilesOptional.get()));
             savedPluginPackage.setPluginPackageResourceFiles(pluginPackageResourceFiles);
         }
 
@@ -175,6 +212,10 @@ public class PluginPackageService {
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
             log.warn(errorMessage);
             throw new WecubeCoreException(errorMessage);
+        }
+
+        if (pluginPackage.isUiPackageIncluded()) {
+            deployPluginUiResources(pluginPackage);
         }
         pluginPackage.setStatus(REGISTERED);
         return pluginPackageRepository.save(pluginPackage);
@@ -205,6 +246,9 @@ public class PluginPackageService {
             log.error("Remove plugin package file failed: {}", e);
             throw new WecubeCoreException("Remove plugin package file failed.");
         }
+        if (pluginPackage.isUiPackageIncluded()) {
+            removePluginUiResources(pluginPackage);
+        }
     }
 
     private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {
@@ -214,7 +258,8 @@ public class PluginPackageService {
             for (; entries.hasMoreElements();) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
-                if (entry.isDirectory() || !(zipEntryName.contains(".xml") || zipEntryName.contains(".tar") || zipEntryName.contains(".zip") || zipEntryName.contains(".sql"))) {
+                if (entry.isDirectory() || !(zipEntryName.contains(".xml") || zipEntryName.contains(".tar")
+                        || zipEntryName.contains(".zip") || zipEntryName.contains(".sql"))) {
                     continue;
                 }
 
@@ -238,7 +283,8 @@ public class PluginPackageService {
         log.info("Zip file has uploaded !");
     }
 
-    private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage, String sourceZipFile, String sourceZipFileName) throws Exception {
+    private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
+            String sourceZipFile, String sourceZipFileName) throws Exception {
         Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
@@ -246,14 +292,15 @@ public class PluginPackageService {
             if (entries.hasMoreElements()) {
                 pluginPackageResourceFiles = newLinkedHashSet();
             }
-            for (; entries.hasMoreElements(); ) {
+            for (; entries.hasMoreElements();) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 if (!entry.isDirectory()) {
                     String zipEntryName = entry.getName();
                     PluginPackageResourceFile pluginPackageResourceFile = new PluginPackageResourceFile();
                     pluginPackageResourceFile.setPluginPackage(pluginPackage);
                     pluginPackageResourceFile.setSource(sourceZipFileName);
-                    pluginPackageResourceFile.setRelatedPath(zipEntryName);
+                    pluginPackageResourceFile.setRelatedPath("/ui-resources/" + pluginPackage.getName() + File.separator
+                            + pluginPackage.getVersion() + File.separator + zipEntryName);
 
                     log.info("File in ui package [{}] : {}", sourceZipFileName, zipEntryName);
 
@@ -391,7 +438,7 @@ public class PluginPackageService {
         for (MenuItemDto menuItemDto : inputMenuItemDto) {
             String menuCategory = menuItemDto.getCategory();
             Integer menuId = menuItemDto.getId();
-            if (!org.springframework.util.StringUtils.isEmpty(menuCategory)) {
+            if (!StringUtils.isEmpty(menuCategory)) {
                 if (menuId > categoryToId.get(menuCategory)) {
                     categoryToId.put(menuCategory, menuId + 1);
                 }
@@ -399,5 +446,76 @@ public class PluginPackageService {
 
         }
         return categoryToId;
+    }
+
+    private void deployPluginUiResources(PluginPackage pluginPackage) {
+        // download UI package from MinIO
+        String tmpFolderName = SystemUtils.getTempFolderPath()
+                + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        String downloadUiZipPath = tmpFolderName + File.separator + pluginProperties.getUiFile();
+        log.info("Download UI.zip from S3 to " + downloadUiZipPath);
+
+        String s3UiPackagePath = pluginPackage.getName() + File.separator + pluginPackage.getVersion() + File.separator
+                + pluginProperties.getUiFile();
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3UiPackagePath, downloadUiZipPath);
+
+        String remotePath = pluginProperties.getStaticResourceServerPath() + File.separator + pluginPackage.getName()
+                + File.separator + pluginPackage.getVersion() + File.separator;
+        log.info("Upload UI.zip from local to static server:" + remotePath);
+
+        // mkdir at remote host
+        if (!remotePath.equals("/") && !remotePath.equals(".")) {
+            String mkdirCmd = String.format("rm -rf %s && mkdir -p %s", remotePath, remotePath);
+
+            try {
+                commandService.runAtRemote(pluginProperties.getStaticResourceServerIp(),
+                        pluginProperties.getStaticResourceServerUser(),
+                        pluginProperties.getStaticResourceServerPassword(),
+                        pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+            } catch (Exception e) {
+                log.error("Run command [mkdir] meet error: ", e.getMessage());
+                throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
+            }
+        }
+
+        // scp UI.zip to Static Resource Server
+        try {
+            scpService.put(pluginProperties.getStaticResourceServerIp(), pluginProperties.getStaticResourceServerPort(),
+                    pluginProperties.getStaticResourceServerUser(), pluginProperties.getStaticResourceServerPassword(),
+                    downloadUiZipPath, remotePath);
+        } catch (Exception e) {
+            throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage());
+        }
+        log.info("scp UI.zip to Static Resource Server - Done");
+
+        // unzip file
+        String unzipCmd = String.format("cd %s && unzip %s", remotePath, pluginProperties.getUiFile());
+        try {
+            commandService.runAtRemote(pluginProperties.getStaticResourceServerIp(),
+                    pluginProperties.getStaticResourceServerUser(), pluginProperties.getStaticResourceServerPassword(),
+                    pluginProperties.getStaticResourceServerPort(), unzipCmd);
+        } catch (Exception e) {
+            log.error("Run command [unzip] meet error: ", e.getMessage());
+            throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
+        }
+        log.info("UI package deployment has done...");
+    }
+
+    private void removePluginUiResources(PluginPackage pluginPackage) {
+        String remotePath = pluginProperties.getStaticResourceServerPath() + File.separator + pluginPackage.getName()
+                + File.separator + pluginPackage.getVersion() + File.separator;
+
+        if (!remotePath.equals("/") && !remotePath.equals(".")) {
+            String mkdirCmd = String.format("rm -rf %s", remotePath);
+            try {
+                commandService.runAtRemote(pluginProperties.getStaticResourceServerIp(),
+                        pluginProperties.getStaticResourceServerUser(),
+                        pluginProperties.getStaticResourceServerPassword(),
+                        pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+            } catch (Exception e) {
+                log.error("Run command [rm] meet error: ", e.getMessage());
+                throw new WecubeCoreException(String.format("Run command [rm] meet error: %s", e.getMessage()));
+            }
+        }
     }
 }
