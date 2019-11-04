@@ -116,6 +116,8 @@ export const preconfigurePluginPackage = id =>
   req.post(`/plugin/packages/${id}/preconfigure`);
 export const getAllInstancesByPackageId = packageId =>
   req.get(`/instances/packages/${packageId}`);
+export const getAvailableInstancesByPackageId = packageId =>
+  req.get(`/packages/${packageId}/instances`);
 export const createPluginInstanceByPackageIdAndHostIp = (
   packageId,
   ip,
@@ -138,7 +140,7 @@ export const decommissionPluginConfig = configId =>
 export const releasePluginConfig = configId =>
   req.post(`/plugin/configs/${configId}/release`);
 export const removePluginInstance = instanceId =>
-  req.delete(`/plugin/packages/instances/${instanceId}`);
+  req.delete(`/packages/instances/${instanceId}`);
 export const queryLog = data =>
   req.post(`/plugin/packages/instances/log`, data);
 export const getPluginInstanceLogDetail = (id, data) =>
@@ -481,3 +483,9 @@ export const registerPlugin = id => req.post(`/plugins/enable/${id}`);
 export const deletePlugin = id => req.post(`/plugins/disable/${id}`);
 export const savePluginConfig = data => req.post(`/plugins`, data);
 export const registPluginPackage = id => req.post(`/packages/register/${id}`);
+export const queryDataBaseByPackageId = (id, payload) =>
+  req.post(`/packages/${id}/resources/mysql/query`, payload);
+export const queryStorageFilesByPackageId = (id, payload) =>
+  req.get(`/packages/${id}/resources/s3/files`, payload);
+export const getAllPluginPackageResourceFiles = () =>
+  req.get("/resource-files");
