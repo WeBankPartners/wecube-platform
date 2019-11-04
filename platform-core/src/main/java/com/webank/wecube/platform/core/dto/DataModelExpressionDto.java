@@ -2,21 +2,22 @@ package com.webank.wecube.platform.core.dto;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 public class DataModelExpressionDto {
     private String expression;
     private String fromUrl;
     private String toUrl;
-    private List<Map<String, String>> returnedJson;
+    private Stack<Map<String, String>> returnedJson;
 
-    public DataModelExpressionDto(String expression, String fromUrl, String toUrl, List<Map<String, String>> returnedJson) {
+    public DataModelExpressionDto(String expression, String fromUrl, String toUrl, Stack<Map<String, String>> returnedJson) {
         this.expression = expression;
         this.fromUrl = fromUrl;
         this.toUrl = toUrl;
         this.returnedJson = returnedJson;
     }
 
-    public DataModelExpressionDto(String expression, List<Map<String, String>> returnedJson) {
+    public DataModelExpressionDto(String expression, Stack<Map<String, String>> returnedJson) {
         this.expression = expression;
         this.returnedJson = returnedJson;
     }
@@ -32,11 +33,11 @@ public class DataModelExpressionDto {
         this.expression = expression;
     }
 
-    public List<Map<String, String>> getReturnedJson() {
+    public Stack<Map<String, String>> getReturnedJson() {
         return returnedJson;
     }
 
-    public void setReturnedJson(List<Map<String, String>> returnedJson) {
+    public void setReturnedJson(Stack<Map<String, String>> returnedJson) {
         this.returnedJson = returnedJson;
     }
 
