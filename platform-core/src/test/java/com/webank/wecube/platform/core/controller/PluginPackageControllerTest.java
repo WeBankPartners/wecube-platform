@@ -129,6 +129,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("service-management")))
                     .andExpect(jsonPath("$.data.version", is("v0.1")))
+                    .andExpect(jsonPath("$.data.uiPackageIncluded", is(true)))
                     .andDo(print())
                     .andReturn().getResponse();
         } catch (Exception e) {

@@ -1,17 +1,16 @@
 package com.webank.wecube.platform.core.exception;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.JsonResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import static com.webank.wecube.platform.core.domain.JsonResponse.error;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static com.webank.wecube.platform.core.domain.JsonResponse.error;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.JsonResponse;
 
 //@RestController
 //@ControllerAdvice

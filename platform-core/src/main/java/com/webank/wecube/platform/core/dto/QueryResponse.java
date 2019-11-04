@@ -10,15 +10,21 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class QueryResponse<T> {
     private PageInfo pageInfo = null;
     private List<T> contents = new LinkedList<>();
+    private List<String> headers = null;
 
     public QueryResponse() {
     }
 
     public QueryResponse(PageInfo pageInfo, List<T> contents) {
-        this.pageInfo = pageInfo;
-        this.contents = contents;
+        this(pageInfo,contents,null);
     }
 
+    public QueryResponse(PageInfo pageInfo, List<T> contents, List<String> headers) {
+        this.pageInfo = pageInfo;
+        this.contents = contents;
+        this.headers = headers;
+    }
+    
     public PageInfo getPageInfo() {
         return pageInfo;
     }
@@ -37,6 +43,14 @@ public class QueryResponse<T> {
 
     public void addContent(T ciObj) {
         this.contents.add(ciObj);
+    }
+
+    public List<String> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(List<String> headers) {
+        this.headers = headers;
     }
 
 
