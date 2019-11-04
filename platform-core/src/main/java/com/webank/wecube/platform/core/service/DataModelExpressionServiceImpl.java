@@ -2,11 +2,14 @@ package com.webank.wecube.platform.core.service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.DataModelExpressionDto;
+import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
 import com.webank.wecube.platform.core.support.parser.DataModelExpressionHelper;
 import com.webank.wecube.platform.core.utils.HttpClientUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.core.utils.constant.DataModelExpressionOpType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +26,15 @@ import java.util.*;
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
     @Autowired
-    PluginPackageDataModelServiceImpl pluginPackageDataModelService;
+    PluginPackageDataModelServiceImpl dataModelService;
+    @Autowired
+    PluginPackageEntityRepository entityRepository;
+    @Autowired
+    PluginPackageAttributeRepository attributeRepository;
+
     private String gatewayUrl;
     private Queue<DataModelExpressionHelper> expressionHelperQueue;
-    private static final Logger logger = LoggerFactory.getLogger(PluginPackageDataModelServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
     private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/{attributeName}?value={value}";
 
     public String getGatewayUrl() {
@@ -69,31 +77,55 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 resultList.add(resolvedResult);
                 isStart = false;
             } else {
-                List<Map<String, String>> lastLinkReturnedJson = resultList.get(resultList.size() - 1).getReturnedJson();
-//                resolvedResult = resolveLink(link, guid);
+                // resolve non-root link with last link's output as input
+                List<Map<String, String>> latestReturnedJsonList = resultList.get(resultList.size() - 1).getReturnedJson();
+                Map<String, String> latestReturnedJson = latestReturnedJsonList.get(latestReturnedJsonList.size() - 1);
+                resolvedResult = resolveLink(link, lastLinkAttr, Collections.singletonList(latestReturnedJson.get(lastLinkAttr)));
             }
             resultList.add(resolvedResult);
-            lastLinkAttr = link.getSecondNode().attr().getText();
+
+            lastLinkAttr = link.getSecondNode() == null ? link.getFirstNode().attr().getText() : link.getSecondNode().attr().getText();
+
         }
         return resultList;
     }
 
     private DataModelExpressionDto resolveLink(DataModelExpressionHelper link, String lastLinkAttr, List<String> inputData) {
+        // TODO: add data model service validation
+        // first node
         String packageName = link.getFirstNode().pkg().getText();
         String entityName = link.getFirstNode().entity().getText();
-        String attrName = link.getFirstNode().attr().getText();
+        String op = link.getOp().getText();
         List<Map<String, String>> requestResultList = new ArrayList<>();
         for (String data : inputData) {
             MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
             paramMap.add("gatewayUrl", gatewayUrl);
             paramMap.add("packageName", packageName);
             paramMap.add("entityName", entityName);
-            paramMap.add("attrName", attrName);
+            paramMap.add("attrName", lastLinkAttr);
             paramMap.add("value", data);
             Map<String, String> requestResult = request(paramMap);
             requestResultList.add(requestResult);
         }
-//        System.out.println(root.toString());
+
+        // second node
+        DataModelParser.NodeContext secondNode = link.getSecondNode();
+        if (secondNode == null) {
+            // if second node is null, which means the link is consisted of one node
+            return new DataModelExpressionDto(link.getFirstNode().getText(), requestResultList);
+        }
+        // TODO: second node request and return result, need to solve referenceTo and referenceBy op
+        DataModelExpressionOpType opType = DataModelExpressionOpType.fromCode(op);
+        if (opType == DataModelExpressionOpType.ReferenceBy) {
+            System.out.println("By");
+            // TODO: add referenceBy validation
+        }
+
+        if (opType == DataModelExpressionOpType.ReferenceTo) {
+            System.out.println("To");
+            // TODO: add referenceTo validation
+        }
+
         return new DataModelExpressionDto();
     }
 
@@ -103,13 +135,9 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         service.setGatewayUrl("127.0.0.1");
     }
 
-    private Queue<DataModelExpressionHelper> parseDataModelExpression(String dataModelExpression) {
+    private Queue<DataModelExpressionHelper> parseDataModelExpression(String dataModelExpression) throws WecubeCoreException {
         Queue<DataModelExpressionHelper> expressionHelperQueue = new LinkedList<>();
-        try {
-            expressionHelperQueue = new DataModelExpressionParser().parse(dataModelExpression);
-        } catch (WecubeCoreException ex) {
-            System.out.println(ex.getMessage());
-        }
+        expressionHelperQueue = new DataModelExpressionParser().parse(dataModelExpression);
         return expressionHelperQueue;
 
     }
