@@ -46,19 +46,22 @@ public class ResourceManagementService {
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequest queryRequest) {
         QueryResponse<ResourceServer> queryResponse = entityRepository.query(ResourceServer.class, queryRequest);
-        List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(), x -> ResourceServerDto.fromDomain(x));
+        List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(),
+                x -> ResourceServerDto.fromDomain(x));
         return new QueryResponse<>(queryResponse.getPageInfo(), resourceServerDto);
     }
 
     @Transactional
     public List<ResourceServerDto> createServers(List<ResourceServerDto> resourceServers) {
-        Iterable<ResourceServer> savedDomains = resourceServerRepository.saveAll(convertServerDtoToDomain(resourceServers));
+        Iterable<ResourceServer> savedDomains = resourceServerRepository
+                .saveAll(convertServerDtoToDomain(resourceServers));
         return convertServerDomainToDto(savedDomains);
     }
 
     @Transactional
     public List<ResourceServerDto> updateServers(List<ResourceServerDto> resourceServers) {
-        Iterable<ResourceServer> savedDomains = resourceServerRepository.saveAll(convertServerDtoToDomain(resourceServers));
+        Iterable<ResourceServer> savedDomains = resourceServerRepository
+                .saveAll(convertServerDtoToDomain(resourceServers));
         return convertServerDomainToDto(savedDomains);
     }
 
@@ -81,14 +84,17 @@ public class ResourceManagementService {
     private void validateIfServerAllocated(List<ResourceServer> resourceServers) {
         resourceServers.forEach(server -> {
             if (server.getIsAllocated() != null && server.getIsAllocated() == 1) {
-                throw new WecubeCoreException(String.format("Can not delete resource server [%s] as it has been allocated for [%s].", server.getName(), server.getPurpose()));
+                throw new WecubeCoreException(
+                        String.format("Can not delete resource server [%s] as it has been allocated for [%s].",
+                                server.getName(), server.getPurpose()));
             }
         });
     }
 
     public QueryResponse<ResourceItemDto> retrieveItems(QueryRequest queryRequest) {
         QueryResponse<ResourceItem> queryResponse = entityRepository.query(ResourceItem.class, queryRequest);
-        List<ResourceItemDto> resourceItemsDto = Lists.transform(queryResponse.getContents(), x -> ResourceItemDto.fromDomain(x));
+        List<ResourceItemDto> resourceItemsDto = Lists.transform(queryResponse.getContents(),
+                x -> ResourceItemDto.fromDomain(x));
         return new QueryResponse<>(queryResponse.getPageInfo(), resourceItemsDto);
     }
 
@@ -156,7 +162,9 @@ public class ResourceManagementService {
     private void validateIfItemAllocated(Iterable<ResourceItem> items) {
         items.forEach(item -> {
             if (item.getIsAllocated() != null && item.getIsAllocated() == 1) {
-                throw new WecubeCoreException(String.format("Can not delete resource item [%s] as it has been allocated for [%s].", item.getName(), item.getPurpose()));
+                throw new WecubeCoreException(
+                        String.format("Can not delete resource item [%s] as it has been allocated for [%s].",
+                                item.getName(), item.getPurpose()));
             }
         });
     }
@@ -186,13 +194,15 @@ public class ResourceManagementService {
 
     private void handleServerPasswordEncryption(ResourceServerDto dto) {
         if (dto.getLoginPassword() != null) {
-            dto.setLoginPassword(EncryptionUtils.encryptWithAes(dto.getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), dto.getName()));
+            dto.setLoginPassword(EncryptionUtils.encryptWithAes(dto.getLoginPassword(),
+                    resourceProperties.getPasswordEncryptionSeed(), dto.getName()));
         }
     }
 
     private String generateMysqlDatabaseDefaultAccount(ResourceItemDto dto) {
         String defaultAdditionalProperties;
-        String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(), resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+        String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(),
+                resourceProperties.getPasswordEncryptionSeed(), dto.getName());
         Map<Object, Object> map = new HashMap<>();
         map.put("username", dto.getName());
         map.put("password", encryptedPassword);
@@ -210,7 +220,8 @@ public class ResourceManagementService {
             dto.setAdditionalProperties(defaultAdditionalProperties);
         } else {
             if (additionalProperties.get("password") != null) {
-                String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(), resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+                String encryptedPassword = EncryptionUtils.encryptWithAes(additionalProperties.get("password"),
+                        resourceProperties.getPasswordEncryptionSeed(), dto.getName());
                 additionalProperties.put("password", encryptedPassword);
                 dto.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
             }

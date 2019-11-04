@@ -132,9 +132,9 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     }
 
     public static PluginPackage mockPluginPackage(String name, String version) {
-        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, new Timestamp(System.currentTimeMillis()), newLinkedHashSet(),
+        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, new Timestamp(System.currentTimeMillis()), false,
                 newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(),
-                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
+                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
         PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity",
                 PluginConfig.Status.DISABLED, newLinkedHashSet());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
