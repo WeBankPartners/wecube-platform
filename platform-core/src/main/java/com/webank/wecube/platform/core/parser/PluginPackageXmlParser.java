@@ -89,11 +89,11 @@ public class PluginPackageXmlParser {
                 Node dockerNode = dockerNodes.item(i);
 
                 PluginPackageRuntimeResourcesDocker docker = new PluginPackageRuntimeResourcesDocker();
-                docker.setImageName(getNonNullStringAttribute(dockerNode, "./imageName", "Docker image name"));
-                docker.setContainerName(getNonNullStringAttribute(dockerNode, "./containerName", "Docker container name"));
-                docker.setPortBindings(getStringAttribute(dockerNode, "./portBindings"));
-                docker.setVolumeBindings(getStringAttribute(dockerNode, "./volumeBindings"));
-                docker.setEnvVariables(getStringAttribute(dockerNode, "./envVariables"));
+                docker.setImageName(getNonNullStringAttribute(dockerNode, "./@imageName", "Docker image name"));
+                docker.setContainerName(getNonNullStringAttribute(dockerNode, "./@containerName", "Docker container name"));
+                docker.setPortBindings(getStringAttribute(dockerNode, "./@portBindings"));
+                docker.setVolumeBindings(getStringAttribute(dockerNode, "./@volumeBindings"));
+                docker.setEnvVariables(getStringAttribute(dockerNode, "./@envVariables"));
 
                 docker.setPluginPackage(pluginPackage);
 
@@ -210,7 +210,7 @@ public class PluginPackageXmlParser {
 
             NodeList entityAttributeNodes = xPathEvaluator.getNodeList("./attribute", entityNode);
             if (null != entityAttributeNodes && entityAttributeNodes.getLength() > 0) {
-                pluginPackageEntity.setAttributeDtoList(parseDataModelEntityAttributes(entityAttributeNodes, pluginPackageEntity));
+                pluginPackageEntity.setAttributes(parseDataModelEntityAttributes(entityAttributeNodes, pluginPackageEntity));
             }
 
             pluginPackageEntities.add(pluginPackageEntity);

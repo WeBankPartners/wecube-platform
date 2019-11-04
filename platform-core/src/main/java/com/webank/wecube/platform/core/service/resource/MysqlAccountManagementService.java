@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Strings;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
@@ -24,9 +25,17 @@ public class MysqlAccountManagementService implements ResourceItemService {
     private ResourceProperties resourceProperties;
 
     public DriverManagerDataSource newMysqlDatasource(String host, String port, String username, String password) {
+        return newMysqlDatasource(host,port,username,password,null);
+    }
+
+    public DriverManagerDataSource newMysqlDatasource(String host, String port, String username, String password, String database) {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC");
+        if(Strings.isNullOrEmpty(database)) {
+            dataSource.setUrl("jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC");
+        }else {
+            dataSource.setUrl("jdbc:mysql://" + host + ":" + port +"/"+ database +"?characterEncoding=utf8&serverTimezone=UTC");
+        }
         dataSource.setUsername(username);
         dataSource.setPassword(password);
         return dataSource;
@@ -47,7 +56,8 @@ public class MysqlAccountManagementService implements ResourceItemService {
             String rawPassword = EncryptionUtils.decryptWithAes(password,
                     resourceProperties.getPasswordEncryptionSeed(), item.getName());
             statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, rawPassword));
-            statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s", item.getName(), username));
+            statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s'", item.getName(),
+                    username, rawPassword));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
             log.error(errorMessage);
