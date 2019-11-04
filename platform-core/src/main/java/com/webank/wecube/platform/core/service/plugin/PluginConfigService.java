@@ -97,4 +97,14 @@ public class PluginConfigService {
         pluginConfig.setStatus(DISABLED);
         return pluginConfigRepository.save(pluginConfig);
     }
+    
+    public PluginConfigInterface getPluginConfigInterfaceByServiceName(String serviceName) {
+        Optional<PluginConfigInterface> pluginConfigInterface = pluginConfigRepository
+                .findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(serviceName);
+        if (!pluginConfigInterface.isPresent()) {
+            throw new WecubeCoreException(
+                    String.format("Plugin interface not found for serviceName [%s].", serviceName));
+        }
+        return pluginConfigInterface.get();
+    }
 }
