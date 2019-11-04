@@ -1,7 +1,7 @@
 <template>
   <Row>
     <Col span="3">
-      <div v-if="plugins.length < 1">暂无插件</div>
+      <div v-if="plugins.length < 1">{{ $t("no_plugin") }}</div>
       <Menu
         theme="light"
         :active-name="currentPlugin"
@@ -21,7 +21,7 @@
       <Form v-if="currentPlugin.length > 0" :model="form">
         <Row>
           <Col span="10" offset="0">
-            <FormItem :label-width="100" label="目标对象类型:">
+            <FormItem :label-width="100" :label="$t('target_type')">
               <Select
                 @on-change="selectCiType"
                 v-model="selectedCiType"
@@ -40,16 +40,16 @@
         <hr />
         <Row style="margin-bottom:10px;margin-top:10px">
           <Col span="3">
-            <strong style="font-size:15px;">操作</strong>
+            <strong style="font-size:15px;">{{ $t("operation") }}</strong>
           </Col>
           <Col span="3">
-            <strong style="font-size:15px;">参数类型</strong>
+            <strong style="font-size:15px;">{{ $t("params_type") }}</strong>
           </Col>
           <Col span="4" offset="1">
-            <strong style="font-size:15px;">参数名</strong>
+            <strong style="font-size:15px;">{{ $t("params_name") }}</strong>
           </Col>
           <Col span="5" offset="1">
-            <strong style="font-size:15px;">属性</strong>
+            <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
           </Col>
         </Row>
         <Row
@@ -66,7 +66,7 @@
             <Row>
               <Col span="3">
                 <FormItem :label-width="0">
-                  <span>输入参数</span>
+                  <span>{{ $t("input_params") }}</span>
                 </FormItem>
               </Col>
               <Col span="16" offset="1">
@@ -102,7 +102,7 @@
             <Row>
               <Col span="3">
                 <FormItem :label-width="0">
-                  <span>输出参数</span>
+                  <span>{{ $t("output_params") }}</span>
                 </FormItem>
               </Col>
               <Col span="17" offset="1">
@@ -165,13 +165,13 @@
               type="primary"
               v-if="currentPluginObj.status === 'DISABLED'"
               @click="regist"
-              >注册</Button
+              >{{ $t("regist") }}</Button
             >
             <Button
               type="error"
               v-if="currentPluginObj.status === 'ENABLED'"
               @click="removePlugin"
-              >注销</Button
+              >{{ $t("decommission") }}</Button
             >
           </Col>
         </Row>
