@@ -12,14 +12,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -136,27 +129,30 @@ public class UserManagerService {
 
         Map<String, Integer> categoryToId = pluginPackageService.updateCategoryToIdMapping(returnMenuDto);
 
-        PluginPackage.Status[] statusArray = { PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
-                PluginPackage.Status.STOPPED };
-        List<PluginPackage> packages = pluginPackageRepository.findAllByStatus(statusArray);
+        PluginPackage.Status[] statusArray = {PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
+                PluginPackage.Status.STOPPED};
+        Optional<List<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findAllByStatus(statusArray);
+        if (pluginPackagesOptional.isPresent()) {
+            List<PluginPackage> packages = pluginPackagesOptional.get();
 
-        for (PluginPackage packageDomain : packages) {
-            Set<PluginPackageMenu> packageMenus = packageDomain.getPluginPackageMenus();
-            for (PluginPackageMenu packageMenu : packageMenus) {
-                String transformedParentId = null;
-                Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
-                if (parentId == null) {
-                    String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
-                            packageMenu.getCategory());
-                    log.error(msg);
-                    throw new WecubeCoreException(msg);
+            for (PluginPackage packageDomain : packages) {
+                Set<PluginPackageMenu> packageMenus = packageDomain.getPluginPackageMenus();
+                for (PluginPackageMenu packageMenu : packageMenus) {
+                    String transformedParentId = null;
+                    Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
+                    if (parentId == null) {
+                        String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                                packageMenu.getCategory());
+                        log.error(msg);
+                        throw new WecubeCoreException(msg);
+                    }
+                    transformedParentId = parentId.toString();
+                    Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
+                    MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId,
+                            foundTopMenuId);
+                    categoryToId.put(transformedParentId, foundTopMenuId);
+                    returnMenuDto.add(packageMenuDto);
                 }
-                transformedParentId = parentId.toString();
-                Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
-                MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId,
-                        foundTopMenuId);
-                categoryToId.put(transformedParentId, foundTopMenuId);
-                returnMenuDto.add(packageMenuDto);
             }
         }
         Collections.sort(returnMenuDto);
