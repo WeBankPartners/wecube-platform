@@ -35,7 +35,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     private String gatewayUrl;
     private Queue<DataModelExpressionHelper> expressionHelperQueue;
     private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
-    private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/{attributeName}?value={value}";
+    private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/{attributeName}/{value}";
 
     public String getGatewayUrl() {
         return gatewayUrl;
@@ -57,6 +57,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
 
     @Override
     public Stack<DataModelExpressionDto> fetchData(String gatewayUrl, String dataModelExpression, String rootIdName, String rootIdData) throws WecubeCoreException {
+        this.setGatewayUrl(gatewayUrl);
         Stack<DataModelExpressionDto> resultList = new Stack<>();
         expressionHelperQueue = parseDataModelExpression(dataModelExpression);
 
@@ -94,7 +95,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
 
         Stack<Map<String, String>> requestResultList = new Stack<>();
 
-        if (isStart){
+        if (isStart) {
             // first node
             String firstNodePackageName = link.getFirstNode().pkg().getText();
             String firstNodeEntityName = link.getFirstNode().entity().getText();
@@ -115,30 +116,39 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             return new DataModelExpressionDto(link.getFirstNode().getText(), requestResultList);
         }
 
-        // get op from link
-        String op = link.getOp().getText();
         // first node attribute name is the next node's input attribute
         String firstNodeAttributeName = link.getFirstNode().attr().getText();
-
-        // TODO: second node request and return result, need to solve referenceTo and referenceBy op
+        // get op from link
+        String op = link.getOp().getText();
+        String secondNodePackageName = link.getSecondNode().pkg().getText();
+        String secondNodeEntityName = link.getSecondNode().entity().getText();
         DataModelExpressionOpType opType = DataModelExpressionOpType.fromCode(op);
+        Map<String, String> lastRequestResult = requestResultList.peek();
+
+        List<MultiValueMap<String,String>> generateParameterMapList = new ArrayList<>();
         if (opType == DataModelExpressionOpType.ReferenceBy) {
             System.out.println("By");
             // TODO: add referenceBy validation
-        }
-
-        if (opType == DataModelExpressionOpType.ReferenceTo) {
+            String referenceByAttrName = "";
+            for (String data : Collections.singletonList(lastRequestResult.get(firstNodeAttributeName))) {
+                MultiValueMap<String, String> paramMap = generateParameterMap(gatewayUrl, secondNodePackageName, secondNodeEntityName, referenceByAttrName, data);
+                generateParameterMapList.add(paramMap);
+            }
+        } else if (opType == DataModelExpressionOpType.ReferenceTo) {
             System.out.println("To");
             // TODO: add referenceTo validation
+            for (String data : Collections.singletonList(lastRequestResult.get(firstNodeAttributeName))) {
+                MultiValueMap<String, String> paramMap = generateParameterMap(gatewayUrl, secondNodePackageName, secondNodeEntityName, "id", data);
+                generateParameterMapList.add(paramMap);
+            }
         }
-        String secondNodePackageName = link.getSecondNode().pkg().getText();
-        String secondNodeEntityName = link.getSecondNode().entity().getText();
-        Map<String, String> lastRequestResult = requestResultList.peek();
-        for (String data : Collections.singletonList(lastRequestResult.get(firstNodeAttributeName))) {
-            MultiValueMap<String, String> paramMap = generateParameterMap(gatewayUrl, secondNodePackageName, secondNodeEntityName, "id", data);
+
+        // multiple request from paramMapList
+        for (MultiValueMap<String, String> paramMap : generateParameterMapList) {
             Map<String, String> requestResult = request(paramMap);
             requestResultList.add(requestResult);
         }
+
         return new DataModelExpressionDto(link.getExpression(), requestResultList);
     }
 
@@ -153,8 +163,8 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     public static void main(String[] args) {
-//        DataModelExpressionServiceImpl service = new DataModelExpressionServiceImpl();
-//        service.setGatewayUrl("127.0.0.1");
+        DataModelExpressionServiceImpl service = new DataModelExpressionServiceImpl();
+        service.fetchData("127.0.0.1:80", "A:a.a1-B:b.b1", "a0", "10");
 //        String url = "https://support.oneskyapp.com/hc/en-us/article_attachments/202761727/example_2.json";
 //        try {
 //            ResponseEntity<String> stringResponseEntity = HttpClientUtils.sendGetRequestWithoutParam(url);
