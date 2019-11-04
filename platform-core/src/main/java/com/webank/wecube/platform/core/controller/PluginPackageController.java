@@ -11,7 +11,6 @@ import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
-import com.webank.wecube.platform.core.support.PluginPackageValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,13 +38,9 @@ public class PluginPackageController {
     @Autowired
     private PluginPackageService pluginPackageService;
 
-    @Autowired
-    private PluginPackageValidator validator;
-
     @PostMapping("/packages")
     @ResponseBody
     public JsonResponse uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file) throws Exception {
-        validator.validate(file.getInputStream());
         if (file == null || file.isEmpty()) throw new IllegalArgumentException("zip-file required.");
 
         PluginPackage pluginPackage = pluginPackageService.uploadPackage(file);
