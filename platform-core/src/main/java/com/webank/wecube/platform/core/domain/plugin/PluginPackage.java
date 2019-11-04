@@ -18,10 +18,6 @@ public class PluginPackage {
         UNREGISTERED, REGISTERED, RUNNING, STOPPED, DECOMMISSIONED
     }
 
-    @JsonIgnore
-    private static final String DOCKER_IMAGE_FILE_NAME = "image.tar";
-    @JsonIgnore
-    private static final String UI_ZIP_FILE_NAME = "ui.zip";
     @Id
     @GeneratedValue
     private Integer id;
@@ -38,6 +34,9 @@ public class PluginPackage {
 
     @Column
     private Timestamp uploadTimestamp;
+
+    @Column
+    private boolean uiPackageIncluded;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -83,31 +82,25 @@ public class PluginPackage {
         this.pluginConfigs.add(pluginConfig);
     }
 
-    public String getDockerImageFilename() {
-        return DOCKER_IMAGE_FILE_NAME;
-    }
-
-    public String getUiPackageFilename() {
-        return UI_ZIP_FILE_NAME;
-    }
-
     public PluginPackage() {
     }
 
-    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp) {
+    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded) {
         this.id = id;
         this.name = name;
         this.version = version;
         this.status = status;
         this.uploadTimestamp = uploadTimestamp;
+        this.uiPackageIncluded = uiPackageIncluded;
     }
 
-    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<PluginPackageEntity> pluginPackageEntities, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
+    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<PluginPackageEntity> pluginPackageEntities, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
         this.id = id;
         this.name = name;
         this.version = version;
         this.status = status;
         this.uploadTimestamp = uploadTimestamp;
+        this.uiPackageIncluded = uiPackageIncluded;
         this.pluginPackageDependencies = pluginPackageDependencies;
         this.pluginPackageMenus = pluginPackageMenus;
         this.pluginPackageEntities = pluginPackageEntities;
@@ -158,6 +151,14 @@ public class PluginPackage {
 
     public void setUploadTimestamp(Timestamp uploadTimestamp) {
         this.uploadTimestamp = uploadTimestamp;
+    }
+
+    public boolean isUiPackageIncluded() {
+        return uiPackageIncluded;
+    }
+
+    public void setUiPackageIncluded(boolean uiPackageIncluded) {
+        this.uiPackageIncluded = uiPackageIncluded;
     }
 
     public Set<PluginPackageDependency> getPluginPackageDependencies() {
