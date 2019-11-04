@@ -59,14 +59,15 @@ public class DockerContainerManagementService implements ResourceItemService, Re
             throw new WecubeCoreException(
                     String.format("Failed to create the container with name [%s] : Already exists.", containerName));
         }
-
+        
+        ExposedPort exposedPort =null;
         Ports portMappings = new Ports();
         if (portBindings != null && !portBindings.isEmpty()) {
-            portBindings.forEach(port -> {
+            for (String port : portBindings) {
                 String[] portArray = port.split(":");
-                ExposedPort containerPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
-                portMappings.bind(containerPort, Ports.Binding.bindPort(Integer.valueOf(portArray[0])));
-            });
+                exposedPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
+                portMappings.bind(exposedPort, Ports.Binding.bindPort(Integer.valueOf(portArray[0])));
+            }
         }
 
         List<Bind> volumeMappings = new ArrayList<>();
@@ -80,9 +81,11 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 volumeMappings.add(bind);
             });
         }
+        
 
         String containerId = dockerClient.createContainerCmd(imageName).withName(containerName)
                 .withVolumes(containerVolumes).withEnv(envVariables)
+                .withExposedPorts(exposedPort)
                 .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings)).exec()
                 .getId();
         dockerClient.startContainerCmd(containerId).exec();
