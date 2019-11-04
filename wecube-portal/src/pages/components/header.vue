@@ -59,7 +59,7 @@
 </template>
 <script>
 import Vue from "vue";
-import { getMyMenus } from "@/api/server.js";
+import { getMyMenus, getAllPluginPackageResourceFiles } from "@/api/server.js";
 
 import { MENUS } from "../../const/menus.js";
 
@@ -72,7 +72,8 @@ export default {
         "zh-CN": "简体中文",
         "en-US": "English"
       },
-      menus: []
+      menus: [],
+      needLoad: true
     };
   },
   methods: {
@@ -129,8 +130,9 @@ export default {
               this.menus.forEach(h => {
                 if (_.category === "" + h.id) {
                   h.submenus.push({
-                    title: _.code,
+                    title: _.displayName,
                     id: _.id,
+                    link: _.path,
                     ..._
                   });
                 }
@@ -138,9 +140,82 @@ export default {
             }
           }
         });
-
         this.$emit("allMenus", this.menus);
         window.myMenus = this.menus;
+      }
+    },
+    async getAllPluginPackageResourceFiles() {
+      const {
+        status,
+        message,
+        data
+      } = await getAllPluginPackageResourceFiles();
+      if (status === "OK") {
+        const eleContain = document.getElementsByTagName("body");
+        let script;
+        data.forEach(file => {
+          if (
+            file.relatedPath.indexOf(".js") > -1 &&
+            file.relatedPath.indexOf("vendors") > -1
+          ) {
+            let contains = document.createElement("script");
+            contains.type = "text/javascript";
+            contains.src = file.relatedPath;
+            script = contains;
+            eleContain[0].appendChild(contains);
+          }
+          if (
+            file.relatedPath.indexOf(".css") > -1 &&
+            file.relatedPath.indexOf("vendors") > -1
+          ) {
+            let contains = document.createElement("link");
+            contains.type = "text/css";
+            contains.rel = "stylesheet";
+            contains.href = file.relatedPath;
+            eleContain[0].appendChild(contains);
+          }
+        });
+
+        const loadScript = () => {
+          data.forEach(file => {
+            if (
+              file.relatedPath.indexOf(".js") > -1 &&
+              file.relatedPath.indexOf("vendors") === -1
+            ) {
+              let contains = document.createElement("script");
+              contains.type = "text/javascript";
+              contains.src = file.relatedPath;
+              eleContain[0].appendChild(contains);
+            }
+            if (
+              file.relatedPath.indexOf(".css") > -1 &&
+              file.relatedPath.indexOf("vendors") === -1
+            ) {
+              let contains = document.createElement("link");
+              contains.type = "text/css";
+              contains.rel = "stylesheet";
+              contains.href = file.relatedPath;
+              eleContain[0].appendChild(contains);
+            }
+          });
+        };
+        if (script.readyState) {
+          //IE
+          script.onreadystatechange = () => {
+            if (
+              script.readyState == "complete" ||
+              script.readyState == "loaded"
+            ) {
+              script.onreadystatechange = null;
+              loadScript();
+            }
+          };
+        } else {
+          //非IE
+          script.onload = () => {
+            loadScript();
+          };
+        }
       }
     }
   },
@@ -151,6 +226,12 @@ export default {
   watch: {
     $lang: function(lang) {
       this.$router.go(0);
+    }
+  },
+  mounted() {
+    if (window.needReLoad) {
+      this.getAllPluginPackageResourceFiles();
+      window.needReLoad = false;
     }
   }
 };
