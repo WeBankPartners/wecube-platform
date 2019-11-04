@@ -68,16 +68,15 @@ export default {
   },
   mounted() {
     // TODO: get plugins url by axios.
-    let pluginURLs = [
-      {
-        path: "/plugin1/home",
-        name: "plugin1",
-        component: () => import("@/pages/container"),
-        props: { src: "dsadsadsad" }
-      }
-    ];
-
-    this.$router.addRoutes(pluginURLs);
+    // let pluginURLs = [
+    //   {
+    //     path: "/plugin1/home",
+    //     name: "plugin1",
+    //     component: () => import("@/pages/container"),
+    //     props: { src: "dsadsadsad" }
+    //   }
+    // ];
+    // this.$router.addRoutes(pluginURLs);
   },
   watch: {
     allMenusAry: {
