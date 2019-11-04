@@ -5,12 +5,7 @@
         <Col span="20">
           <Form>
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select
-                label
-                v-model="selectedFlow"
-                style="width:600px"
-                clearable
-              >
+              <Select label v-model="selectedFlow" style="width:70%" clearable>
                 <Option
                   v-for="item in allFlows"
                   :value="item.id"
