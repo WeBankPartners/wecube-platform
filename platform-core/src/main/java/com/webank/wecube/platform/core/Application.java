@@ -11,6 +11,7 @@ import com.webank.wecube.platform.core.config.SpringWebConfig;
 public class Application extends AbstractAnnotationConfigDispatcherServletInitializer {
 
 	public static void main(String[] args) {
+	    System.setProperty("hibernate.dialect.storage_engine", "innodb");
 		SpringApplication.run(Application.class, args);
 	}
 
