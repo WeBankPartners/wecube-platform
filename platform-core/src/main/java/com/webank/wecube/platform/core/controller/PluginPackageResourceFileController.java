@@ -12,7 +12,6 @@ import static com.webank.wecube.platform.core.domain.JsonResponse.error;
 import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
 
 @RestController
-@RequestMapping("/v1/api")
 public class PluginPackageResourceFileController {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
