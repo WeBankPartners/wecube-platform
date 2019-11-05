@@ -22,4 +22,8 @@ public interface PluginInstanceRepository extends CrudRepository<PluginInstance,
     List<PluginInstance> findByStatusAndPackageId(String status, Integer packageId);
 
     List<PluginInstance> findByPackageId(int packageId);
+    
+    List<PluginInstance> findAllByStatus(String status);
+    
+    List<PluginInstance> findAllByStatusAndInstanceName(String status, String instanceName);
 }
