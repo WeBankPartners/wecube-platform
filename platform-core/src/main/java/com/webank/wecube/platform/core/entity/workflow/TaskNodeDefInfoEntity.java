@@ -11,35 +11,40 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
 
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";
+    public static final String PREDEPLOY_STATUS = "predeploy";
 
-    public static final String TASK_NODE_TYPE_SERVICE_TASK = "serviceTask";
-    public static final String TASK_NODE_TYPE_SUBPROCESS = "subprocess";
+    public static final String NODE_TYPE_SERVICE_TASK = "serviceTask";
+    public static final String NODE_TYPE_SUBPROCESS = "subprocess";
 
     @Id
     @Column(name = "ID")
     private String id;
-    @Column(name = "TASK_NODE_ID")
-    private String taskNodeId;
-    @Column(name = "TASK_NODE_NAME")
-    private String taksNodeName;
-    
+    @Column(name = "NODE_ID")
+    private String nodeId;
+    @Column(name = "NODE_NAME")
+    private String nodeName;
+
     @Column(name = "PROC_DEF_ID")
     private String procDefId;
-    
+
+    @Column(name = "PROC_DEF_KEY")
+    private String procDefKey;
+
     @Column(name = "PROC_DEF_VER")
     private Integer procDefVersion;
-    
-    @Column(name = "PROC_ID")
-    private String procId;
-    
+
+    @Column(name = "PROC_DEF_KERNEL_ID")
+    private String procDefKernelId;
 
     @Column(name = "SERVICE_ID")
     private String serviceId;
+
     @Column(name = "SERVICE_NAME")
     private String serviceName;
-    
+
     @Column(name = "ROUTINE_EXP")
     private String routineExpression;
+
     @Column(name = "ROUTINE_RAW")
     private String routineRaw;
 
@@ -49,8 +54,17 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
     @Column(name = "TIMEOUT_EXP")
     private String timeoutExpression;
 
-    @Column(name = "TASK_NODE_TYPE")
-    private String taskNodeType;
+    @Column(name = "NODE_TYPE")
+    private String nodeType;
+
+    @Column(name = "ORDERED_NO")
+    private String orderedNo;
+    
+    @Column(name = "PREV_NODE_IDS")
+    private String previousNodeIds;
+    
+    @Column(name="SUCCEED_NODE_IDS")
+    private String succeedingNodeIds;
 
     public String getId() {
         return id;
@@ -58,6 +72,22 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    public void setNodeId(String nodeId) {
+        this.nodeId = nodeId;
+    }
+
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
     }
 
     public String getProcDefId() {
@@ -68,6 +98,14 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
         this.procDefId = procDefId;
     }
 
+    public String getProcDefKey() {
+        return procDefKey;
+    }
+
+    public void setProcDefKey(String procDefKey) {
+        this.procDefKey = procDefKey;
+    }
+
     public Integer getProcDefVersion() {
         return procDefVersion;
     }
@@ -76,28 +114,12 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
         this.procDefVersion = procDefVersion;
     }
 
-    public String getProcId() {
-        return procId;
+    public String getProcDefKernelId() {
+        return procDefKernelId;
     }
 
-    public void setProcId(String procId) {
-        this.procId = procId;
-    }
-
-    public String getTaskNodeId() {
-        return taskNodeId;
-    }
-
-    public void setTaskNodeId(String taskNodeId) {
-        this.taskNodeId = taskNodeId;
-    }
-
-    public String getTaksNodeName() {
-        return taksNodeName;
-    }
-
-    public void setTaksNodeName(String taksNodeName) {
-        this.taksNodeName = taksNodeName;
+    public void setProcDefKernelId(String procDefKernelId) {
+        this.procDefKernelId = procDefKernelId;
     }
 
     public String getServiceId() {
@@ -148,12 +170,36 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
         this.timeoutExpression = timeoutExpression;
     }
 
-    public String getTaskNodeType() {
-        return taskNodeType;
+    public String getNodeType() {
+        return nodeType;
     }
 
-    public void setTaskNodeType(String taskNodeType) {
-        this.taskNodeType = taskNodeType;
+    public void setNodeType(String nodeType) {
+        this.nodeType = nodeType;
+    }
+
+    public String getOrderedNo() {
+        return orderedNo;
+    }
+
+    public void setOrderedNo(String orderedNo) {
+        this.orderedNo = orderedNo;
+    }
+
+    public String getPreviousNodeIds() {
+        return previousNodeIds;
+    }
+
+    public void setPreviousNodeIds(String previousNodeIds) {
+        this.previousNodeIds = previousNodeIds;
+    }
+
+    public String getSucceedingNodeIds() {
+        return succeedingNodeIds;
+    }
+
+    public void setSucceedingNodeIds(String succeedingNodeIds) {
+        this.succeedingNodeIds = succeedingNodeIds;
     }
 
 }
