@@ -8,6 +8,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
@@ -59,16 +60,25 @@ public class DockerContainerManagementService implements ResourceItemService, Re
             throw new WecubeCoreException(
                     String.format("Failed to create the container with name [%s] : Already exists.", containerName));
         }
-        
-        ExposedPort exposedPort =null;
+
+        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(imageName).withName(containerName);
+        if (envVariables.size() != 0)
+            createContainerCmd = createContainerCmd.withEntrypoint(envVariables);
+
+        HostConfig hostConfig = null;
+        List<ExposedPort> exposedPorts = Lists.newArrayList();
         Ports portMappings = new Ports();
         if (portBindings != null && !portBindings.isEmpty()) {
             for (String port : portBindings) {
                 String[] portArray = port.split(":");
-                exposedPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
+                ExposedPort exposedPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
+                exposedPorts.add(exposedPort);
                 portMappings.bind(exposedPort, Ports.Binding.bindPort(Integer.valueOf(portArray[0])));
             }
+            hostConfig = new HostConfig().withPortBindings(portMappings);
         }
+        if (exposedPorts.size() != 0)
+            createContainerCmd = createContainerCmd.withExposedPorts(exposedPorts);
 
         List<Bind> volumeMappings = new ArrayList<>();
         List<Volume> containerVolumes = new ArrayList<>();
@@ -80,14 +90,20 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 Bind bind = new Bind(volumeArray[0], containerVolume);
                 volumeMappings.add(bind);
             });
+            if (hostConfig == null) {
+                hostConfig = new HostConfig().withBinds(volumeMappings);
+            } else {
+                hostConfig = hostConfig.withBinds(volumeMappings);
+            }
         }
-        
 
-        String containerId = dockerClient.createContainerCmd(imageName).withName(containerName)
-                .withVolumes(containerVolumes).withEnv(envVariables)
-                .withExposedPorts(exposedPort)
-                .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings)).exec()
-                .getId();
+        if (containerVolumes != null && !containerVolumes.isEmpty())
+            createContainerCmd = createContainerCmd.withVolumes(containerVolumes);
+
+        if (hostConfig != null)
+            createContainerCmd = createContainerCmd.withHostConfig(hostConfig);
+
+        String containerId = createContainerCmd.exec().getId();
         dockerClient.startContainerCmd(containerId).exec();
         additionalProperties.put("containerId", containerId);
         item.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
