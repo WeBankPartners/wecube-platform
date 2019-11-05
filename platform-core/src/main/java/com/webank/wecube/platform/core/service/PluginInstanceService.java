@@ -60,7 +60,7 @@ import static org.apache.commons.lang3.StringUtils.trim;
 @Service
 @Transactional
 public class PluginInstanceService {
-    private static final Logger logger = LoggerFactory.getLogger(PluginPackageDataModelServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(PluginInstanceService.class);
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -219,7 +219,8 @@ public class PluginInstanceService {
             ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
                     createContainerParameters);
 
-            instance.setInstanceName(dockerInfo.getContainerName());
+            instance.setContainerName(dockerInfo.getContainerName());
+            instance.setInstanceName(pluginPackage.getName());
             instance.setDockerInstanceResourceId(dockerResourceDto.getId());
             instance.setHost(hostIp);
             instance.setPort(port);
@@ -415,10 +416,10 @@ public class PluginInstanceService {
 
     public void removePluginInstanceById(Integer instanceId) throws Exception {
         Optional<PluginInstance> instance = pluginInstanceRepository.findById(instanceId);
-        ResourceItemDto createDockerInstanceDto = new ResourceItemDto();
-        createDockerInstanceDto.setName(instance.get().getInstanceName());
-        logger.info("createDockerInstanceDto = " + createDockerInstanceDto.toString());
-        resourceManagementService.deleteItems(Lists.newArrayList(createDockerInstanceDto));
+        ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
+        removeDockerInstanceDto.setName(instance.get().getContainerName());
+        logger.info("removeDockerInstanceDto = " + removeDockerInstanceDto.toString());
+        resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
     }
 
     private boolean isHostIpAvailable(String hostIp) {
