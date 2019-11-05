@@ -9,6 +9,11 @@ import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public abstract class AbstractServiceNodeEndListener extends AbstractServiceNodeListener{
 
     protected void logServiceNodeEnd(DelegateExecution execution) {
