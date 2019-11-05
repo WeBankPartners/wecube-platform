@@ -60,7 +60,7 @@ import static org.apache.commons.lang3.StringUtils.trim;
 @Service
 @Transactional
 public class PluginInstanceService {
-    private static final Logger logger = LoggerFactory.getLogger(PluginPackageDataModelServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(PluginInstanceService.class);
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -137,7 +137,8 @@ public class PluginInstanceService {
     }
 
     public List<PluginInstance> getAvailableInstancesByPackageId(int packageId) {
-        return pluginInstanceRepository.findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, packageId);
+        return pluginInstanceRepository.findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING,
+                packageId);
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
@@ -147,7 +148,7 @@ public class PluginInstanceService {
         }
 
         List<PluginInstance> instances = pluginInstanceRepository
-                .findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, pkg.get().getId());
+                .findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.get().getId());
         if (instances == null || instances.size() == 0) {
             throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
         }
@@ -219,7 +220,8 @@ public class PluginInstanceService {
             ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
                     createContainerParameters);
 
-            instance.setInstanceName(dockerInfo.getContainerName());
+            instance.setContainerName(dockerInfo.getContainerName());
+            instance.setInstanceName(pluginPackage.getName());
             instance.setDockerInstanceResourceId(dockerResourceDto.getId());
             instance.setHost(hostIp);
             instance.setPort(port);
@@ -229,7 +231,7 @@ public class PluginInstanceService {
         }
 
         // 4. insert to DB
-        instance.setStatus(PluginInstance.STATUS_RUNNING);
+        instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_RUNNING);
         pluginInstanceRepository.save(instance);
 
         // TODO - 6. notify gateway
@@ -414,11 +416,14 @@ public class PluginInstanceService {
     }
 
     public void removePluginInstanceById(Integer instanceId) throws Exception {
-        Optional<PluginInstance> instance = pluginInstanceRepository.findById(instanceId);
-        ResourceItemDto createDockerInstanceDto = new ResourceItemDto();
-        createDockerInstanceDto.setName(instance.get().getInstanceName());
-        logger.info("createDockerInstanceDto = " + createDockerInstanceDto.toString());
-        resourceManagementService.deleteItems(Lists.newArrayList(createDockerInstanceDto));
+        Optional<PluginInstance> instanceOptional = pluginInstanceRepository.findById(instanceId);
+        PluginInstance instance = instanceOptional.get();
+        ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
+        removeDockerInstanceDto.setName(instance.getContainerName());
+        removeDockerInstanceDto.setId(instance.getDockerInstanceResourceId());
+        logger.info("removeDockerInstanceDto = " + removeDockerInstanceDto.toString());
+        resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
+        instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_REMOVED);
     }
 
     private boolean isHostIpAvailable(String hostIp) {

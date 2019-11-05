@@ -27,6 +27,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import com.webank.wecube.platform.auth.server.config.AuthServerProperties;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 
@@ -38,13 +40,19 @@ import io.jsonwebtoken.Jws;
 public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedAuthenticationFilter.class);
 
-    private JwtBuilder jwtBuilder = new DefaultJwtBuilder();
+    private final AuthServerProperties authServerProperties;
+    private final JwtBuilder jwtBuilder;
 
-    public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager,
+            AuthServerProperties authServerProperties) {
         super(authenticationManager);
-        if(log.isInfoEnabled()){
+        if (log.isInfoEnabled()) {
             log.info("Filter:{} applied", this.getClass().getSimpleName());
         }
+
+        this.authServerProperties = authServerProperties;
+
+        jwtBuilder = new DefaultJwtBuilder(this.authServerProperties.getJwtToken());
     }
 
     @Override
@@ -61,7 +69,7 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(request, response);
     }
-    
+
     protected void validateRequestHeader(HttpServletRequest request) {
         String header = request.getHeader(HEADER_AUTHORIZATION);
         if (header == null || !header.startsWith(PREFIX_BEARER_TOKEN)) {
@@ -71,15 +79,15 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
 
     protected UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
         validateRequestHeader(request);
-        
+
         String sAccessTokenHeader = request.getHeader(HEADER_AUTHORIZATION);
-        
+
         String sAccessToken = sAccessTokenHeader.substring(PREFIX_BEARER_TOKEN.length()).trim();
-        
+
         if (StringUtils.isBlank(sAccessToken)) {
             throw new AuthenticationCredentialsNotFoundException("Access token is blank");
         }
-        
+
         Jws<Claims> jwt = jwtBuilder.parseJwt(sAccessToken);
 
         Claims claims = jwt.getBody();
@@ -93,17 +101,17 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         if (!TOKEN_TYPE_ACCESS.equals(tokenType)) {
             throw new AccessDeniedException("Access token is required.");
         }
-        
-        if(sAuthorities.length() >= 2){
-            sAuthorities  = sAuthorities.substring(1);
+
+        if (sAuthorities.length() >= 2) {
+            sAuthorities = sAuthorities.substring(1);
             sAuthorities = sAuthorities.substring(0, sAuthorities.length() - 1);
         }
 
         ArrayList<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-        
-        if(StringUtils.isNotBlank(sAuthorities)){
-            String [] aAuthParts = sAuthorities.split(",");
-            for(String s : aAuthParts){
+
+        if (StringUtils.isNotBlank(sAuthorities)) {
+            String[] aAuthParts = sAuthorities.split(",");
+            for (String s : aAuthParts) {
                 GrantedAuthority ga = new SimpleGrantedAuthority(s.trim());
                 authorities.add(ga);
             }

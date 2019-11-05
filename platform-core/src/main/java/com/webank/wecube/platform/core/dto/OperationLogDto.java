@@ -21,7 +21,7 @@ public class OperationLogDto implements Serializable {
     public static OperationLogDto fromDomain(OperationLog domain) {
         OperationLogDto dto = new OperationLogDto();
 
-        dto.setId(domain.getId());
+        dto.setId(String.valueOf(domain.getId()));
         dto.setOperator(domain.getOperator());
         dto.setOperateTime(domain.getOperateTime());
         dto.setCategory(domain.getCategory());
