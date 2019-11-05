@@ -4,7 +4,7 @@
 ![](https://img.shields.io/badge/language-java-orange.svg)
 ![](https://img.shields.io/badge/language-vue-green.svg)
 
-[中文](README_CN.md) / English
+English / [中文](README_CN.md)
 
 ## Introduction
 WeCube is an open source, one-stop tool for architecture management and IT operation, which aims to simplify the IT management of distributed architecture. Its features can be easily extended by plugins.
