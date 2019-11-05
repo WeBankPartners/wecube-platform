@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.resource;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -110,9 +111,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         if (!container.getState().equals("running")) {
             dockerClient.removeContainerCmd(containerName).exec();
         } else {
-            throw new WecubeCoreException(String.format(
-                    "Failed to delete container with name [%s] : Container still running, please stop first.",
-                    containerName));
+            dockerClient.removeContainerCmd(containerName).withForce(true).exec();
         }
     }
 
