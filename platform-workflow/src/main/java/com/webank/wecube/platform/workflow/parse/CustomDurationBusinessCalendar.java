@@ -10,6 +10,11 @@ import org.camunda.bpm.engine.impl.calendar.DurationBusinessCalendar;
 import org.camunda.bpm.engine.impl.calendar.DurationHelper;
 import org.camunda.bpm.engine.impl.util.EngineUtilLogger;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class CustomDurationBusinessCalendar extends DurationBusinessCalendar {
     private final static EngineUtilLogger LOG = ProcessEngineLogger.UTIL_LOGGER;
     public final static String FIX_TIME_PATTERN = "^(0\\d{1}|1\\d{1}|2[0-3]):[0-5]\\d{1}:([0-5]\\d{1})$";
