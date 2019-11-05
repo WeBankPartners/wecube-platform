@@ -415,11 +415,14 @@ public class PluginInstanceService {
     }
 
     public void removePluginInstanceById(Integer instanceId) throws Exception {
-        Optional<PluginInstance> instance = pluginInstanceRepository.findById(instanceId);
+        Optional<PluginInstance> instanceOptional = pluginInstanceRepository.findById(instanceId);
+        PluginInstance instance = instanceOptional.get();
         ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
-        removeDockerInstanceDto.setName(instance.get().getContainerName());
+        removeDockerInstanceDto.setName(instance.getContainerName());
+        removeDockerInstanceDto.setId(instance.getDockerInstanceResourceId());
         logger.info("removeDockerInstanceDto = " + removeDockerInstanceDto.toString());
         resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
+        instance.setStatus(PluginInstance.STATUS_REMOVED);
     }
 
     private boolean isHostIpAvailable(String hostIp) {
