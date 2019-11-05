@@ -39,7 +39,7 @@ public class JwtSsoTokenGatewayFilterFactory
     private String headerValue = "Bearer realm=\"Central Authentication Server\";profile=\"JWT\";";
 
     private ObjectMapper objectMapper = new ObjectMapper();
-    
+
     private JwtSsoTokenParser jwtParser = new DefaultJwtSsoTokenParser();
 
     public JwtSsoTokenGatewayFilterFactory() {
@@ -48,7 +48,14 @@ public class JwtSsoTokenGatewayFilterFactory
 
     @Override
     public GatewayFilter apply(Config config) {
+        if (log.isInfoEnabled()) {
+            log.info("Filter-{} applied", JwtSsoTokenGatewayFilterFactory.class.getSimpleName());
+        }
+        
         return ((exchange, chain) -> {
+            ServerHttpRequest req = exchange.getRequest();
+            log.info("Filter-{},uri:{}", JwtSsoTokenGatewayFilterFactory.class.getSimpleName(), req.getURI().toString());
+            
             boolean authenticated = config.isAuthenticated();
             if (!authenticated) {
                 return chain.filter(exchange);
@@ -70,7 +77,7 @@ public class JwtSsoTokenGatewayFilterFactory
             if (token == null || StringUtils.isBlank(token)) {
                 return handleAuthenticationFailure(exchange, "Access token does not provide.");
             }
-            
+
             Jws<Claims> jwt = null;
             try {
                 jwt = jwtParser.parseJwt(token);
@@ -79,16 +86,16 @@ public class JwtSsoTokenGatewayFilterFactory
             } catch (JwtException e) {
                 return handleAuthenticationFailure(exchange, "Access token is not available.");
             }
-            
-            if(jwt == null){
+
+            if (jwt == null) {
                 return handleAuthenticationFailure(exchange, "Cannot process JWT token.");
             }
 
             return chain.filter(exchange);
         });
     }
-    
-    protected Mono<Void> handleAuthenticationFailure(ServerWebExchange exchange, String errorMsg){
+
+    protected Mono<Void> handleAuthenticationFailure(ServerWebExchange exchange, String errorMsg) {
         CommonResponseDto responseDto = CommonResponseDto.error(errorMsg);
         ServerHttpResponse response = exchange.getResponse();
         try {
