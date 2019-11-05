@@ -34,7 +34,6 @@ import com.webank.wecube.platform.core.support.cmdb.dto.v2.PaginationQuery;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@Slf4j
 @RequestMapping("/artifact")
 //@RolesAllowed({MENU_IMPLEMENTATION_ARTIFACT_MANAGEMENT})
 public class ArtifactManagementController {
