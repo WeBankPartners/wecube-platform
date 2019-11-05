@@ -15,15 +15,12 @@ public interface PluginInstanceRepository extends CrudRepository<PluginInstance,
     @Query("SELECT max(port) FROM PluginInstance instance WHERE instance.host IN :hosts")
     Integer findMaxPortByHost(String hosts);
 
-    @Query("SELECT port FROM PluginInstance instance WHERE instance.host IN :hosts and instance.status = :status order by port")
-    List<Integer> findPortsByHostOrderByPort(String hosts, String status);
-
-    @Query("SELECT instance FROM PluginInstance instance WHERE instance.status = :status and instance.pluginPackage.id = :packageId")
-    List<PluginInstance> findByStatusAndPackageId(String status, Integer packageId);
+    @Query("SELECT instance FROM PluginInstance instance WHERE instance.containerStatus = :containerStatus and instance.pluginPackage.id = :packageId")
+    List<PluginInstance> findByContainerStatusAndPackageId(String containerStatus, Integer packageId);
 
     List<PluginInstance> findByPackageId(int packageId);
     
-    List<PluginInstance> findAllByStatus(String status);
+    List<PluginInstance> findAllByContainerStatus(String containerStatus);
     
-    List<PluginInstance> findAllByStatusAndInstanceName(String status, String instanceName);
+    List<PluginInstance> findAllByContainerStatusAndInstanceName(String containerStatus, String instanceName);
 }
