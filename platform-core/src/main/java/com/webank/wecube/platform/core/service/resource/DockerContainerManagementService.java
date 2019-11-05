@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.resource;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
@@ -60,13 +62,15 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                     String.format("Failed to create the container with name [%s] : Already exists.", containerName));
         }
 
+        List<ExposedPort> exposedPorts = Lists.newArrayList();
         Ports portMappings = new Ports();
         if (portBindings != null && !portBindings.isEmpty()) {
-            portBindings.forEach(port -> {
+            for (String port : portBindings) {
                 String[] portArray = port.split(":");
-                ExposedPort containerPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
-                portMappings.bind(containerPort, Ports.Binding.bindPort(Integer.valueOf(portArray[0])));
-            });
+                ExposedPort exposedPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
+                exposedPorts.add(exposedPort);
+                portMappings.bind(exposedPort, Ports.Binding.bindPort(Integer.valueOf(portArray[0])));
+            }
         }
 
         List<Bind> volumeMappings = new ArrayList<>();
@@ -82,7 +86,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         }
 
         String containerId = dockerClient.createContainerCmd(imageName).withName(containerName)
-                .withVolumes(containerVolumes).withEnv(envVariables)
+                .withVolumes(containerVolumes).withEnv(envVariables).withExposedPorts(exposedPorts)
                 .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings)).exec()
                 .getId();
         dockerClient.startContainerCmd(containerId).exec();
@@ -107,9 +111,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         if (!container.getState().equals("running")) {
             dockerClient.removeContainerCmd(containerName).exec();
         } else {
-            throw new WecubeCoreException(String.format(
-                    "Failed to delete container with name [%s] : Container still running, please stop first.",
-                    containerName));
+            dockerClient.removeContainerCmd(containerName).withForce(true).exec();
         }
     }
 
