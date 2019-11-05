@@ -280,5 +280,13 @@
   "plugin_config_check": "插件配置",
   "service_regist": "服务注册",
   "confirm_to_regist_plugin": "确认注册插件包",
-  "is_show_decomissioned_pkg": "显示已停止的包"
+  "is_show_decomissioned_pkg": "显示停用插件包",
+  "orchs": "任务编排",
+  "query_orch": "查询",
+  "create_orch": "新建",
+  "select_orch": "选择编排",
+  "target_object": "目标对象",
+  "create_job": "构建任务",
+  "no_plugin": "暂无插件",
+  "target_type": "目标对象类型"
 }
