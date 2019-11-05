@@ -2,42 +2,42 @@ export const MENUS = [
   {
     code: "JOBS",
     cnName: "任务",
-    enName: "Jobs"
+    enName: "Tasks"
   },
   {
     code: "DESIGNING",
     cnName: "设计",
-    enName: "Designing"
+    enName: "Design"
   },
   {
     code: "IMPLEMENTATION",
     cnName: "执行",
-    enName: "Implementation"
+    enName: "Execute"
   },
   {
     code: "MONITORING",
     cnName: "监测",
-    enName: "Monitoring"
-  },
-  {
-    code: "ADJUSTMENT",
-    cnName: "调整",
-    enName: "Adjustment"
+    enName: "Guard"
   },
   {
     code: "INTELLIGENCE_OPS",
     cnName: "智慧",
-    enName: "Intelligence Ops"
+    enName: "Intelligence"
+  },
+  {
+    code: "ADJUSTMENT",
+    cnName: "调整",
+    enName: "Adjust"
   },
   {
     code: "COLLABORATION",
     cnName: "协同",
-    enName: "Collaboration"
+    enName: "Conjoin"
   },
   {
     code: "ADMIN",
     cnName: "系统",
-    enName: "Admin"
+    enName: "System"
   },
   {
     code: "JOBS_INITIATOR",
@@ -56,25 +56,25 @@ export const MENUS = [
   {
     code: "DESIGNING_PLANNING",
     cnName: "规划设计",
-    enName: "Design Planning",
+    enName: "IDC Blueprint",
     link: "/designing/planning"
   },
   {
     code: "DESIGNING_RESOURCE_PLANNING",
     cnName: "资源规划",
-    enName: "Resource Planning",
+    enName: "IDC Resource",
     link: "/designing/resource-planning"
   },
   {
     code: "DESIGNING_APPLICATION_ARCHITECTURE",
     cnName: "应用架构设计",
-    enName: "Architecture",
+    enName: "Application Architecture",
     link: "/designing/application-architecture"
   },
   {
     code: "DESIGNING_APPLICATION_DEPLOYMENT",
     cnName: "应用部署设计",
-    enName: "Deployment",
+    enName: "Application Deployment",
     link: "/designing/application-deployment"
   },
   {
@@ -226,13 +226,6 @@ export const MENUS = [
     cnName: "任务编排",
     enName: "Workflow Designing",
     link: "/collaboration/workflow-orchestration"
-  },
-  {
-    code: "COLLABORATION_SERVICE_CHANNEL",
-    cnName: "服务通道",
-    enName: "Service Channel",
-    link: "/coming-soon"
-    // /collaboration/service-channel
   },
   {
     code: "ADMIN_CMDB_MODEL_MANAGEMENT",
