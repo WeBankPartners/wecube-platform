@@ -1,5 +1,10 @@
 package com.webank.wecube.platform.workflow.parse;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class SubProcessAdditionalInfo {
     private String subProcessNodeId;
     private String subProcessNodeName;
