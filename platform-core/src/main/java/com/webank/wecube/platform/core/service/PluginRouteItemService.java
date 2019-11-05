@@ -20,7 +20,7 @@ public class PluginRouteItemService {
 
         List<PluginRouteItemDto> dtos = new ArrayList<>();
 
-        List<PluginInstance> pluginInstances = pluginInstanceRepository.findAllByStatus(PluginInstance.STATUS_RUNNING);
+        List<PluginInstance> pluginInstances = pluginInstanceRepository.findAllByContainerStatus(PluginInstance.CONTAINER_STATUS_RUNNING);
 
         if (pluginInstances != null) {
             pluginInstances.forEach(pi -> {
@@ -42,7 +42,7 @@ public class PluginRouteItemService {
         List<PluginRouteItemDto> dtos = new ArrayList<>();
 
         List<PluginInstance> pluginInstances = pluginInstanceRepository
-                .findAllByStatusAndInstanceName(PluginInstance.STATUS_RUNNING, name);
+                .findAllByContainerStatusAndInstanceName(PluginInstance.CONTAINER_STATUS_RUNNING, name);
 
         if (pluginInstances != null) {
             pluginInstances.forEach(pi -> {

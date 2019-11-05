@@ -137,7 +137,8 @@ public class PluginInstanceService {
     }
 
     public List<PluginInstance> getAvailableInstancesByPackageId(int packageId) {
-        return pluginInstanceRepository.findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, packageId);
+        return pluginInstanceRepository.findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING,
+                packageId);
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
@@ -147,7 +148,7 @@ public class PluginInstanceService {
         }
 
         List<PluginInstance> instances = pluginInstanceRepository
-                .findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, pkg.get().getId());
+                .findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.get().getId());
         if (instances == null || instances.size() == 0) {
             throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
         }
@@ -230,7 +231,7 @@ public class PluginInstanceService {
         }
 
         // 4. insert to DB
-        instance.setStatus(PluginInstance.STATUS_RUNNING);
+        instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_RUNNING);
         pluginInstanceRepository.save(instance);
 
         // TODO - 6. notify gateway
@@ -422,7 +423,7 @@ public class PluginInstanceService {
         removeDockerInstanceDto.setId(instance.getDockerInstanceResourceId());
         logger.info("removeDockerInstanceDto = " + removeDockerInstanceDto.toString());
         resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
-        instance.setStatus(PluginInstance.STATUS_REMOVED);
+        instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_REMOVED);
     }
 
     private boolean isHostIpAvailable(String hostIp) {
