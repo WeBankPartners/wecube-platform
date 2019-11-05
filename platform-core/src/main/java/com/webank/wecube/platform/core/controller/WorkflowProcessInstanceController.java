@@ -17,7 +17,6 @@ import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 
 @RestController
-@RequestMapping("/v1/api")
 public class WorkflowProcessInstanceController {
 
     @Autowired

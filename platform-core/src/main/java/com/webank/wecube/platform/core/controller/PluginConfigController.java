@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import static com.webank.wecube.platform.core.domain.JsonResponse.*;
 
 @RestController
-@RequestMapping("/v1/api")
 public class PluginConfigController {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 

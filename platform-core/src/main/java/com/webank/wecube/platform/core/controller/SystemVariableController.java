@@ -17,7 +17,6 @@ import com.webank.wecube.platform.core.service.SystemVariableService;
 
 @RestController
 //@RolesAllowed({MENU_ADMIN_BASE_DATA_MANAGEMENT})
-@RequestMapping("/v1/api")
 public class SystemVariableController {
 
     @Autowired
