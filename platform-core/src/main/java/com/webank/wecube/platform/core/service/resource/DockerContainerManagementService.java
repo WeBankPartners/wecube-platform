@@ -61,11 +61,6 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                     String.format("Failed to create the container with name [%s] : Already exists.", containerName));
         }
 
-        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(imageName).withName(containerName);
-        if (envVariables.size() != 0)
-            createContainerCmd = createContainerCmd.withEntrypoint(envVariables);
-
-        HostConfig hostConfig = null;
         List<ExposedPort> exposedPorts = Lists.newArrayList();
         Ports portMappings = new Ports();
         if (portBindings != null && !portBindings.isEmpty()) {
@@ -75,10 +70,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 exposedPorts.add(exposedPort);
                 portMappings.bind(exposedPort, Ports.Binding.bindPort(Integer.valueOf(portArray[0])));
             }
-            hostConfig = new HostConfig().withPortBindings(portMappings);
         }
-        if (exposedPorts.size() != 0)
-            createContainerCmd = createContainerCmd.withExposedPorts(exposedPorts);
 
         List<Bind> volumeMappings = new ArrayList<>();
         List<Volume> containerVolumes = new ArrayList<>();
@@ -90,20 +82,12 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 Bind bind = new Bind(volumeArray[0], containerVolume);
                 volumeMappings.add(bind);
             });
-            if (hostConfig == null) {
-                hostConfig = new HostConfig().withBinds(volumeMappings);
-            } else {
-                hostConfig = hostConfig.withBinds(volumeMappings);
-            }
         }
 
-        if (containerVolumes != null && !containerVolumes.isEmpty())
-            createContainerCmd = createContainerCmd.withVolumes(containerVolumes);
-
-        if (hostConfig != null)
-            createContainerCmd = createContainerCmd.withHostConfig(hostConfig);
-
-        String containerId = createContainerCmd.exec().getId();
+        String containerId = dockerClient.createContainerCmd(imageName).withName(containerName)
+                .withVolumes(containerVolumes).withEnv(envVariables).withExposedPorts(exposedPorts)
+                .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings)).exec()
+                .getId();
         dockerClient.startContainerCmd(containerId).exec();
         additionalProperties.put("containerId", containerId);
         item.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
