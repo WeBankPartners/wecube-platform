@@ -4,11 +4,14 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationToken;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+import com.webank.wecube.platform.auth.server.config.AuthServerProperties;
 import com.webank.wecube.platform.auth.server.model.JwtToken;
 
 import io.jsonwebtoken.Claims;
@@ -22,8 +25,18 @@ import io.jsonwebtoken.SignatureAlgorithm;
  *
  */
 public class DefaultJwtBuilder implements JwtBuilder {
+    
+    private static final Logger log = LoggerFactory.getLogger(DefaultJwtBuilder.class);
 
     private static final String SIGNING_KEY = "platform-auth-server-@Jwt!&Secret^#";
+    
+    private AuthServerProperties.JwtTokenProperties jwtTokenProperties;
+    
+    public DefaultJwtBuilder(AuthServerProperties.JwtTokenProperties jwtTokenProperties){
+        this.jwtTokenProperties = jwtTokenProperties;
+        
+        log.info("jwtTokenSettings:{}", jwtTokenProperties);
+    }
 
     @Override
     public JwtToken buildRefreshToken(Authentication authentication) {
@@ -98,9 +111,9 @@ public class DefaultJwtBuilder implements JwtBuilder {
         Calendar c = Calendar.getInstance();
         c.setTime(now);
         if (authentication instanceof SubSystemAuthenticationToken) {
-            c.add(Calendar.YEAR, 1);
+            c.add(Calendar.MINUTE, jwtTokenProperties.getSubSystemRefreshToken());
         } else {
-            c.add(Calendar.MINUTE, 3600);
+            c.add(Calendar.MINUTE, jwtTokenProperties.getUserRefreshToken());
         }
 
         return c.getTime();
@@ -110,9 +123,9 @@ public class DefaultJwtBuilder implements JwtBuilder {
         Calendar c = Calendar.getInstance();
         c.setTime(now);
         if (authentication instanceof SubSystemAuthenticationToken) {
-            c.add(Calendar.YEAR, 1);
+            c.add(Calendar.MINUTE, jwtTokenProperties.getSubSystemAccessToken());
         } else {
-            c.add(Calendar.MINUTE, 10);
+            c.add(Calendar.MINUTE, jwtTokenProperties.getUserAccessToken());
         }
 
         return c.getTime();
