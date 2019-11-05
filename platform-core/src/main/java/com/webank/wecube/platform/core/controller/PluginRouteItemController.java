@@ -15,7 +15,6 @@ import com.webank.wecube.platform.core.dto.PluginRouteItemDto;
 import com.webank.wecube.platform.core.service.PluginRouteItemService;
 
 @RestController
-@RequestMapping("/v1/api")
 public class PluginRouteItemController {
     private static final Logger log = LoggerFactory.getLogger(PluginRouteItemController.class);
             
