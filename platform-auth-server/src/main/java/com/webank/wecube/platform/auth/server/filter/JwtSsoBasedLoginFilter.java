@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationProvider;
 import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationToken;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+import com.webank.wecube.platform.auth.server.config.AuthServerProperties;
 import com.webank.wecube.platform.auth.server.config.SpringApplicationContextUtil;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 import com.webank.wecube.platform.auth.server.dto.CredentialDto;
@@ -41,18 +42,23 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
 
     private static final String URI_LOGIN = "/v1/api/login";
 
-    private AuthenticationManager authenticationManager;
-
+    private final AuthenticationManager authenticationManager;
+    private final AuthServerProperties authServerProperties;
     private ObjectMapper objectMapper = new ObjectMapper();
+    private final JwtBuilder jwtBuilder;
 
-    public JwtSsoBasedLoginFilter(AuthenticationManager authenticationManager) {
+    public JwtSsoBasedLoginFilter(AuthenticationManager authenticationManager, AuthServerProperties authServerProperties) {
         super(new AntPathRequestMatcher(URI_LOGIN, "POST"));
         this.authenticationManager = authenticationManager;
+        
+        this.authServerProperties = authServerProperties;
 
         if (log.isInfoEnabled()) {
             log.info("Filter: {} applied", JwtSsoBasedLoginFilter.class.getSimpleName());
             log.info("AuthenticationManager: {} applied", authenticationManager.getClass().getSimpleName());
         }
+        
+        jwtBuilder = new DefaultJwtBuilder(this.authServerProperties.getJwtToken());
     }
 
     @Override
@@ -119,7 +125,6 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
-        JwtBuilder jwtBuilder = new DefaultJwtBuilder();
         JwtTokenDto refreshToken = jwtTokenDto(jwtBuilder.buildRefreshToken(authResult));
         JwtTokenDto accessToken = jwtTokenDto(jwtBuilder.buildAccessToken(authResult));
 

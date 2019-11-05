@@ -15,6 +15,11 @@ import org.springframework.stereotype.Component;
 
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Component
 public class ServiceInvocationEventProcessor implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(ServiceInvocationEventProcessor.class);

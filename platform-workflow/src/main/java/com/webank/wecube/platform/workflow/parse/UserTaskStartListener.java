@@ -15,6 +15,11 @@ import com.webank.wecube.platform.workflow.model.NodeType;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Component
 public class UserTaskStartListener implements ExecutionListener {
     private static final Logger log = LoggerFactory.getLogger(UserTaskStartListener.class);

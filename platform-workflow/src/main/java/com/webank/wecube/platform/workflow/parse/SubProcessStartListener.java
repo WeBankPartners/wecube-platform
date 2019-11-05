@@ -10,6 +10,11 @@ import org.springframework.stereotype.Component;
 
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Component("SubProcessStartListener")
 public class SubProcessStartListener extends AbstractServiceNodeStartListener implements ExecutionListener {
 

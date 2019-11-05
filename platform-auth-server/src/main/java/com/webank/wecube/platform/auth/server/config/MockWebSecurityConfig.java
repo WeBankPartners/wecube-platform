@@ -58,9 +58,9 @@ public class MockWebSecurityConfig extends AuthSecurityConfigurerAdapter {
 				.securityContext() //
 				.securityContextRepository(new JwtSsoBasedSecurityContextRepository()) //
 				.and() //
-				.addFilterBefore(new JwtSsoBasedLoginFilter(authenticationManager()),
+				.addFilterBefore(new JwtSsoBasedLoginFilter(authenticationManager(),authServerProperties),
 						SecurityContextPersistenceFilter.class) //
-				.addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager()))//
+				.addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager(), authServerProperties))//
 				.authorizeRequests() //
 				.antMatchers("/**") //
 				.permitAll() //

@@ -181,7 +181,9 @@ export default {
           _.refFlowNodeIds.toString().replace(/,/g, "/") +
           (isRecord ? "|" : "") +
           _.id;
-        return `${_.id} [label="${label}" class="model" id="${_.id}" color="${color}" shape="${shape}" ]`;
+        return `${_.id} [label="${label}" class="model" id="${
+          _.id
+        }" color="${color}" shape="${shape}" ]`;
       });
       let genEdge = () => {
         let pathAry = [];
