@@ -31,6 +31,9 @@ public class PluginInstance {
     private String instanceName;
 
     @Column
+    private String containerName;
+
+    @Column
     private String host;
 
     @Column
@@ -147,6 +150,14 @@ public class PluginInstance {
 
     public void setPackageId(Integer packageId) {
         this.packageId = packageId;
+    }
+
+    public String getContainerName() {
+        return containerName;
+    }
+
+    public void setContainerName(String containerName) {
+        this.containerName = containerName;
     }
 
 }
