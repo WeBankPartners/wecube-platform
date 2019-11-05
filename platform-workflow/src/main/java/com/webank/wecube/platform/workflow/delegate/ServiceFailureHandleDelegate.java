@@ -9,6 +9,11 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service("srvFailBean")
 public class ServiceFailureHandleDelegate extends AbstractServiceExceptionHandleDelegate implements JavaDelegate {
 
