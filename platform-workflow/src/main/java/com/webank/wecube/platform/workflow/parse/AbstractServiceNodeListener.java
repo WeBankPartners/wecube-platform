@@ -3,6 +3,11 @@ package com.webank.wecube.platform.workflow.parse;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.slf4j.Logger;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public abstract class AbstractServiceNodeListener {
     protected boolean isCustomServiceTask(DelegateExecution execution) {
 
