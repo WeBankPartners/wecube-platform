@@ -12,8 +12,8 @@ import javax.persistence.*;
 @Entity
 @Table(name = "plugin_instances")
 public class PluginInstance {
-    public static final String STATUS_RUNNING = "RUNNING";
-    public static final String STATUS_REMOVED = "REMOVED";
+    public static final String CONTAINER_STATUS_RUNNING = "RUNNING";
+    public static final String CONTAINER_STATUS_REMOVED = "REMOVED";
 
     @Id
     @GeneratedValue
@@ -24,11 +24,14 @@ public class PluginInstance {
     @JoinColumn(name = "package_id")
     private PluginPackage pluginPackage;
 
-    @Column(name = "package_id", updatable=false,insertable=false)
+    @Column(name = "package_id", updatable = false, insertable = false)
     private Integer packageId;
-    
+
     @Column
     private String instanceName;
+
+    @Column
+    private String containerName;
 
     @Column
     private String host;
@@ -39,30 +42,26 @@ public class PluginInstance {
     @Column
     private Integer pluginMysqlInstanceResourceId;
 
-    @Column(name="s3bucket_resource_id")
+    @Column(name = "s3bucket_resource_id")
     private Integer s3BucketResourceId;
-    
-    @ManyToOne
-    @JoinColumn(name = "s3bucket_resource_id",insertable=false,updatable=false)
-    private ResourceItem s3ResourceItem;
 
     @Column
     private Integer dockerInstanceResourceId;
 
     @Column
-    private String status;
+    private String containerStatus;
 
     public PluginInstance() {
     }
 
     public PluginInstance(Integer id, PluginPackage pluginPackage, String instanceName, String host, Integer port,
-            String status) {
+            String containerStatus) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.instanceName = instanceName;
         this.host = host;
         this.port = port;
-        this.status = status;
+        this.containerStatus = containerStatus;
     }
 
     public Integer getId() {
@@ -81,20 +80,12 @@ public class PluginInstance {
         this.pluginPackage = pluginPackage;
     }
 
-    public String getStatus() {
-        return status;
+    public String getContainerStatus() {
+        return containerStatus;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public static String getStatusRunning() {
-        return STATUS_RUNNING;
-    }
-
-    public static String getStatusRemoved() {
-        return STATUS_REMOVED;
+    public void setContainerStatus(String containerStatus) {
+        this.containerStatus = containerStatus;
     }
 
     public Integer getS3BucketResourceId() {
@@ -153,12 +144,12 @@ public class PluginInstance {
         this.packageId = packageId;
     }
 
-    public ResourceItem getS3ResourceItem() {
-        return s3ResourceItem;
+    public String getContainerName() {
+        return containerName;
     }
 
-    public void setS3ResourceItem(ResourceItem s3ResourceItem) {
-        this.s3ResourceItem = s3ResourceItem;
+    public void setContainerName(String containerName) {
+        this.containerName = containerName;
     }
 
 }

@@ -9,6 +9,11 @@ import org.springframework.stereotype.Component;
 
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Component
 public class EndEventListener implements ExecutionListener {
 
