@@ -9,6 +9,7 @@ import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.*;
 import com.webank.wecube.platform.core.jpa.*;
 import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
+import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
 import com.webank.wecube.platform.core.service.CommandService;
@@ -64,6 +65,9 @@ public class PluginPackageService {
     private PluginPackageValidator pluginPackageValidator;
 
     @Autowired
+    private PluginPackageDataModelDtoValidator dataModelValidator;
+
+    @Autowired
     private PluginProperties pluginProperties;
 
     @Autowired
@@ -108,7 +112,8 @@ public class PluginPackageService {
         PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile)).parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
 
-        pluginPackageValidator.validatePluginPackage(pluginPackage);
+        pluginPackageValidator.validate(pluginPackage);
+        dataModelValidator.validate(pluginPackageDto.getPluginPackageDataModelDto());
 
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
@@ -121,7 +126,7 @@ public class PluginPackageService {
         if (pluginDockerImageFile.exists()) {
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
                     + pluginDockerImageFile.getName();
-            log.info("keyname : {}", keyName);
+            log.info("keyName : {}", keyName);
 
             String dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
                     pluginDockerImageFile);
@@ -136,7 +141,7 @@ public class PluginPackageService {
 
             String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
                     + pluginUiPackageFile.getName();
-            log.info("keyname : {}", keyName);
+            log.info("keyName : {}", keyName);
 
             pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage,
                     pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
@@ -168,8 +173,9 @@ public class PluginPackageService {
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
 
-        List<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelService
-                .register(new ArrayList<>(pluginPackageDto.getPluginPackageEntities()));
+        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService
+                .register(pluginPackageDto.getPluginPackageDataModelDto());
+        Set<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelDto.getPluginPackageEntities();
 
         Set<PluginConfig> pluginConfigs = newLinkedHashSet();
         for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
@@ -184,8 +190,8 @@ public class PluginPackageService {
         }
         pluginConfigRepository.saveAll(pluginConfigs);
 
-        savedPluginPackage.setPluginPackageEntities(pluginPackageEntityDtos.stream()
-                .map(it -> it.toDomain(savedPluginPackage)).collect(Collectors.toSet()));
+        savedPluginPackage.getPluginPackageDataModel().setPluginPackageEntities(pluginPackageEntityDtos.stream()
+                .map(it -> it.toDomain(savedPluginPackage.getPluginPackageDataModel())).collect(Collectors.toSet()));
         if (pluginPackageResourceFilesOptional.isPresent()) {
             Set<PluginPackageResourceFile> pluginPackageResourceFiles = newLinkedHashSet(
                     pluginPackageResourceFileRepository.saveAll(pluginPackageResourceFilesOptional.get()));
