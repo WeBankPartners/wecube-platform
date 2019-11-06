@@ -34,27 +34,25 @@ CREATE TABLE plugin_package_data_model
 (
     id                  INT AUTO_INCREMENT PRIMARY KEY          NOT NULL,
     version             INTEGER                        NOT NULL DEFAULT 1,
-    plugin_package_id   INTEGER                                 NOT NULL,
     package_name        VARCHAR(50)                             NOT NULL,
-    package_version     VARCHAR(20)                             NOT NULL,
     is_dynamic          TINYINT(1)  default 0,
     update_path         VARCHAR(256),
     update_method       VARCHAR(10),
-    update_timestamp    timestamp   default current_timestamp   NOT NULL,
-    CONSTRAINT fk_plugin_package_id FOREIGN KEY (plugin_package_id) REFERENCES plugin_package(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_plugin_package_data_model(plugin_package_id, version)
+    update_source       VARCHAR(32),
+    update_time         INTEGER   default 0     NOT NULL,
+    UNIQUE uk_plugin_package_data_model(package_name, version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
 DROP TABLE IF EXISTS plugin_package_entities;
 CREATE TABLE plugin_package_entities
 (
     id                 INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-    plugin_package_data_model_id  INTEGER                        NOT NULL,
+    data_model_id      INTEGER                        NOT NULL,
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
     description        VARCHAR(256)                   NOT NULL,
-    CONSTRAINT fk_package_data_model_id FOREIGN KEY (plugin_package_data_model_id) REFERENCES plugin_package_data_model(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_package_entity(plugin_package_data_model_id, name)
+    CONSTRAINT fk_package_data_model_id FOREIGN KEY (data_model_id) REFERENCES plugin_package_data_model(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE uk_package_entity(data_model_id, name)
 
 );
 
