@@ -1,16 +1,12 @@
 package com.webank.wecube.platform.core.service;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -18,7 +14,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -31,18 +27,12 @@ import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
-import com.webank.wecube.platform.core.utils.ZipFileUtils;
-
-import javassist.expr.NewArray;
-import net.bytebuddy.asm.Advice.Return;
 
 import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
-import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
@@ -70,7 +60,7 @@ import static org.apache.commons.lang3.StringUtils.trim;
 @Service
 @Transactional
 public class PluginInstanceService {
-    private static final Logger logger = LoggerFactory.getLogger(PluginPackageDataModelServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(PluginInstanceService.class);
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -147,7 +137,8 @@ public class PluginInstanceService {
     }
 
     public List<PluginInstance> getAvailableInstancesByPackageId(int packageId) {
-        return pluginInstanceRepository.findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, packageId);
+        return pluginInstanceRepository.findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING,
+                packageId);
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
@@ -157,7 +148,7 @@ public class PluginInstanceService {
         }
 
         List<PluginInstance> instances = pluginInstanceRepository
-                .findByStatusAndPackageId(PluginInstance.STATUS_RUNNING, pkg.get().getId());
+                .findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.get().getId());
         if (instances == null || instances.size() == 0) {
             throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
         }
@@ -229,7 +220,8 @@ public class PluginInstanceService {
             ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
                     createContainerParameters);
 
-            instance.setInstanceName(dockerInfo.getContainerName());
+            instance.setContainerName(dockerInfo.getContainerName());
+            instance.setInstanceName(pluginPackage.getName());
             instance.setDockerInstanceResourceId(dockerResourceDto.getId());
             instance.setHost(hostIp);
             instance.setPort(port);
@@ -239,7 +231,7 @@ public class PluginInstanceService {
         }
 
         // 4. insert to DB
-        instance.setStatus(PluginInstance.STATUS_RUNNING);
+        instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_RUNNING);
         pluginInstanceRepository.save(instance);
 
         // TODO - 6. notify gateway
@@ -297,8 +289,8 @@ public class PluginInstanceService {
                 mysqlInstance.getUsername(), EncryptionUtils.decryptWithAes(mysqlInstance.getPassword(),
                         resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName()));
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-
-        List<Resource> scipts = newArrayList(new ClassPathResource(initSqlPath));
+        File initSqlFile = new File(initSqlPath);
+        List<Resource> scipts = newArrayList(new FileSystemResource(initSqlFile));
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         populator.setContinueOnError(false);
         populator.setIgnoreFailedDrops(false);
@@ -424,11 +416,14 @@ public class PluginInstanceService {
     }
 
     public void removePluginInstanceById(Integer instanceId) throws Exception {
-        Optional<PluginInstance> instance = pluginInstanceRepository.findById(instanceId);
-        ResourceItemDto createDockerInstanceDto = new ResourceItemDto();
-        createDockerInstanceDto.setName(instance.get().getInstanceName());
-        logger.info("createDockerInstanceDto = " + createDockerInstanceDto.toString());
-        resourceManagementService.deleteItems(Lists.newArrayList(createDockerInstanceDto));
+        Optional<PluginInstance> instanceOptional = pluginInstanceRepository.findById(instanceId);
+        PluginInstance instance = instanceOptional.get();
+        ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
+        removeDockerInstanceDto.setName(instance.getContainerName());
+        removeDockerInstanceDto.setId(instance.getDockerInstanceResourceId());
+        logger.info("removeDockerInstanceDto = " + removeDockerInstanceDto.toString());
+        resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
+        instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_REMOVED);
     }
 
     private boolean isHostIpAvailable(String hostIp) {
