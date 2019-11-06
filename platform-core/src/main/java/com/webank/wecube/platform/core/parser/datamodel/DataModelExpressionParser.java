@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.parser.datamodel;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.DataModelExpressionDto;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelLexer;
@@ -8,6 +10,7 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import java.util.Objects;
 import java.util.Queue;
 
 public class DataModelExpressionParser {
@@ -30,8 +33,17 @@ public class DataModelExpressionParser {
         ParseTreeWalker walker = new ParseTreeWalker();
         DataModelExpressionListener evalByListener = new DataModelExpressionListener();
         walker.walk(evalByListener, tree);
-        // TODO: add attr of peek's fetch is equal to expression's last attr
-        return evalByListener.getExpressionQueue();
+
+        // check if the parser reach to the end of expression
+        Queue<DataModelExpressionDto> expressionQueue = evalByListener.getExpressionQueue();
+        String lastAttrName = Objects.requireNonNull(expressionQueue.peek()).getOpFetch().attr().getText();
+        Iterable<String> split = Splitter.on('.').split(expression);
+        String expressionLastAttrName = Iterables.getLast(split);
+        if (!expressionLastAttrName.equals(lastAttrName)) {
+            String msg = "The parser cannot reach to the end of the input expression, please verify your expression is valid or not.";
+            throw new WecubeCoreException(msg);
+        }
+        return expressionQueue;
     }
 
     public static void main(String[] args) {
