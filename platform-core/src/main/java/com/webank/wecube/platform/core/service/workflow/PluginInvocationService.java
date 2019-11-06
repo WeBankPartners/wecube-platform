@@ -18,10 +18,12 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParame
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcInstInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
@@ -57,6 +59,9 @@ public class PluginInvocationService {
 
     @Autowired
     private ProcExecBindingRepository procExecBindingRepository;
+    
+    @Autowired
+    private TaskNodeExecParamRepository taskNodeExecParamRepository;
 
     public void invokePluginInterface(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
@@ -128,6 +133,8 @@ public class PluginInvocationService {
 
             }
         }
+        
+        
 
         String interfacePath = "";
         String instanceHost = "";
@@ -138,6 +145,15 @@ public class PluginInvocationService {
                 .withInstanceHost(instanceHost).withInterfacePath(interfacePath);
 
         pluginInvocationProcessor.process(operation);
+    }
+    
+    protected void preSavePluginInputParameters(List<Map<String, Object>> pluginParameters){
+        TaskNodeExecParamEntity entity = new TaskNodeExecParamEntity();
+        entity.setDataType("");
+        entity.setParamName("");
+        
+        //TODO
+        taskNodeExecParamRepository.save(entity);
     }
 
     public void handlePluginInterfaceInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult) {
