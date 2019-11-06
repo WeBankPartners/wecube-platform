@@ -9,6 +9,7 @@ import java.util.Stack;
 public class DataModelExpressionDto {
     private String expression;
     private Stack<Map<String, String>> returnedJson = new Stack<>();
+    private String resultValue;
 
     // helper during processing
     @JsonIgnore
@@ -136,5 +137,13 @@ public class DataModelExpressionDto {
 
     public void setPrevLink(DataModelParser.LinkContext prevLink) {
         this.prevLink = prevLink;
+    }
+
+    public String getResultValue() {
+        return resultValue;
+    }
+
+    public void setResultValue(String resultValue) {
+        this.resultValue = resultValue;
     }
 }
