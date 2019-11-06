@@ -1,40 +1,42 @@
 package com.webank.wecube.platform.core.parser.datamodel;
 
+import com.webank.wecube.platform.core.dto.DataModelExpressionDto;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelBaseListener;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
-import com.webank.wecube.platform.core.support.parser.DataModelExpressionHelper;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 public class DataModelExpressionListener extends DataModelBaseListener {
 
-    private Queue<DataModelExpressionHelper> expressionQueue = new LinkedList<>();
+    private Queue<DataModelExpressionDto> expressionQueue = new LinkedList<>();
 
-    public Queue<DataModelExpressionHelper> getExpressionQueue() {
+    public Queue<DataModelExpressionDto> getExpressionQueue() {
         return expressionQueue;
     }
 
     @Override
-    public void exitLink(DataModelParser.LinkContext ctx) {
-        List<DataModelParser.NodeContext> nodeList = ctx.node();
-        DataModelExpressionHelper expressionHelper = new DataModelExpressionHelper();
-        if (nodeList.size() == 2) {
-            // link consist of two nodes
-            expressionHelper.setFirstNode(nodeList.get(0));
-            expressionHelper.setOp(ctx.op());
-            expressionHelper.setSecondNode(nodeList.get(1));
-        }
+    public void exitRoute(DataModelParser.RouteContext ctx) {
+        // "prevLink fetch"
+        DataModelExpressionDto dataModelExpressionDto = new DataModelExpressionDto(ctx.link(), ctx.fetch());
+        expressionQueue.add(dataModelExpressionDto);
+        super.exitRoute(ctx);
+    }
 
-        if (nodeList.size() == 1) {
-            // link consist of one link and one node
-            expressionHelper.setExpression(ctx.getText());
-            expressionHelper.setPreviousLink(ctx.link());
-            expressionHelper.setOp(ctx.op());
-            expressionHelper.setSecondNode(nodeList.get(0));
+    @Override
+    public void exitLink(DataModelParser.LinkContext ctx) {
+        DataModelExpressionDto dataModelExpressionDto;
+        if (ctx.to() != null) {
+            // "to" link with fwdNode/prevLink and entity
+            // "fwdNode fetch opTo entity" or "prevLink fetch opTo entity"
+            dataModelExpressionDto = new DataModelExpressionDto(ctx.link(), ctx.fwd_node(), ctx.fetch(), ctx.to(), ctx.entity());
+        } else {
+            // "by" link with entity/prevLink and bkwNode
+            // "entity opBy bwdNode" or "prevLink opBy bwdNode"
+            dataModelExpressionDto = new DataModelExpressionDto(ctx.link(), ctx.entity(), ctx.by(), ctx.bwd_node());
         }
-        expressionQueue.add(expressionHelper);
+        dataModelExpressionDto.setExpression(ctx.getText());
+        expressionQueue.add(dataModelExpressionDto);
         super.exitLink(ctx);
     }
 
