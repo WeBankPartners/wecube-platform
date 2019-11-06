@@ -18,7 +18,7 @@
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
 
-    <dataModel>
+    <dataModel isDynamic="true" path="/data-model" method="GET">
         <entity name="service_catalogue" displayName="服务目录" description="服务目录模型">
             <attribute name="id" datatype="int" description="唯一ID"/>
             <attribute name="name" datatype="str" description="名字"/>
