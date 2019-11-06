@@ -9,8 +9,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "CORE_RU_TASK_NODE_EXEC_PARAM")
 public class TaskNodeExecParamEntity extends BaseTraceableEntity {
-    public static final String PARAM_TYPE_INPUT = "IN";
-    public static final String PARAM_TYPE_OUTPUT = "OUT";
+    public static final String PARAM_TYPE_REQUEST = "REQ";
+    public static final String PARAM_TYPE_RESPONSE = "RESP";
 
     public static final String PARAM_DATA_TYPE_INT = "int";
     public static final String PARAM_DATA_TYPE_STRING = "string";
@@ -23,14 +23,11 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
     @GeneratedValue
     private Integer id;
 
-    @Column(name = "PROC_INST_ID")
-    private Integer procInstId;
+    @Column(name = "REQ_ID")
+    private String requestId;
 
-    @Column(name = "TASK_NODE_INST_ID")
-    private Integer taskNodeInstId;
-
-    @Column(name = "ORDERED_NO")
-    private Integer orderedNo;
+    @Column(name = "OBJ_ID")
+    private String objectId; // TODO
 
     @Column(name = "PARAM_TYPE")
     private String paramType;
@@ -38,14 +35,11 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
     @Column(name = "PARAM_NAME")
     private String paramName;
 
-    @Column(name = "DATA_TYPE")
-    private String dataType; // int,string,boolean
+    @Column(name = "PARAM_DATA_TYPE")
+    private String paramDataType; // int,string,boolean
 
-    @Column(name = "DATA_VALUE")
-    private String dataValue;
-
-    @Column(name = "OBJECT_ID")
-    private String objectId; // TODO
+    @Column(name = "PARAM_DATA_VALUE")
+    private String paramDataValue;
 
     public Integer getId() {
         return id;
@@ -55,20 +49,20 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
         this.id = id;
     }
 
-    public Integer getProcInstId() {
-        return procInstId;
+    public String getRequestId() {
+        return requestId;
     }
 
-    public void setProcInstId(Integer procInstId) {
-        this.procInstId = procInstId;
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
-    public Integer getTaskNodeInstId() {
-        return taskNodeInstId;
+    public String getObjectId() {
+        return objectId;
     }
 
-    public void setTaskNodeInstId(Integer taskNodeInstId) {
-        this.taskNodeInstId = taskNodeInstId;
+    public void setObjectId(String objectId) {
+        this.objectId = objectId;
     }
 
     public String getParamType() {
@@ -87,35 +81,20 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
         this.paramName = paramName;
     }
 
-    public String getDataType() {
-        return dataType;
+    public String getParamDataType() {
+        return paramDataType;
     }
 
-    public void setDataType(String dataType) {
-        this.dataType = dataType;
+    public void setParamDataType(String paramDataType) {
+        this.paramDataType = paramDataType;
     }
 
-    public String getDataValue() {
-        return dataValue;
+    public String getParamDataValue() {
+        return paramDataValue;
     }
 
-    public void setDataValue(String dataValue) {
-        this.dataValue = dataValue;
+    public void setParamDataValue(String paramDataValue) {
+        this.paramDataValue = paramDataValue;
     }
 
-    public Integer getOrderedNo() {
-        return orderedNo;
-    }
-
-    public void setOrderedNo(Integer orderedNo) {
-        this.orderedNo = orderedNo;
-    }
-
-    public String getObjectId() {
-        return objectId;
-    }
-
-    public void setObjectId(String objectId) {
-        this.objectId = objectId;
-    }
 }
