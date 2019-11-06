@@ -180,7 +180,6 @@
         </xs:annotation>
       </xs:element>
       <xs:element type="dataModelType" name="dataModel" minOccurs="0">
-        <xs:attribute type="xs:string" name="isDynamic" use="optional"/>
         <xs:annotation>
           <xs:documentation>3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系</xs:documentation>
         </xs:annotation>
