@@ -113,7 +113,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
         PredicateDefinition pd = new PredicateDefinition();
         pd.setName("Path");
         Map<String, String> predicateParams = new HashMap<>(8);
-        predicateParams.put("pattern", String.format("/%s/**", name));
+        predicateParams.put("pattern", String.format("/api/%s/**", name));
         pd.setArgs(predicateParams);
         rd.setPredicates(Arrays.asList(pd));
 
