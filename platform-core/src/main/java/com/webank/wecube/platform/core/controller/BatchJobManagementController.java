@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-@RequestMapping("/batch-job")
+@RequestMapping("/v1/batch-job")
 @RolesAllowed({MENU_IMPLEMENTATION_BATCH_JOB})
 public class BatchJobManagementController {
     @Autowired
