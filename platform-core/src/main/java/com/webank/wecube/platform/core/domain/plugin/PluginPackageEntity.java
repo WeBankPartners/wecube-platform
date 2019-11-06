@@ -9,10 +9,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "plugin_package_entities", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"plugin_package_id", "name", "data_model_version"})
+        @UniqueConstraint(columnNames = {"plugin_package_data_model_id", "name"})
 })
 public class PluginPackageEntity {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,8 +19,8 @@ public class PluginPackageEntity {
 
     @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinColumn(name = "plugin_package_id")
-    private PluginPackage pluginPackage;
+    @JoinColumn(name = "plugin_package_data_model_id")
+    private PluginPackageDataModel pluginPackageDataModel;
 
     @Column(name = "name")
     private String name;
@@ -32,10 +31,6 @@ public class PluginPackageEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "data_model_version")
-    private long dataModelVersion = 1;
-
-
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackageEntity", cascade = CascadeType.ALL)
     private List<PluginPackageAttribute> pluginPackageAttributeList;
@@ -43,11 +38,10 @@ public class PluginPackageEntity {
     public PluginPackageEntity() {
     }
 
-    public PluginPackageEntity(PluginPackage pluginPackage,
-                               String name,
+    public PluginPackageEntity(PluginPackageDataModel pluginPackageDataModel, String name,
                                String displayName,
                                String description) {
-        this.pluginPackage = pluginPackage;
+        this.pluginPackageDataModel = pluginPackageDataModel;
         this.name = name;
         this.displayName = displayName;
         this.description = description;
@@ -61,12 +55,12 @@ public class PluginPackageEntity {
         this.id = id;
     }
 
-    public PluginPackage getPluginPackage() {
-        return pluginPackage;
+    public PluginPackageDataModel getPluginPackageDataModel() {
+        return pluginPackageDataModel;
     }
 
-    public void setPluginPackage(PluginPackage pluginPackage) {
-        this.pluginPackage = pluginPackage;
+    public void setPluginPackageDataModel(PluginPackageDataModel pluginPackageDataModel) {
+        this.pluginPackageDataModel = pluginPackageDataModel;
     }
 
     public String getName() {
@@ -106,11 +100,4 @@ public class PluginPackageEntity {
         return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
     }
 
-    public long getDataModelVersion() {
-        return dataModelVersion;
-    }
-
-    public void setDataModelVersion(long dataModelVersion) {
-        this.dataModelVersion = dataModelVersion;
-    }
 }

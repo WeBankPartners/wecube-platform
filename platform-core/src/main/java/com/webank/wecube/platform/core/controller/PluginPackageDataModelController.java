@@ -2,17 +2,13 @@ package com.webank.wecube.platform.core.controller;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
-import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.security.RolesAllowed;
-
 import java.util.List;
-
-import static com.webank.wecube.platform.core.domain.MenuItem.MENU_COLLABORATION_PLUGIN_MANAGEMENT;
 
 @RestController
 @RequestMapping("/v1")
@@ -32,6 +28,13 @@ public class PluginPackageDataModelController {
             return JsonResponse.error(ex.getMessage());
         }
         return JsonResponse.okayWithData(allPluginPackageEntityList);
+    }
+
+    @GetMapping("/models/package/{plugin-package-id}")
+    @ResponseBody
+    public JsonResponse pullDynamicDataModel(@PathVariable(value = "plugin-package-id") int pluginPackageId) {
+        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService.pullDynamicDataModel(pluginPackageId);
+        return JsonResponse.okayWithData(null);
     }
 
     @GetMapping("/packages/{id}/models")
