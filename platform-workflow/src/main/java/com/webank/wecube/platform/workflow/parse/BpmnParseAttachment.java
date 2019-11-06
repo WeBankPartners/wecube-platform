@@ -3,6 +3,11 @@ package com.webank.wecube.platform.workflow.parse;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class BpmnParseAttachment {
     private List<SubProcessAdditionalInfo> subProcessAddtionalInfos = new ArrayList<SubProcessAdditionalInfo>();
 
