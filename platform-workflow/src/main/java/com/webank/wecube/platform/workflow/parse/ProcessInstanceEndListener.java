@@ -19,6 +19,11 @@ import com.webank.wecube.platform.workflow.model.ServiceInvocationEventImpl;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Component
 public class ProcessInstanceEndListener implements ExecutionListener {
     private static final Logger log = LoggerFactory.getLogger(ProcessInstanceEndListener.class);

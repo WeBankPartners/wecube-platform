@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.sql.DataSource;
 
@@ -34,6 +35,7 @@ import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SqlQueryRequest;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
+import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
@@ -50,9 +52,11 @@ public class ResourceDataQueryService {
     
     @Autowired
     private S3Client s3client;
-    
+
     @Autowired
     private PluginInstanceRepository pluginInstanceRepository;
+    @Autowired
+    private ResourceItemRepository resourceItemRepository;
     
     public QueryResponse<List<String>> queryDB(int packageId, SqlQueryRequest sqlQueryRequest){
         DataSource dataSource = getDataSource(packageId);
@@ -195,8 +199,9 @@ public class ResourceDataQueryService {
         
         String bucketName = null;
         for(PluginInstance ps:pluginInstances) {
-            if(ps.getS3ResourceItem() != null) {
-                bucketName = ps.getS3ResourceItem().getName();
+            Optional<ResourceItem> item= resourceItemRepository.findById(ps.getS3BucketResourceId());
+            if(item.isPresent()) {
+                bucketName = item.get().getName();
                 break;
             }
         }

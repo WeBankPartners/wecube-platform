@@ -11,6 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Component("LocalBpmnParseListener")
 public class LocalBpmnParseListener extends AbstractBpmnParseListener {
     private static final Logger log = LoggerFactory.getLogger(LocalBpmnParseListener.class);
