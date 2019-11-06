@@ -9,7 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "plugin_package_entities", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"plugin_package_data_model_id", "name"})
+        @UniqueConstraint(columnNames = {"data_model_id", "name"})
 })
 public class PluginPackageEntity {
 
@@ -18,8 +18,8 @@ public class PluginPackageEntity {
     private Integer id;
 
     @JsonBackReference
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinColumn(name = "plugin_package_data_model_id")
+    @ManyToOne(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "data_model_id")
     private PluginPackageDataModel pluginPackageDataModel;
 
     @Column(name = "name")
@@ -97,7 +97,7 @@ public class PluginPackageEntity {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+        return ReflectionToStringBuilder.toString(this);
     }
 
 }

@@ -13,13 +13,6 @@ public interface PluginPackageDataModelRepository extends CrudRepository<PluginP
     @Query(value = "SELECT dataModel " +
             "FROM PluginPackageDataModel dataModel " +
             "WHERE  dataModel.version = (SELECT max(dataModel.version ) from PluginPackageDataModel dataModel WHERE dataModel.pluginPackage.name=:packageName GROUP BY dataModel.pluginPackage.name) AND dataModel.pluginPackage.name=:packageName")
-    Optional<PluginPackageDataModel> findLatestDataModelByPluginPackage_name(@Param("packageName") String packageName);
-
-    @Query(value = "SELECT dataModel " +
-            "FROM PluginPackageDataModel dataModel " +
-            "WHERE  dataModel.version = (SELECT max(dataModel.version ) from PluginPackageDataModel dataModel WHERE dataModel.pluginPackage.id=:packageId GROUP BY dataModel.pluginPackage.name) AND dataModel.pluginPackage.id=:packageId")
-    Optional<PluginPackageDataModel> findLatestByPluginPackage_Id(@Param("packageId") Integer id);
-
-    Optional<PluginPackageDataModel> findTop1ByPluginPackage_NameAndNameOrderByDataModelVersionDesc(String packageName, String entityName);
+    Optional<PluginPackageDataModel> findLatestDataModelByPackageName(@Param("packageName") String packageName);
 
 }

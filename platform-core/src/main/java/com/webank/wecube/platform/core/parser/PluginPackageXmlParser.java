@@ -197,7 +197,6 @@ public class PluginPackageXmlParser {
     private PluginPackageDataModelDto parseDataModel(Node dataModelNode, PluginPackageDto pluginPackageDto) throws XPathExpressionException {
         PluginPackageDataModelDto pluginPackageDataModelDto = new PluginPackageDataModelDto();
         pluginPackageDataModelDto.setPackageName(pluginPackageDto.getName());
-        pluginPackageDataModelDto.setPackageVersion(pluginPackageDto.getVersion());
         Boolean isDynamic = getBooleanAttribute(dataModelNode, "./@isDynamic");
         pluginPackageDataModelDto.setDynamic(isDynamic);
         pluginPackageDataModelDto.setUpdatePath(getStringAttribute(dataModelNode, "./@path"));
@@ -223,7 +222,6 @@ public class PluginPackageXmlParser {
             PluginPackageEntityDto pluginPackageEntity = new PluginPackageEntityDto();
 
             pluginPackageEntity.setPackageName(dataModelDto.getPackageName());
-            pluginPackageEntity.setPackageVersion(dataModelDto.getPackageVersion());
 
             pluginPackageEntity.setName(getNonNullStringAttribute(entityNode, "./@name", "Entity name"));
             pluginPackageEntity.setDisplayName(getNonNullStringAttribute(entityNode, "./@displayName", "Entity display name"));
@@ -247,7 +245,6 @@ public class PluginPackageXmlParser {
             PluginPackageAttributeDto pluginPackageAttribute = new PluginPackageAttributeDto();
 
             pluginPackageAttribute.setPackageName(pluginPackageEntity.getPackageName());
-            pluginPackageAttribute.setPackageVersion(pluginPackageEntity.getPackageVersion());
             pluginPackageAttribute.setEntityName(pluginPackageEntity.getName());
 
             pluginPackageAttribute.setName(getNonNullStringAttribute(attributeNode, "./@name", "Entity attribute name"));
