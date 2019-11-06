@@ -43,7 +43,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false2.xml");
             fail("Test should fail as 'name' missing on 'packageDependency'");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("'name'");
+            assertThat(ex.getMessage()).contains("'packageDependency'");
         }
     }
 
@@ -53,7 +53,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false3.xml");
             fail("Test should fail as 'code' missing on 'menu'");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("'code'");
+            assertThat(ex.getMessage()).contains("'menu'");
         }
     }
 
@@ -63,7 +63,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false4.xml");
             fail("Test should fail as 'name' missing on 'entity'");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("'name'");
+            assertThat(ex.getMessage()).contains("'entity'");
         }
     }
 
@@ -73,7 +73,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false5.xml");
             fail("Test should fail as 'imageName' missing on 'docker'");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("'imageName'");
+            assertThat(ex.getMessage()).contains("'docker'");
         }
     }
 
