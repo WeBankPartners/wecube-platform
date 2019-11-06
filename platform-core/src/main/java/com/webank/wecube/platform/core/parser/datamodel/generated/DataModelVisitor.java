@@ -17,29 +17,47 @@ public interface DataModelVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRoute(DataModelParser.RouteContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link DataModelParser#op}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitOp(DataModelParser.OpContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link DataModelParser#link}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitLink(DataModelParser.LinkContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link DataModelParser#node}.
+	 * Visit a parse tree produced by {@link DataModelParser#fetch}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitNode(DataModelParser.NodeContext ctx);
+	T visitFetch(DataModelParser.FetchContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link DataModelParser#attr}.
+	 * Visit a parse tree produced by {@link DataModelParser#to}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAttr(DataModelParser.AttrContext ctx);
+	T visitTo(DataModelParser.ToContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link DataModelParser#by}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBy(DataModelParser.ByContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link DataModelParser#fwd_node}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFwd_node(DataModelParser.Fwd_nodeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link DataModelParser#bwd_node}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBwd_node(DataModelParser.Bwd_nodeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link DataModelParser#entity}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEntity(DataModelParser.EntityContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link DataModelParser#pkg}.
 	 * @param ctx the parse tree
@@ -47,15 +65,15 @@ public interface DataModelVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitPkg(DataModelParser.PkgContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link DataModelParser#pkg_name}.
+	 * Visit a parse tree produced by {@link DataModelParser#ety}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitPkg_name(DataModelParser.Pkg_nameContext ctx);
+	T visitEty(DataModelParser.EtyContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link DataModelParser#entity}.
+	 * Visit a parse tree produced by {@link DataModelParser#attr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitEntity(DataModelParser.EntityContext ctx);
+	T visitAttr(DataModelParser.AttrContext ctx);
 }

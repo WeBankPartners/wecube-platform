@@ -18,16 +18,6 @@ public interface DataModelListener extends ParseTreeListener {
 	 */
 	void exitRoute(DataModelParser.RouteContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link DataModelParser#op}.
-	 * @param ctx the parse tree
-	 */
-	void enterOp(DataModelParser.OpContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link DataModelParser#op}.
-	 * @param ctx the parse tree
-	 */
-	void exitOp(DataModelParser.OpContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link DataModelParser#link}.
 	 * @param ctx the parse tree
 	 */
@@ -38,25 +28,65 @@ public interface DataModelListener extends ParseTreeListener {
 	 */
 	void exitLink(DataModelParser.LinkContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link DataModelParser#node}.
+	 * Enter a parse tree produced by {@link DataModelParser#fetch}.
 	 * @param ctx the parse tree
 	 */
-	void enterNode(DataModelParser.NodeContext ctx);
+	void enterFetch(DataModelParser.FetchContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link DataModelParser#node}.
+	 * Exit a parse tree produced by {@link DataModelParser#fetch}.
 	 * @param ctx the parse tree
 	 */
-	void exitNode(DataModelParser.NodeContext ctx);
+	void exitFetch(DataModelParser.FetchContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link DataModelParser#attr}.
+	 * Enter a parse tree produced by {@link DataModelParser#to}.
 	 * @param ctx the parse tree
 	 */
-	void enterAttr(DataModelParser.AttrContext ctx);
+	void enterTo(DataModelParser.ToContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link DataModelParser#attr}.
+	 * Exit a parse tree produced by {@link DataModelParser#to}.
 	 * @param ctx the parse tree
 	 */
-	void exitAttr(DataModelParser.AttrContext ctx);
+	void exitTo(DataModelParser.ToContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link DataModelParser#by}.
+	 * @param ctx the parse tree
+	 */
+	void enterBy(DataModelParser.ByContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DataModelParser#by}.
+	 * @param ctx the parse tree
+	 */
+	void exitBy(DataModelParser.ByContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link DataModelParser#fwd_node}.
+	 * @param ctx the parse tree
+	 */
+	void enterFwd_node(DataModelParser.Fwd_nodeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DataModelParser#fwd_node}.
+	 * @param ctx the parse tree
+	 */
+	void exitFwd_node(DataModelParser.Fwd_nodeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link DataModelParser#bwd_node}.
+	 * @param ctx the parse tree
+	 */
+	void enterBwd_node(DataModelParser.Bwd_nodeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DataModelParser#bwd_node}.
+	 * @param ctx the parse tree
+	 */
+	void exitBwd_node(DataModelParser.Bwd_nodeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link DataModelParser#entity}.
+	 * @param ctx the parse tree
+	 */
+	void enterEntity(DataModelParser.EntityContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link DataModelParser#entity}.
+	 * @param ctx the parse tree
+	 */
+	void exitEntity(DataModelParser.EntityContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link DataModelParser#pkg}.
 	 * @param ctx the parse tree
@@ -68,23 +98,23 @@ public interface DataModelListener extends ParseTreeListener {
 	 */
 	void exitPkg(DataModelParser.PkgContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link DataModelParser#pkg_name}.
+	 * Enter a parse tree produced by {@link DataModelParser#ety}.
 	 * @param ctx the parse tree
 	 */
-	void enterPkg_name(DataModelParser.Pkg_nameContext ctx);
+	void enterEty(DataModelParser.EtyContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link DataModelParser#pkg_name}.
+	 * Exit a parse tree produced by {@link DataModelParser#ety}.
 	 * @param ctx the parse tree
 	 */
-	void exitPkg_name(DataModelParser.Pkg_nameContext ctx);
+	void exitEty(DataModelParser.EtyContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link DataModelParser#entity}.
+	 * Enter a parse tree produced by {@link DataModelParser#attr}.
 	 * @param ctx the parse tree
 	 */
-	void enterEntity(DataModelParser.EntityContext ctx);
+	void enterAttr(DataModelParser.AttrContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link DataModelParser#entity}.
+	 * Exit a parse tree produced by {@link DataModelParser#attr}.
 	 * @param ctx the parse tree
 	 */
-	void exitEntity(DataModelParser.EntityContext ctx);
+	void exitAttr(DataModelParser.AttrContext ctx);
 }
