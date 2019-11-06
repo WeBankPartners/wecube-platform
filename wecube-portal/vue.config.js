@@ -13,28 +13,7 @@ module.exports = {
     open: true,
     port: 3000,
     proxy: {
-      "/v1/api": {
-        target: baseURL
-      },
-      "/process": {
-        target: baseURL
-      },
-      "/admin": {
-        target: baseURL
-      },
-      "/cmdb": {
-        target: baseURL
-      },
-      "/logout": {
-        target: baseURL
-      },
-      "/plugin": {
-        target: baseURL
-      },
-      "/artifact": {
-        target: baseURL
-      },
-      "/batch-job": {
+      "/api": {
         target: baseURL
       },
       "ui-resources": {

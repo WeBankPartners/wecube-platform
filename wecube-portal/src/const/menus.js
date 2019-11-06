@@ -105,13 +105,13 @@ export const MENUS = [
     code: "DESIGNING_ENUM_MANAGEMENT",
     cnName: "枚举数据管理",
     enName: "Enum Management",
-    link: "/designing/enum-management"
+    link: "/designing/core/enum-management"
   },
   {
     code: "DESIGNING_ENUM_ENQUIRY",
     cnName: "枚举数据查询",
     enName: "Enum Enquiry",
-    link: "/designing/enum-enquiry"
+    link: "/designing/core/enum-enquiry"
   },
   {
     code: "IMPLEMENTATION_ARTIFACT_MANAGEMENT",
@@ -250,7 +250,7 @@ export const MENUS = [
     code: "ADMIN_BASE_DATA_MANAGEMENT",
     cnName: "基础数据管理",
     enName: "Base Data Management",
-    link: "/admin/base-data-management"
+    link: "/admin/core/base-data-management"
   },
   {
     code: "IMPLEMENTATION_WORKFLOW_EXECUTION",
