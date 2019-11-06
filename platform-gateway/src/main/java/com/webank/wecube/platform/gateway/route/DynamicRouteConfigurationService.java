@@ -35,6 +35,7 @@ import com.webank.wecube.platform.gateway.dto.GenericResponseDto;
 import com.webank.wecube.platform.gateway.dto.RouteItemInfoDto;
 import com.webank.wecube.platform.gateway.filter.factory.DynamicRouteProperties;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import wiremock.org.apache.commons.lang3.StringUtils;
 
@@ -62,8 +63,8 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
         try {
             loadRoutes();
         } catch (Exception e) {
-            log.error("#########################################");
-            log.error("failed to load default route items", e);
+            log.warn("#########################################");
+            log.warn("failed to load default route items", e);
 
         }
     }
@@ -125,6 +126,24 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
         add(rd);
 
         log.info("### route added:{} {} {}", dto.getName(), dto.getHost(), dto.getPort());
+    }
+    
+    public List<RouteItemInfoDto> listAllRouteItems(){
+        Flux<RouteDefinition> flux =  routeDefinitionRepository.getRouteDefinitions();
+        List<RouteItemInfoDto> items = new ArrayList<>();
+        
+        flux.subscribe((rd) -> {
+            RouteItemInfoDto r = new RouteItemInfoDto();
+            r.setName(rd.getId());
+            r.setHost(rd.getUri().toString());
+            r.setPort("");
+            r.setSchema("http");
+            
+            items.add(r);
+            
+        });
+        
+        return items;
     }
 
     protected List<RouteItemInfoDto> fetchAllRouteItems() {
