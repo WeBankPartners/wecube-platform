@@ -1,44 +1,43 @@
 grammar DataModel;
-route
-    : link+
-    ;
 
-op
-    : TILDE
-    | DASH
+route
+    : link fetch
     ;
 
 link
-    : node op node
-    | link op node
-    | node
+    : entity by bwd_node
+    | fwd_node to entity
+    | link fetch to entity
+    | link by bwd_node
     ;
-
-node
-    : pkg SC entity DOT attr
-//    | attr op attr
+fetch
+    : DOT attr
     ;
-
-attr
-    : ID
+to
+    : DASH
     ;
-
+by
+    : TILDE
+    ;
+fwd_node
+    : entity DOT attr
+    ;
+bwd_node
+    : LP attr RP entity
+    ;
+entity
+    : pkg SC ety
+    ;
 pkg
     : ID
     | DQM
     ;
-
-pkg_name
-    : ID
-    | DQM
-    ;
-
-entity
+ety
     : ID
     ;
-
-
-
+attr
+    : ID
+    ;
 
 TILDE : '~';
 DASH : '-';
