@@ -4,12 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
-import com.webank.wecube.platform.core.DatabaseBasedTest;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class StringUtilsTest extends DatabaseBasedTest {
+public class StringUtilsTest {
 
     @Test
     public void isValidIpTestCase1() {
