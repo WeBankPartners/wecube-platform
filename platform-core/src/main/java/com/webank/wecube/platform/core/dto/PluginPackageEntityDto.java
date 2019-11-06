@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.dto;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -15,17 +14,17 @@ import java.util.Set;
 class TrimmedPluginPackageEntityDto {
     private Integer id;
     private String packageName;
-    private String packageVersion;
+    private String dataModelId;
     private String name;
     private String displayName;
 
 
-    public TrimmedPluginPackageEntityDto(Integer entityId, String packageName, String packageVersion, String name, String displayName) {
+    public TrimmedPluginPackageEntityDto(Integer entityId, String packageName, String dataModelId, String name, String displayName) {
         this.id = entityId;
         this.packageName = packageName;
         this.name = name;
         this.displayName = displayName;
-        this.packageVersion = packageVersion;
+        this.dataModelId = dataModelId;
     }
 
     public Integer getId() {
@@ -48,8 +47,8 @@ class TrimmedPluginPackageEntityDto {
         return displayName;
     }
 
-    public String getPackageVersion() {
-        return packageVersion;
+    public String getDataModelId() {
+        return dataModelId;
     }
 
     @Override
@@ -62,7 +61,7 @@ class TrimmedPluginPackageEntityDto {
                 .append(getPackageName(), that.getPackageName())
                 .append(getName(), that.getName())
                 .append(getDisplayName(), that.getDisplayName())
-                .append(getPackageVersion(), that.getPackageVersion())
+                .append(getDataModelId(), that.getDataModelId())
                 .isEquals();
     }
 
@@ -72,7 +71,7 @@ class TrimmedPluginPackageEntityDto {
                 .append(getPackageName())
                 .append(getName())
                 .append(getDisplayName())
-                .append(getPackageName())
+                .append(getDataModelId())
                 .toHashCode();
     }
 }
@@ -84,13 +83,13 @@ public class PluginPackageEntityDto {
     private String displayName;
     private String description;
 
-    private String packageVersion;
+    private String dataModelId;
     private Set<TrimmedPluginPackageEntityDto> referenceToEntityList = new HashSet<>();
     private Set<TrimmedPluginPackageEntityDto> referenceByEntityList = new HashSet<>();
     private List<PluginPackageAttributeDto> attributes = new ArrayList<>();
 
 
-    public PluginPackageEntityDto(Integer id, String name, String displayName, String description, String state, List<PluginPackageAttributeDto> attributes) {
+    public PluginPackageEntityDto(Integer id, String name, String displayName, String description, List<PluginPackageAttributeDto> attributes) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
@@ -108,11 +107,11 @@ public class PluginPackageEntityDto {
     public static PluginPackageEntityDto fromDomain(PluginPackageEntity pluginPackageEntity) {
         PluginPackageEntityDto pluginPackageEntityDto = new PluginPackageEntityDto();
         pluginPackageEntityDto.setId(pluginPackageEntity.getId());
-        pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPluginPackage().getName());
+        pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
         pluginPackageEntityDto.setName(pluginPackageEntity.getName());
         pluginPackageEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
         pluginPackageEntityDto.setDescription(pluginPackageEntity.getDescription());
-        pluginPackageEntityDto.setPackageVersion(pluginPackageEntity.getPluginPackageDataModel().getPluginPackage().getVersion());
+        pluginPackageEntityDto.setDataModelId(pluginPackageEntity.getPluginPackageDataModel().getId()+"");
         if (pluginPackageEntity.getPluginPackageAttributeList() != null) {
             pluginPackageEntity.getPluginPackageAttributeList()
                     .forEach(pluginPackageAttribute -> pluginPackageEntityDto.attributes
@@ -149,36 +148,7 @@ public class PluginPackageEntityDto {
         return pluginPackageEntity;
     }
 
-    /**
-     * @return transformed entity domain object
-     * @param pluginPackageDataModel
-     */
-    public PluginPackageEntity toDomain(PluginPackageDataModel pluginPackageDataModel) {
-        PluginPackageEntity pluginPackageEntity = new PluginPackageEntity();
-        pluginPackageEntity.setPluginPackageDataModel(pluginPackageDataModel);
-
-        if (this.getName() != null) {
-            pluginPackageEntity.setName(this.getName());
-        }
-
-        if (this.getDescription() != null) {
-            pluginPackageEntity.setDescription(this.getDescription());
-        }
-
-        if (this.getDisplayName() != null) {
-            pluginPackageEntity.setDisplayName(this.getDisplayName());
-        }
-        if (this.getAttributes() != null) {
-            List<PluginPackageAttribute> pluginPackageAttributeList = new ArrayList<>();
-            for (PluginPackageAttributeDto pluginPackageAttributeDto : this.getAttributes()) {
-                pluginPackageAttributeList.add(PluginPackageAttributeDto.toDomain(pluginPackageAttributeDto, null, pluginPackageEntity));
-            }
-            pluginPackageEntity.setPluginPackageAttributeList(pluginPackageAttributeList);
-        }
-        return pluginPackageEntity;
-    }
-
-    public void updateReferenceBy(Integer entityId, String packageName, String packageVersion, String name, String displayName) {
+    public void updateReferenceBy(Integer entityId, String packageName, String name, String displayName) {
         TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, packageVersion, name, displayName);
         this.referenceByEntityList.add(trimmedPluginPackageEntityDto);
     }
@@ -220,12 +190,12 @@ public class PluginPackageEntityDto {
         this.description = description;
     }
 
-    public String getPackageVersion() {
-        return packageVersion;
+    public String getDataModelId() {
+        return dataModelId;
     }
 
-    public void setPackageVersion(String packageVersion) {
-        this.packageVersion = packageVersion;
+    public void setDataModelId(String dataModelId) {
+        this.dataModelId = dataModelId;
     }
 
     public List<PluginPackageAttributeDto> getAttributes() {
