@@ -8,7 +8,6 @@ import org.springframework.util.StringUtils;
 public class PluginPackageAttributeDto {
     private Integer id;
     private String packageName;
-    private String packageVersion;
     private String entityName;
     private String name;
     private String description;
@@ -16,14 +15,12 @@ public class PluginPackageAttributeDto {
     private String refPackageName;
     private String refEntityName;
     private String refAttributeName;
-//    private String refPackageVersion;
 
     public PluginPackageAttributeDto(Integer attributeId,
                                      String name,
                                      String description,
                                      String dataType,
                                      String referencePackageName,
-                                     String referencePackageVersion,
                                      String referenceEntityName,
                                      String referenceAttributeName) {
         this.id = attributeId;
@@ -31,7 +28,6 @@ public class PluginPackageAttributeDto {
         this.description = description;
         this.dataType = dataType;
         this.refPackageName = referencePackageName;
-//        this.refPackageVersion = referencePackageVersion;
         this.refEntityName = referenceEntityName;
         this.refAttributeName = referenceAttributeName;
     }
@@ -47,15 +43,13 @@ public class PluginPackageAttributeDto {
     public static PluginPackageAttributeDto fromDomain(PluginPackageAttribute pluginPackageAttribute) {
         PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
         pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
-        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackageDataModel().getPluginPackage().getName());
-        pluginPackageAttributeDto.setPackageVersion(pluginPackageAttribute.getPluginPackageEntity().getPluginPackageDataModel().getPluginPackage().getVersion());
+        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
         pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntity().getName());
         pluginPackageAttributeDto.setName(pluginPackageAttribute.getName());
         pluginPackageAttributeDto.setDescription(pluginPackageAttribute.getDescription());
         pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
         if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
-            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPluginPackage().getName());
-//            pluginPackageAttributeDto.setRefPackageVersion(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackage().getVersion());
+            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
             pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
             pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
         }
@@ -133,15 +127,6 @@ public class PluginPackageAttributeDto {
         this.dataType = dataType;
     }
 
-
-    public String getPackageVersion() {
-        return packageVersion;
-    }
-
-    public void setPackageVersion(String packageVersion) {
-        this.packageVersion = packageVersion;
-    }
-
     public String getEntityName() {
         return entityName;
     }
@@ -182,13 +167,6 @@ public class PluginPackageAttributeDto {
         this.refAttributeName = refAttributeName;
     }
 
-//    public String getRefPackageVersion() {
-//        return refPackageVersion;
-//    }
-//
-//    public void setRefPackageVersion(String refPackageVersion) {
-//        this.refPackageVersion = refPackageVersion;
-//    }
 
     @Override
     public String toString() {

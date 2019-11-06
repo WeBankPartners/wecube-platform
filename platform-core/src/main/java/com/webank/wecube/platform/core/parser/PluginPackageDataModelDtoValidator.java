@@ -23,7 +23,7 @@ public class PluginPackageDataModelDtoValidator {
                 if (StringUtils.isEmpty(inputAttributeDto.getDataType())) {
                     String msg = String.format(
                             "The DataType should not be empty or null while registering he package [%s] with version: [%s]",
-                            inputEntityDto.getPackageName(), inputEntityDto.getPackageVersion());
+                            inputEntityDto.getPackageName(), inputEntityDto.getDataModelId());
                     logger.error(msg);
                     if (logger.isDebugEnabled()) {
                         logger.debug(String.valueOf(inputAttributeDto));
