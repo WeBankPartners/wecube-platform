@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.core.dto;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -108,11 +108,11 @@ public class PluginPackageEntityDto {
     public static PluginPackageEntityDto fromDomain(PluginPackageEntity pluginPackageEntity) {
         PluginPackageEntityDto pluginPackageEntityDto = new PluginPackageEntityDto();
         pluginPackageEntityDto.setId(pluginPackageEntity.getId());
-        pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackage().getName());
+        pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPluginPackage().getName());
         pluginPackageEntityDto.setName(pluginPackageEntity.getName());
         pluginPackageEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
         pluginPackageEntityDto.setDescription(pluginPackageEntity.getDescription());
-        pluginPackageEntityDto.setPackageVersion(pluginPackageEntity.getPluginPackage().getVersion());
+        pluginPackageEntityDto.setPackageVersion(pluginPackageEntity.getPluginPackageDataModel().getPluginPackage().getVersion());
         if (pluginPackageEntity.getPluginPackageAttributeList() != null) {
             pluginPackageEntity.getPluginPackageAttributeList()
                     .forEach(pluginPackageAttribute -> pluginPackageEntityDto.attributes
@@ -151,10 +151,11 @@ public class PluginPackageEntityDto {
 
     /**
      * @return transformed entity domain object
+     * @param pluginPackageDataModel
      */
-    public PluginPackageEntity toDomain(PluginPackage pluginPackage) {
+    public PluginPackageEntity toDomain(PluginPackageDataModel pluginPackageDataModel) {
         PluginPackageEntity pluginPackageEntity = new PluginPackageEntity();
-        pluginPackageEntity.setPluginPackage(pluginPackage);
+        pluginPackageEntity.setPluginPackageDataModel(pluginPackageDataModel);
 
         if (this.getName() != null) {
             pluginPackageEntity.setName(this.getName());
