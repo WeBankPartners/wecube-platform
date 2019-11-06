@@ -190,8 +190,7 @@ public class PluginPackageService {
         }
         pluginConfigRepository.saveAll(pluginConfigs);
 
-        savedPluginPackage.getPluginPackageDataModel().setPluginPackageEntities(pluginPackageEntityDtos.stream()
-                .map(it -> it.toDomain(savedPluginPackage.getPluginPackageDataModel())).collect(Collectors.toSet()));
+        savedPluginPackage.setPluginPackageDataModel(PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto));
         if (pluginPackageResourceFilesOptional.isPresent()) {
             Set<PluginPackageResourceFile> pluginPackageResourceFiles = newLinkedHashSet(
                     pluginPackageResourceFileRepository.saveAll(pluginPackageResourceFilesOptional.get()));
