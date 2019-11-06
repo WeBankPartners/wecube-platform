@@ -19,7 +19,7 @@ public class PluginPackageResourceFileControllerTest extends AbstractControllerT
     public void givenNoUiPackageWhenQueryResourceFileListThenReturnEmptyList() {
         mockPluginPackagesOnly();
         try{
-            mvc.perform(get("/v1/api/resource-files"))
+            mvc.perform(get("/v1/resource-files"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -35,7 +35,7 @@ public class PluginPackageResourceFileControllerTest extends AbstractControllerT
     public void givenPluginPackageWithUiPackageContainingMultipleResourceFilesWhenQueryResourceFileListThenReturnFileList() {
         mockPluginPackageWithMultipleResourceFiles();
         try{
-            mvc.perform(get("/v1/api/resource-files"))
+            mvc.perform(get("/v1/resource-files"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
