@@ -36,7 +36,6 @@
                 <xs:attribute type="xs:string" name="datatype" use="required"/>
                 <xs:attribute type="xs:string" name="description" use="optional"/>
                 <xs:attribute type="xs:string" name="refPackage" use="optional"/>
-                <xs:attribute type="xs:string" name="refVersion" use="optional"/>
                 <xs:attribute type="xs:string" name="refEntity" use="optional"/>
                 <xs:attribute type="xs:string" name="ref" use="optional"/>
             </xs:extension>
