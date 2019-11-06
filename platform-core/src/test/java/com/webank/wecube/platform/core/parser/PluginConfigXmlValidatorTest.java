@@ -33,7 +33,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false.xml");
             fail("Test should fail as missing resourceDependencies error");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("Invalid content was found starting with element 'plugins'. One of '{resourceDependencies}' is expected.");
+            assertThat(ex.getMessage()).contains("'{resourceDependencies}'");
         }
     }
 
@@ -43,7 +43,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false2.xml");
             fail("Test should fail as 'name' missing on 'packageDependency'");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("Attribute 'name' must appear on element 'packageDependency'.");
+            assertThat(ex.getMessage()).contains("'name'");
         }
     }
 
@@ -53,7 +53,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false3.xml");
             fail("Test should fail as 'code' missing on 'menu'");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("Attribute 'code' must appear on element 'menu'.");
+            assertThat(ex.getMessage()).contains("'code'");
         }
     }
 
@@ -63,7 +63,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false4.xml");
             fail("Test should fail as 'name' missing on 'entity'");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("Attribute 'name' must appear on element 'entity'.");
+            assertThat(ex.getMessage()).contains("'name'");
         }
     }
 
@@ -73,7 +73,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false5.xml");
             fail("Test should fail as 'imageName' missing on 'docker'");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("Attribute 'imageName' must appear on element 'docker'.");
+            assertThat(ex.getMessage()).contains("'imageName'");
         }
     }
 
@@ -83,7 +83,7 @@ public class PluginConfigXmlValidatorTest {
             validator.validate("/plugin/sample-plugin-config-v2-false6.xml");
             fail("Test should fail as 'docker' missing");
         } catch (WecubeCoreException ex) {
-            assertThat(ex.getMessage()).contains("Invalid content was found starting with element 'mysql'. One of '{docker}' is expected.");
+            assertThat(ex.getMessage()).contains("'{docker}'");
         }
     }
 }
