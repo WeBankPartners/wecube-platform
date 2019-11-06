@@ -17,7 +17,7 @@ export const MENUS = [
   {
     code: "MONITORING",
     cnName: "监测",
-    enName: "Guard"
+    enName: "Monitor"
   },
   {
     code: "INTELLIGENCE_OPS",
@@ -42,14 +42,14 @@ export const MENUS = [
   {
     code: "JOBS_INITIATOR",
     cnName: "本组发起",
-    enName: "Initiator",
+    enName: "Initiated",
     link: "/coming-soon"
     // /jobs/initiator
   },
   {
     code: "JOBS_EXECUTOR",
     cnName: "本组处理",
-    enName: "Executor",
+    enName: "Assigned",
     link: "/coming-soon"
     // /jobs/executor
   },
@@ -86,13 +86,13 @@ export const MENUS = [
   {
     code: "DESIGNING_CI_DATA_ENQUIRY",
     cnName: "CI数据查询",
-    enName: "CI Data Enquiry",
+    enName: "CI Data Query",
     link: "/designing/ci-data-enquiry"
   },
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT",
     cnName: "CI综合查询管理",
-    enName: "CI Integrate Query Management",
+    enName: "CI Integrated Query Management",
     link: "/designing/ci-integrated-query-management"
   },
   {
@@ -122,7 +122,7 @@ export const MENUS = [
   {
     code: "IMPLEMENTATION_APPLICATION_DEPLOYMENT",
     cnName: "应用部署",
-    enName: "Deployment",
+    enName: "Application Deployment",
     link: "/implementation/application-deployment"
   },
   {
@@ -218,13 +218,13 @@ export const MENUS = [
   {
     code: "COLLABORATION_PLUGIN_MANAGEMENT",
     cnName: "插件注册",
-    enName: "Plugin Manager",
+    enName: "Plugin Management",
     link: "/collaboration/plugin-management"
   },
   {
     code: "COLLABORATION_WORKFLOW_ORCHESTRATION",
     cnName: "任务编排",
-    enName: "Workflow Designing",
+    enName: "Workflow Orchestration",
     link: "/collaboration/workflow-orchestration"
   },
   {
@@ -242,13 +242,13 @@ export const MENUS = [
   {
     code: "ADMIN_BASE_DATA_MANAGEMENT",
     cnName: "基础数据管理",
-    enName: "Base Data Management",
+    enName: "Basic Data Management",
     link: "/admin/base-data-management"
   },
   {
     code: "IMPLEMENTATION_WORKFLOW_EXECUTION",
     cnName: "编排任务执行",
-    enName: "Workflow Exection",
+    enName: "Workflow Execution",
     link: "/implementation/workflow-execution"
   }
 ];
