@@ -14,6 +14,7 @@ import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.support.PluginPackageDataModelHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,14 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
 
     @Override
     public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto) {
+        /*
+        1. make sure related PluginPackage exists
+        2. DataModel1=Dto.toDomain(). DateModel2=getLatestDataModelForPluginPackage(packageName), if dataModel1.equals(dataModel2), throws exception.
+        3. update DataModel1.version = DateModel2.version + 1
+        4. buildReferenceNameMap
+        5. buildNameToAttributeMap
+        6. Update DataModel1
+         */
         Optional<PluginPackage> foundPackageByNameAndVersion = pluginPackageRepository.findTop1ByNameOrderByVersionDesc(
                 pluginPackageDataModelDto.getPackageName());
 
@@ -74,6 +83,17 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             throw new WecubeCoreException(msg);
         }
 
+        PluginPackage pluginPackage = foundPackageByNameAndVersion.get();
+
+        PluginPackageDataModel transferredPluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
+        Optional<PluginPackageDataModel> pluginPackageDataModelOptional = dataModelRepository.findLatestDataModelByPackageName(pluginPackageDataModelDto.getPackageName());
+        if (pluginPackageDataModelOptional.isPresent()) {
+            PluginPackageDataModel dataModelFromDatabase = pluginPackageDataModelOptional.get();
+            if (PluginPackageDataModelHelper.isDataModelSameAsAnother(transferredPluginPackageDataModel, dataModelFromDatabase)) {
+                throw new WecubeCoreException("Refreshed data model is same as existing latest one.");
+            }
+            transferredPluginPackageDataModel.setVersion(dataModelFromDatabase.getVersion() + 1);
+        }
 
         return null;
     }
@@ -131,8 +151,8 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             for (PluginPackageAttributeDto inputAttributeDto : inputEntityDto.getAttributes()) {
                 if (StringUtils.isEmpty(inputAttributeDto.getDataType())) {
                     String msg = String.format(
-                            "The DataType should not be empty or null while registering he package [%s] with version: [%s]",
-                            inputEntityDto.getPackageName(), inputEntityDto.getPackageVersion());
+                            "The DataType should not be empty or null while registering the package [%s]",
+                            inputEntityDto.getPackageName());
                     logger.error(msg);
                     if (logger.isDebugEnabled()) {
                         logger.debug(String.valueOf(inputAttributeDto));
@@ -174,7 +194,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             // if latest version of entity is not found, then do nothing.
             // by default, the data model version is 1
             Optional<PluginPackageEntity> latestVersionOfEntity = pluginPackageEntityRepository.findTop1ByPluginPackage_NameAndNameOrderByDataModelVersionDesc(inputEntityDto.getPackageName(), inputEntityDto.getName());
-            latestVersionOfEntity.ifPresent(entity -> transferedEntity.setDataModelVersion(entity.getDataModelVersion() + 1));
             // query the plugin package domain object by package name and version recorded in entity dto
             Optional<PluginPackage> foundPackageByNameAndVersion = pluginPackageRepository.findTop1ByNameOrderByVersionDesc(
                     inputEntityDto.getPackageName());
@@ -219,10 +238,14 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
 
 
         PluginPackageDataModel transferredPluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
-        Optional<PluginPackageDataModel> pluginPackageDataModelOptional = dataModelRepository.findLatestDataModelByPluginPackage_name(pluginPackageDataModelDto.getPackageName());
-        pluginPackageDataModelOptional.ifPresent(dataModel->transferredPluginPackageDataModel.setVersion(pluginPackageDataModelOptional.get().getVersion() + 1));
-
-        transferredPluginPackageDataModel.setPluginPackage(foundPackageByNameAndVersion.get());
+        Optional<PluginPackageDataModel> pluginPackageDataModelOptional = dataModelRepository.findLatestDataModelByPackageName(pluginPackageDataModelDto.getPackageName());
+        if (pluginPackageDataModelOptional.isPresent()) {
+            PluginPackageDataModel dataModelFromDatabase = pluginPackageDataModelOptional.get();
+            if (PluginPackageDataModelHelper.isDataModelSameAsAnother(transferredPluginPackageDataModel, dataModelFromDatabase)) {
+                throw new WecubeCoreException("Refreshed data model is same as existing latest one.");
+            }
+            transferredPluginPackageDataModel.setVersion(dataModelFromDatabase.getVersion() + 1);
+        }
 
         Set<PluginPackageEntity> candidateEntityList = new LinkedHashSet<>();
         for (PluginPackageEntityDto inputEntityDto : pluginPackageDataModelDto.getPluginPackageEntities()) {
@@ -244,15 +267,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             // transfer from entity dto to entity domain object
             PluginPackageEntity transferedEntity = PluginPackageEntityDto.toDomain(inputEntityDto);
 
-            // update transferred entity with latest data model version
-            // if latest version of entity is not found, then do nothing.
-            // by default, the data model version is 1
-            Optional<PluginPackageEntity> latestVersionOfEntity = pluginPackageEntityRepository.findTop1ByPluginPackage_NameAndNameOrderByDataModelVersionDesc(inputEntityDto.getPackageName(), inputEntityDto.getName());
-            latestVersionOfEntity.ifPresent(entity -> transferedEntity.setDataModelVersion(entity.getDataModelVersion() + 1));
-            // query the plugin package domain object by package name and version recorded in entity dto
-
-
-            transferedEntity.setPluginPackageDataModel(foundPackageByNameAndVersion.get().getPluginPackageDataModel());
+            transferedEntity.setPluginPackageDataModel(transferredPluginPackageDataModel);
 
             for (PluginPackageAttribute transferedAttribute : transferedEntity
                     .getPluginPackageAttributeList()) {
@@ -383,7 +398,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                     inputEntityDto.updateReferenceBy(
                             referenceByPackageId,
                             referenceByPackageName,
-                            referenceByPackageVersion,
                             referenceByEntityName,
                             displayName
                     );
@@ -403,7 +417,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                         inputEntityDto.updateReferenceTo(
                                 entityReferenceToDto.getId(),
                                 entityReferenceToDto.getPackageName(),
-                                entityReferenceToDto.getPackageVersion(),
                                 entityReferenceToDto.getName(),
                                 entityReferenceToDto.getDisplayName()
                         );
