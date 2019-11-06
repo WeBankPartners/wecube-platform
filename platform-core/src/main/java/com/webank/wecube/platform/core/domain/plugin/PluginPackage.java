@@ -46,7 +46,6 @@ public class PluginPackage {
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageMenu> pluginPackageMenus = new LinkedHashSet<>();
 
-    @JsonManagedReference
     @Transient
     private PluginPackageDataModel pluginPackageDataModel;
 
