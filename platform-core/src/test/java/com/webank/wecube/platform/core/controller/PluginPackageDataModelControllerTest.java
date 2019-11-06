@@ -31,7 +31,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     @Test
     public void getAllDataModels() throws Exception {
         mockDataModel();
-        mvc.perform(get("/v1/api/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[*].name", contains("entity_1", "entity_2", "entity_3")))
                 .andDo(print())
@@ -41,7 +41,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     @Test
     public void getDataModelById() throws Exception {
         mockDataModel();
-        mvc.perform(get("/v1/api/packages/1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/packages/1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[*].packageName", contains("package_1", "package_1", "package_1")))
                 .andExpect(jsonPath("$.data[*].packageVersion", contains("1.0", "1.0", "1.0")))
@@ -53,7 +53,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     public void getDataModelByMockedPackage() throws Exception {
         uploadCorrectPackage();
         final int MOCK_DATAMODEL_NUMBER = 5;
-        mvc.perform(get("/v1/api/packages/1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/packages/1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Success")))
                 .andExpect(jsonPath("$.data", is(iterableWithSize(MOCK_DATAMODEL_NUMBER))))
@@ -94,6 +94,6 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
         pluginPackageService.setS3Client(new FakeS3Client());
         File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
         MockMultipartFile mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
-        mvc.perform(MockMvcRequestBuilders.multipart("/v1/api/packages").file(mockPluginPackageFile));
+        mvc.perform(MockMvcRequestBuilders.multipart("/v1/packages").file(mockPluginPackageFile));
     }
 }
