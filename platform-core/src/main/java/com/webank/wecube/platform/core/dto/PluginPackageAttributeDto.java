@@ -47,14 +47,14 @@ public class PluginPackageAttributeDto {
     public static PluginPackageAttributeDto fromDomain(PluginPackageAttribute pluginPackageAttribute) {
         PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
         pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
-        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackage().getName());
-        pluginPackageAttributeDto.setPackageVersion(pluginPackageAttribute.getPluginPackageEntity().getPluginPackage().getVersion());
+        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackageDataModel().getPluginPackage().getName());
+        pluginPackageAttributeDto.setPackageVersion(pluginPackageAttribute.getPluginPackageEntity().getPluginPackageDataModel().getPluginPackage().getVersion());
         pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntity().getName());
         pluginPackageAttributeDto.setName(pluginPackageAttribute.getName());
         pluginPackageAttributeDto.setDescription(pluginPackageAttribute.getDescription());
         pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
         if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
-            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackage().getName());
+            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPluginPackage().getName());
 //            pluginPackageAttributeDto.setRefPackageVersion(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackage().getVersion());
             pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
             pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
