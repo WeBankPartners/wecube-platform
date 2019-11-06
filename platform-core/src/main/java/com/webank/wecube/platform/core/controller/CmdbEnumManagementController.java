@@ -20,8 +20,7 @@ import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
 import static com.webank.wecube.platform.core.domain.MenuItem.*;
 
 @RestController
-@Slf4j
-@RequestMapping("/v1/api/cmdb")
+@RequestMapping("/v1/cmdb")
 public class CmdbEnumManagementController {
 
     @Autowired
