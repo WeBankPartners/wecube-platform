@@ -28,18 +28,6 @@ public class DataModelBaseListener implements DataModelListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterOp(DataModelParser.OpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOp(DataModelParser.OpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterLink(DataModelParser.LinkContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -52,25 +40,73 @@ public class DataModelBaseListener implements DataModelListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterNode(DataModelParser.NodeContext ctx) { }
+	@Override public void enterFetch(DataModelParser.FetchContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitNode(DataModelParser.NodeContext ctx) { }
+	@Override public void exitFetch(DataModelParser.FetchContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAttr(DataModelParser.AttrContext ctx) { }
+	@Override public void enterTo(DataModelParser.ToContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAttr(DataModelParser.AttrContext ctx) { }
+	@Override public void exitTo(DataModelParser.ToContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBy(DataModelParser.ByContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBy(DataModelParser.ByContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFwd_node(DataModelParser.Fwd_nodeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFwd_node(DataModelParser.Fwd_nodeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBwd_node(DataModelParser.Bwd_nodeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBwd_node(DataModelParser.Bwd_nodeContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterEntity(DataModelParser.EntityContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEntity(DataModelParser.EntityContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -88,25 +124,25 @@ public class DataModelBaseListener implements DataModelListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterPkg_name(DataModelParser.Pkg_nameContext ctx) { }
+	@Override public void enterEty(DataModelParser.EtyContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitPkg_name(DataModelParser.Pkg_nameContext ctx) { }
+	@Override public void exitEty(DataModelParser.EtyContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterEntity(DataModelParser.EntityContext ctx) { }
+	@Override public void enterAttr(DataModelParser.AttrContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitEntity(DataModelParser.EntityContext ctx) { }
+	@Override public void exitAttr(DataModelParser.AttrContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
