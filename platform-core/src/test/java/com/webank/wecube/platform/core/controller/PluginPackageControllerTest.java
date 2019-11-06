@@ -47,7 +47,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     public void getMyMenusShouldReturnSuccess(){
         final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 42;
         try {
-            mvc.perform(get("/v1/api/my-menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get("/v1/my-menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data", is(iterableWithSize(MENU_NUM_WITH_BOTH_SYS_AND_CORE))))
@@ -62,7 +62,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     @Test
     public void givenZeroPluginPackageWhenQueryAllThenReturnSuccessWithZeroPluginPackage() {
         try {
-            mvc.perform(get("/v1/api/packages").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get("/v1/packages").contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -77,7 +77,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     @Test
     public void givenEmptyPluginPackageWhenUploadThenThrowException() {
         try {
-            MockHttpServletResponse response = mvc.perform(post("/v1/api/packages").contentType(MediaType.MULTIPART_FORM_DATA))
+            MockHttpServletResponse response = mvc.perform(post("/v1/packages").contentType(MediaType.MULTIPART_FORM_DATA))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Required request part 'zip-file' is not present")))
@@ -88,7 +88,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
 
         try {
-            MockHttpServletResponse response = mvc.perform(post("/v1/api/packages").contentType(MediaType.MULTIPART_FORM_DATA).content(new byte[0]))
+            MockHttpServletResponse response = mvc.perform(post("/v1/packages").contentType(MediaType.MULTIPART_FORM_DATA).content(new byte[0]))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Required request part 'zip-file' is not present")))
@@ -99,7 +99,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
 
         try {
-            MockHttpServletResponse response = mvc.perform(post("/v1/api/packages").contentType(MediaType.MULTIPART_FORM_DATA).content(new MockMultipartFile("zip-file", new byte[0]).getBytes()))
+            MockHttpServletResponse response = mvc.perform(post("/v1/packages").contentType(MediaType.MULTIPART_FORM_DATA).content(new MockMultipartFile("zip-file", new byte[0]).getBytes()))
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Required request part 'zip-file' is not present")))
                     .andDo(print())
@@ -123,7 +123,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
         assertThat(testPackage.exists()).isTrue();
         try {
-            mvc.perform(MockMvcRequestBuilders.multipart("/v1/api/packages").file(mockPluginPackageFile))
+            mvc.perform(MockMvcRequestBuilders.multipart("/v1/packages").file(mockPluginPackageFile))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("status", is("OK")))
                     .andExpect(jsonPath("message", is("Success")))
@@ -142,7 +142,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginPackage();
 
         try {
-            mvc.perform(get("/v1/api/packages").accept(MediaType.APPLICATION_JSON))
+            mvc.perform(get("/v1/packages").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2, 3, 4)))
                     .andExpect(jsonPath("$.data[*].name", contains("cmdb", "cmdb", "cmdb", "cmdb")))
@@ -159,7 +159,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginPackage();
 
         try {
-            mvc.perform(post("/v1/api/packages/register/1"))
+            mvc.perform(post("/v1/packages/register/1"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -175,7 +175,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginPackage();
 
         try {
-            mvc.perform(post("/v1/api/packages/register/1"))
+            mvc.perform(post("/v1/packages/register/1"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -191,7 +191,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginPackage();
 
         try {
-            mvc.perform(post("/v1/api/packages/decommission/1"))
+            mvc.perform(post("/v1/packages/decommission/1"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -208,7 +208,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
         try {
             int pluginPackageIdInRUNNINGStatus = 4;
-            mvc.perform(post("/v1/api/packages/decommission/" + pluginPackageIdInRUNNINGStatus))
+            mvc.perform(post("/v1/packages/decommission/" + pluginPackageIdInRUNNINGStatus))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Failed to decommission plugin package with error message [Failed to decommission Plugin[cmdb/v1.3] due to package is RUNNING]")))
@@ -252,7 +252,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
 
         try {
-            mvc.perform(get("/v1/api/packages/1/dependencies").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get("/v1/packages/1/dependencies").contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.packageName", is("service-management")))
                     .andExpect(jsonPath("$.data.dependencies[*].packageName", contains("xxx", "xxx233")))
@@ -268,7 +268,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     public void getDependenciesByWrongPackageIdShouldReturnError() {
         String wrongQueryId = "2";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/dependencies", wrongQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/dependencies", wrongQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is(String.format("Cannot find package by id: [%s]", wrongQueryId))))
@@ -290,7 +290,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/menus", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/menus", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data", is(iterableWithSize(MENU_NUM_WITH_BOTH_SYS_AND_CORE))))
@@ -305,7 +305,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     public void getMenuByWrongPackageIdShouldReturnError() {
         String wrongQueryId = "2";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/dependencies", wrongQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/dependencies", wrongQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is(String.format("Cannot find package by id: [%s]", wrongQueryId))))
@@ -326,7 +326,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
                     .andExpect(jsonPath("$.data[*].name", contains("xxx", "xxx")))
@@ -348,7 +348,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/authorities", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/authorities", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2, 3)))
                     .andExpect(jsonPath("$.data[*].roleName", contains("admin", "admin", "wecube_operator")))
@@ -369,7 +369,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/runtime-resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/runtime-resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.docker[0].id", is(1)))
                     .andExpect(jsonPath("$.data.mysql[0].id", is(1)))
@@ -394,7 +394,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
         String correctQueryId = "1";
         try {
-            mvc.perform(get(String.format("/v1/api/packages/%s/plugins", correctQueryId)))
+            mvc.perform(get(String.format("/v1/packages/%s/plugins", correctQueryId)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
                     .andExpect(jsonPath("$.data[0].entityId", is(5)))
@@ -413,7 +413,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         pluginPackageService.setS3Client(new FakeS3Client());
         File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
         MockMultipartFile mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
-        mvc.perform(MockMvcRequestBuilders.multipart("/v1/api/packages").file(mockPluginPackageFile));
+        mvc.perform(MockMvcRequestBuilders.multipart("/v1/packages").file(mockPluginPackageFile));
     }
 
 }
