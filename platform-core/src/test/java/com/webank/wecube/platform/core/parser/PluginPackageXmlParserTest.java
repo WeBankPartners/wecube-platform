@@ -38,7 +38,8 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackage.getPluginPackageRuntimeResourcesS3()).hasSize(1);
         assertThat(pluginPackage.getPluginConfigs()).hasSize(2);
 
-        assertThat(pluginPackageDto.getPluginPackageEntities()).hasSize(5);
+        assertThat(pluginPackageDto.getPluginPackageDataModelDto().isDynamic()).isTrue();
+        assertThat(pluginPackageDto.getPluginPackageDataModelDto().getPluginPackageEntities()).hasSize(5);
     }
 
 }

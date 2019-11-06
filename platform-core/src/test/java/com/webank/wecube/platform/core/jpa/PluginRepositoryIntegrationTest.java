@@ -110,7 +110,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     public void dataModelDataTypeTest() {
         // when correct data type is declared
         PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
-        PluginPackageEntity pluginPackageEntity_1 = new PluginPackageEntity(package_1, "entity_1", "entity_1",
+        PluginPackageEntity pluginPackageEntity_1 = new PluginPackageEntity(package_1.getPluginPackageDataModel(), "entity_1", "entity_1",
                 "entity_1_description");
         PluginPackageAttribute pluginPackageAttribute_1 = new PluginPackageAttribute(pluginPackageEntity_1, null,
                 "attribute_1", "attribute_1_description", "str");
@@ -121,7 +121,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         PluginPackage package_2 = mockPluginPackage("package_1", "1.0");
         String fail_code = "should_failed";
         try {
-            PluginPackageEntity pluginPackageEntity_2 = new PluginPackageEntity(package_2, "entity_1", "entity_1",
+            PluginPackageEntity pluginPackageEntity_2 = new PluginPackageEntity(package_2.getPluginPackageDataModel(), "entity_1", "entity_1",
                     "entity_1_description");
             PluginPackageAttribute pluginPackageAttribute_2 = new PluginPackageAttribute(pluginPackageEntity_2, null,
                     "attribute_1", "attribute_1_description", fail_code);
@@ -133,12 +133,16 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
 
     public static PluginPackage mockPluginPackage(String name, String version) {
         PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, new Timestamp(System.currentTimeMillis()), false,
-                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(),
+                newLinkedHashSet(), newLinkedHashSet(), null, newLinkedHashSet(), newLinkedHashSet(),
                 newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
         PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity",
                 PluginConfig.Status.DISABLED, newLinkedHashSet());
         mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
         mockPluginPackage.addPluginConfig(mockPlugin);
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        PluginPackageDataModel mockPluginPackageDataModel = new PluginPackageDataModel(null, , mockPluginPackage, mockPluginPackage.getName(), mockPluginPackage.getVersion(), false, null, null, now, null);
+        mockPluginPackage.setPluginPackageDataModel(mockPluginPackageDataModel);
 
         return mockPluginPackage;
     }
@@ -158,11 +162,11 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     public static List<PluginPackageEntity> mockPluginPackageEntityList(PluginPackage pluginPackage) {
         List<PluginPackageEntity> pluginPackageEntityList = new ArrayList<>();
         pluginPackageEntityList
-                .add(new PluginPackageEntity(pluginPackage, "entity_1", "entity_1", "entity_1_description"));
+                .add(new PluginPackageEntity(pluginPackage.getPluginPackageDataModel(), "entity_1", "entity_1", "entity_1_description"));
         pluginPackageEntityList
-                .add(new PluginPackageEntity(pluginPackage, "entity_2", "entity_2", "entity_2_description"));
+                .add(new PluginPackageEntity(pluginPackage.getPluginPackageDataModel(), "entity_2", "entity_2", "entity_2_description"));
         pluginPackageEntityList
-                .add(new PluginPackageEntity(pluginPackage, "entity_3", "entity_3", "entity_3_description"));
+                .add(new PluginPackageEntity(pluginPackage.getPluginPackageDataModel(), "entity_3", "entity_3", "entity_3_description"));
         return pluginPackageEntityList;
     }
 
