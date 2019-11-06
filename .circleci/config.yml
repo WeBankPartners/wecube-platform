@@ -17,7 +17,7 @@ jobs: # a collection of steps
       
       #- run: mvn -f wecube-core/pom.xml dependency:go-offline # gets the project dependencies
       
-      - run: mvn clean install  # run the actual tests
+      - run: mvn clean install -Dmaven.test.skip=true  # run the actual tests
 
       - save_cache: # saves the project dependencies
           paths:
