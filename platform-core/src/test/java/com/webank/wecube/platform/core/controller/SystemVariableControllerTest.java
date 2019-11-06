@@ -37,12 +37,12 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     public void getGlobalSystemVariables() throws Exception {
         mockSystemVariables();
 //        List<SystemVariable> global = systemVariableRepository.findAllByScopeType("global");
-        mvc.perform(get("/v1/api/system-variables/global").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/global").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data[*].name", contains("propA", "propB")))
                 .andExpect(jsonPath("$.data[*].value", contains("valueX", "valueY")));
 
-        mvc.perform(get("/v1/api/system-variables/global?status=active").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/global?status=active").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data[*].name", contains("propA")))
                 .andExpect(jsonPath("$.data[*].value", contains("valueX")));
@@ -52,12 +52,12 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     public void getSystemVariables() throws Exception {
         mockSystemVariables();
 
-        mvc.perform(get("/v1/api/system-variables?scope-type=plugin-package&scope-value=qcloud").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables?scope-type=plugin-package&scope-value=qcloud").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data[*].name", contains("propC", "propC")))
                 .andExpect(jsonPath("$.data[*].value", contains("valueZ", "valuez")));
 
-        mvc.perform(get("/v1/api/system-variables?scope-type=plugin-package&scope-value=qcloud&status=active").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables?scope-type=plugin-package&scope-value=qcloud&status=active").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data[*].name", contains("propC")))
                 .andExpect(jsonPath("$.data[*].value", contains("valuez")));
@@ -67,12 +67,12 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     public void getAllSystemVariables() throws Exception {
         mockSystemVariables();
 
-        mvc.perform(get("/v1/api/system-variables/all").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/all").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data[*].name", contains("propA", "propB", "propC", "propC")))
                 .andExpect(jsonPath("$.data[*].value", contains("valueX", "valueY", "valueZ", "valuez")));
 
-        mvc.perform(get("/v1/api/system-variables/all?status=active").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/all?status=active").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data[*].name", contains("propA", "propC")))
                 .andExpect(jsonPath("$.data[*].value", contains("valueX", "valuez")));
@@ -86,7 +86,7 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         variable.setValue("mockVariableValue");
         variable.setScopeType("global");
 
-        mvc.perform(post("/v1/api/system-variables/save").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable))))
+        mvc.perform(post("/v1/system-variables/save").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable))))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data[*].name", contains("mockVariable")))
                 .andExpect(jsonPath("$.data[*].value", contains("mockVariableValue")))
@@ -102,7 +102,7 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         assertThat(variable.getId()).isGreaterThan(0);
 
         // create-verify
-        mvc.perform(get("/v1/api/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.name", is("mockVariable")))
                 .andExpect(jsonPath("$.data.value", is("mockVariableValue")))
@@ -111,39 +111,39 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         // update
         variable.setValue("UpdatedVariableValue");
 
-        mvc.perform(post("/v1/api/system-variables/save").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable))))
+        mvc.perform(post("/v1/system-variables/save").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable))))
                 .andExpect(jsonPath("$.status", is("OK")));
 
         // update-verify
-        mvc.perform(get("/v1/api/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.name", is("mockVariable")))
                 .andExpect(jsonPath("$.data.value", is("UpdatedVariableValue")));
 
         // disable
-        mvc.perform(post("/v1/api/system-variables/disable").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
+        mvc.perform(post("/v1/system-variables/disable").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
                 .andExpect(jsonPath("$.status", is("OK")));
         
         // disable-verify
-        mvc.perform(get("/v1/api/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.status", is("inactive")));
         
         // enable
-        mvc.perform(post("/v1/api/system-variables/enable").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
+        mvc.perform(post("/v1/system-variables/enable").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
                 .andExpect(jsonPath("$.status", is("OK")));
         
         // enable-verify
-        mvc.perform(get("/v1/api/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.status", is("active")));
         
         // delete
-        mvc.perform(post("/v1/api/system-variables/delete").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
+        mvc.perform(post("/v1/system-variables/delete").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable.getId()))))
                 .andExpect(jsonPath("$.status", is("OK")));
 
         // delete-verify
-        mvc.perform(get("/v1/api/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/system-variables/" + variable.getId()).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(jsonPath("$.status", is("ERROR")))
                 .andExpect(jsonPath("$.message", is("System Variable not found for id: " + variable.getId())));
     }

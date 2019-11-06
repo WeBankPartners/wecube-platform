@@ -7,12 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.service.UserManagerService;
 
 @Controller
+@RequestMapping("/v1")
 public class HomeController {
 
     @Autowired
@@ -35,7 +37,7 @@ public class HomeController {
         return "home.html";
     }
 
-    @GetMapping("/v1/api/my-menus")
+    @GetMapping("/my-menus")
     @ResponseBody
     public JsonResponse getMenuItems(Principal principal) {
         return okay().withData(userManagerService.getAllMenus());
