@@ -26,12 +26,12 @@ import java.util.*;
 
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
-    @Autowired
-    PluginPackageDataModelServiceImpl dataModelService;
-    @Autowired
-    PluginPackageEntityRepository entityRepository;
-    @Autowired
-    PluginPackageAttributeRepository attributeRepository;
+//    @Autowired
+//    PluginPackageDataModelServiceImpl dataModelService;
+//    @Autowired
+//    PluginPackageEntityRepository entityRepository;
+//    @Autowired
+//    PluginPackageAttributeRepository attributeRepository;
 
     private String gatewayUrl;
     private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
@@ -47,30 +47,46 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
 
 
     @Override
-    public Stack<DataModelExpressionDto> fetchData(String gatewayUrl, String dataModelExpression, String rootIdName, String rootIdData) throws WecubeCoreException {
-        this.setGatewayUrl(gatewayUrl);
-        Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
-        Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
-
-        if (expressionDtoQueue.size() == 0) {
-            String msg = String.format("Cannot extract information from the given expression [%s].", dataModelExpression);
+    public List<Stack<DataModelExpressionDto>> fetchData(String gatewayUrl, List<String> dataModelExpressionList, List<String> rootIdDataList) throws WecubeCoreException {
+        if (dataModelExpressionList.size() != rootIdDataList.size()) {
+            String msg = "The size of input data model expression and root id data mismatch.";
             logger.error(msg);
             throw new WecubeCoreException(msg);
         }
-        boolean isStart = true;
-        Map<String, String> lastRequestResult = new HashMap<>();
-        while (!expressionDtoQueue.isEmpty()) {
-            DataModelExpressionDto expressionDto = expressionDtoQueue.poll();
-            if (isStart) {
-                resolveLink(expressionDto, rootIdData);
-                isStart = false;
-            } else {
-                resolveLink(expressionDto, lastRequestResult);
+
+        this.setGatewayUrl(gatewayUrl);
+        List<Stack<DataModelExpressionDto>> resultList = new ArrayList<>();
+        int batchDataSize = dataModelExpressionList.size();
+
+        for (int i = 0; i < batchDataSize; i++) {
+            String dataModelExpression = dataModelExpressionList.get(i);
+            String rootIdData = rootIdDataList.get(i);
+            Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
+
+            Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
+
+            if (expressionDtoQueue.size() == 0) {
+                String msg = String.format("Cannot extract information from the given expression [%s].", dataModelExpression);
+                logger.error(msg);
+                throw new WecubeCoreException(msg);
             }
-            lastRequestResult = expressionDto.getReturnedJson().peek();
-            resultDtoStack.add(expressionDto);
+            boolean isStart = true;
+            Map<String, String> lastRequestResult = new HashMap<>();
+            while (!expressionDtoQueue.isEmpty()) {
+                DataModelExpressionDto expressionDto = expressionDtoQueue.poll();
+                if (isStart) {
+                    resolveLink(expressionDto, rootIdData);
+                    isStart = false;
+                } else {
+                    resolveLink(expressionDto, lastRequestResult);
+                }
+                lastRequestResult = expressionDto.getReturnedJson().peek();
+                resultDtoStack.add(expressionDto);
+            }
+            resultList.add(resultDtoStack);
         }
-        return resultDtoStack;
+
+        return resultList;
     }
 
     private void resolveLink(DataModelExpressionDto expressionDto, String rootIdData) throws WecubeCoreException {
@@ -147,9 +163,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null && expressionDto.getOpFetch() != null) {
             // route
             String attrName = expressionDto.getOpFetch().attr().getText();
-            Map<String, String> requestChainFinalResult = new HashMap<>();
-            requestChainFinalResult.put("finalResult", lastRequestResult.get(attrName));
-            expressionDto.getReturnedJson().add(requestChainFinalResult);
+            expressionDto.setResultValue(lastRequestResult.get(attrName));
         }
     }
 
