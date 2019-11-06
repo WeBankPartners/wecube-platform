@@ -18,7 +18,7 @@ import com.webank.wecube.platform.core.dto.SqlQueryRequest;
 import com.webank.wecube.platform.core.service.resource.ResourceDataQueryService;
 
 @RestController()
-@RequestMapping("/packages/{package_id}/resources")
+@RequestMapping("/v1/packages/{package_id}/resources")
 public class ResourceDataController {
     private Logger logger = LoggerFactory.getLogger(ResourceDataController.class);
     

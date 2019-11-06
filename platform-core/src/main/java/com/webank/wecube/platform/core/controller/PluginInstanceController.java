@@ -7,6 +7,8 @@ import com.webank.wecube.platform.core.service.PluginInstanceService;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
@@ -17,8 +19,10 @@ import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
 import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
 
 @RestController
-@Slf4j
+@RequestMapping("/v1")
 public class PluginInstanceController {
+
+    private static final Logger log = LoggerFactory.getLogger(PluginInstanceController.class);
 
     @Autowired
     private PluginInstanceService pluginInstanceService;
