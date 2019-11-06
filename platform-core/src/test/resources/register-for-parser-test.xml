@@ -27,7 +27,7 @@
         <entity name="service_pipeline" displayName="服务通道" description="服务通道模型">
             <attribute name="id" datatype="int" description="唯一ID"/>
             <attribute name="service_catalogue_id" datatype='ref' description="所属服务目录"
-                       refPackage="service-management" refVersion="v0.1" refEntity="service_catalogue" ref="id"/>
+                       refPackage="service-management" refEntity="service_catalogue" ref="id"/>
             <attribute name="name" datatype="str" description="名字"/>
             <attribute name="owner_role_id" datatype="int" description="所属角色"/> <!--应该是ref到角色ID，目前暂无-->
             <attribute name="status" datatype="str" description="状态"/>
@@ -35,7 +35,7 @@
         <entity name="service_request_template" displayName="服务请求模板" description="服务请求模板模型">
             <attribute name="id" datatype="int" description="唯一ID"/>
             <attribute name="service_pipeline_id" datatype='ref' description="所属服务通道"
-                       refPackage="service-management" refVersion="v0.1" refEntity="service_pipeline" ref="id"/>
+                       refPackage="service-management" refEntity="service_pipeline" ref="id"/>
             <attribute name="name" datatype="str" description="名字"/>
             <attribute name="process_defined_key" datatype="str" description="名字"/>
             <attribute name="status" datatype="str" description="状态"/>
@@ -43,7 +43,7 @@
         <entity name="service_request" displayName="服务请求" description="服务请求模型">
             <attribute name="id" datatype="int" description="唯一ID"/>
             <attribute name="template_id" datatype='ref' description="所属服务模板"
-                       refPackage="service-management" refVersion="v0.1" refEntity="service_request_template" ref="id"/>
+                       refPackage="service-management" refEntity="service_request_template" ref="id"/>
             <attribute name="reporter" datatype="str" description="上报人"/>
             <attribute name="reporter_role_id" datatype="str" description="上报角色ID"/>
             <attribute name="report_time" datatype="timestamp" description="上报时间"/>
@@ -55,7 +55,7 @@
         <entity name="task" displayName="任务" description="任务模型">
             <attribute name="id" datatype="int" description="唯一ID"/>
             <attribute name="service_request_id" datatype='ref' description="所属服务请求"
-                       refPackage="service-management" refVersion="v0.1" refEntity="service_request" ref="id"/>
+                       refPackage="service-management" refEntity="service_request" ref="id"/>
             <attribute name="process_instance_id" datatype="str" description="流程实例ID"/>
             <attribute name="callback_url" datatype="int" description="回调url"/>
             <attribute name="name" datatype="int" description="任务名称"/>
