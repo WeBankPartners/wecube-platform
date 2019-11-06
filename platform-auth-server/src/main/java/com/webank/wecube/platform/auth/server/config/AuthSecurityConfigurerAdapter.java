@@ -3,6 +3,7 @@ package com.webank.wecube.platform.auth.server.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.support.ErrorPageFilter;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,7 @@ import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
  * @author gavin
  *
  */
+@EnableConfigurationProperties({ AuthServerProperties.class })
 public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = { //
 //            "/v1/api/login", //
@@ -45,7 +47,10 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
     protected Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private LocalUserDetailsService userDetailsService;
+    protected LocalUserDetailsService userDetailsService;
+    
+    @Autowired
+    protected AuthServerProperties authServerProperties;
 
     protected String[] getAuthWhiteList() {
         return AUTH_WHITELIST;
@@ -64,9 +69,9 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
                 .securityContextRepository(new JwtSsoBasedSecurityContextRepository()) //
                 .and() //
                 .addFilterBefore(jwtSsoBasedLoginFilter(), SecurityContextPersistenceFilter.class) //
-                .addFilterBefore(new JwtSsoBasedRefreshTokenFilter(authenticationManager()),
+                .addFilterBefore(new JwtSsoBasedRefreshTokenFilter(authenticationManager(), authServerProperties),
                         SecurityContextPersistenceFilter.class) //
-                .addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager()))//
+                .addFilter(new JwtSsoBasedAuthenticationFilter(authenticationManager(), authServerProperties))//
                 .authorizeRequests() //
                 .antMatchers(getAuthWhiteList()) //
                 .permitAll() //
@@ -82,7 +87,7 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
     }
 
     protected JwtSsoBasedLoginFilter jwtSsoBasedLoginFilter() throws Exception {
-        JwtSsoBasedLoginFilter f = new JwtSsoBasedLoginFilter(authenticationManager());
+        JwtSsoBasedLoginFilter f = new JwtSsoBasedLoginFilter(authenticationManager(), authServerProperties);
         f.setAuthenticationFailureHandler(new JwtSsoBasedAuthenticationFailureHandler());
 
         return f;
