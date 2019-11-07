@@ -100,6 +100,6 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
 
     @Override
     public int compareTo(MenuItemDto o) {
-        return this.getCode().compareTo(o.getCode());
+        return this.getId().compareTo(o.getId());
     }
 }
