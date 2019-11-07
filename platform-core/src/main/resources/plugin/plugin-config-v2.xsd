@@ -50,7 +50,7 @@
     <xs:attribute type="xs:string" name="description" use="optional"/>
   </xs:complexType>
   <xs:complexType name="dataModelType">
-    <xs:sequence>
+    <xs:sequence minOccurs="0">
       <xs:element type="entityType" name="entity" maxOccurs="unbounded"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="isDynamic" default="false"/>
