@@ -27,7 +27,7 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
     private String requestId;
 
     @Column(name = "OBJ_ID")
-    private String objectId; // TODO
+    private String objectId; 
 
     @Column(name = "PARAM_TYPE")
     private String paramType;
