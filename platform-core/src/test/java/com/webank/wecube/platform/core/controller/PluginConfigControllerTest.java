@@ -40,7 +40,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(NON_EXIST_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/api/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
+            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("PluginPackageEntity not found for id: " + NON_EXIST_ENTITY_ID)))
@@ -66,7 +66,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/api/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
+            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -96,7 +96,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/api/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
+            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Not allow to update plugin with status: ENABLED")))
@@ -120,7 +120,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/api/plugins/enable/" + enabledPluginConfigId))
+            mvc.perform(post("/v1/plugins/enable/" + enabledPluginConfigId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Not allow to enable pluginConfig with status: ENABLED")))
@@ -144,7 +144,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/api/plugins/enable/"+existingPluginConfigId))
+            mvc.perform(post("/v1/plugins/enable/"+existingPluginConfigId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.")))
@@ -169,7 +169,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/api/plugins/enable/"+existingPluginConfigId))
+            mvc.perform(post("/v1/plugins/enable/"+existingPluginConfigId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -192,7 +192,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginConfig();
 
         try {
-            mvc.perform(post("/v1/api/plugins/disable/" + NON_EXIST_PLUGIN_CONFIG_ID))
+            mvc.perform(post("/v1/plugins/disable/" + NON_EXIST_PLUGIN_CONFIG_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("PluginConfig not found for id: " + NON_EXIST_PLUGIN_CONFIG_ID)))
@@ -210,7 +210,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         assertThat(pluginConfigRepository.existsById(NON_EXIST_PLUGIN_CONFIG_ID)).isFalse();
 
         try {
-            mvc.perform(post("/v1/api/plugins/disable/" + NON_EXIST_PLUGIN_CONFIG_ID))
+            mvc.perform(post("/v1/plugins/disable/" + NON_EXIST_PLUGIN_CONFIG_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("PluginConfig not found for id: " + NON_EXIST_PLUGIN_CONFIG_ID)))
@@ -234,7 +234,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         assertThat(pluginConfig.getStatus()).isNotEqualTo(PluginConfig.Status.ENABLED);
 
         try {
-            mvc.perform(post("/v1/api/plugins/disable/" + existingPluginConfigId))
+            mvc.perform(post("/v1/plugins/disable/" + existingPluginConfigId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
