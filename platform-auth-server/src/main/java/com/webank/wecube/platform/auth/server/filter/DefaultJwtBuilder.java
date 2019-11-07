@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationToken;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
+import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
 import com.webank.wecube.platform.auth.server.config.AuthServerProperties;
 import com.webank.wecube.platform.auth.server.model.JwtToken;
 
@@ -28,7 +29,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
     
     private static final Logger log = LoggerFactory.getLogger(DefaultJwtBuilder.class);
 
-    private static final String SIGNING_KEY = "platform-auth-server-@Jwt!&Secret^#";
+    private static final String SIGNING_KEY = "platform-auth-server-Secret";
     
     private AuthServerProperties.JwtTokenProperties jwtTokenProperties;
     
@@ -51,7 +52,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
                 .setIssuedAt(now) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType).setExpiration(expireTime) //
-                .signWith(SignatureAlgorithm.HS512, SIGNING_KEY) //
+                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(SIGNING_KEY)) //
                 .compact(); //
 
         return new JwtToken(refreshToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH, expireTime.getTime());
@@ -74,7 +75,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType) //
                 .setExpiration(expireTime) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_AUTHORITIES, sAuthorities) //
-                .signWith(SignatureAlgorithm.HS512, SIGNING_KEY) //
+                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(SIGNING_KEY)) //
                 .compact(); //
         return new JwtToken(accessToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS, expireTime.getTime());
     }
