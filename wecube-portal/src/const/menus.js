@@ -98,7 +98,7 @@ export const MENUS = [
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_EXECUTION",
     cnName: "CI数据综合查询",
-    enName: "CI Integrate Query",
+    enName: "CI Integrated Query",
     link: "/designing/ci-integrated-query-execution"
   },
   {
@@ -131,90 +131,90 @@ export const MENUS = [
     enName: "Batch Job",
     link: "/implementation/batch-job"
   },
-  {
-    code: "IMPLEMENTATION_HIGH_RISK_INSTRUCTION_MANAGEMENT",
-    cnName: "高危指令配置",
-    enName: "High Risk Instruction Management",
-    link: "/coming-soon"
+//  {
+//    code: "IMPLEMENTATION_HIGH_RISK_INSTRUCTION_MANAGEMENT",
+//    cnName: "高危指令配置",
+//    enName: "High Risk Instruction Management",
+//    link: "/coming-soon"
     // /implementation/high-risk-instruction-management
-  },
-  {
-    code: "MONITORING_BASIC_MONITOR_MANAGEMENT",
-    cnName: "基础监控管理",
-    enName: "Common Management",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "MONITORING_BASIC_MONITOR_MANAGEMENT",
+//    cnName: "基础监控管理",
+//    enName: "Common Management",
+//    link: "/coming-soon"
     // /monitoring/basic-monitor-management
-  },
-  {
-    code: "MONITORING_APPLICATION_MONITOR_MANAGEMENT",
-    cnName: "应用监控管理",
-    enName: "Application Management",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "MONITORING_APPLICATION_MONITOR_MANAGEMENT",
+//    cnName: "应用监控管理",
+//    enName: "Application Management",
+//    link: "/coming-soon"
     // /monitoring/application-monitor-management
-  },
-  {
-    code: "MONITORING_CONTROL_PANEL_SETTING",
-    cnName: "监控面板配置",
-    enName: "Panel Setting",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "MONITORING_CONTROL_PANEL_SETTING",
+//    cnName: "监控面板配置",
+//    enName: "Panel Setting",
+//    link: "/coming-soon"
     // /monitoring/control-panel-setting
-  },
-  {
-    code: "MONITORING_DISCOVERY",
-    cnName: "现实发现",
-    enName: "Discovery",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "MONITORING_DISCOVERY",
+//    cnName: "现实发现",
+//    enName: "Discovery",
+//    link: "/coming-soon"
     // /monitoring/discovery
-  },
-  {
-    code: "MONITORING_CONSISTENCE_MANAGEMENT",
-    cnName: "一致性管理",
-    enName: "Consistence Management",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "MONITORING_CONSISTENCE_MANAGEMENT",
+//    cnName: "一致性管理",
+//    enName: "Consistence Management",
+//    link: "/coming-soon"
     // /monitoring/consistence-management
-  },
-  {
-    code: "ADJUSTMENT_TENDENCY",
-    cnName: "趋势管理",
-    enName: "Tendency",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "ADJUSTMENT_TENDENCY",
+//    cnName: "趋势管理",
+//    enName: "Tendency",
+//    link: "/coming-soon"
     // /adjustment/tendency
-  },
-  {
-    code: "ADJUSTMENT_ROOT_CAUSE_INVESTIGATION",
-    cnName: "根因分析",
-    enName: "Root Cause Investigation",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "ADJUSTMENT_ROOT_CAUSE_INVESTIGATION",
+//    cnName: "根因分析",
+//    enName: "Root Cause Investigation",
+//    link: "/coming-soon"
     // /adjustment/root-cause-investigation
-  },
-  {
-    code: "ADJUSTMENT_EXPANSION",
-    cnName: "趋势扩容",
-    enName: "Expansion",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "ADJUSTMENT_EXPANSION",
+//    cnName: "趋势扩容",
+//    enName: "Expansion",
+//    link: "/coming-soon"
     // /adjustment/expansion
-  },
-  {
-    code: "ADJUSTMENT_RECOVERY",
-    cnName: "故障恢复",
-    enName: "Recovery",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "ADJUSTMENT_RECOVERY",
+//    cnName: "故障恢复",
+//    enName: "Recovery",
+//    link: "/coming-soon"
     // /adjustment/recovery
-  },
-  {
-    code: "INTELLIGENCE_OPS_MODELING",
-    cnName: "数据建模",
-    enName: "Modeling",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "INTELLIGENCE_OPS_MODELING",
+//    cnName: "数据建模",
+//    enName: "Modeling",
+//    link: "/coming-soon"
     // /intelligence/ops-modeling
-  },
-  {
-    code: "INTELLIGENCE_OPS_DATA_SYNCHRONIZATION",
-    cnName: "数据同步",
-    enName: "Data Synchronization",
-    link: "/coming-soon"
+//  },
+//  {
+//    code: "INTELLIGENCE_OPS_DATA_SYNCHRONIZATION",
+//    cnName: "数据同步",
+//    enName: "Data Synchronization",
+//    link: "/coming-soon"
     // /intelligence/ops-data-synchronization
-  },
+//  },
   {
     code: "COLLABORATION_PLUGIN_MANAGEMENT",
     cnName: "插件注册",
