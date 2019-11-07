@@ -10,7 +10,7 @@
             name="zip-file"
             :on-success="onSuccess"
             :on-error="onError"
-            action="api/platform/v1/packages"
+            action="platform/v1/packages"
             :headers="setUploadActionHeader"
           >
             <Button icon="ios-cloud-upload-outline">{{
