@@ -44,6 +44,7 @@ import com.webank.wecube.platform.core.support.cmdb.dto.v2.RoleCiTypeCtrlAttrDto
 import com.webank.wecube.platform.core.support.cmdb.dto.v2.RoleCiTypeDto;
 
 import lombok.extern.slf4j.Slf4j;
+import net.bytebuddy.asm.Advice.Return;
 
 @Service
 @Slf4j
@@ -129,15 +130,18 @@ public class UserManagerService {
 
         Map<String, Integer> categoryToId = pluginPackageService.updateCategoryToIdMapping(returnMenuDto);
 
-        PluginPackage.Status[] statusArray = {PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
-                PluginPackage.Status.STOPPED};
+        PluginPackage.Status[] statusArray = { PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
+                PluginPackage.Status.STOPPED };
         Optional<List<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findAllByStatus(statusArray);
         if (pluginPackagesOptional.isPresent()) {
             List<PluginPackage> packages = pluginPackagesOptional.get();
 
             for (PluginPackage packageDomain : packages) {
                 Set<PluginPackageMenu> packageMenus = packageDomain.getPluginPackageMenus();
-                for (PluginPackageMenu packageMenu : packageMenus) {
+                List<PluginPackageMenu> packageMenusList = sortPluginPackageMenusById(packageMenus);
+
+                for (int i = 0; i < packageMenusList.size(); i++) {
+                    PluginPackageMenu packageMenu = packageMenusList.get(i);
                     String transformedParentId = null;
                     Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
                     if (parentId == null) {
@@ -158,6 +162,12 @@ public class UserManagerService {
         Collections.sort(returnMenuDto);
 
         return returnMenuDto;
+    }
+
+    public List<PluginPackageMenu> sortPluginPackageMenusById(Set<PluginPackageMenu> packageMenus) {
+        List<PluginPackageMenu> packageMenusList = new ArrayList<>(packageMenus);
+        Collections.sort(packageMenusList);
+        return packageMenusList;
     }
 
     public List<String> getMenuItemsByRoleId(int roleId) {
