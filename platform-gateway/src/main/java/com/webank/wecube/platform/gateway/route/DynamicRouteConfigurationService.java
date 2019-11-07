@@ -35,7 +35,9 @@ import com.webank.wecube.platform.gateway.dto.GenericResponseDto;
 import com.webank.wecube.platform.gateway.dto.RouteItemInfoDto;
 import com.webank.wecube.platform.gateway.filter.factory.DynamicRouteProperties;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import wiremock.org.apache.commons.lang3.StringUtils;
 
 @Service
 public class DynamicRouteConfigurationService implements ApplicationEventPublisherAware {
@@ -44,12 +46,12 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     @Resource
     private RouteDefinitionRepository routeDefinitionRepository;
-    
+
     @Autowired
     private DynamicRouteProperties dynamicRouteProperties;
 
     private ApplicationEventPublisher publisher;
-    
+
     private Map<String, List<RouteItemInfoDto>> routeItems = new ConcurrentHashMap<>();
 
     @PostConstruct
@@ -58,71 +60,92 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
             log.info("{} applied", DynamicRouteConfigurationService.class.getSimpleName());
         }
 
-        loadRoutes();
+        try {
+            loadRoutes();
+        } catch (Exception e) {
+            log.warn("#########################################");
+            log.warn("failed to load default route items", e);
+
+        }
     }
 
     protected void loadRoutes() {
         log.info("start to load routes...");
-        
+
         List<RouteItemInfoDto> dtos = fetchAllRouteItems();
-        
-        for(RouteItemInfoDto d : dtos){
+
+        for (RouteItemInfoDto d : dtos) {
             String name = d.getName();
             List<RouteItemInfoDto> itemList = routeItems.get(name);
-            if(itemList == null){
+            if (itemList == null) {
                 itemList = new ArrayList<>();
                 routeItems.put(name, itemList);
             }
-            
+
             itemList.add(d);
         }
-        
+
         initRouteItems();
     }
-    
-    
-    protected void initRouteItems(){
+
+    protected void initRouteItems() {
         int count = 0;
-        for(String name : routeItems.keySet()){
+        for (String name : routeItems.keySet()) {
             List<RouteItemInfoDto> dtos = routeItems.get(name);
-            if(dtos == null || dtos.isEmpty()){
+            if (dtos == null || dtos.isEmpty()) {
                 continue;
             }
-            
+
             buildRouteDefinition(name, dtos.get(0));
             count++;
         }
-        
+
         log.info("add {} route definitions", count);
     }
-    
-    
-    protected void buildRouteDefinition(String name, RouteItemInfoDto dto){
+
+    protected void buildRouteDefinition(String name, RouteItemInfoDto dto) {
         RouteDefinition rd = new RouteDefinition();
         rd.setId(name + "-1");
         String urlStr = String.format("http://%s:%s", dto.getHost(), dto.getPort());
         URI uri = UriComponentsBuilder.fromHttpUrl(urlStr).build().toUri();
         rd.setUri(uri);
-        
+
         PredicateDefinition pd = new PredicateDefinition();
         pd.setName("Path");
         Map<String, String> predicateParams = new HashMap<>(8);
-        predicateParams.put("pattern", String.format("/%s/**", name));
+        predicateParams.put("pattern", String.format("/api/%s/**", name));
         pd.setArgs(predicateParams);
         rd.setPredicates(Arrays.asList(pd));
-        
-        
+
         FilterDefinition fd = new FilterDefinition();
         fd.setName("DynamicRoute");
         fd.addArg("enabled", "true");
-        
+
         rd.setFilters(Arrays.asList(fd));
-        
+
         add(rd);
-        
+
         log.info("### route added:{} {} {}", dto.getName(), dto.getHost(), dto.getPort());
     }
-       
+    
+    public List<RouteItemInfoDto> listAllRouteItems(){
+        Flux<RouteDefinition> flux =  routeDefinitionRepository.getRouteDefinitions();
+        List<RouteItemInfoDto> items = new ArrayList<>();
+        
+        flux.subscribe((rd) -> {
+            RouteItemInfoDto r = new RouteItemInfoDto();
+            r.setName(rd.getId());
+            r.setHost(rd.getUri().toString());
+            r.setPort("");
+            r.setSchema("http");
+            
+            items.add(r);
+            
+        });
+        
+        return items;
+    }
+
     protected List<RouteItemInfoDto> fetchAllRouteItems() {
         RestTemplate client = new RestTemplate();
 
@@ -147,17 +170,41 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
                 });
             }
         }
-        
-        if(routeItemInfoDtos == null){
+
+        if (routeItemInfoDtos == null) {
             routeItemInfoDtos = new ArrayList<>();
         }
 
-        
         return routeItemInfoDtos;
     }
 
     private void notifyChanged() {
         this.publisher.publishEvent(new RefreshRoutesEvent(this));
+    }
+
+    public void pushRouteItem(String name, List<RouteItemInfoDto> routeItems) {
+        if (StringUtils.isBlank(name)) {
+            log.error("name is blank.");
+            return;
+        }
+
+        if (routeItems == null || routeItems.isEmpty()) {
+            log.error("route items is empty for name:{}", name);
+            return;
+        }
+
+        if (routeItems.contains(name)) {
+            log.error("route items already exist for name:{}", name);
+            return;
+        }
+        
+        doPushRouteItem(name, routeItems);
+
+    }
+
+    protected void doPushRouteItem(String name, List<RouteItemInfoDto> routeItems) {
+        log.info("about to add route items for name {} size {}", name, routeItems.size());
+        buildRouteDefinition(name, routeItems.get(0));
     }
 
     public String add(RouteDefinition definition) {
@@ -199,7 +246,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.publisher = applicationEventPublisher;
     }
-    
+
     private static class RouteConfigInfoResponseDto extends GenericResponseDto<List<RouteItemInfoDto>> {
 
     }
