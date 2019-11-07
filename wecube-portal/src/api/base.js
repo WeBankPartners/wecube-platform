@@ -1,6 +1,6 @@
 import Vue from "vue";
 import axios from "axios";
-const baseURL = "v1/api/";
+const baseURL = "";
 const req = axios.create({
   withCredentials: true,
   baseURL,
@@ -23,7 +23,7 @@ req.interceptors.request.use(
         const accessToken = token.find(t => t.tokenType === "accessToken");
         const expiration = accessToken.expiration * 1 - currentTime;
         if (expiration < 9 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get("/auth/v1/api/token", {
+          refreshRequest = axios.get("api/auth/v1/token", {
             headers: {
               Authorization:
                 "Bearer " +
