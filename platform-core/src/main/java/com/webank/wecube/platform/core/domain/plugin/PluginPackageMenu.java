@@ -1,20 +1,22 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "plugin_package_menus")
-public class PluginPackageMenu {
+public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
 
     @Id
     @GeneratedValue
     private int id;
 
     @JsonBackReference
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH })
     @JoinColumn(name = "plugin_package_id")
     private PluginPackage pluginPackage;
 
@@ -30,7 +32,7 @@ public class PluginPackageMenu {
     @Column
     private String path;
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -82,7 +84,8 @@ public class PluginPackageMenu {
         super();
     }
 
-    public PluginPackageMenu(int id, PluginPackage pluginPackage, String code, String category, String displayName, String path) {
+    public PluginPackageMenu(int id, PluginPackage pluginPackage, String code, String category, String displayName,
+            String path) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.code = code;
@@ -93,6 +96,11 @@ public class PluginPackageMenu {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
+    }
+
+    @Override
+    public int compareTo(PluginPackageMenu compareObject) {
+        return this.getId().compareTo(compareObject.getId());
     }
 }
