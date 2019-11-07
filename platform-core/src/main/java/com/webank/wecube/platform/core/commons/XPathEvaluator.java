@@ -42,6 +42,14 @@ public class XPathEvaluator {
         return (String) evaluate(expression, document, XPathConstants.STRING);
     }
 
+    public Boolean getBoolean(String expression) throws XPathExpressionException {
+        return (Boolean) xPath.evaluate(expression, document, XPathConstants.BOOLEAN);
+    }
+
+    public Boolean getBoolean(String expression, Object node) throws XPathExpressionException {
+        return (Boolean) xPath.evaluate(expression, node, XPathConstants.BOOLEAN);
+    }
+
     public Number getNumber(String expression, Object node) throws XPathExpressionException {
         return (Number) evaluate(expression, node, XPathConstants.NUMBER);
     }
