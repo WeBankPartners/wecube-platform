@@ -33,8 +33,8 @@ public class ProcExecBindingEntity extends BaseTraceableEntity {
     @Column(name = "BIND_TYPE")
     private String bindType;
 
-    @Column(name = "OBJECT_ID")
-    private String objectId;
+    @Column(name = "ENTITY_ID")
+    private String entityId;
 
     public Integer getId() {
         return id;
@@ -68,12 +68,12 @@ public class ProcExecBindingEntity extends BaseTraceableEntity {
         this.bindType = bindType;
     }
 
-    public String getObjectId() {
-        return objectId;
+    public String getEntityId() {
+        return entityId;
     }
 
-    public void setObjectId(String objectId) {
-        this.objectId = objectId;
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
     }
 
     public String getProcDefId() {
