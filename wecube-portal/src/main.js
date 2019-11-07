@@ -59,6 +59,9 @@ window.addRoutes = (route, name) => {
 window.component = (name, comp) => {
   Vue.component(name, comp);
 };
+window.use = (lib, options) => {
+  Vue.use(lib, options);
+};
 
 const findPath = (routes, path) => {
   let found;
