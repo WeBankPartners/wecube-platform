@@ -21,9 +21,9 @@ public final class ApplicationConstants {
         public static final String VERSION_V1 = "v1";
         public static final String VERSION_V2 = "v2";
         public static final String VERSION_V3 = "v3";
-        public static final String PREFIX_VERSION_V1 = "/v1/api";
-        public static final String PREFIX_VERSION_V2 = "/v2/api";
-        public static final String PREFIX_VERSION_V3 = "/v3/api";
+        public static final String PREFIX_VERSION_V1 = "/v1";
+        public static final String PREFIX_VERSION_V2 = "/v2";
+        public static final String PREFIX_VERSION_V3 = "/v3";
         
         public static final String PREFIX_DEFAULT = PREFIX_VERSION_V1;
         

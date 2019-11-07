@@ -19,7 +19,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefService;
 
 @RestController
-@RequestMapping("/v1/api")
+@RequestMapping("/v1")
 public class WorkflowProcessDefinitionController {
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcessDefinitionController.class);
 

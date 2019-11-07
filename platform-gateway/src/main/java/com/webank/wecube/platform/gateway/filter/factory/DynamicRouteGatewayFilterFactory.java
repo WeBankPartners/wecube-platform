@@ -55,18 +55,31 @@ public class DynamicRouteGatewayFilterFactory
             Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
 
             if (route == null) {
-                log.warn("There is none route found for filter:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName());
+                log.warn("There is none route found for filter:{}",
+                        DynamicRouteGatewayFilterFactory.class.getSimpleName());
                 return chain.filter(exchange);
             }
 
-            log.info("route:{} {}", route.getId(), route.getUri().toString());
-
-            ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
+            if (log.isDebugEnabled()) {
+                log.debug("route:{} {}", route.getId(), route.getUri().toString());
+            }
 
             String newPath = req.getURI().getRawPath();
-            String baseUrl = determineBaseUrl(newPath);
+            String baseUrl = null;
+            try {
+                baseUrl = determineBaseUrl(newPath);
+            } catch (Exception e) {
+                log.error("errors while determining base url", e);
+                return chain.filter(exchange);
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("base url:{}", baseUrl);
+            }
+
             URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).build().toUri();
 
+            ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
             ServerHttpRequest request = req.mutate().uri(newUri).build();
 
             Route newRoute = Route.async().asyncPredicate(route.getPredicate()).filters(route.getFilters())
@@ -114,8 +127,8 @@ public class DynamicRouteGatewayFilterFactory
     }
 
     protected String calculateComponentPath(String path) {
-        if (path.startsWith("/")) {
-            path = path.substring(1);
+        if (path.startsWith("/api/")) {
+            path = path.substring(5);
         }
 
         if (path.indexOf("/") >= 0) {
