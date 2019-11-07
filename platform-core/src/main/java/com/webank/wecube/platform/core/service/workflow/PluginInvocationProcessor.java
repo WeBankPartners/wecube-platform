@@ -10,6 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 
@@ -38,6 +42,17 @@ public class PluginInvocationProcessor {
         private List<Map<String, Object>> pluginParameters;
         private String interfacePath;
         private String instanceHost;
+
+        private PluginInterfaceInvocationContext pluginInterfaceInvocationContext;
+
+        public PluginInterfaceInvocationContext getPluginInterfaceInvocationContext() {
+            return pluginInterfaceInvocationContext;
+        }
+
+        public void setPluginInterfaceInvocationContext(
+                PluginInterfaceInvocationContext pluginInterfaceInvocationContext) {
+            this.pluginInterfaceInvocationContext = pluginInterfaceInvocationContext;
+        }
 
         public PluginServiceStub getPluginServiceStub() {
             return pluginServiceStub;
@@ -78,29 +93,34 @@ public class PluginInvocationProcessor {
         public void setInstanceHost(String instanceHost) {
             this.instanceHost = instanceHost;
         }
-        
+
         public PluginInvocationOperation withInstanceHost(String instanceHost) {
             this.instanceHost = instanceHost;
             return this;
         }
-        
+
         public PluginInvocationOperation withInterfacePath(String interfacePath) {
             this.interfacePath = interfacePath;
             return this;
         }
-        
+
         public PluginInvocationOperation withPluginParameters(List<Map<String, Object>> pluginParameters) {
             this.pluginParameters = pluginParameters;
             return this;
         }
-        
+
         public PluginInvocationOperation withCallback(Consumer<PluginInterfaceInvocationResult> callback) {
             this.callback = callback;
             return this;
         }
-        
+
         public PluginInvocationOperation withPluginServiceStub(PluginServiceStub pluginServiceStub) {
             this.pluginServiceStub = pluginServiceStub;
+            return this;
+        }
+
+        public PluginInvocationOperation withPluginInterfaceInvocationContext(PluginInterfaceInvocationContext ctx) {
+            this.pluginInterfaceInvocationContext = ctx;
             return this;
         }
 
@@ -125,7 +145,7 @@ public class PluginInvocationProcessor {
 
                 return;
             }
-            
+
             if (responseData == null) {
                 log.error("response data is null, {} {}", getInstanceHost(), getInterfacePath());
                 PluginInterfaceInvocationResult nullResult = new PluginInterfaceInvocationResult();
@@ -154,10 +174,51 @@ public class PluginInvocationProcessor {
 
     }
 
+    public static class PluginInterfaceInvocationContext {
+        private ProcInstInfoEntity procInstEntity;
+        private TaskNodeInstInfoEntity taskNodeInstEntity;
+        private PluginConfigInterface pluginConfigInterface;
+        private List<ProcExecBindingEntity> nodeObjectBindings;
+
+        public ProcInstInfoEntity getProcInstEntity() {
+            return procInstEntity;
+        }
+
+        public void setProcInstEntity(ProcInstInfoEntity procInstEntity) {
+            this.procInstEntity = procInstEntity;
+        }
+
+        public TaskNodeInstInfoEntity getTaskNodeInstEntity() {
+            return taskNodeInstEntity;
+        }
+
+        public void setTaskNodeInstEntity(TaskNodeInstInfoEntity taskNodeInstEntity) {
+            this.taskNodeInstEntity = taskNodeInstEntity;
+        }
+
+        public PluginConfigInterface getPluginConfigInterface() {
+            return pluginConfigInterface;
+        }
+
+        public void setPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
+            this.pluginConfigInterface = pluginConfigInterface;
+        }
+
+        public List<ProcExecBindingEntity> getNodeObjectBindings() {
+            return nodeObjectBindings;
+        }
+
+        public void setNodeObjectBindings(List<ProcExecBindingEntity> nodeObjectBindings) {
+            this.nodeObjectBindings = nodeObjectBindings;
+        }
+    }
+
     public static class PluginInterfaceInvocationResult {
         private List<Object> resultData;
         private boolean success;
         private String errMsg;
+
+        private PluginInterfaceInvocationContext pluginInterfaceInvocationContext;
 
         public List<Object> getResultData() {
             return resultData;
@@ -181,6 +242,15 @@ public class PluginInvocationProcessor {
 
         public void setErrMsg(String errMsg) {
             this.errMsg = errMsg;
+        }
+
+        public PluginInterfaceInvocationContext getPluginInterfaceInvocationContext() {
+            return pluginInterfaceInvocationContext;
+        }
+
+        public void setPluginInterfaceInvocationContext(
+                PluginInterfaceInvocationContext pluginInterfaceInvocationContext) {
+            this.pluginInterfaceInvocationContext = pluginInterfaceInvocationContext;
         }
 
     }

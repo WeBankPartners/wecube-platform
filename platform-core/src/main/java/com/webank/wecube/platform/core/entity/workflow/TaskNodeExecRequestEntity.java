@@ -25,7 +25,10 @@ public class TaskNodeExecRequestEntity extends BaseTraceableEntity {
     private String errorMessage;
 
     @Column(name = "IS_CURRENT")
-    private boolean current = true;
+    private Boolean current = true;
+
+    @Column(name = "IS_COMPLETED")
+    private Boolean completed = false;
 
     public String getRequestId() {
         return requestId;
@@ -67,12 +70,20 @@ public class TaskNodeExecRequestEntity extends BaseTraceableEntity {
         this.errorMessage = errorMessage;
     }
 
-    public boolean isCurrent() {
+    public Boolean isCurrent() {
         return current;
     }
 
-    public void setCurrent(boolean current) {
+    public void setCurrent(Boolean current) {
         this.current = current;
+    }
+
+    public Boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
     }
 
 }
