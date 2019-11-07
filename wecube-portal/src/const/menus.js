@@ -228,6 +228,12 @@ export const MENUS = [
     link: "/collaboration/workflow-orchestration"
   },
   {
+    code: "COLLABORATION_SERVICE_CHANNEL",
+    cnName: "服务通道",
+    enName: "Service Channel",
+    link: "/coming-soon"
+  },
+  {
     code: "ADMIN_CMDB_MODEL_MANAGEMENT",
     cnName: "CMDB模型管理",
     enName: "CMDB Modeling",
