@@ -3,6 +3,11 @@ package com.webank.wecube.platform.auth.server.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @ConfigurationProperties(prefix = "platform.auth.server")
 public class AuthServerProperties {
     private String privateKey;
