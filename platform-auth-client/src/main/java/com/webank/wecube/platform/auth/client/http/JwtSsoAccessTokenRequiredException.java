@@ -2,6 +2,11 @@ package com.webank.wecube.platform.auth.client.http;
 
 import org.springframework.web.client.RestClientException;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class JwtSsoAccessTokenRequiredException extends RestClientException {
 
     /**

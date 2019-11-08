@@ -15,8 +15,6 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedAuthenticationFilter;
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedLoginFilter;
 import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextRepository;
-import com.webank.wecube.platform.auth.server.handler.Http401AuthenticationEntryPoint;
-import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler;
 
 @Profile({ ApplicationConstants.Profile.MOCK })
 @Configuration
