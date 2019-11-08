@@ -3,6 +3,11 @@ package com.webank.wecube.platform.auth.client.context;
 import com.webank.wecube.platform.auth.client.model.JwtSsoAccessToken;
 import com.webank.wecube.platform.auth.client.model.JwtSsoRefreshToken;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public interface JwtSsoClientContext {
     String CLAIM_KEY_TYPE = "type";
     String CLAIM_KEY_CLIENT_TYPE = "clientType";

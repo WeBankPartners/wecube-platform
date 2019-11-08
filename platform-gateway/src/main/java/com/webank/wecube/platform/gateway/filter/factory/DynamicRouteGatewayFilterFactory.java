@@ -127,8 +127,8 @@ public class DynamicRouteGatewayFilterFactory
     }
 
     protected String calculateComponentPath(String path) {
-        if (path.startsWith("/api/")) {
-            path = path.substring(5);
+        if (path.startsWith("/")) {
+            path = path.substring(1);
         }
 
         if (path.indexOf("/") >= 0) {

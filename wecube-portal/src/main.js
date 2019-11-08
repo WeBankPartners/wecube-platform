@@ -59,6 +59,9 @@ window.addRoutes = (route, name) => {
 window.component = (name, comp) => {
   Vue.component(name, comp);
 };
+window.use = (lib, options) => {
+  Vue.use(lib, options);
+};
 
 const findPath = (routes, path) => {
   let found;
@@ -106,8 +109,23 @@ router.beforeEach((to, from, next) => {
     }
   }
 });
-
-new Vue({
+const vm = new Vue({
   router,
   render: h => h(App)
-}).$mount("#app");
+});
+window.locale = (key, obj) => {
+  const lang = vm._$lang.locales[key];
+  let newLang = {};
+  if (lang) {
+    newLang = { ...lang, ...obj };
+    vm._$lang.locales[key] = newLang;
+  }
+};
+window.addOptions = options => {
+  Object.keys(options).forEach(key => {
+    vm.__proto__[key] = options[key];
+  });
+  console.log(vm);
+};
+
+vm.$mount("#app");

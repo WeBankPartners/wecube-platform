@@ -1,5 +1,10 @@
 package com.webank.wecube.platform.auth.server.encryption;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class EncryptionRuntimeException extends RuntimeException {
 
     /**
