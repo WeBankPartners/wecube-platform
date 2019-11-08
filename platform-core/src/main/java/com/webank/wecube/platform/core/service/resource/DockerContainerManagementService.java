@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.model.AccessMode;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
@@ -62,6 +63,10 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         }
 
         List<ExposedPort> exposedPorts = Lists.newArrayList();
+
+        boolean hasPortBindings = false;
+        boolean hasVolumeBindings = false;
+
         Ports portMappings = new Ports();
         if (portBindings.size() != 0) {
             for (String port : portBindings) {
@@ -69,24 +74,33 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 ExposedPort exposedPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
                 exposedPorts.add(exposedPort);
                 portMappings.bind(exposedPort, Ports.Binding.bindPort(Integer.valueOf(portArray[0])));
+                hasPortBindings = true;
             }
         }
 
         List<Bind> volumeMappings = new ArrayList<>();
         List<Volume> containerVolumes = new ArrayList<>();
         if (volumeBindings.size() != 0) {
-            volumeBindings.forEach(volume -> {
+            for (String volume : volumeBindings) {
                 String[] volumeArray = volume.split(":");
-                Volume containerVolume = new Volume(volumeArray[1]);
-                containerVolumes.add(containerVolume);
-                Bind bind = new Bind(volumeArray[0], containerVolume);
-                volumeMappings.add(bind);
-            });
+                if (volumeArray.length >= 2) {
+                    Volume containerVolume = new Volume(volumeArray[1]);
+                    containerVolumes.add(containerVolume);
+                    Bind bind = new Bind(volumeArray[0], containerVolume, AccessMode.rw);
+                    volumeMappings.add(bind);
+                    hasVolumeBindings = true;
+                }
+            }
         }
 
+        HostConfig hostConfig = new HostConfig();
+        if (hasPortBindings)
+            hostConfig.withPortBindings(portMappings);
+        if (hasVolumeBindings)
+            hostConfig.withBinds(volumeMappings);
+
         CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(imageName).withName(containerName)
-                .withVolumes(containerVolumes).withExposedPorts(exposedPorts)
-                .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings));
+                .withVolumes(containerVolumes).withExposedPorts(exposedPorts).withHostConfig(hostConfig);
 
         if (envVariables.size() != 0) {
             createContainerCmd = createContainerCmd.withEnv(envVariables);
