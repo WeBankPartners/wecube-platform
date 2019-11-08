@@ -4,6 +4,11 @@ import java.nio.charset.Charset;
 
 import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public final class EncryptionUtils {
 
     public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");

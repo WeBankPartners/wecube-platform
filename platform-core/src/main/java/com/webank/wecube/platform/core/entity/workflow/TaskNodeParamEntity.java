@@ -29,8 +29,14 @@ public class TaskNodeParamEntity extends BaseStatusFeaturedEntity {
     @Column(name = "PARAM_NAME")
     private String paramName;
 
-    @Column(name = "PARAM_EXP")
-    private String paramExpression;
+    @Column(name = "BIND_NODE_ID")
+    private String bindNodeId;
+
+    @Column(name = "BIND_PARAM_TYPE")
+    private String bindParamType; // Input, Output
+
+    @Column(name = "BIND_PARAM_NAME")
+    private String bindParamName;
 
     public String getId() {
         return id;
@@ -64,12 +70,28 @@ public class TaskNodeParamEntity extends BaseStatusFeaturedEntity {
         this.paramName = paramName;
     }
 
-    public String getParamExpression() {
-        return paramExpression;
+    public String getBindNodeId() {
+        return bindNodeId;
     }
 
-    public void setParamExpression(String paramExpression) {
-        this.paramExpression = paramExpression;
+    public void setBindNodeId(String bindNodeId) {
+        this.bindNodeId = bindNodeId;
+    }
+
+    public String getBindParamType() {
+        return bindParamType;
+    }
+
+    public void setBindParamType(String bindParamType) {
+        this.bindParamType = bindParamType;
+    }
+
+    public String getBindParamName() {
+        return bindParamName;
+    }
+
+    public void setBindParamName(String bindParamName) {
+        this.bindParamName = bindParamName;
     }
 
     public String getTaskNodeDefId() {

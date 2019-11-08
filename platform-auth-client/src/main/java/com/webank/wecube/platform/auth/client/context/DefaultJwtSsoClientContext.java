@@ -8,6 +8,11 @@ import com.webank.wecube.platform.auth.client.http.configuration.JwtSsoClientPro
 import com.webank.wecube.platform.auth.client.model.JwtSsoAccessToken;
 import com.webank.wecube.platform.auth.client.model.JwtSsoRefreshToken;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class DefaultJwtSsoClientContext implements JwtSsoClientContext {
     private static final String DEFAULT_VALUE_STRING = "";
     private String jwtSsoAuthenticationUri = DEFAULT_VALUE_STRING;
