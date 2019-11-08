@@ -88,8 +88,8 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         Optional<List<PluginPackageEntity>> allByPluginPackage_id = pluginPackageEntityRepository.findAllLatestByPluginPackage_Id(packageId);
         if (!allByPluginPackage_id.isPresent()) {
             String msg = String.format("The data model of package ID: %d cannot be found.", packageId);
-            logger.error(msg);
-            throw new WecubeCoreException(msg);
+            logger.info(msg);
+            return Collections.emptyList();
         }
         List<PluginPackageEntity> pluginPackageEntityList = allByPluginPackage_id.get();
         return convertEntityDomainToDto(pluginPackageEntityList, true);
