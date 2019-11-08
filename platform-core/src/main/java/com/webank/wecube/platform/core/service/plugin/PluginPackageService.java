@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
@@ -38,6 +39,7 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status
 @Service
 @Transactional
 public class PluginPackageService {
+    public static final Set<String> ACCEPTED_FILES = Sets.newHashSet("register.xml", "image.tar", "ui.zip", "init.sql", "upgrade.sql");
     public final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -255,11 +257,10 @@ public class PluginPackageService {
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
 
-            for (; entries.hasMoreElements();) {
+            while(entries.hasMoreElements()) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
-                if (entry.isDirectory() || !(zipEntryName.contains(".xml") || zipEntryName.contains(".tar")
-                        || zipEntryName.contains(".zip") || zipEntryName.contains(".sql"))) {
+                if (entry.isDirectory() || !ACCEPTED_FILES.contains(zipEntryName)) {
                     continue;
                 }
 
