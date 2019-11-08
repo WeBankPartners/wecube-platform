@@ -3,13 +3,15 @@ package com.webank.wecube.platform.core.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
 
-import java.util.Map;
+import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 public class DataModelExpressionDto {
     private String expression;
-    private Stack<Map<String, String>> returnedJson = new Stack<>();
-    private String resultValue;
+    private Stack<Set<String>> requestUrlStack = new Stack<>();
+    private Stack<List<CommonResponseDto>> returnedJson = new Stack<>();
+    private List<String> resultValue;
 
     // helper during processing
     @JsonIgnore
@@ -51,15 +53,19 @@ public class DataModelExpressionDto {
         this.bwdNode = bwdNode;
     }
 
-    // route constructor
-
-
+    // route constructor with "prevLink fetch"
     public DataModelExpressionDto(DataModelParser.LinkContext prevLink, DataModelParser.FetchContext opFetch) {
         this.prevLink = prevLink;
         this.opFetch = opFetch;
     }
 
-    public DataModelExpressionDto(String expression, Stack<Map<String, String>> returnedJson) {
+    // route constructor with "entity fetch"
+    public DataModelExpressionDto(DataModelParser.EntityContext entity, DataModelParser.FetchContext opFetch) {
+        this.entity = entity;
+        this.opFetch = opFetch;
+    }
+
+    public DataModelExpressionDto(String expression, Stack<List<CommonResponseDto>> returnedJson) {
         this.expression = expression;
         this.returnedJson = returnedJson;
     }
@@ -75,11 +81,11 @@ public class DataModelExpressionDto {
         this.expression = expression;
     }
 
-    public Stack<Map<String, String>> getReturnedJson() {
+    public Stack<List<CommonResponseDto>> getReturnedJson() {
         return returnedJson;
     }
 
-    public void setReturnedJson(Stack<Map<String, String>> returnedJson) {
+    public void setReturnedJson(Stack<List<CommonResponseDto>> returnedJson) {
         this.returnedJson = returnedJson;
     }
 
@@ -139,11 +145,19 @@ public class DataModelExpressionDto {
         this.prevLink = prevLink;
     }
 
-    public String getResultValue() {
+    public List<String> getResultValue() {
         return resultValue;
     }
 
-    public void setResultValue(String resultValue) {
+    public void setResultValue(List<String> resultValue) {
         this.resultValue = resultValue;
+    }
+
+    public Stack<Set<String>> getRequestUrlStack() {
+        return requestUrlStack;
+    }
+
+    public void setRequestUrlStack(Stack<Set<String>> requestUrlStack) {
+        this.requestUrlStack = requestUrlStack;
     }
 }
