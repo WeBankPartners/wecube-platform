@@ -29,7 +29,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
     
     private static final Logger log = LoggerFactory.getLogger(DefaultJwtBuilder.class);
 
-    private static final String SIGNING_KEY = "platform-auth-server-Secret";
+    private static final String SIGNING_KEY = "Platform+Auth+Server+Secret";
     
     private AuthServerProperties.JwtTokenProperties jwtTokenProperties;
     
