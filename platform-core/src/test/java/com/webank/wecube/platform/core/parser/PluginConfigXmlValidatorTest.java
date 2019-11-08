@@ -28,6 +28,15 @@ public class PluginConfigXmlValidatorTest {
     }
 
     @Test
+    public void parseCmdbPluginPackageShouldSuccess() {
+        try {
+            validator.validate("/plugin/sample-plugin-config-cmdb.xml");
+        } catch (WecubeCoreException e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
+    @Test
     public void parsePluginPackageWithoutDataModelShouldSuccess() {
         try {
             validator.validate("/plugin/sample-plugin-config-without-data-model-entity.xml");
