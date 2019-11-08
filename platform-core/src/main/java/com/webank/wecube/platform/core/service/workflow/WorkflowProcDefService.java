@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,9 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
+import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
@@ -26,16 +31,15 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcDefOutline;
 import com.webank.wecube.platform.workflow.model.ProcFlowNode;
 import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 
 @Service
-public class WorkflowProcDefService extends AbstractWorkflowService{
+public class WorkflowProcDefService extends AbstractWorkflowService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcDefService.class);
-
-    
 
     @Autowired
     private ProcDefInfoRepository processDefInfoRepo;
@@ -48,6 +52,76 @@ public class WorkflowProcDefService extends AbstractWorkflowService{
 
     @Autowired
     private WorkflowEngineService workflowService;
+    
+    @Autowired
+    private PluginConfigService pluginConfigService;
+
+    public List<InterfaceParameterDto> getTaskNodeParameters(String procDefId, String nodeDefId) {
+        List<InterfaceParameterDto> result = new ArrayList<>();
+        Optional<TaskNodeDefInfoEntity> entityOptional = taskNodeDefInfoRepo.findById(nodeDefId);
+        if(!entityOptional.isPresent()){
+            return result;
+        }
+        
+        TaskNodeDefInfoEntity e = entityOptional.get();
+        String serviceId = e.getServiceId();
+        
+        if(StringUtils.isBlank(serviceId)){
+            log.debug("service id is present for {}", nodeDefId);
+            return result;
+        }
+        
+        PluginConfigInterface pci = pluginConfigService.getPluginConfigInterfaceByServiceName(serviceId);
+        Set<PluginConfigInterfaceParameter> inputParameters = pci.getInputParameters();
+        Set<PluginConfigInterfaceParameter> outputParameters = pci.getOutputParameters();
+        
+        inputParameters.forEach(p -> {
+            InterfaceParameterDto d = new InterfaceParameterDto();
+            d.setType(p.getType());
+            d.setName(p.getName());
+            d.setDataType(p.getDataType());
+            
+            result.add(d);
+        });
+        
+        outputParameters.forEach(p -> {
+            InterfaceParameterDto d = new InterfaceParameterDto();
+            d.setType(p.getType());
+            d.setName(p.getName());
+            d.setDataType(p.getDataType());
+            
+            result.add(d);
+        });
+        
+        return result;
+    }
+
+    public List<TaskNodeDefBriefDto> getTaskNodeBriefs(String procDefId) {
+        List<TaskNodeDefBriefDto> result = new ArrayList<>();
+        List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDefId);
+        if (nodeEntities == null || nodeEntities.isEmpty()) {
+            return result;
+        }
+
+        nodeEntities.forEach(e -> {
+            if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equals(e.getNodeType())
+                    || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equals(e.getNodeType())) {
+                TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
+                d.setNodeDefId(e.getId());
+                d.setNodeId(e.getNodeId());
+                d.setNodeName(e.getNodeName());
+                d.setNodeType(e.getNodeType());
+                d.setProcDefId(e.getProcDefId());
+                d.setServiceId(e.getServiceId());
+                d.setServiceName(e.getServiceName());
+
+                result.add(d);
+            }
+        });
+
+        return result;
+
+    }
 
     public ProcDefOutlineDto getProcessDefinitionOutline(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
@@ -142,7 +216,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService{
                 pdto.setId(tnpe.getId());
                 pdto.setNodeId(tnpe.getNodeId());
                 pdto.setParamName(tnpe.getParamName());
-                pdto.setParamExpression(tnpe.getParamExpression());
+                pdto.setBindNodeId(tnpe.getBindNodeId());
+                pdto.setBindParamName(tnpe.getBindParamName());
+                pdto.setBindParamType(tnpe.getBindParamType());
 
                 tdto.addParamInfos(pdto);
             }
@@ -270,7 +346,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService{
                         }
 
                         draftNodeParamEntity.setNodeId(nodeParamDto.getNodeId());
-                        draftNodeParamEntity.setParamExpression(nodeParamDto.getParamExpression());
+                        draftNodeParamEntity.setBindNodeId(nodeParamDto.getBindNodeId());
+                        draftNodeParamEntity.setBindParamName(nodeParamDto.getBindParamName());
+                        draftNodeParamEntity.setBindParamType(nodeParamDto.getBindParamType());
                         draftNodeParamEntity.setParamName(nodeParamDto.getParamName());
                         draftNodeParamEntity.setProcDefId(draftEntity.getId());
                         draftNodeParamEntity.setTaskNodeDefId(draftNodeEntity.getId());
@@ -346,7 +424,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService{
                         TaskNodeParamEntity paramEntity = new TaskNodeParamEntity();
                         paramEntity.setId(LocalIdGenerator.generateId());
                         paramEntity.setNodeId(paramDto.getNodeId());
-                        paramEntity.setParamExpression(paramDto.getParamExpression());
+                        paramEntity.setBindNodeId(paramDto.getBindNodeId());
+                        paramEntity.setBindParamName(paramDto.getBindParamName());
+                        paramEntity.setBindParamType(paramDto.getBindParamType());
                         paramEntity.setParamName(paramDto.getParamName());
                         paramEntity.setProcDefId(procDefEntity.getId());
                         paramEntity.setStatus(TaskNodeParamEntity.PREDEPLOY_STATUS);
@@ -485,8 +565,6 @@ public class WorkflowProcDefService extends AbstractWorkflowService{
 
         return sb.toString();
     }
-
-    
 
     private TaskNodeDefInfoEntity findNodeEntityByNodeId(List<TaskNodeDefInfoEntity> nodeEntities, String nodeId) {
         if (nodeEntities == null) {
