@@ -10,10 +10,10 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 
 public class DataModelExpressionParser {
+    public final static String FETCH_ALL = "ALL";
 
     public DataModelExpressionParser() {
     }
@@ -33,10 +33,11 @@ public class DataModelExpressionParser {
         ParseTreeWalker walker = new ParseTreeWalker();
         DataModelExpressionListener evalByListener = new DataModelExpressionListener();
         walker.walk(evalByListener, tree);
+        Queue<DataModelExpressionDto> expressionQueue = evalByListener.getExpressionQueue();
 
         // check if the parser reach to the end of expression
-        Queue<DataModelExpressionDto> expressionQueue = evalByListener.getExpressionQueue();
-        String lastAttrName = Objects.requireNonNull(expressionQueue.peek()).getOpFetch().attr().getText();
+        List<DataModelExpressionDto> expressionDtoList = new ArrayList<>(expressionQueue);
+        String lastAttrName = expressionDtoList.get(expressionDtoList.size() - 1).getOpFetch().attr().getText();
         Iterable<String> split = Splitter.on('.').split(expression);
         String expressionLastAttrName = Iterables.getLast(split);
         if (!expressionLastAttrName.equals(lastAttrName)) {
@@ -58,4 +59,5 @@ public class DataModelExpressionParser {
         }
         assert resultQueue != null;
     }
+
 }
