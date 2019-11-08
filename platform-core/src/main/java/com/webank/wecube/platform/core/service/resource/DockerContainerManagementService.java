@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service.resource;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +63,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
 
         List<ExposedPort> exposedPorts = Lists.newArrayList();
         Ports portMappings = new Ports();
-        if (portBindings != null && !portBindings.isEmpty()) {
+        if (portBindings.size() != 0) {
             for (String port : portBindings) {
                 String[] portArray = port.split(":");
                 ExposedPort exposedPort = ExposedPort.tcp(Integer.valueOf(portArray[1]));
@@ -75,7 +74,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
 
         List<Bind> volumeMappings = new ArrayList<>();
         List<Volume> containerVolumes = new ArrayList<>();
-        if (volumeBindings != null && !volumeBindings.isEmpty()) {
+        if (volumeBindings.size() != 0) {
             volumeBindings.forEach(volume -> {
                 String[] volumeArray = volume.split(":");
                 Volume containerVolume = new Volume(volumeArray[1]);
@@ -85,10 +84,15 @@ public class DockerContainerManagementService implements ResourceItemService, Re
             });
         }
 
-        String containerId = dockerClient.createContainerCmd(imageName).withName(containerName)
-                .withVolumes(containerVolumes).withEnv(envVariables).withExposedPorts(exposedPorts)
-                .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings)).exec()
-                .getId();
+        CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(imageName).withName(containerName)
+                .withVolumes(containerVolumes).withExposedPorts(exposedPorts)
+                .withHostConfig(new HostConfig().withPortBindings(portMappings).withBinds(volumeMappings));
+
+        if (envVariables.size() != 0) {
+            createContainerCmd = createContainerCmd.withEnv(envVariables);
+        }
+
+        String containerId = createContainerCmd.exec().getId();
         dockerClient.startContainerCmd(containerId).exec();
         additionalProperties.put("containerId", containerId);
         item.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
