@@ -22,6 +22,12 @@ public class PluginPackageEntity {
     @JoinColumn(name = "data_model_id")
     private PluginPackageDataModel pluginPackageDataModel;
 
+    @Column(name = "data_model_version")
+    private Integer dataModelVersion = 1;
+
+    @Column(name = "package_name")
+    private String packageName;
+
     @Column(name = "name")
     private String name;
 
@@ -61,6 +67,22 @@ public class PluginPackageEntity {
 
     public void setPluginPackageDataModel(PluginPackageDataModel pluginPackageDataModel) {
         this.pluginPackageDataModel = pluginPackageDataModel;
+    }
+
+    public Integer getDataModelVersion() {
+        return dataModelVersion;
+    }
+
+    public void setDataModelVersion(Integer dataModelVersion) {
+        this.dataModelVersion = dataModelVersion;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
 
     public String getName() {
