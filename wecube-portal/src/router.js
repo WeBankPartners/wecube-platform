@@ -60,17 +60,17 @@ let router = new Router({
         //   component: () => import("@/pages/admin/cmdb-model-management")
         // },
         {
-          path: "/admin/base-data-management",
+          path: "/admin/core/base-data-management",
           name: "baseData",
           component: () => import("@/pages/admin/enums")
         },
         {
-          path: "/designing/enum-management",
+          path: "/designing/core/enum-management",
           name: "enumManage",
           component: () => import("@/pages/admin/enums")
         },
         {
-          path: "/designing/enum-enquiry",
+          path: "/designing/core/enum-enquiry",
           name: "enumEnquiry",
           component: () => import("@/pages/admin/enums")
         },
