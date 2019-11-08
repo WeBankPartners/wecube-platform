@@ -16,6 +16,11 @@ import org.springframework.web.client.RestTemplate;
 import com.webank.wecube.platform.auth.client.context.JwtSsoClientContext;
 import com.webank.wecube.platform.auth.client.model.JwtSsoAccessToken;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class JwtSsoRestTemplate extends RestTemplate implements JwtSsoRestOperations {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoRestTemplate.class);
 
