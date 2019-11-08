@@ -39,7 +39,7 @@ CREATE TABLE plugin_package_data_model
     update_path         VARCHAR(256),
     update_method       VARCHAR(10),
     update_source       VARCHAR(32),
-    update_time         INTEGER   default 0     NOT NULL,
+    update_time         BIGINT   default 0     NOT NULL,
     UNIQUE uk_plugin_package_data_model(package_name, version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
@@ -48,6 +48,8 @@ CREATE TABLE plugin_package_entities
 (
     id                 INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     data_model_id      INTEGER                        NOT NULL,
+    data_model_version INTEGER                        NOT NULL,
+    packageName        VARCHAR(50)                    NOT NULL,
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
     description        VARCHAR(256)                   NOT NULL,
