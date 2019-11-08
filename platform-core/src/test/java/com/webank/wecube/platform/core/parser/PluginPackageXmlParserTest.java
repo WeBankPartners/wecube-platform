@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.parser;
 import com.google.common.io.Resources;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import org.junit.Test;
 import org.xml.sax.InputSource;
@@ -38,8 +39,15 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackage.getPluginPackageRuntimeResourcesS3()).hasSize(1);
         assertThat(pluginPackage.getPluginConfigs()).hasSize(2);
 
-        assertThat(pluginPackageDto.getPluginPackageDataModelDto().isDynamic()).isTrue();
-        assertThat(pluginPackageDto.getPluginPackageDataModelDto().getPluginPackageEntities()).hasSize(5);
+        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDto.getPluginPackageDataModelDto();
+        assertThat(pluginPackageDataModelDto.isDynamic()).isTrue();
+        assertThat(pluginPackageDataModelDto.getUpdatePath()).isEqualTo("/data-model");
+        assertThat(pluginPackageDataModelDto.getUpdateMethod()).isEqualTo("GET");
+        assertThat(pluginPackageDataModelDto.getUpdateSource()).isEqualTo(PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name());
+        assertThat(pluginPackageDataModelDto.getUpdateTime()).isGreaterThan(0);
+        assertThat(pluginPackageDataModelDto.getPackageName()).isEqualTo(pluginPackageDto.getName());
+        assertThat(pluginPackageDataModelDto.getVersion()).isEqualTo(1);
+        assertThat(pluginPackageDataModelDto.getPluginPackageEntities()).hasSize(5);
     }
 
 }

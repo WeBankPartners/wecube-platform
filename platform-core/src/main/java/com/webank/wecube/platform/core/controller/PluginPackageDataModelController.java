@@ -30,19 +30,19 @@ public class PluginPackageDataModelController {
         return JsonResponse.okayWithData(allPluginPackageEntityList);
     }
 
-    @GetMapping("/models/package/{plugin-package-id}")
+    @GetMapping("/models/package/{plugin-package-name}")
     @ResponseBody
-    public JsonResponse pullDynamicDataModel(@PathVariable(value = "plugin-package-id") int pluginPackageId) {
-        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService.pullDynamicDataModel(pluginPackageId);
+    public JsonResponse pullDynamicDataModel(@PathVariable(value = "plugin-package-name") String packageName) {
+        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService.pullDynamicDataModel(packageName);
         return JsonResponse.okayWithData(null);
     }
 
-    @GetMapping("/packages/{id}/models")
+    @GetMapping("/packages/{package-name}/models")
     @ResponseBody
-    public JsonResponse getDataModelByPackageId(@PathVariable(value = "id") int packageId) {
+    public JsonResponse getDataModelByPackageId(@PathVariable(value = "package-name") String packageName) {
         List<PluginPackageEntityDto> allPluginPackageEntityList;
         try {
-            allPluginPackageEntityList = pluginPackageDataModelService.packageView(packageId);
+            allPluginPackageEntityList = pluginPackageDataModelService.packageView(packageName);
         } catch (WecubeCoreException ex) {
             return JsonResponse.error(ex.getMessage());
         }

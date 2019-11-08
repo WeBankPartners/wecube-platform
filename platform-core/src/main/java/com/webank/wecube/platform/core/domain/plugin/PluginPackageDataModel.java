@@ -72,6 +72,9 @@ public class PluginPackageDataModel {
 
     public void setVersion(Integer version) {
         this.version = version;
+        if (null != pluginPackageEntities && pluginPackageEntities.size() > 0) {
+            pluginPackageEntities.forEach(entity->entity.setDataModelVersion(version));
+        }
     }
 
     public String getPackageName() {
