@@ -2,7 +2,6 @@ package com.webank.wecube.platform.core.dto;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,14 +27,14 @@ public class PluginPackageDataModelDto {
 
     private String updateSource;
 
-    private String updateTimestamp;
+    private Long updateTime;
 
     private Set<PluginPackageEntityDto> pluginPackageEntities;
 
     public PluginPackageDataModelDto() {
     }
 
-    public PluginPackageDataModelDto(Integer id, Integer version, String packageName, boolean isDynamic, String updatePath, String updateMethod, String updateSource, String updateTimestamp, Set<PluginPackageEntityDto> pluginPackageEntities) {
+    public PluginPackageDataModelDto(Integer id, Integer version, String packageName, boolean isDynamic, String updatePath, String updateMethod, String updateSource, Long updateTime, Set<PluginPackageEntityDto> pluginPackageEntities) {
         this.id = id;
         this.version = version;
         this.packageName = packageName;
@@ -43,7 +42,7 @@ public class PluginPackageDataModelDto {
         this.updatePath = updatePath;
         this.updateMethod = updateMethod;
         this.updateSource = updateSource;
-        this.updateTimestamp = updateTimestamp;
+        this.updateTime = updateTime;
         this.pluginPackageEntities = pluginPackageEntities;
     }
 
@@ -103,12 +102,12 @@ public class PluginPackageDataModelDto {
         this.updateSource = updateSource;
     }
 
-    public String getUpdateTimestamp() {
-        return updateTimestamp;
+    public Long getUpdateTime() {
+        return updateTime;
     }
 
-    public void setUpdateTimestamp(String updateTimestamp) {
-        this.updateTimestamp = updateTimestamp;
+    public void setUpdateTime(Long updateTime) {
+        this.updateTime = updateTime;
     }
 
     public Set<PluginPackageEntityDto> getPluginPackageEntities() {
@@ -124,12 +123,8 @@ public class PluginPackageDataModelDto {
         if (null != dataModelDto.getId()) {
             dataModel.setId(dataModelDto.getId());
         }
-        if (null != dataModelDto.getVersion()) {
-            dataModel.setVersion(dataModelDto.getVersion());
-        }
-        if (!StringUtils.isEmpty(dataModelDto.getPackageName())) {
-            dataModel.setPackageName(dataModelDto.getPackageName());
-        }
+        dataModel.setVersion(dataModelDto.getVersion());
+        dataModel.setPackageName(dataModelDto.getPackageName());
         if (dataModelDto.isDynamic()) {
             dataModel.setDynamic(true);
             dataModel.setUpdatePath(dataModelDto.getUpdatePath());
@@ -137,11 +132,33 @@ public class PluginPackageDataModelDto {
         } else {
             dataModel.setDynamic(false);
         }
-        dataModel.setUpdateTime(Long.valueOf(dataModelDto.getUpdateTimestamp()));
+        dataModel.setUpdateTime(dataModelDto.getUpdateTime());
         if (null != dataModelDto.getPluginPackageEntities() && dataModelDto.getPluginPackageEntities().size() > 0) {
-            dataModel.setPluginPackageEntities(dataModelDto.getPluginPackageEntities().stream().map(entityDto -> PluginPackageEntityDto.toDomain(entityDto)).collect(Collectors.toSet()));
+            Set<PluginPackageEntity> pluginPackageEntities = dataModelDto.getPluginPackageEntities().stream().map(entityDto -> PluginPackageEntityDto.toDomain(entityDto, dataModel)).collect(Collectors.toSet());
+            dataModel.setPluginPackageEntities(pluginPackageEntities);
         }
 
         return dataModel;
+    }
+
+    public static PluginPackageDataModelDto fromDomain(PluginPackageDataModel savedPluginPackageDataModel) {
+        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
+        dataModelDto.setId(savedPluginPackageDataModel.getId());
+        dataModelDto.setVersion(savedPluginPackageDataModel.getVersion());
+        dataModelDto.setPackageName(savedPluginPackageDataModel.getPackageName());
+        dataModelDto.setUpdateSource(savedPluginPackageDataModel.getUpdateSource());
+        dataModelDto.setUpdateTime(savedPluginPackageDataModel.getUpdateTime());
+        dataModelDto.setDynamic(savedPluginPackageDataModel.isDynamic());
+        if (savedPluginPackageDataModel.isDynamic()) {
+            dataModelDto.setUpdatePath(savedPluginPackageDataModel.getUpdatePath());
+            dataModelDto.setUpdateMethod(savedPluginPackageDataModel.getUpdateMethod());
+        }
+        if (null != savedPluginPackageDataModel.getPluginPackageEntities() && savedPluginPackageDataModel.getPluginPackageEntities().size() > 0) {
+            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
+            savedPluginPackageDataModel.getPluginPackageEntities().forEach(entity->pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
+            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
+        }
+
+        return dataModelDto;
     }
 }
