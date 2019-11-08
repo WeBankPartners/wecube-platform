@@ -2,79 +2,79 @@ export const MENUS = [
   {
     code: "JOBS",
     cnName: "任务",
-    enName: "Jobs"
+    enName: "Tasks"
   },
   {
     code: "DESIGNING",
     cnName: "设计",
-    enName: "Designing"
+    enName: "Design"
   },
   {
     code: "IMPLEMENTATION",
     cnName: "执行",
-    enName: "Implementation"
+    enName: "Execute"
   },
   {
     code: "MONITORING",
     cnName: "监测",
-    enName: "Monitoring"
-  },
-  {
-    code: "ADJUSTMENT",
-    cnName: "调整",
-    enName: "Adjustment"
+    enName: "Monitor"
   },
   {
     code: "INTELLIGENCE_OPS",
     cnName: "智慧",
-    enName: "Intelligence Ops"
+    enName: "Intelligence"
+  },
+  {
+    code: "ADJUSTMENT",
+    cnName: "调整",
+    enName: "Adjust"
   },
   {
     code: "COLLABORATION",
     cnName: "协同",
-    enName: "Collaboration"
+    enName: "Conjoin"
   },
   {
     code: "ADMIN",
     cnName: "系统",
-    enName: "Admin"
+    enName: "System"
   },
   {
     code: "JOBS_INITIATOR",
     cnName: "本组发起",
-    enName: "Initiator",
+    enName: "Initiated",
     link: "/coming-soon"
     // /jobs/initiator
   },
   {
     code: "JOBS_EXECUTOR",
     cnName: "本组处理",
-    enName: "Executor",
+    enName: "Assigned",
     link: "/coming-soon"
     // /jobs/executor
   },
   {
     code: "DESIGNING_PLANNING",
     cnName: "规划设计",
-    enName: "Design Planning",
+    enName: "IDC Blueprint",
     link: "/designing/planning"
   },
   {
     code: "DESIGNING_RESOURCE_PLANNING",
     cnName: "资源规划",
-    enName: "Resource Planning",
+    enName: "IDC Resource",
     link: "/designing/resource-planning"
   },
   {
     code: "DESIGNING_APPLICATION_ARCHITECTURE",
     cnName: "应用架构设计",
-    enName: "Architecture",
+    enName: "Application Architecture",
     link: "/designing/application-architecture"
   },
   {
     code: "DESIGNING_APPLICATION_DEPLOYMENT",
     cnName: "应用部署设计",
-    enName: "Deployment",
+    enName: "Application Deployment",
     link: "/designing/application-deployment"
   },
   {
@@ -86,32 +86,32 @@ export const MENUS = [
   {
     code: "DESIGNING_CI_DATA_ENQUIRY",
     cnName: "CI数据查询",
-    enName: "CI Data Enquiry",
+    enName: "CI Data Query",
     link: "/designing/ci-data-enquiry"
   },
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_MANAGEMENT",
     cnName: "CI综合查询管理",
-    enName: "CI Integrate Query Management",
+    enName: "CI Integrated Query Management",
     link: "/designing/ci-integrated-query-management"
   },
   {
     code: "DESIGNING_CI_INTEGRATED_QUERY_EXECUTION",
     cnName: "CI数据综合查询",
-    enName: "CI Integrate Query",
+    enName: "CI Integrated Query",
     link: "/designing/ci-integrated-query-execution"
   },
   {
     code: "DESIGNING_ENUM_MANAGEMENT",
     cnName: "枚举数据管理",
     enName: "Enum Management",
-    link: "/designing/enum-management"
+    link: "/designing/core/enum-management"
   },
   {
     code: "DESIGNING_ENUM_ENQUIRY",
     cnName: "枚举数据查询",
     enName: "Enum Enquiry",
-    link: "/designing/enum-enquiry"
+    link: "/designing/core/enum-enquiry"
   },
   {
     code: "IMPLEMENTATION_ARTIFACT_MANAGEMENT",
@@ -122,7 +122,7 @@ export const MENUS = [
   {
     code: "IMPLEMENTATION_APPLICATION_DEPLOYMENT",
     cnName: "应用部署",
-    enName: "Deployment",
+    enName: "Application Deployment",
     link: "/implementation/application-deployment"
   },
   {
@@ -218,13 +218,13 @@ export const MENUS = [
   {
     code: "COLLABORATION_PLUGIN_MANAGEMENT",
     cnName: "插件注册",
-    enName: "Plugin Manager",
+    enName: "Plugin Management",
     link: "/collaboration/plugin-management"
   },
   {
     code: "COLLABORATION_WORKFLOW_ORCHESTRATION",
     cnName: "任务编排",
-    enName: "Workflow Designing",
+    enName: "Workflow Orchestration",
     link: "/collaboration/workflow-orchestration"
   },
   {
@@ -232,7 +232,6 @@ export const MENUS = [
     cnName: "服务通道",
     enName: "Service Channel",
     link: "/coming-soon"
-    // /collaboration/service-channel
   },
   {
     code: "ADMIN_CMDB_MODEL_MANAGEMENT",
@@ -250,12 +249,12 @@ export const MENUS = [
     code: "ADMIN_BASE_DATA_MANAGEMENT",
     cnName: "基础数据管理",
     enName: "Base Data Management",
-    link: "/admin/base-data-management"
+    link: "/admin/core/base-data-management"
   },
   {
     code: "IMPLEMENTATION_WORKFLOW_EXECUTION",
     cnName: "编排任务执行",
-    enName: "Workflow Exection",
+    enName: "Workflow Execution",
     link: "/implementation/workflow-execution"
   }
 ];

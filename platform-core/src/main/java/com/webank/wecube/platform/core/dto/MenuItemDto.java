@@ -12,8 +12,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     private String path;
     private String menuType;
 
-    public MenuItemDto(Integer id, String category, String code, String displayName,
-                       String path, String menuType) {
+    public MenuItemDto(Integer id, String category, String code, String displayName, String path, String menuType) {
         this.id = id;
         this.category = category;
         this.code = code;
@@ -39,7 +38,8 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         return pluginPackageMenuDto;
     }
 
-    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu, String parentId, Integer transferredNewMenuId) {
+    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu, String parentId,
+            Integer transferredNewMenuId) {
         MenuItemDto pluginPackageMenuDto = new MenuItemDto();
         pluginPackageMenuDto.setId(transferredNewMenuId);
         pluginPackageMenuDto.setCategory(parentId);
@@ -100,8 +100,6 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
 
     @Override
     public int compareTo(MenuItemDto o) {
-        String thisId = this.getId().toString();
-        String thatId = o.getId().toString();
-        return thisId.compareTo(thatId);
+        return this.getId().compareTo(o.getId());
     }
 }
