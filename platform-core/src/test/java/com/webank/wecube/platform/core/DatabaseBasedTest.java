@@ -33,8 +33,7 @@ public abstract class DatabaseBasedTest extends BaseSpringBootTest {
     private void prepareDatabase() {
         executeSqlScripts(newArrayList(
                 new ClassPathResource("/database/01.wecube.schema.sql"),
-                new ClassPathResource("/database/02.wecube.system.data.sql"),
-                new ClassPathResource("/database/03.wecube.test.data.sql")
+                new ClassPathResource("/database/02.wecube.system.data.sql")
         ));
     }
 
