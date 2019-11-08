@@ -145,28 +145,62 @@ export default {
       }
     },
     async getAllPluginPackageResourceFiles() {
-      const {
-        status,
-        message,
-        data
-      } = await getAllPluginPackageResourceFiles();
-      if (status === "OK") {
-        const eleContain = document.getElementsByTagName("body");
-        let script;
+      // const {
+      //   status,
+      //   message,
+      //   data
+      // } = await getAllPluginPackageResourceFiles();
+      // if (status === "OK") {
+      const data = [
+        {
+          relatedPath: "http://***REMOVED***:8888/js/chunk-vendors.bb7a385b.js"
+        },
+        { relatedPath: "http://***REMOVED***:8888/js/app.987e2945.js" },
+        { relatedPath: "http://***REMOVED***:8888/css/app.b7f2694b.css" },
+        {
+          relatedPath:
+            "http://***REMOVED***:8888/css/chunk-vendors.2c2a0273.css"
+        }
+      ];
+      const eleContain = document.getElementsByTagName("body");
+      let script;
+      data.forEach(file => {
+        if (
+          file.relatedPath.indexOf(".js") > -1 &&
+          file.relatedPath.indexOf("vendors") > -1
+        ) {
+          let contains = document.createElement("script");
+          contains.type = "text/javascript";
+          contains.src = file.relatedPath;
+          script = contains;
+          eleContain[0].appendChild(contains);
+        }
+        if (
+          file.relatedPath.indexOf(".css") > -1 &&
+          file.relatedPath.indexOf("vendors") > -1
+        ) {
+          let contains = document.createElement("link");
+          contains.type = "text/css";
+          contains.rel = "stylesheet";
+          contains.href = file.relatedPath;
+          eleContain[0].appendChild(contains);
+        }
+      });
+
+      const loadScript = () => {
         data.forEach(file => {
           if (
             file.relatedPath.indexOf(".js") > -1 &&
-            file.relatedPath.indexOf("vendors") > -1
+            file.relatedPath.indexOf("vendors") === -1
           ) {
             let contains = document.createElement("script");
             contains.type = "text/javascript";
             contains.src = file.relatedPath;
-            script = contains;
             eleContain[0].appendChild(contains);
           }
           if (
             file.relatedPath.indexOf(".css") > -1 &&
-            file.relatedPath.indexOf("vendors") > -1
+            file.relatedPath.indexOf("vendors") === -1
           ) {
             let contains = document.createElement("link");
             contains.type = "text/css";
@@ -175,48 +209,25 @@ export default {
             eleContain[0].appendChild(contains);
           }
         });
-
-        const loadScript = () => {
-          data.forEach(file => {
-            if (
-              file.relatedPath.indexOf(".js") > -1 &&
-              file.relatedPath.indexOf("vendors") === -1
-            ) {
-              let contains = document.createElement("script");
-              contains.type = "text/javascript";
-              contains.src = file.relatedPath;
-              eleContain[0].appendChild(contains);
-            }
-            if (
-              file.relatedPath.indexOf(".css") > -1 &&
-              file.relatedPath.indexOf("vendors") === -1
-            ) {
-              let contains = document.createElement("link");
-              contains.type = "text/css";
-              contains.rel = "stylesheet";
-              contains.href = file.relatedPath;
-              eleContain[0].appendChild(contains);
-            }
-          });
-        };
-        if (script.readyState) {
-          //IE
-          script.onreadystatechange = () => {
-            if (
-              script.readyState == "complete" ||
-              script.readyState == "loaded"
-            ) {
-              script.onreadystatechange = null;
-              loadScript();
-            }
-          };
-        } else {
-          //非IE
-          script.onload = () => {
+      };
+      if (script.readyState) {
+        //IE
+        script.onreadystatechange = () => {
+          if (
+            script.readyState == "complete" ||
+            script.readyState == "loaded"
+          ) {
+            script.onreadystatechange = null;
             loadScript();
-          };
-        }
+          }
+        };
+      } else {
+        //非IE
+        script.onload = () => {
+          loadScript();
+        };
       }
+      // }
     }
   },
   async created() {
