@@ -59,12 +59,13 @@ public class PluginConfigService {
         }
 
         Integer entityId = pluginConfig.getEntityId();
-        if (null == entityId && entityId.intValue() < 1) {
-            throw new WecubeCoreException("Invalid entity Id: " + entityId);
-        }
-        Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository.findById(entityId);
-        if (!pluginPackageEntityOptional.isPresent()) {
-            throw new WecubeCoreException("PluginPackageEntity not found for id: " + entityId);
+        if (null != entityId && entityId.intValue() > 0) {
+            Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository.findById(entityId);
+            if (!pluginPackageEntityOptional.isPresent()) {
+                String errorMessage = String.format("PluginPackageEntity not found for id: [%s] for plugin config: %s", entityId, pluginConfig.getName());
+                log.error(errorMessage);
+                throw new WecubeCoreException(errorMessage);
+            }
         }
     }
 
