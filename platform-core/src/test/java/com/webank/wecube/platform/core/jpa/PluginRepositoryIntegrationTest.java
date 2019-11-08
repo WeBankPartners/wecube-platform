@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.jpa;
 import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.domain.plugin.*;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -141,7 +142,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         mockPluginPackage.addPluginConfig(mockPlugin);
 
         Long now = System.currentTimeMillis();
-        PluginPackageDataModel mockPluginPackageDataModel = new PluginPackageDataModel(null, null, mockPluginPackage.getName(), false, null, null, , now, null);
+        PluginPackageDataModel mockPluginPackageDataModel = new PluginPackageDataModel(null, 1, mockPluginPackage.getName(), false, null, null, PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name(), now, null);
         mockPluginPackage.setPluginPackageDataModel(mockPluginPackageDataModel);
 
         return mockPluginPackage;
