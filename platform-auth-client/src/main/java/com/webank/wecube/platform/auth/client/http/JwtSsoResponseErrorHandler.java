@@ -14,6 +14,11 @@ import org.springframework.web.client.ResponseErrorHandler;
 
 import com.webank.wecube.platform.auth.client.context.JwtSsoClientContext;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class JwtSsoResponseErrorHandler implements ResponseErrorHandler {
     private final ResponseErrorHandler errorHandler;
 

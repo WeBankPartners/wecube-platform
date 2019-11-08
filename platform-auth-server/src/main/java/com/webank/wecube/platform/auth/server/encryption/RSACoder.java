@@ -24,6 +24,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 final class RSACoder {
 
     public static final String KEY_ALGORITHM = "RSA";
