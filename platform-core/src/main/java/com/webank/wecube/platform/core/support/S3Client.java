@@ -22,4 +22,6 @@ public interface S3Client {
     String getUrlFromS3(String bucketName, String s3KeyName);
     
     List<S3ObjectSummary> listObjects(String bucketName);
+    
+    
 }
