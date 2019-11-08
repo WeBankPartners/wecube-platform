@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.auth.server.dto.CreateUserDto;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
-import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.repository.UserRepository;
 
 @Service("userService")
