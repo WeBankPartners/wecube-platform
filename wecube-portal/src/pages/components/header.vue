@@ -151,6 +151,17 @@ export default {
         data
       } = await getAllPluginPackageResourceFiles();
       if (status === "OK") {
+        // const data = [
+        //   {
+        //     relatedPath: "http://***REMOVED***:8888/js/chunk-vendors.bb7a385b.js"
+        //   },
+        //   { relatedPath: "http://***REMOVED***:8888/js/app.987e2945.js" },
+        //   { relatedPath: "http://***REMOVED***:8888/css/app.b7f2694b.css" },
+        //   {
+        //     relatedPath:
+        //       "http://***REMOVED***:8888/css/chunk-vendors.2c2a0273.css"
+        //   }
+        // ];
         const eleContain = document.getElementsByTagName("body");
         let script;
         data.forEach(file => {
