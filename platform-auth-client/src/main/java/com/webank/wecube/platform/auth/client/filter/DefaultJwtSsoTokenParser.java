@@ -8,7 +8,7 @@ import io.jsonwebtoken.Jwts;
 
 public class DefaultJwtSsoTokenParser implements JwtSsoTokenParser {
 
-    private static final String SIGNING_KEY = "platform-auth-server-Secret";
+    private static final String SIGNING_KEY = "Platform+Auth+Server+Secret";
 
     @Override
     public Jws<Claims> parseJwt(String token) {
