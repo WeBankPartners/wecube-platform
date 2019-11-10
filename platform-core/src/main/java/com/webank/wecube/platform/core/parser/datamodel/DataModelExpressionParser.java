@@ -3,14 +3,16 @@ package com.webank.wecube.platform.core.parser.datamodel;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.DataModelExpressionDto;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelLexer;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
+import com.webank.wecube.platform.core.support.parser.datamodel.DataModelExpressionDto;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 
 public class DataModelExpressionParser {
     public final static String FETCH_ALL = "ALL";

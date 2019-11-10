@@ -1,6 +1,7 @@
-package com.webank.wecube.platform.core.dto;
+package com.webank.wecube.platform.core.support.parser.datamodel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
 
 import java.util.List;
