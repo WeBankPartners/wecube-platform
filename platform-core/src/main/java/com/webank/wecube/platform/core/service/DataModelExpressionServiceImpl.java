@@ -81,7 +81,9 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 } else {
                     resolveLink(expressionDto, lastRequestResult);
                 }
-                lastRequestResult = expressionDto.getReturnedJson().peek();
+                if (!expressionDto.getReturnedJson().empty()) {
+                    lastRequestResult = expressionDto.getReturnedJson().peek();
+                }
                 resultDtoStack.add(expressionDto);
             }
             resultList.add(resultDtoStack);
@@ -128,7 +130,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String firstRequestEntityName = fwdNode.entity().ety().getText();
 
             Map<String, String> firstRequestParamMap = generateRefToParamMap(
-                    requestUrl,
+                    this.gatewayUrl,
                     firstRequestPackageName,
                     firstRequestEntityName,
                     "id",
@@ -147,7 +149,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             for (String secondRequestIdData : secondRequestIdDataList) {
                 Map<String, String> secondRequestParamMap = generateRefToParamMap(
-                        requestUrl,
+                        this.gatewayUrl,
                         secondRequestPackageName,
                         secondRequestEntityName,
                         "id",
@@ -173,7 +175,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String secondRequestEntityName = bwdNode.entity().ety().getText();
             String secondRequestAttributeName = bwdNode.attr().getText();
             Map<String, String> secondRequestParamMap = generateRefToParamMap(
-                    requestUrl,
+                    this.gatewayUrl,
                     secondRequestPackageName,
                     secondRequestEntityName,
                     secondRequestAttributeName,
@@ -201,7 +203,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 List<String> requestIdDataList = commonResponseToList(lastRequestResponseDto, requestId);
                 for (String requestIdData : requestIdDataList) {
                     Map<String, String> requestParamMap = generateRefToParamMap(
-                            requestUrl,
+                            this.gatewayUrl,
                             requestPackageName,
                             requestEntityName,
                             "id",
@@ -229,7 +231,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 List<String> requestIdDataList = commonResponseToList(lastRequestResponseDto, "id");
                 for (String requestIdData : requestIdDataList) {
                     Map<String, String> requestParamMap = generateRefToParamMap(
-                            requestUrl,
+                            this.gatewayUrl,
                             requestPackageName,
                             requestEntityName,
                             requestAttributeName,
