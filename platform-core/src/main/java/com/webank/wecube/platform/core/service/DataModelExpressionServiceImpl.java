@@ -1,21 +1,21 @@
 package com.webank.wecube.platform.core.service;
 
-import com.google.gson.internal.LinkedTreeMap;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.DataModelExpressionDto;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
-import com.webank.wecube.platform.core.utils.HttpClientUtils;
+import com.webank.wecube.platform.core.support.parser.datamodel.DataModelExpressionDto;
 import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.core.utils.RestTemplateUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -24,54 +24,44 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
-//    @Autowired
-//    PluginPackageDataModelServiceImpl dataModelService;
-//    @Autowired
-//    PluginPackageEntityRepository entityRepository;
-//    @Autowired
-//    PluginPackageAttributeRepository attributeRepository;
-
-
+    //    private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}&sorting={sortName},asc";
+    private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
     private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
-    private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}&sorting={sortName},asc";
+    //    @Autowired
+    private RestTemplate restTemplate = new RestTemplate();
     private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?sorting={sortName},asc";
 
     private String gatewayUrl;
-    private String requestActualUrl;
+    private String requestActualUrl = "";
 
-    public String getGatewayUrl() {
+    private String getGatewayUrl() {
         return gatewayUrl;
     }
 
-    public void setGatewayUrl(String gatewayUrl) {
+    private void setGatewayUrl(String gatewayUrl) {
         this.gatewayUrl = gatewayUrl;
     }
 
-    public String getRequestActualUrl() {
+    private String getRequestActualUrl() {
         return requestActualUrl;
     }
 
-    public void setRequestActualUrl(String requestActualUrl) {
+    private void setRequestActualUrl(String requestActualUrl) {
         this.requestActualUrl = requestActualUrl;
     }
 
+
     @Override
-    public List<Stack<DataModelExpressionDto>> fetchData(String gatewayUrl,
-                                                         List<String> dataModelExpressionList,
-                                                         List<String> rootIdDataList) throws WecubeCoreException {
-        if (dataModelExpressionList.size() != rootIdDataList.size()) {
-            String msg = "The size of input data model expression and root id data mismatch.";
-            logger.error(msg);
-            throw new WecubeCoreException(msg);
-        }
+    public List<List<String>> fetchData(String gatewayUrl,
+                                        List<Pair<String, String>> expressionToRootIdPairList
+    ) throws WecubeCoreException {
 
         this.setGatewayUrl(gatewayUrl);
         List<Stack<DataModelExpressionDto>> resultList = new ArrayList<>();
-        int batchDataSize = dataModelExpressionList.size();
 
-        for (int i = 0; i < batchDataSize; i++) {
-            String dataModelExpression = dataModelExpressionList.get(i);
-            String rootIdData = rootIdDataList.get(i);
+        for (Pair<String, String> expressionToRootIdPair : expressionToRootIdPairList) {
+            String dataModelExpression = expressionToRootIdPair.getLeft();
+            String rootIdData = expressionToRootIdPair.getRight();
             Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
 
             Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
@@ -97,7 +87,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             resultList.add(resultDtoStack);
         }
 
-        return resultList;
+        return resultList.stream().map(expressionDtoStack -> expressionDtoStack.pop().getResultValue()).collect(Collectors.toList());
     }
 
     private void resolveLink(DataModelExpressionDto expressionDto, String rootIdData) throws WecubeCoreException {
@@ -110,13 +100,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             // request
             String requestPackageName = entity.pkg().getText();
             String requestEntityName = entity.ety().getText();
-            MultiValueMap<String, String> requestParamMap = generateRefToParamMap(
-                    requestUrl,
+            Map<String, String> requestParamMap = generateRefToParamMap(
+                    this.gatewayUrl,
                     requestPackageName,
                     requestEntityName,
                     "id",
                     rootIdData,
-                    "");
+                    "id");
             CommonResponseDto requestResponseDto = request(requestUrl, requestParamMap);
             expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
             expressionDto.getReturnedJson().add(Collections.singletonList(requestResponseDto));
@@ -137,13 +127,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String firstRequestPackageName = fwdNode.entity().pkg().getText();
             String firstRequestEntityName = fwdNode.entity().ety().getText();
 
-            MultiValueMap<String, String> firstRequestParamMap = generateRefToParamMap(
+            Map<String, String> firstRequestParamMap = generateRefToParamMap(
                     requestUrl,
                     firstRequestPackageName,
                     firstRequestEntityName,
                     "id",
                     rootIdData,
-                    "");
+                    "id");
             CommonResponseDto firstRequestResponseDto = request(requestUrl, firstRequestParamMap);
             expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
             expressionDto.getReturnedJson().add(Collections.singletonList(firstRequestResponseDto));
@@ -156,13 +146,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<String> secondRequestIdDataList = commonResponseToList(firstRequestResponseDto, secondRequestAttrName);
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             for (String secondRequestIdData : secondRequestIdDataList) {
-                MultiValueMap<String, String> secondRequestParamMap = generateRefToParamMap(
+                Map<String, String> secondRequestParamMap = generateRefToParamMap(
                         requestUrl,
                         secondRequestPackageName,
                         secondRequestEntityName,
                         "id",
                         secondRequestIdData,
-                        "");
+                        "id");
                 CommonResponseDto secondRequestResponse = request(requestUrl, secondRequestParamMap);
                 responseDtoList.add(secondRequestResponse);
             }
@@ -182,13 +172,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String secondRequestPackageName = bwdNode.entity().pkg().getText();
             String secondRequestEntityName = bwdNode.entity().ety().getText();
             String secondRequestAttributeName = bwdNode.attr().getText();
-            MultiValueMap<String, String> secondRequestParamMap = generateRefToParamMap(
+            Map<String, String> secondRequestParamMap = generateRefToParamMap(
                     requestUrl,
                     secondRequestPackageName,
                     secondRequestEntityName,
                     secondRequestAttributeName,
                     rootIdData,
-                    "");
+                    "id");
             CommonResponseDto secondRequestResponse = request(requestUrl, secondRequestParamMap);  // this response may have data with one or multiple lines.
             expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
             expressionDto.getReturnedJson().add(Collections.singletonList(secondRequestResponse));
@@ -210,13 +200,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
                 List<String> requestIdDataList = commonResponseToList(lastRequestResponseDto, requestId);
                 for (String requestIdData : requestIdDataList) {
-                    MultiValueMap<String, String> requestParamMap = generateRefToParamMap(
+                    Map<String, String> requestParamMap = generateRefToParamMap(
                             requestUrl,
                             requestPackageName,
                             requestEntityName,
                             "id",
                             requestIdData,
-                            "");
+                            "id");
                     CommonResponseDto requestResponse = request(requestUrl, requestParamMap);
                     requestUrlSet.add(requestActualUrl);
                     responseDtoList.add(requestResponse);
@@ -238,13 +228,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
                 List<String> requestIdDataList = commonResponseToList(lastRequestResponseDto, "id");
                 for (String requestIdData : requestIdDataList) {
-                    MultiValueMap<String, String> requestParamMap = generateRefToParamMap(
+                    Map<String, String> requestParamMap = generateRefToParamMap(
                             requestUrl,
                             requestPackageName,
                             requestEntityName,
                             requestAttributeName,
                             requestIdData,
-                            "");
+                            "id");
                     CommonResponseDto requestResponse = request(requestUrl, requestParamMap);
                     requestUrlSet.add(requestActualUrl);
                     responseDtoList.add(requestResponse);
@@ -266,44 +256,46 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
     }
 
-    private MultiValueMap<String, String> generateRefToParamMap(String gatewayUrl,
-                                                                String packageName,
-                                                                String entityName,
-                                                                String attributeName,
-                                                                String value,
-                                                                String sortName) {
-        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-        paramMap.add("gatewayUrl", gatewayUrl);
-        paramMap.add("packageName", packageName);
-        paramMap.add("entityName", entityName);
-        paramMap.add("attrName", attributeName);
-        paramMap.add("value", value);
-        paramMap.add("sortName", sortName);
+    private Map<String, String> generateRefToParamMap(String gatewayUrl,
+                                                      String packageName,
+                                                      String entityName,
+                                                      String attributeName,
+                                                      String value,
+                                                      String sortName) {
+        Map<String, String> paramMap = new HashMap<>();
+        paramMap.put("gatewayUrl", gatewayUrl);
+        paramMap.put("packageName", packageName);
+        paramMap.put("entityName", entityName);
+        paramMap.put("attributeName", attributeName);
+        paramMap.put("value", value);
+//        paramMap.add("sortName", sortName);
         return paramMap;
     }
 
-    private MultiValueMap<String, String> generateRequestAllParamMap(String gatewayUrl,
-                                                                     String packageName,
-                                                                     String entityName,
-                                                                     String sortName) {
-        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-        paramMap.add("gatewayUrl", gatewayUrl);
-        paramMap.add("packageName", packageName);
-        paramMap.add("entityName", entityName);
-        paramMap.add("sortName", sortName);
+    private Map<String, String> generateRequestAllParamMap(String gatewayUrl,
+                                                           String packageName,
+                                                           String entityName,
+                                                           String sortName) {
+        Map<String, String> paramMap = new HashMap<>();
+        paramMap.put("gatewayUrl", gatewayUrl);
+        paramMap.put("packageName", packageName);
+        paramMap.put("entityName", entityName);
+        paramMap.put("sortName", sortName);
         return paramMap;
     }
 
-    private CommonResponseDto request(String requestUrl, MultiValueMap<String, String> paramMap) throws WecubeCoreException {
+    private CommonResponseDto request(String requestUrl, Map<String, String> paramMap) throws WecubeCoreException {
         ResponseEntity<String> response;
         CommonResponseDto responseDto = null;
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             // combine url with param map
-            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(requestUrl).queryParams(paramMap);
-            String requestUri = uriBuilder.toUriString();
-            if (!this.getRequestActualUrl().equals(requestUri)) this.setRequestActualUrl(requestUri);
-            response = HttpClientUtils.sendGetRequestWithParamMap(requestUri, httpHeaders);
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
+            UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
+            String uriStr = uriComponents.toString();
+            if (!this.getRequestActualUrl().equals(uriStr))
+                this.setRequestActualUrl(uriStr);
+            response = RestTemplateUtils.sendGetRequestWithParamMap(restTemplate, uriStr, httpHeaders);
             if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
                 throw new WecubeCoreException(response.toString());
             }
@@ -322,17 +314,16 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
 
     private List<String> commonResponseToList(CommonResponseDto responseDto, String attributeName) {
         // transfer dto to List<LinkedTreeMap>
-        List<LinkedTreeMap> dataArray = null;
+        List<LinkedHashMap<String, Object>> dataArray = new ArrayList<>();
         List<String> returnList = new ArrayList<>();
         String dataTypeSimpleName = responseDto.getData().getClass().getSimpleName();
 
         if (ArrayList.class.getSimpleName().equals(dataTypeSimpleName)) {
-            dataArray = new ArrayList<>((List<LinkedTreeMap>) responseDto.getData());
+            dataArray = (List<LinkedHashMap<String, Object>>) responseDto.getData();
         }
 
-        if (LinkedTreeMap.class.getSimpleName().equals(dataTypeSimpleName)) {
-            dataArray = new ArrayList<>();
-            dataArray.add((LinkedTreeMap) responseDto.getData());
+        if (LinkedHashMap.class.getSimpleName().equals(dataTypeSimpleName)) {
+            dataArray.add((LinkedHashMap) responseDto.getData());
         }
 
         if (DataModelExpressionParser.FETCH_ALL.equals(attributeName)) {

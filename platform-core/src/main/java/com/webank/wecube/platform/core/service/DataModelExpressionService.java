@@ -1,12 +1,11 @@
 package com.webank.wecube.platform.core.service;
 
-import com.webank.wecube.platform.core.dto.DataModelExpressionDto;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
-import java.util.Stack;
 
 public interface DataModelExpressionService {
 
-    List<Stack<DataModelExpressionDto>> fetchData(String gateWayUrl, List<String> dataModelExpression, List<String> rootIdData);
+    List<List<String>> fetchData(String gateWayUrl, List<Pair<String, String>> expressionToRootIdDataPairList);
 
 }
