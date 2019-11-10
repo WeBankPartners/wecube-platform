@@ -52,7 +52,7 @@ CREATE TABLE plugin_package_entities
     id                 INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     data_model_id      INTEGER                        NOT NULL,
     data_model_version INTEGER                        NOT NULL,
-    packageName        VARCHAR(50)                    NOT NULL,
+    package_name        VARCHAR(50)                    NOT NULL,
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
     description        VARCHAR(256)                   NOT NULL,

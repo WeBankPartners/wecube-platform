@@ -31,7 +31,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     @Test
     public void getAllDataModels() throws Exception {
         mockDataModel();
-        mvc.perform(get("/v1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mvc.perform(get("/v1/models2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[*].name", contains("entity_1", "entity_2", "entity_3")))
                 .andDo(print())
@@ -66,12 +66,14 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 "VALUES ('package_1',\n" +
                 "        '1.0');\n" +
                 "\n" +
-                "INSERT INTO plugin_package_entities(plugin_package_id, name, display_name, description)\n" +
-                "VALUES (1, 'entity_1', 'entity_1', 'entity_1_description');\n" +
-                "INSERT INTO plugin_package_entities(plugin_package_id, name, display_name, description)\n" +
-                "VALUES (1, 'entity_2', 'entity_2', 'entity_2_description');\n" +
-                "INSERT INTO plugin_package_entities(plugin_package_id, name, display_name, description)\n" +
-                "VALUES (1, 'entity_3', 'entity_3', 'entity_3_description');\n" +
+                "INSERT INTO plugin_package_data_model(id, version, package_name) " +
+                "VALUES (1, 1, 'package_1');" +
+                "INSERT INTO plugin_package_entities(data_model_id, data_model_version, package_name, name, display_name, description)\n" +
+                "VALUES (1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description');\n" +
+                "INSERT INTO plugin_package_entities(data_model_id, data_model_version, package_name, name, display_name, description)\n" +
+                "VALUES (1, 1, 'package_1', 'entity_2', 'entity_2', 'entity_2_description');\n" +
+                "INSERT INTO plugin_package_entities(data_model_id, data_model_version, package_name, name, display_name, description)\n" +
+                "VALUES (1, 1, 'package_1', 'entity_3', 'entity_3', 'entity_3_description');\n" +
                 "\n" +
                 "\n" +
                 "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +

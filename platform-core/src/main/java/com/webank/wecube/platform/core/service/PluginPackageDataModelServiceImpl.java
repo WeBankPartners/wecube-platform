@@ -102,6 +102,26 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         return attributeReferenceNameMap;
     }
 
+    @Override
+    public Set<PluginPackageDataModelDto> allDataModels() {
+        Set<PluginPackageDataModelDto> pluginPackageDataModelDtos = newLinkedHashSet();
+        Optional<List<String>> allPackageNamesOptional = pluginPackageRepository.findAllDistinctPackage();
+        allPackageNamesOptional.ifPresent(allPackageNames -> {
+            for (String packageName : allPackageNames) {
+                Optional<PluginPackageDataModel> pluginPackageDataModelOptional = dataModelRepository.findLatestDataModelByPackageName(packageName);
+                if (pluginPackageDataModelOptional.isPresent()) {
+                    pluginPackageDataModelDtos.add(PluginPackageDataModelDto.fromDomain(pluginPackageDataModelOptional.get()));
+                }
+            }
+        });
+        return pluginPackageDataModelDtos;
+    }
+
+    @Override
+    public PluginPackageDataModelDto dataModelByPackageName(String packageName) {
+        return null;
+    }
+
     /**
      * Plugin model overview
      *
@@ -110,7 +130,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
     @Override
     public List<PluginPackageEntityDto> overview() {
         Set<PluginPackageEntity> packageEntities = newLinkedHashSet();
-        Optional<Set<String>> allPackageNamesOptional = pluginPackageRepository.findAllDistinctPackage();
+        Optional<List<String>> allPackageNamesOptional = pluginPackageRepository.findAllDistinctPackage();
         allPackageNamesOptional.ifPresent(allPackageNames -> {
             for (String packageName : allPackageNames) {
                 Optional<PluginPackageDataModel> pluginPackageDataModelOptional = dataModelRepository.findLatestDataModelByPackageName(packageName);
@@ -143,6 +163,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             logger.error(errorMessage);
             throw new WecubeCoreException(errorMessage);
         }
+
         return convertEntityDomainToDto(latestDataModelByPackageName.get().getPluginPackageEntities(), true);
     }
 
@@ -232,7 +253,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             // query for the referenceBy info
             String packageName = inputEntityDto.getPackageName();
             String entityName = inputEntityDto.getName();
-            long dataModelVersion = 0;
+            int dataModelVersion = 0;
 
             Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
             if (latestDataModelByPackageName.isPresent()) {
@@ -244,20 +265,15 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             allAttributeReferenceByList.ifPresent(attributeList -> attributeList.forEach(attribute -> {
                 // the process of found reference by info
                 PluginPackageEntity referenceByEntity = attribute.getPluginPackageEntity();
-                Integer referenceByPackageId = referenceByEntity.getId();
-                String referenceByPackageName = referenceByEntity.getPluginPackageDataModel().getPackageName();
-                Integer referenceByDataModelVersion = referenceByEntity.getPluginPackageDataModel().getVersion();
-                String referenceByEntityName = referenceByEntity.getName();
-                String displayName = referenceByEntity.getDisplayName();
-                if (!packageName.equals(referenceByPackageName) ||
-                        !entityName.equals(referenceByEntityName)) {
+                if (!packageName.equals(referenceByEntity.getPackageName()) ||
+                        !entityName.equals(referenceByEntity.getName())) {
                     // only add the dto to set when the attribute doesn't belong to this input entity
                     inputEntityDto.updateReferenceBy(
-                            referenceByPackageId,
-                            referenceByPackageName,
-                            referenceByDataModelVersion,
-                            referenceByEntityName,
-                            displayName);
+                            referenceByEntity.getId(),
+                            referenceByEntity.getPackageName(),
+                            referenceByEntity.getDataModelVersion(),
+                            referenceByEntity.getName(),
+                            referenceByEntity.getDisplayName());
                 }
             }));
 
