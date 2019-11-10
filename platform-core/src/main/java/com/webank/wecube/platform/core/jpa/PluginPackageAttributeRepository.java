@@ -20,6 +20,6 @@ public interface PluginPackageAttributeRepository extends CrudRepository<PluginP
     Optional<List<PluginPackageAttribute>> findAllReferenceByAttribute(
             @Param("packageName") String packageName,
             @Param("entityName") String entityName,
-            @Param("dataModelVersion") long dataModelVersion);
+            @Param("dataModelVersion") int dataModelVersion);
 
 }
