@@ -17,17 +17,19 @@ public class DataModelExpressionListener extends DataModelBaseListener {
 
     @Override
     public void exitRoute(DataModelParser.RouteContext ctx) {
+        DataModelExpressionDto dataModelExpressionDto = null;
         if (ctx.link() != null) {
             // "prevLink fetch"
-            DataModelExpressionDto dataModelExpressionDto = new DataModelExpressionDto(ctx.link(), ctx.fetch());
-            expressionQueue.add(dataModelExpressionDto);
-        }
+            dataModelExpressionDto = new DataModelExpressionDto(ctx.link(), ctx.fetch());
 
+        }
         if (ctx.entity() != null) {
             // "entity fetch"
-            DataModelExpressionDto dataModelExpressionDto = new DataModelExpressionDto(ctx.entity(), ctx.fetch());
-            expressionQueue.add(dataModelExpressionDto);
+            dataModelExpressionDto = new DataModelExpressionDto(ctx.entity(), ctx.fetch());
         }
+        assert dataModelExpressionDto != null;
+        dataModelExpressionDto.setExpression(ctx.getText());
+        expressionQueue.add(dataModelExpressionDto);
 
         super.exitRoute(ctx);
     }
