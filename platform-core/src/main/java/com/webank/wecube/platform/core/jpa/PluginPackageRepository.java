@@ -34,7 +34,7 @@ public interface PluginPackageRepository extends CrudRepository<PluginPackage, I
     @Query(value = "SELECT package.name " +
             "FROM PluginPackage package " +
             "GROUP BY package.name")
-    Optional<Set<String>> findAllDistinctPackage();
+    Optional<List<String>> findAllDistinctPackage();
 
     Optional<PluginPackage> findTop1ByNameOrderByVersionDesc(String packageName);
 
