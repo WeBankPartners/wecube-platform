@@ -81,9 +81,9 @@ public class PluginInvocationCommand {
 
     @Override
     public String toString() {
-        return "PluginInvocationCommand [procDefId=" + procDefId + ", procDefKey=" + procDefKey + ", procDefVersion="
+        return "procDefId=" + procDefId + ", procDefKey=" + procDefKey + ", procDefVersion="
                 + procDefVersion + ", procInstId=" + procInstId + ", procInstKey=" + procInstKey + ", nodeId=" + nodeId
-                + ", nodeName=" + nodeName + ", executionId=" + executionId + "]";
+                + ", nodeName=" + nodeName + ", executionId=" + executionId + "";
     }
 
 }
