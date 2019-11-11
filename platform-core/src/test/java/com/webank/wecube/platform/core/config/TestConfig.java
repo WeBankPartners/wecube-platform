@@ -1,18 +1,12 @@
 package com.webank.wecube.platform.core.config;
 
-import java.sql.Connection;
 import java.sql.SQLException;
-
-import javax.sql.DataSource;
 
 import org.h2.tools.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.datasource.embedded.ConnectionProperties;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseConfigurer;
 
 @Configuration
 public class TestConfig {
