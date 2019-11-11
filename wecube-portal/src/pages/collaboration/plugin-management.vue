@@ -10,7 +10,7 @@
             name="zip-file"
             :on-success="onSuccess"
             :on-error="onError"
-            action="api/platform/v1/packages"
+            action="platform/v1/packages"
             :headers="setUploadActionHeader"
           >
             <Button icon="ios-cloud-upload-outline">{{
@@ -138,6 +138,10 @@
       </Card>
     </Col>
     <Col span="17" offset="1" v-if="isShowRuntimeManagementPanel">
+      <Spin size="large" fix v-if="isLoading">
+        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+        <div>{{ $t("loading") }}</div>
+      </Spin>
       <div v-if="Object.keys(currentPlugin).length > 0">
         <div v-if="currentPlugin.children">
           <Row class="instances-container">
@@ -192,8 +196,7 @@
                                 @click="
                                   createPluginInstanceByPackageIdAndHostIp(
                                     item.ip,
-                                    item.port,
-                                    item.createParams
+                                    item.port
                                   )
                                 "
                                 >{{ $t("create") }}</Button
@@ -211,9 +214,11 @@
                       <div v-else>
                         <div v-for="item in allInstances" :key="item.id">
                           <div class="instance-item-container">
-                            <div class="instance-item">
-                              {{ item.displayLabel }}
-                            </div>
+                            <Col span="4">
+                              <div class="instance-item">
+                                {{ item.displayLabel }}
+                              </div>
+                            </Col>
 
                             <Button
                               size="small"
@@ -374,6 +379,7 @@ export default {
   },
   data() {
     return {
+      isLoading: false,
       plugins: [],
       isShowConfigPanel: false,
       isShowServicePanel: false,
@@ -499,24 +505,12 @@ export default {
       this.isShowConfigPanel = panel === "pluginConfigPanel";
       this.isShowRuntimeManagementPanel = panel === "runtimeManagePanel";
     },
-    async createPluginInstanceByPackageIdAndHostIp(ip, port, createParams) {
-      let errorFlag = false;
-      if (createParams.indexOf("{{") >= 0 || createParams.indexOf("}}") >= 0) {
-        this.$Notice.warning({
-          title: "Warning",
-          desc:
-            this.$t("replace_key_in_params") +
-            "(" +
-            this.$t("for_example") +
-            "：{{parameter}}）"
-        });
-        errorFlag = true;
-      }
-      if (errorFlag) return;
+    async createPluginInstanceByPackageIdAndHostIp(ip, port) {
+      this.$Notice.success({
+        title: "Success",
+        desc: "Start Launching... It will take 5-15 mins"
+      });
       this.isLoading = true;
-      const payload = {
-        additionalCreateContainerParameters: createParams
-      };
       const {
         data,
         status,
@@ -524,10 +518,13 @@ export default {
       } = await createPluginInstanceByPackageIdAndHostIp(
         this.currentPlugin.id,
         ip,
-        port,
-        payload
+        port
       );
       if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: "Instance launched successfully"
+        });
         this.getAllInstancesByPackageId(this.currentPlugin.id);
       }
       this.isLoading = false;

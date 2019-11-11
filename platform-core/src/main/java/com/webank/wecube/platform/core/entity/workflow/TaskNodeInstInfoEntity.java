@@ -35,12 +35,6 @@ public class TaskNodeInstInfoEntity extends BaseInstanceStatusEntity {
     @Column(name = "PROC_DEF_KEY")
     private String procDefKey;
 
-    @Column(name = "REQ_URL")
-    private String reqUrl;
-
-    @Column(name = "ERR_URL")
-    private String errMsg;
-
     public String getNodeDefId() {
         return nodeDefId;
     }
@@ -95,22 +89,6 @@ public class TaskNodeInstInfoEntity extends BaseInstanceStatusEntity {
 
     public void setProcDefKey(String procDefKey) {
         this.procDefKey = procDefKey;
-    }
-
-    public String getReqUrl() {
-        return reqUrl;
-    }
-
-    public void setReqUrl(String reqUrl) {
-        this.reqUrl = reqUrl;
-    }
-
-    public String getErrMsg() {
-        return errMsg;
-    }
-
-    public void setErrMsg(String errMsg) {
-        this.errMsg = errMsg;
     }
 
     public String getNodeType() {
