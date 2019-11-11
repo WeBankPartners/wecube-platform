@@ -22,6 +22,11 @@ import javax.crypto.NoSuchPaddingException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 final class RSACoder {
 
     public static final String KEY_ALGORITHM = "RSA";

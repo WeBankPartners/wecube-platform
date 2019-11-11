@@ -13,6 +13,11 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 final class DESCoder {
 
     private static final String CIPHER_ALGORITHM = "DES";
