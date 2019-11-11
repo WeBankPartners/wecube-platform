@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.controller;
 
 
+import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.support.FakeS3Client;
 import org.apache.commons.io.FileUtils;
@@ -31,20 +32,28 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     @Test
     public void getAllDataModels() throws Exception {
         mockDataModel();
-        mvc.perform(get("/v1/models2"))
+        mvc.perform(get("/v1/models"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[*].name", contains("entity_1", "entity_2", "entity_3")))
+                .andExpect(jsonPath("$.data[*].packageName", contains("package_1", "package_2")))
+                .andExpect(jsonPath("$.data[*].version", contains(1, 2)))
+                .andExpect(jsonPath("$.data[0].pluginPackageEntities[*].name", containsInAnyOrder("entity_1", "entity_2", "entity_3")))
+                .andExpect(jsonPath("$.data[1].pluginPackageEntities[*].name", containsInAnyOrder("entity_4", "entity_5", "entity_6")))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
     }
 
     @Test
-    public void getDataModelById() throws Exception {
+    public void getDataModelByPackageName() throws Exception {
         mockDataModel();
-        mvc.perform(get("/v1/packages/1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        String packageName = "package_1";
+        mvc.perform(get("/v1/packages/" + packageName + "/models"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[*].packageName", contains("package_1", "package_1", "package_1")))
-                .andExpect(jsonPath("$.data[*].packageVersion", contains("1.0", "1.0", "1.0")))
+                .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
+                .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
+                .andExpect(jsonPath("$.data.packageName", is(packageName)))
+                .andExpect(jsonPath("$.data.version", is(1)))
+                .andExpect(jsonPath("$.data.pluginPackageEntities[*].packageName", containsInAnyOrder(packageName, packageName, packageName)))
+                .andExpect(jsonPath("$.data.pluginPackageEntities[*].name", containsInAnyOrder("entity_1", "entity_2", "entity_3")))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
     }
@@ -52,42 +61,62 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     @Test
     public void getDataModelByMockedPackage() throws Exception {
         uploadCorrectPackage();
-        final int MOCK_DATAMODEL_NUMBER = 5;
-        mvc.perform(get("/v1/packages/1/models").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        final int MOCK_DATA_MODEL_NUMBER = 5;
+        mvc.perform(get("/v1/packages/" + "service-management" + "/models"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Success")))
-                .andExpect(jsonPath("$.data", is(iterableWithSize(MOCK_DATAMODEL_NUMBER))))
+                .andExpect(jsonPath("$.data.pluginPackageEntities", is(iterableWithSize(MOCK_DATA_MODEL_NUMBER))))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
     }
 
     private void mockDataModel() {
-        String sqlStr = "INSERT INTO plugin_packages (name, version)\n" +
-                "VALUES ('package_1',\n" +
-                "        '1.0');\n" +
-                "\n" +
-                "INSERT INTO plugin_package_data_model(id, version, package_name) " +
-                "VALUES (1, 1, 'package_1');" +
-                "INSERT INTO plugin_package_entities(data_model_id, data_model_version, package_name, name, display_name, description)\n" +
-                "VALUES (1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description');\n" +
-                "INSERT INTO plugin_package_entities(data_model_id, data_model_version, package_name, name, display_name, description)\n" +
-                "VALUES (1, 1, 'package_1', 'entity_2', 'entity_2', 'entity_2_description');\n" +
-                "INSERT INTO plugin_package_entities(data_model_id, data_model_version, package_name, name, display_name, description)\n" +
-                "VALUES (1, 1, 'package_1', 'entity_3', 'entity_3', 'entity_3_description');\n" +
-                "\n" +
-                "\n" +
-                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
-                "VALUES (1, NULL, 'attribute_1', 'attribute_1_description', 'INT');\n" +
-                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
-                "VALUES (1, NULL, 'attribute_2', 'attribute_2_description', 'INT');\n" +
-                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
-                "VALUES (1, 1, 'attribute_3', 'attribute_3_description', 'INT');\n" +
-                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
-                "VALUES (1, 1, 'attribute_4', 'attribute_4_description', 'REF');\n" +
-                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
-                "VALUES (2, 2, 'attribute_5', 'attribute_5_description', 'REF');\n" +
-                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type)\n" +
-                "VALUES (3, NULL, 'attribute_6', 'attribute_6_description', 'REF');";
+        String sqlStr =
+                "INSERT INTO plugin_packages (name, version) VALUES " +
+                        "  ('package_1', '1.0') " +
+                        ", ('package_2', '1.1') " +
+                        ";\n" +
+                "INSERT INTO plugin_package_data_model(id, version, package_name) VALUES " +
+                        "  (1, 1, 'package_1') " +
+                        ", (2, 1, 'package_2') " +
+                        ", (3, 2, 'package_2') " +
+                        ";\n" +
+                "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
+                        "  (1, 1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
+                        ", (2, 1, 1, 'package_1', 'entity_2', 'entity_2', 'entity_2_description') " +
+                        ", (3, 1, 1, 'package_1', 'entity_3', 'entity_3', 'entity_3_description') " +
+
+                        ", (4, 2, 1, 'package_2', 'entity_4', 'entity_4', 'entity_4_description') " +
+                        ", (5, 2, 1, 'package_2', 'entity_5', 'entity_5', 'entity_5_description') " +
+                        ", (6, 2, 1, 'package_2', 'entity_6', 'entity_6', 'entity_6_description') " +
+
+                        ", (7, 3, 2, 'package_2', 'entity_4', 'entity_4', 'entity_4_description') " +
+                        ", (8, 3, 2, 'package_2', 'entity_5', 'entity_5', 'entity_5_description') " +
+                        ", (9, 3, 2, 'package_2', 'entity_6', 'entity_6', 'entity_6_description') " +
+                        ";\n" +
+                "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
+                        "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        ", (2, 1, NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
+                        ", (3, 1, 1, 'attribute_3', 'attribute_3_description', 'INT') " +
+                        ", (4, 1, 1, 'attribute_4', 'attribute_4_description', 'REF') " +
+                        ", (5, 2, 2, 'attribute_5', 'attribute_5_description', 'REF') " +
+                        ", (6, 3, NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
+
+                        ", (7, 4, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        ", (8, 4, NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
+                        ", (9, 4, 1, 'attribute_3', 'attribute_3_description', 'INT') " +
+                        ", (10, 4, 1, 'attribute_4', 'attribute_4_description', 'REF') " +
+                        ", (11, 5, 2, 'attribute_5', 'attribute_5_description', 'REF') " +
+                        ", (12, 6, NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
+
+                        ", (13, 7, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        ", (14, 7, NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
+                        ", (15, 7, 1, 'attribute_3', 'attribute_3_description', 'INT') " +
+                        ", (16, 7, 1, 'attribute_4', 'attribute_4_description', 'REF') " +
+                        ", (17, 8, 2, 'attribute_5', 'attribute_5_description', 'REF') " +
+                        ", (18, 9, 3, 'attribute_6', 'attribute_6_description', 'REF')" +
+                        ";\n"
+                ;
         executeSql(sqlStr);
 
     }
