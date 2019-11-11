@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.service;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
@@ -30,6 +31,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 @Transactional
 public class PluginPackageDataModelServiceImpl implements PluginPackageDataModelService {
 
+    public static final String ATTRIBUTE_KEY_SEPARATOR = "`";
     @Autowired
     PluginPackageDataModelRepository dataModelRepository;
     @Autowired
@@ -60,15 +62,17 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             throw new WecubeCoreException(msg);
         }
 
-        PluginPackageDataModel transferredPluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
         Optional<PluginPackageDataModel> pluginPackageDataModelOptional = dataModelRepository.findLatestDataModelByPackageName(pluginPackageDataModelDto.getPackageName());
-        if (pluginPackageDataModelOptional.isPresent()) {
-            PluginPackageDataModel dataModelFromDatabase = pluginPackageDataModelOptional.get();
-            if (PluginPackageDataModelHelper.isDataModelSameAsAnother(transferredPluginPackageDataModel, dataModelFromDatabase)) {
+        int newDataModelVersion = 1;
+        if (pluginPackageDataModelOptional.isPresent()){
+            PluginPackageDataModel existingDataModelDomain = pluginPackageDataModelOptional.get();
+            if (PluginPackageDataModelHelper.isDataModelSameAsAnother(pluginPackageDataModelDto, existingDataModelDomain)) {
                 throw new WecubeCoreException("Refreshed data model is same as existing latest one.");
             }
-            transferredPluginPackageDataModel.setVersion(dataModelFromDatabase.getVersion() + 1);
+            newDataModelVersion = existingDataModelDomain.getVersion() + 1;
         }
+        pluginPackageDataModelDto.setVersion(newDataModelVersion);
+        PluginPackageDataModel transferredPluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
 
         Map<String, String> attributeReferenceNameMap = buildAttributeReferenceNameMap(pluginPackageDataModelDto);
         Map<String, PluginPackageAttribute> referenceAttributeMap = buildReferenceAttributeMap(transferredPluginPackageDataModel);
@@ -85,7 +89,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                 .forEach(entity->
                         entity.getPluginPackageAttributeList()
                                 .forEach(attribute->
-                                        nameToAttributeMap.put(entity.getPackageName()+"'" + entity.getName() + "'" + attribute.getName(), attribute)));
+                                        nameToAttributeMap.put(entity.getPackageName()+ ATTRIBUTE_KEY_SEPARATOR + entity.getName() + ATTRIBUTE_KEY_SEPARATOR + attribute.getName(), attribute)));
 
         return nameToAttributeMap;
     }
@@ -97,8 +101,8 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                     .stream()
                     .filter(attribute->"ref".equals(attribute.getDataType()))
                     .forEach(attribute->
-                            attributeReferenceNameMap.put(entityDto.getPackageName()+"'"+entityDto.getName()+"'"+attribute.getName(),
-                                    attribute.getRefPackageName() + "'" + attribute.getRefEntityName() + "'" + attribute.getRefAttributeName())));
+                            attributeReferenceNameMap.put(entityDto.getPackageName()+ ATTRIBUTE_KEY_SEPARATOR +entityDto.getName()+ ATTRIBUTE_KEY_SEPARATOR +attribute.getName(),
+                                    attribute.getRefPackageName() + ATTRIBUTE_KEY_SEPARATOR + attribute.getRefEntityName() + ATTRIBUTE_KEY_SEPARATOR + attribute.getRefAttributeName())));
         return attributeReferenceNameMap;
     }
 
@@ -110,11 +114,38 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             for (String packageName : allPackageNames) {
                 Optional<PluginPackageDataModel> pluginPackageDataModelOptional = dataModelRepository.findLatestDataModelByPackageName(packageName);
                 if (pluginPackageDataModelOptional.isPresent()) {
-                    pluginPackageDataModelDtos.add(PluginPackageDataModelDto.fromDomain(pluginPackageDataModelOptional.get()));
+                    pluginPackageDataModelDtos.add(convertDataModelDomainToDto(pluginPackageDataModelOptional.get()));
                 }
             }
         });
+
         return pluginPackageDataModelDtos;
+    }
+
+    private PluginPackageDataModelDto convertDataModelDomainToDto(PluginPackageDataModel dataModel) {
+        Set<PluginPackageEntity> entities = newLinkedHashSet();
+
+        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
+        dataModelDto.setId(dataModel.getId());
+        dataModelDto.setVersion(dataModel.getVersion());
+        dataModelDto.setPackageName(dataModel.getPackageName());
+        dataModelDto.setUpdateSource(dataModel.getUpdateSource());
+        dataModelDto.setUpdateTime(dataModel.getUpdateTime());
+        dataModelDto.setDynamic(dataModel.isDynamic());
+        if (dataModel.isDynamic()) {
+            dataModelDto.setUpdatePath(dataModel.getUpdatePath());
+            dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
+        }
+        if (null != dataModel.getPluginPackageEntities() && dataModel.getPluginPackageEntities().size() > 0) {
+            Set<PluginPackageEntityDto> pluginPackageEntities = newLinkedHashSet();
+            dataModel.getPluginPackageEntities().forEach(entity->pluginPackageEntities.add(PluginPackageEntityDto.fromDomain(entity)));
+            dataModelDto.setPluginPackageEntities(pluginPackageEntities);
+        }
+        dataModel.getPluginPackageEntities().forEach(entity -> entities.add(entity));
+
+        dataModelDto.setPluginPackageEntities(Sets.newLinkedHashSet(convertEntityDomainToDto(entities, true)));
+
+        return dataModelDto;
     }
 
     @Override
@@ -150,12 +181,12 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
      * @return list of entity dto
      */
     @Override
-    public List<PluginPackageEntityDto> packageView(String packageName) throws WecubeCoreException {
+    public PluginPackageDataModelDto packageView(String packageName) throws WecubeCoreException {
         Optional<PluginPackage> latestPluginPackageByName = pluginPackageRepository.findLatestVersionByName(packageName);
         if (!latestPluginPackageByName.isPresent()) {
             String msg = String.format("Plugin package with name [%s] is not found", packageName);
             logger.info(msg);
-            return Collections.emptyList();
+            return null;
         }
         Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
         if (!latestDataModelByPackageName.isPresent()) {
@@ -164,7 +195,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             throw new WecubeCoreException(errorMessage);
         }
 
-        return convertEntityDomainToDto(latestDataModelByPackageName.get().getPluginPackageEntities(), true);
+        return convertDataModelDomainToDto(latestDataModelByPackageName.get());
     }
 
     /**
@@ -182,8 +213,8 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
 
             for (PluginPackageAttribute pluginPackageAttribute : candidateEntity
                     .getPluginPackageAttributeList()) {
-                String selfName = pluginPackageAttribute.getPluginPackageEntity().getPackageName() + "`"
-                        + pluginPackageAttribute.getPluginPackageEntity().getName() + "`"
+                String selfName = pluginPackageAttribute.getPluginPackageEntity().getPackageName() + ATTRIBUTE_KEY_SEPARATOR
+                        + pluginPackageAttribute.getPluginPackageEntity().getName() + ATTRIBUTE_KEY_SEPARATOR
                         + pluginPackageAttribute.getName();
                 if (referenceNameMap.containsKey(selfName)) {
                     // only need to assign the attribute to attribute when the selfName is found in referenceNameMap
@@ -260,7 +291,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                 dataModelVersion = latestDataModelByPackageName.get().getVersion();
             }
             // find "reference by" info by latest data model version
-            Optional<List<PluginPackageAttribute>> allAttributeReferenceByList = pluginPackageAttributeRepository.findAllReferenceByAttribute(packageName, entityName, dataModelVersion);
+            Optional<List<PluginPackageAttribute>> allAttributeReferenceByList = pluginPackageAttributeRepository.findAllChildrenAttributes(packageName, entityName, dataModelVersion);
 
             allAttributeReferenceByList.ifPresent(attributeList -> attributeList.forEach(attribute -> {
                 // the process of found reference by info
