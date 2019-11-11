@@ -123,7 +123,9 @@ public class PluginPackageDataModelDto {
         if (null != dataModelDto.getId()) {
             dataModel.setId(dataModelDto.getId());
         }
-        dataModel.setVersion(dataModelDto.getVersion());
+        if (null != dataModelDto.getVersion()) {
+            dataModel.setVersion(dataModelDto.getVersion());
+        }
         dataModel.setPackageName(dataModelDto.getPackageName());
         if (dataModelDto.isDynamic()) {
             dataModel.setDynamic(true);
@@ -132,6 +134,7 @@ public class PluginPackageDataModelDto {
         } else {
             dataModel.setDynamic(false);
         }
+        dataModel.setUpdateSource(dataModelDto.getUpdateSource());
         dataModel.setUpdateTime(dataModelDto.getUpdateTime());
         if (null != dataModelDto.getPluginPackageEntities() && dataModelDto.getPluginPackageEntities().size() > 0) {
             Set<PluginPackageEntity> pluginPackageEntities = dataModelDto.getPluginPackageEntities().stream().map(entityDto -> PluginPackageEntityDto.toDomain(entityDto, dataModel)).collect(Collectors.toSet());
