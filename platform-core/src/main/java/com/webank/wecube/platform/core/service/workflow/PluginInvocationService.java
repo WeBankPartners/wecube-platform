@@ -175,7 +175,6 @@ public class PluginInvocationService {
                         throw new WecubeCoreException("");
                     }
 
-                    String bindTaskNodeDefId = nodeParamEntity.getTaskNodeDefId();
                     String bindNodeId = nodeParamEntity.getBindNodeId();
                     String bindParamType = nodeParamEntity.getBindParamType();
                     String bindParamName = nodeParamEntity.getBindParamName();
@@ -200,6 +199,8 @@ public class PluginInvocationService {
                         }
                     }
                     
+                    //TODO
+                    //FIXME
                     String paramVal = execParamEntities.get(0).getParamDataValue();
                     //TODO
                     Object finalInputParam = paramVal;
@@ -240,6 +241,10 @@ public class PluginInvocationService {
                 parsedParamValues.put(paramName, objectVals);
 
             }
+            
+            //TODO add parsedParamValues to pluginParameters
+            //deduplicate
+            
         }
 
         PluginInstance pluginInstance = getAvailablePluginInstance(pluginConfigInterface);
