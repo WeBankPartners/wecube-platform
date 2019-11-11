@@ -23,6 +23,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public static final int NON_EXIST_ENTITY_ID = 999;
     public static final int EXISTING_ENTITY_ID = 1;
     public static final int NON_EXIST_PLUGIN_CONFIG_ID = 999;
+    public static final int PLUGIN_CONFIG_ID_WITHOUT_ENTITY = 99;
     @Autowired
     private PluginConfigController pluginConfigController;
     @Autowired
@@ -43,7 +44,31 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
             mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("PluginPackageEntity not found for id: " + NON_EXIST_ENTITY_ID)))
+                    .andExpect(jsonPath("$.message", is(String.format("PluginPackageEntity not found for id: [%s] for plugin config: Vpc Management", NON_EXIST_ENTITY_ID))))
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void givenEntityIdIsNullWhenSaveThenReturnSuccess() {
+        mockMultipleVersionPluginConfig();
+
+        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(PLUGIN_CONFIG_ID_WITHOUT_ENTITY);
+        assertThat(pluginConfigOptional.isPresent()).isTrue();
+
+        PluginConfig pluginConfig = pluginConfigOptional.get();
+
+        assertThat(pluginConfig.getEntityId()).isNull();
+
+        try {
+            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(pluginConfig)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK")))
+                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data.id", is(PLUGIN_CONFIG_ID_WITHOUT_ENTITY)))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -268,7 +293,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 ",(33, 5, 'Vpc Management', 16, 'DISABLED');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, status) values\n" +
-                "(41, 3, 'Vpc Management', 'DISABLED');\n" +
+                "(41, 3, 'Vpc Management', 'DISABLED')\n" +
+                ",(99, 3, 'Vpc Management', 'DISABLED');\n" +
                 "\n" +
                 "INSERT INTO plugin_package_entities(id, plugin_package_id, name, display_name, description) VALUES\n" +
                 " (1, 1, 'entity_1', 'entity_1', 'entity_1_description')\n" +
