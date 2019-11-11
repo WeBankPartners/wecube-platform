@@ -20,7 +20,7 @@ public class PluginPackageDataModelController {
     @Autowired
     private PluginPackageDataModelServiceImpl pluginPackageDataModelService;
 
-    @GetMapping("/models2")
+    @GetMapping("/models")
     @ResponseBody
     public JsonResponse allllDataModels() {
         Set<PluginPackageDataModelDto> pluginPackageDataModelDtos;
@@ -30,18 +30,6 @@ public class PluginPackageDataModelController {
             return JsonResponse.error(ex.getMessage());
         }
         return JsonResponse.okayWithData(pluginPackageDataModelDtos);
-    }
-
-    @GetMapping("/models")
-    @ResponseBody
-    public JsonResponse getAllDataModels() {
-        List<PluginPackageEntityDto> allPluginPackageEntityList;
-        try {
-            allPluginPackageEntityList = pluginPackageDataModelService.overview();
-        } catch (WecubeCoreException ex) {
-            return JsonResponse.error(ex.getMessage());
-        }
-        return JsonResponse.okayWithData(allPluginPackageEntityList);
     }
 
     @GetMapping("/models/package/{plugin-package-name}")
@@ -54,12 +42,12 @@ public class PluginPackageDataModelController {
     @GetMapping("/packages/{package-name}/models")
     @ResponseBody
     public JsonResponse getDataModelByPackageId(@PathVariable(value = "package-name") String packageName) {
-        List<PluginPackageEntityDto> allPluginPackageEntityList;
+        PluginPackageDataModelDto dataModelDto;
         try {
-            allPluginPackageEntityList = pluginPackageDataModelService.packageView(packageName);
+            dataModelDto = pluginPackageDataModelService.packageView(packageName);
         } catch (WecubeCoreException ex) {
             return JsonResponse.error(ex.getMessage());
         }
-        return JsonResponse.okayWithData(allPluginPackageEntityList);
+        return JsonResponse.okayWithData(dataModelDto);
     }
 }
