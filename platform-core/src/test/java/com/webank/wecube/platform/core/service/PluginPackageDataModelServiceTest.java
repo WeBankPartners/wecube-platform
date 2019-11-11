@@ -112,17 +112,19 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
 
     @Test
     public void whenPackageViewByPackageIdShouldSuccess() {
-        whenRegisterDataModelShouldSuccess();
-        List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView("Package_1");
-        assertThat(foundEntityDtoListByPackageNameAndVersion.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE);
-        assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageName()).isEqualTo("Package_1");
-        assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getDataModelVersion()).isEqualTo("1.0");
+        PluginPackageDataModelDto pluginPackageDataModelDto = mockPluginPackageDataModelDto("Package_1", "1.0");
+        pluginPackageDataModelService.register(pluginPackageDataModelDto);
+        PluginPackageDataModelDto foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView("Package_1");
+        assertThat(foundEntityDtoListByPackageNameAndVersion.getPluginPackageEntities().size()).isEqualTo(MOCK_SIZE_PER_PACKAGE);
+        assertThat(foundEntityDtoListByPackageNameAndVersion.getPackageName()).isEqualTo("Package_1");
+        assertThat(foundEntityDtoListByPackageNameAndVersion.getVersion()).isEqualTo(1);
+        assertThat(foundEntityDtoListByPackageNameAndVersion.getPluginPackageEntities()).hasSize(3);
     }
 
     @Test
-    public void givenPackageNotExistWhenQueryDataModelThenReturnSuccessWithEmptyList() {
-        List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView(NON_EXIST_PACKAGE_NAME);
-        assertThat(foundEntityDtoListByPackageNameAndVersion).isEmpty();
+    public void givenPackageNotExistWhenQueryDataModelThenReturnSuccessNull() {
+        PluginPackageDataModelDto foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView(NON_EXIST_PACKAGE_NAME);
+        assertThat(foundEntityDtoListByPackageNameAndVersion).isNull();
     }
 
     private PluginPackageDataModelDto mockPluginPackageDataModelDto(String packageName, String packageVersion) {

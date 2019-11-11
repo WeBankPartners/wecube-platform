@@ -296,10 +296,14 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 "(41, 3, 'Vpc Management', 'DISABLED')\n" +
                 ",(99, 3, 'Vpc Management', 'DISABLED');\n" +
                 "\n" +
-                "INSERT INTO plugin_package_entities(id, plugin_package_id, name, display_name, description) VALUES\n" +
-                " (1, 1, 'entity_1', 'entity_1', 'entity_1_description')\n" +
-                ",(2, 1, 'entity_2', 'entity_2', 'entity_2_description')\n" +
-                ",(3, 1, 'entity_3', 'entity_3', 'entity_3_description');\n" +
+                "INSERT INTO plugin_package_data_model(id, version, package_name) VALUES " +
+                "  (1, 1, 'cmdb') " +
+                ", (2, 2, 'cmdb') " +
+                ";\n" +
+                "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
+                " (1, 2, 2, 'cmdb', 'entity_1', 'entity_1', 'entity_1_description')\n" +
+                ",(2, 2, 2, 'cmdb', 'entity_2', 'entity_2', 'entity_2_description')\n" +
+                ",(3, 2, 2, 'cmdb', 'entity_3', 'entity_3', 'entity_3_description');\n" +
                 "\n" +
                 "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type) VALUES\n" +
                 " (1, NULL, 'attribute_1', 'attribute_1_description', 'INT')\n" +

@@ -17,7 +17,7 @@ public interface PluginPackageDataModelService {
 
     PluginPackageDataModelDto dataModelByPackageName(String packageName);
 
-    List<PluginPackageEntityDto> packageView(String packageName);
+    PluginPackageDataModelDto packageView(String packageName);
 
     PluginPackageDataModelDto pullDynamicDataModel(String packageName);
 
