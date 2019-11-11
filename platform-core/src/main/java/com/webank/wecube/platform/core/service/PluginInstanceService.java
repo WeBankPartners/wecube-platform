@@ -258,16 +258,20 @@ public class PluginInstanceService {
                 dockerInfo.getPortBindings().replace("{{host_port}}", String.valueOf(port)),
                 dockerInfo.getVolumeBindings().replace("{{base_mount_path}}", pluginProperties.getBaseMountPath()));
 
+        String envVariable = "";
         DatabaseInfo dbInfo = initMysqlReturn.getDbInfo();
         if (dbInfo != null) {
-            createContainerParameters.setEnvVariableParameters(
-                    dockerInfo.getEnvVariables().replace("{{data_source_url}}", dbInfo.getConnectString())
-                            .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword()));
+            envVariable = dockerInfo.getEnvVariables().replace("{{data_source_url}}", dbInfo.getConnectString())
+                    .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword());
         }
 
-        createContainerParameters.setEnvVariableParameters(
-                createContainerParameters.getEnvVariableParameters().replace("{{minion_master_ip}}", hostIp));
-
+        if (envVariable.isEmpty()) {
+            createContainerParameters
+                    .setEnvVariableParameters(dockerInfo.getEnvVariables().replace("{{minion_master_ip}}", hostIp));
+        } else {
+            createContainerParameters.setEnvVariableParameters(envVariable.replace("{{minion_master_ip}}", hostIp));
+        }
+        
         try {
             ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
                     createContainerParameters);
