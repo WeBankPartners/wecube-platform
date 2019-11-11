@@ -65,10 +65,10 @@ inputParameters声明接口的输入参数；
 outputParameters声明接口的输出参数；
 parameter声明每个参数的属性；
 ```
-datatype  --  参数属性
-mappingType  --  
-required  --  
-mappingEntityExpression  -- 
+datatype  --  数据类型
+mappingType  --  参数类型，目前支持system_variable、context、entity三种
+required  --  是否必输
+mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候，该字段有效
 ```
 
 ##### 前端UI页面规范
