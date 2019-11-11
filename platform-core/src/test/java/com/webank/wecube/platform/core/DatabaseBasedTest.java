@@ -1,5 +1,14 @@
 package com.webank.wecube.platform.core;
 
+import static com.google.common.collect.Lists.newArrayList;
+
+import java.lang.reflect.Method;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.camunda.bpm.engine.ProcessEngine;
+import org.camunda.bpm.engine.impl.ProcessEngineImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,25 +18,24 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.sql.DataSource;
-import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
-
 @Transactional
 public abstract class DatabaseBasedTest extends BaseSpringBootTest {
     @Autowired
     protected DataSource dataSource;
+    
+    @Autowired 
+    private ProcessEngine processEngin;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         cleanUpDatabase();
+        refreshProcessSchema();
         prepareDatabase();
     }
 
     @After
     public void cleanUp() {
-        cleanUpDatabase();
+        //cleanUpDatabase();
     }
 
     private void prepareDatabase() {
@@ -36,6 +44,14 @@ public abstract class DatabaseBasedTest extends BaseSpringBootTest {
                 new ClassPathResource("/database/02.wecube.system.data.sql"),
                 new ClassPathResource("/database/03.wecube.test.data.sql")
         ));
+    }
+    
+    private void refreshProcessSchema() throws Exception {
+        if(processEngin instanceof ProcessEngineImpl) {
+            Method executeSchemaMethod = ProcessEngineImpl.class.getDeclaredMethod("executeSchemaOperations");
+            executeSchemaMethod.setAccessible(true);
+            executeSchemaMethod.invoke(processEngin);
+        }
     }
 
     private void cleanUpDatabase() {
