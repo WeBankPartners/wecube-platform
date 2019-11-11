@@ -18,7 +18,7 @@ public class PluginPackageEntity {
     private Integer id;
 
     @JsonBackReference
-    @ManyToOne(cascade = {CascadeType.ALL})
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "data_model_id")
     private PluginPackageDataModel pluginPackageDataModel;
 
@@ -47,66 +47,52 @@ public class PluginPackageEntity {
     public PluginPackageEntity(PluginPackageDataModel pluginPackageDataModel, String name,
                                String displayName,
                                String description) {
-        this.pluginPackageDataModel = pluginPackageDataModel;
+        this(pluginPackageDataModel, name, displayName, description, null);
+    }
+
+    public PluginPackageEntity(PluginPackageDataModel pluginPackageDataModel, String name,
+                               String displayName,
+                               String description, List<PluginPackageAttribute> pluginPackageAttributes) {
+        setPluginPackageDataModel(pluginPackageDataModel);
         this.name = name;
         this.displayName = displayName;
         this.description = description;
+        this.pluginPackageAttributeList = pluginPackageAttributes;
     }
 
     public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     public PluginPackageDataModel getPluginPackageDataModel() {
         return pluginPackageDataModel;
     }
 
-    public void setPluginPackageDataModel(PluginPackageDataModel pluginPackageDataModel) {
+    private void setPluginPackageDataModel(PluginPackageDataModel pluginPackageDataModel) {
         this.pluginPackageDataModel = pluginPackageDataModel;
+        this.dataModelVersion = pluginPackageDataModel.getVersion();
+        this.packageName = pluginPackageDataModel.getPackageName();
+
     }
 
     public Integer getDataModelVersion() {
         return dataModelVersion;
     }
 
-    public void setDataModelVersion(Integer dataModelVersion) {
-        this.dataModelVersion = dataModelVersion;
-    }
-
     public String getPackageName() {
         return packageName;
-    }
-
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getDisplayName() {
         return displayName;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public List<PluginPackageAttribute> getPluginPackageAttributeList() {
