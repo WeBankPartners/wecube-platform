@@ -264,6 +264,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                     draftEntity = entity;
                 }
             } else {
+                log.error("Invalid process definition id:{}", originalId);
                 throw new WecubeCoreException("Invalid process definition id");
             }
         }
