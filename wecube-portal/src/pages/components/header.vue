@@ -153,13 +153,13 @@ export default {
       if (status === "OK") {
         // const data = [
         //   {
-        //     relatedPath: "http://***REMOVED***:8888/js/chunk-vendors.bb7a385b.js"
+        //     relatedPath: "http://***REMOVED***:8888/js/chunk-vendors.d0d23cad.js"
         //   },
-        //   { relatedPath: "http://***REMOVED***:8888/js/app.987e2945.js" },
-        //   { relatedPath: "http://***REMOVED***:8888/css/app.b7f2694b.css" },
+        //   { relatedPath: "http://***REMOVED***:8888/js/app.d90bd292.js" },
+        //   { relatedPath: "http://***REMOVED***:8888/css/app.7e7e255d.css" },
         //   {
         //     relatedPath:
-        //       "http://***REMOVED***:8888/css/chunk-vendors.2c2a0273.css"
+        //       "http://***REMOVED***:8888/css/chunk-vendors.5db193f3.css"
         //   }
         // ];
         const eleContain = document.getElementsByTagName("body");
