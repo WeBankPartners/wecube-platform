@@ -4,14 +4,12 @@ import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
+import org.assertj.core.util.Sets;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
@@ -27,6 +25,8 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     PluginConfigRepository pluginConfigRepository;
     @Autowired
     PluginInstanceRepository pluginInstanceRepository;
+    @Autowired
+    PluginPackageDataModelRepository dataModelRepository;
     @Autowired
     PluginPackageEntityRepository pluginPackageEntityRepository;
     @Autowired
@@ -92,17 +92,19 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
     @Test
     public void deleteEntity() {
         PluginPackage package_1 = mockPluginPackage("package_1", "1.0");
-        List<PluginPackageEntity> pluginPackageEntityList = mockPluginPackageEntityList(package_1);
-        mockPluginPackageEntityListWithAttributeList(pluginPackageEntityList);
-        pluginPackageEntityRepository.saveAll(pluginPackageEntityList);
+        pluginPackageRepository.save(package_1);
+        PluginPackageDataModel dataModel = mockPluginPackageDataModel(package_1);
+        dataModelRepository.save(dataModel);
         assertThat(Iterables.size(pluginPackageRepository.findAllByName("package_1"))).isEqualTo(1);
+        assertThat(Iterables.size(dataModelRepository.findAll())).isEqualTo(1);
         assertThat(Iterables.size(pluginPackageEntityRepository.findAll())).isEqualTo(3);
         assertThat(Iterables.size(pluginPackageAttributeRepository.findAll())).isEqualTo(15);
-//
-        // delete the package
-        pluginPackageEntityRepository.deleteAll();
+
+
+        dataModelRepository.deleteAll();
         pluginPackageRepository.deleteAll();
         assertThat(Iterables.size(pluginPackageRepository.findAll())).isEqualTo(0);
+        assertThat(Iterables.size(dataModelRepository.findAll())).isEqualTo(0);
         assertThat(Iterables.size(pluginPackageEntityRepository.findAll())).isEqualTo(0);
         assertThat(Iterables.size(pluginPackageAttributeRepository.findAll())).isEqualTo(0);
     }
@@ -160,6 +162,26 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         return pluginConfigInterface;
     }
 
+    public static PluginPackageDataModel mockPluginPackageDataModel(PluginPackage pluginPackage) {
+        long now = System.currentTimeMillis();
+        PluginPackageDataModel mockPluginPackageDataModel = new PluginPackageDataModel(null, 1, pluginPackage.getName(), false, null, null, PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name(), now, null);
+        mockPluginPackageDataModel.setPluginPackageEntities(mockPluginPackageEntityList(mockPluginPackageDataModel));
+
+        return mockPluginPackageDataModel;
+    }
+
+    public static Set<PluginPackageEntity> mockPluginPackageEntityList(PluginPackageDataModel dataModel) {
+        Set<PluginPackageEntity> pluginPackageEntities = newLinkedHashSet();
+        pluginPackageEntities
+                .add(new PluginPackageEntity(dataModel, "entity_1", "entity_1", "entity_1_description"));
+        pluginPackageEntities
+                .add(new PluginPackageEntity(dataModel, "entity_2", "entity_2", "entity_2_description"));
+        pluginPackageEntities
+                .add(new PluginPackageEntity(dataModel, "entity_3", "entity_3", "entity_3_description"));
+        mockPluginPackageEntityListWithAttributes(pluginPackageEntities);
+        return pluginPackageEntities;
+    }
+
     public static List<PluginPackageEntity> mockPluginPackageEntityList(PluginPackage pluginPackage) {
         List<PluginPackageEntity> pluginPackageEntityList = new ArrayList<>();
         pluginPackageEntityList
@@ -171,6 +193,22 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         return pluginPackageEntityList;
     }
 
+    public static void mockPluginPackageEntityListWithAttributes(Set<PluginPackageEntity> pluginPackageEntityList) {
+        for (PluginPackageEntity pluginPackageEntity : pluginPackageEntityList) {
+            PluginPackageAttribute attribute_1 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_1",
+                    "attribute_1_description", "str");
+            PluginPackageAttribute attribute_2 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_2",
+                    "attribute_2_description", "str");
+            PluginPackageAttribute attribute_3 = new PluginPackageAttribute(pluginPackageEntity, attribute_1,
+                    "attribute_3", "attribute_3_description", "ref");
+            PluginPackageAttribute attribute_4 = new PluginPackageAttribute(pluginPackageEntity, attribute_1,
+                    "attribute_4", "attribute_4_description", "ref");
+            PluginPackageAttribute attribute_5 = new PluginPackageAttribute(pluginPackageEntity, attribute_2,
+                    "attribute_5", "attribute_5_description", "ref");
+            pluginPackageEntity.setPluginPackageAttributeList(
+                    new ArrayList<>(Arrays.asList(attribute_1, attribute_2, attribute_3, attribute_4, attribute_5)));
+        }
+    }
     public static void mockPluginPackageEntityListWithAttributeList(List<PluginPackageEntity> pluginPackageEntityList) {
         for (PluginPackageEntity pluginPackageEntity : pluginPackageEntityList) {
             PluginPackageAttribute attribute_1 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_1",
