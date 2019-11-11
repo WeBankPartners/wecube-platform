@@ -1,5 +1,10 @@
 package com.webank.wecube.platform.auth.client.model;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class JwtTokenImpl {
 
     private String token;

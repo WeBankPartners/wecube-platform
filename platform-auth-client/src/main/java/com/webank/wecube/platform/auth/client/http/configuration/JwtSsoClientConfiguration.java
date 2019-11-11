@@ -11,6 +11,11 @@ import com.webank.wecube.platform.auth.client.context.DefaultJwtSsoClientContext
 import com.webank.wecube.platform.auth.client.context.JwtSsoClientContext;
 import com.webank.wecube.platform.auth.client.http.JwtSsoRestTemplate;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Configuration
 @EnableConfigurationProperties({ JwtSsoClientProperties.class })
 public class JwtSsoClientConfiguration {

@@ -4,7 +4,7 @@ public class TaskNodeDefObjectBindInfoDto {
 
     private String nodeDefId;
     private String orderedNo;
-    private String objectId;
+    private String entityId;
 
     public String getOrderedNo() {
         return orderedNo;
@@ -14,7 +14,6 @@ public class TaskNodeDefObjectBindInfoDto {
         this.orderedNo = orderedNo;
     }
 
-    // TODO
     public String getNodeDefId() {
         return nodeDefId;
     }
@@ -23,12 +22,14 @@ public class TaskNodeDefObjectBindInfoDto {
         this.nodeDefId = nodeDefId;
     }
 
-    public String getObjectId() {
-        return objectId;
+    public String getEntityId() {
+        return entityId;
     }
 
-    public void setObjectId(String objectId) {
-        this.objectId = objectId;
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
     }
+
+    
 
 }

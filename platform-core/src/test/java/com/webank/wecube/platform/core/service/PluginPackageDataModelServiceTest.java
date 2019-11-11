@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
+    public static final int NON_EXIST_PACKAGE_ID = 9999;
     @Autowired
     PluginPackageRepository pluginPackageRepository;
     @Autowired
@@ -103,22 +104,6 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         registeredAllDataModelList.forEach(registeredDataModel -> assertThat(registeredDataModel.getAttributes().size()).isEqualTo(3));
     }
 
-
-//    @Test
-//    public void whenPackageViewByPackageNameAndVersionShouldSuccess() {
-//        whenRegisterDataModelShouldSuccess();
-//        try {
-//            pluginPackageDataModelService.packageView("falsePackageName", "falsePackageVersion");
-//        } catch (WecubeCoreException ex) {
-//            assertThat(ex.getMessage()).contains("Cannot find data model");
-//        }
-//
-//        List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView("Package_1", "1.0");
-//        assertThat(foundEntityDtoListByPackageNameAndVersion.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE);
-//        assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageName()).isEqualTo("Package_1");
-//        assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageVersion()).isEqualTo("1.0");
-//    }
-
     @Test
     public void whenPackageViewByPackageIdShouldSuccess() {
         whenRegisterDataModelShouldSuccess();
@@ -128,23 +113,11 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         assertThat(foundEntityDtoListByPackageNameAndVersion.get(0).getPackageVersion()).isEqualTo("1.0");
     }
 
-//    @Test
-//    public void whenDeleteByPackageNameAndVersionShouldSuccess() {
-//        whenRegisterDataModelShouldSuccess();
-//        Iterable<PluginPackageEntity> allAfterDelete = pluginPackageEntityRepository.findAll();
-//        List<PluginPackageEntityDto> overview = pluginPackageDataModelService.overview();
-//        assertThat(Iterators.size(allAfterDelete.iterator())).isEqualTo(MOCK_SIZE_PER_PACKAGE * PACKAGE_SIZE);
-//        try {
-//            pluginPackageDataModelService.deleteModel("Package_1", "1.0");
-//        } catch (WecubeCoreException ex) {
-//            assertThat(ex.getMessage().contains("is still referenced by others, delete operation will terminate.")).isEqualTo(true);
-//        }
-//        // because no one refer to data model with package name: Package_1 and version: 2.0 so that this model can be deleted
-//        pluginPackageDataModelService.deleteModel("Package_1", "2.0");
-//        allAfterDelete = pluginPackageEntityRepository.findAll();
-//        overview = pluginPackageDataModelService.overview();
-//        assertThat(Iterators.size(allAfterDelete.iterator())).isEqualTo(MOCK_SIZE_PER_PACKAGE * (PACKAGE_SIZE - 1));
-//    }
+    @Test
+    public void givenPackageNotExistWhenQueryDataModelThenReturnSuccessWithEmptyList() {
+        List<PluginPackageEntityDto> foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView(NON_EXIST_PACKAGE_ID);
+        assertThat(foundEntityDtoListByPackageNameAndVersion).isEmpty();
+    }
 
     private List<PluginPackageEntityDto> mockPluginPackageEntityDtoList(String packageName, String packageVersion) {
 
