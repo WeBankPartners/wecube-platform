@@ -35,7 +35,6 @@ public abstract class DatabaseBasedTest extends BaseSpringBootTest {
 
     @After
     public void cleanUp() {
-        //cleanUpDatabase();
     }
 
     private void prepareDatabase() {
