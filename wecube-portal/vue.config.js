@@ -13,18 +13,12 @@ module.exports = {
     open: true,
     port: 3000,
     proxy: {
-      "/api": {
+      "/platform": {
         target: baseURL
       },
       "ui-resources": {
         target: "http://129.204.99.160:8888"
       }
-      // "/auth": {
-      //   target: "http://129.204.99.160:8889"
-      // },
-      // "/packages": {
-      //   target: "http://129.204.99.160:30000"
-      // }
     }
   },
   runtimeCompiler: true,
