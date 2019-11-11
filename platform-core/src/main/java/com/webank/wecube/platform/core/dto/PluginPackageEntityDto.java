@@ -128,30 +128,7 @@ public class PluginPackageEntityDto {
      */
     public static PluginPackageEntity toDomain(PluginPackageEntityDto pluginPackageEntityDto, PluginPackageDataModel dataModel) {
 
-        PluginPackageEntity pluginPackageEntity = new PluginPackageEntity();
-        pluginPackageEntity.setPluginPackageDataModel(dataModel);
-
-        if (null != pluginPackageEntityDto.getPackageName()) {
-            pluginPackageEntity.setPackageName(pluginPackageEntityDto.getPackageName());
-        }
-
-        if (pluginPackageEntityDto.getName() != null) {
-            pluginPackageEntity.setName(pluginPackageEntityDto.getName());
-        }
-
-        if (null != dataModel.getVersion()) {
-            pluginPackageEntity.setDataModelVersion(dataModel.getVersion());
-        } else if (null != pluginPackageEntityDto.getDataModelVersion()) {
-            pluginPackageEntity.setDataModelVersion(pluginPackageEntityDto.getDataModelVersion());
-        }
-
-        if (pluginPackageEntityDto.getDescription() != null) {
-            pluginPackageEntity.setDescription(pluginPackageEntityDto.getDescription());
-        }
-
-        if (pluginPackageEntityDto.getDisplayName() != null) {
-            pluginPackageEntity.setDisplayName(pluginPackageEntityDto.getDisplayName());
-        }
+        PluginPackageEntity pluginPackageEntity = new PluginPackageEntity(dataModel, pluginPackageEntityDto.getName(), pluginPackageEntityDto. getDisplayName(), pluginPackageEntityDto.getDescription());
 
         if (pluginPackageEntityDto.getAttributes() != null) {
             List<PluginPackageAttribute> pluginPackageAttributeList = new ArrayList<>();
