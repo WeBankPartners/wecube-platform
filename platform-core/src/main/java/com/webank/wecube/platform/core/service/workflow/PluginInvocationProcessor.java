@@ -13,7 +13,10 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 
@@ -43,7 +46,17 @@ public class PluginInvocationProcessor {
         private String interfacePath;
         private String instanceHost;
 
+        private String requestId;
+
         private PluginInterfaceInvocationContext pluginInterfaceInvocationContext;
+
+        public String getRequestId() {
+            return requestId;
+        }
+
+        public void setRequestId(String requestId) {
+            this.requestId = requestId;
+        }
 
         public PluginInterfaceInvocationContext getPluginInterfaceInvocationContext() {
             return pluginInterfaceInvocationContext;
@@ -124,6 +137,11 @@ public class PluginInvocationProcessor {
             return this;
         }
 
+        public PluginInvocationOperation withRequestId(String requestId) {
+            this.requestId = requestId;
+            return this;
+        }
+
         @Override
         public void operate() {
             if (log.isDebugEnabled()) {
@@ -179,6 +197,15 @@ public class PluginInvocationProcessor {
         private TaskNodeInstInfoEntity taskNodeInstEntity;
         private PluginConfigInterface pluginConfigInterface;
         private List<ProcExecBindingEntity> nodeObjectBindings;
+        private List<Map<String, Object>> pluginParameters;
+        private String interfacePath;
+        private String instanceHost;
+
+        private String requestId;
+        
+        private TaskNodeExecRequestEntity taskNodeExecRequestEntity;
+        private TaskNodeDefInfoEntity taskNodeDefEntity;
+        private PluginInvocationCommand pluginInvocationCommand;
 
         public ProcInstInfoEntity getProcInstEntity() {
             return procInstEntity;
@@ -211,6 +238,99 @@ public class PluginInvocationProcessor {
         public void setNodeObjectBindings(List<ProcExecBindingEntity> nodeObjectBindings) {
             this.nodeObjectBindings = nodeObjectBindings;
         }
+
+        public List<Map<String, Object>> getPluginParameters() {
+            return pluginParameters;
+        }
+
+        public void setPluginParameters(List<Map<String, Object>> pluginParameters) {
+            this.pluginParameters = pluginParameters;
+        }
+
+        public String getInterfacePath() {
+            return interfacePath;
+        }
+
+        public void setInterfacePath(String interfacePath) {
+            this.interfacePath = interfacePath;
+        }
+
+        public String getInstanceHost() {
+            return instanceHost;
+        }
+
+        public void setInstanceHost(String instanceHost) {
+            this.instanceHost = instanceHost;
+        }
+
+        public String getRequestId() {
+            return requestId;
+        }
+
+        public void setRequestId(String requestId) {
+            this.requestId = requestId;
+        }
+        
+        public TaskNodeDefInfoEntity getTaskNodeDefEntity() {
+            return taskNodeDefEntity;
+        }
+
+        public void setTaskNodeDefEntity(TaskNodeDefInfoEntity taskNodeDefEntity) {
+            this.taskNodeDefEntity = taskNodeDefEntity;
+        }
+
+        public TaskNodeExecRequestEntity getTaskNodeExecRequestEntity() {
+            return taskNodeExecRequestEntity;
+        }
+
+        public void setTaskNodeExecRequestEntity(TaskNodeExecRequestEntity taskNodeExecRequestEntity) {
+            this.taskNodeExecRequestEntity = taskNodeExecRequestEntity;
+        }
+        
+        public PluginInvocationCommand getPluginInvocationCommand() {
+            return pluginInvocationCommand;
+        }
+
+        public void setPluginInvocationCommand(PluginInvocationCommand pluginInvocationCommand) {
+            this.pluginInvocationCommand = pluginInvocationCommand;
+        }
+
+        public PluginInterfaceInvocationContext withNodeObjectBindings(List<ProcExecBindingEntity> nodeObjectBindings) {
+            this.nodeObjectBindings = nodeObjectBindings;
+            return this;
+        }
+        
+        public PluginInterfaceInvocationContext withPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
+            this.pluginConfigInterface = pluginConfigInterface;
+            return this;
+        }
+        
+        public PluginInterfaceInvocationContext withProcInstEntity(ProcInstInfoEntity procInstEntity) {
+            this.procInstEntity = procInstEntity;
+            return this;
+        }
+        
+        public PluginInterfaceInvocationContext withTaskNodeInstEntity(TaskNodeInstInfoEntity taskNodeInstEntity) {
+            this.taskNodeInstEntity = taskNodeInstEntity;
+            return this;
+        }
+        
+        public PluginInterfaceInvocationContext withTaskNodeExecRequestEntity(TaskNodeExecRequestEntity taskNodeExecRequestEntity) {
+            this.taskNodeExecRequestEntity = taskNodeExecRequestEntity;
+            return this;
+        }
+
+
+        public PluginInterfaceInvocationContext withTaskNodeDefEntity(TaskNodeDefInfoEntity taskNodeDefEntity) {
+            this.taskNodeDefEntity = taskNodeDefEntity;
+            return this;
+        }
+        
+        public PluginInterfaceInvocationContext withPluginInvocationCommand(PluginInvocationCommand pluginInvocationCommand) {
+            this.pluginInvocationCommand = pluginInvocationCommand;
+            return this;
+        }
+
     }
 
     public static class PluginInterfaceInvocationResult {
