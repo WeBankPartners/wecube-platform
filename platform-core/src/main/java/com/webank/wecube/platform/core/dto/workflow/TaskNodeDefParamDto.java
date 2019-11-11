@@ -5,7 +5,9 @@ public class TaskNodeDefParamDto {
     private String nodeId;
 
     private String paramName;
-    private String paramExpression;
+    private String bindNodeId;
+    private String bindParamType; // Input,Output
+    private String bindParamName;
 
     public String getId() {
         return id;
@@ -31,19 +33,34 @@ public class TaskNodeDefParamDto {
         this.paramName = paramName;
     }
 
-    public String getParamExpression() {
-        return paramExpression;
+    public String getBindNodeId() {
+        return bindNodeId;
     }
 
-    public void setParamExpression(String paramExpression) {
-        this.paramExpression = paramExpression;
+    public void setBindNodeId(String bindNodeId) {
+        this.bindNodeId = bindNodeId;
+    }
+
+    public String getBindParamType() {
+        return bindParamType;
+    }
+
+    public void setBindParamType(String bindParamType) {
+        this.bindParamType = bindParamType;
+    }
+
+    public String getBindParamName() {
+        return bindParamName;
+    }
+
+    public void setBindParamName(String bindParamName) {
+        this.bindParamName = bindParamName;
     }
 
     @Override
     public String toString() {
-        return "TaskNodeParamInfoDto [id=" + id + ", nodeId=" + nodeId + ", paramName=" + paramName
-                + ", paramExpression=" + paramExpression + "]";
+        return "TaskNodeDefParamDto [id=" + id + ", nodeId=" + nodeId + ", paramName=" + paramName + ", bindNodeId="
+                + bindNodeId + ", bindParamType=" + bindParamType + ", bindParamName=" + bindParamName + "]";
     }
 
-    
 }
