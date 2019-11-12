@@ -12,7 +12,7 @@ public class DataModelExpressionDto {
     private String expression;
     private Stack<Set<String>> requestUrlStack = new Stack<>();
     private Stack<List<CommonResponseDto>> returnedJson = new Stack<>();
-    private List<String> resultValue;
+    private List<Object> resultValue;
 
     // helper during processing
     @JsonIgnore
@@ -146,11 +146,11 @@ public class DataModelExpressionDto {
         this.prevLink = prevLink;
     }
 
-    public List<String> getResultValue() {
+    public List<Object> getResultValue() {
         return resultValue;
     }
 
-    public void setResultValue(List<String> resultValue) {
+    public void setResultValue(List<Object> resultValue) {
         this.resultValue = resultValue;
     }
 
