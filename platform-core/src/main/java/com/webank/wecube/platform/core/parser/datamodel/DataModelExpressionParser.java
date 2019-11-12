@@ -49,17 +49,4 @@ public class DataModelExpressionParser {
         return expressionQueue;
     }
 
-    public static void main(String[] args) {
-//        String expression = "C:c.c1-A:a.a1-B:b.b2-C:c.c2-D:d.d2-E:e.e2~F:f.f2-G:g.g1";
-        String expression = "F:f~(a2)A:a.a1-B:b.b2-D:d.d2";
-        DataModelExpressionParser dmeParser = new DataModelExpressionParser();
-        Queue<DataModelExpressionDto> resultQueue = null;
-        try {
-            resultQueue = dmeParser.parse(expression);
-        } catch (WecubeCoreException ex) {
-            System.out.println(ex.getMessage());
-        }
-        assert resultQueue != null;
-    }
-
 }
