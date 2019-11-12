@@ -25,13 +25,13 @@ image:
 	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
 
 push:
-	docker tag  platform-core $(remote_docker_image_registry)/platform-core:$(date)-$(version)
+	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-core:$(date)-$(version)
 
-	docker tag  platform-gateway $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
 
-	docker tag  wecube-portal $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
 
 env_config=smoke_branch.cfg
