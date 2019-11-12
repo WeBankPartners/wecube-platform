@@ -136,15 +136,9 @@ export const getAllInstancesByPackageId = packageId =>
   req.get(`/platform/v1/instances/packages/${packageId}`);
 export const getAvailableInstancesByPackageId = packageId =>
   req.get(`/platform/v1/packages/${packageId}/instances`);
-export const createPluginInstanceByPackageIdAndHostIp = (
-  packageId,
-  ip,
-  port,
-  payload
-) =>
+export const createPluginInstanceByPackageIdAndHostIp = (packageId, ip, port) =>
   req.post(
-    `/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch`,
-    payload
+    `/platform/v1/packages/${packageId}/hosts/${ip}/ports/${port}/instance/launch`
   );
 export const savePluginInstance = data =>
   req.post(
