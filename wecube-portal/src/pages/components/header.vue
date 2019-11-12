@@ -153,17 +153,17 @@ export default {
       if (status === "OK") {
         // const data = [
         //   {
-        //     relatedPath: "http://10.56.235.186:8888/js/chunk-vendors.bb7a385b.js"
+        //     relatedPath: "http://10.56.235.186:8888/js/chunk-vendors.d0d23cad.js"
         //   },
-        //   { relatedPath: "http://10.56.235.186:8888/js/app.987e2945.js" },
-        //   { relatedPath: "http://10.56.235.186:8888/css/app.b7f2694b.css" },
+        //   { relatedPath: "http://10.56.235.186:8888/js/app.d90bd292.js" },
+        //   { relatedPath: "http://10.56.235.186:8888/css/app.7e7e255d.css" },
         //   {
         //     relatedPath:
-        //       "http://10.56.235.186:8888/css/chunk-vendors.2c2a0273.css"
+        //       "http://10.56.235.186:8888/css/chunk-vendors.5db193f3.css"
         //   }
         // ];
         const eleContain = document.getElementsByTagName("body");
-        let script;
+        let script = {};
         data.forEach(file => {
           if (
             file.relatedPath.indexOf(".js") > -1 &&
@@ -172,13 +172,10 @@ export default {
             let contains = document.createElement("script");
             contains.type = "text/javascript";
             contains.src = file.relatedPath;
-            script = contains;
+            script[file.packageName] = contains;
             eleContain[0].appendChild(contains);
           }
-          if (
-            file.relatedPath.indexOf(".css") > -1 &&
-            file.relatedPath.indexOf("vendors") > -1
-          ) {
+          if (file.relatedPath.indexOf(".css") > -1) {
             let contains = document.createElement("link");
             contains.type = "text/css";
             contains.rel = "stylesheet";
@@ -186,11 +183,11 @@ export default {
             eleContain[0].appendChild(contains);
           }
         });
-
-        const loadScript = () => {
+        const loadScript = packageName => {
           data.forEach(file => {
             if (
               file.relatedPath.indexOf(".js") > -1 &&
+              file.packageName === packageName &&
               file.relatedPath.indexOf("vendors") === -1
             ) {
               let contains = document.createElement("script");
@@ -198,35 +195,27 @@ export default {
               contains.src = file.relatedPath;
               eleContain[0].appendChild(contains);
             }
-            if (
-              file.relatedPath.indexOf(".css") > -1 &&
-              file.relatedPath.indexOf("vendors") === -1
-            ) {
-              let contains = document.createElement("link");
-              contains.type = "text/css";
-              contains.rel = "stylesheet";
-              contains.href = file.relatedPath;
-              eleContain[0].appendChild(contains);
-            }
           });
         };
-        if (script.readyState) {
-          //IE
-          script.onreadystatechange = () => {
-            if (
-              script.readyState == "complete" ||
-              script.readyState == "loaded"
-            ) {
-              script.onreadystatechange = null;
-              loadScript();
-            }
-          };
-        } else {
-          //非IE
-          script.onload = () => {
-            loadScript();
-          };
-        }
+        Object.keys(script).forEach(key => {
+          if (script[key].readyState) {
+            //IE
+            script[key].onreadystatechange = () => {
+              if (
+                script[key].readyState == "complete" ||
+                script[key].readyState == "loaded"
+              ) {
+                script[key].onreadystatechange = null;
+                loadScript(key);
+              }
+            };
+          } else {
+            //非IE
+            script[key].onload = () => {
+              loadScript(key);
+            };
+          }
+        });
       }
     }
   },
