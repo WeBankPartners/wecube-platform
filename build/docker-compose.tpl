@@ -21,7 +21,7 @@ services:
     image: {{GATEWAY_IMAGE_NAME}}:{{GATEWAY_IMAGE_VERSION}}
     restart: always
     depends_on:
-      - wecube-minio
+      - platform-core
     volumes:
       - /data/wecube/log:/log/ 
       - /etc/localtime:/etc/localtime
@@ -37,8 +37,6 @@ services:
   platform-core:
     image: {{WECUBE_IMAGE_NAME}}:{{IMAGE_VERSION}}
     restart: always
-    depends_on:
-      - wecube-minio
     volumes:
       - /data/wecube/log:/log/ 
       - /etc/localtime:/etc/localtime
