@@ -33,6 +33,7 @@ sed -i "s~{{MYSQL_SERVER_PORT}}~$mysql_server_port~g" docker-compose.yml
 sed -i "s~{{MYSQL_SERVER_DATABASE_NAME}}~$mysql_server_database_name~g" docker-compose.yml
 sed -i "s~{{MYSQL_USER_NAME}}~$mysql_user_name~g" docker-compose.yml
 sed -i "s~{{PORTAL_IMAGE}}~$portal_image~g" docker-compose.yml
+sed -i "s~{{PORTAL_PORT}}~$portal_port~g" docker-compose.yml
 sed -i "s~{{PORTAL_IMAGE_VERSION}}~$portal_image_version~g" docker-compose.yml
 sed -i "s~{{GATEWAY_HOST}}~$gateway_host~g" docker-compose.yml
 sed -i "s~{{GATEWAY_PORT}}~$gateway_port~g" docker-compose.yml

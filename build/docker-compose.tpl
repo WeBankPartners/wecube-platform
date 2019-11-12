@@ -10,7 +10,7 @@ services:
       - /data/wecube-portal/log:/var/log/nginx/
       - /etc/localtime:/etc/localtime
     ports:
-      - {{WECUBE_SERVER_PORT}}:8080
+      - {{PORTAL_PORT}}:8080
     environment:
       - GATEWAY_HOST={{GATEWAY_HOST}}
       - GATEWAY_PORT={{GATEWAY_PORT}}
