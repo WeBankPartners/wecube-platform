@@ -1,22 +1,40 @@
 version: '2'
 services:
-  wecube-minio:
-    image: minio/minio
+  wecube-portal:
+    image: {{PORTAL_IMAGE}}:{{PORTAL_IMAGE_VERSION}}
     restart: always
-    command: [
-        'server',
-        'data'
-    ]
-    ports:
-      - 9000:9000
+    depends_on:
+      - platform-gateway
+      - platform-core
     volumes:
-      - /data/minio-storage/data:/data    
-      - /data/minio-storage/config:/root
+      - /data/wecube-portal/log:/var/log/nginx/
       - /etc/localtime:/etc/localtime
+    ports:
+      - {{WECUBE_SERVER_PORT}}:8080
     environment:
-      - MINIO_ACCESS_KEY={{S3_ACCESS_KEY}}
-      - MINIO_SECRET_KEY={{S3_SECRET_KEY}}
-  wecube-app:
+      - GATEWAY_HOST={{GATEWAY_HOST}}
+      - GATEWAY_PORT={{GATEWAY_PORT}}
+      - TZ=Asia/Shanghai
+    command: /bin/bash -c "envsubst < /etc/nginx/conf.d/mysite.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+
+  platform-gateway:
+    image: {{GATEWAY_IMAGE_NAME}}:{{GATEWAY_IMAGE_VERSION}}
+    restart: always
+    depends_on:
+      - wecube-minio
+    volumes:
+      - /data/wecube/log:/log/ 
+      - /etc/localtime:/etc/localtime
+    ports:
+      - {{WECUBE_SERVER_PORT}}:8080
+    environment:
+      - TZ=Asia/Shanghai
+      - GATEWAY_ROUTE_CONFIG_SERVER={{GATEWAY_ROUTE_CONFIG_SERVER}}
+      - GATEWAY_ROUTE_CONFIG_URI={{GATEWAY_ROUTE_CONFIG_URI}}
+      - GATEWAY_ROUTE_ACCESS_KEY={{GATEWAY_ROUTE_ACCESS_KEY}}
+      - GATEWAY_ROUTES_PLATFORM_CORE_URI={{GATEWAY_ROUTES_PLATFORM_CORE_URI}}
+
+  platform-core:
     image: {{WECUBE_IMAGE_NAME}}:{{IMAGE_VERSION}}
     restart: always
     depends_on:

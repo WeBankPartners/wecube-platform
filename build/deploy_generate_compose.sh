@@ -30,3 +30,13 @@ sed -i "s~{{MYSQL_SERVER_ADDR}}~$mysql_server_addr~g" docker-compose.yml
 sed -i "s~{{MYSQL_SERVER_PORT}}~$mysql_server_port~g" docker-compose.yml
 sed -i "s~{{MYSQL_SERVER_DATABASE_NAME}}~$mysql_server_database_name~g" docker-compose.yml
 sed -i "s~{{MYSQL_USER_NAME}}~$mysql_user_name~g" docker-compose.yml
+sed -i "s~{{PORTAL_IMAGE}}~$PORTAL_IMAGE~g" docker-compose.yml
+sed -i "s~{{PORTAL_IMAGE_VERSION}}~$PORTAL_IMAGE_VERSION~g" docker-compose.yml
+sed -i "s~{{GATEWAY_HOST}}~$GATEWAY_HOST~g" docker-compose.yml
+sed -i "s~{{GATEWAY_PORT}}~$GATEWAY_PORT~g" docker-compose.yml
+sed -i "s~{{GATEWAY_IMAGE_NAME}}~$GATEWAY_IMAGE_NAME~g" docker-compose.yml
+sed -i "s~{{GATEWAY_IMAGE_VERSION}}~$GATEWAY_IMAGE_VERSION~g" docker-compose.yml
+sed -i "s~{{GATEWAY_PORT}}~$GATEWAY_PORT~g" docker-compose.yml
+sed -i "s~{{GATEWAY_PORT}}~$GATEWAY_PORT~g" docker-compose.yml
+sed -i "s~{{GATEWAY_PORT}}~$GATEWAY_PORT~g" docker-compose.yml
+sed -i "s~{{GATEWAY_PORT}}~$GATEWAY_PORT~g" docker-compose.yml
