@@ -5,6 +5,8 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
 public class PluginPackageAttributeDto {
     private Integer id;
     private String packageName;
@@ -167,6 +169,25 @@ public class PluginPackageAttributeDto {
         this.refAttributeName = refAttributeName;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PluginPackageAttributeDto that = (PluginPackageAttributeDto) o;
+        return getPackageName().equals(that.getPackageName()) &&
+                getEntityName().equals(that.getEntityName()) &&
+                getName().equals(that.getName()) &&
+                Objects.equals(getDescription(), that.getDescription()) &&
+                getDataType().equals(that.getDataType()) &&
+                Objects.equals(getRefPackageName(), that.getRefPackageName()) &&
+                Objects.equals(getRefEntityName(), that.getRefEntityName()) &&
+                Objects.equals(getRefAttributeName(), that.getRefAttributeName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getPackageName(), getEntityName(), getName(), getDescription(), getDataType(), getRefPackageName(), getRefEntityName(), getRefAttributeName());
+    }
 
     @Override
     public String toString() {

@@ -8,6 +8,7 @@ import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
+import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -27,6 +28,8 @@ import static org.apache.commons.lang3.StringUtils.trim;
 
 public class PluginPackageXmlParser {
     private final static String SEPARATOR_OF_NAMES = "/";
+    public static final String DEFAULT_DATA_MODEL_UPDATE_PATH = "/data-model";
+    public static final String DEFAULT_DATA_MODEL_UPDATE_METHOD = "GET";
 
     public static PluginPackageXmlParser newInstance(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
         return new PluginPackageXmlParser(new InputSource(inputStream));
@@ -200,8 +203,16 @@ public class PluginPackageXmlParser {
         pluginPackageDataModelDto.setVersion(1);
         Boolean isDynamic = getBooleanAttribute(dataModelNode, "./@isDynamic");
         pluginPackageDataModelDto.setDynamic(isDynamic);
-        pluginPackageDataModelDto.setUpdatePath(getStringAttribute(dataModelNode, "./@path"));
-        pluginPackageDataModelDto.setUpdateMethod(getStringAttribute(dataModelNode, "./@method"));
+        String updatePath = getStringAttribute(dataModelNode, "./@path");
+        if (StringUtils.isEmpty(updatePath) && isDynamic) {
+            updatePath = DEFAULT_DATA_MODEL_UPDATE_PATH;
+        }
+        pluginPackageDataModelDto.setUpdatePath(updatePath);
+        String updateMethod = getStringAttribute(dataModelNode, "./@method");
+        if (StringUtils.isEmpty(updateMethod) && isDynamic) {
+            updateMethod = DEFAULT_DATA_MODEL_UPDATE_METHOD;
+        }
+        pluginPackageDataModelDto.setUpdateMethod(updateMethod);
         pluginPackageDataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name());
         pluginPackageDataModelDto.setUpdateTime(System.currentTimeMillis());
 
@@ -251,11 +262,20 @@ public class PluginPackageXmlParser {
             pluginPackageAttribute.setEntityName(pluginPackageEntity.getName());
 
             pluginPackageAttribute.setName(getNonNullStringAttribute(attributeNode, "./@name", "Entity attribute name"));
-            pluginPackageAttribute.setDataType(getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type"));
+            String dataType = getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type");
+            pluginPackageAttribute.setDataType(dataType);
             pluginPackageAttribute.setDescription(getNonNullStringAttribute(attributeNode, "./@description", "Entity attribute description"));
 
-            pluginPackageAttribute.setRefPackageName(getStringAttribute(attributeNode, "./@refPackage"));
-            pluginPackageAttribute.setRefEntityName(getStringAttribute(attributeNode, "./@refEntity"));
+            String refPackage = getStringAttribute(attributeNode, "./@refPackage");
+            if (StringUtils.isEmpty(refPackage) && DataModelDataType.Ref.getCode().equals(dataType)) {
+                refPackage = pluginPackageEntity.getPackageName();
+            }
+            pluginPackageAttribute.setRefPackageName(refPackage);
+            String refEntity = getStringAttribute(attributeNode, "./@refEntity");
+            if (StringUtils.isEmpty(refEntity) && DataModelDataType.Ref.getCode().equals(dataType)) {
+                refEntity = pluginPackageEntity.getName();
+            }
+            pluginPackageAttribute.setRefEntityName(refEntity);
             pluginPackageAttribute.setRefAttributeName(getStringAttribute(attributeNode, "./@ref"));
 
             pluginPackageAttributes.add(pluginPackageAttribute);

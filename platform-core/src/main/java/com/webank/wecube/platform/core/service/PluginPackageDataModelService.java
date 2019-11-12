@@ -1,21 +1,16 @@
 package com.webank.wecube.platform.core.service;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 
-import java.util.List;
 import java.util.Set;
 
 public interface PluginPackageDataModelService {
 
     PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto);
 
-    List<PluginPackageEntityDto> overview();
+    PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto, boolean isDynamic);
 
-    Set<PluginPackageDataModelDto> allDataModels();
-
-    PluginPackageDataModelDto dataModelByPackageName(String packageName);
+    Set<PluginPackageDataModelDto> overview();
 
     PluginPackageDataModelDto packageView(String packageName);
 

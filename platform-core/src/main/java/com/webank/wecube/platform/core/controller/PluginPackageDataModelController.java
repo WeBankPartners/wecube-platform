@@ -1,16 +1,10 @@
 package com.webank.wecube.platform.core.controller;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/v1")
@@ -22,32 +16,24 @@ public class PluginPackageDataModelController {
 
     @GetMapping("/models")
     @ResponseBody
-    public JsonResponse allllDataModels() {
-        Set<PluginPackageDataModelDto> pluginPackageDataModelDtos;
-        try {
-            pluginPackageDataModelDtos = pluginPackageDataModelService.allDataModels();
-        } catch (WecubeCoreException ex) {
-            return JsonResponse.error(ex.getMessage());
-        }
-        return JsonResponse.okayWithData(pluginPackageDataModelDtos);
+    public JsonResponse allDataModels() {
+        return JsonResponse.okayWithData(pluginPackageDataModelService.overview());
+    }
+
+    @GetMapping("/packages/{package-name}/models")
+    @ResponseBody
+    public JsonResponse getDataModelByPackageName(@PathVariable(value = "package-name") String packageName) {
+        return JsonResponse.okayWithData(pluginPackageDataModelService.packageView(packageName));
     }
 
     @GetMapping("/models/package/{plugin-package-name}")
     @ResponseBody
     public JsonResponse pullDynamicDataModel(@PathVariable(value = "plugin-package-name") String packageName) {
-        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService.pullDynamicDataModel(packageName);
-        return JsonResponse.okayWithData(null);
+        return JsonResponse.okayWithData(pluginPackageDataModelService.pullDynamicDataModel(packageName));
     }
 
-    @GetMapping("/packages/{package-name}/models")
-    @ResponseBody
-    public JsonResponse getDataModelByPackageId(@PathVariable(value = "package-name") String packageName) {
-        PluginPackageDataModelDto dataModelDto;
-        try {
-            dataModelDto = pluginPackageDataModelService.packageView(packageName);
-        } catch (WecubeCoreException ex) {
-            return JsonResponse.error(ex.getMessage());
-        }
-        return JsonResponse.okayWithData(dataModelDto);
+    @PostMapping("/models")
+    public JsonResponse applyNewDataModel(@RequestBody PluginPackageDataModelDto dataModelDto) {
+        return JsonResponse.okayWithData(pluginPackageDataModelService.register(dataModelDto, true));
     }
 }

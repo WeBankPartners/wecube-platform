@@ -2,42 +2,78 @@ package com.webank.wecube.platform.core.controller;
 
 
 import com.webank.wecube.platform.core.domain.JsonResponse;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
+import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
+import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.support.FakeS3Client;
+import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.client.ExpectedCount;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
+import java.util.Optional;
 
 import static com.webank.wecube.platform.core.domain.MenuItem.MENU_COLLABORATION_PLUGIN_MANAGEMENT;
 import static com.webank.wecube.platform.core.domain.MenuItem.ROLE_PREFIX;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
 
 //@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_COLLABORATION_PLUGIN_MANAGEMENT})
 public class PluginPackageDataModelControllerTest extends AbstractControllerTest {
 
     @Autowired
-    PluginPackageService pluginPackageService;
+    private PluginPackageService pluginPackageService;
+    @Autowired
+    private PluginPackageDataModelRepository dataModelRepository;
+    @Autowired
+    private PluginPackageDataModelService dataModelService;
+    @Autowired
+    private PluginPackageRepository pluginPackageRepository;
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private MockRestServiceServer server;
+
+    @Before
+    public void setup() {
+        server = MockRestServiceServer.bindTo(restTemplate).build();
+    }
 
     @Test
     public void getAllDataModels() throws Exception {
         mockDataModel();
         mvc.perform(get("/v1/models"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[*].packageName", contains("package_1", "package_2")))
-                .andExpect(jsonPath("$.data[*].version", contains(1, 2)))
-                .andExpect(jsonPath("$.data[0].pluginPackageEntities[*].name", containsInAnyOrder("entity_1", "entity_2", "entity_3")))
-                .andExpect(jsonPath("$.data[1].pluginPackageEntities[*].name", containsInAnyOrder("entity_4", "entity_5", "entity_6")))
+                .andExpect(jsonPath("$.data[*].packageName", containsInAnyOrder("package_1", "package_2")))
+                .andExpect(jsonPath("$.data[*].version", containsInAnyOrder(1, 2)))
+                .andExpect(jsonPath("$.data[*].pluginPackageEntities[*].name", containsInAnyOrder("entity_1", "entity_2", "entity_3", "entity_4", "entity_5", "entity_6")))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
     }
@@ -68,20 +104,22 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 .andExpect(jsonPath("$.data.pluginPackageEntities", is(iterableWithSize(MOCK_DATA_MODEL_NUMBER))))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
+        System.out.println(dataModelRepository.findLatestDataModelByPackageName("service-management"));
     }
+
 
     private void mockDataModel() {
         String sqlStr =
-                "INSERT INTO plugin_packages (name, version) VALUES " +
-                        "  ('package_1', '1.0') " +
-                        ", ('package_2', '1.1') " +
+                "INSERT INTO plugin_packages (name, version, status, ui_package_included) VALUES " +
+                        "  ('package_1', '1.0', 'UNREGISTERED', 0) " +
+                        ", ('package_2', '1.1', 'UNREGISTERED', 0) " +
                         ";\n" +
-                "INSERT INTO plugin_package_data_model(id, version, package_name) VALUES " +
-                        "  (1, 1, 'package_1') " +
-                        ", (2, 1, 'package_2') " +
-                        ", (3, 2, 'package_2') " +
+                        "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic) VALUES " +
+                        "  (1, 1, 'package_1', false) " +
+                        ", (2, 1, 'package_2', false) " +
+                        ", (3, 2, 'package_2', false) " +
                         ";\n" +
-                "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
+                        "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
                         "  (1, 1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
                         ", (2, 1, 1, 'package_1', 'entity_2', 'entity_2', 'entity_2_description') " +
                         ", (3, 1, 1, 'package_1', 'entity_3', 'entity_3', 'entity_3_description') " +
@@ -94,7 +132,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                         ", (8, 3, 2, 'package_2', 'entity_5', 'entity_5', 'entity_5_description') " +
                         ", (9, 3, 2, 'package_2', 'entity_6', 'entity_6', 'entity_6_description') " +
                         ";\n" +
-                "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
+                        "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
                         "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
                         ", (2, 1, NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
                         ", (3, 1, 1, 'attribute_3', 'attribute_3_description', 'INT') " +
@@ -119,6 +157,120 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 ;
         executeSql(sqlStr);
 
+    }
+
+    @Test
+    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeUNREGISTERED() throws Exception {
+        mockSimpleDataModel();
+
+        String packageName = "package_1";
+        Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
+        assertThat(latestDataModelByPackageName.isPresent()).isTrue();
+
+        Optional<PluginPackage> latestVersionByName = pluginPackageRepository.findLatestVersionByName(packageName);
+        assertThat(latestVersionByName.isPresent()).isTrue();
+        assertThat(latestVersionByName.get().getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
+
+        PluginPackageDataModelDto pluginPackageDataModelDto = dataModelService.packageView(packageName);
+
+        // clean all the IDs so that no key violation.
+        pluginPackageDataModelDto.setId(null);
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.setId(null));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.getAttributes().forEach(attribute->attribute.setId(null)));
+
+        PluginPackageEntityDto entity = pluginPackageDataModelDto.getPluginPackageEntities().iterator().next();
+        PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
+        pluginPackageAttributeDto.setPackageName(packageName);
+        pluginPackageAttributeDto.setEntityName(entity.getName());
+        pluginPackageAttributeDto.setName("dynamicAttribute");
+        pluginPackageAttributeDto.setDataType(DataModelDataType.String.getCode());
+        pluginPackageAttributeDto.setDescription("Dynamic attribute for test");
+
+        entity.getAttributes().add(pluginPackageAttributeDto);
+
+        mvc.perform(post("/v1/models").contentType(MediaType.APPLICATION_JSON).content(JsonUtils.toJsonString(pluginPackageDataModelDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
+                .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
+                .andExpect(jsonPath("$.data.packageName", is(packageName)))
+                .andExpect(jsonPath("$.data.id", is(2)))
+                .andExpect(jsonPath("$.data.version", is(2)))
+                .andExpect(jsonPath("$.data.pluginPackageEntities[*].packageName", containsInAnyOrder(packageName)))
+                .andExpect(jsonPath("$.data.pluginPackageEntities[*].name", containsInAnyOrder("entity_1")))
+                .andExpect(jsonPath("$.data.pluginPackageEntities[*].attributes[*].name", containsInAnyOrder("attribute_1", "dynamicAttribute")))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+
+
+    }
+
+    private void mockSimpleDataModel() {
+        String sqlStr =
+                "INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
+                        "  (1, 'package_1', '1.0', 'REGISTERED', 0) " +
+                        ";\n" +
+                "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic, update_method, update_path) VALUES " +
+                        "  (1, 1, 'package_1', 1, 'GET', '/data-model') " +
+                        ";\n" +
+                "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
+                        "  (1, 1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
+                        ";\n" +
+                "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
+                        "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        ";\n"
+                ;
+        executeSql(sqlStr);
+
+    }
+
+    @Test
+    public void givenDynamicDataModelWhenPullThenReturnNewDataModel() {
+        mockSimpleDataModel();
+
+        String packageName = "package_1";
+        Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
+        assertThat(latestDataModelByPackageName.isPresent()).isTrue();
+
+        Optional<PluginPackage> latestVersionByName = pluginPackageRepository.findLatestVersionByName(packageName);
+        assertThat(latestVersionByName.isPresent()).isTrue();
+        assertThat(latestVersionByName.get().getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
+
+        PluginPackageDataModelDto pluginPackageDataModelDto = dataModelService.packageView(packageName);
+
+        // clean all the IDs so that no key violation.
+        pluginPackageDataModelDto.setId(null);
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.setId(null));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.getAttributes().forEach(attribute->attribute.setId(null)));
+
+        PluginPackageEntityDto entity = pluginPackageDataModelDto.getPluginPackageEntities().iterator().next();
+        PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
+        pluginPackageAttributeDto.setPackageName(packageName);
+        pluginPackageAttributeDto.setEntityName(entity.getName());
+        pluginPackageAttributeDto.setName("dynamicAttribute");
+        pluginPackageAttributeDto.setDataType(DataModelDataType.String.getCode());
+        pluginPackageAttributeDto.setDescription("Dynamic attribute for test");
+        entity.getAttributes().add(pluginPackageAttributeDto);
+
+        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:9999/" + packageName + "/data-model"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(JsonUtils.toJsonString(JsonResponse.okayWithData(pluginPackageDataModelDto.getPluginPackageEntities())), MediaType.APPLICATION_JSON));
+
+        try {
+            mvc.perform(get("/v1//models/package/" + packageName))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
+                    .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
+                    .andExpect(jsonPath("$.data.packageName", is(packageName)))
+                    .andExpect(jsonPath("$.data.id", is(3)))
+                    .andExpect(jsonPath("$.data.version", is(2)))
+                    .andExpect(jsonPath("$.data.pluginPackageEntities[*].packageName", containsInAnyOrder(packageName)))
+                    .andExpect(jsonPath("$.data.pluginPackageEntities[*].name", containsInAnyOrder("entity_1")))
+                    .andExpect(jsonPath("$.data.pluginPackageEntities[*].attributes[*].name", containsInAnyOrder("attribute_1", "dynamicAttribute")))
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+        } catch (Exception e) {
+            fail("Failed when pulling new data model: " + e.getMessage());
+        }
     }
 
     private void uploadCorrectPackage() throws Exception {
