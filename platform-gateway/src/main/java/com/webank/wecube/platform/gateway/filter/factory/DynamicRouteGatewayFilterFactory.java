@@ -1,7 +1,5 @@
 package com.webank.wecube.platform.gateway.filter.factory;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
