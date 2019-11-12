@@ -11,8 +11,11 @@ import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
+import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,6 +40,13 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     PluginPackageAttributeRepository pluginPackageAttributeRepository;
     @Autowired
     PluginPackageDataModelServiceImpl pluginPackageDataModelService;
+
+    @Autowired
+    private PluginPackageService pluginPackageService;
+    @Autowired
+    private PluginPackageDataModelRepository dataModelRepository;
+    @Autowired
+    private PluginPackageDataModelService dataModelService;
 
     Integer MOCK_SIZE_PER_PACKAGE = 3;
     Integer PACKAGE_SIZE = 4;
@@ -105,9 +115,10 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     @Test
     public void whenOverviewShouldSuccess() {
         whenRegisterDataModelShouldSuccess();
-        List<PluginPackageEntityDto> registeredAllDataModelList = pluginPackageDataModelService.overview();
-        assertThat(registeredAllDataModelList.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE * (PACKAGE_SIZE - 1));  // because the package 2 hasn't been registered to database
-        registeredAllDataModelList.forEach(registeredDataModel -> assertThat(registeredDataModel.getAttributes().size()).isEqualTo(3));
+        Set<PluginPackageDataModelDto> registeredAllDataModelList = pluginPackageDataModelService.overview();
+        assertThat(registeredAllDataModelList.size()).isEqualTo(PACKAGE_SIZE - 1);  // because the package 2 hasn't been registered to database
+        registeredAllDataModelList.forEach(registeredDataModel -> assertThat(registeredDataModel.getPluginPackageEntities().size()).isEqualTo(MOCK_SIZE_PER_PACKAGE));
+        registeredAllDataModelList.forEach(registeredDataModel -> registeredDataModel.getPluginPackageEntities().forEach(entity->assertThat(entity.getAttributes().size()).isEqualTo(3)));
     }
 
     @Test
@@ -397,4 +408,70 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
 
         return pluginPackageEntityDtoList;
     }
+
+    @Test
+    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeUNREGISTERED() throws Exception {
+        mockSimpleDataModel();
+
+        String packageName = "package_1";
+        Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
+        assertThat(latestDataModelByPackageName.isPresent()).isTrue();
+
+        Optional<PluginPackage> latestVersionByName = pluginPackageRepository.findLatestVersionByName(packageName);
+        assertThat(latestVersionByName.isPresent()).isTrue();
+        assertThat(latestVersionByName.get().getId()).isNotNull();
+
+        PluginPackage pluginPackage = pluginPackageService.registerPluginPackage(latestVersionByName.get().getId());
+        assertThat(pluginPackage.getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
+
+
+        PluginPackageDataModel dataModel = latestDataModelByPackageName.get();
+        PluginPackageDataModelDto pluginPackageDataModelDto = dataModelService.packageView(dataModel.getPackageName());
+
+        // clean all the IDs so that no key violation.
+        pluginPackageDataModelDto.setId(null);
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.setId(null));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.getAttributes().forEach(attribute->attribute.setId(null)));
+
+        PluginPackageEntityDto entity = pluginPackageDataModelDto.getPluginPackageEntities().iterator().next();
+        String entityName = entity.getName();
+        PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
+        pluginPackageAttributeDto.setPackageName(packageName);
+        pluginPackageAttributeDto.setEntityName(entityName);
+        pluginPackageAttributeDto.setName("dynamicAttribute");
+        pluginPackageAttributeDto.setDataType(DataModelDataType.String.getCode());
+        pluginPackageAttributeDto.setDescription("Dynamic attribute for test");
+
+        entity.getAttributes().add(pluginPackageAttributeDto);
+
+        PluginPackageDataModelDto registeredNewDataModelDto = dataModelService.register(pluginPackageDataModelDto, true);
+        Optional<PluginPackage> latestPluginPackageByName = pluginPackageRepository.findLatestVersionByName(packageName);
+        assertThat(latestPluginPackageByName.isPresent()).isTrue();
+        assertThat(latestPluginPackageByName.get().getStatus()).isEqualTo(PluginPackage.Status.UNREGISTERED);
+
+        assertThat(registeredNewDataModelDto.getPluginPackageEntities()).hasSize(1);
+        assertThat(registeredNewDataModelDto.getPluginPackageEntities().iterator().next().getAttributes()).hasSize(2);
+        assertThat(registeredNewDataModelDto.getPluginPackageEntities().iterator().next().getAttributes()).containsAnyOf(pluginPackageAttributeDto);
+
+    }
+
+    private void mockSimpleDataModel() {
+        String sqlStr =
+                "INSERT INTO plugin_packages (id, name, version) VALUES " +
+                        "  (1, 'package_1', '1.0') " +
+                        ";\n" +
+                        "INSERT INTO plugin_package_data_model(id, version, package_name) VALUES " +
+                        "  (1, 1, 'package_1') " +
+                        ";\n" +
+                        "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
+                        "  (1, 1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
+                        ";\n" +
+                        "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
+                        "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        ";\n"
+                ;
+        executeSql(sqlStr);
+
+    }
+
 }
