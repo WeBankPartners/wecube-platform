@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.gateway.filter.factory;
 
+import static org.hamcrest.CoreMatchers.nullValue;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -77,8 +79,8 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("base url:{}", baseUrl);
             }
 
-            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).build().toUri();
-
+            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(req.getURI().getRawQuery()).build()
+                    .toUri();
             ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
             ServerHttpRequest request = req.mutate().uri(newUri).build();
 
