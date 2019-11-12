@@ -105,7 +105,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         if (envVariables.size() != 0) {
             createContainerCmd = createContainerCmd.withEnv(envVariables);
         }
-
+        log.info("createContainerCmd: " + createContainerCmd.toString());
         String containerId = createContainerCmd.exec().getId();
         dockerClient.startContainerCmd(containerId).exec();
         additionalProperties.put("containerId", containerId);
