@@ -506,7 +506,9 @@ public class PluginInvocationService {
         
         if(resultData == null){
             //TODO none data returned and no need to write back into entities
-            
+            //scenario 1 : no output configs
+            //scenario 2 : output configured but input parameters is empty
+            //scenario 3 : unexpected result
         }
         
         for(Object obj : resultData){
@@ -523,6 +525,8 @@ public class PluginInvocationService {
             Map<String, Object> retRecord = (Map<String, Object>)obj;
         }
         // TODO
+        //Scenario 4: if output not needed and no need to write back to entities
+        //scenario 5: write back to entities if output configured
         
         PluginInvocationResult result = new PluginInvocationResult();
         result.parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
