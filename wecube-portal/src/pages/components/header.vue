@@ -164,38 +164,40 @@ export default {
         // ];
         const eleContain = document.getElementsByTagName("body");
         let script = {};
-        data.forEach(file => {
-          if (
-            file.relatedPath.indexOf(".js") > -1 &&
-            file.relatedPath.indexOf("vendors") > -1
-          ) {
-            let contains = document.createElement("script");
-            contains.type = "text/javascript";
-            contains.src = file.relatedPath;
-            script[file.packageName] = contains;
-            eleContain[0].appendChild(contains);
-          }
-          if (file.relatedPath.indexOf(".css") > -1) {
-            let contains = document.createElement("link");
-            contains.type = "text/css";
-            contains.rel = "stylesheet";
-            contains.href = file.relatedPath;
-            eleContain[0].appendChild(contains);
-          }
-        });
-        const loadScript = packageName => {
+        data &&
           data.forEach(file => {
             if (
               file.relatedPath.indexOf(".js") > -1 &&
-              file.packageName === packageName &&
-              file.relatedPath.indexOf("vendors") === -1
+              file.relatedPath.indexOf("vendors") > -1
             ) {
               let contains = document.createElement("script");
               contains.type = "text/javascript";
               contains.src = file.relatedPath;
+              script[file.packageName] = contains;
+              eleContain[0].appendChild(contains);
+            }
+            if (file.relatedPath.indexOf(".css") > -1) {
+              let contains = document.createElement("link");
+              contains.type = "text/css";
+              contains.rel = "stylesheet";
+              contains.href = file.relatedPath;
               eleContain[0].appendChild(contains);
             }
           });
+        const loadScript = packageName => {
+          data &&
+            data.forEach(file => {
+              if (
+                file.relatedPath.indexOf(".js") > -1 &&
+                file.packageName === packageName &&
+                file.relatedPath.indexOf("vendors") === -1
+              ) {
+                let contains = document.createElement("script");
+                contains.type = "text/javascript";
+                contains.src = file.relatedPath;
+                eleContain[0].appendChild(contains);
+              }
+            });
         };
         Object.keys(script).forEach(key => {
           if (script[key].readyState) {
