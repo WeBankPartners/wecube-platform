@@ -16,4 +16,10 @@ java -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port
 --wecube.core.cmdb-data.enum-category-ci-type-layer=ci_layer \
 --wecube.core.cmdb-data.enum-category-ci-type-catalog=ci_catalog \
 --wecube.core.plugin.plugin-package-name-of-deploy=salt-stack-deployment \
---wecube.core.cmdb-data.enum-category-ci-type-zoom-levels=ci_zoom_level >>/log/wecube-core.log 
+--wecube.core.cmdb-data.enum-category-ci-type-zoom-levels=ci_zoom_level \
+--wecube.core.plugin.static-resource-server-ip=${STATIC_RESOURCE_SERVER_IP} \
+--wecube.core.plugin.static-resource-server-user=${STATIC_RESOURCE_SERVER_USER} \
+--wecube.core.plugin.static-resource-server-password=${STATIC_RESOURCE_SERVER_PASSWORD} \
+--wecube.core.plugin.static-resource-server-port=${STATIC_RESOURCE_SERVER_PORT} \
+--wecube.core.plugin.static-resource-server-path=${STATIC_RESOURCE_SERVER_PATH} \
+>>/log/wecube-core.log 
