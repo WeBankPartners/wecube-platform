@@ -38,12 +38,13 @@ env_config=smoke_branch.cfg
 target_host="tcp://10.0.0.1:2375"
 deploy:
 	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
-	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
-	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
-	
 	docker push $(remote_docker_image_registry)/platform-core:$(date)-$(version)
+
+	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
+
+	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
 	
-	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
+	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version) $(date)-$(version) $(date)-$(version)
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
