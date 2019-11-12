@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface DataModelExpressionService {
 
-    List<List<String>> fetchData(String gateWayUrl, List<Pair<String, String>> expressionToRootIdDataPairList);
+    List<Object> fetchData(String gateWayUrl, Pair<String, String> expressionToRootIdDataPairList);
 
 }
