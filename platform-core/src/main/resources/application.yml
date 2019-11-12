@@ -86,6 +86,7 @@ wecube:
       static-resource-server-password: password
       static-resource-server-port: 22
       static-resource-server-path: /root/app/ui-resources
+      base-mount-path: /data
 
     s3:
       endpoint: http://s3-server:9000
