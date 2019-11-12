@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcInstOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 

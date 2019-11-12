@@ -20,7 +20,7 @@ import com.webank.wecube.platform.gateway.route.DynamicRouteConfigurationService
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/gateway/v1")
+@RequestMapping("/gateway/v1")
 public class DynamicRouteItemController {
 
     private static final Logger log = LoggerFactory.getLogger(DynamicRouteItemController.class);
