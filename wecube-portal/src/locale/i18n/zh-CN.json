@@ -202,7 +202,7 @@
   "replace_key_in_params": "请替换启动参数中的差异化参数",
   "for_example": "e.g.:",
   "flow_name": "编排名称",
-  "ci_type": "CI类型",
+  "instance_type": "实例类型",
   "save_flow": "保存编排",
   "calc_form": "表单计算",
   "config_plugin": "配置插件",

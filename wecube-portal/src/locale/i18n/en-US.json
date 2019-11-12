@@ -202,7 +202,7 @@
   "replace_key_in_params": "Please replace key in params",
   "for_example": "e.g.:",
   "flow_name": "Flow Name",
-  "ci_type": "CI Type",
+  "instance_type": "Instance Type",
   "save_flow": "Save Flow",
   "calc_form": "Calculate Flow",
   "config_plugin": "Config Plugin",

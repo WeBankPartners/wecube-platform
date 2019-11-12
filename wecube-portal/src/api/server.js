@@ -5,10 +5,12 @@ export const getMyMenus = () => req.get("/platform/v1/my-menus");
 
 // flow
 export const saveFlow = data =>
-  req.post("/platform/v1/process/definitions", data);
+  req.post("/platform/v1/process/definitions/deploy", data);
+export const saveFlowDraft = data =>
+  req.post("/platform/v1/process/definitions/draft", data);
 export const getAllFlow = () => req.get("/platform/v1/process/definitions");
 export const getFlowDetailByID = id =>
-  req.get(`process/definitions/definition/${id}`);
+  req.get(`/platform/v1/process/definitions/${id}/detail`);
 export const getFlowPreview = data =>
   req.post(
     `/platform/v1/process/definitions/definition/input-parameters/preview`,
