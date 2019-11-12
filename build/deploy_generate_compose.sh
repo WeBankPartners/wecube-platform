@@ -38,3 +38,7 @@ sed -i "s~{{GATEWAY_HOST}}~$gateway_host~g" docker-compose.yml
 sed -i "s~{{GATEWAY_PORT}}~$gateway_port~g" docker-compose.yml
 sed -i "s~{{GATEWAY_IMAGE_NAME}}~$gateway_image_name~g" docker-compose.yml
 sed -i "s~{{GATEWAY_IMAGE_VERSION}}~$gateway_image_version~g" docker-compose.yml
+sed -i "s~{{GATEWAY_ROUTE_CONFIG_SERVER}}~$gateway_route_config_server~g" docker-compose.yml
+sed -i "s~{{GATEWAY_ROUTE_CONFIG_URI}}~$gateway_route_config_uri~g" docker-compose.yml
+sed -i "s~{{GATEWAY_ROUTE_ACCESS_KEY}}~$gateway_route_access_key~g" docker-compose.yml
+sed -i "s~{{GATEWAY_ROUTES_PLATFORM_CORE_URI}}~$gateway_routes_platform_core_uri~g" docker-compose.yml
