@@ -1,4 +1,4 @@
-user  nginx;
+user  root;
 worker_processes  1;
 error_log  /var/log/nginx/error.log warn;
 pid        /var/run/nginx.pid;
