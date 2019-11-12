@@ -54,7 +54,7 @@ DQM : '"''"';
 
 ID  : Letter LetterOrDigit*;
 PKG_ID : ID;
-fragment Letter: [a-zA-Z_];
+fragment Letter: [a-zA-Z!@#$%^&*_];
 fragment Digit: [0-9];
 fragment LetterOrDigit: Letter | Digit;
 WS : [ \t\r\n]+ -> skip; // skip spaces, tabs, newlines
