@@ -35,7 +35,7 @@ services:
       - GATEWAY_ROUTES_PLATFORM_CORE_URI={{GATEWAY_ROUTES_PLATFORM_CORE_URI}}
 
   platform-core:
-    image: {{WECUBE_IMAGE_NAME}}:{{IMAGE_VERSION}}
+    image: {{WECUBE_IMAGE_NAME}}:{{WECUBE_IMAGE_VERSION}}
     restart: always
     volumes:
       - /data/wecube/log:/log/ 
