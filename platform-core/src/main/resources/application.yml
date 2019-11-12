@@ -72,6 +72,8 @@ wecube:
     httpclient:
       max-total-connections: 200
 
+    gateway-url: gateway-server-ip:9999
+
     plugin:
       plugin-deploy-path: /opt
       plugin-package-bucket-name: wecube-plugin-package-bucket
