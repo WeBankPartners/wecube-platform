@@ -36,8 +36,8 @@ push:
 
 env_config=smoke_branch.cfg
 target_host="tcp://10.0.0.1:2375"
+tag_date=$(date)
 deploy:
-	tag_date=$(date)
 	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(tag_date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-core:$(tag_date)-$(version)
 
