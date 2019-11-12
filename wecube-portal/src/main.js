@@ -45,6 +45,7 @@ window.needReLoad = true;
 window.routers = [];
 
 window.addRoutes = (route, name) => {
+  console.log(route, name);
   window.routers = window.routers.concat(route);
   router.addRoutes([
     {
@@ -113,6 +114,7 @@ const vm = new Vue({
   router,
   render: h => h(App)
 });
+window.vm = vm;
 window.locale = (key, obj) => {
   const lang = vm._$lang.locales[key];
   let newLang = {};
@@ -125,7 +127,6 @@ window.addOptions = options => {
   Object.keys(options).forEach(key => {
     vm.__proto__[key] = options[key];
   });
-  console.log(vm);
 };
 
 vm.$mount("#app");
