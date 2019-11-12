@@ -26,7 +26,7 @@ services:
       - /data/wecube/log:/log/ 
       - /etc/localtime:/etc/localtime
     ports:
-      - {{WECUBE_SERVER_PORT}}:8080
+      - {{GATEWAY_PORT}}:8080
     environment:
       - TZ=Asia/Shanghai
       - GATEWAY_ROUTE_CONFIG_SERVER={{GATEWAY_ROUTE_CONFIG_SERVER}}
