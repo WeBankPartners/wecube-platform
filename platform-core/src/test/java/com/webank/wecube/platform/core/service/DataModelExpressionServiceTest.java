@@ -3,7 +3,6 @@ package com.webank.wecube.platform.core.service;
 import com.google.gson.Gson;
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +10,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -37,7 +32,6 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
     @Before
     public void setup() {
-//        dataModelExpressionService = new DataModelExpressionServiceImpl();
         gson = new Gson();
         server = MockRestServiceServer.bindTo(restTemplate).build();
     }
@@ -45,13 +39,13 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     @Test
     public void wecmdbFwdNodeExpressionShouldSucceed() {
         mockFwdNodeExpressionServer(server);
-        Pair<String, String> mockedPairOne = mockFwdNodeExpression().get(0);
-        Pair<String, String> mockedPairTwo = mockFwdNodeExpression().get(1);
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedPairOne);
+        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:system_design.code", "0001_0000000001"));
         assert resultOne.get(0).equals("EDP");
 
-        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedPairTwo);
+        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:unit.key_name", "0008_0000000003"));
         assert resultTwo.get(0).equals("EDP-CORE_PRD-APP");
 
         server.verify();
@@ -60,9 +54,9 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     @Test
     public void wecmdbOneLinkWithOpToExpressionShouldSucceed() {
         mockOneLinkWithOpToOnlyExpressionServer(server);
-        Pair<String, String> mockedInputData = mockOneLinkWithOpToOnlyExpressionServer().get(0);
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedInputData);
+        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:subsys_design.system_design-wecmdb:system_design.code", "0002_0000000006"));
         assert resultOne.get(0).equals("EDP");
 
         server.verify();
@@ -71,14 +65,15 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     @Test
     public void wecmdbOneLinkWithOpByExpressionShouldSucceed() {
         mockOneLinkWithOpByOnlyExpressionServer(server);
-        List<Pair<String, String>> mockedInputData = mockOneLinkWithOpByOnlyExpression();
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedInputData.get(0));
+        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit.fixed_date", "0007_0000000001"));
         assert resultOne.size() == 2;
         assert resultOne.get(0).equals("2019-07-24 16:30:35");
         assert resultOne.get(1).equals("");
 
-        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedInputData.get(1));
+        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:service_design~(service_design)wecmdb:invoke_design.key_name", "0004_0000000001"));
         assert resultTwo.size() == 2;
         assert resultTwo.get(0).equals("EDP-ADMCORE-APP_SYNC_INVOC_EDP-CORE-APP-SER1");
         assert resultTwo.get(1).equals("EDP-ADMBATCH-APP_SYNC_INVOC_EDP-CORE-APP-SER1");
@@ -89,12 +84,13 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithOpToOnlyExpressionShouldSucceed() {
         mockMultipleLinksWithOpToOnlyExpressionServer(server);
-        List<Pair<String, String>> mockedInputData = mockMultipleLinksWithOpToOnlyExpression();
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedInputData.get(0));
+        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:subsys.subsys_design-wecmdb:subsys_design.system_design-wecmdb:system_design.key_name", "0007_0000000001"));
         assert resultOne.get(0).equals("ECIF");
 
-        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedInputData.get(1));
+        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:zone_link.zone1-wecmdb:zone.zone_design-wecmdb:zone_design.fixed_date", "0018_0000000002"));
         assert resultTwo.get(0) == null;
 
         server.verify();
@@ -104,8 +100,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithOpByOnlyExpressionShouldSucceed() {
         mockMultipleLinksWithOpByOnlyExpressionServer(server);
 
-        List<Pair<String, String>> mockedInputData = mockMultipleLinksWithOpByOnlyExpression();
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedInputData.get(0));
+        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id", "0007_0000000001"));
         assert resultOne.size() == 1;
         assert resultOne.get(0).equals("0015_0000000001");
 
@@ -115,61 +110,20 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithMixedOpExpressionShouldSucceed() {
         mockMultipleLinksWithMixedOpExpressionServer(server);
-        List<Pair<String, String>> mockedInputData = mockMultipleLinksWithMixedOpExpression();
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedInputData.get(0));
+        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit.unit_design-wecmdb:unit_design.subsys_design-wecmdb:subsys_design.key_name", "0007_0000000001"));
+
         assert resultOne.size() == 2;
         assert resultOne.get(0).equals("ECIF-CORE");
         assert resultOne.get(1).equals("ECIF-CORE");
 
-        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, mockedInputData.get(1));
+        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
+                new ImmutablePair<>("wecmdb:zone_design~(zone_design2)wecmdb:zone_link_design~(zone_link_design)wecmdb:zone_link.zone1-wecmdb:zone.key_name", "0023_0000000004"));
         assert resultTwo.size() == 2;
         assert resultTwo.get(0).equals("PRD-GZ1-MGMT");
         assert resultTwo.get(1).equals("PRD-GZ1-PARTNERNET");
 
         server.verify();
-    }
-
-    private List<Pair<String, String>> mockFwdNodeExpression() {
-        Pair<String, String> pairOne = new ImmutablePair<>("wecmdb:system_design.code", "0001_0000000001");
-        Pair<String, String> pairTwo = new ImmutablePair<>("wecmdb:unit.key_name", "0008_0000000003");
-        return Arrays.asList(pairOne, pairTwo);
-    }
-
-    private List<Pair<String, String>> mockOneLinkWithOpToOnlyExpressionServer() {
-        Pair<String, String> pairOne = new ImmutablePair<>("wecmdb:subsys_design.system_design-wecmdb:system_design.code", "0002_0000000006");
-        return Collections.singletonList(pairOne);
-    }
-
-    private List<Pair<String, String>> mockOneLinkWithOpByOnlyExpression() {
-        Pair<String, String> pairOne = new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit.fixed_date", "0007_0000000001");
-        Pair<String, String> pairTwo = new ImmutablePair<>("wecmdb:service_design~(service_design)wecmdb:invoke_design.key_name", "0004_0000000001");
-        return Arrays.asList(pairOne, pairTwo);
-    }
-
-    private List<Pair<String, String>> mockMultipleLinksWithOpToOnlyExpression() {
-        Pair<String, String> pairOne = new ImmutablePair<>("wecmdb:subsys.subsys_design-wecmdb:subsys_design.system_design-wecmdb:system_design.key_name", "0007_0000000001");
-        Pair<String, String> pairTwo = new ImmutablePair<>("wecmdb:zone_link.zone1-wecmdb:zone.zone_design-wecmdb:zone_design.fixed_date", "0018_0000000002");
-        return Arrays.asList(pairOne, pairTwo);
-    }
-
-    private List<Pair<String, String>> mockMultipleLinksWithOpByOnlyExpression() {
-        Pair<String, String> pairOne = new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id", "0007_0000000001");
-        return Collections.singletonList(pairOne);
-    }
-
-    private List<Pair<String, String>> mockMultipleLinksWithMixedOpExpression() {
-        Pair<String, String> pairOne = new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit.unit_design-wecmdb:unit_design.subsys_design-wecmdb:subsys_design.key_name", "0007_0000000001");
-        Pair<String, String> pairTwo = new ImmutablePair<>("wecmdb:zone_design~(zone_design2)wecmdb:zone_link_design~(zone_link_design)wecmdb:zone_link.zone1-wecmdb:zone.key_name", "0023_0000000004");
-        return Arrays.asList(pairOne, pairTwo);
-    }
-
-    private MultiValueMap<String, String> mockParamMap() {
-        MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-        paramMap.add("packageName", "wecmdb");
-        paramMap.add("entityName", "system_design");
-        paramMap.add("attributeName", "id");
-        paramMap.add("value", "0001_0000000001");
-        return paramMap;
     }
 
     private void mockFwdNodeExpressionServer(MockRestServiceServer server) {
