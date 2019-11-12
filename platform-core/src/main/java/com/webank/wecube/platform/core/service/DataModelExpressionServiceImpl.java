@@ -10,6 +10,7 @@ import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,11 +25,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
-    //    private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}&sorting={sortName},asc";
-    private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
     private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
-    //    @Autowired
+    @Autowired
     private RestTemplate restTemplate = new RestTemplate();
+    private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
     private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?sorting={sortName},asc";
 
     private String gatewayUrl;
@@ -50,46 +50,41 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         this.requestActualUrl = requestActualUrl;
     }
 
-
     @Override
-    public List<List<String>> fetchData(String gatewayUrl,
-                                        List<Pair<String, String>> expressionToRootIdPairList
+    public List<Object> fetchData(String gatewayUrl,
+                                  Pair<String, String> expressionToRootIdPair
     ) throws WecubeCoreException {
 
         this.setGatewayUrl(gatewayUrl);
-        List<Stack<DataModelExpressionDto>> resultList = new ArrayList<>();
 
-        for (Pair<String, String> expressionToRootIdPair : expressionToRootIdPairList) {
-            String dataModelExpression = expressionToRootIdPair.getLeft();
-            String rootIdData = expressionToRootIdPair.getRight();
-            Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
+        String dataModelExpression = expressionToRootIdPair.getLeft();
+        String rootIdData = expressionToRootIdPair.getRight();
+        Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
 
-            Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
+        Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
 
-            if (expressionDtoQueue.size() == 0) {
-                String msg = String.format("Cannot extract information from the given expression [%s].", dataModelExpression);
-                logger.error(msg);
-                throw new WecubeCoreException(msg);
+        if (expressionDtoQueue.size() == 0) {
+            String msg = String.format("Cannot extract information from the given expression [%s].", dataModelExpression);
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        boolean isStart = true;
+        List<CommonResponseDto> lastRequestResult = new ArrayList<>();
+        while (!expressionDtoQueue.isEmpty()) {
+            DataModelExpressionDto expressionDto = expressionDtoQueue.poll();
+            if (isStart) {
+                resolveLink(expressionDto, rootIdData);
+                isStart = false;
+            } else {
+                resolveLink(expressionDto, lastRequestResult);
             }
-            boolean isStart = true;
-            List<CommonResponseDto> lastRequestResult = new ArrayList<>();
-            while (!expressionDtoQueue.isEmpty()) {
-                DataModelExpressionDto expressionDto = expressionDtoQueue.poll();
-                if (isStart) {
-                    resolveLink(expressionDto, rootIdData);
-                    isStart = false;
-                } else {
-                    resolveLink(expressionDto, lastRequestResult);
-                }
-                if (!expressionDto.getReturnedJson().empty()) {
-                    lastRequestResult = expressionDto.getReturnedJson().peek();
-                }
-                resultDtoStack.add(expressionDto);
+            if (!expressionDto.getReturnedJson().empty()) {
+                lastRequestResult = expressionDto.getReturnedJson().peek();
             }
-            resultList.add(resultDtoStack);
+            resultDtoStack.add(expressionDto);
         }
 
-        return resultList.stream().map(expressionDtoStack -> expressionDtoStack.pop().getResultValue()).collect(Collectors.toList());
+        return resultDtoStack.pop().getResultValue();
     }
 
     private void resolveLink(DataModelExpressionDto expressionDto, String rootIdData) throws WecubeCoreException {
@@ -102,7 +97,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             // request
             String requestPackageName = entity.pkg().getText();
             String requestEntityName = entity.ety().getText();
-            Map<String, String> requestParamMap = generateRefToParamMap(
+            Map<String, Object> requestParamMap = generateRefToParamMap(
                     this.gatewayUrl,
                     requestPackageName,
                     requestEntityName,
@@ -114,7 +109,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             expressionDto.getReturnedJson().add(Collections.singletonList(requestResponseDto));
 
             String secondRequstAttrName = opFetch.attr().getText();
-            List<String> finalResult = commonResponseToList(requestResponseDto, secondRequstAttrName);
+            List<Object> finalResult = commonResponseToList(requestResponseDto, secondRequstAttrName);
             expressionDto.setResultValue(finalResult);
         }
 
@@ -129,7 +124,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String firstRequestPackageName = fwdNode.entity().pkg().getText();
             String firstRequestEntityName = fwdNode.entity().ety().getText();
 
-            Map<String, String> firstRequestParamMap = generateRefToParamMap(
+            Map<String, Object> firstRequestParamMap = generateRefToParamMap(
                     this.gatewayUrl,
                     firstRequestPackageName,
                     firstRequestEntityName,
@@ -145,10 +140,10 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String secondRequestPackageName = entity.pkg().getText();
             String secondRequestEntityName = entity.ety().getText();
             String secondRequestAttrName = fwdNode.attr().getText();
-            List<String> secondRequestIdDataList = commonResponseToList(firstRequestResponseDto, secondRequestAttrName);
+            List<Object> secondRequestIdDataList = commonResponseToList(firstRequestResponseDto, secondRequestAttrName);
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
-            for (String secondRequestIdData : secondRequestIdDataList) {
-                Map<String, String> secondRequestParamMap = generateRefToParamMap(
+            for (Object secondRequestIdData : secondRequestIdDataList) {
+                Map<String, Object> secondRequestParamMap = generateRefToParamMap(
                         this.gatewayUrl,
                         secondRequestPackageName,
                         secondRequestEntityName,
@@ -174,7 +169,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String secondRequestPackageName = bwdNode.entity().pkg().getText();
             String secondRequestEntityName = bwdNode.entity().ety().getText();
             String secondRequestAttributeName = bwdNode.attr().getText();
-            Map<String, String> secondRequestParamMap = generateRefToParamMap(
+            Map<String, Object> secondRequestParamMap = generateRefToParamMap(
                     this.gatewayUrl,
                     secondRequestPackageName,
                     secondRequestEntityName,
@@ -200,9 +195,9 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             Set<String> requestUrlSet = new HashSet<>();
             for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
-                List<String> requestIdDataList = commonResponseToList(lastRequestResponseDto, requestId);
-                for (String requestIdData : requestIdDataList) {
-                    Map<String, String> requestParamMap = generateRefToParamMap(
+                List<Object> requestIdDataList = commonResponseToList(lastRequestResponseDto, requestId);
+                for (Object requestIdData : requestIdDataList) {
+                    Map<String, Object> requestParamMap = generateRefToParamMap(
                             this.gatewayUrl,
                             requestPackageName,
                             requestEntityName,
@@ -228,9 +223,12 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             Set<String> requestUrlSet = new HashSet<>();
             for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
-                List<String> requestIdDataList = commonResponseToList(lastRequestResponseDto, "id");
-                for (String requestIdData : requestIdDataList) {
-                    Map<String, String> requestParamMap = generateRefToParamMap(
+                List<Object> requestIdDataList = commonResponseToList(lastRequestResponseDto, "id");
+                for (Object requestIdData : requestIdDataList) {
+                    Objects.requireNonNull(requestIdData,
+                            "Cannot find 'id' from last request response. " +
+                                    "Please ensure that the interface returned the data with one key named: 'id' as the development guideline requires.");
+                    Map<String, Object> requestParamMap = generateRefToParamMap(
                             this.gatewayUrl,
                             requestPackageName,
                             requestEntityName,
@@ -249,22 +247,22 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null && expressionDto.getOpFetch() != null) {
             // route
             String attrName = expressionDto.getOpFetch().attr().getText();
-            List<String> resultValueList = new ArrayList<>();
+            List<Object> resultValueList = new ArrayList<>();
             for (CommonResponseDto lastRequestResult : lastRequestResultList) {
-                List<String> fetchDataList = commonResponseToList(lastRequestResult, attrName);
+                List<Object> fetchDataList = commonResponseToList(lastRequestResult, attrName);
                 resultValueList.addAll(fetchDataList);
             }
             expressionDto.setResultValue(resultValueList);
         }
     }
 
-    private Map<String, String> generateRefToParamMap(String gatewayUrl,
-                                                      String packageName,
-                                                      String entityName,
-                                                      String attributeName,
-                                                      String value,
-                                                      String sortName) {
-        Map<String, String> paramMap = new HashMap<>();
+    private Map<String, Object> generateRefToParamMap(Object gatewayUrl,
+                                                      Object packageName,
+                                                      Object entityName,
+                                                      Object attributeName,
+                                                      Object value,
+                                                      Object sortName) {
+        Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
         paramMap.put("entityName", entityName);
@@ -286,7 +284,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return paramMap;
     }
 
-    private CommonResponseDto request(String requestUrl, Map<String, String> paramMap) throws WecubeCoreException {
+    private CommonResponseDto request(String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
         ResponseEntity<String> response;
         CommonResponseDto responseDto = null;
         try {
@@ -314,10 +312,10 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return responseDto;
     }
 
-    private List<String> commonResponseToList(CommonResponseDto responseDto, String attributeName) {
+    private List<Object> commonResponseToList(CommonResponseDto responseDto, String attributeName) {
         // transfer dto to List<LinkedTreeMap>
         List<LinkedHashMap<String, Object>> dataArray = new ArrayList<>();
-        List<String> returnList = new ArrayList<>();
+        List<Object> returnList;
         String dataTypeSimpleName = responseDto.getData().getClass().getSimpleName();
 
         if (ArrayList.class.getSimpleName().equals(dataTypeSimpleName)) {
@@ -331,12 +329,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         if (DataModelExpressionParser.FETCH_ALL.equals(attributeName)) {
             returnList = Objects.requireNonNull(dataArray)
                     .stream()
+                    .sorted(Comparator.comparing(o -> String.valueOf(o.get("id"))))
                     .map(AbstractMap::toString)
                     .collect(Collectors.toList());
         } else {
             returnList = Objects.requireNonNull(dataArray)
                     .stream()
-                    .map(linkedTreeMap -> linkedTreeMap.get(attributeName) == null ? "null" : linkedTreeMap.get(attributeName).toString())
+                    .sorted(Comparator.comparing(o -> String.valueOf(o.get("id"))))
+                    .map(linkedTreeMap -> linkedTreeMap.get(attributeName))
                     .collect(Collectors.toList());
         }
 
