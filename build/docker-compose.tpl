@@ -23,7 +23,7 @@ services:
     depends_on:
       - platform-core
     volumes:
-      - /data/wecube/log:/log/ 
+      - /data/wecube-gateway/log:/log/ 
       - /etc/localtime:/etc/localtime
     ports:
       - {{GATEWAY_PORT}}:8080
