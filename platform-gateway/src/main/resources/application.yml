@@ -24,7 +24,7 @@ spring:
                useInsecureTrustManager: true
          routes:
          -  id: platform-core
-            uri: http://10.0.2.10:19110
+            uri: http://10.0.2.10:19100
             predicates:
             - Path=/platform/**
             filters:
