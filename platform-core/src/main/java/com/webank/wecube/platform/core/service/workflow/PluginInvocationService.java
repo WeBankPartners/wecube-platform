@@ -124,8 +124,7 @@ public class PluginInvocationService {
         parsePluginInstance(ctx);
 
         buildTaskNodeExecRequestEntity(ctx);
-        List<Map<String, Object>> pluginParameters = calculateInputParameters(inputParamObjs,
-                ctx.getRequestId());
+        List<Map<String, Object>> pluginParameters = calculateInputParameters(inputParamObjs, ctx.getRequestId());
 
         PluginInvocationOperation operation = new PluginInvocationOperation() //
                 .withCallback(this::handlePluginInterfaceInvocationResult) //
@@ -140,6 +139,16 @@ public class PluginInvocationService {
     }
 
     private void buildTaskNodeExecRequestEntity(PluginInterfaceInvocationContext ctx) {
+        
+        TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
+                .findCurrentEntityByNodeInstId(ctx.getTaskNodeInstEntity().getId());
+        
+        if(formerRequestEntity != null){
+            formerRequestEntity.setCurrent(false);
+            formerRequestEntity.setUpdatedTime(new Date());
+            taskNodeExecRequestRepository.save(formerRequestEntity);
+        }
+        
         String requestId = UUID.randomUUID().toString();
 
         TaskNodeInstInfoEntity taskNodeInstEntity = ctx.getTaskNodeInstEntity();
@@ -150,7 +159,7 @@ public class PluginInvocationService {
         requestEntity.setRequestUrl(ctx.getInstanceHost() + ctx.getInterfacePath());
 
         taskNodeExecRequestRepository.save(requestEntity);
-        
+
         ctx.withTaskNodeExecRequestEntity(requestEntity);
         ctx.setRequestId(requestId);
 
@@ -478,16 +487,50 @@ public class PluginInvocationService {
         return val;
     }
 
-    public void handlePluginInterfaceInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult) {
+    public void handlePluginInterfaceInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx) {
         if (log.isDebugEnabled()) {
             log.debug("handle plugin interface invocation result");
         }
 
-        PluginInterfaceInvocationContext ctx = pluginInvocationResult.getPluginInterfaceInvocationContext();
+        
+        
+        int resultCode = 0;
+        if(!pluginInvocationResult.isSuccess() || pluginInvocationResult.hasErrors()){
+            resultCode = 1;
+            //TODO record errors
+        }
+        
+        
+        List<Object> resultData = pluginInvocationResult.getResultData();
+        
+        if(resultData == null){
+            //TODO none data returned and no need to write back into entities
+            
+        }
+        
+        for(Object obj : resultData){
+            if(obj == null ){
+                continue;
+            }
+            
+            if( !( obj instanceof Map ) ){
+                log.error("unexpected data type:returned object is not a instance of map, obj={}", obj);
+                throw new WecubeCoreException("Unexpected data type");
+            }
+            
+            @SuppressWarnings("unchecked")
+            Map<String, Object> retRecord = (Map<String, Object>)obj;
+        }
         // TODO
-
+        
         PluginInvocationResult result = new PluginInvocationResult();
-        // TODO
+        result.parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+        result.setResultCode(resultCode);
+        
+        if(log.isInfoEnabled()){
+            log.info("call workflow engine with result:{}", result);
+        }
         pluginInvocationResultService.responsePluginInterfaceInvocation(result);
     }
 

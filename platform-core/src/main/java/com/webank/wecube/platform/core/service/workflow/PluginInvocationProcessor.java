@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class PluginInvocationProcessor {
 
     public static class PluginInvocationOperation implements PluginOperation {
         private PluginServiceStub pluginServiceStub;
-        private Consumer<PluginInterfaceInvocationResult> callback;
+        private BiConsumer<PluginInterfaceInvocationResult, PluginInterfaceInvocationContext> callback;
         private List<Map<String, Object>> pluginParameters;
         private String interfacePath;
         private String instanceHost;
@@ -75,11 +75,12 @@ public class PluginInvocationProcessor {
             this.pluginServiceStub = pluginServiceStub;
         }
 
-        public Consumer<PluginInterfaceInvocationResult> getCallback() {
+        public BiConsumer<PluginInterfaceInvocationResult, PluginInterfaceInvocationContext> getCallback() {
             return callback;
         }
 
-        public void setCallback(Consumer<PluginInterfaceInvocationResult> callback) {
+        public void setCallback(
+                BiConsumer<PluginInterfaceInvocationResult, PluginInterfaceInvocationContext> callback) {
             this.callback = callback;
         }
 
@@ -122,7 +123,8 @@ public class PluginInvocationProcessor {
             return this;
         }
 
-        public PluginInvocationOperation withCallback(Consumer<PluginInterfaceInvocationResult> callback) {
+        public PluginInvocationOperation withCallback(
+                BiConsumer<PluginInterfaceInvocationResult, PluginInterfaceInvocationContext> callback) {
             this.callback = callback;
             return this;
         }
@@ -145,7 +147,7 @@ public class PluginInvocationProcessor {
         @Override
         public void operate() {
             if (log.isDebugEnabled()) {
-                log.debug("call {} {}", getInstanceHost(), getInterfacePath());
+                log.debug("call {} {} - {}", getInstanceHost(), getInterfacePath(), Thread.currentThread().getName());
             }
 
             ResultData<Object> responseData = null;
@@ -154,7 +156,7 @@ public class PluginInvocationProcessor {
                 responseData = getPluginServiceStub().callPluginInterface(getInstanceHost(), getInterfacePath(),
                         getPluginParameters());
             } catch (Exception e) {
-                log.error("errors while operating {} {}", getInstanceHost(), getInterfacePath());
+                log.error("errors while operating {} {}", getInstanceHost(), getInterfacePath(), e);
                 PluginInterfaceInvocationResult errResult = new PluginInterfaceInvocationResult();
                 errResult.setErrMsg(e.getMessage());
                 errResult.setSuccess(false);
@@ -168,7 +170,8 @@ public class PluginInvocationProcessor {
                 log.error("response data is null, {} {}", getInstanceHost(), getInterfacePath());
                 PluginInterfaceInvocationResult nullResult = new PluginInterfaceInvocationResult();
                 nullResult.setErrMsg("response data is null.");
-                nullResult.setSuccess(false);
+                nullResult.setSuccess(true);
+                nullResult.setResultData(null);
                 handleResult(nullResult);
 
                 return;
@@ -186,7 +189,7 @@ public class PluginInvocationProcessor {
 
         private void handleResult(PluginInterfaceInvocationResult result) {
             if (getCallback() != null) {
-                getCallback().accept(result);
+                getCallback().accept(result, pluginInterfaceInvocationContext);
             }
         }
 
@@ -202,7 +205,7 @@ public class PluginInvocationProcessor {
         private String instanceHost;
 
         private String requestId;
-        
+
         private TaskNodeExecRequestEntity taskNodeExecRequestEntity;
         private TaskNodeDefInfoEntity taskNodeDefEntity;
         private PluginInvocationCommand pluginInvocationCommand;
@@ -270,7 +273,7 @@ public class PluginInvocationProcessor {
         public void setRequestId(String requestId) {
             this.requestId = requestId;
         }
-        
+
         public TaskNodeDefInfoEntity getTaskNodeDefEntity() {
             return taskNodeDefEntity;
         }
@@ -286,7 +289,7 @@ public class PluginInvocationProcessor {
         public void setTaskNodeExecRequestEntity(TaskNodeExecRequestEntity taskNodeExecRequestEntity) {
             this.taskNodeExecRequestEntity = taskNodeExecRequestEntity;
         }
-        
+
         public PluginInvocationCommand getPluginInvocationCommand() {
             return pluginInvocationCommand;
         }
@@ -299,34 +302,35 @@ public class PluginInvocationProcessor {
             this.nodeObjectBindings = nodeObjectBindings;
             return this;
         }
-        
+
         public PluginInterfaceInvocationContext withPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
             this.pluginConfigInterface = pluginConfigInterface;
             return this;
         }
-        
+
         public PluginInterfaceInvocationContext withProcInstEntity(ProcInstInfoEntity procInstEntity) {
             this.procInstEntity = procInstEntity;
             return this;
         }
-        
+
         public PluginInterfaceInvocationContext withTaskNodeInstEntity(TaskNodeInstInfoEntity taskNodeInstEntity) {
             this.taskNodeInstEntity = taskNodeInstEntity;
             return this;
         }
-        
-        public PluginInterfaceInvocationContext withTaskNodeExecRequestEntity(TaskNodeExecRequestEntity taskNodeExecRequestEntity) {
+
+        public PluginInterfaceInvocationContext withTaskNodeExecRequestEntity(
+                TaskNodeExecRequestEntity taskNodeExecRequestEntity) {
             this.taskNodeExecRequestEntity = taskNodeExecRequestEntity;
             return this;
         }
-
 
         public PluginInterfaceInvocationContext withTaskNodeDefEntity(TaskNodeDefInfoEntity taskNodeDefEntity) {
             this.taskNodeDefEntity = taskNodeDefEntity;
             return this;
         }
-        
-        public PluginInterfaceInvocationContext withPluginInvocationCommand(PluginInvocationCommand pluginInvocationCommand) {
+
+        public PluginInterfaceInvocationContext withPluginInvocationCommand(
+                PluginInvocationCommand pluginInvocationCommand) {
             this.pluginInvocationCommand = pluginInvocationCommand;
             return this;
         }
@@ -337,8 +341,7 @@ public class PluginInvocationProcessor {
         private List<Object> resultData;
         private boolean success;
         private String errMsg;
-
-        private PluginInterfaceInvocationContext pluginInterfaceInvocationContext;
+        private Exception error;
 
         public List<Object> getResultData() {
             return resultData;
@@ -364,13 +367,16 @@ public class PluginInvocationProcessor {
             this.errMsg = errMsg;
         }
 
-        public PluginInterfaceInvocationContext getPluginInterfaceInvocationContext() {
-            return pluginInterfaceInvocationContext;
+        public Exception getError() {
+            return error;
         }
 
-        public void setPluginInterfaceInvocationContext(
-                PluginInterfaceInvocationContext pluginInterfaceInvocationContext) {
-            this.pluginInterfaceInvocationContext = pluginInterfaceInvocationContext;
+        public void setError(Exception error) {
+            this.error = error;
+        }
+
+        public boolean hasErrors() {
+            return !(error == null);
         }
 
     }
