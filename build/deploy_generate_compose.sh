@@ -8,7 +8,9 @@ fi
 
 source $1
 
-image_version=$2
+wecube_image_version=$2
+portal_image_version=$3
+gateway_image_version=$4
 
 build_path=$(dirname $0)
 
