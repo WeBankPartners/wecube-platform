@@ -26,6 +26,7 @@ services:
     volumes:
       - /data/wecube-portal/log:/var/log/nginx/
       - /etc/localtime:/etc/localtime
+      - /data/wecube-portal/data/ui-resources:/root/app/ui-resources
     ports:
       - {{PORTAL_PORT}}:8080
     environment:
