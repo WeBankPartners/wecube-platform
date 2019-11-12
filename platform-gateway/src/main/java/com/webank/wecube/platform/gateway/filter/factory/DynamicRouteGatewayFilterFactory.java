@@ -77,8 +77,8 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("base url:{}", baseUrl);
             }
 
-            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).build().toUri();
-
+            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(req.getURI().getRawQuery()).build()
+                    .toUri();
             ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
             ServerHttpRequest request = req.mutate().uri(newUri).build();
 
