@@ -15,7 +15,7 @@ services:
       - GATEWAY_HOST={{GATEWAY_HOST}}
       - GATEWAY_PORT={{GATEWAY_PORT}}
       - TZ=Asia/Shanghai
-    command: /bin/bash -c "envsubst < /etc/nginx/conf.d/mysite.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst < /etc/nginx/conf.d/nginx.tpl > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
 
   platform-gateway:
     image: {{GATEWAY_IMAGE_NAME}}:{{GATEWAY_IMAGE_VERSION}}
