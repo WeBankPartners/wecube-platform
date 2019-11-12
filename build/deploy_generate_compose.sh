@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]
+if [ $# -ne 4 ]
   then
-    echo "Usage: deploy_generate_compose.sh CONFIG IMAGE_VERSION"
+    echo "Usage: deploy_generate_compose.sh CONFIG PLIATFORM_CORE_IMAGE_VERSION PORTAL_IMAGE_VERSION GATEWAY_IMAGE_VERSION"
     exit 1
 fi
 
