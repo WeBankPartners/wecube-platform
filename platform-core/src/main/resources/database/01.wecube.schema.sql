@@ -53,8 +53,8 @@ CREATE TABLE plugin_package_entities
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
     description        VARCHAR(256)                   NOT NULL,
-    CONSTRAINT fk_package_data_model_id FOREIGN KEY (data_model_id) REFERENCES plugin_package_data_model(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_package_entity(data_model_id, name)
+--    CONSTRAINT fk_package_data_model_id FOREIGN KEY (data_model_id) REFERENCES plugin_package_data_model(id) ON DELETE CASCADE ON UPDATE CASCADE,
+--    UNIQUE uk_package_entity(data_model_id, name)
 
 );
 
@@ -67,9 +67,9 @@ CREATE TABLE plugin_package_attributes
     name         VARCHAR(100)                   NOT NULL,
     description  VARCHAR(256)                   NOT NULL,
     data_type    VARCHAR(20)                    NOT NULL,
-    CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES plugin_package_entities (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_reference_id FOREIGN KEY (reference_id) REFERENCES plugin_package_attributes (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_entity_attribute (entity_id, name)
+--    CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES plugin_package_entities (id) ON DELETE CASCADE ON UPDATE CASCADE,
+--    CONSTRAINT fk_reference_id FOREIGN KEY (reference_id) REFERENCES plugin_package_attributes (id) ON DELETE CASCADE ON UPDATE CASCADE,
+--    UNIQUE uk_entity_attribute (entity_id, name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists system_variables;
