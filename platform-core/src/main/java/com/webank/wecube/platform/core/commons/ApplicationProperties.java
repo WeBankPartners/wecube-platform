@@ -115,6 +115,7 @@ public class ApplicationProperties {
         private String staticResourceServerPassword;
         private Integer staticResourceServerPort;
         private String staticResourceServerPath;
+        private String baseMountPath;
     }
 
     @Data
