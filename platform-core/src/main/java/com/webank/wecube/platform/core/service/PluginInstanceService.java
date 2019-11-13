@@ -13,7 +13,6 @@ import java.util.Set;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aop.ThrowsAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -34,7 +33,6 @@ import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
@@ -258,15 +256,22 @@ public class PluginInstanceService {
 
         createContainerParameters = new CreateInstanceDto(dockerInfo.getImageName(), dockerInfo.getContainerName(),
                 dockerInfo.getPortBindings().replace("{{host_port}}", String.valueOf(port)),
-                dockerInfo.getVolumeBindings());
+                dockerInfo.getVolumeBindings().replace("{{base_mount_path}}", pluginProperties.getBaseMountPath()));
 
+        String envVariable = "";
         DatabaseInfo dbInfo = initMysqlReturn.getDbInfo();
         if (dbInfo != null) {
-            createContainerParameters.setEnvVariableParameters(
-                    dockerInfo.getEnvVariables().replace("{{data_source_url}}", dbInfo.getConnectString())
-                            .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword()));
+            envVariable = dockerInfo.getEnvVariables().replace("{{data_source_url}}", dbInfo.getConnectString())
+                    .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword());
         }
 
+        if (envVariable.isEmpty()) {
+            createContainerParameters
+                    .setEnvVariableParameters(dockerInfo.getEnvVariables().replace("{{minion_master_ip}}", hostIp));
+        } else {
+            createContainerParameters.setEnvVariableParameters(envVariable.replace("{{minion_master_ip}}", hostIp));
+        }
+        
         try {
             ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
                     createContainerParameters);
@@ -445,8 +450,7 @@ public class PluginInstanceService {
                 buildAdditionalPropertiesForDocker(createContainerParameters), hostInfo.getId(),
                 String.format("Create docker instance for plugin[%s]", pluginPackage.getName()));
         logger.info("Container creating...");
-        if (logger.isDebugEnabled())
-            logger.info("Request parameters= " + createDockerInstanceDto.toString());
+        logger.info("Request parameters= " + createDockerInstanceDto.toString());
 
         List<ResourceItemDto> result = resourceManagementService
                 .createItems(Lists.newArrayList(createDockerInstanceDto));
