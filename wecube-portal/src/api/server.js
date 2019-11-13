@@ -19,6 +19,9 @@ export const getFlowPreview = data =>
 
 export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`);
+
+export const getFlowNodes = flowId =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`);
 // admin
 
 export const getAllUsers = () => req.get("/platform/v1/admin/users");

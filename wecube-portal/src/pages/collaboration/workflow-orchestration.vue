@@ -14,13 +14,14 @@
             v-for="item in allFlows"
             :value="item.procDefId"
             :key="item.procDefId"
-            >{{
+          >
+            {{
               (item.procDefName || "null") +
                 "-" +
                 item.procDefId +
                 (item.status === "draft" ? "*" : "")
-            }}</Option
-          >
+            }}
+          </Option>
         </Select>
       </Col>
       <Col span="6" ofset="1">
@@ -39,17 +40,17 @@
           >
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram(false)">{{
-        $t("save_flow")
-      }}</Button>
+      <Button type="info" @click="saveDiagram(false)">
+        {{ $t("save_flow") }}
+      </Button>
       <!-- <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button> -->
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">
-          {{ $t("config_plugin") }}
-        </a>
+        <a href="javascript:void(0);" @click="openPluginModal">{{
+          $t("config_plugin")
+        }}</a>
         <br />
       </div>
 
@@ -97,19 +98,27 @@
           v-for="(item, index) in pluginForm.paramInfos"
           :key="index"
         >
-          <Select v-model="item.bindNodeId" style="width:200px">
-            <Option v-for="i in tempNodes" :value="i.value" :key="i.value">{{
-              i.label
-            }}</Option>
+          <Select
+            v-model="item.bindNodeId"
+            style="width:200px"
+            @on-change="onParamsNodeChange(index)"
+          >
+            <Option
+              v-for="i in currentflowsNodes"
+              :value="i.value"
+              :key="i.value"
+            >
+              {{ i.label }}
+            </Option>
           </Select>
           <Select v-model="item.bindParamType" style="width:200px">
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
-              i.label
-            }}</Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
+              {{ i.label }}
+            </Option>
           </Select>
           <Select v-model="item.bindParamName" style="width:200px">
             <Option
-              v-for="i in tempParamNames"
+              v-for="i in item.currentParamNames"
               :value="i.value"
               :key="i.value"
               >{{ i.label }}</Option
@@ -118,9 +127,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
-          $t("confirm")
-        }}</Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
+          {{ $t("confirm") }}
+        </Button>
       </div>
     </Modal>
   </div>
@@ -151,6 +160,7 @@ import {
   saveFlowDraft,
   getFlowDetailByID,
   getLatestOnlinePluginInterfaces,
+  getFlowNodes,
   getParamsInfosByFlowIdAndNodeId
 } from "@/api/server.js";
 
@@ -224,13 +234,9 @@ export default {
         { value: "in", label: "入参" },
         { value: "out", label: "出参" }
       ],
-      tempNodes: [
+      currentflowsNodes: [
         { value: "Node1", label: "Node1" },
         { value: "Node2", label: "Node2" }
-      ],
-      tempParamNames: [
-        { value: "paramsName1", label: "paramsName1" },
-        { value: "paramsName2", label: "paramsName2" }
       ]
     };
   },
@@ -238,9 +244,8 @@ export default {
     selectedFlow: {
       handler(val) {
         val && this.getFlowXml(val);
-        console.log(3, val);
-      },
-      immediate: true
+      }
+      // immediate: true
     }
   },
   created() {
@@ -289,7 +294,7 @@ export default {
       }
     },
     // onFlowSelect(v) {
-    //   console.log(3, this.selectedFlow )
+    //   console.log(3, this.selectedFlow)
     //   v && this.getFlowXml(v);
     // },
 
@@ -335,6 +340,10 @@ export default {
     },
     saveDiagram(isDraft) {
       let _this = this;
+      const okHandler = data => {
+        this.getAllFlows();
+        this.selectedFlow = data.data.procDefId;
+      };
       this.bpmnModeler.saveXML({ format: true }, function(err, xml) {
         if (!xml) return;
         const xmlString = xml.replace(/[\r\n]/g, "");
@@ -350,14 +359,6 @@ export default {
           taskNodeInfos: _this.serviceTaskBindInfos
         };
 
-        const okHandler = (_this, data) => {
-          _this.getAllFlows();
-          console.log(1, _this.allFlows);
-          _this.selectedFlow = data.data.procDefId;
-          _this.getFlowXml(data.data.procDefId);
-          console.log(2, _this.allFlows, _this.selectedFlow);
-        };
-
         isDraft
           ? saveFlowDraft(payload).then(data => {
               if (data && data.status === "OK") {
@@ -365,7 +366,7 @@ export default {
                   title: "Success",
                   desc: data.message
                 });
-                okHandler(_this, data);
+                okHandler(data);
               }
             })
           : saveFlow(payload).then(data => {
@@ -375,7 +376,7 @@ export default {
                   desc: data.message
                 });
 
-                okHandler(_this, data);
+                okHandler(data);
               }
             });
       });
@@ -418,7 +419,7 @@ export default {
           this.currentFlow.taskNodeInfos.find(
             _ => _.nodeId === this.currentNode.id
           ) || this.defaultPluginForm;
-        // TODO
+        /* ************* */
         this.pluginForm.paramInfos.push({
           bindNodeId: "Node1",
           bindParamName: "paramsName1",
@@ -427,30 +428,43 @@ export default {
           nodeId: "node id",
           paramName: "PARAMS A"
         });
+        this.pluginForm.paramInfos.push({
+          bindNodeId: "Node2",
+          bindParamName: "paramsName2",
+          bindParamType: "out",
+          id: "empty",
+          nodeId: "node id",
+          paramName: "PARAMS B"
+        });
+        /* ************* */
 
-        // set 3 selects optionsHide
-        let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
-          this.currentFlow.procDefId,
-          this.currentNode.id
-        );
-        if (status === "OK") {
-          // this.paramsTypes = data
-          // this.tempNodes = data
-          // this.tempParamNames = data
-          //     paramsTypes: [
-          //   { value: "in", label: "入参" },
-          //   { value: "out", label: "出参" }
-          // ],
-          // tempNodes: [
-          //   { value: "Node1", label: "Node1" },
-          //   { value: "Node2", label: "Node2" }
-          // ],
-          // tempParamNames: [
-          //   { value: "paramsName1", label: "paramsName1" },
-          //   { value: "paramsName2", label: "paramsName2" }
-          // ]
-        }
+        // get flow's params infos - nodes
+        // this.getFlowsNodes()
+        this.pluginForm.paramInfos.forEach((_, index) => {
+          this.onParamsNodeChange(index);
+        });
       }
+    },
+    onParamsNodeChange(index) {
+      this.getParamsOptionsByNode(index);
+    },
+    async getFlowsNodes() {
+      // let { status, data, message} = await getFlowNodes(this.currentFlow.procDefId)
+      // if(status === "OK") {
+      //   this.currentflowsNodes = data
+      // }
+    },
+    async getParamsOptionsByNode(index) {
+      // let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
+      //   this.currentFlow.procDefId,
+      //   this.pluginForm.paramInfos[index].bindNodeId
+      // );
+      // if (status === "OK") {
+      this.pluginForm.paramInfos[index].currentParamNames = [
+        { value: "paramsName1", label: "paramsName1" },
+        { value: "paramsName2", label: "paramsName2" }
+      ];
+      // }
     },
     bindRightClick() {
       var menu = document.getElementById("right_click_menu");
