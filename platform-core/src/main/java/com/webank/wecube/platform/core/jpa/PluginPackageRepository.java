@@ -36,6 +36,8 @@ public interface PluginPackageRepository extends CrudRepository<PluginPackage, I
             "GROUP BY package.name")
     Optional<List<String>> findAllDistinctPackage();
 
+    boolean existsByName(String name);
+
     Optional<PluginPackage> findTop1ByNameOrderByVersionDesc(String packageName);
 
     long countByNameAndVersion(String name, String version);
