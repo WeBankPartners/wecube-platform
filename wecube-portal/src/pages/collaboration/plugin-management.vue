@@ -329,7 +329,6 @@ import {
   getRefCiTypeFrom,
   getRefCiTypeTo,
   getCiTypeAttr,
-  getAllInstancesByPackageId,
   createPluginInstanceByPackageIdAndHostIp,
   removePluginInstance,
   savePluginInstance,
@@ -526,9 +525,11 @@ export default {
           title: "Success",
           desc: "Instance launched successfully"
         });
-        this.getAllInstancesByPackageId(this.currentPlugin.id);
+        // TODO
+        this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
     },
+
     async registPackage() {
       let { status, data, message } = await registPluginPackage(
         this.currentPlugin.id
@@ -639,16 +640,18 @@ export default {
       this.dbQueryCommandString = "";
     },
     async removePluginInstance(instanceId) {
+      this.isLoading = true;
       let { data, status, message } = await removePluginInstance(instanceId);
       if (status === "OK") {
         this.$Notice.success({
           title: "Success",
           desc: message
         });
-        this.getAllInstancesByPackageId(this.currentPackageId);
       }
+      this.getAvailableInstancesByPackageId(this.currentPlugin.id);
     },
     async getAvailableInstancesByPackageId(id) {
+      this.isLoading = true;
       let { data, status, message } = await getAvailableInstancesByPackageId(
         id
       );
@@ -663,17 +666,18 @@ export default {
             };
           }
         });
-        this.getHostsForTableFilter();
+        // this.getHostsForTableFilter();
       }
+      this.isLoading = false;
     },
-    getHostsForTableFilter() {
-      this.logTableColumns[0].options = this.allInstances.map(_ => {
-        return {
-          label: _.hostIp + ":" + _.port,
-          value: _.id
-        };
-      });
-    },
+    // getHostsForTableFilter() {
+    //   this.logTableColumns[0].options = this.allInstances.map(_ => {
+    //     return {
+    //       label: _.hostIp + ":" + _.port,
+    //       value: _.id
+    //     };
+    //   });
+    // },
     async getAvailableContainerHosts() {
       const { data, status, message } = await getAvailableContainerHosts();
       if (status === "OK") {
