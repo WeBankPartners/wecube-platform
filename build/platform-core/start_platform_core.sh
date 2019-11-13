@@ -1,8 +1,6 @@
 #!/bin/sh
 mkdir -p /log
-chmod +x /application/init_cmdb
-/application/init_cmdb
-java -jar /application/wecube-core.jar  --server.address=0.0.0.0 --server.port=8080 \
+java -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port=8080 \
 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver \
 --spring.datasource.url=jdbc:mysql://${MYSQL_SERVER_ADDR}:${MYSQL_SERVER_PORT}/${MYSQL_SERVER_DATABASE_NAME}?serverTimezone=Asia\/Shanghai\&characterEncoding=utf8 \
 --spring.datasource.username=${MYSQL_USER_NAME} \
@@ -18,4 +16,10 @@ java -jar /application/wecube-core.jar  --server.address=0.0.0.0 --server.port=8
 --wecube.core.cmdb-data.enum-category-ci-type-layer=ci_layer \
 --wecube.core.cmdb-data.enum-category-ci-type-catalog=ci_catalog \
 --wecube.core.plugin.plugin-package-name-of-deploy=salt-stack-deployment \
---wecube.core.cmdb-data.enum-category-ci-type-zoom-levels=ci_zoom_level >>/log/wecube-core.log 
+--wecube.core.cmdb-data.enum-category-ci-type-zoom-levels=ci_zoom_level \
+--wecube.core.plugin.static-resource-server-ip=${STATIC_RESOURCE_SERVER_IP} \
+--wecube.core.plugin.static-resource-server-user=${STATIC_RESOURCE_SERVER_USER} \
+--wecube.core.plugin.static-resource-server-password=${STATIC_RESOURCE_SERVER_PASSWORD} \
+--wecube.core.plugin.static-resource-server-port=${STATIC_RESOURCE_SERVER_PORT} \
+--wecube.core.plugin.static-resource-server-path=${STATIC_RESOURCE_SERVER_PATH} \
+>>/log/wecube-core.log 
