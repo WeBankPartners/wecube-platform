@@ -48,11 +48,11 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         String volumeBindingsString = additionalProperties.get("volumeBindings");
         String envVariablesString = additionalProperties.get("envVariables");
 
-        List<String> portBindings = (null == portBindingsString ? Lists.newArrayList()
+        List<String> portBindings = (null == portBindingsString || portBindingsString == "" ? Lists.newArrayList()
                 : Arrays.asList(portBindingsString.split(",")));
-        List<String> volumeBindings = (null == volumeBindingsString ? Lists.newArrayList()
+        List<String> volumeBindings = (null == volumeBindingsString || volumeBindingsString == "" ? Lists.newArrayList()
                 : Arrays.asList(volumeBindingsString.split(",")));
-        List<String> envVariables = (null == envVariablesString ? Lists.newArrayList()
+        List<String> envVariables = (null == envVariablesString || envVariablesString == "" ? Lists.newArrayList()
                 : Arrays.asList(envVariablesString.split(",")));
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
