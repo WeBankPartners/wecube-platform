@@ -19,7 +19,7 @@
     </menus>
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
-    <dataModel>
+    <dataModel isDynamic="true" path="/data-model" method="GET">
         <entity name="service_catalogue" displayName="服务目录" description="服务目录模型">
             <attribute name="id" datatype="int" description="唯一ID"/>
             <attribute name="name" datatype="string" description="名字"/>
@@ -168,6 +168,12 @@
 
 ### dataModel
 
+| tag 名称      | 描述                   | 是否必须 | 默认值       |
+| ------------- | --------------------- | -------- | ------------ |
+| isDynamic     | 是否支持动态数据模型    | 否       | false       |
+| updatePath    | 数据模型更新接口        | 否       | /data-model |
+| updateMethod  | 数据模型更新的http方法  | 否       | GET         |
+
 #### entity
 
 | tag 名称    | 描述         | 是否必须 |
@@ -178,15 +184,16 @@
 
 #### attribute 
 
-| tag 名称    | 描述                  | 是否必须                        |
-| ----------- | --------------------- | ------------------------------- |
-| name        | 名称                  | 是                              |
-| dataType    | 数据类型              | 是 (`int`, `str`, `ref`)        |
-| description | 描述                  | 否                              |
-| refPackage  | 引用的插件包名称      | 否 (若 `dataType`为`ref`则必填) |
-| refVersion  | 引用的插件包版本      | 否 (若 `dataType`为`ref`则必填) |
-| refEntity   | 引用的`entity`名称    | 否 (若 `dataType`为`ref`则必填) |
-| ref         | 引用的`attribute`名称 | 否 (若 `dataType`为`ref`则必填) |
+| tag 名称    | 描述                  | 是否必须                        |  默认值 |
+| ----------- | --------------------- | ------------------------------- | ----- |
+| name        | 名称                  | 是                              |  N/A   |
+| dataType    | 数据类型              | 是 (`int`, `str`, `ref`)        |  N/A   |
+| description | 描述                  | 否                              |  N/A   |
+| refPackage  | 引用的插件包名称      | 否                              | 本插件包 |
+| refEntity   | 引用的`entity`名称    | 否                              | 本entity |
+| ref         | 引用的`attribute`名称 | 否 (若 `dataType`为`ref`则必填)  |   N/A |
+
+Attribute的refVersion在初期版本中存在，在新的规范中已经删除。
 
 ### systemParameters
 
@@ -215,7 +222,7 @@
 | imageName      | 镜像名称   | 是       |
 | containerName  | 容器名称   | 是       |
 | portBindings   | 绑定端口号 | 是       |
-| volumnBindings | 绑定数据卷 | 否       |
+| volumeBindings | 绑定数据卷 | 否       |
 | envVariables   | 环境参数   | 否       |
 
 #### mysql
@@ -254,10 +261,10 @@ parameter：
 
 `<parameter> </parameter>` 之间应当填写参数名称
 
-| tag 名称              | 描述               | 是否必须 |
+| tag 名称              | 描述                | 是否必须 |
 | --------------------- | ------------------ | -------- |
-| dataType              | 数据类型           | 否       |
-| mappingType           | 映射类型           | 否       |
-| mappingSystemVariable | 映射系统参数id     | 否       |
-| required              | 该paramter是否必须 | 是       |
+| dataType              | 数据类型            | 否       |
+| mappingType           | 映射类型            | 否       |
+| mappingSystemVariable | 映射系统参数id      | 否       |
+| required              | 该parameter是否必须 | 是       |
 
