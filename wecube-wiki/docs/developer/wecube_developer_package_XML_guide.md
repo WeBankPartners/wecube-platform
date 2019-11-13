@@ -1,5 +1,11 @@
 # 插件开发 xml 文件编写规范
 
+## xsd
+
+```
+[../../../platform-core/src/main/resources/plugin/plugin-config-v2.xsd]
+```
+
 ## 示例 xml 文件
 
 ```xml
