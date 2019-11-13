@@ -51,6 +51,9 @@
           <Col span="5" offset="1">
             <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
           </Col>
+          <Col span="5" offset="1">
+            <strong style="font-size:15px;">属性类型</strong>
+          </Col>
         </Row>
         <Row
           style="margin-top:20px; border-bottom: 1px solid #2c3e50"
@@ -85,7 +88,7 @@
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="15" offset="3">
+                  <Col span="4" offset="4">
                     <FormItem :label-width="0">
                       <span v-if="param.mappingType === 'system_variable'">{{
                         param.mappingSystemVariableId || "N/A"
@@ -94,6 +97,11 @@
                         param.mappingEntityExpression || "N/A"
                       }}</span>
                       <span v-if="param.mappingType === 'context'">N/A</span>
+                    </FormItem>
+                  </Col>
+                  <Col span="3" offset="5">
+                    <FormItem :label-width="0">
+                      {{ param.mappingType }}
                     </FormItem>
                   </Col>
                 </Row>
