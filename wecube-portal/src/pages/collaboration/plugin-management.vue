@@ -520,6 +520,7 @@ export default {
         ip,
         port
       );
+      this.isLoading = false;
       if (status === "OK") {
         this.$Notice.success({
           title: "Success",
@@ -527,7 +528,6 @@ export default {
         });
         this.getAllInstancesByPackageId(this.currentPlugin.id);
       }
-      this.isLoading = false;
     },
     async registPackage() {
       let { status, data, message } = await registPluginPackage(
