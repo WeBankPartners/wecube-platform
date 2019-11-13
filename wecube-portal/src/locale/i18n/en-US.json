@@ -288,5 +288,8 @@
   "target_object": "Target",
   "create_job": "Create Orchestrations Job",
   "no_plugin": "No Services",
-  "target_type": "Target Type"
+  "target_type": "Target Type",
+  "notification_title": "Notification",
+  "notification_desc": "Please wait a moment until all plugins loaded",
+  "plugin_load": "plugin loaded"
 }

@@ -144,6 +144,7 @@ export default {
         window.myMenus = this.menus;
       }
     },
+
     async getAllPluginPackageResourceFiles() {
       const {
         status,
@@ -152,53 +153,39 @@ export default {
       } = await getAllPluginPackageResourceFiles();
       if (status === "OK") {
         // const data = [
-        //   {
-        //     relatedPath: "http://10.56.235.186:8888/js/chunk-vendors.d0d23cad.js"
-        //   },
-        //   { relatedPath: "http://10.56.235.186:8888/js/app.d90bd292.js" },
-        //   { relatedPath: "http://10.56.235.186:8888/css/app.7e7e255d.css" },
-        //   {
-        //     relatedPath:
-        //       "http://10.56.235.186:8888/css/chunk-vendors.5db193f3.css"
-        //   }
+
+        //   { relatedPath: "http://localhost:8888/js/app.3ed190d8.js",packageName:'itsm' },
+        //   { relatedPath: "http://localhost:8888/css/app.4fbf708b.css",packageName:'itsm' },
+        //   { relatedPath: "http://localhost:8888/js/app.0bea37d0.js",packageName:'monitor' },
+        //   { relatedPath: "http://localhost:8888/css/app.6d544823.css",packageName:'monitor' },
+        //   { relatedPath: "http://localhost:8888/js/app.910d8b40.js",packageName:'cmdb' },
+        //   { relatedPath: "http://localhost:8888/css/app.0e016ca6.css",packageName:'cmdb' },
+
         // ];
+        this.$Notice.info({
+          title: this.$t("notification_title"),
+          desc: this.$t("notification_desc"),
+          duration: 0
+        });
+
         const eleContain = document.getElementsByTagName("body");
         let script = {};
-        data &&
-          data.forEach(file => {
-            if (
-              file.relatedPath.indexOf(".js") > -1 &&
-              file.relatedPath.indexOf("vendors") > -1
-            ) {
-              let contains = document.createElement("script");
-              contains.type = "text/javascript";
-              contains.src = file.relatedPath;
-              script[file.packageName] = contains;
-              eleContain[0].appendChild(contains);
-            }
-            if (file.relatedPath.indexOf(".css") > -1) {
-              let contains = document.createElement("link");
-              contains.type = "text/css";
-              contains.rel = "stylesheet";
-              contains.href = file.relatedPath;
-              eleContain[0].appendChild(contains);
-            }
-          });
-        const loadScript = packageName => {
-          data &&
-            data.forEach(file => {
-              if (
-                file.relatedPath.indexOf(".js") > -1 &&
-                file.packageName === packageName &&
-                file.relatedPath.indexOf("vendors") === -1
-              ) {
-                let contains = document.createElement("script");
-                contains.type = "text/javascript";
-                contains.src = file.relatedPath;
-                eleContain[0].appendChild(contains);
-              }
-            });
-        };
+        data.forEach(file => {
+          if (file.relatedPath.indexOf(".js") > -1) {
+            let contains = document.createElement("script");
+            contains.type = "text/javascript";
+            contains.src = file.relatedPath;
+            script[file.packageName] = contains;
+            eleContain[0].appendChild(contains);
+          }
+          if (file.relatedPath.indexOf(".css") > -1) {
+            let contains = document.createElement("link");
+            contains.type = "text/css";
+            contains.rel = "stylesheet";
+            contains.href = file.relatedPath;
+            eleContain[0].appendChild(contains);
+          }
+        });
         Object.keys(script).forEach(key => {
           if (script[key].readyState) {
             //IE
@@ -208,13 +195,18 @@ export default {
                 script[key].readyState == "loaded"
               ) {
                 script[key].onreadystatechange = null;
-                loadScript(key);
               }
             };
           } else {
             //非IE
             script[key].onload = () => {
-              loadScript(key);
+              setTimeout(() => {
+                this.$Notice.success({
+                  title: this.$t("notification_title"),
+                  desc: `${key} ${this.$t("plugin_load")}`,
+                  duration: 0
+                });
+              }, 2000);
             };
           }
         });

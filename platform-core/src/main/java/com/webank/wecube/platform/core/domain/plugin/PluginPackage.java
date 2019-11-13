@@ -46,9 +46,8 @@ public class PluginPackage {
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageMenu> pluginPackageMenus = new LinkedHashSet<>();
 
-    @JsonManagedReference
     @Transient
-    private Set<PluginPackageEntity> pluginPackageEntities = new LinkedHashSet<>();
+    private PluginPackageDataModel pluginPackageDataModel;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -94,7 +93,17 @@ public class PluginPackage {
         this.uiPackageIncluded = uiPackageIncluded;
     }
 
-    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, Set<PluginPackageEntity> pluginPackageEntities, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
+    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, PluginPackageDataModel pluginPackageDataModel) {
+        this.id = id;
+        this.name = name;
+        this.version = version;
+        this.status = status;
+        this.uploadTimestamp = uploadTimestamp;
+        this.uiPackageIncluded = uiPackageIncluded;
+        this.pluginPackageDataModel = pluginPackageDataModel;
+    }
+
+    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, PluginPackageDataModel pluginPackageDataModel, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
         this.id = id;
         this.name = name;
         this.version = version;
@@ -103,7 +112,7 @@ public class PluginPackage {
         this.uiPackageIncluded = uiPackageIncluded;
         this.pluginPackageDependencies = pluginPackageDependencies;
         this.pluginPackageMenus = pluginPackageMenus;
-        this.pluginPackageEntities = pluginPackageEntities;
+        this.pluginPackageDataModel = pluginPackageDataModel;
         this.systemVariables = systemVariables;
         this.pluginPackageAuthorities = pluginPackageAuthorities;
         this.pluginPackageRuntimeResourcesDocker = pluginPackageRuntimeResourcesDocker;
@@ -177,12 +186,12 @@ public class PluginPackage {
         this.pluginPackageMenus = pluginPackageMenus;
     }
 
-    public Set<PluginPackageEntity> getPluginPackageEntities() {
-        return pluginPackageEntities;
+    public PluginPackageDataModel getPluginPackageDataModel() {
+        return pluginPackageDataModel;
     }
 
-    public void setPluginPackageEntities(Set<PluginPackageEntity> pluginPackageEntities) {
-        this.pluginPackageEntities = pluginPackageEntities;
+    public void setPluginPackageDataModel(PluginPackageDataModel pluginPackageDataModel) {
+        this.pluginPackageDataModel = pluginPackageDataModel;
     }
 
     public Set<SystemVariable> getSystemVariables() {
