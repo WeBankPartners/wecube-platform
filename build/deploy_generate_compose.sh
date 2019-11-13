@@ -1,14 +1,16 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]
+if [ $# -ne 4 ]
   then
-    echo "Usage: deploy_generate_compose.sh CONFIG IMAGE_VERSION"
+    echo "Usage: deploy_generate_compose.sh CONFIG PLIATFORM_CORE_IMAGE_VERSION PORTAL_IMAGE_VERSION GATEWAY_IMAGE_VERSION"
     exit 1
 fi
 
 source $1
 
-image_version=$2
+wecube_image_version=$2
+portal_image_version=$3
+gateway_image_version=$4
 
 build_path=$(dirname $0)
 
@@ -25,8 +27,24 @@ sed -i "s~{{WECUBE_PLUGIN_HOST_PWD}}~$wecube_plugin_host_pwd~g" docker-compose.y
 sed -i "s~{{S3_URL}}~$s3_url~g" docker-compose.yml
 sed -i "s~{{S3_ACCESS_KEY}}~$s3_access_key~g" docker-compose.yml
 sed -i "s~{{S3_SECRET_KEY}}~$s3_secret_key~g" docker-compose.yml
-sed -i "s~{{IMAGE_VERSION}}~$image_version~g" docker-compose.yml
+sed -i "s~{{WECUBE_IMAGE_VERSION}}~$wecube_image_version~g" docker-compose.yml
 sed -i "s~{{MYSQL_SERVER_ADDR}}~$mysql_server_addr~g" docker-compose.yml
 sed -i "s~{{MYSQL_SERVER_PORT}}~$mysql_server_port~g" docker-compose.yml
 sed -i "s~{{MYSQL_SERVER_DATABASE_NAME}}~$mysql_server_database_name~g" docker-compose.yml
 sed -i "s~{{MYSQL_USER_NAME}}~$mysql_user_name~g" docker-compose.yml
+sed -i "s~{{PORTAL_IMAGE}}~$portal_image~g" docker-compose.yml
+sed -i "s~{{PORTAL_PORT}}~$portal_port~g" docker-compose.yml
+sed -i "s~{{PORTAL_IMAGE_VERSION}}~$portal_image_version~g" docker-compose.yml
+sed -i "s~{{GATEWAY_HOST}}~$gateway_host~g" docker-compose.yml
+sed -i "s~{{GATEWAY_PORT}}~$gateway_port~g" docker-compose.yml
+sed -i "s~{{GATEWAY_IMAGE_NAME}}~$gateway_image_name~g" docker-compose.yml
+sed -i "s~{{GATEWAY_IMAGE_VERSION}}~$gateway_image_version~g" docker-compose.yml
+sed -i "s~{{GATEWAY_ROUTE_CONFIG_SERVER}}~$gateway_route_config_server~g" docker-compose.yml
+sed -i "s~{{GATEWAY_ROUTE_CONFIG_URI}}~$gateway_route_config_uri~g" docker-compose.yml
+sed -i "s~{{GATEWAY_ROUTE_ACCESS_KEY}}~$gateway_route_access_key~g" docker-compose.yml
+sed -i "s~{{GATEWAY_ROUTES_PLATFORM_CORE_URI}}~$gateway_routes_platform_core_uri~g" docker-compose.yml
+sed -i "s~{{STATIC_RESOURCE_SERVER_IP}}~$static_resource_server_ip~g" docker-compose.yml
+sed -i "s~{{STATIC_RESOURCE_SERVER_USER}}~$static_resource_server_user~g" docker-compose.yml
+sed -i "s~{{STATIC_RESOURCE_SERVER_PASSWORD}}~$static_resource_server_password~g" docker-compose.yml
+sed -i "s~{{STATIC_RESOURCE_SERVER_PORT}}~$static_resource_server_port~g" docker-compose.yml
+sed -i "s~{{STATIC_RESOURCE_SERVER_PATH}}~$static_resource_server_path~g" docker-compose.yml
