@@ -7,9 +7,7 @@
           filterable
           clearable
           @on-clear="createNewDiagram"
-          @on-change="onFlowSelect"
-          v-model="selectedFlow.value"
-          label-in-value
+          v-model="selectedFlow"
           style="width: 70%"
         >
           <Option
@@ -153,7 +151,7 @@ import {
   saveFlowDraft,
   getFlowDetailByID,
   getLatestOnlinePluginInterfaces,
-  getFlowPreview
+  getParamsInfosByFlowIdAndNodeId
 } from "@/api/server.js";
 
 import AttrInput from "../components/attr-input";
@@ -194,10 +192,7 @@ export default {
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
       allFlows: [],
       allCITypes: [],
-      selectedFlow: {
-        value: "",
-        label: ""
-      },
+      selectedFlow: "",
       selectedCI: {
         value: "",
         label: ""
@@ -239,7 +234,15 @@ export default {
       ]
     };
   },
-  watch: {},
+  watch: {
+    selectedFlow: {
+      handler(val) {
+        val && this.getFlowXml(val);
+        console.log(3, val);
+      },
+      immediate: true
+    }
+  },
   created() {
     this.init();
   },
@@ -285,10 +288,10 @@ export default {
         this.allFlows = data || [];
       }
     },
-    onFlowSelect(v) {
-      this.selectedFlow = v;
-      v && this.getFlowXml(v.value);
-    },
+    // onFlowSelect(v) {
+    //   console.log(3, this.selectedFlow )
+    //   v && this.getFlowXml(v);
+    // },
 
     onCISelect(v) {
       this.selectedCI = v;
@@ -349,9 +352,12 @@ export default {
 
         const okHandler = (_this, data) => {
           _this.getAllFlows();
-          _this.selectedFlow.value = data.data.procDefId;
-          _this.getFlowXml(_this.selectedFlow.value);
+          console.log(1, _this.allFlows);
+          _this.selectedFlow = data.data.procDefId;
+          _this.getFlowXml(data.data.procDefId);
+          console.log(2, _this.allFlows, _this.selectedFlow);
         };
+
         isDraft
           ? saveFlowDraft(payload).then(data => {
               if (data && data.status === "OK") {
@@ -400,7 +406,7 @@ export default {
       this.pluginModalVisible = false;
       this.saveDiagram(true);
     },
-    openPluginModal() {
+    async openPluginModal() {
       if (!this.selectedCI.value) {
         this.$Notice.warning({
           title: "Warning",
@@ -414,13 +420,36 @@ export default {
           ) || this.defaultPluginForm;
         // TODO
         this.pluginForm.paramInfos.push({
-          bindNodeId: "1",
-          bindParamName: "3",
-          bindParamType: "2",
+          bindNodeId: "Node1",
+          bindParamName: "paramsName1",
+          bindParamType: "in",
           id: "empty",
           nodeId: "node id",
-          paramName: "qianmian"
+          paramName: "PARAMS A"
         });
+
+        // set 3 selects optionsHide
+        let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
+          this.currentFlow.procDefId,
+          this.currentNode.id
+        );
+        if (status === "OK") {
+          // this.paramsTypes = data
+          // this.tempNodes = data
+          // this.tempParamNames = data
+          //     paramsTypes: [
+          //   { value: "in", label: "入参" },
+          //   { value: "out", label: "出参" }
+          // ],
+          // tempNodes: [
+          //   { value: "Node1", label: "Node1" },
+          //   { value: "Node2", label: "Node2" }
+          // ],
+          // tempParamNames: [
+          //   { value: "paramsName1", label: "paramsName1" },
+          //   { value: "paramsName2", label: "paramsName2" }
+          // ]
+        }
       }
     },
     bindRightClick() {

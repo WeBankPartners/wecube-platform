@@ -17,9 +17,10 @@ export const getFlowPreview = data =>
     data
   );
 
+export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`);
 // admin
-export const deleteCiTypeLayer = layerId =>
-  req.delete(`/platform/v1/cmdb/ci-type-layers/${layerId}`);
+
 export const getAllUsers = () => req.get("/platform/v1/admin/users");
 export const getAllRoles = () => req.get("/platform/v1/admin/roles");
 export const getAllMenus = () => req.get("/platform/v1/admin/menus");
