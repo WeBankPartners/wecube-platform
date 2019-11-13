@@ -12,9 +12,9 @@ public class PluginInvocationResult extends PluginInvocationCommand {
         this.resultCode = resultCode;
     }
     
-    public void parsePluginInvocationCommand(PluginInvocationCommand cmd){
+    public PluginInvocationResult parsePluginInvocationCommand(PluginInvocationCommand cmd){
         if(cmd == null){
-            return;
+            return this;
         }
         
         this.setExecutionId(cmd.getExecutionId());
@@ -25,6 +25,8 @@ public class PluginInvocationResult extends PluginInvocationCommand {
         this.setProcDefVersion(cmd.getProcDefVersion());
         this.setProcInstId(cmd.getProcInstId());
         this.setProcInstKey(cmd.getProcInstKey());
+        
+        return this;
     }
 
     @Override
