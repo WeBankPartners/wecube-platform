@@ -1,4 +1,4 @@
-
+SET FOREIGN_KEY_CHECKS = 0;
 drop table if exists plugin_packages;
 CREATE TABLE `plugin_packages` (
     `id` INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE `plugin_configs` (
   `name` VARCHAR(100) NOT NULL,
   `entity_id` INT(11) NULL DEFAULT NULL,
   `entity_name` VARCHAR(100) NOT NULL,
-  `status` VARCHAR(20) NOT NULL default 'DISABLED',
+  `status` VARCHAR(20) NOT NULL default 'DISABLED'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_config_interfaces;
@@ -180,6 +180,7 @@ create table plugin_package_resource_files
   package_name varchar(50) not null,
   package_version varchar(20) not null,
   source varchar(64) not null,
-  related_path varchar(1024) not null,
-  PRIMARY KEY (`id`)
+  related_path varchar(1024) not null
 );
+
+SET FOREIGN_KEY_CHECKS = 1;
