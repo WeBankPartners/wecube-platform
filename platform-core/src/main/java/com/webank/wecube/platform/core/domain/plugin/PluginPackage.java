@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.common.base.Objects;
 import com.webank.wecube.platform.core.domain.SystemVariable;
@@ -8,8 +7,10 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Entity
 @Table(name = "plugin_packages")
@@ -71,7 +72,7 @@ public class PluginPackage {
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
-    private Set<PluginConfig> pluginConfigs = new LinkedHashSet<>();
+    private Set<PluginConfig> pluginConfigs = new TreeSet<>(Comparator.comparing(PluginConfig::getName));
 
     @JsonManagedReference
     @Transient
