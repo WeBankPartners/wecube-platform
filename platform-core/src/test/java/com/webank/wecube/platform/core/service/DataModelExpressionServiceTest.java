@@ -2,7 +2,8 @@ package com.webank.wecube.platform.core.service;
 
 import com.google.gson.Gson;
 import com.webank.wecube.platform.core.BaseSpringBootTest;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
+import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,31 +22,33 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
     Gson gson = null;
-    String wecmdbUrlGateWayUrl = "localhost:8081";
 
     @Autowired
     DataModelExpressionServiceImpl dataModelExpressionService;
     @Autowired
     private RestTemplate restTemplate;
-
+    @Autowired
+    private ApplicationProperties applicationProperties;
+    private String gatewayUrl;
     private MockRestServiceServer server;
 
     @Before
     public void setup() {
         gson = new Gson();
         server = MockRestServiceServer.bindTo(restTemplate).build();
+        gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
 
     @Test
     public void wecmdbFwdNodeExpressionShouldSucceed() {
         mockFwdNodeExpressionServer(server);
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:system_design.code", "0001_0000000001"));
+        List<Object> resultOne = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:system_design.code", "0001_0000000001"));
         assert resultOne.get(0).equals("EDP");
 
-        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:unit.key_name", "0008_0000000003"));
+        List<Object> resultTwo = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:unit.key_name", "0008_0000000003"));
         assert resultTwo.get(0).equals("EDP-CORE_PRD-APP");
 
         server.verify();
@@ -55,8 +58,8 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     public void wecmdbOneLinkWithOpToExpressionShouldSucceed() {
         mockOneLinkWithOpToOnlyExpressionServer(server);
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:subsys_design.system_design-wecmdb:system_design.code", "0002_0000000006"));
+        List<Object> resultOne = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:subsys_design.system_design-wecmdb:system_design.code", "0002_0000000006"));
         assert resultOne.get(0).equals("EDP");
 
         server.verify();
@@ -66,14 +69,14 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     public void wecmdbOneLinkWithOpByExpressionShouldSucceed() {
         mockOneLinkWithOpByOnlyExpressionServer(server);
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit.fixed_date", "0007_0000000001"));
+        List<Object> resultOne = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:subsys~(subsys)wecmdb:unit.fixed_date", "0007_0000000001"));
         assert resultOne.size() == 2;
         assert resultOne.get(0).equals("2019-07-24 16:30:35");
         assert resultOne.get(1).equals("");
 
-        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:service_design~(service_design)wecmdb:invoke_design.key_name", "0004_0000000001"));
+        List<Object> resultTwo = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:service_design~(service_design)wecmdb:invoke_design.key_name", "0004_0000000001"));
         assert resultTwo.size() == 2;
         assert resultTwo.get(0).equals("EDP-ADMCORE-APP_SYNC_INVOC_EDP-CORE-APP-SER1");
         assert resultTwo.get(1).equals("EDP-ADMBATCH-APP_SYNC_INVOC_EDP-CORE-APP-SER1");
@@ -85,12 +88,12 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithOpToOnlyExpressionShouldSucceed() {
         mockMultipleLinksWithOpToOnlyExpressionServer(server);
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:subsys.subsys_design-wecmdb:subsys_design.system_design-wecmdb:system_design.key_name", "0007_0000000001"));
+        List<Object> resultOne = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:subsys.subsys_design-wecmdb:subsys_design.system_design-wecmdb:system_design.key_name", "0007_0000000001"));
         assert resultOne.get(0).equals("ECIF");
 
-        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:zone_link.zone1-wecmdb:zone.zone_design-wecmdb:zone_design.fixed_date", "0018_0000000002"));
+        List<Object> resultTwo = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:zone_link.zone1-wecmdb:zone.zone_design-wecmdb:zone_design.fixed_date", "0018_0000000002"));
         assert resultTwo.get(0) == null;
 
         server.verify();
@@ -100,7 +103,8 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithOpByOnlyExpressionShouldSucceed() {
         mockMultipleLinksWithOpByOnlyExpressionServer(server);
 
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl, new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id", "0007_0000000001"));
+        List<Object> resultOne = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id", "0007_0000000001"));
         assert resultOne.size() == 1;
         assert resultOne.get(0).equals("0015_0000000001");
 
@@ -110,15 +114,15 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithMixedOpExpressionShouldSucceed() {
         mockMultipleLinksWithMixedOpExpressionServer(server);
-        List<Object> resultOne = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:subsys~(subsys)wecmdb:unit.unit_design-wecmdb:unit_design.subsys_design-wecmdb:subsys_design.key_name", "0007_0000000001"));
+        List<Object> resultOne = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:subsys~(subsys)wecmdb:unit.unit_design-wecmdb:unit_design.subsys_design-wecmdb:subsys_design.key_name", "0007_0000000001"));
 
         assert resultOne.size() == 2;
         assert resultOne.get(0).equals("ECIF-CORE");
         assert resultOne.get(1).equals("ECIF-CORE");
 
-        List<Object> resultTwo = dataModelExpressionService.fetchData(wecmdbUrlGateWayUrl,
-                new ImmutablePair<>("wecmdb:zone_design~(zone_design2)wecmdb:zone_link_design~(zone_link_design)wecmdb:zone_link.zone1-wecmdb:zone.key_name", "0023_0000000004"));
+        List<Object> resultTwo = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:zone_design~(zone_design2)wecmdb:zone_link_design~(zone_link_design)wecmdb:zone_link.zone1-wecmdb:zone.key_name", "0023_0000000004"));
         assert resultTwo.size() == 2;
         assert resultTwo.get(0).equals("PRD-GZ1-MGMT");
         assert resultTwo.get(1).equals("PRD-GZ1-PARTNERNET");
@@ -128,7 +132,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
     private void mockFwdNodeExpressionServer(MockRestServiceServer server) {
         // mockFwdNodeExpression
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/system_design?filter=id,0001_0000000001"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design?filter=id,0001_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -150,7 +154,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/unit?filter=id,0008_0000000003"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=id,0008_0000000003", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -178,7 +182,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
     private void mockOneLinkWithOpToOnlyExpressionServer(MockRestServiceServer server) {
         // mockOneLinkWithOpToOnlyExpression
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/subsys_design?filter=id,0002_0000000006"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys_design?filter=id,0002_0000000006", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -202,7 +206,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/system_design?filter=id,0001_0000000001"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design?filter=id,0001_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -228,7 +232,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     private void mockOneLinkWithOpByOnlyExpressionServer(MockRestServiceServer server) {
         // mockOneLinkWithOpByOnlyExpression
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/unit?filter=subsys,0007_0000000001"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=subsys,0007_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -269,7 +273,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/invoke_design?filter=service_design,0004_0000000001"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/invoke_design?filter=service_design,0004_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -311,7 +315,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
     private void mockMultipleLinksWithOpToOnlyExpressionServer(MockRestServiceServer server) {
         // first expression
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/subsys?filter=id,0007_0000000001"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys?filter=id,0007_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -334,7 +338,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/subsys_design?filter=id,0002_0000000010"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys_design?filter=id,0002_0000000010", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -358,7 +362,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/system_design?filter=id,0001_0000000003"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design?filter=id,0001_0000000003", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -381,7 +385,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "}", MediaType.APPLICATION_JSON));
 
         // second expression
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/zone_link?filter=id,0018_0000000002"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link?filter=id,0018_0000000002", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -406,7 +410,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/zone?filter=id,0017_0000000003"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone?filter=id,0017_0000000003", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -434,7 +438,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/zone_design?filter=id,0023_0000000003"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_design?filter=id,0023_0000000003", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -459,7 +463,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     private void mockMultipleLinksWithOpByOnlyExpressionServer(MockRestServiceServer server) {
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/unit?filter=subsys,0007_0000000001"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=subsys,0007_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -500,7 +504,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/running_instance?filter=unit,0008_0000000001"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/running_instance?filter=unit,0008_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -529,7 +533,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/running_instance?filter=unit,0008_0000000007"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/running_instance?filter=unit,0008_0000000007", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -540,7 +544,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
     private void mockMultipleLinksWithMixedOpExpressionServer(MockRestServiceServer server) {
         // first request
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/unit?filter=subsys,0007_0000000001"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=subsys,0007_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -581,7 +585,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/unit_design?filter=id,0003_0000000006"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit_design?filter=id,0003_0000000006", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -607,7 +611,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/unit_design?filter=id,0003_0000000007"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit_design?filter=id,0003_0000000007", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -633,7 +637,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/subsys_design?filter=id,0002_0000000010"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys_design?filter=id,0002_0000000010", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -658,7 +662,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "}", MediaType.APPLICATION_JSON));
 
         // second request
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/zone_link_design?filter=zone_design2,0023_0000000004"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link_design?filter=zone_design2,0023_0000000004", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -693,7 +697,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/zone_link?filter=zone_link_design,0024_0000000005"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link?filter=zone_link_design,0024_0000000005", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -718,7 +722,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/zone_link?filter=zone_link_design,0024_0000000006"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link?filter=zone_link_design,0024_0000000006", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -743,7 +747,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/zone?filter=id,0017_0000000003"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone?filter=id,0017_0000000003", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
@@ -771,7 +775,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:8081/wecmdb/entities/zone?filter=id,0017_0000000005"))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone?filter=id,0017_0000000005", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
