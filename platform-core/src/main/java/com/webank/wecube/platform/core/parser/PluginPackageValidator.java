@@ -14,7 +14,7 @@ import static com.webank.wecube.platform.core.utils.Constants.*;
 
 public class PluginPackageValidator {
 
-    public void validatePluginPackage(PluginPackage pluginPackage) {
+    public void validate(PluginPackage pluginPackage) {
         if (!Pattern.matches(PACKAGE_NAMING_PATTERN, pluginPackage.getName())) {
             throw new WecubeCoreException(
                     String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') are allowed. ",
