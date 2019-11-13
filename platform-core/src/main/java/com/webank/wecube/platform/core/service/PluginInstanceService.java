@@ -261,7 +261,8 @@ public class PluginInstanceService {
         String envVariable = "";
         DatabaseInfo dbInfo = initMysqlReturn.getDbInfo();
         if (dbInfo != null) {
-            envVariable = dockerInfo.getEnvVariables().replace("{{data_source_url}}", dbInfo.getConnectString())
+            envVariable = dockerInfo.getEnvVariables().replace("{{db_host}}", dbInfo.getHost())
+                    .replace("{{db_port}}", dbInfo.getPort()).replace("{{db_schema}}", dbInfo.getSchema())
                     .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword());
         }
 
@@ -271,7 +272,7 @@ public class PluginInstanceService {
         } else {
             createContainerParameters.setEnvVariableParameters(envVariable.replace("{{minion_master_ip}}", hostIp));
         }
-        
+
         try {
             ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
                     createContainerParameters);
@@ -302,10 +303,8 @@ public class PluginInstanceService {
 
             ResourceServer dbServer = resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
                     .getResourceServer();
-            initPaasResourceReturn.setDbInfo(new DatabaseInfo(
-                    String.format("jdbc:mysql://%s:%s/%s?characterEncoding=utf8&serverTimezone=UTC", dbServer.getHost(),
-                            dbServer.getPort(), mysqlInstance.getSchemaName()),
-                    mysqlInstance.getUsername(), mysqlInstance.getPassword()));
+            initPaasResourceReturn.setDbInfo(new DatabaseInfo(dbServer.getHost(), dbServer.getPort(),
+                    mysqlInstance.getSchemaName(), mysqlInstance.getUsername(), mysqlInstance.getPassword()));
 
             // execute init.sql
             initMysqlDatabaseTables(dbServer, mysqlInstance, pluginPackage);
@@ -519,25 +518,21 @@ public class PluginInstanceService {
     }
 
     private class DatabaseInfo {
-        String connectString;
+        String host;
+        String port;
+        String schema;
         String user;
         String password;
 
-        private DatabaseInfo(String connectString, String user, String password) {
-            this.connectString = connectString;
+        private DatabaseInfo(String host, String port, String schema, String user, String password) {
+            this.host = host;
+            this.port = port;
+            this.schema = schema;
             this.user = user;
             this.password = password;
         }
 
         public DatabaseInfo() {
-        }
-
-        public String getConnectString() {
-            return connectString;
-        }
-
-        public void setConnectString(String connectString) {
-            this.connectString = connectString;
         }
 
         public String getUser() {
@@ -554,6 +549,30 @@ public class PluginInstanceService {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
+        }
+
+        public String getPort() {
+            return port;
+        }
+
+        public void setPort(String port) {
+            this.port = port;
+        }
+
+        public String getSchema() {
+            return schema;
+        }
+
+        public void setSchema(String schema) {
+            this.schema = schema;
         }
     }
 
