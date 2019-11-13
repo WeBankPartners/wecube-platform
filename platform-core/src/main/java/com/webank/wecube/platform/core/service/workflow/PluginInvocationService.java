@@ -498,56 +498,28 @@ public class PluginInvocationService {
             log.debug("handle plugin interface invocation result");
         }
 
-        PluginInvocationResult result = new PluginInvocationResult()
-                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
-
         if (!pluginInvocationResult.isSuccess() || pluginInvocationResult.hasErrors()) {
-            log.error("system errors:{}", pluginInvocationResult.getErrMsg());
-            result.setResultCode(RESULT_CODE_ERR);
-            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-            handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "400", "system errors");
+            handleErrorInvocationResult(pluginInvocationResult, ctx);
 
             return;
         }
 
         List<Object> resultData = pluginInvocationResult.getResultData();
-        PluginConfigInterface pluginConfigInterface = ctx.getPluginConfigInterface();
-        Set<PluginConfigInterfaceParameter> outputParameters = pluginConfigInterface.getOutputParameters();
 
         if (resultData == null) {
-            if (outputParameters == null || outputParameters.isEmpty()) {
-                log.debug("output parameter is NOT configured for interface {}",
-                        pluginConfigInterface.getServiceName());
-                result.setResultCode(RESULT_CODE_OK);
-                pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-                handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
-                return;
-            }
-
-            if (outputParameters != null && !outputParameters.isEmpty()) {
-                if (ctx.getPluginParameters() == null || ctx.getPluginParameters().isEmpty()) {
-                    log.debug("output parameter is configured but INPUT is empty for interface {}",
-                            pluginConfigInterface.getServiceName());
-                    result.setResultCode(RESULT_CODE_OK);
-                    pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-                    handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
-                    return;
-                } else {
-                    log.error("output parameter is configured but result is empty for interface {}",
-                            pluginConfigInterface.getServiceName());
-                    result.setResultCode(RESULT_CODE_ERR);
-                    pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-                    handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "100", "output is null");
-                    return;
-                }
-            }
+            handleNullResultData(pluginInvocationResult, ctx);
+            return;
         }
 
+        PluginInvocationResult result = new PluginInvocationResult()
+                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
         try {
             handleResultData(pluginInvocationResult, ctx, resultData);
             result.setResultCode(RESULT_CODE_OK);
             pluginInvocationResultService.responsePluginInterfaceInvocation(result);
             handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
+
+            return;
         } catch (Exception e) {
             log.error("result data handling failed", e);
             result.setResultCode(RESULT_CODE_ERR);
@@ -559,8 +531,59 @@ public class PluginInvocationService {
         return;
     }
 
+    private void handleErrorInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx) {
+        PluginInvocationResult result = new PluginInvocationResult()
+                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+
+        log.error("system errors:{}", pluginInvocationResult.getErrMsg());
+        result.setResultCode(RESULT_CODE_ERR);
+        pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+        handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "400", "system errors");
+
+        return;
+    }
+
+    private void handleNullResultData(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx) {
+        PluginInvocationResult result = new PluginInvocationResult()
+                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+        PluginConfigInterface pluginConfigInterface = ctx.getPluginConfigInterface();
+        Set<PluginConfigInterfaceParameter> outputParameters = pluginConfigInterface.getOutputParameters();
+
+        if (outputParameters == null || outputParameters.isEmpty()) {
+            log.debug("output parameter is NOT configured for interface {}", pluginConfigInterface.getServiceName());
+            result.setResultCode(RESULT_CODE_OK);
+            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+            handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
+            return;
+        }
+
+        if (outputParameters != null && !outputParameters.isEmpty()) {
+            if (ctx.getPluginParameters() == null || ctx.getPluginParameters().isEmpty()) {
+                log.debug("output parameter is configured but INPUT is empty for interface {}",
+                        pluginConfigInterface.getServiceName());
+                result.setResultCode(RESULT_CODE_OK);
+                pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+                handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
+                return;
+            } else {
+                log.error("output parameter is configured but result is empty for interface {}",
+                        pluginConfigInterface.getServiceName());
+                result.setResultCode(RESULT_CODE_ERR);
+                pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+                handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "100", "output is null");
+                return;
+            }
+        }
+
+        return;
+    }
+
     private void handleResultData(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, List<Object> resultData) {
+
+        List<Map<String, Object>> outputParameterMaps = new ArrayList<Map<String, Object>>();
 
         for (Object obj : resultData) {
             if (obj == null) {
@@ -574,22 +597,41 @@ public class PluginInvocationService {
 
             @SuppressWarnings("unchecked")
             Map<String, Object> retRecord = (Map<String, Object>) obj;
+
+            outputParameterMaps.add(retRecord);
         }
+
+        if (log.isInfoEnabled()) {
+            log.info("about to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
+        }
+        for (Map<String, Object> outputParameterMap : outputParameterMaps) {
+            handleSingleOutputMap(pluginInvocationResult, ctx, outputParameterMap);
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("finished processing {} output parameters for {}", outputParameterMaps.size(),
+                    ctx.getPluginConfigInterface().getServiceName());
+        }
+
+        return;
+    }
+
+    private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
         // TODO
         // Scenario 4: if output not needed and no need to write back to
         // entities
         // scenario 5: write back to entities if output configured
-
     }
 
     private void handlePluginInterfaceInvocationSuccess(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx) {
-        //TODO
+        // TODO
     }
 
     private void handlePluginInterfaceInvocationFailure(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, String errorCode, String errorMsg) {
-        //TODO
+        // TODO
     }
 
 }

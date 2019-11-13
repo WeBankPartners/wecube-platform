@@ -194,7 +194,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         for (TaskNodeDefInfoEntity e : taskNodeDefEntities) {
             TaskNodeDefInfoDto tdto = new TaskNodeDefInfoDto();
             tdto.setDescription(e.getDescription());
-            tdto.setNodeDefId(e.getProcDefId());
+            tdto.setNodeDefId(e.getId());
             tdto.setNodeId(e.getNodeId());
             tdto.setNodeName(e.getNodeName());
             tdto.setNodeType(e.getNodeType());
