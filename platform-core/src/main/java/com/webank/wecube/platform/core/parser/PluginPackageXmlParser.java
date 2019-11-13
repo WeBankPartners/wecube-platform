@@ -5,8 +5,10 @@ import com.webank.wecube.platform.core.commons.XPathEvaluator;
 import com.webank.wecube.platform.core.domain.*;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
+import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -26,6 +28,8 @@ import static org.apache.commons.lang3.StringUtils.trim;
 
 public class PluginPackageXmlParser {
     private final static String SEPARATOR_OF_NAMES = "/";
+    public static final String DEFAULT_DATA_MODEL_UPDATE_PATH = "/data-model";
+    public static final String DEFAULT_DATA_MODEL_UPDATE_METHOD = "GET";
 
     public static PluginPackageXmlParser newInstance(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
         return new PluginPackageXmlParser(new InputSource(inputStream));
@@ -65,9 +69,9 @@ public class PluginPackageXmlParser {
             pluginPackage.setPluginPackageMenus(parseMenus(menuNodes, pluginPackage));
         }
 
-        NodeList entityNodes = xPathEvaluator.getNodeList("/package/dataModel/entity");
-        if (null != entityNodes && entityNodes.getLength() > 0) {
-            pluginPackageDto.setPluginPackageEntities(parseDataModelEntities(entityNodes, pluginPackageDto));
+        Node dataModelNode = xPathEvaluator.getNode("/package/dataModel");
+        if (null != dataModelNode) {
+            pluginPackageDto.setPluginPackageDataModelDto(parseDataModel(dataModelNode, pluginPackageDto));
         }
 
         NodeList systemVariableNodes = xPathEvaluator.getNodeList("/package/systemParameters/systemParameter");
@@ -193,7 +197,35 @@ public class PluginPackageXmlParser {
         return systemVariables;
     }
 
-    private Set<PluginPackageEntityDto> parseDataModelEntities(NodeList entityNodes, PluginPackageDto pluginPackageDto) throws XPathExpressionException {
+    private PluginPackageDataModelDto parseDataModel(Node dataModelNode, PluginPackageDto pluginPackageDto) throws XPathExpressionException {
+        PluginPackageDataModelDto pluginPackageDataModelDto = new PluginPackageDataModelDto();
+        pluginPackageDataModelDto.setPackageName(pluginPackageDto.getName());
+        pluginPackageDataModelDto.setVersion(1);
+        Boolean isDynamic = getBooleanAttribute(dataModelNode, "./@isDynamic");
+        pluginPackageDataModelDto.setDynamic(isDynamic);
+        String updatePath = getStringAttribute(dataModelNode, "./@path");
+        if (StringUtils.isEmpty(updatePath) && isDynamic) {
+            updatePath = DEFAULT_DATA_MODEL_UPDATE_PATH;
+        }
+        pluginPackageDataModelDto.setUpdatePath(updatePath);
+        String updateMethod = getStringAttribute(dataModelNode, "./@method");
+        if (StringUtils.isEmpty(updateMethod) && isDynamic) {
+            updateMethod = DEFAULT_DATA_MODEL_UPDATE_METHOD;
+        }
+        pluginPackageDataModelDto.setUpdateMethod(updateMethod);
+        pluginPackageDataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name());
+        pluginPackageDataModelDto.setUpdateTime(System.currentTimeMillis());
+
+        NodeList entityNodes = xPathEvaluator.getNodeList("./entity", dataModelNode);
+
+        if (null != entityNodes && entityNodes.getLength() > 0) {
+            pluginPackageDataModelDto.setPluginPackageEntities(parseDataModelEntities(entityNodes, pluginPackageDataModelDto));
+        }
+
+        return pluginPackageDataModelDto;
+    }
+
+    private Set<PluginPackageEntityDto> parseDataModelEntities(NodeList entityNodes, PluginPackageDataModelDto dataModelDto) throws XPathExpressionException {
         Set<PluginPackageEntityDto> pluginPackageEntities = new LinkedHashSet<>();
 
         for (int i = 0; i < entityNodes.getLength(); i++) {
@@ -201,8 +233,9 @@ public class PluginPackageXmlParser {
 
             PluginPackageEntityDto pluginPackageEntity = new PluginPackageEntityDto();
 
-            pluginPackageEntity.setPackageName(pluginPackageDto.getName());
-            pluginPackageEntity.setPackageVersion(pluginPackageDto.getVersion());
+            pluginPackageEntity.setPackageName(dataModelDto.getPackageName());
+            // set data model version as 1 by default, where there is version update on DataModel.version, update Entity.dataModelVersion as well.
+            pluginPackageEntity.setDataModelVersion(1);
 
             pluginPackageEntity.setName(getNonNullStringAttribute(entityNode, "./@name", "Entity name"));
             pluginPackageEntity.setDisplayName(getNonNullStringAttribute(entityNode, "./@displayName", "Entity display name"));
@@ -226,16 +259,23 @@ public class PluginPackageXmlParser {
             PluginPackageAttributeDto pluginPackageAttribute = new PluginPackageAttributeDto();
 
             pluginPackageAttribute.setPackageName(pluginPackageEntity.getPackageName());
-            pluginPackageAttribute.setPackageVersion(pluginPackageEntity.getPackageVersion());
             pluginPackageAttribute.setEntityName(pluginPackageEntity.getName());
 
             pluginPackageAttribute.setName(getNonNullStringAttribute(attributeNode, "./@name", "Entity attribute name"));
-            pluginPackageAttribute.setDataType(getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type"));
+            String dataType = getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type");
+            pluginPackageAttribute.setDataType(dataType);
             pluginPackageAttribute.setDescription(getNonNullStringAttribute(attributeNode, "./@description", "Entity attribute description"));
 
-            pluginPackageAttribute.setRefPackageName(getStringAttribute(attributeNode, "./@refPackage"));
-//            pluginPackageAttribute.setRefPackageVersion(getStringAttribute(attributeNode, "./@refVersion"));
-            pluginPackageAttribute.setRefEntityName(getStringAttribute(attributeNode, "./@refEntity"));
+            String refPackage = getStringAttribute(attributeNode, "./@refPackage");
+            if (StringUtils.isEmpty(refPackage) && DataModelDataType.Ref.getCode().equals(dataType)) {
+                refPackage = pluginPackageEntity.getPackageName();
+            }
+            pluginPackageAttribute.setRefPackageName(refPackage);
+            String refEntity = getStringAttribute(attributeNode, "./@refEntity");
+            if (StringUtils.isEmpty(refEntity) && DataModelDataType.Ref.getCode().equals(dataType)) {
+                refEntity = pluginPackageEntity.getName();
+            }
+            pluginPackageAttribute.setRefEntityName(refEntity);
             pluginPackageAttribute.setRefAttributeName(getStringAttribute(attributeNode, "./@ref"));
 
             pluginPackageAttributes.add(pluginPackageAttribute);
@@ -288,6 +328,10 @@ public class PluginPackageXmlParser {
 
     private String getStringAttribute(Node attributeNode, String attributeExpression) throws XPathExpressionException {
         return xPathEvaluator.getString(attributeExpression, attributeNode);
+    }
+
+    private Boolean getBooleanAttribute(Node attributeNode, String attributeExpression) throws XPathExpressionException {
+        return xPathEvaluator.getBoolean(attributeExpression, attributeNode);
     }
 
     private Set<PluginConfig> parsePluginConfigs(NodeList pluginNodeList, PluginPackage pluginPackage) throws XPathExpressionException {
