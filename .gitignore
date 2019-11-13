@@ -41,4 +41,4 @@ bin/
 *dist.zip
 
 .DS_Store
-
+**/a.json
