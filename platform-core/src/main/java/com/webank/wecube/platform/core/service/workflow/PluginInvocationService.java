@@ -54,6 +54,9 @@ public class PluginInvocationService {
     private static final String MAPPING_TYPE_ENTITY = "entity";
     private static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
 
+    private static final int RESULT_CODE_OK = 0;
+    private static final int RESULT_CODE_ERR = 1;
+
     @Autowired
     private PluginInvocationResultService pluginInvocationResultService;
 
@@ -139,16 +142,16 @@ public class PluginInvocationService {
     }
 
     private void buildTaskNodeExecRequestEntity(PluginInterfaceInvocationContext ctx) {
-        
+
         TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
                 .findCurrentEntityByNodeInstId(ctx.getTaskNodeInstEntity().getId());
-        
-        if(formerRequestEntity != null){
+
+        if (formerRequestEntity != null) {
             formerRequestEntity.setCurrent(false);
             formerRequestEntity.setUpdatedTime(new Date());
             taskNodeExecRequestRepository.save(formerRequestEntity);
         }
-        
+
         String requestId = UUID.randomUUID().toString();
 
         TaskNodeInstInfoEntity taskNodeInstEntity = ctx.getTaskNodeInstEntity();
@@ -419,6 +422,7 @@ public class PluginInvocationService {
             }
 
             String sObjectId = String.valueOf(objectId);
+            String entityId = ipo.getEntityId();
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
 
@@ -429,6 +433,7 @@ public class PluginInvocationService {
                 e.setParamDataType(attr.getType());
                 e.setObjectId(sObjectId);
                 e.setParamDataValue(attr.getValuesAsString());
+                e.setNodeRootEntityId(entityId);
 
                 taskNodeExecParamRepository.save(e);
 
@@ -493,49 +498,98 @@ public class PluginInvocationService {
             log.debug("handle plugin interface invocation result");
         }
 
-        
-        
-        int resultCode = 0;
-        if(!pluginInvocationResult.isSuccess() || pluginInvocationResult.hasErrors()){
-            resultCode = 1;
-            //TODO record errors
+        PluginInvocationResult result = new PluginInvocationResult()
+                .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
+
+        if (!pluginInvocationResult.isSuccess() || pluginInvocationResult.hasErrors()) {
+            log.error("system errors:{}", pluginInvocationResult.getErrMsg());
+            result.setResultCode(RESULT_CODE_ERR);
+            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+            handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "400", "system errors");
+
+            return;
         }
-        
-        
+
         List<Object> resultData = pluginInvocationResult.getResultData();
-        
-        if(resultData == null){
-            //TODO none data returned and no need to write back into entities
-            //scenario 1 : no output configs
-            //scenario 2 : output configured but input parameters is empty
-            //scenario 3 : unexpected result
+        PluginConfigInterface pluginConfigInterface = ctx.getPluginConfigInterface();
+        Set<PluginConfigInterfaceParameter> outputParameters = pluginConfigInterface.getOutputParameters();
+
+        if (resultData == null) {
+            if (outputParameters == null || outputParameters.isEmpty()) {
+                log.debug("output parameter is NOT configured for interface {}",
+                        pluginConfigInterface.getServiceName());
+                result.setResultCode(RESULT_CODE_OK);
+                pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+                handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
+                return;
+            }
+
+            if (outputParameters != null && !outputParameters.isEmpty()) {
+                if (ctx.getPluginParameters() == null || ctx.getPluginParameters().isEmpty()) {
+                    log.debug("output parameter is configured but INPUT is empty for interface {}",
+                            pluginConfigInterface.getServiceName());
+                    result.setResultCode(RESULT_CODE_OK);
+                    pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+                    handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
+                    return;
+                } else {
+                    log.error("output parameter is configured but result is empty for interface {}",
+                            pluginConfigInterface.getServiceName());
+                    result.setResultCode(RESULT_CODE_ERR);
+                    pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+                    handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "100", "output is null");
+                    return;
+                }
+            }
         }
-        
-        for(Object obj : resultData){
-            if(obj == null ){
+
+        try {
+            handleResultData(pluginInvocationResult, ctx, resultData);
+            result.setResultCode(RESULT_CODE_OK);
+            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+            handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
+        } catch (Exception e) {
+            log.error("result data handling failed", e);
+            result.setResultCode(RESULT_CODE_ERR);
+            pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+            handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "101",
+                    "result data handling failed:" + e.getMessage());
+        }
+
+        return;
+    }
+
+    private void handleResultData(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx, List<Object> resultData) {
+
+        for (Object obj : resultData) {
+            if (obj == null) {
                 continue;
             }
-            
-            if( !( obj instanceof Map ) ){
+
+            if (!(obj instanceof Map)) {
                 log.error("unexpected data type:returned object is not a instance of map, obj={}", obj);
                 throw new WecubeCoreException("Unexpected data type");
             }
-            
+
             @SuppressWarnings("unchecked")
-            Map<String, Object> retRecord = (Map<String, Object>)obj;
+            Map<String, Object> retRecord = (Map<String, Object>) obj;
         }
         // TODO
-        //Scenario 4: if output not needed and no need to write back to entities
-        //scenario 5: write back to entities if output configured
-        
-        PluginInvocationResult result = new PluginInvocationResult();
-        result.parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
-        result.setResultCode(resultCode);
-        
-        if(log.isInfoEnabled()){
-            log.info("call workflow engine with result:{}", result);
-        }
-        pluginInvocationResultService.responsePluginInterfaceInvocation(result);
+        // Scenario 4: if output not needed and no need to write back to
+        // entities
+        // scenario 5: write back to entities if output configured
+
+    }
+
+    private void handlePluginInterfaceInvocationSuccess(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx) {
+        //TODO
+    }
+
+    private void handlePluginInterfaceInvocationFailure(PluginInterfaceInvocationResult pluginInvocationResult,
+            PluginInterfaceInvocationContext ctx, String errorCode, String errorMsg) {
+        //TODO
     }
 
 }
