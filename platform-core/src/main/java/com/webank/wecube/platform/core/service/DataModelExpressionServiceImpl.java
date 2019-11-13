@@ -1,13 +1,14 @@
 package com.webank.wecube.platform.core.service;
 
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
 import com.webank.wecube.platform.core.support.parser.datamodel.DataModelExpressionDto;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,22 +26,17 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
-    private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
+
     @Autowired
     private RestTemplate restTemplate = new RestTemplate();
+    private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
+    @Autowired
+    private ApplicationProperties applicationProperties;
     private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
     private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?sorting={sortName},asc";
 
-    private String gatewayUrl;
     private String requestActualUrl = "";
 
-    private String getGatewayUrl() {
-        return gatewayUrl;
-    }
-
-    private void setGatewayUrl(String gatewayUrl) {
-        this.gatewayUrl = gatewayUrl;
-    }
 
     private String getRequestActualUrl() {
         return requestActualUrl;
@@ -51,14 +47,11 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     @Override
-    public List<Object> fetchData(String gatewayUrl,
-                                  Pair<String, String> expressionToRootIdPair
+    public List<Object> fetchData(DataModelExpressionToRootData dataModelExpressionToRootData
     ) throws WecubeCoreException {
 
-        this.setGatewayUrl(gatewayUrl);
-
-        String dataModelExpression = expressionToRootIdPair.getLeft();
-        String rootIdData = expressionToRootIdPair.getRight();
+        String dataModelExpression = dataModelExpressionToRootData.getDataModelExpression();
+        String rootIdData = dataModelExpressionToRootData.getRootData();
         Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
 
         Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
@@ -87,6 +80,10 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return resultDtoStack.pop().getResultValue();
     }
 
+    @Override
+    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object updateData) {
+    }
+
     private void resolveLink(DataModelExpressionDto expressionDto, String rootIdData) throws WecubeCoreException {
         // only invoke this condition when one "entity fetch" situation occurs
         if (expressionDto.getOpTo() == null && expressionDto.getOpBy() == null && expressionDto.getOpFetch() != null) {
@@ -98,7 +95,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String requestPackageName = entity.pkg().getText();
             String requestEntityName = entity.ety().getText();
             Map<String, Object> requestParamMap = generateRefToParamMap(
-                    this.gatewayUrl,
+                    this.applicationProperties.getGatewayUrl(),
                     requestPackageName,
                     requestEntityName,
                     "id",
@@ -125,7 +122,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String firstRequestEntityName = fwdNode.entity().ety().getText();
 
             Map<String, Object> firstRequestParamMap = generateRefToParamMap(
-                    this.gatewayUrl,
+                    this.applicationProperties.getGatewayUrl(),
                     firstRequestPackageName,
                     firstRequestEntityName,
                     "id",
@@ -144,7 +141,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             for (Object secondRequestIdData : secondRequestIdDataList) {
                 Map<String, Object> secondRequestParamMap = generateRefToParamMap(
-                        this.gatewayUrl,
+                        this.applicationProperties.getGatewayUrl(),
                         secondRequestPackageName,
                         secondRequestEntityName,
                         "id",
@@ -170,7 +167,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String secondRequestEntityName = bwdNode.entity().ety().getText();
             String secondRequestAttributeName = bwdNode.attr().getText();
             Map<String, Object> secondRequestParamMap = generateRefToParamMap(
-                    this.gatewayUrl,
+                    this.applicationProperties.getGatewayUrl(),
                     secondRequestPackageName,
                     secondRequestEntityName,
                     secondRequestAttributeName,
@@ -198,7 +195,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 List<Object> requestIdDataList = commonResponseToList(lastRequestResponseDto, requestId);
                 for (Object requestIdData : requestIdDataList) {
                     Map<String, Object> requestParamMap = generateRefToParamMap(
-                            this.gatewayUrl,
+                            this.applicationProperties.getGatewayUrl(),
                             requestPackageName,
                             requestEntityName,
                             "id",
@@ -229,7 +226,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                             "Cannot find 'id' from last request response. " +
                                     "Please ensure that the interface returned the data with one key named: 'id' as the development guideline requires.");
                     Map<String, Object> requestParamMap = generateRefToParamMap(
-                            this.gatewayUrl,
+                            this.applicationProperties.getGatewayUrl(),
                             requestPackageName,
                             requestEntityName,
                             requestAttributeName,
