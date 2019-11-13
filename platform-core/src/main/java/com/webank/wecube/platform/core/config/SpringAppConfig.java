@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.config;
 
+import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.support.RealS3Client;
 import com.webank.wecube.platform.core.support.S3Client;
@@ -47,5 +48,10 @@ public class SpringAppConfig {
     @Bean
     public PluginPackageValidator configValidator() {
         return new PluginPackageValidator();
+    }
+
+    @Bean
+    public PluginPackageDataModelDtoValidator dataModelDtoValidator() {
+        return new PluginPackageDataModelDtoValidator();
     }
 }
