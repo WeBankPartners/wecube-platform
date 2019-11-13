@@ -16,11 +16,11 @@ http {
   keepalive_timeout  65;
   root   /root/app;
   upstream core {
-        server 129.204.99.160:9999;
+        server ${GATEWAY_HOST}:${GATEWAY_PORT};
   }
 
   server {
-        listen  80;
+        listen  8080;
         server_name     localhost;
 	client_max_body_size 9999999m;
         client_header_timeout 99999999999s;
