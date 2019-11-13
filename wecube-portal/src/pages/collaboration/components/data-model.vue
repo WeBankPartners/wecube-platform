@@ -1,39 +1,47 @@
 <template>
-  <div class="graph-container" id="data-model-graph"></div>
+  <div>
+    <div v-if="data.dynamic" style="padding-left:3px">
+      <Button size="small" type="primary" ghost @click="getData(true)"
+        >刷新</Button
+      >
+    </div>
+    <div class="graph-container" id="data-model-graph"></div>
+  </div>
 </template>
 <script>
-import { getPluginPkgDataModel } from "@/api/server";
+import { getPluginPkgDataModel, pullDynamicDataModel } from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 export default {
   name: "data-model",
   data() {
     return {
-      data: [],
+      data: {},
       graph: {}
     };
   },
   watch: {
     pkgId: {
       handler: () => {
-        this.getData();
+        this.getData(false);
       }
     }
   },
   props: {
     pkgId: {
-      required: true,
-      type: Number
+      required: true
     }
   },
   created() {
-    this.getData();
+    this.getData(false);
   },
   methods: {
-    async getData() {
-      let { status, data, message } = await getPluginPkgDataModel(this.pkgId);
+    async getData(ispull) {
+      let { status, data, message } = this.data.dynamic
+        ? await pullDynamicDataModel(this.pkgId)
+        : await getPluginPkgDataModel(this.pkgId);
       if (status === "OK") {
-        this.data = data.map(_ => {
+        this.data = data.pluginPackageEntities.map(_ => {
           return {
             ..._,
             id: "[" + _.packageName + "]" + _.name,
