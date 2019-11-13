@@ -547,3 +547,5 @@ export const queryStorageFilesByPackageId = (id, payload) =>
   req.get(`/platform/v1/packages/${id}/resources/s3/files`, payload);
 export const getAllPluginPackageResourceFiles = () =>
   req.get("/platform/v1/resource-files");
+export const pullDynamicDataModel = name =>
+  req.get(`/platform/v1/models/package/${name}`);
