@@ -5,10 +5,11 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
 public class PluginPackageAttributeDto {
     private Integer id;
     private String packageName;
-    private String packageVersion;
     private String entityName;
     private String name;
     private String description;
@@ -16,14 +17,12 @@ public class PluginPackageAttributeDto {
     private String refPackageName;
     private String refEntityName;
     private String refAttributeName;
-//    private String refPackageVersion;
 
     public PluginPackageAttributeDto(Integer attributeId,
                                      String name,
                                      String description,
                                      String dataType,
                                      String referencePackageName,
-                                     String referencePackageVersion,
                                      String referenceEntityName,
                                      String referenceAttributeName) {
         this.id = attributeId;
@@ -31,7 +30,6 @@ public class PluginPackageAttributeDto {
         this.description = description;
         this.dataType = dataType;
         this.refPackageName = referencePackageName;
-//        this.refPackageVersion = referencePackageVersion;
         this.refEntityName = referenceEntityName;
         this.refAttributeName = referenceAttributeName;
     }
@@ -47,15 +45,13 @@ public class PluginPackageAttributeDto {
     public static PluginPackageAttributeDto fromDomain(PluginPackageAttribute pluginPackageAttribute) {
         PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
         pluginPackageAttributeDto.setId(pluginPackageAttribute.getId());
-        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackage().getName());
-        pluginPackageAttributeDto.setPackageVersion(pluginPackageAttribute.getPluginPackageEntity().getPluginPackage().getVersion());
+        pluginPackageAttributeDto.setPackageName(pluginPackageAttribute.getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
         pluginPackageAttributeDto.setEntityName(pluginPackageAttribute.getPluginPackageEntity().getName());
         pluginPackageAttributeDto.setName(pluginPackageAttribute.getName());
         pluginPackageAttributeDto.setDescription(pluginPackageAttribute.getDescription());
         pluginPackageAttributeDto.setDataType(pluginPackageAttribute.getDataType());
         if (pluginPackageAttribute.getPluginPackageAttribute() != null) {
-            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackage().getName());
-//            pluginPackageAttributeDto.setRefPackageVersion(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackage().getVersion());
+            pluginPackageAttributeDto.setRefPackageName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getPluginPackageDataModel().getPackageName());
             pluginPackageAttributeDto.setRefEntityName(pluginPackageAttribute.getPluginPackageAttribute().getPluginPackageEntity().getName());
             pluginPackageAttributeDto.setRefAttributeName(pluginPackageAttribute.getPluginPackageAttribute().getName());
         }
@@ -133,15 +129,6 @@ public class PluginPackageAttributeDto {
         this.dataType = dataType;
     }
 
-
-    public String getPackageVersion() {
-        return packageVersion;
-    }
-
-    public void setPackageVersion(String packageVersion) {
-        this.packageVersion = packageVersion;
-    }
-
     public String getEntityName() {
         return entityName;
     }
@@ -182,13 +169,25 @@ public class PluginPackageAttributeDto {
         this.refAttributeName = refAttributeName;
     }
 
-//    public String getRefPackageVersion() {
-//        return refPackageVersion;
-//    }
-//
-//    public void setRefPackageVersion(String refPackageVersion) {
-//        this.refPackageVersion = refPackageVersion;
-//    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PluginPackageAttributeDto that = (PluginPackageAttributeDto) o;
+        return getPackageName().equals(that.getPackageName()) &&
+                getEntityName().equals(that.getEntityName()) &&
+                getName().equals(that.getName()) &&
+                Objects.equals(getDescription(), that.getDescription()) &&
+                getDataType().equals(that.getDataType()) &&
+                Objects.equals(getRefPackageName(), that.getRefPackageName()) &&
+                Objects.equals(getRefEntityName(), that.getRefEntityName()) &&
+                Objects.equals(getRefAttributeName(), that.getRefAttributeName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getPackageName(), getEntityName(), getName(), getDescription(), getDataType(), getRefPackageName(), getRefEntityName(), getRefAttributeName());
+    }
 
     @Override
     public String toString() {
