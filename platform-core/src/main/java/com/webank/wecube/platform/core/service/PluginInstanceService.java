@@ -163,7 +163,8 @@ public class PluginInstanceService {
     }
 
     private boolean isPortValid(String hostIp, Integer port) {
-        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByHostAndPort(hostIp, port);
+        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByHostAndPortAndContainerStatus(hostIp,
+                port, PluginInstance.CONTAINER_STATUS_RUNNING);
         if (pluginInstances.size() == 0 || null == pluginInstances) {
             return true;
         }
