@@ -32,7 +32,7 @@ http {
 	location /platform {
 		proxy_pass http://core;
 	}
-	location /service-management {
+	location /service-mgmt {
 		proxy_pass http://core;
 	}
 	location /wecmdb {
