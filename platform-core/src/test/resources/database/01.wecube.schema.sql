@@ -32,17 +32,32 @@ create table plugin_package_menus (
   PRIMARY KEY (`id`)
 );
 
+DROP TABLE IF EXISTS plugin_package_data_model;
+CREATE TABLE plugin_package_data_model
+(
+    id                  INT AUTO_INCREMENT PRIMARY KEY          NOT NULL,
+    version             INTEGER                        NOT NULL DEFAULT 1,
+    package_name        VARCHAR(50)                             NOT NULL,
+    is_dynamic          TINYINT(1)  default 0,
+    update_path         VARCHAR(256),
+    update_method       VARCHAR(10),
+    update_source       VARCHAR(32),
+    update_time         BIGINT   default 0     NOT NULL,
+--    UNIQUE uk_plugin_package_data_model(package_name, version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+
 DROP TABLE IF EXISTS plugin_package_entities;
 CREATE TABLE plugin_package_entities
 (
     id                 INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-    plugin_package_id  INTEGER                        NOT NULL,
+    data_model_id      INTEGER                        NOT NULL,
+    data_model_version INTEGER                        NOT NULL,
+    package_name        VARCHAR(50)                    NOT NULL,
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
     description        VARCHAR(256)                   NOT NULL,
-    data_model_version INTEGER                        NOT NULL DEFAULT 1,
-    CONSTRAINT fk_package_id FOREIGN KEY (plugin_package_id) REFERENCES plugin_packages(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_package_entity(plugin_package_id, name, data_model_version)
+--    CONSTRAINT fk_package_data_model_id FOREIGN KEY (data_model_id) REFERENCES plugin_package_data_model(id) ON DELETE CASCADE ON UPDATE CASCADE,
+--    UNIQUE uk_package_entity(data_model_id, name)
 
 );
 
@@ -55,9 +70,9 @@ CREATE TABLE plugin_package_attributes
     name         VARCHAR(100)                   NOT NULL,
     description  VARCHAR(256)                   NOT NULL,
     data_type    VARCHAR(20)                    NOT NULL,
-    CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES plugin_package_entities (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_reference_id FOREIGN KEY (reference_id) REFERENCES plugin_package_attributes (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    UNIQUE uk_entity_attribute (entity_id, name)
+--    CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES plugin_package_entities (id) ON DELETE CASCADE ON UPDATE CASCADE,
+--    CONSTRAINT fk_reference_id FOREIGN KEY (reference_id) REFERENCES plugin_package_attributes (id) ON DELETE CASCADE ON UPDATE CASCADE,
+--    UNIQUE uk_entity_attribute (entity_id, name)
 );
 
 drop table if exists system_variables;
