@@ -238,9 +238,12 @@ public class PluginInstanceService {
         InitMysqlReturn initMysqlReturn = new InitMysqlReturn();
         CreateInstanceDto createContainerParameters = new CreateInstanceDto();
 
+        DatabaseInfo dbInfo = new DatabaseInfo();
+        String envVariable = "";
         if (needCreateMysql) {
             initMysqlReturn = initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
             instance.setPluginMysqlInstanceResourceId(initMysqlReturn.getMysqlInstanceResourceId());
+            dbInfo = initMysqlReturn.getDbInfo();
         }
 
         if (needCreateS3Bucket) {
@@ -259,9 +262,20 @@ public class PluginInstanceService {
                 dockerInfo.getPortBindings().replace("{{host_port}}", String.valueOf(port)),
                 dockerInfo.getVolumeBindings().replace("{{base_mount_path}}", pluginProperties.getBaseMountPath()));
 
-        String envVariable = "";
-        DatabaseInfo dbInfo = initMysqlReturn.getDbInfo();
-        if (dbInfo != null) {
+        if (mysqlInfoSet.size() > 0 && !needCreateMysql) {
+            List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository
+                    .findByPluginPackageIdAndStatus(packageId, PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
+            if (mysqlInstances.size() == 0) {
+                throw new WecubeCoreException("Can not found plugin's mysql instance");
+            }
+            PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
+            ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
+
+            dbInfo = new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
+                    mysqlInstance.getUsername(), mysqlInstance.getPassword());
+        }
+
+        if (dbInfo.getSchema() != null) {
             envVariable = dockerInfo.getEnvVariables().replace("{{db_host}}", dbInfo.getHost())
                     .replace("{{db_port}}", dbInfo.getPort()).replace("{{db_schema}}", dbInfo.getSchema())
                     .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword());
