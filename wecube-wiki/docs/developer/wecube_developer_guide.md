@@ -70,7 +70,7 @@
 	参考语句：
 	
 	```
-	create database wecube_dev DEFAULT CHARSET utf8 COLLATE utf8_general_ci; 
+	create database wecube_dev DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci; 
 
 	create USER 'wecube'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Abcd1234';
 

@@ -20,17 +20,17 @@ public class PluginPackageDto {
 
     private PluginPackage pluginPackage;
 
-    private Set<PluginPackageEntityDto> pluginPackageEntities = new HashSet<>();
+    private PluginPackageDataModelDto pluginPackageDataModelDto;
 
     public PluginPackageDto() {
     }
 
-    public PluginPackageDto(Integer id, String name, String version, PluginPackage pluginPackage, Set<PluginPackageEntityDto> pluginPackageEntities) {
+    public PluginPackageDto(Integer id, String name, String version, PluginPackage pluginPackage, PluginPackageDataModelDto pluginPackageDataModelDto) {
         this.id = id;
         this.name = name;
         this.version = version;
         this.pluginPackage = pluginPackage;
-        this.pluginPackageEntities = pluginPackageEntities;
+        this.pluginPackageDataModelDto = pluginPackageDataModelDto;
     }
 
     public Integer getId() {
@@ -65,12 +65,12 @@ public class PluginPackageDto {
         this.pluginPackage = pluginPackage;
     }
 
-    public Set<PluginPackageEntityDto> getPluginPackageEntities() {
-        return pluginPackageEntities;
+    public PluginPackageDataModelDto getPluginPackageDataModelDto() {
+        return pluginPackageDataModelDto;
     }
 
-    public void setPluginPackageEntities(Set<PluginPackageEntityDto> pluginPackageEntities) {
-        this.pluginPackageEntities = pluginPackageEntities;
+    public void setPluginPackageDataModelDto(PluginPackageDataModelDto pluginPackageDataModelDto) {
+        this.pluginPackageDataModelDto = pluginPackageDataModelDto;
     }
 
     @Override
