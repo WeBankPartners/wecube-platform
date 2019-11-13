@@ -9,19 +9,24 @@ import java.util.List;
 
 @Entity
 @Table(name = "plugin_package_entities", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"plugin_package_id", "name", "data_model_version"})
+        @UniqueConstraint(columnNames = {"data_model_id", "name"})
 })
 public class PluginPackageEntity {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @JsonBackReference
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinColumn(name = "plugin_package_id")
-    private PluginPackage pluginPackage;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "data_model_id")
+    private PluginPackageDataModel pluginPackageDataModel;
+
+    @Column(name = "data_model_version")
+    private Integer dataModelVersion = 1;
+
+    @Column(name = "package_name")
+    private String packageName;
 
     @Column(name = "name")
     private String name;
@@ -32,10 +37,6 @@ public class PluginPackageEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "data_model_version")
-    private long dataModelVersion = 1;
-
-
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackageEntity", cascade = CascadeType.ALL)
     private List<PluginPackageAttribute> pluginPackageAttributeList;
@@ -43,54 +44,55 @@ public class PluginPackageEntity {
     public PluginPackageEntity() {
     }
 
-    public PluginPackageEntity(PluginPackage pluginPackage,
-                               String name,
+    public PluginPackageEntity(PluginPackageDataModel pluginPackageDataModel, String name,
                                String displayName,
                                String description) {
-        this.pluginPackage = pluginPackage;
+        this(pluginPackageDataModel, name, displayName, description, null);
+    }
+
+    public PluginPackageEntity(PluginPackageDataModel pluginPackageDataModel, String name,
+                               String displayName,
+                               String description, List<PluginPackageAttribute> pluginPackageAttributes) {
+        setPluginPackageDataModel(pluginPackageDataModel);
         this.name = name;
         this.displayName = displayName;
         this.description = description;
+        this.pluginPackageAttributeList = pluginPackageAttributes;
     }
 
     public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public PluginPackageDataModel getPluginPackageDataModel() {
+        return pluginPackageDataModel;
     }
 
-    public PluginPackage getPluginPackage() {
-        return pluginPackage;
+    private void setPluginPackageDataModel(PluginPackageDataModel pluginPackageDataModel) {
+        this.pluginPackageDataModel = pluginPackageDataModel;
+        this.dataModelVersion = pluginPackageDataModel.getVersion();
+        this.packageName = pluginPackageDataModel.getPackageName();
+
     }
 
-    public void setPluginPackage(PluginPackage pluginPackage) {
-        this.pluginPackage = pluginPackage;
+    public Integer getDataModelVersion() {
+        return dataModelVersion;
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getDisplayName() {
         return displayName;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public List<PluginPackageAttribute> getPluginPackageAttributeList() {
@@ -103,14 +105,7 @@ public class PluginPackageEntity {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+        return ReflectionToStringBuilder.toString(this);
     }
 
-    public long getDataModelVersion() {
-        return dataModelVersion;
-    }
-
-    public void setDataModelVersion(long dataModelVersion) {
-        this.dataModelVersion = dataModelVersion;
-    }
 }

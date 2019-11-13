@@ -21,6 +21,7 @@ public class ApplicationProperties {
     private String casRedirectAppAddr = "";
     private DataSize maxFileSize = DataSize.ofKilobytes(64);
     private boolean securityEnabled = true;
+    private String gatewayUrl = "";
 
     public boolean isAuthenticationProviderLocal() {
         return AUTH_PROVIDER_LOCAL.equalsIgnoreCase(authenticationProvider);
@@ -115,6 +116,7 @@ public class ApplicationProperties {
         private String staticResourceServerPassword;
         private Integer staticResourceServerPort;
         private String staticResourceServerPath;
+        private String baseMountPath;
     }
 
     @Data
