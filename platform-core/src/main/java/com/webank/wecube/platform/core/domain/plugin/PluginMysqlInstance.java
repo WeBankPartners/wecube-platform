@@ -14,6 +14,8 @@ import com.webank.wecube.platform.core.domain.ResourceItem;
 @Entity
 @Table(name = "plugin_mysql_instances")
 public class PluginMysqlInstance {
+    public static final String MYSQL_INSTANCE_STATUS_ACTIVE = "active";
+    public static final String MYSQL_INSTANCE_STATUS_INACTIVE = "inactive";
 
     @Id
     @GeneratedValue
@@ -24,17 +26,17 @@ public class PluginMysqlInstance {
     @ManyToOne
     @JoinColumn(name = "plugun_package_id")
     private PluginPackage pluginPackage;
-    
-    @Column(name="plugun_package_id",insertable=false,updatable=false)
+
+    @Column(name = "plugun_package_id", insertable = false, updatable = false)
     private int pluginPackageId;
 
     @Column(name = "resource_item_id")
     private Integer resourceItemId;
 
     @ManyToOne
-    @JoinColumn(name = "resource_item_id",insertable=false,updatable=false)
+    @JoinColumn(name = "resource_item_id", insertable = false, updatable = false)
     private ResourceItem resourceItem;
-    
+
     @Column
     private String username;
     @Column

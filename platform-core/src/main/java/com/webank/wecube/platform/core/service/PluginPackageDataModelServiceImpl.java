@@ -64,14 +64,14 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
     }
 
     @Override
-    public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto, boolean isDynamic) {
+    public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto, boolean fromDynamicUpdate) {
         if (!pluginPackageRepository.existsByName(pluginPackageDataModelDto.getPackageName())) {
             String msg = String.format("Cannot find the package [%s] while registering data model", pluginPackageDataModelDto.getPackageName());
             logger.error(msg);
             throw new WecubeCoreException(msg);
         }
 
-        if (isDynamic) {
+        if (fromDynamicUpdate) {
             pluginPackageDataModelDto.setDynamic(true);
             pluginPackageDataModelDto.setUpdateTime(System.currentTimeMillis());
             pluginPackageDataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.DATA_MODEL_ENDPOINT.name());
@@ -88,12 +88,14 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         pluginPackageDataModelDto.setVersion(newDataModelVersion);
         PluginPackageDataModel transferredPluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
 
-        Map<String, String> attributeReferenceNameMap = buildAttributeReferenceNameMap(pluginPackageDataModelDto);
-        Map<String, PluginPackageAttribute> referenceAttributeMap = buildReferenceAttributeMap(transferredPluginPackageDataModel);
-        updateAttributeReference(transferredPluginPackageDataModel, attributeReferenceNameMap, referenceAttributeMap);
+        if (null != pluginPackageDataModelDto.getPluginPackageEntities() && pluginPackageDataModelDto.getPluginPackageEntities().size() > 0) {
+            Map<String, String> attributeReferenceNameMap = buildAttributeReferenceNameMap(pluginPackageDataModelDto);
+            Map<String, PluginPackageAttribute> referenceAttributeMap = buildReferenceAttributeMap(transferredPluginPackageDataModel);
+            updateAttributeReference(transferredPluginPackageDataModel, attributeReferenceNameMap, referenceAttributeMap);
+        }
 
         PluginPackageDataModel savedPluginPackageDataModel = dataModelRepository.save(transferredPluginPackageDataModel);
-        if (isDynamic) {
+        if (fromDynamicUpdate) {
             PluginPackage pluginPackage = pluginPackageRepository.findLatestVersionByName(pluginPackageDataModelDto.getPackageName()).get();
             pluginPackage.setStatus(PluginPackage.Status.UNREGISTERED);
             pluginPackageRepository.save(pluginPackage);
@@ -378,13 +380,8 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
 
         dataModelDto.setPluginPackageEntities(dynamicPluginPackageEntities);
 
-        PluginPackageDataModelDto registerDataModelDto = register(dataModelDto, true);
 
-        PluginPackage pluginPackage = latestPluginPackageByName.get();
-        pluginPackage.setStatus(PluginPackage.Status.UNREGISTERED);
-        pluginPackageRepository.save(pluginPackage);
-
-        return registerDataModelDto;
+        return dataModelDto;
     }
 
     private Set<PluginPackageEntityDto> pullDynamicDataModelFromPlugin(PluginPackageDataModel dataModel) {
