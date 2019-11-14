@@ -617,19 +617,43 @@ public class PluginInvocationService {
         // TODO
 
         String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
-        
+
+        Set<PluginConfigInterfaceParameter> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
+
         for (Map.Entry<String, Object> entry : outputParameterMap.entrySet()) {
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
-//            paramEntity.setNodeRootEntityId(nodeRootEntityId);
+            PluginConfigInterfaceParameter p = findPreConfiguredPluginConfigInterfaceParameter(outputParameters,
+                    entry.getKey());
+
+            String paramDataType = null;
+            if (p == null) {
+                paramDataType = "str";
+            } else {
+                paramDataType = p.getDataType();
+            }
+
+            // TODO try to get root entity id
+            // paramEntity.setNodeRootEntityId(nodeRootEntityId);
             paramEntity.setObjectId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
-//            paramEntity.setParamDataType(paramDataType);
-//            paramEntity.setParamDataValue(paramDataValue);
+            paramEntity.setParamDataType(paramDataType);
+            paramEntity.setParamDataValue(asString(entry.getValue(), paramDataType));
             paramEntity.setRequestId(requestId);
-            
+
             taskNodeExecParamRepository.save(paramEntity);
         }
+    }
+
+    private PluginConfigInterfaceParameter findPreConfiguredPluginConfigInterfaceParameter(
+            Set<PluginConfigInterfaceParameter> outputParameters, String paramName) {
+        for (PluginConfigInterfaceParameter p : outputParameters) {
+            if (p.getName().equals(paramName)) {
+                return p;
+            }
+        }
+
+        return null;
     }
 
     private List<Map<String, Object>> validateAndCastResultData(List<Object> resultData) {
@@ -657,7 +681,6 @@ public class PluginInvocationService {
 
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
-
 
         // TODO
         // Scenario 4: if output not needed and no need to write back to
