@@ -27,17 +27,22 @@
       <Col span="6" ofset="1">
         <span style="margin-right: 10px">{{ $t("instance_type") }}</span>
         <Select
-          @on-change="onCISelect"
-          label-in-value
-          v-model="selectedCI.value"
+          @on-change="onEntitySelect"
+          v-model="currentSelectedEntity"
           style="width: 70%"
         >
-          <Option
-            v-for="item in allCITypes"
-            :value="item.ciTypeId || ''"
-            :key="item.ciTypeId"
-            >{{ item.name || "-" }}</Option
+          <OptionGroup
+            :label="pluginPackage.packageName"
+            v-for="(pluginPackage, index) in allEntityType"
+            :key="index"
           >
+            <Option
+              v-for="item in pluginPackage.pluginPackageEntities"
+              :value="pluginPackage.packageName + ':' + item.name"
+              :key="item.name"
+              >{{ item.name }}</Option
+            >
+          </OptionGroup>
         </Select>
       </Col>
       <Button type="info" @click="saveDiagram(false)">
@@ -154,14 +159,14 @@ import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
 import {
-  getAllCITypesByLayerWithAttr,
   getAllFlow,
   saveFlow,
   saveFlowDraft,
   getFlowDetailByID,
   getLatestOnlinePluginInterfaces,
   getFlowNodes,
-  getParamsInfosByFlowIdAndNodeId
+  getParamsInfosByFlowIdAndNodeId,
+  getAllDataModels
 } from "@/api/server.js";
 
 import AttrInput from "../components/attr-input";
@@ -201,12 +206,9 @@ export default {
       },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
       allFlows: [],
-      allCITypes: [],
+      allEntityType: [],
       selectedFlow: "",
-      selectedCI: {
-        value: "",
-        label: ""
-      },
+      currentSelectedEntity: "",
       pluginModalVisible: false,
 
       pluginForm: {},
@@ -256,24 +258,15 @@ export default {
   },
   methods: {
     init() {
-      this.getAllCITypesByLayerWithAttr();
+      this.getAllDataModels();
       this.getAllFlows();
       this.getAllPlugins();
     },
-    async getAllCITypesByLayerWithAttr() {
-      let ciTypes = {};
-      let ciTypeAttrs = {};
-
-      this.allCITypes = [
-        {
-          ciTypeId: "code1",
-          name: "value1"
-        },
-        {
-          ciTypeId: "code2",
-          name: "value2"
-        }
-      ];
+    async getAllDataModels() {
+      let { data, status, message } = await getAllDataModels();
+      if (status === "OK") {
+        this.allEntityType = data;
+      }
     },
     async getAllPlugins() {
       this.allPlugins = [
@@ -298,8 +291,8 @@ export default {
     //   v && this.getFlowXml(v);
     // },
 
-    onCISelect(v) {
-      this.selectedCI = v;
+    onEntitySelect(v) {
+      this.currentSelectedEntity = v;
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
       this.pluginForm = this.defaultPluginForm;
     },
@@ -354,7 +347,7 @@ export default {
           procDefId: "",
           procDefKey: _this.newFlowID,
           procDefName: processName,
-          rootEntity: _this.selectedCI.value,
+          rootEntity: _this.currentSelectedEntity,
           status: "",
           taskNodeInfos: _this.serviceTaskBindInfos
         };
@@ -408,7 +401,7 @@ export default {
       this.saveDiagram(true);
     },
     async openPluginModal() {
-      if (!this.selectedCI.value) {
+      if (!this.currentSelectedEntity) {
         this.$Notice.warning({
           title: "Warning",
           desc: this.$t("select_ci_first")
@@ -512,7 +505,7 @@ export default {
           }
           _this.bindRightClick();
           _this.serviceTaskBindInfos = data.taskNodeInfos;
-          _this.selectedCI.value = data.rootEntity || "";
+          _this.currentSelectedEntity = data.rootEntity || "";
         });
       }
     },

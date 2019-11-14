@@ -22,6 +22,9 @@ export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
 
 export const getFlowNodes = flowId =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`);
+
+export const getAllDataModels = () => req.get(`platform/v1/models`);
+
 // admin
 
 export const getAllUsers = () => req.get("/platform/v1/admin/users");
@@ -539,7 +542,6 @@ export const getRuntimeResource = id =>
   req.get(`/platform/v1/packages/${id}/runtime-resources`);
 export const getAuthSettings = id =>
   req.get(`/platform/v1/packages/${id}/authorities`);
-export const getAllDataModels = id => req.get(`/platform/v1/models`);
 export const registerPlugin = id =>
   req.post(`/platform/v1/plugins/enable/${id}`);
 export const deletePlugin = id =>
