@@ -27,7 +27,10 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
     private String requestId;
 
     @Column(name = "OBJ_ID")
-    private String objectId; 
+    private String objectId;
+
+    @Column(name = "ROOT_ENTITY_ID")
+    private String nodeRootEntityId;
 
     @Column(name = "PARAM_TYPE")
     private String paramType;
@@ -95,6 +98,14 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
 
     public void setParamDataValue(String paramDataValue) {
         this.paramDataValue = paramDataValue;
+    }
+
+    public String getNodeRootEntityId() {
+        return nodeRootEntityId;
+    }
+
+    public void setNodeRootEntityId(String nodeRootEntityId) {
+        this.nodeRootEntityId = nodeRootEntityId;
     }
 
 }
