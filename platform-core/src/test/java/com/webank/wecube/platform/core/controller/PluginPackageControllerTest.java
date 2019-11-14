@@ -5,7 +5,6 @@ import com.webank.wecube.platform.core.support.FakeS3Client;
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,7 +42,8 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void getMyMenusShouldReturnSuccess(){
+    public void getMyMenusShouldReturnSuccess() {
+        mockMenus();
         final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 12;
         try {
             mvc.perform(get("/v1/my-menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
@@ -220,6 +219,23 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     }
 
+    private void mockMenus() {
+        executeSql("delete from menu_items;\n" +
+                "insert into menu_items (id,parent_id,code,description) values\n" +
+                "(1,null,'JOBS','')\n" +
+                ",(2,null,'DESIGNING','')\n" +
+                ",(3,null,'IMPLEMENTATION','')\n" +
+                ",(4,null,'MONITORING','')\n" +
+                ",(5,null,'ADJUSTMENT','')\n" +
+                ",(6,null,'INTELLIGENCE_OPS','')\n" +
+                ",(7,null,'COLLABORATION','')\n" +
+                ",(8,null,'ADMIN','')\n" +
+                ",(305,3,'IMPLEMENTATION_WORKFLOW_EXECUTION','')\n" +
+                ",(701,7,'COLLABORATION_PLUGIN_MANAGEMENT','')\n" +
+                ",(702,7,'COLLABORATION_WORKFLOW_ORCHESTRATION','')\n" +
+                ",(803,8,'ADMIN_BASE_DATA_MANAGEMENT','');");
+    }
+
     private void mockMultipleVersionPluginPackage() {
         executeSql("insert into plugin_packages (id, name, version, status) values\n" +
                 "  (1, 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
@@ -282,6 +298,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Test
     public void getMenuByCorrectPackageIdShouldReturnSuccess() {
+        mockMenus();
         final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 14;
         try {
             uploadCorrectPackage();
