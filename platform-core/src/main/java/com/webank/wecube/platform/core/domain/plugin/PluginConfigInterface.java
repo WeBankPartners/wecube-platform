@@ -6,8 +6,10 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "plugin_config_interfaces")
@@ -108,7 +110,11 @@ public class PluginConfigInterface {
     }
 
     public Set<PluginConfigInterfaceParameter> getInputParameters() {
-        return inputParameters;
+        // TODO: need to optimize
+        return inputParameters
+                .stream()
+                .sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setInputParameters(Set<PluginConfigInterfaceParameter> inputParameters) {
@@ -116,7 +122,11 @@ public class PluginConfigInterface {
     }
 
     public Set<PluginConfigInterfaceParameter> getOutputParameters() {
-        return outputParameters;
+        // TODO: need to optimize
+        return outputParameters
+                .stream()
+                .sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setOutputParameters(Set<PluginConfigInterfaceParameter> outputParameters) {
