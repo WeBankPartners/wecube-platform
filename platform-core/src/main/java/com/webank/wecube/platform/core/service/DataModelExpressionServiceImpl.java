@@ -303,7 +303,8 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 throw new WecubeCoreException(msg);
             }
         } catch (IOException ex) {
-            System.out.println(ex.getMessage());
+            logger.error(ex.getMessage());
+            throw new WecubeCoreException(ex.getMessage());
         }
 
         return responseDto;
