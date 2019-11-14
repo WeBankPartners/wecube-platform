@@ -1,18 +1,9 @@
-# 插件开发 xml 文件编写规范
-
-## xsd
-
-```
-[../../../platform-core/src/main/resources/plugin/plugin-config-v2.xsd]
-```
-
-## 示例 xml 文件
-
-```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<package name="service-management" version="v0.2">
+<package name="service-management" version="v0.1"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="plugin-config-v2.xsd">
 
-    <!-- 1.依赖分析 - 描述运行本插件包需要的其他插件包 -->
+    <!-- 1.析 - 描述运行本插件包需要的其他插件包 -->
     <packageDependencies>
         <packageDependency name='xxx' version='1.0'/>
         <packageDependency name='xxx233' version='1.5'/>
@@ -25,9 +16,9 @@
     </menus>
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
-    <dataModel isDynamic="true" path="/data-model" method="GET">
+    <dataModel>
         <entity name="service_catalogue" displayName="服务目录" description="服务目录模型">
-            <attribute name="id" datatype="int" description="唯一ID"/>
+            <attribute name="id" datatype="" description="唯一ID"/>
             <attribute name="name" datatype="string" description="名字"/>
             <attribute name="status" datatype="string" description="状态"/>
         </entity>
@@ -137,140 +128,3 @@
         </plugin>
     </plugins>
 </package>
-```
-
-## 编写规范
-
-一个插件 xml 文件包含以下几个tag
-
-| tag 名称             | 描述     | 是否必须                   |
-| -------------------- | -------- | -------------------------- |
-| packageDependencies  | 依赖分析 | 否                         |
-| menus                | 菜单注入 | 否                         |
-| dataModel            | 数据模型 | 否                         |
-| systemParameters     | 系统参数 | 否                         |
-| authorities          | 权限设定 | 否                         |
-| resourceDependencies | 运行资源 | 是且必须要有`<docker>`资源 |
-| plugins              | 插件列表 | 否                         |
-
-### packageDependencies
-
-#### packageDependency
-
-| tag 名称 | 描述 | 是否必须 |
-| -------- | ---- | -------- |
-| name     | 名称 | 是       |
-| version  | 版本 | 是       |
-
-### menus
-
-#### menu
-
-| tag 名称    | 描述         | 是否必须 |
-| ----------- | ------------ | -------- |
-| code        | 菜单识别码   | 是       |
-| cat         | 菜单类别     | 否       |
-| displayName | 前端展示名称 | 否       |
-
-### dataModel
-
-| tag 名称      | 描述                   | 是否必须 | 默认值       |
-| ------------- | --------------------- | -------- | ------------ |
-| isDynamic     | 是否支持动态数据模型    | 否       | false       |
-| updatePath    | 数据模型更新接口        | 否       | /data-model |
-| updateMethod  | 数据模型更新的http方法  | 否       | GET         |
-
-#### entity
-
-| tag 名称    | 描述         | 是否必须 |
-| ----------- | ------------ | -------- |
-| name        | 名称         | 是       |
-| displayName | 前端展示名称 | 是       |
-| description | 描述         | 否       |
-
-#### attribute 
-
-| tag 名称    | 描述                  | 是否必须                        |  默认值 |
-| ----------- | --------------------- | ------------------------------- | ----- |
-| name        | 名称                  | 是                              |  N/A   |
-| dataType    | 数据类型              | 是 (`int`, `str`, `ref`)        |  N/A   |
-| description | 描述                  | 否                              |  N/A   |
-| refPackage  | 引用的插件包名称      | 否                              | 本插件包 |
-| refEntity   | 引用的`entity`名称    | 否                              | 本entity |
-| ref         | 引用的`attribute`名称 | 否 (若 `dataType`为`ref`则必填)  |   N/A |
-
-Attribute的refVersion在初期版本中存在，在新的规范中已经删除。
-
-### systemParameters
-
-#### systemParameter 
-
-| tag 名称     | 描述       | 是否必须 |
-| ------------ | ---------- | -------- |
-| name         | 名称       | 是       |
-| defaultValue | 默认值     | 否       |
-| scopeType    | 作用域类型 | 是       |
-
-### authorities
-
-#### authority 
-
-`authority `tag 包含 `menu` tag，具体属性参考`menu`
-
-
-
-### resourceDependencies
-
-#### docker
-
-| tag 名称       | 描述       | 是否必须 |
-| -------------- | ---------- | -------- |
-| imageName      | 镜像名称   | 是       |
-| containerName  | 容器名称   | 是       |
-| portBindings   | 绑定端口号 | 是       |
-| volumeBindings | 绑定数据卷 | 否       |
-| envVariables   | 环境参数   | 否       |
-
-#### mysql
-
-| tag 名称        | 描述           | 是否必须 |
-| --------------- | -------------- | -------- |
-| schema          | 数据库名称     | 是       |
-| initFileName    | 初始化脚本名称 | 是       |
-| upgradeFileName | 更新脚本名称   | 否       |
-
-#### s3
-
-| tag 名称   | 描述       | 是否必须 |
-| ---------- | ---------- | -------- |
-| bucketName | 存储桶名称 | 是       |
-
-### plugins
-
-#### plugin
-
-| tag 名称 | 描述     | 是否必须 |
-| -------- | -------- | -------- |
-| name     | 名称     | 是       |
-
-##### interface
-
-一个 plugin 里可有多个 interfaces
-
-
-
-###### inputParameters 与 outputParameters
-
-两个 tag 都使用了 `parameter` 的 tag
-
-parameter：
-
-`<parameter> </parameter>` 之间应当填写参数名称
-
-| tag 名称              | 描述                | 是否必须 |
-| --------------------- | ------------------ | -------- |
-| dataType              | 数据类型            | 否       |
-| mappingType           | 映射类型            | 否       |
-| mappingSystemVariable | 映射系统参数id      | 否       |
-| required              | 该parameter是否必须 | 是       |
-

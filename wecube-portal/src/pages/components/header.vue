@@ -4,7 +4,6 @@
       <Menu mode="horizontal" theme="dark">
         <Submenu v-for="menu in menus" :name="menu.code" :key="menu.code">
           <template slot="title">
-            <!-- <Icon size="large" :type="menu.icon" /> -->
             {{ menu.title }}
           </template>
           <router-link
@@ -12,9 +11,9 @@
             :key="submenu.code"
             :to="submenu.link || ''"
           >
-            <MenuItem :name="submenu.code" :disabled="!submenu.link">{{
-              submenu.title
-            }}</MenuItem>
+            <MenuItem :name="submenu.code" :disabled="!submenu.link">
+              {{ submenu.title }}
+            </MenuItem>
           </router-link>
         </Submenu>
       </Menu>
@@ -26,9 +25,9 @@
           <Icon :size="18" type="md-arrow-dropdown"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/logout">
-              <a href="/logout" style="width: 100%; display: block">{{
-                $t("logout")
-              }}</a>
+              <a href="/logout" style="width: 100%; display: block">
+                {{ $t("logout") }}
+              </a>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -151,7 +150,7 @@ export default {
         message,
         data
       } = await getAllPluginPackageResourceFiles();
-      if (status === "OK") {
+      if (status === "OK" && data && data.length > 0) {
         // const data = [
 
         //   { relatedPath: "http://localhost:8888/js/app.3ed190d8.js",packageName:'itsm' },
