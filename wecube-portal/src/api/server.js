@@ -549,3 +549,4 @@ export const getAllPluginPackageResourceFiles = () =>
   req.get("/platform/v1/resource-files");
 export const pullDynamicDataModel = name =>
   req.get(`/platform/v1/models/package/${name}`);
+export const applyNewDataModel = data => req.post(`/platform/v1/models`, data);
