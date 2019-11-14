@@ -34,10 +34,12 @@ import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
+import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
+import com.webank.wecube.platform.core.service.DataModelExpressionService;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
@@ -95,6 +97,9 @@ public class PluginInvocationService {
 
     @Autowired
     private TaskNodeExecRequestRepository taskNodeExecRequestRepository;
+
+    @Autowired
+    private DataModelExpressionService dataModelExpressionService;
 
     /**
      * 
@@ -212,10 +217,21 @@ public class PluginInvocationService {
                 // TODO get value from entity expression
                 if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
                     String mappingEntityExpression = param.getMappingEntityExpression();
-                    // TODO
-                    List<Object> attrValsPerExpr = new ArrayList<Object>();
 
-                    // TODO
+                    if (log.isDebugEnabled()) {
+                        log.debug("expression:{}", mappingEntityExpression);
+                    }
+
+                    DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
+                            entityId);
+
+                    List<Object> attrValsPerExpr = dataModelExpressionService.fetchData(criteria);
+                    
+                    if(attrValsPerExpr == null){
+                        log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
+                        attrValsPerExpr =  new ArrayList<>();
+                    }
+
                     objectVals.addAll(attrValsPerExpr);
 
                 }
