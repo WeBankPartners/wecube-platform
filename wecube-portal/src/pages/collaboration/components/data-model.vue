@@ -1,8 +1,32 @@
 <template>
-  <div class="graph-container" id="data-model-graph"></div>
+  <div>
+    <div v-if="data.dynamic" style="padding-left:3px;margin-bottom: 10px">
+      <Button
+        size="small"
+        shape="circle"
+        type="primary"
+        icon="md-sync"
+        @click="getData(true)"
+        >{{ $t("get_dynamic_model") }}</Button
+      >
+      <Button
+        size="small"
+        shape="circle"
+        type="primary"
+        icon="md-hammer"
+        @click="applyNewDataModel"
+        >{{ $t("apply_data_model") }}</Button
+      >
+    </div>
+    <div class="graph-container" id="data-model-graph"></div>
+  </div>
 </template>
 <script>
-import { getPluginPkgDataModel } from "@/api/server";
+import {
+  getPluginPkgDataModel,
+  pullDynamicDataModel,
+  applyNewDataModel
+} from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 export default {
@@ -10,30 +34,34 @@ export default {
   data() {
     return {
       data: [],
+      dataModel: {},
       graph: {}
     };
   },
   watch: {
     pkgId: {
       handler: () => {
-        this.getData();
+        this.data = {};
+        this.getData(false);
       }
     }
   },
   props: {
     pkgId: {
-      required: true,
-      type: Number
+      required: true
     }
   },
   created() {
-    this.getData();
+    this.getData(false);
   },
   methods: {
-    async getData() {
-      let { status, data, message } = await getPluginPkgDataModel(this.pkgId);
+    async getData(ispull) {
+      let { status, data, message } = this.data.dynamic
+        ? await pullDynamicDataModel(this.pkgId)
+        : await getPluginPkgDataModel(this.pkgId);
       if (status === "OK") {
-        this.data = data.map(_ => {
+        this.dataModel = data;
+        this.data = data.pluginPackageEntities.map(_ => {
           return {
             ..._,
             id: "[" + _.packageName + "]" + _.name,
@@ -47,6 +75,9 @@ export default {
         });
         this.initGraph();
       }
+    },
+    async applyNewDataModel() {
+      let { status, data, message } = await applyNewDataModel(this.dataModel);
     },
 
     genDOT() {
