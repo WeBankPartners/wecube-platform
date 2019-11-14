@@ -45,7 +45,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Test
     public void getMyMenusShouldReturnSuccess(){
-        final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 42;
+        final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 12;
         try {
             mvc.perform(get("/v1/my-menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
@@ -282,7 +282,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Test
     public void getMenuByCorrectPackageIdShouldReturnSuccess() {
-        final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 44;
+        final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 14;
         try {
             uploadCorrectPackage();
         } catch (Exception ex) {
