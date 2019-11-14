@@ -19,6 +19,15 @@ public class PluginConfigXmlValidatorTest {
     }
 
     @Test
+    public void givenXmlWithOptionalNullBlocksWhenValidateThenShouldSucceed() {
+        try {
+            validator.validate("/plugin/sample-plugin-config-null-blocks.xml");
+        } catch (WecubeCoreException e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
+    @Test
     public void parsePluginPackageShouldSuccess() {
         try {
             validator.validate("/plugin/sample-plugin-config-v2.xml");
