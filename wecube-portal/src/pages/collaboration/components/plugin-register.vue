@@ -23,16 +23,22 @@
           <Col span="10" offset="0">
             <FormItem :label-width="100" :label="$t('target_type')">
               <Select
-                @on-change="selectCiType"
-                v-model="selectedCiType"
+                @on-change="onSelectEntityType"
+                v-model="selectedEntityType"
                 disabled
               >
-                <Option
-                  v-for="(ci, index) in ciTypes"
-                  :value="ci.id || ''"
+                <OptionGroup
+                  :label="pluginPackage.packageName"
+                  v-for="(pluginPackage, index) in allEntityType"
                   :key="index"
-                  >{{ ci.displayName }}</Option
                 >
+                  <Option
+                    v-for="item in pluginPackage.pluginPackageEntities"
+                    :value="pluginPackage.packageName + item.name"
+                    :key="item.name"
+                    >{{ item.name }}</Option
+                  >
+                </OptionGroup>
               </Select>
             </FormItem>
           </Col>
@@ -201,9 +207,9 @@ export default {
     return {
       currentPlugin: "",
       plugins: [],
-      ciTypes: [],
+      allEntityType: [],
       currentCiTyPeAttr: [],
-      selectedCiType: "",
+      selectedEntityType: "",
       form: {}
       // pluginInterfaces:[]
     };
@@ -259,15 +265,15 @@ export default {
     },
     selectPlugin(val) {
       this.currentPlugin = val;
-      this.selectedCiType = this.plugins.find(
+      this.selectedEntityType = this.plugins.find(
         plugin => plugin.name === val
       ).entityId;
     },
-    selectCiType(val) {},
+    onSelectEntityType(val) {},
     async getAllDataModels() {
       const { data, status, message } = await getAllDataModels();
       if (status === "OK") {
-        this.ciTypes = data;
+        this.allEntityType = data;
       }
     },
     async getAllSystemEnumCodes() {
