@@ -24,7 +24,7 @@
 
     <modules>
         <module>platform-core</module>
-	    <module>wecube-portal</module>
+<!--	    <module>wecube-portal</module>-->
         <module>platform-workflow</module>
 		<module>platform-auth-client</module>
 		<module>platform-auth-server</module>
