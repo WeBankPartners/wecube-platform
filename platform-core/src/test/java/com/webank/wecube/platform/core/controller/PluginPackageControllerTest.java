@@ -413,12 +413,12 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/packages/%s/plugins", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
+                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder(1, 2)))
                     .andExpect(jsonPath("$.data[0].entityId", is(notNullValue())))
                     .andExpect(jsonPath("$.data[1].entityId", is(notNullValue())))
-                    .andExpect(jsonPath("$.data[*].name", contains("task", "service_request")))
-                    .andExpect(jsonPath("$.data[*].status", contains("DISABLED", "DISABLED")))
-                    .andExpect(jsonPath("$.data[*].pluginPackageId", contains(1, 1)))
+                    .andExpect(jsonPath("$.data[*].name", containsInAnyOrder("task", "service_request")))
+                    .andExpect(jsonPath("$.data[*].status", containsInAnyOrder("DISABLED", "DISABLED")))
+                    .andExpect(jsonPath("$.data[*].pluginPackageId", containsInAnyOrder(1, 1)))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
