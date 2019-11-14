@@ -97,7 +97,7 @@
         <TabPane name="models" :label="$t('data_model')">
           <DataModel
             v-if="currentTab === 'models'"
-            :pkgId="currentPlugin.id"
+            :pkgId="currentPlugin.name"
           ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" :label="$t('system_params')">
