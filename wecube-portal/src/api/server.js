@@ -5,19 +5,25 @@ export const getMyMenus = () => req.get("/platform/v1/my-menus");
 
 // flow
 export const saveFlow = data =>
-  req.post("/platform/v1/process/definitions", data);
+  req.post("/platform/v1/process/definitions/deploy", data);
+export const saveFlowDraft = data =>
+  req.post("/platform/v1/process/definitions/draft", data);
 export const getAllFlow = () => req.get("/platform/v1/process/definitions");
 export const getFlowDetailByID = id =>
-  req.get(`process/definitions/definition/${id}`);
+  req.get(`/platform/v1/process/definitions/${id}/detail`);
 export const getFlowPreview = data =>
   req.post(
     `/platform/v1/process/definitions/definition/input-parameters/preview`,
     data
   );
 
+export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`);
+
+export const getFlowNodes = flowId =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`);
 // admin
-export const deleteCiTypeLayer = layerId =>
-  req.delete(`/platform/v1/cmdb/ci-type-layers/${layerId}`);
+
 export const getAllUsers = () => req.get("/platform/v1/admin/users");
 export const getAllRoles = () => req.get("/platform/v1/admin/roles");
 export const getAllMenus = () => req.get("/platform/v1/admin/menus");
