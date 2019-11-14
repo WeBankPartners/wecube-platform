@@ -32,11 +32,6 @@ let router = new Router({
           props: true
         },
         {
-          path: "/admin/permission-management",
-          name: "permissions",
-          component: () => import("@/pages/admin/permission-management")
-        },
-        {
           path: "/collaboration/plugin-management",
           name: "pluginManage",
           component: () => import("@/pages/collaboration/plugin-management")
