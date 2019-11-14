@@ -1,28 +1,47 @@
 <template>
   <div>
-    <div v-if="data.dynamic" style="padding-left:3px">
-      <Button size="small" type="primary" ghost @click="getData(true)"
-        >刷新</Button
+    <div v-if="data.dynamic" style="padding-left:3px;margin-bottom: 10px">
+      <Button
+        size="small"
+        shape="circle"
+        type="primary"
+        icon="md-sync"
+        @click="getData(true)"
+        >{{ $t("get_dynamic_model") }}</Button
+      >
+      <Button
+        size="small"
+        shape="circle"
+        type="primary"
+        icon="md-hammer"
+        @click="applyNewDataModel"
+        >{{ $t("apply_data_model") }}</Button
       >
     </div>
     <div class="graph-container" id="data-model-graph"></div>
   </div>
 </template>
 <script>
-import { getPluginPkgDataModel, pullDynamicDataModel } from "@/api/server";
+import {
+  getPluginPkgDataModel,
+  pullDynamicDataModel,
+  applyNewDataModel
+} from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 export default {
   name: "data-model",
   data() {
     return {
-      data: {},
+      data: [],
+      dataModel: {},
       graph: {}
     };
   },
   watch: {
     pkgId: {
       handler: () => {
+        this.data = {};
         this.getData(false);
       }
     }
@@ -41,6 +60,7 @@ export default {
         ? await pullDynamicDataModel(this.pkgId)
         : await getPluginPkgDataModel(this.pkgId);
       if (status === "OK") {
+        this.dataModel = data;
         this.data = data.pluginPackageEntities.map(_ => {
           return {
             ..._,
@@ -55,6 +75,9 @@ export default {
         });
         this.initGraph();
       }
+    },
+    async applyNewDataModel() {
+      let { status, data, message } = await applyNewDataModel(this.dataModel);
     },
 
     genDOT() {
