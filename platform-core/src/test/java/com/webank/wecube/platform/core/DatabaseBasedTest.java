@@ -1,12 +1,5 @@
 package com.webank.wecube.platform.core;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.lang.reflect.Method;
-import java.util.List;
-
-import javax.sql.DataSource;
-
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.impl.ProcessEngineImpl;
 import org.junit.After;
@@ -17,6 +10,12 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.sql.DataSource;
+import java.lang.reflect.Method;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 @Transactional
 public abstract class DatabaseBasedTest extends BaseSpringBootTest {
@@ -39,8 +38,8 @@ public abstract class DatabaseBasedTest extends BaseSpringBootTest {
 
     private void prepareDatabase() {
         executeSqlScripts(newArrayList(
-                new ClassPathResource("/database/01.wecube.schema.sql"),
-                new ClassPathResource("/database/02.wecube.system.data.sql")
+                new ClassPathResource("/database/01.wecube.schema.sql")
+//                new ClassPathResource("/database/02.wecube.system.data.sql")
         ));
     }
     
