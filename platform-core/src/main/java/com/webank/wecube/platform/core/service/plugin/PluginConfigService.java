@@ -143,4 +143,13 @@ public class PluginConfigService {
         return pluginConfigInterfaceDtos;
     }
 
+    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(int entityId) {
+        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigInterfaceRepository.findPluginConfigInterfaceByPluginConfig_EntityIdAndPluginConfig_Status(entityId, ENABLED);
+        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
+        if (pluginConfigsOptional.isPresent()) {
+            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
+            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos.add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
+        }
+        return pluginConfigInterfaceDtos;
+    }
 }
