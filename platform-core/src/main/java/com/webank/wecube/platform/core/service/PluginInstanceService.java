@@ -276,9 +276,11 @@ public class PluginInstanceService {
         }
 
         if (dbInfo.getSchema() != null) {
+            String rawPassword = EncryptionUtils.decryptWithAes(dbInfo.getPassword(),
+                    resourceProperties.getPasswordEncryptionSeed(),dbInfo.getSchema());
             envVariable = dockerInfo.getEnvVariables().replace("{{db_host}}", dbInfo.getHost())
                     .replace("{{db_port}}", dbInfo.getPort()).replace("{{db_schema}}", dbInfo.getSchema())
-                    .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", dbInfo.getPassword());
+                    .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", rawPassword);
         }
 
         if (envVariable.isEmpty()) {
