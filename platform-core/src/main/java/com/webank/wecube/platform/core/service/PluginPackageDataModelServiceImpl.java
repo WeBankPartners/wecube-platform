@@ -20,6 +20,7 @@ import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.support.PluginPackageDataModelHelper;
 import com.webank.wecube.platform.core.utils.JsonUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -64,14 +64,15 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
     }
 
     @Override
-    public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto, boolean isDynamic) {
-        if (!pluginPackageRepository.existsByName(pluginPackageDataModelDto.getPackageName())) {
+    public PluginPackageDataModelDto register(PluginPackageDataModelDto pluginPackageDataModelDto, boolean fromDynamicUpdate) {
+        Optional<PluginPackage> latestPackageByName = pluginPackageRepository.findLatestVersionByName(pluginPackageDataModelDto.getPackageName());
+        if (!latestPackageByName.isPresent()) {
             String msg = String.format("Cannot find the package [%s] while registering data model", pluginPackageDataModelDto.getPackageName());
             logger.error(msg);
             throw new WecubeCoreException(msg);
         }
 
-        if (isDynamic) {
+        if (fromDynamicUpdate) {
             pluginPackageDataModelDto.setDynamic(true);
             pluginPackageDataModelDto.setUpdateTime(System.currentTimeMillis());
             pluginPackageDataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.DATA_MODEL_ENDPOINT.name());
@@ -88,12 +89,14 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         pluginPackageDataModelDto.setVersion(newDataModelVersion);
         PluginPackageDataModel transferredPluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
 
-        Map<String, String> attributeReferenceNameMap = buildAttributeReferenceNameMap(pluginPackageDataModelDto);
-        Map<String, PluginPackageAttribute> referenceAttributeMap = buildReferenceAttributeMap(transferredPluginPackageDataModel);
-        updateAttributeReference(transferredPluginPackageDataModel, attributeReferenceNameMap, referenceAttributeMap);
+        if (null != pluginPackageDataModelDto.getPluginPackageEntities() && pluginPackageDataModelDto.getPluginPackageEntities().size() > 0) {
+            Map<String, String> attributeReferenceNameMap = buildAttributeReferenceNameMap(pluginPackageDataModelDto);
+            Map<String, PluginPackageAttribute> referenceAttributeMap = buildReferenceAttributeMap(transferredPluginPackageDataModel);
+            updateAttributeReference(transferredPluginPackageDataModel, attributeReferenceNameMap, referenceAttributeMap);
+        }
 
         PluginPackageDataModel savedPluginPackageDataModel = dataModelRepository.save(transferredPluginPackageDataModel);
-        if (isDynamic) {
+        if (fromDynamicUpdate) {
             PluginPackage pluginPackage = pluginPackageRepository.findLatestVersionByName(pluginPackageDataModelDto.getPackageName()).get();
             pluginPackage.setStatus(PluginPackage.Status.UNREGISTERED);
             pluginPackageRepository.save(pluginPackage);
@@ -366,8 +369,9 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         }
 
         PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
-        dataModelDto.setPackageName(dataModel.getPackageName());
-        dataModelDto.setVersion(dataModel.getVersion() + 1);
+        dataModelDto.setPackageName(packageName);
+        int newDataModelVersion = dataModel.getVersion() + 1;
+        dataModelDto.setVersion(newDataModelVersion);
         dataModelDto.setUpdateTime(System.currentTimeMillis());
         dataModelDto.setUpdateSource(PluginPackageDataModelDto.Source.DATA_MODEL_ENDPOINT.name());
         dataModelDto.setUpdateMethod(dataModel.getUpdateMethod());
@@ -376,15 +380,28 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
 
         Set<PluginPackageEntityDto> dynamicPluginPackageEntities = pullDynamicDataModelFromPlugin(dataModel);
 
+        if (null != dynamicPluginPackageEntities && dynamicPluginPackageEntities.size() > 0) {
+            dynamicPluginPackageEntities.forEach(entity-> {
+                entity.setPackageName(packageName);
+                entity.setDataModelVersion(newDataModelVersion);
+                entity.getAttributes().forEach(attribute-> {
+                    attribute.setPackageName(packageName);
+                    if (StringUtils.isNotBlank(attribute.getRefAttributeName())) {
+                        if (StringUtils.isBlank(attribute.getRefPackageName())) {
+                            attribute.setRefPackageName(packageName);
+                        }
+                        if (StringUtils.isBlank(attribute.getRefEntityName())) {
+                            attribute.setRefEntityName(entity.getName());
+                        }
+                    }
+                        }
+                );
+            });
+        }
         dataModelDto.setPluginPackageEntities(dynamicPluginPackageEntities);
 
-        PluginPackageDataModelDto registerDataModelDto = register(dataModelDto, true);
 
-        PluginPackage pluginPackage = latestPluginPackageByName.get();
-        pluginPackage.setStatus(PluginPackage.Status.UNREGISTERED);
-        pluginPackageRepository.save(pluginPackage);
-
-        return registerDataModelDto;
+        return dataModelDto;
     }
 
     private Set<PluginPackageEntityDto> pullDynamicDataModelFromPlugin(PluginPackageDataModel dataModel) {
@@ -405,7 +422,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             HttpEntity<Object> requestEntity = new HttpEntity<>(httpHeaders);
 
             ResponseEntity<String> response = restTemplate.exchange(uriComponents.toString(), method, requestEntity, String.class);
-            if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
+            if (StringUtils.isBlank(response.getBody()) || response.getStatusCode().isError()) {
                 throw new WecubeCoreException(response.toString());
             }
             JsonResponse responseDto = JsonUtils.toObject(response.getBody(), JsonResponse.class);
