@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.github.dockerjava.api.DockerClient;
@@ -48,11 +49,11 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         String volumeBindingsString = additionalProperties.get("volumeBindings");
         String envVariablesString = additionalProperties.get("envVariables");
 
-        List<String> portBindings = (null == portBindingsString || portBindingsString == "" ? Lists.newArrayList()
+        List<String> portBindings = (StringUtils.isBlank(portBindingsString) ? Lists.newArrayList()
                 : Arrays.asList(portBindingsString.split(",")));
-        List<String> volumeBindings = (null == volumeBindingsString || volumeBindingsString == "" ? Lists.newArrayList()
+        List<String> volumeBindings = (StringUtils.isBlank(volumeBindingsString) ? Lists.newArrayList()
                 : Arrays.asList(volumeBindingsString.split(",")));
-        List<String> envVariables = (null == envVariablesString || envVariablesString == "" ? Lists.newArrayList()
+        List<String> envVariables = (StringUtils.isBlank(envVariablesString) ? Lists.newArrayList()
                 : Arrays.asList(envVariablesString.split(",")));
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
