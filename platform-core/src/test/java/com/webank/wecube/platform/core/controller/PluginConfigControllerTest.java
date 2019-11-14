@@ -13,6 +13,7 @@ import static com.webank.wecube.platform.core.utils.JsonUtils.toJsonString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -287,6 +288,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data.length()", is(2)))
                     .andExpect(jsonPath("$.data[*].action", containsInAnyOrder("create", "update")))
                     .andExpect(jsonPath("$.data[*].serviceName", containsInAnyOrder("service-management/task/create", "service-management/service_request/update")))
                     .andExpect(jsonPath("$.data[*].path", containsInAnyOrder("/service-management/tasks", "/service-management/service-requests/{service-request-id}/done")))
@@ -296,7 +298,27 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         } catch (Exception e) {
             fail(e.getMessage());
         }
+    }
 
+    @Test
+    public void givenMultiplePluginConfigWhenQueryAllENABLEDOnesForEntityIdThenShouldReturnCorrectResult() {
+        mockMultipleVersionPluginConfig();
+
+        try {
+            mvc.perform(get("/v1/plugins/interfaces/entity/1/enabled"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK")))
+                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data.length()", is(1)))
+                    .andExpect(jsonPath("$.data[*].action", contains("create")))
+                    .andExpect(jsonPath("$.data[*].serviceName", contains("service-management/task/create")))
+                    .andExpect(jsonPath("$.data[*].path", contains("/service-management/tasks")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("POST")))
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
     }
 
     private void mockMultipleVersionPluginConfig() {
@@ -310,7 +332,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
                 " (11, 1, 'task', 1, 'ENABLED')\n" +
-                ",(12, 5, 'service_request', 1, 'ENABLED')\n" +
+                ",(12, 5, 'service_request', 2, 'ENABLED')\n" +
                 ",(21, 2, 'Vpc Management', 17, 'DISABLED')\n" +
                 ",(31, 3, 'Vpc Management', 16, 'DISABLED')\n" +
                 ",(32, 4, 'Vpc Management', 16, 'DISABLED')\n" +

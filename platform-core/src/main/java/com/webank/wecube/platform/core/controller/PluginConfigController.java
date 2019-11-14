@@ -29,6 +29,11 @@ public class PluginConfigController {
     public JsonResponse queryAllEnabledPluginConfigInterface() {
         return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterface());
     }
+    @GetMapping("/plugins/interfaces/entity/{entity-id}/enabled")
+    @ResponseBody
+    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntity(@PathVariable(value = "entity-id") int entityId) {
+        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(entityId));
+    }
 
     @PostMapping("/plugins/enable/{plugin-config-id}")
     @ResponseBody
