@@ -207,6 +207,11 @@ public class PluginPackageService {
         return pluginPackageRepository.findAll();
     }
 
+    public List<String> getAllDistinctPluginPackageNameList() {
+        Optional<List<String>> allDistinctPackageNameListOpt = pluginPackageRepository.findAllDistinctPackage();
+        return allDistinctPackageNameListOpt.orElseGet(ArrayList::new);
+    }
+
     public PluginPackage registerPluginPackage(int pluginPackageId) {
         if (!pluginPackageRepository.existsById(pluginPackageId)) {
             throw new WecubeCoreException(String.format("Plugin package id not found for id [%s]", pluginPackageId));
