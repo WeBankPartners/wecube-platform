@@ -165,7 +165,7 @@ export default {
         this.$Notice.info({
           title: this.$t("notification_title"),
           desc: this.$t("notification_desc"),
-          duration: 0
+          duration: 5
         });
 
         const eleContain = document.getElementsByTagName("body");
@@ -204,7 +204,7 @@ export default {
                 this.$Notice.success({
                   title: this.$t("notification_title"),
                   desc: `${key} ${this.$t("plugin_load")}`,
-                  duration: 0
+                  duration: 5
                 });
               }, 2000);
             };
