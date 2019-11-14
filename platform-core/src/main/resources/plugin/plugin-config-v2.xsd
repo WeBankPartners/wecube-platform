@@ -10,7 +10,7 @@
     </xs:simpleContent>
   </xs:complexType>
   <xs:complexType name="packageDependenciesType">
-    <xs:sequence>
+    <xs:sequence minOccurs="0">
             <xs:element type="packageDependencyType" name="packageDependency" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
@@ -24,7 +24,7 @@
     </xs:simpleContent>
   </xs:complexType>
   <xs:complexType name="menusType">
-    <xs:sequence>
+    <xs:sequence minOccurs="0">
       <xs:element type="menuType" name="menu" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
@@ -67,7 +67,7 @@
     </xs:simpleContent>
   </xs:complexType>
   <xs:complexType name="systemParametersType">
-    <xs:sequence>
+    <xs:sequence minOccurs="0">
       <xs:element type="systemParameterType" name="systemParameter" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
@@ -78,7 +78,7 @@
     <xs:attribute type="xs:string" name="systemRoleName" use="optional"/>
   </xs:complexType>
   <xs:complexType name="authoritiesType">
-    <xs:sequence>
+    <xs:sequence minOccurs="0">
       <xs:element type="authorityType" name="authority" maxOccurs="unbounded">
         <xs:annotation>
           <xs:documentation>system predefined roles</xs:documentation>
@@ -166,7 +166,7 @@
         <xs:attribute type="xs:string" name="entity"/>
   </xs:complexType>
   <xs:complexType name="pluginsType">
-    <xs:sequence>
+    <xs:sequence minOccurs="0">
       <xs:element type="pluginType" name="plugin" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
