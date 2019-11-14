@@ -17,7 +17,6 @@ import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.SystemUtils;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -262,7 +261,7 @@ public class PluginPackageService {
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
 
-            while(entries.hasMoreElements()) {
+            while (entries.hasMoreElements()) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String zipEntryName = entry.getName();
                 if (entry.isDirectory() || !ACCEPTED_FILES.contains(zipEntryName)) {
@@ -274,7 +273,7 @@ public class PluginPackageService {
                 }
 
                 try (BufferedInputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-                        OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
+                     OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
                     byte[] buf = new byte[2048];
                     int len;
                     while ((len = inputStream.read(buf)) > 0) {
@@ -290,7 +289,7 @@ public class PluginPackageService {
     }
 
     private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
-            String sourceZipFile, String sourceZipFileName) throws Exception {
+                                                                                     String sourceZipFile, String sourceZipFileName) throws Exception {
         Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
@@ -298,7 +297,7 @@ public class PluginPackageService {
             if (entries.hasMoreElements()) {
                 pluginPackageResourceFiles = newLinkedHashSet();
             }
-            for (; entries.hasMoreElements();) {
+            for (; entries.hasMoreElements(); ) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 if (!entry.isDirectory()) {
                     String zipEntryName = entry.getName();
@@ -400,7 +399,12 @@ public class PluginPackageService {
 
     public Set<PluginConfig> getPluginsById(Integer packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
-        return packageFoundById.getPluginConfigs();
+        Set<PluginConfig> pluginConfigs = packageFoundById.getPluginConfigs();
+        // TODO: need to optimize
+        return pluginConfigs
+                .stream()
+                .sorted(Comparator.comparing(PluginConfig::getName))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public List<MenuItemDto> getAllSysMenus() {
@@ -417,7 +421,7 @@ public class PluginPackageService {
     }
 
     private void updateDependencyDto(PluginPackageDependency pluginPackageDependency,
-            PluginPackageDependencyDto pluginPackageDependencyDto) {
+                                     PluginPackageDependencyDto pluginPackageDependencyDto) {
         // create new dependencyDto according to input dependency
         String dependencyName = pluginPackageDependency.getDependencyPackageName();
         String dependencyVersion = pluginPackageDependency.getDependencyPackageVersion();
