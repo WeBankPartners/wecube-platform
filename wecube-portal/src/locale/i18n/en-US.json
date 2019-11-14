@@ -291,5 +291,7 @@
   "target_type": "Target Type",
   "notification_title": "Notification",
   "notification_desc": "Please wait a moment until all plugins loaded",
-  "plugin_load": "plugin loaded"
+  "plugin_load": "plugin loaded",
+  "get_dynamic_model": "Sync data model",
+  "apply_data_model": "Apply data model"
 }
