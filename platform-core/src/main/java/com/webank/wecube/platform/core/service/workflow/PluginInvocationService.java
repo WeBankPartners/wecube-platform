@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,10 +35,12 @@ import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
+import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
+import com.webank.wecube.platform.core.service.DataModelExpressionService;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
@@ -95,6 +98,9 @@ public class PluginInvocationService {
 
     @Autowired
     private TaskNodeExecRequestRepository taskNodeExecRequestRepository;
+
+    @Autowired
+    private DataModelExpressionService dataModelExpressionService;
 
     /**
      * 
@@ -212,10 +218,21 @@ public class PluginInvocationService {
                 // TODO get value from entity expression
                 if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
                     String mappingEntityExpression = param.getMappingEntityExpression();
-                    // TODO
-                    List<Object> attrValsPerExpr = new ArrayList<Object>();
 
-                    // TODO
+                    if (log.isDebugEnabled()) {
+                        log.debug("expression:{}", mappingEntityExpression);
+                    }
+
+                    DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
+                            entityId);
+
+                    List<Object> attrValsPerExpr = dataModelExpressionService.fetchData(criteria);
+                    
+                    if(attrValsPerExpr == null){
+                        log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
+                        attrValsPerExpr =  new ArrayList<>();
+                    }
+
                     objectVals.addAll(attrValsPerExpr);
 
                 }
@@ -583,6 +600,79 @@ public class PluginInvocationService {
     private void handleResultData(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, List<Object> resultData) {
 
+        List<Map<String, Object>> outputParameterMaps = validateAndCastResultData(resultData);
+        storeOutputParameterMaps(ctx, outputParameterMaps);
+
+        if (log.isInfoEnabled()) {
+            log.info("about to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
+        }
+        for (Map<String, Object> outputParameterMap : outputParameterMaps) {
+            handleSingleOutputMap(pluginInvocationResult, ctx, outputParameterMap);
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("finished processing {} output parameters for {}", outputParameterMaps.size(),
+                    ctx.getPluginConfigInterface().getServiceName());
+        }
+
+        return;
+    }
+
+    private void storeOutputParameterMaps(PluginInterfaceInvocationContext ctx,
+            List<Map<String, Object>> outputParameterMaps) {
+        int count = 0;
+        for (Map<String, Object> outputParameterMap : outputParameterMaps) {
+            String objectId = String.valueOf(count);
+            storeSingleOutputParameterMap(ctx, outputParameterMap, objectId);
+            count++;
+        }
+    }
+
+    private void storeSingleOutputParameterMap(PluginInterfaceInvocationContext ctx,
+            Map<String, Object> outputParameterMap, String objectId) {
+        // TODO
+
+        String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
+
+        Set<PluginConfigInterfaceParameter> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
+
+        for (Map.Entry<String, Object> entry : outputParameterMap.entrySet()) {
+            TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
+            PluginConfigInterfaceParameter p = findPreConfiguredPluginConfigInterfaceParameter(outputParameters,
+                    entry.getKey());
+
+            String paramDataType = null;
+            if (p == null) {
+                paramDataType = "str";
+            } else {
+                paramDataType = p.getDataType();
+            }
+
+            // TODO try to get root entity id
+            // paramEntity.setNodeRootEntityId(nodeRootEntityId);
+            paramEntity.setObjectId(objectId);
+            paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+            paramEntity.setParamName(entry.getKey());
+            paramEntity.setParamDataType(paramDataType);
+            paramEntity.setParamDataValue(asString(entry.getValue(), paramDataType));
+            paramEntity.setRequestId(requestId);
+
+            taskNodeExecParamRepository.save(paramEntity);
+        }
+    }
+
+    private PluginConfigInterfaceParameter findPreConfiguredPluginConfigInterfaceParameter(
+            Set<PluginConfigInterfaceParameter> outputParameters, String paramName) {
+        for (PluginConfigInterfaceParameter p : outputParameters) {
+            if (p.getName().equals(paramName)) {
+                return p;
+            }
+        }
+
+        return null;
+    }
+
+    private List<Map<String, Object>> validateAndCastResultData(List<Object> resultData) {
         List<Map<String, Object>> outputParameterMaps = new ArrayList<Map<String, Object>>();
 
         for (Object obj : resultData) {
@@ -601,23 +691,13 @@ public class PluginInvocationService {
             outputParameterMaps.add(retRecord);
         }
 
-        if (log.isInfoEnabled()) {
-            log.info("about to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
-        }
-        for (Map<String, Object> outputParameterMap : outputParameterMaps) {
-            handleSingleOutputMap(pluginInvocationResult, ctx, outputParameterMap);
-        }
+        return outputParameterMaps;
 
-        if (log.isInfoEnabled()) {
-            log.info("finished processing {} output parameters for {}", outputParameterMaps.size(),
-                    ctx.getPluginConfigInterface().getServiceName());
-        }
-
-        return;
     }
 
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
+
         // TODO
         // Scenario 4: if output not needed and no need to write back to
         // entities
@@ -626,12 +706,72 @@ public class PluginInvocationService {
 
     private void handlePluginInterfaceInvocationSuccess(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx) {
-        // TODO
+        Date now = new Date();
+        TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
+        Optional<TaskNodeExecRequestEntity> requestEntityOpt = taskNodeExecRequestRepository
+                .findById(requestEntity.getRequestId());
+
+        if (requestEntityOpt.isPresent()) {
+            log.error("request entity does not exist for {}", requestEntity.getRequestId());
+
+        } else {
+            requestEntity = requestEntityOpt.get();
+            requestEntity.setUpdatedTime(now);
+            requestEntity.setCompleted(true);
+
+            taskNodeExecRequestRepository.save(requestEntity);
+        }
+
+        TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
+        Optional<TaskNodeInstInfoEntity> nodeInstEntityOpt = taskNodeInstInfoRepository
+                .findById(nodeInstEntity.getId());
+
+        if (nodeInstEntityOpt.isPresent()) {
+            log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
+        } else {
+            nodeInstEntity = nodeInstEntityOpt.get();
+            nodeInstEntity.setUpdatedTime(now);
+            nodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+
+            taskNodeInstInfoRepository.save(nodeInstEntity);
+        }
     }
 
     private void handlePluginInterfaceInvocationFailure(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, String errorCode, String errorMsg) {
-        // TODO
+
+        Date now = new Date();
+        TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
+        Optional<TaskNodeExecRequestEntity> requestEntityOpt = taskNodeExecRequestRepository
+                .findById(requestEntity.getRequestId());
+
+        if (requestEntityOpt.isPresent()) {
+            log.error("request entity does not exist for {}", requestEntity.getRequestId());
+
+        } else {
+            requestEntity = requestEntityOpt.get();
+            requestEntity.setUpdatedTime(now);
+            requestEntity.setErrorCode(errorCode);
+            requestEntity.setErrorMessage(errorMsg);
+            requestEntity.setCompleted(true);
+
+            taskNodeExecRequestRepository.save(requestEntity);
+        }
+
+        TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
+        Optional<TaskNodeInstInfoEntity> nodeInstEntityOpt = taskNodeInstInfoRepository
+                .findById(nodeInstEntity.getId());
+
+        if (nodeInstEntityOpt.isPresent()) {
+            log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
+        } else {
+            nodeInstEntity = nodeInstEntityOpt.get();
+            nodeInstEntity.setUpdatedTime(now);
+            nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
+
+            taskNodeInstInfoRepository.save(nodeInstEntity);
+        }
+
     }
 
 }
