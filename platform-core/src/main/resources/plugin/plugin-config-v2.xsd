@@ -145,7 +145,7 @@
   </xs:complexType>
   <xs:complexType name="outputParametersType">
     <xs:sequence>
-      <xs:element type="outputParameterType" name="parameter" maxOccurs="unbounded"/>
+      <xs:element type="outputParameterType" name="parameter" maxOccurs="unbounded" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="interfaceType">
