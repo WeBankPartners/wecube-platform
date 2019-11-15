@@ -31,7 +31,7 @@ public interface PluginPackageRepository extends CrudRepository<PluginPackage, I
         return Optional.ofNullable(pickLastOne(pluginPackages, new PluginPackageVersionComparator()));
     }
 
-    @Query(value = "SELECT package.name " +
+    @Query(value = "SELECT DISTINCT package.name " +
             "FROM PluginPackage package " +
             "GROUP BY package.name")
     Optional<List<String>> findAllDistinctPackage();

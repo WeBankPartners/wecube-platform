@@ -1,15 +1,14 @@
 package com.webank.wecube.platform.core.controller;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import static com.webank.wecube.platform.core.domain.JsonResponse.*;
+import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
 
 @RestController
 @RequestMapping("/v1")
@@ -21,38 +20,31 @@ public class PluginConfigController {
 
     @PostMapping("/plugins")
     @ResponseBody
-    public JsonResponse savePluginConfig(@RequestBody PluginConfig pluginConfig) {
-        PluginConfig savedPluginConfig;
-        try {
-            savedPluginConfig = pluginConfigService.savePluginConfig(pluginConfig);
-        } catch (WecubeCoreException e) {
-            return error(e.getMessage());
-        }
-        return okayWithData(savedPluginConfig);
+    public JsonResponse savePluginConfig(@RequestBody PluginConfigDto pluginConfigDto) {
+        return okayWithData(pluginConfigService.savePluginConfig(pluginConfigDto));
+    }
+
+    @GetMapping("/plugins/interfaces/enabled")
+    @ResponseBody
+    public JsonResponse queryAllEnabledPluginConfigInterface() {
+        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterface());
+    }
+    @GetMapping("/plugins/interfaces/entity/{entity-id}/enabled")
+    @ResponseBody
+    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntity(@PathVariable(value = "entity-id") int entityId) {
+        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(entityId));
     }
 
     @PostMapping("/plugins/enable/{plugin-config-id}")
     @ResponseBody
     public JsonResponse enablePlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
-        PluginConfig savedPluginConfig;
-        try {
-            savedPluginConfig = pluginConfigService.enablePlugin(pluginConfigId);
-        } catch (WecubeCoreException e) {
-            return error(e.getMessage());
-        }
-        return okayWithData(savedPluginConfig);
+        return okayWithData(pluginConfigService.enablePlugin(pluginConfigId));
     }
 
     @PostMapping("/plugins/disable/{plugin-config-id}")
     @ResponseBody
     public JsonResponse disablePlugin(@PathVariable(value = "plugin-config-id") int pluginConfigId) {
-        PluginConfig savedPluginConfig;
-        try {
-            savedPluginConfig = pluginConfigService.disablePlugin(pluginConfigId);
-        } catch (WecubeCoreException e) {
-            return error(e.getMessage());
-        }
-        return okayWithData(savedPluginConfig);
+        return okayWithData(pluginConfigService.disablePlugin(pluginConfigId));
     }
 
 }
