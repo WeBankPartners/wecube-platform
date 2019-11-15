@@ -32,6 +32,16 @@ let router = new Router({
           props: true
         },
         {
+          path: "/admin/system-params",
+          name: "systemParams",
+          component: () => import("@/pages/admin/system-params")
+        },
+        {
+          path: "/admin/resources",
+          name: "resources",
+          component: () => import("@/pages/admin/resources")
+        },
+        {
           path: "/collaboration/plugin-management",
           name: "pluginManage",
           component: () => import("@/pages/collaboration/plugin-management")
