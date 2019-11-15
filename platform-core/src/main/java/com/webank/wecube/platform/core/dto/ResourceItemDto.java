@@ -31,6 +31,10 @@ public class ResourceItemDto {
     private Boolean isAllocated;
     private String purpose;
     private String status;
+    private String createdBy;
+    private Timestamp createdDate;
+    private String updatedBy;
+    private Timestamp updatedDate;
     private ResourceServerDto resourceServer;
 
     public static ResourceItemDto fromDomain(ResourceItem resourceItem) {
@@ -47,6 +51,10 @@ public class ResourceItemDto {
                 resourceItem.getIsAllocated() != null && resourceItem.getIsAllocated() == 1 ? true : false);
         resourceItemDto.setPurpose(resourceItem.getPurpose());
         resourceItemDto.setStatus(resourceItem.getStatus());
+        resourceItemDto.setCreatedBy(resourceItem.getCreatedBy());
+        resourceItemDto.setCreatedDate(resourceItem.getCreatedDate());
+        resourceItemDto.setUpdatedBy(resourceItem.getUpdatedBy());
+        resourceItemDto.setUpdatedDate(resourceItem.getUpdatedDate());
         return resourceItemDto;
     }
 
