@@ -5,19 +5,31 @@ export const getMyMenus = () => req.get("/platform/v1/my-menus");
 
 // flow
 export const saveFlow = data =>
-  req.post("/platform/v1/process/definitions", data);
+  req.post("/platform/v1/process/definitions/deploy", data);
+export const saveFlowDraft = data =>
+  req.post("/platform/v1/process/definitions/draft", data);
 export const getAllFlow = () => req.get("/platform/v1/process/definitions");
 export const getFlowDetailByID = id =>
-  req.get(`process/definitions/definition/${id}`);
+  req.get(`/platform/v1/process/definitions/${id}/detail`);
 export const getFlowPreview = data =>
   req.post(
     `/platform/v1/process/definitions/definition/input-parameters/preview`,
     data
   );
 
+export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`);
+
+export const getFlowNodes = flowId =>
+  req.get(`platform/v1/process/definitions/${flowId}/tasknodes/briefs`);
+
+export const getAllDataModels = () => req.get(`platform/v1/models`);
+
+export const getPluginInterfaceList = () =>
+  req.get(`platform/v1/plugins/interfaces/enabled`);
+
 // admin
-export const deleteCiTypeLayer = layerId =>
-  req.delete(`/platform/v1/cmdb/ci-type-layers/${layerId}`);
+
 export const getAllUsers = () => req.get("/platform/v1/admin/users");
 export const getAllRoles = () => req.get("/platform/v1/admin/roles");
 export const getAllMenus = () => req.get("/platform/v1/admin/menus");
@@ -78,7 +90,22 @@ export const deleteRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
     `/platform/v1/admin/role-citypes/${roleCitypeId}/ctrl-attributes/delete`,
     data
   );
-
+export const getAllSystemVariables = status =>
+  req.get(
+    `/platform/v1/system-variables/all${status ? "?status=" + status : ""}`
+  );
+export const retrieveServers = data =>
+  req.post("/platform/resource/servers/retrieve", data);
+export const createServers = data =>
+  req.post("/platform/resource/servers/create", data);
+export const updateServers = data =>
+  req.post("/platform/resource/servers/update", data);
+export const deleteServers = data =>
+  req.post("/platform/resource/servers/delete", data);
+export const getResourceServerStatus = () =>
+  req.get("/platform/resource/constants/resource-server-status");
+export const getResourceServerType = () =>
+  req.get("/platform//resource/constants/resource-server-types");
 //enum
 export const getEnumList = data =>
   req.post(`/platform/v1/cmdb/enum/codes/query`, data);
@@ -533,7 +560,6 @@ export const getRuntimeResource = id =>
   req.get(`/platform/v1/packages/${id}/runtime-resources`);
 export const getAuthSettings = id =>
   req.get(`/platform/v1/packages/${id}/authorities`);
-export const getAllDataModels = id => req.get(`/platform/v1/models`);
 export const registerPlugin = id =>
   req.post(`/platform/v1/plugins/enable/${id}`);
 export const deletePlugin = id =>
