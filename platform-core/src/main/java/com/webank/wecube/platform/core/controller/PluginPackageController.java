@@ -7,6 +7,7 @@ import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
+import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
@@ -18,9 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.webank.wecube.platform.core.domain.JsonResponse.*;
 
 @RestController
@@ -142,13 +145,14 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/plugins")
     @ResponseBody
     public JsonResponse getPluginsById(@PathVariable(value = "id") Integer packageId) {
-        Set<PluginConfig> pluginConfigSet;
-        try {
-            pluginConfigSet = pluginPackageService.getPluginsById(packageId);
-        } catch (WecubeCoreException ex) {
-            return error(ex.getMessage());
+        Set<PluginConfigDto> pluginConfigDtos = newLinkedHashSet();
+
+        Set<PluginConfig> pluginConfigs = pluginPackageService.getPluginsById(packageId);
+        if (null != pluginConfigs && pluginConfigs.size() > 0) {
+            pluginConfigs.forEach(pluginConfig -> pluginConfigDtos.add(PluginConfigDto.fromDomain(pluginConfig)));
         }
-        return okayWithData(pluginConfigSet);
+
+        return okayWithData(pluginConfigDtos);
     }
 
 }

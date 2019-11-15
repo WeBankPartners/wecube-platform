@@ -366,7 +366,7 @@ public class PluginPackageXmlParser {
             pluginConfigInterface.setPluginConfig(pluginConfig);
             pluginConfigInterfaces.add(pluginConfigInterface);
 
-            pluginConfigInterface.setAction(ensureNotNull(trim(xPathEvaluator.getString("./@name", interfaceNode)), "Plugin interface name"));
+            pluginConfigInterface.setAction(ensureNotNull(trim(xPathEvaluator.getString("./@action", interfaceNode)), "Plugin interface name"));
             String serviceName = createServiceName(pluginConfig.getPluginPackage().getName(), pluginConfig.getName(), pluginConfigInterface.getAction());
             pluginConfigInterface.setServiceName(serviceName);
             pluginConfigInterface.setServiceDisplayName(serviceName);
