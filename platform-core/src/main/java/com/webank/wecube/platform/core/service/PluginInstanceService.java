@@ -318,7 +318,7 @@ public class PluginInstanceService {
 
         // 6. notify gateway
         GatewayResponse response = registerRoute(pluginPackage.getName(), hostIp, String.valueOf(port));
-        if (!response.getStatusCode().equals(GatewayResponse.getStatusCodeOk())) {
+        if (!response.getStatus().equals(GatewayResponse.getStatusCodeOk())) {
             logger.error("Launch instance has done, but register routing information is failed, please check");
         }
     }
