@@ -1,13 +1,8 @@
 package com.webank.wecube.platform.core.service;
 
-import static com.webank.wecube.platform.core.domain.SystemVariable.ACTIVE;
-import static com.webank.wecube.platform.core.domain.SystemVariable.SCOPE_TYPE_GLOBAL;
-import static com.webank.wecube.platform.core.domain.SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.dto.QueryRequest;
+import com.webank.wecube.platform.core.dto.QueryResponse;
+import com.webank.wecube.platform.core.dto.SystemVariableDto;
+import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 
 @Service
@@ -23,78 +22,73 @@ import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 public class SystemVariableService {
 
     @Autowired
-    SystemVariableRepository systemVariableRepository;
-    
-    public List<String> getSupportedScopeTypes() {
-        return Lists.newArrayList(SCOPE_TYPE_GLOBAL, SCOPE_TYPE_PLUGIN_PACKAGE);
+    private EntityRepository entityRepository;
+
+    @Autowired
+    private SystemVariableRepository systemVariableRepository;
+
+    public QueryResponse<SystemVariableDto> retrieveSystemVariables(QueryRequest queryRequest) {
+        QueryResponse<SystemVariable> queryResponse = entityRepository.query(SystemVariable.class, queryRequest);
+        List<SystemVariableDto> systemVariableDto = Lists.transform(queryResponse.getContents(),
+                x -> SystemVariableDto.fromDomain(x));
+        return new QueryResponse<>(queryResponse.getPageInfo(), systemVariableDto);
     }
-    
-    public List<SystemVariable> getAllSystemVariables(String status) {
-        if (status == null) {
-            return Lists.newArrayList(systemVariableRepository.findAll());
-        } else {
-            return systemVariableRepository.findAllByStatus(status);
-        }
+
+    @Transactional
+    public List<SystemVariableDto> createSystemVariables(List<SystemVariableDto> resourceSystemVariables) {
+        Iterable<SystemVariable> savedDomains = systemVariableRepository.saveAll(convertVariableDtoToDomain(resourceSystemVariables));
+        return convertVariableDomainToDto(savedDomains);
     }
-    
-    public List<SystemVariable> getGlobalSystemVariables(String status) {
-        if (status == null) {
-            return systemVariableRepository.findAllByScopeType(SCOPE_TYPE_GLOBAL);
-        } else {
-            return systemVariableRepository.findAllByScopeTypeAndStatus(SCOPE_TYPE_GLOBAL, status);
-        }
+
+    @Transactional
+    public List<SystemVariableDto> updateSystemVariables(List<SystemVariableDto> resourceSystemVariables) {
+        Iterable<SystemVariable> savedDomains = systemVariableRepository
+                .saveAll(convertVariableDtoToDomain(resourceSystemVariables));
+        return convertVariableDomainToDto(savedDomains);
     }
-    
-    public List<SystemVariable> getSystemVariables(String scopeType, String scopeValue, String status) {
-        if (status == null) {
-            return systemVariableRepository.findAllByScopeTypeAndScopeValue(scopeType, scopeValue);
-        } else {
-            return systemVariableRepository.findAllByScopeTypeAndScopeValueAndStatus(scopeType, scopeValue, status);
-        }
+
+    @Transactional
+    public void deleteSystemVariables(List<SystemVariableDto> systemVariableDtos) {
+        validateIfSystemVariablesAreExists(systemVariableDtos);
+        systemVariableRepository.deleteAll(convertVariableDtoToDomain(systemVariableDtos));
     }
-    
+
+    private void validateIfSystemVariablesAreExists(List<SystemVariableDto> systemVariableDtos) {
+        systemVariableDtos.forEach(dto -> {
+            if (dto.getId() == null && !systemVariableRepository.existsById(dto.getId())) {
+                throw new WecubeCoreException(String.format("Can not find variable with id [%s].", dto.getId()));
+            }
+        });
+    }
+
+    private List<SystemVariable> convertVariableDtoToDomain(List<SystemVariableDto> systemVariableDtos) {
+        List<SystemVariable> domains = new ArrayList<>();
+        systemVariableDtos.forEach(dto -> {
+            SystemVariable existedServer = null;
+            if (dto.getId() != null) {
+                Optional<SystemVariable> existedSystemVariableOpt = systemVariableRepository.findById(dto.getId());
+                if (existedSystemVariableOpt.isPresent()) {
+                    existedServer = existedSystemVariableOpt.get();
+                }
+            }
+            SystemVariable domain = SystemVariableDto.toDomain(dto, existedServer);
+            domains.add(domain);
+        });
+        return domains;
+    }
+
+    private List<SystemVariableDto> convertVariableDomainToDto(Iterable<SystemVariable> savedDomains) {
+        List<SystemVariableDto> dtos = new ArrayList<>();
+        savedDomains.forEach(domain -> dtos.add(SystemVariableDto.fromDomain(domain)));
+        return dtos;
+    }
+
     public SystemVariable getSystemVariableById(int varId) {
         Optional<SystemVariable> systemVariable = systemVariableRepository.findById(varId);
         if (systemVariable.isPresent()) {
             return systemVariable.get();
         } else {
             throw new WecubeCoreException("System Variable not found for id: " + varId);
-        }
-    }
-
-    public List<SystemVariable> saveSystemVariables(List<SystemVariable> variables) {
-        if (isNotEmpty(variables)) {
-            return variables.stream().map(p -> {
-                    if (p.getStatus()==null) p.setStatus(ACTIVE);
-                    return systemVariableRepository.save(p);
-                }).collect(Collectors.toList());
-        }
-        return variables;
-    }
-
-    public void deleteSystemVariables(List<Integer> variableIds) {
-        if (isNotEmpty(variableIds)) {
-            variableIds.forEach(systemVariableRepository::deleteById);
-        }
-    }
-
-    public void enableSystemVariables(List<Integer> variableIds) {
-        if (isNotEmpty(variableIds)) {
-            for(Integer varId : variableIds) {
-                SystemVariable variable = getSystemVariableById(varId);
-                variable.setStatus(SystemVariable.ACTIVE);
-                systemVariableRepository.save(variable);
-            }
-        }
-    }
-    
-    public void disableSystemVariables(List<Integer> variableIds) {
-        if (isNotEmpty(variableIds)) {
-            for(Integer varId : variableIds) {
-                SystemVariable variable = getSystemVariableById(varId);
-                variable.setStatus(SystemVariable.INACTIVE);
-                systemVariableRepository.save(variable);
-            }
         }
     }
 }
