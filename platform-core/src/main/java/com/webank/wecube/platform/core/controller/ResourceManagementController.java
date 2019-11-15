@@ -18,9 +18,10 @@ import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.ResourceServerDto;
-import com.webank.wecube.platform.core.service.resource.ResourceAvaliableStatus;
+import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
+import com.webank.wecube.platform.core.service.resource.ResourceServerStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
 
 @RestController
@@ -106,12 +107,25 @@ public class ResourceManagementController {
         return okayWithData(resourceItemTypes);
     }
 
+    @GetMapping("/constants/resource-server-status")
+    @ResponseBody
+    public JsonResponse getResourceServerStatus() {
+        List<String> resourceServerStatus = Lists.newLinkedList();
+        for (ResourceServerStatus type : ResourceServerStatus.values()) {
+            if (ResourceServerStatus.NONE.equals(type))
+                continue;
+
+            resourceServerStatus.add(type.getCode());
+        }
+        return okayWithData(resourceServerStatus);
+    }
+
     @GetMapping("/constants/resource-item-status")
     @ResponseBody
     public JsonResponse getResourceItemStatus() {
         List<String> resourceItemStatus = Lists.newLinkedList();
-        for (ResourceAvaliableStatus type : ResourceAvaliableStatus.values()) {
-            if (ResourceAvaliableStatus.NONE.equals(type))
+        for (ResourceItemStatus type : ResourceItemStatus.values()) {
+            if (ResourceItemStatus.NONE.equals(type))
                 continue;
 
             resourceItemStatus.add(type.getCode());
