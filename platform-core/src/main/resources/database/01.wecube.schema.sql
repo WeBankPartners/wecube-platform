@@ -53,9 +53,6 @@ CREATE TABLE plugin_package_entities
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
     description        VARCHAR(256)                   NOT NULL
---    CONSTRAINT fk_package_data_model_id FOREIGN KEY (data_model_id) REFERENCES plugin_package_data_model(id) ON DELETE CASCADE ON UPDATE CASCADE,
---    UNIQUE uk_package_entity(data_model_id, name)
-
 );
 
 DROP TABLE IF EXISTS plugin_package_attributes;
@@ -67,9 +64,6 @@ CREATE TABLE plugin_package_attributes
     name         VARCHAR(100)                   NOT NULL,
     description  VARCHAR(256)                   NOT NULL,
     data_type    VARCHAR(20)                    NOT NULL
---    CONSTRAINT fk_entity_id FOREIGN KEY (entity_id) REFERENCES plugin_package_entities (id) ON DELETE CASCADE ON UPDATE CASCADE,
---    CONSTRAINT fk_reference_id FOREIGN KEY (reference_id) REFERENCES plugin_package_attributes (id) ON DELETE CASCADE ON UPDATE CASCADE,
---    UNIQUE uk_entity_attribute (entity_id, name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists system_variables;
@@ -158,15 +152,23 @@ CREATE TABLE `plugin_config_interface_parameters` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists plugin_instances;
-create table plugin_instances (
-  id INTEGER auto_increment primary key,
-  instance_container_id varchar(64) not null,
-  package_id INTEGER,
-  host varchar(50) ,
-  port INTEGER ,
-  status varchar(50) not null,
-  unique key (host,port)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
+CREATE TABLE `plugin_instances` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `host` VARCHAR(255) NULL DEFAULT NULL,
+    `container_name` VARCHAR(255) NULL DEFAULT NULL,
+    `port` INT(11) NULL DEFAULT NULL,
+    `container_status` VARCHAR(255) NULL DEFAULT NULL,
+    `package_id` INT(11) NULL DEFAULT NULL,
+    `docker_instance_resource_id` INT(11) NULL DEFAULT NULL,
+    `instance_name` VARCHAR(255) NULL DEFAULT NULL,
+    `plugin_mysql_instance_resource_id` INT(11) NULL DEFAULT NULL,
+    `s3bucket_resource_id` INT(11) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `FKn8124r2uvtipsy1hfkjmd4jts` (`package_id`),
+    INDEX `FKbqqlg3wrp1n0h926v5cojcjk7` (`s3bucket_resource_id`),
+    CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
+    CONSTRAINT `FKn8124r2uvtipsy1hfkjmd4jts` FOREIGN KEY (`package_id`) REFERENCES `plugin_packages` (`id`)
+);
 
 drop table if exists menu_items;
 create table menu_items
@@ -196,6 +198,44 @@ create table plugin_package_resource_files
   package_version varchar(20) not null,
   source varchar(64) not null,
   related_path varchar(1024) not null
+);
+
+drop table if exists resource_item;
+CREATE TABLE `resource_item` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `additional_properties` VARCHAR(2048) NULL DEFAULT NULL,
+    `created_by` VARCHAR(255) NULL DEFAULT NULL,
+    `created_date` DATETIME NULL DEFAULT NULL,
+    `is_allocated` INT(11) NULL DEFAULT NULL,
+    `name` VARCHAR(255) NULL DEFAULT NULL,
+    `purpose` VARCHAR(255) NULL DEFAULT NULL,
+    `resource_server_id` INT(11) NULL DEFAULT NULL,
+    `status` VARCHAR(255) NULL DEFAULT NULL,
+    `type` VARCHAR(255) NULL DEFAULT NULL,
+    `updated_by` VARCHAR(255) NULL DEFAULT NULL,
+    `updated_date` DATETIME NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `FK2g8cf9beg7msqry6cmqedvv9n` (`resource_server_id`),
+    CONSTRAINT `FK2g8cf9beg7msqry6cmqedvv9n` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
+);
+
+drop table if exists resource_server;
+CREATE TABLE `resource_server` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `created_by` VARCHAR(255) NULL DEFAULT NULL ,
+    `created_date` DATETIME NULL DEFAULT NULL,
+    `host` VARCHAR(255) NULL DEFAULT NULL ,
+    `is_allocated` INT(11) NULL DEFAULT NULL,
+    `login_password` VARCHAR(255) NULL DEFAULT NULL ,
+    `login_username` VARCHAR(255) NULL DEFAULT NULL ,
+    `name` VARCHAR(255) NULL DEFAULT NULL ,
+    `port` VARCHAR(255) NULL DEFAULT NULL ,
+    `purpose` VARCHAR(255) NULL DEFAULT NULL ,
+    `status` VARCHAR(255) NULL DEFAULT NULL ,
+    `type` VARCHAR(255) NULL DEFAULT NULL ,
+    `updated_by` VARCHAR(255) NULL DEFAULT NULL ,
+    `updated_date` DATETIME NULL DEFAULT NULL,
+    PRIMARY KEY (`id`)
 );
 
 SET FOREIGN_KEY_CHECKS = 1;
