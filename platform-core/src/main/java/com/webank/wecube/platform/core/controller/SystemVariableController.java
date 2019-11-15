@@ -1,94 +1,51 @@
 package com.webank.wecube.platform.core.controller;
 
-import static com.webank.wecube.platform.core.domain.JsonResponse.*;
-import static com.webank.wecube.platform.core.domain.MenuItem.MENU_ADMIN_BASE_DATA_MANAGEMENT;
+import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
+import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
 
 import java.util.List;
 
-import javax.annotation.security.RolesAllowed;
-
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.dto.QueryRequest;
+import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 
 @RestController
 @RequestMapping("/v1")
-//@RolesAllowed({MENU_ADMIN_BASE_DATA_MANAGEMENT})
 public class SystemVariableController {
 
     @Autowired
     private SystemVariableService systemVariableService;
 
-    @GetMapping("/system-variables/supported-scope-types")
+    @PostMapping("/system-variables/retrieve")
     @ResponseBody
-    public JsonResponse getSupportedScopeTypes() {
-        List<String> types = systemVariableService.getSupportedScopeTypes();
-        return okayWithData(types);
+    public JsonResponse retrieveSystemVariables(@RequestBody QueryRequest queryRequest) {
+        return okayWithData(systemVariableService.retrieveSystemVariables(queryRequest));
     }
 
-    @GetMapping("/system-variables/global")
+    @PostMapping("/system-variables/create")
     @ResponseBody
-    public JsonResponse getGlobalSystemVariables(@RequestParam(value = "status", required = false) String status) {
-        List<SystemVariable> variables = systemVariableService.getGlobalSystemVariables(status);
-        return okayWithData(variables);
+    public JsonResponse createSystemVariables(@RequestBody List<SystemVariableDto> resourceSystemVariables) {
+        return okayWithData(systemVariableService.createSystemVariables(resourceSystemVariables));
     }
 
-    @GetMapping("/system-variables")
+    @PostMapping("/system-variables/update")
     @ResponseBody
-    public JsonResponse getSystemVariables(@RequestParam(value = "scope-type") String scopeType
-            , @RequestParam(value = "scope-value") String scopeValue
-            , @RequestParam(value = "status", required = false) String status) {
-        List<SystemVariable> variables = systemVariableService.getSystemVariables(scopeType, scopeValue, status);
-        return okayWithData(variables);
-    }
-
-    @GetMapping("/system-variables/all")
-    @ResponseBody
-    public JsonResponse getAllSystemVariables(@RequestParam(value = "status", required = false) String status) {
-        List<SystemVariable> variables = systemVariableService.getAllSystemVariables(status);
-        return okayWithData(variables);
-    }
-
-    @GetMapping("/system-variables/{var-id}")
-    @ResponseBody
-    public JsonResponse getSystemVariableById(@PathVariable(value = "var-id") int varId) {
-        SystemVariable systemVariable;
-        try {
-            systemVariable = systemVariableService.getSystemVariableById(varId);
-        } catch (WecubeCoreException ex){
-            return error(ex.getMessage());
-        }
-        return okayWithData(systemVariable);
-    }
-
-    @PostMapping("/system-variables/save")
-    @ResponseBody
-    public JsonResponse saveSystemVariables(@RequestBody List<SystemVariable> variables) {
-        return okayWithData(systemVariableService.saveSystemVariables(variables));
-    }
-
-    @PostMapping("/system-variables/enable")
-    @ResponseBody
-    public JsonResponse enableSystemVariables(@RequestBody List<Integer> variableIds) {
-        systemVariableService.enableSystemVariables(variableIds);
-        return okay();
-    }
-
-    @PostMapping("/system-variables/disable")
-    @ResponseBody
-    public JsonResponse disableSystemVariables(@RequestBody List<Integer> variableIds) {
-        systemVariableService.disableSystemVariables(variableIds);
-        return okay();
+    public JsonResponse updateSystemVariables(@RequestBody List<SystemVariableDto> resourceSystemVariables) {
+        return okayWithData(systemVariableService.updateSystemVariables(resourceSystemVariables));
     }
 
     @PostMapping("/system-variables/delete")
     @ResponseBody
-    public JsonResponse deleteSystemVariables(@RequestBody List<Integer> variableIds) {
-        systemVariableService.deleteSystemVariables(variableIds);
+    public JsonResponse deleteSystemVariables(@RequestBody List<SystemVariableDto> resourceSystemVariables) {
+        systemVariableService.deleteSystemVariables(resourceSystemVariables);
         return okay();
     }
 }
