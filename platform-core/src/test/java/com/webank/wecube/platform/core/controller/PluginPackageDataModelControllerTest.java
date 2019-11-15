@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -30,10 +29,8 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.util.Optional;
 
-import static com.webank.wecube.platform.core.domain.MenuItem.MENU_COLLABORATION_PLUGIN_MANAGEMENT;
-import static com.webank.wecube.platform.core.domain.MenuItem.ROLE_PREFIX;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -43,7 +40,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.assertj.core.api.Assertions.assertThat;
 
 //@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_COLLABORATION_PLUGIN_MANAGEMENT})
 public class PluginPackageDataModelControllerTest extends AbstractControllerTest {
@@ -107,6 +103,36 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
         System.out.println(dataModelRepository.findLatestDataModelByPackageName("service-management"));
     }
 
+    @Test
+    public void getRefByInfoByMockedPackage() throws Exception {
+        uploadCorrectPackage();
+        final int REF_BY_COUNT = 1;
+        mvc.perform(get("/v1/models/package/" + "service-management" + "/entity/" + "service_catalogue" + "/refById"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Success")))
+                .andExpect(jsonPath("$.data", is(iterableWithSize(REF_BY_COUNT))))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+        mvc.perform(get("/v1/models/package/" + "service-management" + "/entity/" + "service_pipeline" + "/refById"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Success")))
+                .andExpect(jsonPath("$.data", is(iterableWithSize(REF_BY_COUNT))))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+        mvc.perform(get("/v1/models/package/" + "service-management" + "/entity/" + "service_request_template" + "/refById"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Success")))
+                .andExpect(jsonPath("$.data", is(iterableWithSize(REF_BY_COUNT))))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+        mvc.perform(get("/v1/models/package/" + "service-management" + "/entity/" + "service_request" + "/refById"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Success")))
+                .andExpect(jsonPath("$.data", is(iterableWithSize(REF_BY_COUNT))))
+                .andDo(print())
+                .andReturn().getResponse().getContentAsString();
+    }
+
 
     private void mockDataModel() {
         String sqlStr =
@@ -153,8 +179,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                         ", (16, 7, 1, 'attribute_4', 'attribute_4_description', 'REF') " +
                         ", (17, 8, 2, 'attribute_5', 'attribute_5_description', 'REF') " +
                         ", (18, 9, 3, 'attribute_6', 'attribute_6_description', 'REF')" +
-                        ";\n"
-                ;
+                        ";\n";
         executeSql(sqlStr);
 
     }
@@ -175,8 +200,8 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
 
         // clean all the IDs so that no key violation.
         pluginPackageDataModelDto.setId(null);
-        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.setId(null));
-        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.getAttributes().forEach(attribute->attribute.setId(null)));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.setId(null));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.getAttributes().forEach(attribute -> attribute.setId(null)));
 
         PluginPackageEntityDto entity = pluginPackageDataModelDto.getPluginPackageEntities().iterator().next();
         PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
@@ -209,16 +234,15 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 "INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
                         "  (1, 'package_1', '1.0', 'REGISTERED', 0) " +
                         ";\n" +
-                "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic, update_method, update_path) VALUES " +
+                        "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic, update_method, update_path) VALUES " +
                         "  (1, 1, 'package_1', 1, 'GET', '/data-model') " +
                         ";\n" +
-                "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
+                        "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
                         "  (1, 1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
                         ";\n" +
-                "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
+                        "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
                         "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
-                        ";\n"
-                ;
+                        ";\n";
         executeSql(sqlStr);
 
     }
@@ -239,8 +263,8 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
 
         // clean all the IDs so that no key violation.
         pluginPackageDataModelDto.setId(null);
-        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.setId(null));
-        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.getAttributes().forEach(attribute->attribute.setId(null)));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.setId(null));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.getAttributes().forEach(attribute -> attribute.setId(null)));
 
         PluginPackageEntityDto entity = pluginPackageDataModelDto.getPluginPackageEntities().iterator().next();
         PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
