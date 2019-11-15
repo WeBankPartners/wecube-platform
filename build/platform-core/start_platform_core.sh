@@ -15,6 +15,7 @@ java -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port
 --wecube.core.s3.secret-key=${S3_SECRET_KEY} \
 --wecube.core.cmdb-data.enum-category-ci-type-layer=ci_layer \
 --wecube.core.cmdb-data.enum-category-ci-type-catalog=ci_catalog \
+--wecube.core.gateway-url=${GATEWAY_URL} \
 --wecube.core.plugin.plugin-package-name-of-deploy=salt-stack-deployment \
 --wecube.core.cmdb-data.enum-category-ci-type-zoom-levels=ci_zoom_level \
 --wecube.core.plugin.static-resource-server-ip=${STATIC_RESOURCE_SERVER_IP} \
