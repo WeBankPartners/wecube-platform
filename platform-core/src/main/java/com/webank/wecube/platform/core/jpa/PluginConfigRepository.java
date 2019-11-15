@@ -20,7 +20,9 @@ public interface PluginConfigRepository extends CrudRepository<PluginConfig, Int
 
     @Query("SELECT DISTINCT inf FROM PluginConfig cfg JOIN cfg.interfaces inf LEFT JOIN FETCH inf.inputParameters LEFT JOIN FETCH inf.outputParameters WHERE inf.serviceName = :serviceName and cfg.status=:status")
     List<PluginConfigInterface> findAllPluginConfigInterfaceByServiceNameAndStatusAndFetchParameters(String serviceName, Status status);
-    
+
+    Optional<List<PluginConfig>> findByStatus(Status status);
+
     default Optional<PluginConfigInterface> findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(String serviceName) {
         List<PluginConfigInterface> onlineInterfaces = findAllPluginConfigInterfaceByServiceNameAndStatusAndFetchParameters(serviceName, ENABLED);
         PluginConfigInterface pluginConfigInterface = pickLastOne(onlineInterfaces, new PluginInterfaceVersionComparator());
