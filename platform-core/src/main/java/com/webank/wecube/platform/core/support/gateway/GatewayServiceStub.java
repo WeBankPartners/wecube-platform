@@ -21,7 +21,7 @@ public class GatewayServiceStub {
     public GatewayResponse registerRoute(RegisterRouteItemsDto requestBody) {
         String targetUrl = "http://" + applicationProperties.getGatewayUrl() + REGISTER_ROUTE_ITEMS;
         log.info("About to POST {} to GATEWAY with requestBody {}", targetUrl, requestBody);
-        GatewayResponse response = restTemplate.postForObject(REGISTER_ROUTE_ITEMS, requestBody, GatewayResponse.class);
+        GatewayResponse response = restTemplate.postForObject(targetUrl, requestBody, GatewayResponse.class);
         log.info("GATEWAY response: {} ", response);
         return response;
     }
