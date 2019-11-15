@@ -2,7 +2,12 @@
   <Header>
     <div class="menus">
       <Menu mode="horizontal" theme="dark">
-        <Submenu v-for="menu in menus" :name="menu.code" :key="menu.code">
+        <Submenu
+          v-for="menu in menus"
+          :name="menu.code"
+          :key="menu.code"
+          :disabled="menu.submenus.length < 1"
+        >
           <template slot="title">
             {{ menu.title }}
           </template>
