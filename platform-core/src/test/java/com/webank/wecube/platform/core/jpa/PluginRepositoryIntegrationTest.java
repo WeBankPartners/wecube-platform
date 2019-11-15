@@ -139,7 +139,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
                 newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
         PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity",
                 PluginConfig.Status.DISABLED, newLinkedHashSet());
-        mockPlugin.addPluginConfigInterface(mockPluginConfigInterface(mockPlugin));
+        mockPlugin.setInterfaces(newLinkedHashSet(mockPluginConfigInterface(mockPlugin)));
         mockPluginPackage.addPluginConfig(mockPlugin);
 
         Long now = System.currentTimeMillis();
