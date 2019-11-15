@@ -1,28 +1,49 @@
 <template>
-  <WeTable
-    :tableData="tableData"
-    :tableOuterActions="outerActions"
-    :tableInnerActions="null"
-    :tableColumns="tableColumns"
-    @actionFun="actionFun"
-    @getSelectedRows="onSelectedRowsChange"
-    ref="table"
-  />
+  <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
+    <TabPane :closable="false" name="server" :label="$t('server')">
+      <WeTable
+        :tableData="tableData"
+        :tableOuterActions="outerActions"
+        :tableInnerActions="null"
+        :tableColumns="tableColumns"
+        @actionFun="actionFun"
+        @getSelectedRows="onSelectedRowsChange"
+        ref="table"
+      />
+    </TabPane>
+    <TabPane :closable="false" name="service" :label="$t('service')">
+      <WeTable
+        :tableData="serviceTableData"
+        :tableOuterActions="null"
+        :tableInnerActions="null"
+        :tableColumns="serviceTableColumns"
+        :showCheckbox="false"
+        ref="serviceTable"
+      />
+    </TabPane>
+  </Tabs>
 </template>
 
 <script>
 import {
   getResourceServerType,
   getResourceServerStatus,
+  getResourceItemStatus,
+  getResourceItemType,
   retrieveServers,
   createServers,
   updateServers,
-  deleteServers
+  deleteServers,
+  createItems,
+  deleteItems,
+  retrieveItems,
+  updateItems
 } from "@/api/server.js";
 import { outerActions } from "@/const/actions.js";
 export default {
   data() {
     return {
+      currentTab: "server",
       outerActions,
       tableData: [],
       tableColumns: [
@@ -138,10 +159,24 @@ export default {
           inputType: "select",
           placeholder: "type"
         }
-      ]
+      ],
+      serviceTableData: [],
+      serviceTableColumns: []
     };
   },
   methods: {
+    async handleTabClick(tab) {
+      switch (tab) {
+        case "server":
+          this.queryData();
+          break;
+        case "service":
+          this.queryServiceData();
+          break;
+        default:
+          break;
+      }
+    },
     async queryData() {
       const { status, message, data } = await retrieveServers({});
       if (status === "OK") {
@@ -185,6 +220,18 @@ export default {
           "options",
           typeOptions
         );
+      }
+    },
+    async getResourceItemStatus() {
+      const { status, message, data } = await getResourceItemStatus({});
+      if (status === "OK") {
+        console.log("getResourceItemStatus:", data);
+      }
+    },
+    async getResourceItemType() {
+      const { status, message, data } = await getResourceItemType({});
+      if (status === "OK") {
+        console.log("getResourceItemType:", data);
       }
     },
     actionFun(type, data) {
@@ -366,11 +413,23 @@ export default {
         });
     },
     // TODO
-    async exportHandler() {}
+    async exportHandler() {},
+    async queryServiceData() {
+      const { status, message, data } = await retrieveItems({});
+      if (status === "OK") {
+        console.log(JSON.parse(JSON.stringify(data)));
+        this.serviceTableData = data.contents.map(_ => {
+          _.isAllocated = _.isAllocated ? "true" : "false";
+          return _;
+        });
+      }
+    }
   },
   mounted() {
     this.getResourceServerType();
     this.getResourceServerStatus();
+    this.getResourceItemStatus();
+    this.getResourceItemType();
     this.queryData();
   }
 };
