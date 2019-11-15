@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.interceptor.UsernameStorage;
-import com.webank.wecube.platform.core.service.resource.ResourceAvaliableStatus;
+import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
@@ -106,7 +106,7 @@ public class ResourceItemDto {
 
     private static void updateSystemFieldsWithDefaultValues(ResourceItem resourceItem) {
         if (resourceItem.getStatus() == null) {
-            resourceItem.setStatus(ResourceAvaliableStatus.CREATED.getCode());
+            resourceItem.setStatus(ResourceItemStatus.CREATED.getCode());
         }
 
         if (resourceItem.getCreatedBy() == null) {
@@ -128,7 +128,7 @@ public class ResourceItemDto {
     }
 
     private static void validateItemStatus(String status) {
-        if (ResourceAvaliableStatus.fromCode(status) == ResourceAvaliableStatus.NONE) {
+        if (ResourceItemStatus.fromCode(status) == ResourceItemStatus.NONE) {
             throw new WecubeCoreException(String.format("Unsupported resource item status [%s].", status));
         }
     }

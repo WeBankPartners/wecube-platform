@@ -87,7 +87,22 @@ export const deleteRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
     `/platform/v1/admin/role-citypes/${roleCitypeId}/ctrl-attributes/delete`,
     data
   );
-
+export const getAllSystemVariables = status =>
+  req.get(
+    `/platform/v1/system-variables/all${status ? "?status=" + status : ""}`
+  );
+export const retrieveServers = data =>
+  req.post("/platform/resource/servers/retrieve", data);
+export const createServers = data =>
+  req.post("/platform/resource/servers/create", data);
+export const updateServers = data =>
+  req.post("/platform/resource/servers/update", data);
+export const deleteServers = data =>
+  req.post("/platform/resource/servers/delete", data);
+export const getResourceServerStatus = () =>
+  req.get("/platform/resource/constants/resource-server-status");
+export const getResourceServerType = () =>
+  req.get("/platform//resource/constants/resource-server-types");
 //enum
 export const getEnumList = data =>
   req.post(`/platform/v1/cmdb/enum/codes/query`, data);

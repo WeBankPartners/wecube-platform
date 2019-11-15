@@ -10,7 +10,8 @@ import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.interceptor.UsernameStorage;
-import com.webank.wecube.platform.core.service.resource.ResourceAvaliableStatus;
+import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
+import com.webank.wecube.platform.core.service.resource.ResourceServerStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
 
 import lombok.AllArgsConstructor;
@@ -115,7 +116,7 @@ public class ResourceServerDto {
 
     private static void updateSystemFieldsWithDefaultValues(ResourceServer resourceServer) {
         if (resourceServer.getStatus() == null) {
-            resourceServer.setStatus(ResourceAvaliableStatus.CREATED.getCode());
+            resourceServer.setStatus(ResourceItemStatus.CREATED.getCode());
         }
 
         if (resourceServer.getCreatedBy() == null) {
@@ -137,8 +138,8 @@ public class ResourceServerDto {
     }
 
     private static void validateItemStatus(String status) {
-        if (ResourceAvaliableStatus.fromCode(status) == ResourceAvaliableStatus.NONE) {
-            throw new WecubeCoreException(String.format("Unsupported resource item status [%s].", status));
+        if (ResourceServerStatus.fromCode(status) == ResourceServerStatus.NONE) {
+            throw new WecubeCoreException(String.format("Unsupported resource server status [%s].", status));
         }
     }
 }
