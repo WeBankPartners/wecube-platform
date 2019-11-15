@@ -48,20 +48,11 @@ public class PluginConfig {
     @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginConfigInterface> interfaces = new LinkedHashSet<>();
 
-    public void addPluginConfigInterface(PluginConfigInterface pluginConfigInterface) {
-        this.interfaces.add(pluginConfigInterface);
-    }
-
     @JsonInclude
     @EqualsAndHashCode.Include
     @ToString.Include
     public Integer getPluginPackageId() {
         return pluginPackage == null ? null : pluginPackage.getId();
-    }
-
-    public void setPluginPackageId(Integer pluginPackageId) {
-        this.pluginPackage = new PluginPackage();
-        this.pluginPackage.setId(pluginPackageId);
     }
 
     public Integer getId() {
