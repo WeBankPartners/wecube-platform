@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="data.dynamic" style="padding-left:3px;margin-bottom: 10px">
+    <div v-if="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
       <Button
         size="small"
         shape="circle"
@@ -41,7 +41,7 @@ export default {
   watch: {
     pkgId: {
       handler: () => {
-        this.data = {};
+        this.dataModel = {};
         this.getData(false);
       }
     }
@@ -56,7 +56,7 @@ export default {
   },
   methods: {
     async getData(ispull) {
-      let { status, data, message } = this.data.dynamic
+      let { status, data, message } = this.dataModel.dynamic
         ? await pullDynamicDataModel(this.pkgId)
         : await getPluginPkgDataModel(this.pkgId);
       if (status === "OK") {
@@ -78,6 +78,12 @@ export default {
     },
     async applyNewDataModel() {
       let { status, data, message } = await applyNewDataModel(this.dataModel);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: "Data model apply successfully"
+        });
+      }
     },
 
     genDOT() {
