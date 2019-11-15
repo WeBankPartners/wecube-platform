@@ -1,11 +1,19 @@
 package com.webank.wecube.platform.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-import javax.persistence.*;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Table(name = "system_variables")
@@ -20,10 +28,14 @@ public class SystemVariable {
 	@GeneratedValue
 	private Integer id;
 
-	@JsonBackReference
-	@ManyToOne
-	@JoinColumn(name = "plugin_package_id")
-	private PluginPackage pluginPackage;
+	@Column(name = "plugin_package_id")
+    private Integer pluginPackageId;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "plugin_package_id", insertable = false, updatable = false)
+    private PluginPackage pluginPackage;
 
 	@Column
 	private String name;
@@ -149,4 +161,12 @@ public class SystemVariable {
 	public String toString() {
 		return ReflectionToStringBuilder.toStringExclude(this, new String[] {"pluginPackage"});
 	}
+
+    public Integer getPluginPackageId() {
+        return pluginPackageId;
+    }
+
+    public void setPluginPackageId(Integer pluginPackageId) {
+        this.pluginPackageId = pluginPackageId;
+    }
 }
