@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WecubeCoreException.class)
     @ResponseBody
     public CommonResponseDto handleWecubeException(WecubeCoreException e) {
-        String errMsg = String.format("Proccessing failed cause by %s:%s", e.getClass().getSimpleName(),
+        String errMsg = String.format("Processing failed cause by %s:%s", e.getClass().getSimpleName(),
                 e.getMessage() == null ? "" : e.getMessage());
         log.error(errMsg+"\n", e);
         return CommonResponseDto.error(e.getMessage());
@@ -32,8 +32,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     @ResponseBody
     public CommonResponseDto defaultErrorHandler(HttpServletRequest req, Exception e) throws Exception {
-        log.error("errors ocurred:", e);
-        log.error("---DefaultException Handler---Host {} invokes url {} ERROR: {}", req.getRemoteHost(), req.getRequestURL(), e.getMessage());
+        log.error("errors occurred:", e);
+        log.error("GlobalExceptionHandler: RequestHost {} invokes url {} ERROR: {}", req.getRemoteHost(), req.getRequestURL(), e.getMessage());
         return CommonResponseDto.error(e.getMessage());
     }
 
