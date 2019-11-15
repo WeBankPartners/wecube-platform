@@ -25,6 +25,9 @@ export const getFlowNodes = flowId =>
 
 export const getAllDataModels = () => req.get(`platform/v1/models`);
 
+export const getPluginInterfaceList = () =>
+  req.get(`platform/v1/plugins/interfaces/enabled`);
+
 // admin
 
 export const getAllUsers = () => req.get("/platform/v1/admin/users");
