@@ -42,7 +42,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
             statement.executeUpdate(String.format("CREATE SCHEMA %s", item.getName()));
             mysqlAccountManagementService.createItem(item);
         } catch (SQLException e) {
-            String errorMessage = String.format("Failed to delete schema [%s], meet error [%s].", item.getName(), e.getMessage());
+            String errorMessage = String.format("Failed to create schema [%s], meet error [%s].", item.getName(), e.getMessage());
             log.error(errorMessage);
             throw new WecubeCoreException(errorMessage, e);
         }
