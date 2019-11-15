@@ -182,7 +182,7 @@ export default {
           if (!this.autoFillLastObjValue) {
             this.$refs.textarea.value = this.inputVal;
             this.$Message.error({
-              content: this.$t("select_ci_first")
+              content: this.$t("select_entity_first")
             });
           } else {
             const objList = JSON.parse(this.autoFillLastObjValue);
