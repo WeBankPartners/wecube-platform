@@ -27,7 +27,6 @@ import java.util.Set;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.webank.wecube.platform.core.jpa.PluginRepositoryIntegrationTest.mockPluginPackage;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     public static final int NON_EXIST_PACKAGE_ID = 9999;
@@ -118,8 +117,9 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         Set<PluginPackageDataModelDto> registeredAllDataModelList = pluginPackageDataModelService.overview();
         assertThat(registeredAllDataModelList.size()).isEqualTo(PACKAGE_SIZE - 1);  // because the package 2 hasn't been registered to database
         registeredAllDataModelList.forEach(registeredDataModel -> assertThat(registeredDataModel.getPluginPackageEntities().size()).isEqualTo(MOCK_SIZE_PER_PACKAGE));
-        registeredAllDataModelList.forEach(registeredDataModel -> registeredDataModel.getPluginPackageEntities().forEach(entity->assertThat(entity.getAttributes().size()).isEqualTo(3)));
+        registeredAllDataModelList.forEach(registeredDataModel -> registeredDataModel.getPluginPackageEntities().forEach(entity -> assertThat(entity.getAttributes().size()).isEqualTo(3)));
     }
+
 
     @Test
     public void whenPackageViewByPackageIdShouldSuccess() {
@@ -136,6 +136,17 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     public void givenPackageNotExistWhenQueryDataModelThenReturnSuccessNull() {
         PluginPackageDataModelDto foundEntityDtoListByPackageNameAndVersion = pluginPackageDataModelService.packageView(NON_EXIST_PACKAGE_NAME);
         assertThat(foundEntityDtoListByPackageNameAndVersion).isNull();
+    }
+
+    @Test
+    public void whenGetRefByInfoShouldSucceed() {
+        int REF_BY_COUNT = 4;
+        pluginPackageDataModelService.register(mockPluginPackageDataModelDtoWithIdAsAttribute("Package_1", "1.0"));
+        pluginPackageDataModelService.register(mockPluginPackageDataModelDtoWithIdAsAttribute("Package_2", "1.0"));
+        pluginPackageDataModelService.register(mockPluginPackageDataModelDtoWithIdAsAttribute("Package_3", "1.0"));
+        assertThat(pluginPackageDataModelService.getRefByInfo("Package_1", "Entity_1").size()).isEqualTo(REF_BY_COUNT);
+        assertThat(pluginPackageDataModelService.getRefByInfo("Package_2", "Entity_1").size()).isEqualTo(REF_BY_COUNT);
+        assertThat(pluginPackageDataModelService.getRefByInfo("Package_3", "Entity_1").size()).isEqualTo(REF_BY_COUNT);
     }
 
     private PluginPackageDataModelDto mockPluginPackageDataModelDto(String packageName, String packageVersion) {
@@ -288,6 +299,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
 
         return dataModelDto;
     }
+
     private List<PluginPackageEntityDto> mockPluginPackageEntityDtoListByRegisteredPackage(String packageName, Integer dataModelVersion) {
 
         List<PluginPackageEntityDto> pluginPackageEntityDtoList = new ArrayList<>();
@@ -410,7 +422,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeUNREGISTERED() throws Exception {
+    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeUNREGISTERED() {
         mockSimpleDataModel();
 
         String packageName = "package_1";
@@ -430,8 +442,8 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
 
         // clean all the IDs so that no key violation.
         pluginPackageDataModelDto.setId(null);
-        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.setId(null));
-        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity->entity.getAttributes().forEach(attribute->attribute.setId(null)));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.setId(null));
+        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.getAttributes().forEach(attribute -> attribute.setId(null)));
 
         PluginPackageEntityDto entity = pluginPackageDataModelDto.getPluginPackageEntities().iterator().next();
         String entityName = entity.getName();
@@ -468,10 +480,50 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
                         ";\n" +
                         "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
                         "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
-                        ";\n"
-                ;
+                        ";\n";
         executeSql(sqlStr);
 
+    }
+
+    private PluginPackageDataModelDto mockPluginPackageDataModelDtoWithIdAsAttribute(String packageName, String packageVersion) {
+
+        Set<PluginPackageEntityDto> pluginPackageEntityDtos = newLinkedHashSet();
+        // mock a registered plugin first then save
+        PluginPackage package_1 = mockPluginPackage(packageName, packageVersion);
+        pluginPackageRepository.save(package_1);
+
+        Long now = System.currentTimeMillis();
+        PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto(null, 1, package_1.getName(), false, null, null, PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name(), now, null);
+
+        // mock the entityDto list with nested attribute List inside
+
+        for (int i = 0; i < MOCK_SIZE_PER_PACKAGE; i++) {
+            PluginPackageEntityDto entityDto = new PluginPackageEntityDto();
+            entityDto.setName(String.format("Entity_%d", i + 1));
+            entityDto.setPackageName(packageName);
+            entityDto.setDataModelVersion(dataModelDto.getVersion());
+            entityDto.setDescription(String.format("Entity_%d_description", i + 1));
+            List<PluginPackageAttributeDto> pluginPackageAttributeDtoList = new ArrayList<>();
+            for (int j = 0; j < MOCK_SIZE_PER_PACKAGE; j++) {
+                PluginPackageAttributeDto attributeDto = new PluginPackageAttributeDto();
+                attributeDto.setDescription(String.format("Attribute_%d", j));
+                if (j == 0) attributeDto.setName("id");
+                else attributeDto.setName(String.format("Attribute_%d", j));
+                attributeDto.setDataType("str");
+                if (i >= 1 && j >= 1) {
+                    attributeDto.setDataType("ref");
+                    attributeDto.setRefPackageName(packageName);
+                    attributeDto.setRefEntityName("Entity_1");
+                    attributeDto.setRefAttributeName("id");
+                }
+                pluginPackageAttributeDtoList.add(attributeDto);
+            }
+            entityDto.setAttributes(pluginPackageAttributeDtoList);
+            pluginPackageEntityDtos.add(entityDto);
+        }
+        dataModelDto.setPluginPackageEntities(pluginPackageEntityDtos);
+
+        return dataModelDto;
     }
 
 }

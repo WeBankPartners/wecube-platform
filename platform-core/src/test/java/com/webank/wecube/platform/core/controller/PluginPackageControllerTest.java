@@ -154,6 +154,22 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void givenFourPackagesWhenQueryWithDistinctNameShouldReturnNameList() {
+        mockMultipleVersionPluginPackage();
+        final int DISTINCT_PACKAGE_NAME_SIZE = 1;
+        try {
+            mvc.perform(get("/v1/packages?distinct=true").accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data", is(iterableWithSize(DISTINCT_PACKAGE_NAME_SIZE))))
+                    .andExpect(jsonPath("$.data[*]", contains("cmdb")))
+                    .andDo(print())
+                    .andReturn().getResponse();
+        } catch (Exception e) {
+            fail("Failed to upload plugin package in PluginPackageController: " + e.getMessage());
+        }
+    }
+
+    @Test
     public void givenPluginPackageIsUNREGISTEREDWhenRegisterThenReturnSuccessful() {
         mockMultipleVersionPluginPackage();
 
