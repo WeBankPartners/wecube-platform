@@ -10,7 +10,8 @@ import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.interceptor.UsernameStorage;
-import com.webank.wecube.platform.core.service.resource.ResourceAvaliableStatus;
+import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
+import com.webank.wecube.platform.core.service.resource.ResourceServerStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
 
 import lombok.AllArgsConstructor;
@@ -32,6 +33,10 @@ public class ResourceServerDto {
     private Boolean isAllocated;
     private String purpose;
     private String status;
+    private String createdBy;
+    private long createdDate;
+    private String updatedBy;
+    private long updatedDate;
     @JsonIgnore
     private List<ResourceItemDto> resourceItemDtos;
 
@@ -47,6 +52,10 @@ public class ResourceServerDto {
         resourceServerDto.setIsAllocated(resourceServer.getIsAllocated() != null && resourceServer.getIsAllocated() == 1 ? true : false);
         resourceServerDto.setPurpose(resourceServer.getPurpose());
         resourceServerDto.setStatus(resourceServer.getStatus());
+        resourceServerDto.setCreatedBy(resourceServer.getCreatedBy());
+        resourceServerDto.setCreatedDate(resourceServer.getCreatedDate().getTime());
+        resourceServerDto.setUpdatedBy(resourceServer.getUpdatedBy());
+        resourceServerDto.setUpdatedDate(resourceServer.getUpdatedDate().getTime());
         if (resourceServer.getResourceItems() != null) {
             resourceServerDto.setResourceItemDtos(Lists.transform(resourceServer.getResourceItems(), x -> ResourceItemDto.fromDomain(x)));
         }
@@ -107,7 +116,7 @@ public class ResourceServerDto {
 
     private static void updateSystemFieldsWithDefaultValues(ResourceServer resourceServer) {
         if (resourceServer.getStatus() == null) {
-            resourceServer.setStatus(ResourceAvaliableStatus.CREATED.getCode());
+            resourceServer.setStatus(ResourceItemStatus.CREATED.getCode());
         }
 
         if (resourceServer.getCreatedBy() == null) {
@@ -129,8 +138,8 @@ public class ResourceServerDto {
     }
 
     private static void validateItemStatus(String status) {
-        if (ResourceAvaliableStatus.fromCode(status) == ResourceAvaliableStatus.NONE) {
-            throw new WecubeCoreException(String.format("Unsupported resource item status [%s].", status));
+        if (ResourceServerStatus.fromCode(status) == ResourceServerStatus.NONE) {
+            throw new WecubeCoreException(String.format("Unsupported resource server status [%s].", status));
         }
     }
 }

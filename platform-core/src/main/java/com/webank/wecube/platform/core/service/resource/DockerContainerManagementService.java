@@ -179,7 +179,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
 
     @Override
     public ResourceItem updateItem(ResourceItem item) {
-        switch (ResourceAvaliableStatus.fromCode(item.getStatus())) {
+        switch (ResourceItemStatus.fromCode(item.getStatus())) {
         case RUNNING:
             startItem(item);
             break;
