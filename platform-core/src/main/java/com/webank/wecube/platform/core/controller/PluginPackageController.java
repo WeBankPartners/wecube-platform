@@ -3,14 +3,15 @@ package com.webank.wecube.platform.core.controller;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.dto.PluginConfigDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.*;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
+import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
-import static com.webank.wecube.platform.core.domain.JsonResponse.error;
-import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
+import static com.webank.wecube.platform.core.domain.JsonResponse.*;
 
 @RestController
 @RequestMapping("/v1")
@@ -52,9 +50,13 @@ public class PluginPackageController {
 
     @GetMapping("/packages")
     @ResponseBody
-    public JsonResponse getAllPluginPackages() {
-        Iterable<PluginPackage> pluginPackages = pluginPackageService.getPluginPackages();
-        return okayWithData(pluginPackages);
+    public JsonResponse getAllPluginPackages(@RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
+        if (ifDistinct) {
+            return okayWithData(pluginPackageService.getAllDistinctPluginPackageNameList());
+        } else {
+            return okayWithData(pluginPackageService.getPluginPackages());
+        }
+
     }
 
     @PostMapping("/packages/register/{package-id}")
