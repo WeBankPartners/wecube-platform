@@ -45,6 +45,7 @@ window.needReLoad = true;
 window.routers = [];
 
 window.addRoutes = (route, name) => {
+  console.log(route, name);
   window.routers = window.routers.concat(route);
   router.addRoutes([
     {
