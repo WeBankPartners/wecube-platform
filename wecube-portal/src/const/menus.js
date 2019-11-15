@@ -252,6 +252,18 @@ export const MENUS = [
     link: "/admin/core/base-data-management"
   },
   {
+    code: "ADMIN_SYSTEM_PARAMS",
+    cnName: "系统参数",
+    enName: "System Params",
+    link: "/admin/system-params"
+  },
+  {
+    code: "ADMIN_RESOURCES_MANAGEMENT",
+    cnName: "资源管理",
+    enName: "Resources",
+    link: "/admin/resources"
+  },
+  {
     code: "IMPLEMENTATION_WORKFLOW_EXECUTION",
     cnName: "编排任务执行",
     enName: "Workflow Execution",
