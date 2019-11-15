@@ -1,7 +1,9 @@
 package com.webank.wecube.platform.core.service;
 
+import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 
+import java.util.List;
 import java.util.Set;
 
 public interface PluginPackageDataModelService {
@@ -15,5 +17,7 @@ public interface PluginPackageDataModelService {
     PluginPackageDataModelDto packageView(String packageName);
 
     PluginPackageDataModelDto pullDynamicDataModel(String packageName);
+
+    List<PluginPackageAttributeDto> getRefByInfo(String packageName, String entityName);
 
 }
