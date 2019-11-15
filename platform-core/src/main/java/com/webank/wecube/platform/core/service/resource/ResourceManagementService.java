@@ -20,6 +20,7 @@ import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.ResourceServerDto;
+import com.webank.wecube.platform.core.dto.Sorting;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
@@ -45,10 +46,20 @@ public class ResourceManagementService {
     private ResourceImplementationService resourceImplementationService;
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequest queryRequest) {
+        queryRequest = applyDefaultSortingAsDesc(queryRequest);
         QueryResponse<ResourceServer> queryResponse = entityRepository.query(ResourceServer.class, queryRequest);
         List<ResourceServerDto> resourceServerDto = Lists.transform(queryResponse.getContents(),
                 x -> ResourceServerDto.fromDomain(x));
         return new QueryResponse<>(queryResponse.getPageInfo(), resourceServerDto);
+    }
+
+    private QueryRequest applyDefaultSortingAsDesc(QueryRequest queryRequest) {
+        if (queryRequest == null) {
+            queryRequest = QueryRequest.defaultQueryObject().descendingSortBy("createdDate");
+        } else if (queryRequest.getSorting() == null || queryRequest.getSorting().getField() == null) {
+            queryRequest.setSorting(new Sorting(false, "createdDate"));
+        }
+        return queryRequest;
     }
 
     @Transactional
@@ -92,6 +103,7 @@ public class ResourceManagementService {
     }
 
     public QueryResponse<ResourceItemDto> retrieveItems(QueryRequest queryRequest) {
+        queryRequest = applyDefaultSortingAsDesc(queryRequest);
         QueryResponse<ResourceItem> queryResponse = entityRepository.query(ResourceItem.class, queryRequest);
         List<ResourceItemDto> resourceItemsDto = Lists.transform(queryResponse.getContents(),
                 x -> ResourceItemDto.fromDomain(x));
