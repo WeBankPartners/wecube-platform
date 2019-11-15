@@ -213,7 +213,7 @@
   "mins": "分钟",
   "preview": "预览",
   "cannot_preview": "无法预览",
-  "select_ci_first": "请先选择CI类型",
+  "select_entity_first": "请先选择实体类型",
   "select_idc": "请选择IDC",
   "query": "查询",
   "resource_planning_map": "资源规划图",
