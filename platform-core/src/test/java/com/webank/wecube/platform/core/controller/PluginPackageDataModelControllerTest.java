@@ -280,7 +280,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 .andRespond(withSuccess(JsonUtils.toJsonString(JsonResponse.okayWithData(pluginPackageDataModelDto.getPluginPackageEntities())), MediaType.APPLICATION_JSON));
 
         try {
-            mvc.perform(get("/v1//models/package/" + packageName))
+            mvc.perform(get("/v1/models/package/" + packageName))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
                     .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
