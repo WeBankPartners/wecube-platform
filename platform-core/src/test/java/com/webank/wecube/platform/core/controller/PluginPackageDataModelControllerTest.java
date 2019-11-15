@@ -25,6 +25,7 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.client.RestTemplate;
+import com.webank.wecube.platform.core.controller.AbstractControllerTest;
 
 import java.io.File;
 import java.util.Optional;
