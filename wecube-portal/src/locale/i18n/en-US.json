@@ -213,7 +213,7 @@
   "mins": "Mins",
   "preview": "Preview",
   "cannot_preview": "Can not preview",
-  "select_ci_first": "Please select CI first",
+  "select_entity_first": "Please select Entity Type first",
   "select_idc": "Please Select IDC",
   "query": "Submit",
   "resource_planning_map": "Resource Planning Graph",
@@ -293,5 +293,6 @@
   "notification_desc": "Please wait a moment until all plugins loaded",
   "plugin_load": "plugin loaded",
   "get_dynamic_model": "Sync data model",
-  "apply_data_model": "Apply data model"
+  "apply_data_model": "Apply data model",
+  "instance_type": "Entity Type"
 }

@@ -3,53 +3,71 @@
     <Row style="margin-bottom: 10px">
       <Col span="6">
         <span style="margin-right: 10px">{{ $t("flow_name") }}</span>
-        <Select
-          filterable
-          clearable
-          @on-clear="createNewDiagram"
-          @on-change="onFlowSelect"
-          label-in-value
-          style="width: 70%"
-        >
+        <Select filterable clearable v-model="selectedFlow" style="width: 70%">
           <Option
-            v-for="item in allFlows"
-            :value="item.definitionId"
-            :key="item.definitionId"
-            >{{ item.processName || "-" }}</Option
+            v-for="(item, index) in allFlows"
+            :value="item.procDefId"
+            :key="item.procDefId"
           >
+            {{
+              index === 0
+                ? ""
+                : (item.procDefName || "Null") +
+                  "-" +
+                  item.procDefId +
+                  (item.status === "draft" ? "*" : "")
+            }}
+            <Button
+              v-if="index === 0"
+              @click="createNewDiagram()"
+              icon="md-add"
+              type="success"
+              size="small"
+              style="width: 100%;"
+            ></Button>
+            <span v-else style="float:right">
+              <Button
+                @click.stop.prevent="deleteFlow(item.procDefId)"
+                icon="ios-trash"
+                type="error"
+                size="small"
+              ></Button>
+            </span>
+          </Option>
         </Select>
       </Col>
       <Col span="6" ofset="1">
-        <span style="margin-right: 10px">{{ $t("ci_type") }}</span>
+        <span style="margin-right: 10px">{{ $t("instance_type") }}</span>
         <Select
-          @on-change="onCISelect"
-          label-in-value
-          v-model="selectedCI.value"
+          @on-change="onEntitySelect"
+          v-model="currentSelectedEntity"
           style="width: 70%"
         >
           <OptionGroup
-            v-for="group in allCITypes"
-            :label="group.value || '-'"
-            :key="group.code"
+            :label="pluginPackage.packageName"
+            v-for="(pluginPackage, index) in allEntityType"
+            :key="index"
           >
             <Option
-              v-for="item in group.ciTypes"
-              :value="item.ciTypeId || ''"
-              :key="item.ciTypeId"
-              >{{ item.name || "-" }}</Option
+              v-for="item in pluginPackage.pluginPackageEntities"
+              :value="pluginPackage.packageName + ':' + item.name"
+              :key="item.name"
+              >{{ item.name }}</Option
             >
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram">{{ $t("save_flow") }}</Button>
-      <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button>
+      <Button type="info" @click="saveDiagram(false)">{{
+        $t("save_flow")
+      }}</Button>
+      <!-- <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button> -->
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">{{
-          $t("config_plugin")
-        }}</a>
+        <a href="javascript:void(0);" @click="openPluginModal">
+          {{ $t("config_plugin") }}
+        </a>
         <br />
       </div>
 
@@ -67,33 +85,8 @@
         label-position="left"
         :label-width="100"
       >
-        <FormItem
-          :label="$t('node_type')"
-          prop="nodeType"
-          style="display: none"
-        >
-          <Select filterable clearable v-model="pluginForm.nodeType">
-            <Option
-              v-for="item in allNodeTypes"
-              :value="item.value"
-              :key="item.value"
-              >{{ item.label }}</Option
-            >
-          </Select>
-        </FormItem>
-        <FormItem :label="$t('locate_rules')" prop="rules">
-          <div style="width: 100%">
-            <AttrInput
-              :allCiTypes="allCITypes"
-              :cmdbColumnSource="pluginForm.ciRoutineRaw"
-              :rootCiType="selectedCI.value"
-              v-model="pluginForm.rules"
-              :ciTypesObj="this.ciTypesObj"
-              :ciTypeAttributeObj="this.ciTypeAttributeObj"
-              @change="setRootFilterRule"
-              :isEndWithCIType="true"
-            />
-          </div>
+        <FormItem :label="$t('locate_rules')" prop="routineExpression">
+          <Input v-model="pluginForm.routineExpression" />
         </FormItem>
         <FormItem :label="$t('plugin')" prop="serviceName">
           <Select filterable clearable v-model="pluginForm.serviceId">
@@ -115,31 +108,45 @@
         <FormItem :label="$t('description')" prop="description">
           <Input v-model="pluginForm.description" />
         </FormItem>
+        <hr style="margin-bottom: 20px" />
+        <FormItem
+          :label="item.paramName"
+          :prop="item.paramName"
+          v-for="(item, index) in pluginForm.paramInfos"
+          :key="index"
+        >
+          <Select
+            v-model="item.bindNodeId"
+            style="width:200px"
+            @on-change="onParamsNodeChange(index)"
+          >
+            <Option
+              v-for="i in currentflowsNodes"
+              :value="i.value"
+              :key="i.value"
+              >{{ i.label }}</Option
+            >
+          </Select>
+          <Select v-model="item.bindParamType" style="width:200px">
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
+              i.label
+            }}</Option>
+          </Select>
+          <Select v-model="item.bindParamName" style="width:200px">
+            <Option
+              v-for="i in item.currentParamNames"
+              :value="i.value"
+              :key="i.value"
+              >{{ i.label }}</Option
+            >
+          </Select>
+        </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')"
-          >Submit</Button
-        >
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
+          $t("confirm")
+        }}</Button>
       </div>
-    </Modal>
-    <Modal
-      v-model="calcFlowModalVisible"
-      width="60"
-      :title="$t('preview')"
-      @on-ok="resetFlowCalcResult"
-      @on-cancel="resetFlowCalcResult"
-    >
-      <Row class="attrs" v-for="item in calcFlowResult" :key="item.name">
-        <h4>{{ item.name }}</h4>
-        <Tag
-          v-if="attr.isDisplayed"
-          v-for="attr in item.attrs"
-          type="dot"
-          :color="attr.isHighlight ? 'success' : ''"
-          :key="attr.ciTypeAttrId"
-          >{{ attr.name }}</Tag
-        >
-      </Row>
     </Modal>
   </div>
 </template>
@@ -163,12 +170,15 @@ import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
 import {
-  getAllCITypesByLayerWithAttr,
   getAllFlow,
   saveFlow,
+  saveFlowDraft,
   getFlowDetailByID,
   getLatestOnlinePluginInterfaces,
-  getFlowPreview
+  getFlowNodes,
+  getParamsInfosByFlowIdAndNodeId,
+  getAllDataModels,
+  getPluginInterfaceList
 } from "@/api/server.js";
 
 import AttrInput from "../components/attr-input";
@@ -197,44 +207,61 @@ export default {
   },
   data() {
     return {
-      ciTypesObj: {},
-      ciTypeAttributeObj: {},
+      newFlowID: "",
       bpmnModeler: null,
       container: null,
       canvas: null,
       processName: "",
+      currentNode: {
+        id: "",
+        name: ""
+      },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
-      rootFilterRule: {},
-      allFlows: [],
-      allCITypes: [],
-      selectedFlow: {
-        value: "",
-        label: ""
-      },
-      selectedCI: {
-        value: "",
-        label: ""
-      },
-      selectNodeId: "",
-      selectedNodeName: "",
+      allFlows: [{ procDefId: 100000, name: "add_new" }],
+      allEntityType: [],
+      selectedFlow: "",
+      currentSelectedEntity: "",
       pluginModalVisible: false,
-      pluginForm: {
-        rules: {},
-        timeoutExpression: "30" // 默认超时时间30分钟
+
+      pluginForm: {},
+      defaultPluginForm: {
+        description: "",
+        nodeDefId: "",
+        nodeId: "",
+        nodeName: "",
+        nodeType: "",
+        orderedNo: "",
+        paramInfos: [],
+        procDefId: "",
+        procDefKey: "",
+        routineExpression: "",
+        routineRaw: "",
+        serviceId: "",
+        serviceName: "",
+        status: "",
+        timeoutExpression: "30"
       },
       serviceTaskBindInfos: [],
-      allNodeTypes: [
-        { value: 1, label: "人工处理类" },
-        { value: 2, label: "审批类" },
-        { value: 3, label: "执行类" }
-      ],
       allPlugins: [],
-      calcFlowModalVisible: false,
-      calcFlowResult: [],
-      timeSelection: ["5", "10", "20", "30", "60"]
+      timeSelection: ["5", "10", "20", "30", "60"],
+      paramsTypes: [
+        { value: "in", label: "入参" },
+        { value: "out", label: "出参" }
+      ],
+      currentflowsNodes: [
+        { value: "Node1", label: "Node1" },
+        { value: "Node2", label: "Node2" }
+      ]
     };
   },
-  watch: {},
+  watch: {
+    selectedFlow: {
+      handler(val) {
+        val && val !== 100000 && this.getFlowXml(val);
+      }
+      // immediate: true
+    }
+  },
   created() {
     this.init();
   },
@@ -243,77 +270,33 @@ export default {
   },
   methods: {
     init() {
-      this.getAllCITypesByLayerWithAttr();
+      this.getAllDataModels();
       this.getAllFlows();
-      this.getAllPlugins();
+      this.getPluginInterfaceList();
     },
-    setRootFilterRule(v) {
-      this.rootFilterRule = v;
-      this.getAllPlugins();
-    },
-    async getAllCITypesByLayerWithAttr() {
-      let { status, data, message } = await getAllCITypesByLayerWithAttr([
-        "notCreated",
-        "created",
-        "dirty",
-        "decommissioned"
-      ]);
+    async getAllDataModels() {
+      let { data, status, message } = await getAllDataModels();
       if (status === "OK") {
-        let ciTypes = {};
-        let ciTypeAttrs = {};
-
-        let tempCITypes = JSON.parse(JSON.stringify(data));
-        tempCITypes.forEach(_ => {
-          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
-        });
-        this.allCITypes = tempCITypes;
-
-        data.forEach(layer => {
-          if (layer.ciTypes instanceof Array) {
-            layer.ciTypes.forEach(citype => {
-              ciTypes[citype.ciTypeId] = citype;
-              if (citype.attributes instanceof Array) {
-                citype.attributes.forEach(citypeAttr => {
-                  ciTypeAttrs[citypeAttr.ciTypeAttrId] = citypeAttr;
-                });
-              }
-            });
-          }
-        });
-        this.ciTypesObj = ciTypes;
-        this.ciTypeAttributeObj = ciTypeAttrs;
+        this.allEntityType = data;
       }
     },
-    async getAllPlugins() {
-      let routine =
-        this.pluginForm.rules.cmdbColumnCriteria &&
-        this.pluginForm.rules.cmdbColumnCriteria.routine;
-      let ciTypeId = routine && routine[routine.length - 1].ciTypeId;
-      const { data, status, message } = !!routine
-        ? await getLatestOnlinePluginInterfaces(ciTypeId)
-        : await getLatestOnlinePluginInterfaces();
-      if (status === "OK") {
-        this.allPlugins = data;
-      }
+    async getPluginInterfaceList() {
+      let { status, data, message } = await getPluginInterfaceList();
+      this.allPlugins = data;
     },
     async getAllFlows() {
       const { data, message, status } = await getAllFlow();
       if (status === "OK") {
-        this.allFlows = data || [];
+        this.allFlows = this.allFlows.concat(data);
       }
     },
-    onFlowSelect(v) {
-      this.selectedFlow = v;
-      v && this.getFlowXml(v.value);
+    async deleteFlow(id) {
+      console.log("delete flow, id is: ", id);
     },
-
-    onCISelect(v) {
-      this.selectedCI = v;
+    onEntitySelect(v) {
+      this.currentSelectedEntity = v;
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
-      this.pluginForm = {
-        rules: {},
-        timeoutExpression: "30"
-      };
+      this.pluginForm = this.defaultPluginForm;
     },
     resetZoom() {
       var canvas = this.bpmnModeler.get("canvas");
@@ -329,17 +312,17 @@ export default {
       });
     },
     createNewDiagram() {
-      const newFlowID = "wecube" + Date.now();
+      this.newFlowID = "wecube" + Date.now();
       const bpmnXmlStr =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">\n' +
         '  <bpmn2:process id="' +
-        newFlowID +
+        this.newFlowID +
         '" isExecutable="true">\n' +
         "  </bpmn2:process>\n" +
         '  <bpmndi:BPMNDiagram id="BPMNDiagram_1">\n' +
         '    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="' +
-        newFlowID +
+        this.newFlowID +
         '">\n' +
         "    </bpmndi:BPMNPlane>\n" +
         "  </bpmndi:BPMNDiagram>\n" +
@@ -350,72 +333,53 @@ export default {
         }
       });
     },
-    saveDiagram() {
+    saveDiagram(isDraft) {
       let _this = this;
+      const okHandler = data => {
+        this.getAllFlows();
+        this.selectedFlow = data.data.procDefId;
+      };
       this.bpmnModeler.saveXML({ format: true }, function(err, xml) {
         if (!xml) return;
         const xmlString = xml.replace(/[\r\n]/g, "");
         const processName = document.getElementById("camunda-name").innerText;
+
         const payload = {
-          processData: xmlString,
-          processName: processName,
-          rootCiTypeId: _this.selectedCI.value,
-          serviceTaskBindInfos: _this.serviceTaskBindInfos
+          procDefData: xmlString,
+          procDefId: "",
+          procDefKey: _this.newFlowID,
+          procDefName: processName,
+          rootEntity: _this.currentSelectedEntity,
+          status: "",
+          taskNodeInfos: _this.serviceTaskBindInfos
         };
-        saveFlow(payload).then(data => {
-          if (data && data.status === "OK") {
-            _this.$Notice.success({
-              title: "Success",
-              desc: data.message
+
+        isDraft
+          ? saveFlowDraft(payload).then(data => {
+              if (data && data.status === "OK") {
+                _this.$Notice.success({
+                  title: "Success",
+                  desc: data.message
+                });
+                okHandler(data);
+              }
+            })
+          : saveFlow(payload).then(data => {
+              if (data && data.status === "OK") {
+                _this.$Notice.success({
+                  title: "Success",
+                  desc: data.message
+                });
+
+                okHandler(data);
+              }
             });
-            _this.getAllFlows();
-          }
-        });
       });
-    },
-    resetFlowCalcResult() {
-      this.calcFlowModalVisible = false;
-      this.calcFlowResult = [];
-    },
-    async calcFlow() {
-      if (this.serviceTaskBindInfos.length < 1) {
-        this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("cannot_preview")
-        });
-      } else {
-        this.serviceTaskBindInfos.forEach(_ => {
-          delete _.rules;
-          /* ********START COMMENT ********/
-          // TODO: Back end do not support nodeType for now 20190620
-          delete _.nodeType;
-          /* ********END COMMENT *********/
-        });
-        const { data, status, message } = await getFlowPreview(
-          this.serviceTaskBindInfos
-        );
-        if (status === "OK") {
-          this.calcFlowResult = data["ci-types"].map(_ => {
-            return {
-              name: _.name,
-              attrs: _.attributes.map(i => {
-                return {
-                  ...i,
-                  isHighlight: data["required-input-parameters"].includes(
-                    i.ciTypeAttrId
-                  )
-                };
-              })
-            };
-          });
-          this.calcFlowModalVisible = true;
-        }
-      }
     },
     savePluginConfig(ref) {
       let index = -1;
       this.serviceTaskBindInfos.forEach((_, i) => {
-        if (this.selectNodeId === _.nodeId) {
+        if (this.currentNode.id === _.nodeId) {
           index = i;
         }
       });
@@ -429,41 +393,76 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm));
       this.serviceTaskBindInfos.push({
-        version: 0,
         ...pluginFormCopy,
-        nodeId: this.selectNodeId,
-        nodeName: this.selectedNodeName,
-        ciRoutineExp: JSON.stringify(
-          pluginFormCopy.rules.cmdbColumnCriteria.routine
-        ),
-        ciRoutineRaw: JSON.stringify(pluginFormCopy.rules.cmdbColumnSource),
-        serviceName: (found && found.serviceName) || ""
-      });
-      this.serviceTaskBindInfos.forEach(_ => {
-        delete _.rules;
-        /* ********START COMMENT ********/
-        // TODO: Back end do not support nodeType for now 20190620
-        delete _.nodeType;
-        /* ********END COMMENT *********/
+        nodeId: this.currentNode.id,
+        nodeName: this.currentNode.name,
+        serviceName: (found && found.serviceName) || "",
+        routineRaw: pluginFormCopy.routineExpression
       });
       this.pluginModalVisible = false;
+      this.saveDiagram(true);
     },
-    openPluginModal() {
-      if (!this.selectedCI.value) {
+    async openPluginModal() {
+      if (!this.currentSelectedEntity) {
         this.$Notice.warning({
           title: "Warning",
-          desc: this.$t("select_ci_first")
+          desc: this.$t("select_entity_first")
         });
       } else {
         this.pluginModalVisible = true;
-        this.pluginForm = this.serviceTaskBindInfos.find(
-          _ => _.nodeId === this.selectNodeId
-        ) || { rules: this.rootFilterRule, timeoutExpression: "30" };
-        this.$nextTick(() => {
-          document.querySelector(".attr-ul").style.width =
-            document.querySelector(".input_in textarea").clientWidth + "px";
+        this.pluginForm =
+          this.currentFlow.taskNodeInfos.find(
+            _ => _.nodeId === this.currentNode.id
+          ) || this.defaultPluginForm;
+        /* TODO:** to be removed ** */
+        this.pluginForm.paramInfos.push({
+          bindNodeId: "MockNode1",
+          bindParamName: "MockParamsName1",
+          bindParamType: "in",
+          id: "mockId1",
+          nodeId: "nodeid",
+          paramName: "Mock PARAMS A"
+        });
+        this.pluginForm.paramInfos.push({
+          bindNodeId: "MockNode2",
+          bindParamName: "MockParamsName2",
+          bindParamType: "out",
+          id: "MockId2",
+          nodeId: "nodeid",
+          paramName: "Mock PARAMS B"
+        });
+        /* ************* */
+
+        // TODO:get flow's params infos - nodes
+        // this.getFlowsNodes()
+        this.pluginForm.paramInfos.forEach((_, index) => {
+          this.onParamsNodeChange(index);
         });
       }
+    },
+    onParamsNodeChange(index) {
+      this.getParamsOptionsByNode(index);
+    },
+    async getFlowsNodes() {
+      // TODO:
+      // let { status, data, message} = await getFlowNodes(this.currentFlow.procDefId)
+      // if(status === "OK") {
+      //   this.currentflowsNodes = data
+      // }
+    },
+    async getParamsOptionsByNode(index) {
+      // TODO:
+
+      // let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
+      //   this.currentFlow.procDefId,
+      //   this.pluginForm.paramInfos[index].bindNodeId
+      // );
+      // if (status === "OK") {
+      this.pluginForm.paramInfos[index].currentParamNames = [
+        { value: "paramsName1", label: "paramsName1" },
+        { value: "paramsName2", label: "paramsName2" }
+      ];
+      // }
     },
     bindRightClick() {
       var menu = document.getElementById("right_click_menu");
@@ -477,10 +476,10 @@ export default {
           menu.style.display = "block";
           menu.style.left = x - 25 + "px";
           menu.style.top = y - 130 + "px";
-          _this.selectNodeId = e.target.parentNode.getAttribute(
+          _this.currentNode.id = e.target.parentNode.getAttribute(
             "data-element-id"
           );
-          _this.selectedNodeName =
+          _this.currentNode.name =
             (e.target.previousSibling &&
               e.target.previousSibling.children[1] &&
               e.target.previousSibling.children[1].children[0] &&
@@ -503,14 +502,15 @@ export default {
     async getFlowXml(id) {
       const { status, message, data } = await getFlowDetailByID(id);
       if (status === "OK") {
+        this.currentFlow = data;
         const _this = this;
-        this.bpmnModeler.importXML(data.definitionText, function(err) {
+        this.bpmnModeler.importXML(data.procDefData, function(err) {
           if (err) {
             console.error(err);
           }
           _this.bindRightClick();
-          _this.serviceTaskBindInfos = data.serviceTaskBindInfos;
-          _this.selectedCI.value = data.rootCiTypeId || "";
+          _this.serviceTaskBindInfos = data.taskNodeInfos;
+          _this.currentSelectedEntity = data.rootEntity || "";
         });
       }
     },
