@@ -96,13 +96,18 @@
                   </Col>
                   <Col span="4" offset="4">
                     <FormItem :label-width="0">
+                      <PathExp
+                        v-if="param.mappingType === 'context'"
+                        :rootPkg="pkgName"
+                        :rootEntity="currentPluginObj.entityName"
+                      ></PathExp>
                       <span v-if="param.mappingType === 'system_variable'">{{
                         param.mappingSystemVariableId || "N/A"
                       }}</span>
                       <span v-if="param.mappingType === 'entity'">{{
                         param.mappingEntityExpression || "N/A"
                       }}</span>
-                      <span v-if="param.mappingType === 'context'">N/A</span>
+                      <!-- <span v-if="param.mappingType === 'context'">N/A</span> -->
                     </FormItem>
                   </Col>
                   <Col span="3" offset="5">
@@ -194,6 +199,7 @@
   </Row>
 </template>
 <script>
+import PathExp from "../../components/path_exp.vue";
 import {
   getAllPluginByPkgId,
   getAllSystemEnumCodes,
@@ -214,6 +220,9 @@ export default {
       // pluginInterfaces:[]
     };
   },
+  components: {
+    PathExp
+  },
   computed: {
     currentPluginObj() {
       const found = this.plugins.find(
@@ -224,6 +233,9 @@ export default {
   },
   props: {
     pkgId: {
+      required: true
+    },
+    pkgName: {
       required: true
     }
   },
