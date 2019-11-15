@@ -176,18 +176,20 @@ public class PluginPackageService {
                 .register(pluginPackageDto.getPluginPackageDataModelDto());
         Set<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelDto.getPluginPackageEntities();
 
-        Set<PluginConfig> pluginConfigs = newLinkedHashSet();
-        for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
-            for (PluginPackageEntityDto pluginPackageEntityDto : pluginPackageEntityDtos) {
-                String entityNameFromPluginConfig = pluginConfig.getEntityName();
-                String nameFromDto = pluginPackageEntityDto.getName();
-                if (entityNameFromPluginConfig.equals(nameFromDto)) {
-                    pluginConfig.setEntityId(pluginPackageEntityDto.getId());
+        if (null != pluginPackageEntityDtos && pluginPackageEntityDtos.size() > 0 ) {
+            Set<PluginConfig> pluginConfigs = newLinkedHashSet();
+            for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
+                for (PluginPackageEntityDto pluginPackageEntityDto : pluginPackageEntityDtos) {
+                    String entityNameFromPluginConfig = pluginConfig.getEntityName();
+                    String nameFromDto = pluginPackageEntityDto.getName();
+                    if (entityNameFromPluginConfig.equals(nameFromDto)) {
+                        pluginConfig.setEntityId(pluginPackageEntityDto.getId());
+                    }
                 }
+                pluginConfigs.add(pluginConfig);
             }
-            pluginConfigs.add(pluginConfig);
+            pluginConfigRepository.saveAll(pluginConfigs);
         }
-        pluginConfigRepository.saveAll(pluginConfigs);
 
         savedPluginPackage.setPluginPackageDataModel(PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto));
         if (pluginPackageResourceFilesOptional.isPresent()) {
@@ -205,6 +207,11 @@ public class PluginPackageService {
 
     public Iterable<PluginPackage> getPluginPackages() {
         return pluginPackageRepository.findAll();
+    }
+
+    public List<String> getAllDistinctPluginPackageNameList() {
+        Optional<List<String>> allDistinctPackageNameListOpt = pluginPackageRepository.findAllDistinctPackage();
+        return allDistinctPackageNameListOpt.orElseGet(ArrayList::new);
     }
 
     public PluginPackage registerPluginPackage(int pluginPackageId) {

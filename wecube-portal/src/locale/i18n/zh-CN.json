@@ -213,7 +213,7 @@
   "mins": "分钟",
   "preview": "预览",
   "cannot_preview": "无法预览",
-  "select_ci_first": "请先选择CI类型",
+  "select_entity_first": "请先选择实体类型",
   "select_idc": "请选择IDC",
   "query": "查询",
   "resource_planning_map": "资源规划图",
@@ -293,5 +293,6 @@
   "notification_desc": "请等待插件加载完成后再使用插件相关功能",
   "plugin_load": "插件加载完成",
   "get_dynamic_model": "同步数据模型",
-  "apply_data_model": "应用数据模型"
+  "apply_data_model": "应用数据模型",
+  "instance_type": "编排实体类型"
 }
