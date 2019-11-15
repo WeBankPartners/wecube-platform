@@ -32,6 +32,10 @@ public class ResourceServerDto {
     private Boolean isAllocated;
     private String purpose;
     private String status;
+    private String createdBy;
+    private Timestamp createdDate;
+    private String updatedBy;
+    private Timestamp updatedDate;
     @JsonIgnore
     private List<ResourceItemDto> resourceItemDtos;
 
@@ -47,6 +51,10 @@ public class ResourceServerDto {
         resourceServerDto.setIsAllocated(resourceServer.getIsAllocated() != null && resourceServer.getIsAllocated() == 1 ? true : false);
         resourceServerDto.setPurpose(resourceServer.getPurpose());
         resourceServerDto.setStatus(resourceServer.getStatus());
+        resourceServerDto.setCreatedBy(resourceServer.getCreatedBy());
+        resourceServerDto.setCreatedDate(resourceServer.getCreatedDate());
+        resourceServerDto.setUpdatedBy(resourceServer.getUpdatedBy());
+        resourceServerDto.setUpdatedDate(resourceServer.getUpdatedDate());
         if (resourceServer.getResourceItems() != null) {
             resourceServerDto.setResourceItemDtos(Lists.transform(resourceServer.getResourceItems(), x -> ResourceItemDto.fromDomain(x)));
         }
