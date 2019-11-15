@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.service.resource;
 
-public enum ResourceAvaliableStatus {
+public enum ResourceItemStatus {
     NONE("none"),
     CREATED("created"),
     RUNNING("running"),
@@ -8,7 +8,7 @@ public enum ResourceAvaliableStatus {
 
     private String code;
 
-    private ResourceAvaliableStatus(String code) {
+    private ResourceItemStatus(String code) {
         this.code = code;
     }
 
@@ -16,8 +16,8 @@ public enum ResourceAvaliableStatus {
         return code;
     }
 
-    public static ResourceAvaliableStatus fromCode(String code) {
-        for (ResourceAvaliableStatus value : values()) {
+    public static ResourceItemStatus fromCode(String code) {
+        for (ResourceItemStatus value : values()) {
             if (NONE.equals(value))
                 continue;
 
