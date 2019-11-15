@@ -3,24 +3,36 @@
     <Row style="margin-bottom: 10px">
       <Col span="6">
         <span style="margin-right: 10px">{{ $t("flow_name") }}</span>
-        <Select
-          filterable
-          clearable
-          @on-clear="createNewDiagram"
-          v-model="selectedFlow"
-          style="width: 70%"
-        >
+        <Select filterable clearable v-model="selectedFlow" style="width: 70%">
           <Option
-            v-for="item in allFlows"
+            v-for="(item, index) in allFlows"
             :value="item.procDefId"
             :key="item.procDefId"
           >
             {{
-              (item.procDefName || "null") +
-                "-" +
-                item.procDefId +
-                (item.status === "draft" ? "*" : "")
+              index === 0
+                ? ""
+                : (item.procDefName || "Null") +
+                  "-" +
+                  item.procDefId +
+                  (item.status === "draft" ? "*" : "")
             }}
+            <Button
+              v-if="index === 0"
+              @click="createNewDiagram()"
+              icon="md-add"
+              type="success"
+              size="small"
+              style="width: 100%;"
+            ></Button>
+            <span v-else style="float:right">
+              <Button
+                @click.stop.prevent="deleteFlow(item.procDefId)"
+                icon="ios-trash"
+                type="error"
+                size="small"
+              ></Button>
+            </span>
           </Option>
         </Select>
       </Col>
@@ -45,17 +57,17 @@
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram(false)">
-        {{ $t("save_flow") }}
-      </Button>
+      <Button type="info" @click="saveDiagram(false)">{{
+        $t("save_flow")
+      }}</Button>
       <!-- <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button> -->
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">{{
-          $t("config_plugin")
-        }}</a>
+        <a href="javascript:void(0);" @click="openPluginModal">
+          {{ $t("config_plugin") }}
+        </a>
         <br />
       </div>
 
@@ -112,14 +124,13 @@
               v-for="i in currentflowsNodes"
               :value="i.value"
               :key="i.value"
+              >{{ i.label }}</Option
             >
-              {{ i.label }}
-            </Option>
           </Select>
           <Select v-model="item.bindParamType" style="width:200px">
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
-              {{ i.label }}
-            </Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
+              i.label
+            }}</Option>
           </Select>
           <Select v-model="item.bindParamName" style="width:200px">
             <Option
@@ -132,9 +143,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
-          {{ $t("confirm") }}
-        </Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
+          $t("confirm")
+        }}</Button>
       </div>
     </Modal>
   </div>
@@ -166,7 +177,8 @@ import {
   getLatestOnlinePluginInterfaces,
   getFlowNodes,
   getParamsInfosByFlowIdAndNodeId,
-  getAllDataModels
+  getAllDataModels,
+  getPluginInterfaceList
 } from "@/api/server.js";
 
 import AttrInput from "../components/attr-input";
@@ -205,7 +217,7 @@ export default {
         name: ""
       },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
-      allFlows: [],
+      allFlows: [{ procDefId: 100000, name: "add_new" }],
       allEntityType: [],
       selectedFlow: "",
       currentSelectedEntity: "",
@@ -245,7 +257,7 @@ export default {
   watch: {
     selectedFlow: {
       handler(val) {
-        val && this.getFlowXml(val);
+        val && val !== 100000 && this.getFlowXml(val);
       }
       // immediate: true
     }
@@ -260,7 +272,7 @@ export default {
     init() {
       this.getAllDataModels();
       this.getAllFlows();
-      this.getAllPlugins();
+      this.getPluginInterfaceList();
     },
     async getAllDataModels() {
       let { data, status, message } = await getAllDataModels();
@@ -268,29 +280,19 @@ export default {
         this.allEntityType = data;
       }
     },
-    async getAllPlugins() {
-      this.allPlugins = [
-        {
-          serviceName: "serviceName1",
-          serviceDisplayName: "serviceDisplayName1"
-        },
-        {
-          serviceName: "serviceName2",
-          serviceDisplayName: "serviceDisplayName2"
-        }
-      ];
+    async getPluginInterfaceList() {
+      let { status, data, message } = await getPluginInterfaceList();
+      this.allPlugins = data;
     },
     async getAllFlows() {
       const { data, message, status } = await getAllFlow();
       if (status === "OK") {
-        this.allFlows = data || [];
+        this.allFlows = this.allFlows.concat(data);
       }
     },
-    // onFlowSelect(v) {
-    //   console.log(3, this.selectedFlow)
-    //   v && this.getFlowXml(v);
-    // },
-
+    async deleteFlow(id) {
+      console.log("delete flow, id is: ", id);
+    },
     onEntitySelect(v) {
       this.currentSelectedEntity = v;
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
@@ -404,7 +406,7 @@ export default {
       if (!this.currentSelectedEntity) {
         this.$Notice.warning({
           title: "Warning",
-          desc: this.$t("select_ci_first")
+          desc: this.$t("select_entity_first")
         });
       } else {
         this.pluginModalVisible = true;
@@ -412,26 +414,26 @@ export default {
           this.currentFlow.taskNodeInfos.find(
             _ => _.nodeId === this.currentNode.id
           ) || this.defaultPluginForm;
-        /* ************* */
+        /* TODO:** to be removed ** */
         this.pluginForm.paramInfos.push({
-          bindNodeId: "Node1",
-          bindParamName: "paramsName1",
+          bindNodeId: "MockNode1",
+          bindParamName: "MockParamsName1",
           bindParamType: "in",
-          id: "empty",
-          nodeId: "node id",
-          paramName: "PARAMS A"
+          id: "mockId1",
+          nodeId: "nodeid",
+          paramName: "Mock PARAMS A"
         });
         this.pluginForm.paramInfos.push({
-          bindNodeId: "Node2",
-          bindParamName: "paramsName2",
+          bindNodeId: "MockNode2",
+          bindParamName: "MockParamsName2",
           bindParamType: "out",
-          id: "empty",
-          nodeId: "node id",
-          paramName: "PARAMS B"
+          id: "MockId2",
+          nodeId: "nodeid",
+          paramName: "Mock PARAMS B"
         });
         /* ************* */
 
-        // get flow's params infos - nodes
+        // TODO:get flow's params infos - nodes
         // this.getFlowsNodes()
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index);
@@ -442,12 +444,15 @@ export default {
       this.getParamsOptionsByNode(index);
     },
     async getFlowsNodes() {
+      // TODO:
       // let { status, data, message} = await getFlowNodes(this.currentFlow.procDefId)
       // if(status === "OK") {
       //   this.currentflowsNodes = data
       // }
     },
     async getParamsOptionsByNode(index) {
+      // TODO:
+
       // let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
       //   this.currentFlow.procDefId,
       //   this.pluginForm.paramInfos[index].bindNodeId
