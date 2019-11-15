@@ -32,6 +32,15 @@ public class PluginPackageDataModelController {
         return JsonResponse.okayWithData(pluginPackageDataModelService.pullDynamicDataModel(packageName));
     }
 
+    @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}/refById")
+    @ResponseBody
+    public JsonResponse getRefByIdInfoByPackageNameAndEntityName(
+            @PathVariable(value = "plugin-package-name") String packageName,
+            @PathVariable(value = "entity-name") String entityName
+    ) {
+        return JsonResponse.okayWithData(pluginPackageDataModelService.getRefByInfo(packageName, entityName));
+    }
+
     @PostMapping("/models")
     public JsonResponse applyNewDataModel(@RequestBody PluginPackageDataModelDto dataModelDto) {
         return JsonResponse.okayWithData(pluginPackageDataModelService.register(dataModelDto, true));
