@@ -32,9 +32,9 @@ public class ResourceItemDto {
     private String purpose;
     private String status;
     private String createdBy;
-    private Timestamp createdDate;
+    private long createdDate;
     private String updatedBy;
-    private Timestamp updatedDate;
+    private long updatedDate;
     private ResourceServerDto resourceServer;
 
     public static ResourceItemDto fromDomain(ResourceItem resourceItem) {
@@ -52,9 +52,9 @@ public class ResourceItemDto {
         resourceItemDto.setPurpose(resourceItem.getPurpose());
         resourceItemDto.setStatus(resourceItem.getStatus());
         resourceItemDto.setCreatedBy(resourceItem.getCreatedBy());
-        resourceItemDto.setCreatedDate(resourceItem.getCreatedDate());
+        resourceItemDto.setCreatedDate(resourceItem.getCreatedDate().getTime());
         resourceItemDto.setUpdatedBy(resourceItem.getUpdatedBy());
-        resourceItemDto.setUpdatedDate(resourceItem.getUpdatedDate());
+        resourceItemDto.setUpdatedDate(resourceItem.getUpdatedDate().getTime());
         return resourceItemDto;
     }
 

@@ -33,9 +33,9 @@ public class ResourceServerDto {
     private String purpose;
     private String status;
     private String createdBy;
-    private Timestamp createdDate;
+    private long createdDate;
     private String updatedBy;
-    private Timestamp updatedDate;
+    private long updatedDate;
     @JsonIgnore
     private List<ResourceItemDto> resourceItemDtos;
 
@@ -52,9 +52,9 @@ public class ResourceServerDto {
         resourceServerDto.setPurpose(resourceServer.getPurpose());
         resourceServerDto.setStatus(resourceServer.getStatus());
         resourceServerDto.setCreatedBy(resourceServer.getCreatedBy());
-        resourceServerDto.setCreatedDate(resourceServer.getCreatedDate());
+        resourceServerDto.setCreatedDate(resourceServer.getCreatedDate().getTime());
         resourceServerDto.setUpdatedBy(resourceServer.getUpdatedBy());
-        resourceServerDto.setUpdatedDate(resourceServer.getUpdatedDate());
+        resourceServerDto.setUpdatedDate(resourceServer.getUpdatedDate().getTime());
         if (resourceServer.getResourceItems() != null) {
             resourceServerDto.setResourceItemDtos(Lists.transform(resourceServer.getResourceItems(), x -> ResourceItemDto.fromDomain(x)));
         }
