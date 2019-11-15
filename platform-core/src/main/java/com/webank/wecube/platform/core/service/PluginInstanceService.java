@@ -217,7 +217,8 @@ public class PluginInstanceService {
         return false;
     }
 
-    public void launchPluginInstance(Integer packageId, String hostIp, Integer port) throws Exception {
+    public void launchPluginInstance(Integer packageId, String hostIp, Integer port)
+            throws Exception, WecubeCoreException {
         Optional<PluginPackage> pluginPackageResult = pluginPackageRepository.findById(packageId);
         if (!pluginPackageResult.isPresent())
             throw new WecubeCoreException("Plugin package id does not exist, id = " + packageId);
@@ -277,7 +278,7 @@ public class PluginInstanceService {
 
         if (dbInfo.getSchema() != null) {
             String rawPassword = EncryptionUtils.decryptWithAes(dbInfo.getPassword(),
-                    resourceProperties.getPasswordEncryptionSeed(),dbInfo.getSchema());
+                    resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema());
             envVariable = dockerInfo.getEnvVariables().replace("{{db_host}}", dbInfo.getHost())
                     .replace("{{db_port}}", dbInfo.getPort()).replace("{{db_schema}}", dbInfo.getSchema())
                     .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", rawPassword);
@@ -302,6 +303,7 @@ public class PluginInstanceService {
         } catch (Exception e) {
             logger.error("Creating docker container instance meet error: ", e.getMessage());
             e.printStackTrace();
+            throw new WecubeCoreException("Creating docker container instance meet error: " + e.getMessage());
         }
 
         // 4. insert to DB
