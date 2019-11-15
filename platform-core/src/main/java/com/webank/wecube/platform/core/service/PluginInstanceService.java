@@ -317,10 +317,10 @@ public class PluginInstanceService {
         pluginInstanceRepository.save(instance);
 
         // TODO - 6. notify gateway
-        GatewayResponse response = registerRoute(pluginPackage.getName(), hostIp, String.valueOf(port));
-        if (!response.getStatusCode().equals(GatewayResponse.getStatusCodeOk())) {
-            logger.error("Launch instance has done, but register routing information is failed, please check");
-        }
+//        GatewayResponse response = registerRoute(pluginPackage.getName(), hostIp, String.valueOf(port));
+//        if (!response.getStatusCode().equals(GatewayResponse.getStatusCodeOk())) {
+//            logger.error("Launch instance has done, but register routing information is failed, please check");
+//        }
     }
 
     private InitMysqlReturn initMysqlDatabaseSchema(Set<PluginPackageRuntimeResourcesMysql> mysqlSet,
