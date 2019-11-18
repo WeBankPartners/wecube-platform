@@ -4,25 +4,59 @@
     :tableOuterActions="outerActions"
     :tableInnerActions="null"
     :tableColumns="tableColumns"
+    :pagination="pagination"
     @actionFun="actionFun"
+    @handleSubmit="handleSubmit"
+    @sortHandler="sortHandler"
     @getSelectedRows="onSelectedRowsChange"
+    @pageChange="pageChange"
+    @pageSizeChange="pageSizeChange"
     ref="table"
   />
 </template>
 
 <script>
 import {
-  getResourceServerType,
   getResourceServerStatus,
+  getResourceServerType,
   retrieveServers,
   createServers,
   updateServers,
   deleteServers
 } from "@/api/server.js";
 import { outerActions } from "@/const/actions.js";
+import moment from "moment";
+import { formatData } from "../../util/format.js";
+
+const booleanOptions = [
+  {
+    label: "true",
+    value: "true",
+    key: "true"
+  },
+  {
+    label: "false",
+    value: "false",
+    key: "false"
+  }
+];
+
 export default {
   data() {
     return {
+      payload: {
+        filters: [],
+        pageable: {
+          pageSize: 10,
+          startIndex: 0
+        },
+        paging: true
+      },
+      pagination: {
+        pageSize: 10,
+        currentPage: 1,
+        total: 0
+      },
       outerActions,
       tableData: [],
       tableColumns: [
@@ -32,6 +66,8 @@ export default {
           inputKey: "id",
           searchSeqNo: 1,
           displaySeqNo: 1,
+          disEditor: true,
+          disAdded: true,
           component: "Input",
           inputType: "text",
           placeholder: "id"
@@ -65,18 +101,7 @@ export default {
           component: "WeSelect",
           inputType: "select",
           placeholder: "isAllocated",
-          options: [
-            {
-              label: "true",
-              value: "true",
-              key: "true"
-            },
-            {
-              label: "false",
-              value: "false",
-              key: "false"
-            }
-          ]
+          options: booleanOptions
         },
         {
           title: "Login Username",
@@ -143,49 +168,68 @@ export default {
   },
   methods: {
     async queryData() {
-      const { status, message, data } = await retrieveServers({});
+      this.payload.pageable.pageSize = this.pagination.pageSize;
+      this.payload.pageable.startIndex =
+        (this.pagination.currentPage - 1) * this.pagination.pageSize;
+      const { status, message, data } = await retrieveServers(this.payload);
       if (status === "OK") {
         this.tableData = data.contents.map(_ => {
           _.isAllocated = _.isAllocated ? "true" : "false";
           return _;
         });
+        this.pagination.total = data.pageInfo.totalRows;
       }
     },
     async getResourceServerStatus() {
       const { status, message, data } = await getResourceServerStatus();
       if (status === "OK") {
-        let statusIndex;
-        this.tableColumns.find((_, i) => {
-          if (_.key === "status") {
-            statusIndex = i;
-          }
-        });
-        const statusOptions = data.map(_ => {
-          return {
-            label: _,
-            value: _,
-            key: _
-          };
-        });
-        this.$set(this.tableColumns[statusIndex], "options", statusOptions);
+        this.setOptions(data, "status");
       }
     },
     async getResourceServerType() {
       const { status, message, data } = await getResourceServerType();
       if (status === "OK") {
-        const typeOptions = data.map(_ => {
-          return {
-            label: _,
-            value: _,
-            key: _
-          };
-        });
-        this.$set(
-          this.tableColumns[this.tableColumns.length - 1],
-          "options",
-          typeOptions
-        );
+        this.setOptions(data, "type");
       }
+    },
+    setOptions(data, column) {
+      let statusIndex;
+      this.tableColumns.find((_, i) => {
+        if (_.key === column) {
+          statusIndex = i;
+        }
+      });
+      const options = data.map(_ => {
+        return {
+          label: _,
+          value: _,
+          key: _
+        };
+      });
+      this.$set(this.tableColumns[statusIndex], "options", options);
+    },
+    handleSubmit(data) {
+      this.payload.filters = data;
+      this.queryData();
+    },
+    sortHandler(data) {
+      if (data.order === "normal") {
+        delete this.payload.sorting;
+      } else {
+        this.payload.sorting = {
+          asc: data.order === "asc",
+          field: data.key
+        };
+      }
+      this.queryData();
+    },
+    pageChange(current) {
+      this.pagination.currentPage = current;
+      this.queryData();
+    },
+    pageSizeChange(size) {
+      this.pagination.pageSize = size;
+      this.queryData();
     },
     actionFun(type, data) {
       switch (type) {
@@ -365,15 +409,20 @@ export default {
           );
         });
     },
-    // TODO
-    async exportHandler() {}
+    async exportHandler() {
+      const { status, message, data } = await retrieveServers({});
+      if (status === "OK") {
+        this.$refs.table.export({
+          filename: this.$t("host"),
+          data: formatData(data.contents)
+        });
+      }
+    }
   },
   mounted() {
-    this.getResourceServerType();
     this.getResourceServerStatus();
+    this.getResourceServerType();
     this.queryData();
   }
 };
 </script>
-
-<style lang="scss" scoped></style>
