@@ -295,6 +295,6 @@
   "get_dynamic_model": "Sync data model",
   "apply_data_model": "Apply data model",
   "instance_type": "Entity Type",
-  "server": "Server",
-  "service": "Service"
+  "hosts": "Hosts",
+  "instances": "Instances"
 }

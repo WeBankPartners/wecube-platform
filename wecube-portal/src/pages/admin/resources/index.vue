@@ -1,10 +1,10 @@
 <template>
   <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
-    <TabPane :closable="false" name="server" :label="$t('server')">
-      <WeServer ref="server" />
+    <TabPane :closable="false" name="hosts" :label="$t('hosts')">
+      <WeServer />
     </TabPane>
-    <TabPane :closable="false" name="service" :label="$t('service')">
-      <WeService :servers="servers" ref="service" />
+    <TabPane :closable="false" name="instances" :label="$t('instances')">
+      <WeService :servers="servers" />
     </TabPane>
   </Tabs>
 </template>
@@ -25,7 +25,7 @@ export default {
   },
   data() {
     return {
-      currentTab: "server",
+      currentTab: "hosts",
       servers: []
     };
   },

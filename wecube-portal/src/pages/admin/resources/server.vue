@@ -413,7 +413,7 @@ export default {
       const { status, message, data } = await retrieveServers({});
       if (status === "OK") {
         this.$refs.table.export({
-          filename: this.$t("server"),
+          filename: this.$t("host"),
           data: formatData(data.contents)
         });
       }
