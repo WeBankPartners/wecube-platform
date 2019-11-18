@@ -5,6 +5,7 @@ import com.webank.wecube.platform.core.support.FakeS3Client;
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +109,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
     }
 
+    @Ignore
     @Test
     public void givenPluginPackageNormalAndFakeS3ClientWhenUploadThenReturnSuccess() {
         pluginPackageService.setS3Client(new FakeS3Client());
@@ -350,6 +352,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
     }
 
+    @Ignore
     @Test
     public void getSystemParamsByCorrectPackageIdShouldReturnSuccess() {
         try {
