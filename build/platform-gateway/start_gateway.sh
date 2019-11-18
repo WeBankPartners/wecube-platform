@@ -4,6 +4,5 @@ java -jar /application/platform-gateway.jar  --server.address=0.0.0.0 --server.p
 --platform.gateway.route.route-config-server=${GATEWAY_ROUTE_CONFIG_SERVER} \
 --platform.gateway.route.route-config-uri=${GATEWAY_ROUTE_CONFIG_URI} \
 --platform.gateway.route.route-config-access-key=${GATEWAY_ROUTE_ACCESS_KEY} \
---spring.cloud.gateway.routes[0].id=platform-core \
---spring.cloud.gateway.routes[0].uri=${GATEWAY_ROUTES_PLATFORM_CORE_URI} \
+${GATEWAY_CUSTOM_PARAM} \
 2>&1 >>/log/wecube-gateway.log 
