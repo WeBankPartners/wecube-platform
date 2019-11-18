@@ -23,6 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.support.S3Client;
+import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
+import com.webank.wecube.platform.core.support.gateway.GatewayServiceStub;
+import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
+import com.webank.wecube.platform.core.support.gateway.RouteItem;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.StringUtils;
@@ -84,6 +88,8 @@ public class PluginInstanceService {
     private CommandService commandService;
     @Autowired
     private ResourceProperties resourceProperties;
+    @Autowired
+    GatewayServiceStub gatewayServiceStub;
 
     @Autowired
     private ResourceManagementService resourceManagementService;
@@ -310,7 +316,11 @@ public class PluginInstanceService {
         instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_RUNNING);
         pluginInstanceRepository.save(instance);
 
-        // TODO - 6. notify gateway
+        // 6. notify gateway
+        GatewayResponse response = registerRoute(pluginPackage.getName(), hostIp, String.valueOf(port));
+        if (!response.getStatus().equals(GatewayResponse.getStatusCodeOk())) {
+            logger.error("Launch instance has done, but register routing information is failed, please check");
+        }
     }
 
     private InitMysqlReturn initMysqlDatabaseSchema(Set<PluginPackageRuntimeResourcesMysql> mysqlSet,
@@ -595,4 +605,8 @@ public class PluginInstanceService {
         }
     }
 
+    private GatewayResponse registerRoute(String name, String host, String port) {
+        return gatewayServiceStub.registerRoute(
+                new RegisterRouteItemsDto(name, Lists.newArrayList(new RouteItem(name, "http", host, port))));
+    }
 }
