@@ -42,13 +42,12 @@ sed -i "s~{{GATEWAY_IMAGE_VERSION}}~$gateway_image_version~g" docker-compose.yml
 sed -i "s~{{GATEWAY_ROUTE_CONFIG_SERVER}}~$gateway_route_config_server~g" docker-compose.yml
 sed -i "s~{{GATEWAY_ROUTE_CONFIG_URI}}~$gateway_route_config_uri~g" docker-compose.yml
 sed -i "s~{{GATEWAY_ROUTE_ACCESS_KEY}}~$gateway_route_access_key~g" docker-compose.yml
-sed -i "s~{{GATEWAY_ROUTES_PLATFORM_CORE_URI}}~$gateway_routes_platform_core_uri~g" docker-compose.yml
 sed -i "s~{{STATIC_RESOURCE_SERVER_IP}}~$static_resource_server_ip~g" docker-compose.yml
 sed -i "s~{{STATIC_RESOURCE_SERVER_USER}}~$static_resource_server_user~g" docker-compose.yml
 sed -i "s~{{STATIC_RESOURCE_SERVER_PASSWORD}}~$static_resource_server_password~g" docker-compose.yml
 sed -i "s~{{STATIC_RESOURCE_SERVER_PORT}}~$static_resource_server_port~g" docker-compose.yml
 sed -i "s~{{STATIC_RESOURCE_SERVER_PATH}}~$static_resource_server_path~g" docker-compose.yml
-sed -i "s~{{GATEWAY_ROUTES_PLATFORM_CORE_PREDICATE_PATH}}~$gateway_routes_platform_core_predicate_path~g" docker-compose.yml
-sed -i "s~{{GATEWAY_ROUTES_PLATFORM_CORE_FILTERS_DYNROUTE}}~$gateway_routes_platform_core_filters_dynroute~g" docker-compose.yml
 sed -i "s~{{GATEWAY_URL}}~$gateway_url~g" docker-compose.yml
+sed -i "s~{{GATEWAY_CUSTOM_PARAM}}~$gateway_custom_param~g" docker-compose.yml
+
 
