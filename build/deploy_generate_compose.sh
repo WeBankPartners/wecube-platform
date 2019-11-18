@@ -16,7 +16,7 @@ build_path=$(dirname $0)
 
 sed  "s~{{WECUBE_IMAGE_NAME}}~$wecube_image_name~g" ${build_path}/docker-compose.tpl >  docker-compose.yml  
 sed -i "s~{{WECUBE_SERVER_PORT}}~$wecube_server_port~g" docker-compose.yml 
-sed -i "s~{{MYSQL_ROOT_PASSWORD}}~$mysql_root_password~g" docker-compose.yml 
+sed -i "s~{{MYSQL_USER_PASSWORD}}~$mysql_user_password~g" docker-compose.yml 
 sed -i "s~{{CAS_SERVER_URL}}~$cas_server_url~g" docker-compose.yml 
 sed -i "s~{{WECUBE_SERVER_IP}}~$wecube_server_ip~g" docker-compose.yml
 sed -i "s~{{WECUBE_PLUGIN_HOSTS}}~$wecube_plugin_hosts~g" docker-compose.yml
