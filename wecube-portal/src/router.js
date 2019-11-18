@@ -39,7 +39,7 @@ let router = new Router({
         {
           path: "/admin/resources",
           name: "resources",
-          component: () => import("@/pages/admin/resources")
+          component: () => import("@/pages/admin/resources/index")
         },
         {
           path: "/collaboration/plugin-management",
