@@ -2,25 +2,22 @@
   <Header>
     <div class="menus">
       <Menu mode="horizontal" theme="dark">
-        <Submenu
-          v-for="menu in menus"
-          :name="menu.code"
-          :key="menu.code"
-          :disabled="menu.submenus.length < 1"
-        >
-          <template slot="title">
-            {{ menu.title }}
-          </template>
-          <router-link
-            v-for="submenu in menu.submenus"
-            :key="submenu.code"
-            :to="submenu.link || ''"
-          >
-            <MenuItem :name="submenu.code" :disabled="!submenu.link">
-              {{ submenu.title }}
-            </MenuItem>
-          </router-link>
-        </Submenu>
+        <div v-for="menu in menus" :key="menu.code">
+          <MenuItem v-if="menu.submenus.length < 1" :name="menu.title">{{
+            menu.title
+          }}</MenuItem>
+
+          <Submenu v-else :name="menu.code">
+            <template slot="title">{{ menu.title }}</template>
+            <router-link
+              v-for="submenu in menu.submenus"
+              :key="submenu.code"
+              :to="submenu.link || ''"
+            >
+              <MenuItem :name="submenu.code">{{ submenu.title }}</MenuItem>
+            </router-link>
+          </Submenu>
+        </div>
       </Menu>
     </div>
     <div class="header-right_container">
@@ -30,9 +27,9 @@
           <Icon :size="18" type="md-arrow-dropdown"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/logout">
-              <a href="/logout" style="width: 100%; display: block">
-                {{ $t("logout") }}
-              </a>
+              <a href="/logout" style="width: 100%; display: block">{{
+                $t("logout")
+              }}</a>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -252,6 +249,7 @@ export default {
     .ivu-menu-horizontal {
       height: 50px;
       line-height: 50px;
+      display: flex;
 
       .ivu-menu-submenu {
         padding: 0 10px;
