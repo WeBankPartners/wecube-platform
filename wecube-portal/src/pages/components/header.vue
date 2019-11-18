@@ -3,12 +3,18 @@
     <div class="menus">
       <Menu mode="horizontal" theme="dark">
         <div v-for="menu in menus" :key="menu.code">
-          <MenuItem v-if="menu.submenus.length < 1" :name="menu.title">{{
-            menu.title
-          }}</MenuItem>
+          <MenuItem
+            v-if="menu.submenus.length < 1"
+            :name="menu.title"
+            style="cursor: not-allowed;"
+          >
+            {{ menu.title }}
+          </MenuItem>
 
           <Submenu v-else :name="menu.code">
-            <template slot="title">{{ menu.title }}</template>
+            <template slot="title" style="font-size: 16px">{{
+              menu.title
+            }}</template>
             <router-link
               v-for="submenu in menu.submenus"
               :key="submenu.code"
@@ -27,9 +33,9 @@
           <Icon :size="18" type="md-arrow-dropdown"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/logout">
-              <a href="/logout" style="width: 100%; display: block">{{
-                $t("logout")
-              }}</a>
+              <a href="/logout" style="width: 100%; display: block">
+                {{ $t("logout") }}
+              </a>
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
@@ -253,6 +259,31 @@ export default {
 
       .ivu-menu-submenu {
         padding: 0 10px;
+        font-size: 15px;
+      }
+
+      .ivu-menu-item {
+        font-size: 15px;
+      }
+    }
+
+    .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu {
+      color: #fff;
+    }
+    .ivu-menu-item-active,
+    .ivu-menu-item:hover {
+      color: rgba(255, 255, 255, 0.7);
+      // cursor: pointer;
+    }
+    .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu-active,
+    .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu:hover {
+      color: #fff;
+    }
+
+    .ivu-menu-drop-list {
+      .ivu-menu-item-active,
+      .ivu-menu-item:hover {
+        color: black;
       }
     }
   }
