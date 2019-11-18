@@ -1,6 +1,6 @@
 <template>
   <Header>
-    <div class="menus" style="display: block;">
+    <div class="menus">
       <Menu mode="horizontal" theme="dark">
         <div v-for="menu in menus" :key="menu.code">
           <MenuItem v-if="menu.submenus.length < 1" :name="menu.title">{{
@@ -249,6 +249,7 @@ export default {
     .ivu-menu-horizontal {
       height: 50px;
       line-height: 50px;
+      display: flex;
 
       .ivu-menu-submenu {
         padding: 0 10px;
