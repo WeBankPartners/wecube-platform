@@ -50,3 +50,5 @@ sed -i "s~{{STATIC_RESOURCE_SERVER_PORT}}~$static_resource_server_port~g" docker
 sed -i "s~{{STATIC_RESOURCE_SERVER_PATH}}~$static_resource_server_path~g" docker-compose.yml
 sed -i "s~{{GATEWAY_ROUTES_PLATFORM_CORE_PREDICATE_PATH}}~$gateway_routes_platform_core_predicate_path~g" docker-compose.yml
 sed -i "s~{{GATEWAY_ROUTES_PLATFORM_CORE_FILTERS_DYNROUTE}}~$gateway_routes_platform_core_filters_dynroute~g" docker-compose.yml
+sed -i "s~{{GATEWAY_URL}}~$gateway_url~g" docker-compose.yml
+
