@@ -104,24 +104,24 @@ public class PluginConfigInterface {
 
     public Set<PluginConfigInterfaceParameter> getInputParameters() {
         // TODO: need to optimize
-        return inputParameters == null ? new LinkedHashSet<>()
+        return inputParameters == null ? null
                 : inputParameters.stream().sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
                         .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setInputParameters(Set<PluginConfigInterfaceParameter> inputParameters) {
-        this.inputParameters = (inputParameters == null ? new LinkedHashSet<>() : inputParameters);
+        this.inputParameters =inputParameters;
     }
 
     public Set<PluginConfigInterfaceParameter> getOutputParameters() {
         // TODO: need to optimize
-        return outputParameters == null ? new LinkedHashSet<>()
+        return outputParameters == null ? null
                 : outputParameters.stream().sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
                         .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setOutputParameters(Set<PluginConfigInterfaceParameter> outputParameters) {
-        this.outputParameters = (outputParameters == null ? new LinkedHashSet<>() : outputParameters);
+        this.outputParameters =  outputParameters;
     }
 
     public PluginConfigInterface() {
