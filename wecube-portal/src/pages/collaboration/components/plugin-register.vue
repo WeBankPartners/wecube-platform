@@ -277,15 +277,16 @@ export default {
       }
     },
     async getAllSystemEnumCodes() {
-      const { data, status, message } = await getAllSystemEnumCodes({
-        filters: [],
-        paging: false
-      });
-      if (status === "OK") {
-        this.currentCiTyPeAttr = data.contents
-          .filter(i => i.cat.catName != "tab_query_of_deploy_design")
-          .filter(i => i.cat.catName != "tab_query_of_architecture_design");
-      }
+      //   const { data, status, message } = await getAllSystemEnumCodes({
+      //     filters: [],
+      //     paging: false
+      //   });
+      //   if (status === "OK") {
+      //     this.currentCiTyPeAttr = data.contents
+      //       .filter(i => i.cat.catName != "tab_query_of_deploy_design")
+      //       .filter(i => i.cat.catName != "tab_query_of_architecture_design");
+      //   }
+      this.currentCiTyPeAttr = [];
     }
   },
   created() {
