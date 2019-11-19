@@ -5,7 +5,6 @@ java -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port
 --spring.datasource.url=jdbc:mysql://${MYSQL_SERVER_ADDR}:${MYSQL_SERVER_PORT}/${MYSQL_SERVER_DATABASE_NAME}?serverTimezone=Asia\/Shanghai\&characterEncoding=utf8 \
 --spring.datasource.username=${MYSQL_USER_NAME} \
 --spring.datasource.password=${MYSQL_USER_PASSWORD}  \
---wecube.core.cmdb-server-url=${CMDB_SERVER_URL} \
 --wecube.core.plugin.plugin-hosts=${WECUBE_PLUGIN_HOSTS} \
 --wecube.core.plugin.default-host-ssh-user=${WECUBE_PLUGIN_HOST_USER} \
 --wecube.core.plugin.default-host-ssh-port=${WECUBE_PLUGIN_HOST_PORT} \
