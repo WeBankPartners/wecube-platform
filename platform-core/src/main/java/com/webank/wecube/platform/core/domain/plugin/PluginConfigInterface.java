@@ -7,6 +7,7 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -103,26 +104,24 @@ public class PluginConfigInterface {
 
     public Set<PluginConfigInterfaceParameter> getInputParameters() {
         // TODO: need to optimize
-        return inputParameters
-                .stream()
-                .sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return inputParameters == null ? new LinkedHashSet<>()
+                : inputParameters.stream().sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setInputParameters(Set<PluginConfigInterfaceParameter> inputParameters) {
-        this.inputParameters = inputParameters;
+        this.inputParameters = (inputParameters == null ? new LinkedHashSet<>() : inputParameters);
     }
 
     public Set<PluginConfigInterfaceParameter> getOutputParameters() {
         // TODO: need to optimize
-        return outputParameters
-                .stream()
-                .sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return outputParameters == null ? new LinkedHashSet<>()
+                : outputParameters.stream().sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setOutputParameters(Set<PluginConfigInterfaceParameter> outputParameters) {
-        this.outputParameters = outputParameters;
+        this.outputParameters = (outputParameters == null ? new LinkedHashSet<>() : outputParameters);
     }
 
     public PluginConfigInterface() {
