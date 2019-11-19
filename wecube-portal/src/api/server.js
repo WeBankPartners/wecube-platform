@@ -8,9 +8,16 @@ export const saveFlow = data =>
   req.post("/platform/v1/process/definitions/deploy", data);
 export const saveFlowDraft = data =>
   req.post("/platform/v1/process/definitions/draft", data);
-export const getAllFlow = () => req.get("/platform/v1/process/definitions");
+export const getAllFlow = (isIncludeDraft = true) => {
+  return isIncludeDraft
+    ? req.get("/platform/v1/process/definitions")
+    : req.get("/platform/v1/process/definitions?includeDraft=0");
+};
 export const getFlowDetailByID = id =>
   req.get(`/platform/v1/process/definitions/${id}/detail`);
+export const getFlowOutlineByID = id =>
+  req.get(`/platform/v1/process/definitions/${id}/outline`);
+
 export const getFlowPreview = data =>
   req.post(
     `/platform/v1/process/definitions/definition/input-parameters/preview`,
