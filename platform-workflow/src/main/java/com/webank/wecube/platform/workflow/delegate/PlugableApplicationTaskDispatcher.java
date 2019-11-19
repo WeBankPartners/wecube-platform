@@ -38,7 +38,7 @@ public class PlugableApplicationTaskDispatcher implements JavaDelegate {
         String processInstanceBizKey = execution.getBusinessKey();
         String processInstanceId = execution.getProcessInstanceId();
         String processDefinitionId = execution.getProcessDefinitionId();
-        log.info("start to call plugin with service code [{}] and bizKey [{}]", processInstanceId,
+        log.info("start to call plugin with process instance id [{}] and bizKey [{}]", processInstanceId,
                 processInstanceBizKey);
 
         ProcessDefinition procDef = execution.getProcessEngine().getRepositoryService().createProcessDefinitionQuery()
