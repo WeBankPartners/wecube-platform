@@ -38,20 +38,12 @@ public class PluginConfigInterface {
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Where(clause = "type = 'INPUT'")
-    private Set<PluginConfigInterfaceParameter> inputParameters = new LinkedHashSet<>();
+    private Set<PluginConfigInterfaceParameter> inputParameters;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Where(clause = "type = 'OUTPUT'")
-    private Set<PluginConfigInterfaceParameter> outputParameters = new LinkedHashSet<>();
-
-    public void addInputParameter(PluginConfigInterfaceParameter parameter) {
-        this.inputParameters.add(parameter);
-    }
-
-    public void addOutputParameter(PluginConfigInterfaceParameter parameter) {
-        this.outputParameters.add(parameter);
-    }
+    private Set<PluginConfigInterfaceParameter> outputParameters;
 
     public Integer getId() {
         return id;
