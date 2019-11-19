@@ -14,7 +14,7 @@
   display:block
 }
 .hidden-filters {
-  display: none;
+  display: none !important;
 }
 
 .hidden-filters-show {
