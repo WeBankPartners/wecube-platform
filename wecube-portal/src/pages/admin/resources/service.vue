@@ -61,97 +61,97 @@ export default {
       tableData: [],
       tableColumns: [
         {
-          title: "id",
+          title: this.$t("table_id"),
           key: "id",
           inputKey: "id",
           searchSeqNo: 1,
           displaySeqNo: 1,
           component: "Input",
           inputType: "text",
-          placeholder: "id"
+          placeholder: this.$t("table_id")
         },
         {
-          title: "name",
+          title: this.$t("table_name"),
           key: "name",
           inputKey: "name",
           searchSeqNo: 2,
           displaySeqNo: 2,
           component: "Input",
           inputType: "text",
-          placeholder: "name"
+          placeholder: this.$t("table_name")
         },
         {
-          title: "type",
+          title: this.$t("table_type"),
           key: "type",
           inputKey: "type",
           searchSeqNo: 3,
           displaySeqNo: 3,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "type"
+          placeholder: this.$t("table_type")
         },
         {
-          title: "resourceServerId",
-          key: "resourceServerId",
+          title: this.$t("table_resource_server"),
+          key: "resourceServer",
           inputKey: "resourceServerId",
-          searchSeqNo: 6,
-          displaySeqNo: 6,
+          searchSeqNo: 4,
+          displaySeqNo: 4,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "resourceServerId"
+          placeholder: this.$t("table_resource_server")
         },
         {
-          title: "Is Allocated",
+          title: this.$t("table_isAllocated"),
           key: "isAllocated",
           inputKey: "isAllocated",
+          searchSeqNo: 5,
+          displaySeqNo: 5,
+          component: "WeSelect",
+          inputType: "select",
+          placeholder: this.$t("table_isAllocated"),
+          options: booleanOptions
+        },
+        {
+          title: this.$t("table_purpose"),
+          key: "purpose",
+          inputKey: "purpose",
+          searchSeqNo: 6,
+          displaySeqNo: 6,
+          component: "Input",
+          inputType: "text",
+          placeholder: this.$t("table_purpose")
+        },
+        {
+          title: this.$t("table_status"),
+          key: "status",
+          inputKey: "status",
           searchSeqNo: 7,
           displaySeqNo: 7,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "isAllocated",
-          options: booleanOptions
+          placeholder: this.$t("table_status")
         },
         {
-          title: "purpose",
-          key: "purpose",
-          inputKey: "purpose",
-          searchSeqNo: 8,
-          displaySeqNo: 8,
-          component: "Input",
-          inputType: "text",
-          placeholder: "purpose"
-        },
-        {
-          title: "Status",
-          key: "status",
-          inputKey: "status",
-          searchSeqNo: 9,
-          displaySeqNo: 9,
-          component: "WeSelect",
-          inputType: "select",
-          placeholder: "status"
-        },
-        {
-          title: "createdDate",
+          title: this.$t("table_created_date"),
           key: "createdDate",
           inputKey: "createdDate",
-          searchSeqNo: 10,
-          displaySeqNo: 10,
+          searchSeqNo: 8,
+          displaySeqNo: 8,
           component: "DatePicker",
           type: "datetimerange",
           inputType: "date",
-          placeholder: "createdDate"
+          placeholder: this.$t("table_created_date")
         },
         {
-          title: "updatedDate",
+          title: this.$t("table_updated_date"),
           key: "updatedDate",
           inputKey: "updatedDate",
-          searchSeqNo: 11,
-          displaySeqNo: 11,
+          searchSeqNo: 9,
+          displaySeqNo: 9,
           component: "DatePicker",
           type: "datetimerange",
           inputType: "date",
-          placeholder: "updatedDate"
+          placeholder: this.$t("table_updated_date")
         }
       ]
     };
@@ -160,11 +160,11 @@ export default {
     servers(val) {
       let statusIndex;
       this.tableColumns.find((_, i) => {
-        if (_.key === "resourceServerId") {
+        if (_.key === "resourceServer") {
           statusIndex = i;
         }
       });
-      this.$set(this.tableColumns[statusIndex], "options", this.servers);
+      val && this.$set(this.tableColumns[statusIndex], "options", val);
     }
   },
   methods: {
