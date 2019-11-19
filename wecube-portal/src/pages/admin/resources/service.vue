@@ -101,7 +101,7 @@ export default {
           placeholder: this.$t("table_resource_server")
         },
         {
-          title: this.$t("table_isAllocated"),
+          title: this.$t("table_is_allocated"),
           key: "isAllocated",
           inputKey: "isAllocated",
           searchSeqNo: 5,
