@@ -12,7 +12,9 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -37,7 +39,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbFwdNodeExpressionShouldSucceed() {
+    public void wecmdbFwdNodeExpressionFetchShouldSucceed() {
         mockFwdNodeExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -52,7 +54,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbOneLinkWithOpToExpressionShouldSucceed() {
+    public void wecmdbOneLinkWithOpToExpressionFetchShouldSucceed() {
         mockOneLinkWithOpToOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -63,7 +65,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbOneLinkWithOpByExpressionShouldSucceed() {
+    public void wecmdbOneLinkWithOpByExpressionFetchShouldSucceed() {
         mockOneLinkWithOpByOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -82,7 +84,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbMultipleLinksWithOpToOnlyExpressionShouldSucceed() {
+    public void wecmdbMultipleLinksWithOpToOnlyExpressionFetchShouldSucceed() {
         mockMultipleLinksWithOpToOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -97,7 +99,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbMultipleLinksWithOpByOnlyExpressionShouldSucceed() {
+    public void wecmdbMultipleLinksWithOpByOnlyExpressionFetchShouldSucceed() {
         mockMultipleLinksWithOpByOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -109,7 +111,25 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbMultipleLinksWithMixedOpExpressionShouldSucceed() {
+    public void wecmdbFwdNodeExpressionWriteBackShouldSucceed() {
+        // write back
+        mockFwdNodeExpressionServer(server);
+        final Map<String, Object> WRITE_BACK_DATA = Collections.singletonMap("code", "test");
+        DataModelExpressionToRootData expressionToRootData = new DataModelExpressionToRootData("wecmdb:system_design.code", "0001_0000000001");
+        dataModelExpressionService.writeBackData(
+                expressionToRootData, WRITE_BACK_DATA);
+        server.verify();
+
+        // fetch again to verify
+        mockFwdNodeExpressionServer(server);
+        List<Object> result = dataModelExpressionService.fetchData(expressionToRootData);
+        assert result.size() == 1;
+        assert result.get(0).equals(WRITE_BACK_DATA);
+        server.verify();
+    }
+
+    @Test
+    public void wecmdbMultipleLinksWithMixedOpExpressionFetchShouldSucceed() {
         mockMultipleLinksWithMixedOpExpressionServer(server);
         List<Object> resultOne = dataModelExpressionService.fetchData(
                 new DataModelExpressionToRootData("wecmdb:subsys~(subsys)wecmdb:unit.unit_design-wecmdb:unit_design.subsys_design-wecmdb:subsys_design.key_name", "0007_0000000001"));
