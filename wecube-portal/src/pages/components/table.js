@@ -149,7 +149,9 @@ export default {
           ) {
             _[i] = _["weTableForm"][i].codeId || _["weTableForm"][i].guid;
             _["weTableForm"][i] =
-              _["weTableForm"][i].value || _["weTableForm"][i].key_name;
+              _["weTableForm"][i].value ||
+              _["weTableForm"][i].key_name ||
+              _["weTableForm"][i].name;
           } else {
             if (Array.isArray(_["weTableForm"][i]) && i !== "nextOperations") {
               _["weTableForm"][i] = _["weTableForm"][i];
