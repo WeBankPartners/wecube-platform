@@ -199,6 +199,10 @@ public class ResourceDataQueryService {
         
         String bucketName = null;
         for(PluginInstance ps:pluginInstances) {
+            if(ps.getS3BucketResourceId() == null) {
+                continue;
+            }
+            
             Optional<ResourceItem> item= resourceItemRepository.findById(ps.getS3BucketResourceId());
             if(item.isPresent()) {
                 bucketName = item.get().getName();
@@ -207,7 +211,7 @@ public class ResourceDataQueryService {
         }
         
         if(Strings.isNullOrEmpty(bucketName)) {
-            throw new WecubeCoreException(String.format("Can not find out bucket name for packageId:%d", packageId));
+            return Lists.newArrayList();
         }
         
         List<S3ObjectSummary> s3Objs = s3client.listObjects(bucketName);

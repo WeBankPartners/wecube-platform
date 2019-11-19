@@ -20,7 +20,8 @@ import {
   retrieveSystemVariables,
   createSystemVariables,
   updateSystemVariables,
-  deleteSystemVariables
+  deleteSystemVariables,
+  getResourceServerStatus
 } from "@/api/server.js";
 import { outerActions } from "@/const/actions.js";
 import { formatData } from "../util/format.js";
@@ -45,7 +46,7 @@ export default {
       tableData: [],
       tableColumns: [
         {
-          title: "id",
+          title: this.$t("table_id"),
           key: "id",
           inputKey: "id",
           searchSeqNo: 1,
@@ -54,47 +55,47 @@ export default {
           disAdded: true,
           component: "Input",
           inputType: "text",
-          placeholder: "id"
+          placeholder: this.$t("table_id")
         },
         {
-          title: "name",
+          title: this.$t("table_name"),
           key: "name",
           inputKey: "name",
           searchSeqNo: 2,
           displaySeqNo: 2,
           component: "Input",
           inputType: "text",
-          placeholder: "name"
+          placeholder: this.$t("table_name")
         },
         {
-          title: "value",
+          title: this.$t("table_value"),
           key: "value",
           inputKey: "value",
           searchSeqNo: 3,
           displaySeqNo: 3,
           component: "Input",
           inputType: "text",
-          placeholder: "value"
+          placeholder: this.$t("table_value")
         },
         {
-          title: "defaultValue",
+          title: this.$t("table_default_value"),
           key: "defaultValue",
           inputKey: "defaultValue",
           searchSeqNo: 4,
           displaySeqNo: 4,
           component: "Input",
           inputType: "text",
-          placeholder: "defaultValue"
+          placeholder: this.$t("table_default_value")
         },
         {
-          title: "scopeType",
+          title: this.$t("table_scope_type"),
           key: "scopeType",
           inputKey: "scopeType",
           searchSeqNo: 5,
           displaySeqNo: 5,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "scopeType",
+          placeholder: this.$t("table_scope_type"),
           options: [
             {
               label: "global",
@@ -109,34 +110,34 @@ export default {
           ]
         },
         {
-          title: "scopeValue",
+          title: this.$t("table_scope_value"),
           key: "scopeValue",
           inputKey: "scopeValue",
           searchSeqNo: 6,
           displaySeqNo: 6,
           component: "Input",
           inputType: "text",
-          placeholder: "scopeValue"
+          placeholder: this.$t("table_scope_value")
         },
         {
-          title: "seqNo",
+          title: this.$t("table_seq_no"),
           key: "seqNo",
           inputKey: "seqNo",
           searchSeqNo: 7,
           displaySeqNo: 7,
           component: "Input",
           inputType: "text",
-          placeholder: "seqNo"
+          placeholder: this.$t("table_seq_no")
         },
         {
-          title: "status",
+          title: this.$t("table_status"),
           key: "status",
           inputKey: "status",
           searchSeqNo: 8,
           displaySeqNo: 8,
-          component: "Input",
-          inputType: "text",
-          placeholder: "status"
+          component: "WeSelect",
+          inputType: "select",
+          placeholder: this.$t("table_status")
         }
       ]
     };
@@ -153,6 +154,28 @@ export default {
         this.tableData = data.contents;
         this.pagination.total = data.pageInfo.totalRows;
       }
+    },
+    async getStatus() {
+      const { status, message, data } = await getResourceServerStatus({});
+      if (status === "OK") {
+        this.setOptions(data, "status");
+      }
+    },
+    setOptions(data, column) {
+      let statusIndex;
+      this.tableColumns.find((_, i) => {
+        if (_.key === column) {
+          statusIndex = i;
+        }
+      });
+      const options = data.map(_ => {
+        return {
+          label: _,
+          value: _,
+          key: _
+        };
+      });
+      this.$set(this.tableColumns[statusIndex], "options", options);
     },
     handleSubmit(data) {
       this.payload.filters = data;
@@ -364,6 +387,7 @@ export default {
     }
   },
   mounted() {
+    this.getStatus();
     this.queryData();
   }
 };
