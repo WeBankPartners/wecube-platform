@@ -9,8 +9,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "CORE_RU_TASK_NODE_EXEC_PARAM")
 public class TaskNodeExecParamEntity extends BaseTraceableEntity {
-    public static final String PARAM_TYPE_REQUEST = "REQ";
-    public static final String PARAM_TYPE_RESPONSE = "RESP";
+    public static final String PARAM_TYPE_REQUEST = "INPUT";
+    public static final String PARAM_TYPE_RESPONSE = "OUTPUT";
 
     public static final String PARAM_DATA_TYPE_INT = "int";
     public static final String PARAM_DATA_TYPE_STRING = "string";

@@ -49,6 +49,11 @@ import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcesso
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class PluginInvocationService {
     private static final Logger log = LoggerFactory.getLogger(PluginInvocationService.class);
@@ -111,9 +116,31 @@ public class PluginInvocationService {
             log.info("invoke plugin interface with:{}", cmd);
         }
 
-        ProcInstInfoEntity procInstEntity = retrieveProcInstInfoEntity(cmd);
-        TaskNodeInstInfoEntity taskNodeInstEntity = retrieveTaskNodeInstInfoEntity(procInstEntity.getId(),
-                cmd.getNodeId());
+        ProcInstInfoEntity procInstEntity = null;
+        TaskNodeInstInfoEntity taskNodeInstEntity = null;
+        try {
+            procInstEntity = retrieveProcInstInfoEntity(cmd);
+            taskNodeInstEntity = retrieveTaskNodeInstInfoEntity(procInstEntity.getId(), cmd.getNodeId());
+            doInvokePluginInterface(procInstEntity, taskNodeInstEntity, cmd);
+        } catch (Exception e) {
+            log.error("errors while processing {} {}", cmd.getClass().getSimpleName(), cmd, e);
+            pluginInvocationResultService.responsePluginInterfaceInvocation(
+                    new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
+
+            if (taskNodeInstEntity != null) {
+                log.info("mark task node instance {} as {}", taskNodeInstEntity.getId(),
+                        TaskNodeInstInfoEntity.FAULTED_STATUS);
+                taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
+                taskNodeInstEntity.setUpdatedTime(new Date());
+
+                taskNodeInstInfoRepository.save(taskNodeInstEntity);
+            }
+
+        }
+    }
+
+    protected void doInvokePluginInterface(ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
+            PluginInvocationCommand cmd) {
         TaskNodeDefInfoEntity taskNodeDefEntity = retrieveTaskNodeDefInfoEntity(procInstEntity.getProcDefId(),
                 cmd.getNodeId());
         List<ProcExecBindingEntity> nodeObjectBindings = retrieveProcExecBindingEntities(taskNodeInstEntity);
@@ -222,15 +249,22 @@ public class PluginInvocationService {
                         log.debug("expression:{}", mappingEntityExpression);
                     }
 
-                    DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
-                            entityDataId);
+                    // TODO FIXME
+                    // DataModelExpressionToRootData criteria = new
+                    // DataModelExpressionToRootData(mappingEntityExpression,
+                    // entityDataId);
+                    //
+                    // List<Object> attrValsPerExpr =
+                    // dataModelExpressionService.fetchData(criteria);
+                    //
+                    // if (attrValsPerExpr == null) {
+                    // log.error("returned null while fetch data with
+                    // expression:{}", mappingEntityExpression);
+                    // attrValsPerExpr = new ArrayList<>();
+                    // }
 
-                    List<Object> attrValsPerExpr = dataModelExpressionService.fetchData(criteria);
-                    
-                    if(attrValsPerExpr == null){
-                        log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
-                        attrValsPerExpr =  new ArrayList<>();
-                    }
+                    List<Object> attrValsPerExpr = new ArrayList<>();
+                    attrValsPerExpr.add("999");
 
                     objectVals.addAll(attrValsPerExpr);
 
@@ -401,8 +435,28 @@ public class PluginInvocationService {
     }
 
     private ProcInstInfoEntity retrieveProcInstInfoEntity(PluginInvocationCommand cmd) {
+        return doRetrieveProcInstInfoEntity(cmd);
+    }
+
+    private ProcInstInfoEntity doRetrieveProcInstInfoEntity(PluginInvocationCommand cmd) {
         String procInstKernelId = cmd.getProcInstId();
-        ProcInstInfoEntity procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(procInstKernelId);
+
+        ProcInstInfoEntity procInstEntity = null;
+        int round = 0;
+        while (round < 10) {
+            procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(procInstKernelId);
+
+            if (procInstEntity != null) {
+                break;
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+            }
+
+            round++;
+        }
 
         if (procInstEntity == null) {
             log.error("Process instance info does not exist for id:{}", procInstKernelId);
@@ -447,6 +501,7 @@ public class PluginInvocationService {
                 TaskNodeExecParamEntity e = new TaskNodeExecParamEntity();
                 e.setRequestId(requestId);
                 e.setParamName(attr.getName());
+                e.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
                 e.setParamDataType(attr.getType());
                 e.setObjectId(sObjectId);
                 e.setParamDataValue(attr.getValuesAsString());
@@ -557,9 +612,22 @@ public class PluginInvocationService {
         log.error("system errors:{}", pluginInvocationResult.getErrMsg());
         result.setResultCode(RESULT_CODE_ERR);
         pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-        handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "400", "system errors");
+        handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "400",
+                "system errors:" + trimWithMaxLength(pluginInvocationResult.getErrMsg()));
 
         return;
+    }
+
+    private String trimWithMaxLength(String s) {
+        if (s == null) {
+            return "";
+        }
+
+        if (s.length() < 100) {
+            return s;
+        }
+
+        return s.substring(0, 100);
     }
 
     private void handleNullResultData(PluginInterfaceInvocationResult pluginInvocationResult,
@@ -633,18 +701,15 @@ public class PluginInvocationService {
             Map<String, Object> outputParameterMap, String objectId) {
         // TODO
 
-        
         String entityTypeId = null;
         String entityDataId = null;
-        
+
         String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
 
         Set<PluginConfigInterfaceParameter> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
-        
-        
 
         for (Map.Entry<String, Object> entry : outputParameterMap.entrySet()) {
-            
+
             PluginConfigInterfaceParameter p = findPreConfiguredPluginConfigInterfaceParameter(outputParameters,
                     entry.getKey());
 
@@ -719,7 +784,7 @@ public class PluginInvocationService {
         Optional<TaskNodeExecRequestEntity> requestEntityOpt = taskNodeExecRequestRepository
                 .findById(requestEntity.getRequestId());
 
-        if (requestEntityOpt.isPresent()) {
+        if (!requestEntityOpt.isPresent()) {
             log.error("request entity does not exist for {}", requestEntity.getRequestId());
 
         } else {
@@ -734,7 +799,7 @@ public class PluginInvocationService {
         Optional<TaskNodeInstInfoEntity> nodeInstEntityOpt = taskNodeInstInfoRepository
                 .findById(nodeInstEntity.getId());
 
-        if (nodeInstEntityOpt.isPresent()) {
+        if (!nodeInstEntityOpt.isPresent()) {
             log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
         } else {
             nodeInstEntity = nodeInstEntityOpt.get();
@@ -753,7 +818,7 @@ public class PluginInvocationService {
         Optional<TaskNodeExecRequestEntity> requestEntityOpt = taskNodeExecRequestRepository
                 .findById(requestEntity.getRequestId());
 
-        if (requestEntityOpt.isPresent()) {
+        if (!requestEntityOpt.isPresent()) {
             log.error("request entity does not exist for {}", requestEntity.getRequestId());
 
         } else {
@@ -770,7 +835,7 @@ public class PluginInvocationService {
         Optional<TaskNodeInstInfoEntity> nodeInstEntityOpt = taskNodeInstInfoRepository
                 .findById(nodeInstEntity.getId());
 
-        if (nodeInstEntityOpt.isPresent()) {
+        if (!nodeInstEntityOpt.isPresent()) {
             log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
         } else {
             nodeInstEntity = nodeInstEntityOpt.get();
