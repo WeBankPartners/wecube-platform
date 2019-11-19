@@ -5,7 +5,8 @@ import java.util.List;
 
 public class StartProcInstRequestDto {
     private String procDefId;
-    private String rootObjectId;
+    private String entityTypeId;
+    private String entityDataId;
     private List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
 
     public String getProcDefId() {
@@ -16,12 +17,20 @@ public class StartProcInstRequestDto {
         this.procDefId = procDefId;
     }
 
-    public String getRootObjectId() {
-        return rootObjectId;
+    public String getEntityTypeId() {
+        return entityTypeId;
     }
 
-    public void setRootObjectId(String rootObjectId) {
-        this.rootObjectId = rootObjectId;
+    public void setEntityTypeId(String entityTypeId) {
+        this.entityTypeId = entityTypeId;
+    }
+
+    public String getEntityDataId() {
+        return entityDataId;
+    }
+
+    public void setEntityDataId(String entityDataId) {
+        this.entityDataId = entityDataId;
     }
 
     public List<TaskNodeDefObjectBindInfoDto> getTaskNodeBinds() {
