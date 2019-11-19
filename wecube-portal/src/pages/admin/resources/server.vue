@@ -61,7 +61,7 @@ export default {
       tableData: [],
       tableColumns: [
         {
-          title: "Id",
+          title: this.$t("table_id"),
           key: "id",
           inputKey: "id",
           searchSeqNo: 1,
@@ -70,98 +70,98 @@ export default {
           disAdded: true,
           component: "Input",
           inputType: "text",
-          placeholder: "id"
+          placeholder: this.$t("table_id")
         },
         {
-          title: "Name",
+          title: this.$t("table_name"),
           key: "name",
           inputKey: "name",
           searchSeqNo: 2,
           displaySeqNo: 2,
           component: "Input",
           inputType: "text",
-          placeholder: "name"
+          placeholder: this.$t("table_name")
         },
         {
-          title: "Host",
+          title: this.$t("table_host"),
           key: "host",
           inputKey: "host",
           searchSeqNo: 3,
           displaySeqNo: 3,
           component: "Input",
           inputType: "text",
-          placeholder: "host"
+          placeholder: this.$t("table_host")
         },
         {
-          title: "Is Allocated",
+          title: this.$t("table_isAllocated"),
           key: "isAllocated",
           inputKey: "isAllocated",
           searchSeqNo: 4,
           displaySeqNo: 4,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "isAllocated",
+          placeholder: this.$t("table_isAllocated"),
           options: booleanOptions
         },
         {
-          title: "Login Username",
+          title: this.$t("table_login_username"),
           key: "loginUsername",
           inputKey: "loginUsername",
           searchSeqNo: 5,
           displaySeqNo: 5,
           component: "Input",
           inputType: "text",
-          placeholder: "loginUsername"
+          placeholder: this.$t("table_login_username")
         },
         {
-          title: "Login Password",
+          title: this.$t("table_login_password"),
           key: "loginPassword",
           inputKey: "loginPassword",
           searchSeqNo: 6,
           displaySeqNo: 6,
           component: "Input",
           inputType: "text",
-          placeholder: "loginPassword"
+          placeholder: this.$t("table_login_password")
         },
         {
-          title: "Port",
+          title: this.$t("table_port"),
           key: "port",
           inputKey: "port",
           searchSeqNo: 7,
           displaySeqNo: 7,
           component: "Input",
           inputType: "text",
-          placeholder: "port"
+          placeholder: this.$t("table_port")
         },
         {
-          title: "Purpose",
+          title: this.$t("table_purpose"),
           key: "purpose",
           inputKey: "purpose",
           searchSeqNo: 8,
           displaySeqNo: 8,
           component: "Input",
           inputType: "text",
-          placeholder: "purpose"
+          placeholder: this.$t("table_purpose")
         },
         {
-          title: "Status",
+          title: this.$t("table_status"),
           key: "status",
           inputKey: "status",
           searchSeqNo: 9,
           displaySeqNo: 9,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "status"
+          placeholder: this.$t("table_status")
         },
         {
-          title: "Type",
+          title: this.$t("table_type"),
           key: "type",
           inputKey: "type",
           searchSeqNo: 10,
           displaySeqNo: 10,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "type"
+          placeholder: this.$t("table_type")
         }
       ]
     };
