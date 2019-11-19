@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service;
 
-import com.google.gson.Gson;
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
@@ -21,7 +20,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
-    Gson gson = null;
 
     @Autowired
     DataModelExpressionServiceImpl dataModelExpressionService;
@@ -34,7 +32,6 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
     @Before
     public void setup() {
-        gson = new Gson();
         server = MockRestServiceServer.bindTo(restTemplate).build();
         gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
