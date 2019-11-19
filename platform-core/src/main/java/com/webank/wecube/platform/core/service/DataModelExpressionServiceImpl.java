@@ -46,10 +46,28 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         this.requestActualUrl = requestActualUrl;
     }
 
+
     @Override
     public List<Object> fetchData(DataModelExpressionToRootData dataModelExpressionToRootData
     ) throws WecubeCoreException {
 
+        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(dataModelExpressionToRootData);
+
+        return resultDtoStack.pop().getResultValue();
+    }
+
+    @Override
+    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object updateData) {
+        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(expressionToRootData);
+    }
+
+    /**
+     * Chain request operation from dataModelExpression and root Id data pair
+     *
+     * @param dataModelExpressionToRootData a support class comprises data model expression and root id data
+     * @return request dto stack comprises returned value and intermediate responses, peek is the latest request
+     */
+    private Stack<DataModelExpressionDto> chainRequest(DataModelExpressionToRootData dataModelExpressionToRootData) {
         String dataModelExpression = dataModelExpressionToRootData.getDataModelExpression();
         String rootIdData = dataModelExpressionToRootData.getRootData();
         Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
@@ -76,14 +94,17 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             }
             resultDtoStack.add(expressionDto);
         }
-
-        return resultDtoStack.pop().getResultValue();
+        return resultDtoStack;
     }
 
-    @Override
-    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object updateData) {
-    }
 
+    /**
+     * Resolve first link which comprises only fwdNode, bwdNode and one {package}:{entity}.{attribute} situation.
+     *
+     * @param expressionDto first link expression dto
+     * @param rootIdData    root data id data
+     * @throws WecubeCoreException throw exception while request
+     */
     private void resolveLink(DataModelExpressionDto expressionDto, String rootIdData) throws WecubeCoreException {
         // only invoke this condition when one "entity fetch" situation occurs
         if (expressionDto.getOpTo() == null && expressionDto.getOpBy() == null && expressionDto.getOpFetch() != null) {
@@ -94,7 +115,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             // request
             String requestPackageName = entity.pkg().getText();
             String requestEntityName = entity.ety().getText();
-            Map<String, Object> requestParamMap = generateRefToParamMap(
+            Map<String, Object> requestParamMap = generateParamMap(
                     this.applicationProperties.getGatewayUrl(),
                     requestPackageName,
                     requestEntityName,
@@ -121,7 +142,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String firstRequestPackageName = fwdNode.entity().pkg().getText();
             String firstRequestEntityName = fwdNode.entity().ety().getText();
 
-            Map<String, Object> firstRequestParamMap = generateRefToParamMap(
+            Map<String, Object> firstRequestParamMap = generateParamMap(
                     this.applicationProperties.getGatewayUrl(),
                     firstRequestPackageName,
                     firstRequestEntityName,
@@ -140,7 +161,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<Object> secondRequestIdDataList = commonResponseToList(firstRequestResponseDto, secondRequestAttrName);
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             for (Object secondRequestIdData : secondRequestIdDataList) {
-                Map<String, Object> secondRequestParamMap = generateRefToParamMap(
+                Map<String, Object> secondRequestParamMap = generateParamMap(
                         this.applicationProperties.getGatewayUrl(),
                         secondRequestPackageName,
                         secondRequestEntityName,
@@ -166,7 +187,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String secondRequestPackageName = bwdNode.entity().pkg().getText();
             String secondRequestEntityName = bwdNode.entity().ety().getText();
             String secondRequestAttributeName = bwdNode.attr().getText();
-            Map<String, Object> secondRequestParamMap = generateRefToParamMap(
+            Map<String, Object> secondRequestParamMap = generateParamMap(
                     this.applicationProperties.getGatewayUrl(),
                     secondRequestPackageName,
                     secondRequestEntityName,
@@ -180,6 +201,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
     }
 
+    /**
+     * Resolve links which comprise previous links and final fetch action
+     *
+     * @param expressionDto         subsequent link expression dto
+     * @param lastRequestResultList the request response from last link
+     * @throws WecubeCoreException throw exception through the request
+     */
     private void resolveLink(DataModelExpressionDto expressionDto, List<CommonResponseDto> lastRequestResultList) throws WecubeCoreException {
         // only invoke this function when the non-first link is processed
         // no need to process fwdNode
@@ -194,7 +222,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
                 List<Object> requestIdDataList = commonResponseToList(lastRequestResponseDto, requestId);
                 for (Object requestIdData : requestIdDataList) {
-                    Map<String, Object> requestParamMap = generateRefToParamMap(
+                    Map<String, Object> requestParamMap = generateParamMap(
                             this.applicationProperties.getGatewayUrl(),
                             requestPackageName,
                             requestEntityName,
@@ -225,7 +253,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                     Objects.requireNonNull(requestIdData,
                             "Cannot find 'id' from last request response. " +
                                     "Please ensure that the interface returned the data with one key named: 'id' as the development guideline requires.");
-                    Map<String, Object> requestParamMap = generateRefToParamMap(
+                    Map<String, Object> requestParamMap = generateParamMap(
                             this.applicationProperties.getGatewayUrl(),
                             requestPackageName,
                             requestEntityName,
@@ -253,12 +281,23 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
     }
 
-    private Map<String, Object> generateRefToParamMap(Object gatewayUrl,
-                                                      Object packageName,
-                                                      Object entityName,
-                                                      Object attributeName,
-                                                      Object value,
-                                                      Object sortName) {
+    /**
+     * Param map generation
+     *
+     * @param gatewayUrl    gate way url
+     * @param packageName   package name
+     * @param entityName    entity name
+     * @param attributeName attribute name
+     * @param value         value
+     * @param sortName      sort name
+     * @return response map
+     */
+    private Map<String, Object> generateParamMap(Object gatewayUrl,
+                                                 Object packageName,
+                                                 Object entityName,
+                                                 Object attributeName,
+                                                 Object value,
+                                                 Object sortName) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
@@ -269,18 +308,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return paramMap;
     }
 
-    private Map<String, String> generateRequestAllParamMap(String gatewayUrl,
-                                                           String packageName,
-                                                           String entityName,
-                                                           String sortName) {
-        Map<String, String> paramMap = new HashMap<>();
-        paramMap.put("gatewayUrl", gatewayUrl);
-        paramMap.put("packageName", packageName);
-        paramMap.put("entityName", entityName);
-        paramMap.put("sortName", sortName);
-        return paramMap;
-    }
-
+    /**
+     * Issue a request from request url with place holders and param map
+     *
+     * @param requestUrl request url with place holders
+     * @param paramMap   generated param map
+     * @return common response dto
+     * @throws WecubeCoreException catch exception during sending the request
+     */
     private CommonResponseDto request(String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
         ResponseEntity<String> response;
         CommonResponseDto responseDto = null;
@@ -310,6 +345,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return responseDto;
     }
 
+    /**
+     * Handle response and resolve it to list of objects
+     *
+     * @param responseDto   common response dto
+     * @param attributeName the attribute name the expression want to fetch
+     * @return list of value fetched from expression
+     */
     private List<Object> commonResponseToList(CommonResponseDto responseDto, String attributeName) {
         // transfer dto to List<LinkedTreeMap>
         List<LinkedHashMap<String, Object>> dataArray = new ArrayList<>();
