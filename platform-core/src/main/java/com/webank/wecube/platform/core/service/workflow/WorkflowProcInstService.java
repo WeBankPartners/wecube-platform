@@ -113,15 +113,26 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             }
         }
 
+        ProcExecBindingEntity procInstBindEntity = procExecBindingRepository
+                .findProcInstBindings(procInstEntity.getId());
+        
+        String entityTypeId = null;
+        String entityDataId = null;
+        
+        if(procInstBindEntity != null){
+            entityTypeId = procInstBindEntity.getEntityTypeId();
+            entityDataId = procInstBindEntity.getEntityDataId();
+        }
+        
+
         ProcInstInfoDto result = new ProcInstInfoDto();
         result.setId(procInstEntity.getId());
         result.setOperator(procInstEntity.getOperator());
         result.setProcDefId(procInstEntity.getProcDefId());
         result.setProcInstKey(procInstEntity.getProcInstKey());
-        // TODO
         result.setProcInstName(procInstEntity.getProcDefName());
-        // TODO
-        result.setRootObjectId("");
+        result.setEntityTypeId(entityTypeId);
+        result.setEntityDataId(entityDataId);
         result.setStatus(procInstEntity.getStatus());
 
         List<TaskNodeInstInfoEntity> nodeEntities = taskNodeInstInfoRepository
@@ -175,10 +186,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             throw new WecubeCoreException("Process definition ID is blank.");
         }
 
-        // TODO verify root object id
-        String rootObjectId = null;
-
-        // TODO
+        String rootEntityTypeId = requestDto.getEntityTypeId();
+        String rootEntityDataId = requestDto.getEntityDataId();
 
         String procDefId = requestDto.getProcDefId();
         Optional<ProcDefInfoEntity> procDefInfoEntityOpt = processDefInfoRepository.findById(procDefId);
@@ -211,6 +220,14 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         procInstInfoRepository.save(procInstInfoEntity);
 
+        ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
+        procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
+        procInstBindEntity.setEntityTypeId(rootEntityTypeId);
+        procInstBindEntity.setEntityDataId(rootEntityDataId);
+        procInstBindEntity.setProcDefId(procDefId);
+        procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
+        procExecBindingRepository.save(procInstBindEntity);
+
         List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.findAllByProcDefId(procDefId);
 
         for (TaskNodeDefInfoEntity taskNodeDefInfoEntity : taskNodeDefInfoEntities) {
@@ -232,14 +249,16 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                     taskNodeDefInfoEntity.getId());
 
             for (TaskNodeDefObjectBindInfoDto bindInfoDto : bindInfoDtos) {
-                ProcExecBindingEntity bindingEntity = new ProcExecBindingEntity();
-                bindingEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
-                bindingEntity.setProcInstId(procInstInfoEntity.getId());
-                bindingEntity.setProcDefId(procDefId);
-                bindingEntity.setNodeDefId(bindInfoDto.getNodeDefId());
-                bindingEntity.setTaskNodeInstId(taskNodeInstInfoEntity.getId());
+                ProcExecBindingEntity nodeBindEntity = new ProcExecBindingEntity();
+                nodeBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_TASK_NODE_INSTANCE);
+                nodeBindEntity.setProcInstId(procInstInfoEntity.getId());
+                nodeBindEntity.setProcDefId(procDefId);
+                nodeBindEntity.setNodeDefId(bindInfoDto.getNodeDefId());
+                nodeBindEntity.setTaskNodeInstId(taskNodeInstInfoEntity.getId());
+                nodeBindEntity.setEntityTypeId(bindInfoDto.getEntityTypeId());
+                nodeBindEntity.setEntityDataId(bindInfoDto.getEntityDataId());
 
-                procExecBindingRepository.save(bindingEntity);
+                procExecBindingRepository.save(nodeBindEntity);
             }
         }
 
@@ -272,21 +291,14 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         procInstInfoRepository.save(procEntity);
 
-        // List<TaskNodeInstInfoEntity> taskNodeEntities =
-        // taskNodeInstInfoRepository
-        // .findAllByProcInstId(procEntity.getId());
-        //
-        // for(TaskNodeInstInfoEntity nodeEntity:taskNodeEntities){
-        // nodeEntity.setUpdatedTime(now);
-        // nodeEntity.setStatus(status);
-        // }
-
         ProcInstInfoDto instDto = new ProcInstInfoDto();
         instDto.setId(procEntity.getId());
         instDto.setOperator(procEntity.getOperator());
         instDto.setProcDefId(procEntity.getProcDefId());
         instDto.setProcInstKey(procEntity.getProcDefKey());
         instDto.setStatus(procEntity.getStatus());
+
+        // TODO to render all task nodes
 
         return instDto;
     }

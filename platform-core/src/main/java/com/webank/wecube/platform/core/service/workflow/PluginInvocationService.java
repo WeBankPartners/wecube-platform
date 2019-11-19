@@ -193,15 +193,14 @@ public class PluginInvocationService {
 
         Set<PluginConfigInterfaceParameter> configInterfaceInputParams = pluginConfigInterface.getInputParameters();
         for (ProcExecBindingEntity nodeObjectBinding : nodeObjectBindings) {
-            // TODO
-            String entityId = nodeObjectBinding.getEntityId();
+            String entityTypeId = nodeObjectBinding.getEntityTypeId();
+            String entityDataId = nodeObjectBinding.getEntityDataId();
 
             InputParamObject inputObj = new InputParamObject();
-            inputObj.setEntityId(entityId);
+            inputObj.setEntityTypeId(entityTypeId);
+            inputObj.setEntityDataId(entityDataId);
 
-            // TODO to call data route service to get entity
             for (PluginConfigInterfaceParameter param : configInterfaceInputParams) {
-                // TODO get from data route
                 String paramName = param.getName();
                 String paramType = param.getDataType();
 
@@ -224,7 +223,7 @@ public class PluginInvocationService {
                     }
 
                     DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
-                            entityId);
+                            entityDataId);
 
                     List<Object> attrValsPerExpr = dataModelExpressionService.fetchData(criteria);
                     
@@ -435,11 +434,12 @@ public class PluginInvocationService {
 
         for (InputParamObject ipo : inputParamObjs) {
             if (log.isDebugEnabled()) {
-                log.debug("process input parameters for entity:{}", ipo.getEntityId());
+                log.debug("process input parameters for entity:{} {}", ipo.getEntityTypeId(), ipo.getEntityDataId());
             }
 
             String sObjectId = String.valueOf(objectId);
-            String entityId = ipo.getEntityId();
+            String entityTypeId = ipo.getEntityTypeId();
+            String entityDataId = ipo.getEntityDataId();
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
 
@@ -450,7 +450,8 @@ public class PluginInvocationService {
                 e.setParamDataType(attr.getType());
                 e.setObjectId(sObjectId);
                 e.setParamDataValue(attr.getValuesAsString());
-                e.setNodeRootEntityId(entityId);
+                e.setEntityDataId(entityDataId);
+                e.setEntityTypeId(entityTypeId);
 
                 taskNodeExecParamRepository.save(e);
 
@@ -632,12 +633,18 @@ public class PluginInvocationService {
             Map<String, Object> outputParameterMap, String objectId) {
         // TODO
 
+        
+        String entityTypeId = null;
+        String entityDataId = null;
+        
         String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
 
         Set<PluginConfigInterfaceParameter> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
+        
+        
 
         for (Map.Entry<String, Object> entry : outputParameterMap.entrySet()) {
-            TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
+            
             PluginConfigInterfaceParameter p = findPreConfiguredPluginConfigInterfaceParameter(outputParameters,
                     entry.getKey());
 
@@ -648,8 +655,9 @@ public class PluginInvocationService {
                 paramDataType = p.getDataType();
             }
 
-            // TODO try to get root entity id
-            // paramEntity.setNodeRootEntityId(nodeRootEntityId);
+            TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
+            paramEntity.setEntityTypeId(entityTypeId);
+            paramEntity.setEntityDataId(entityDataId);
             paramEntity.setObjectId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
