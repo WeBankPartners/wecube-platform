@@ -12,6 +12,11 @@ public class PluginInvocationResult extends PluginInvocationCommand {
         this.resultCode = resultCode;
     }
     
+    public PluginInvocationResult withResultCode(int resultCode) {
+        this.resultCode = resultCode;
+        return this;
+    }
+    
     public PluginInvocationResult parsePluginInvocationCommand(PluginInvocationCommand cmd){
         if(cmd == null){
             return this;
