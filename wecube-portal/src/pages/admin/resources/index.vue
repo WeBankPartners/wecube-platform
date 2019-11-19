@@ -38,7 +38,7 @@ export default {
       if (status === "OK") {
         this.servers = data.contents.map(_ => {
           return {
-            label: _.id,
+            label: _.name,
             value: _.id,
             key: _.id
           };
