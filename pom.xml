@@ -30,17 +30,4 @@
 		<module>platform-auth-server</module>
 		<module>platform-gateway</module>
     </modules>
-    
-	<profiles>
-		<profile>
-			<id>ci</id>
-			<modules>
-				<module>platform-core</module>
-				<module>platform-workflow</module>
-				<module>platform-auth-client</module>
-				<module>platform-auth-server</module>
-				<module>platform-gateway</module>
-			</modules>
-		</profile>
-	</profiles>    
 </project>
