@@ -1,12 +1,22 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public abstract class AbstractWorkflowService {
     public static final String NODE_IDS_DELIMITER = ",";
+    
+    public static final String PROC_DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     
     protected List<String> unmarshalNodeIds(String nodeIdsAsString) {
         List<String> nodeIds = new ArrayList<>();
@@ -21,5 +31,10 @@ public abstract class AbstractWorkflowService {
         }
 
         return nodeIds;
+    }
+    
+    protected String formatDate(Date date){
+        DateFormat df = new SimpleDateFormat(PROC_DATETIME_PATTERN);
+        return df.format(date);
     }
 }
