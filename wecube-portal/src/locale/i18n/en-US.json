@@ -296,5 +296,22 @@
   "apply_data_model": "Apply data model",
   "instance_type": "Entity Type",
   "hosts": "Hosts",
-  "instances": "Instances"
+  "instances": "Instances",
+  "table_id": "ID",
+  "table_name": "Name",
+  "table_type": "Type",
+  "table_resource_server": "Resource Server",
+  "table_is_allocated": "Is Allocated",
+  "table_purpose": "Purpose",
+  "table_status": "Status",
+  "table_created_date": "Created Date",
+  "table_updated_date": "Updated Date",
+  "table_host": "Host",
+  "table_login_username": "Login Username",
+  "table_login_password": "Login Password",
+  "table_port": "Port",
+  "table_default_value": "Default Value",
+  "table_scope_type": "Scope Type",
+  "table_scope_value": "Scope Value",
+  "table_seq_no": "Seq No"
 }
