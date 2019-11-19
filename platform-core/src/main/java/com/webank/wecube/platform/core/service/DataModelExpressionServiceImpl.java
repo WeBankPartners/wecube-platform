@@ -26,14 +26,16 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
-
+    private static final String postRequestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
     @Autowired
     private RestTemplate restTemplate = new RestTemplate();
     private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
     @Autowired
     private ApplicationProperties applicationProperties;
     private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
+    final String UNIQUE_IDENTIFIER = "id";
     private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?sorting={sortName},asc";
+
 
     private String requestActualUrl = "";
 
@@ -57,8 +59,48 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     @Override
-    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object updateData) {
+    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Map<String, Object> writeBackData) throws WecubeCoreException {
         Stack<DataModelExpressionDto> resultDtoStack = chainRequest(expressionToRootData);
+        List<CommonResponseDto> lastRequestResponse;
+        DataModelExpressionDto finalFetchDto = Objects.requireNonNull(resultDtoStack.pop());
+        String writeBackPackageName = null;
+        String writeBackEntityName = null;
+        if (resultDtoStack.empty()) {
+            // no remain of stack, means the stack size is 1 when the function is invoked
+            // {package}:{entity}.{attr} condition
+            // the size of the stack is one
+            lastRequestResponse = Objects.requireNonNull(finalFetchDto.getReturnedJson(), "No returned json found by the request.").pop();
+            writeBackPackageName = Objects.requireNonNull(finalFetchDto.getEntity().pkg(), "Cannot find package.").getText();
+            writeBackEntityName = Objects.requireNonNull(finalFetchDto.getEntity().ety(), "Cannot find entity.").getText();
+        } else {
+            DataModelExpressionDto lastLinkDto = resultDtoStack.pop();
+            Stack<List<CommonResponseDto>> requestResponseList = lastLinkDto.getReturnedJson();
+            lastRequestResponse = requestResponseList.pop();
+            if (null != lastLinkDto.getOpFetch()) {
+                // refBy
+                writeBackPackageName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().pkg(), "Cannot find package.").getText();
+                writeBackEntityName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().ety(), "Cannot find entity.").getText();
+
+            }
+
+            if (null != lastLinkDto.getOpTo()) {
+                // refTo
+                writeBackPackageName = Objects.requireNonNull(lastLinkDto.getEntity().pkg(), "Cannot find package.").getText();
+                writeBackEntityName = Objects.requireNonNull(lastLinkDto.getEntity().ety(), "Cannot find attribute.").getText();
+            }
+        }
+        String writeBackAttr = Objects.requireNonNull(finalFetchDto.getOpFetch()).attr().getText();
+        Object writeBackId = commonResponseToList(lastRequestResponse.get(0), this.UNIQUE_IDENTIFIER).get(0);
+        if (!writeBackData.containsKey(writeBackAttr)) {
+            String msg = String.format("Cannot find attribute name [%s] from given write back data, " +
+                    "check if expression's last fetch attribute is in your write back data.", writeBackAttr);
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        Object writeBackValue = writeBackData.get(writeBackAttr);
+        Map<String, Object> postRequestUrlParamMap = generatePostUrlParamMap(this.applicationProperties.getGatewayUrl(), writeBackPackageName, writeBackEntityName);
+        List<Map<String, Object>> writeBackRequestBodyParamMap = generatePostBodyParamMap(writeBackId, writeBackAttr, writeBackValue);
+        postRequest(postRequestUrl, postRequestUrlParamMap, writeBackRequestBodyParamMap);
     }
 
     /**
@@ -115,14 +157,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             // request
             String requestPackageName = entity.pkg().getText();
             String requestEntityName = entity.ety().getText();
-            Map<String, Object> requestParamMap = generateParamMap(
+            Map<String, Object> requestParamMap = generateGetUrlParamMap(
                     this.applicationProperties.getGatewayUrl(),
                     requestPackageName,
                     requestEntityName,
                     "id",
                     rootIdData,
                     "id");
-            CommonResponseDto requestResponseDto = request(requestUrl, requestParamMap);
+            CommonResponseDto requestResponseDto = getRequest(requestUrl, requestParamMap);
             expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
             expressionDto.getReturnedJson().add(Collections.singletonList(requestResponseDto));
 
@@ -142,14 +184,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String firstRequestPackageName = fwdNode.entity().pkg().getText();
             String firstRequestEntityName = fwdNode.entity().ety().getText();
 
-            Map<String, Object> firstRequestParamMap = generateParamMap(
+            Map<String, Object> firstRequestParamMap = generateGetUrlParamMap(
                     this.applicationProperties.getGatewayUrl(),
                     firstRequestPackageName,
                     firstRequestEntityName,
                     "id",
                     rootIdData,
                     "id");
-            CommonResponseDto firstRequestResponseDto = request(requestUrl, firstRequestParamMap);
+            CommonResponseDto firstRequestResponseDto = getRequest(requestUrl, firstRequestParamMap);
             expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
             expressionDto.getReturnedJson().add(Collections.singletonList(firstRequestResponseDto));
 
@@ -161,14 +203,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<Object> secondRequestIdDataList = commonResponseToList(firstRequestResponseDto, secondRequestAttrName);
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             for (Object secondRequestIdData : secondRequestIdDataList) {
-                Map<String, Object> secondRequestParamMap = generateParamMap(
+                Map<String, Object> secondRequestParamMap = generateGetUrlParamMap(
                         this.applicationProperties.getGatewayUrl(),
                         secondRequestPackageName,
                         secondRequestEntityName,
                         "id",
                         secondRequestIdData,
                         "id");
-                CommonResponseDto secondRequestResponse = request(requestUrl, secondRequestParamMap);
+                CommonResponseDto secondRequestResponse = getRequest(requestUrl, secondRequestParamMap);
                 responseDtoList.add(secondRequestResponse);
             }
             expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
@@ -187,14 +229,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             String secondRequestPackageName = bwdNode.entity().pkg().getText();
             String secondRequestEntityName = bwdNode.entity().ety().getText();
             String secondRequestAttributeName = bwdNode.attr().getText();
-            Map<String, Object> secondRequestParamMap = generateParamMap(
+            Map<String, Object> secondRequestParamMap = generateGetUrlParamMap(
                     this.applicationProperties.getGatewayUrl(),
                     secondRequestPackageName,
                     secondRequestEntityName,
                     secondRequestAttributeName,
                     rootIdData,
                     "id");
-            CommonResponseDto secondRequestResponse = request(requestUrl, secondRequestParamMap);  // this response may have data with one or multiple lines.
+            CommonResponseDto secondRequestResponse = getRequest(requestUrl, secondRequestParamMap);  // this response may have data with one or multiple lines.
             expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
             expressionDto.getReturnedJson().add(Collections.singletonList(secondRequestResponse));
 
@@ -222,14 +264,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
                 List<Object> requestIdDataList = commonResponseToList(lastRequestResponseDto, requestId);
                 for (Object requestIdData : requestIdDataList) {
-                    Map<String, Object> requestParamMap = generateParamMap(
+                    Map<String, Object> requestParamMap = generateGetUrlParamMap(
                             this.applicationProperties.getGatewayUrl(),
                             requestPackageName,
                             requestEntityName,
                             "id",
                             requestIdData,
                             "id");
-                    CommonResponseDto requestResponse = request(requestUrl, requestParamMap);
+                    CommonResponseDto requestResponse = getRequest(requestUrl, requestParamMap);
                     requestUrlSet.add(requestActualUrl);
                     responseDtoList.add(requestResponse);
                 }
@@ -253,14 +295,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                     Objects.requireNonNull(requestIdData,
                             "Cannot find 'id' from last request response. " +
                                     "Please ensure that the interface returned the data with one key named: 'id' as the development guideline requires.");
-                    Map<String, Object> requestParamMap = generateParamMap(
+                    Map<String, Object> requestParamMap = generateGetUrlParamMap(
                             this.applicationProperties.getGatewayUrl(),
                             requestPackageName,
                             requestEntityName,
                             requestAttributeName,
                             requestIdData,
                             "id");
-                    CommonResponseDto requestResponse = request(requestUrl, requestParamMap);
+                    CommonResponseDto requestResponse = getRequest(requestUrl, requestParamMap);
                     requestUrlSet.add(requestActualUrl);
                     responseDtoList.add(requestResponse);
                 }
@@ -282,7 +324,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     /**
-     * Param map generation
+     * Generation of fetch data url param map
      *
      * @param gatewayUrl    gate way url
      * @param packageName   package name
@@ -292,12 +334,12 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @param sortName      sort name
      * @return response map
      */
-    private Map<String, Object> generateParamMap(Object gatewayUrl,
-                                                 Object packageName,
-                                                 Object entityName,
-                                                 Object attributeName,
-                                                 Object value,
-                                                 Object sortName) {
+    private Map<String, Object> generateGetUrlParamMap(Object gatewayUrl,
+                                                       Object packageName,
+                                                       Object entityName,
+                                                       Object attributeName,
+                                                       Object value,
+                                                       Object sortName) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
@@ -309,6 +351,44 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     /**
+     * Generation of data write back url param map
+     *
+     * @param gatewayUrl  gateway url
+     * @param packageName package name
+     * @param entityName  entity name
+     * @return generated param map for url binding
+     */
+    private Map<String, Object> generatePostUrlParamMap(Object gatewayUrl,
+                                                        Object packageName,
+                                                        Object entityName) {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("gatewayUrl", gatewayUrl);
+        paramMap.put("packageName", packageName);
+        paramMap.put("entityName", entityName);
+        return paramMap;
+
+    }
+
+    /**
+     * Generation of data write back body param map
+     *
+     * @param entityId       gateway url
+     * @param attributeName  package name
+     * @param attributeValue entity name
+     * @return generated param map for url binding
+     */
+    private List<Map<String, Object>> generatePostBodyParamMap(Object entityId,
+                                                               Object attributeName,
+                                                               Object attributeValue) {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("id", entityId);
+        paramMap.put("attr_name", attributeName);
+        paramMap.put("attr_value", attributeValue);
+        return Collections.singletonList(paramMap);
+
+    }
+
+    /**
      * Issue a request from request url with place holders and param map
      *
      * @param requestUrl request url with place holders
@@ -316,7 +396,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @return common response dto
      * @throws WecubeCoreException catch exception during sending the request
      */
-    private CommonResponseDto request(String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
+    private CommonResponseDto getRequest(String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
         ResponseEntity<String> response;
         CommonResponseDto responseDto = null;
         try {
@@ -343,6 +423,41 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
 
         return responseDto;
+    }
+
+    /**
+     * Issue a request from request url with place holders and param map
+     *
+     * @param requestUrl request url with place holders
+     * @param paramMap   generated param map
+     * @throws WecubeCoreException catch exception during sending the request
+     */
+    private void postRequest(String requestUrl, Map<String, Object> paramMap, List<Map<String, Object>> requestBodyParamMap) throws WecubeCoreException {
+        ResponseEntity<String> response;
+        CommonResponseDto responseDto = null;
+        try {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            // combine url with param map
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
+            UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
+            String uriStr = uriComponents.toString();
+            if (!this.getRequestActualUrl().equals(uriStr))
+                this.setRequestActualUrl(uriStr);
+            response = RestTemplateUtils.sendPostRequestWithParamMap(restTemplate, uriStr, requestBodyParamMap, httpHeaders);
+            if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
+                throw new WecubeCoreException(response.toString());
+            }
+            responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
+            if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
+                String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
+                logger.error(msg);
+                throw new WecubeCoreException(msg);
+            }
+        } catch (IOException ex) {
+            logger.error(ex.getMessage());
+            throw new WecubeCoreException(ex.getMessage());
+        }
+
     }
 
     /**
