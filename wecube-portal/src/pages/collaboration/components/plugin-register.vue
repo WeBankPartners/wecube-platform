@@ -25,7 +25,6 @@
               <Select
                 @on-change="onSelectEntityType"
                 v-model="selectedEntityType"
-                disabled
               >
                 <OptionGroup
                   :label="pluginPackage.packageName"
@@ -34,7 +33,7 @@
                 >
                   <Option
                     v-for="item in pluginPackage.pluginPackageEntities"
-                    :value="pluginPackage.packageName + item.name"
+                    :value="item.name"
                     :key="item.name"
                     >{{ item.name }}</Option
                   >
@@ -51,13 +50,13 @@
           <Col span="3">
             <strong style="font-size:15px;">{{ $t("params_type") }}</strong>
           </Col>
-          <Col span="4" offset="1">
+          <Col span="3" offset="0">
             <strong style="font-size:15px;">{{ $t("params_name") }}</strong>
           </Col>
-          <Col span="5" offset="1">
+          <Col span="6" offset="1">
             <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
           </Col>
-          <Col span="5" offset="1">
+          <Col span="3" offset="5">
             <strong style="font-size:15px;">属性类型</strong>
           </Col>
         </Row>
@@ -73,17 +72,17 @@
           </Col>
           <Col span="21">
             <Row>
-              <Col span="3">
+              <Col span="2">
                 <FormItem :label-width="0">
                   <span>{{ $t("input_params") }}</span>
                 </FormItem>
               </Col>
-              <Col span="16" offset="1">
+              <Col span="21" offset="1">
                 <Row
                   v-for="param in interfaces['inputParameters']"
                   :key="param.id"
                 >
-                  <Col span="6">
+                  <Col span="4">
                     <FormItem :label-width="0">
                       <Tooltip :content="param.name">
                         <span
@@ -94,18 +93,26 @@
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="4" offset="4">
+                  <Col span="14" offset="1">
                     <FormItem :label-width="0">
+                      <PathExp
+                        v-if="param.mappingType === 'entity'"
+                        :rootPkg="pkgName"
+                        :rootEntity="selectedEntityType"
+                        :allDataModelsWithAttrs="allEntityType"
+                        @getPluginPkgDataModel="getPluginPkgDataModel"
+                        v-model="param.mappingEntityExpression"
+                      ></PathExp>
                       <span v-if="param.mappingType === 'system_variable'">{{
                         param.mappingSystemVariableId || "N/A"
                       }}</span>
-                      <span v-if="param.mappingType === 'entity'">{{
+                      <!-- <span v-if="param.mappingType === 'entity'">{{
                         param.mappingEntityExpression || "N/A"
-                      }}</span>
+                      }}</span> -->
                       <span v-if="param.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
-                  <Col span="3" offset="5">
+                  <Col span="2" offset="1">
                     <FormItem :label-width="0">
                       {{ param.mappingType }}
                     </FormItem>
@@ -119,12 +126,12 @@
                   <span>{{ $t("output_params") }}</span>
                 </FormItem>
               </Col>
-              <Col span="17" offset="1">
+              <Col span="21" offset="0">
                 <Row
                   v-for="outPut in interfaces['outputParameters']"
                   :key="outPut.id + 1000"
                 >
-                  <Col span="5">
+                  <Col span="4">
                     <FormItem :label-width="0">
                       <Tooltip :content="outPut.name">
                         <span
@@ -135,7 +142,7 @@
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="18">
+                  <Col span="14" offset="1">
                     <FormItem :label-width="0">
                       <!-- <Select
                         placeholder="请选择"
@@ -156,6 +163,11 @@
                         outPut.mappingEntityExpression || "N/A"
                       }}</span>
                       <span v-if="outPut.mappingType === 'context'">N/A</span>
+                    </FormItem>
+                  </Col>
+                  <Col span="2" offset="1">
+                    <FormItem :label-width="0">
+                      {{ outPut.mappingType }}
                     </FormItem>
                   </Col>
                 </Row>
@@ -194,17 +206,21 @@
   </Row>
 </template>
 <script>
+import PathExp from "../../components/path_exp.vue";
 import {
   getAllPluginByPkgId,
   getAllSystemEnumCodes,
   getAllDataModels,
   registerPlugin,
   deletePlugin,
-  savePluginConfig
+  savePluginConfig,
+  getPluginPkgDataModel
 } from "@/api/server";
+
 export default {
   data() {
     return {
+      allDataModelsWithAttrs: {},
       currentPlugin: "",
       plugins: [],
       allEntityType: [],
@@ -213,6 +229,9 @@ export default {
       form: {}
       // pluginInterfaces:[]
     };
+  },
+  components: {
+    PathExp
   },
   computed: {
     currentPluginObj() {
@@ -225,10 +244,21 @@ export default {
   props: {
     pkgId: {
       required: true
+    },
+    pkgName: {
+      required: true
     }
   },
   watch: {},
   methods: {
+    async getPluginPkgDataModel(pkgName) {
+      if (!this.allDataModelsWithAttrs[pkgName]) {
+        const { data, status, message } = await getPluginPkgDataModel(pkgName);
+        if (status === "OK" && data) {
+          this.$set(this.allDataModelsWithAttrs, pkgName, data);
+        }
+      }
+    },
     async regist() {
       const saveRes = await savePluginConfig(this.currentPluginObj);
       if (saveRes.status === "OK") {
@@ -268,6 +298,7 @@ export default {
       this.selectedEntityType = this.plugins.find(
         plugin => plugin.name === val
       ).entityId;
+      this.selectedEntityType = this.currentPluginObj.entityName;
     },
     onSelectEntityType(val) {},
     async getAllDataModels() {
@@ -293,6 +324,7 @@ export default {
     this.getAllPluginByPkgId();
     this.getAllDataModels();
     this.getAllSystemEnumCodes();
+    this.selectedEntityType = this.currentPluginObj.entityName;
   }
 };
 </script>

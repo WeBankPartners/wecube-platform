@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.service;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -10,10 +11,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
+import com.webank.wecube.platform.core.dto.*;
 import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
@@ -34,6 +32,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -102,7 +101,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             pluginPackageRepository.save(pluginPackage);
         }
 
-        return PluginPackageDataModelDto.fromDomain(savedPluginPackageDataModel);
+        return convertDataModelDomainToDto(savedPluginPackageDataModel);
     }
 
     private Map<String, PluginPackageAttribute> buildReferenceAttributeMap(PluginPackageDataModel transferredPluginPackageDataModel) {
@@ -380,28 +379,43 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
 
         Set<PluginPackageEntityDto> dynamicPluginPackageEntities = pullDynamicDataModelFromPlugin(dataModel);
 
-        if (null != dynamicPluginPackageEntities && dynamicPluginPackageEntities.size() > 0) {
-            dynamicPluginPackageEntities.forEach(entity-> {
-                entity.setPackageName(packageName);
-                entity.setDataModelVersion(newDataModelVersion);
-                entity.getAttributes().forEach(attribute-> {
-                    attribute.setPackageName(packageName);
-                    if (StringUtils.isNotBlank(attribute.getRefAttributeName())) {
-                        if (StringUtils.isBlank(attribute.getRefPackageName())) {
-                            attribute.setRefPackageName(packageName);
-                        }
-                        if (StringUtils.isBlank(attribute.getRefEntityName())) {
-                            attribute.setRefEntityName(entity.getName());
-                        }
-                    }
-                        }
-                );
-            });
-        }
+        updateEntityReferences(packageName, newDataModelVersion, dynamicPluginPackageEntities);
+
         dataModelDto.setPluginPackageEntities(dynamicPluginPackageEntities);
 
 
         return dataModelDto;
+    }
+
+    private void updateEntityReferences(String packageName, int newDataModelVersion, Set<PluginPackageEntityDto> dynamicPluginPackageEntities) {
+        Map<PluginPackageEntityDto.PluginPackageEntityKey, PluginPackageEntityDto.TrimmedPluginPackageEntityDto> referenceEntityDtoMaps = Maps.newHashMap();
+
+        if (null != dynamicPluginPackageEntities && dynamicPluginPackageEntities.size() > 0) {
+            dynamicPluginPackageEntities.forEach(entity-> {
+                        entity.setPackageName(packageName);
+                        entity.setDataModelVersion(newDataModelVersion);
+                    });
+
+            referenceEntityDtoMaps = Collections.unmodifiableMap(dynamicPluginPackageEntities.stream().map(entity->entity.toTrimmedPluginPackageEntityDto()).collect(Collectors.toMap(x->x.getPluginPackageEntityKey(), x->x)));
+
+            Map<PluginPackageEntityDto.PluginPackageEntityKey, PluginPackageEntityDto.TrimmedPluginPackageEntityDto> finalReferenceEntityDtoMaps = referenceEntityDtoMaps;
+
+            dynamicPluginPackageEntities.forEach(entity-> {
+                entity.getAttributes().forEach(attribute -> {
+                            attribute.setPackageName(packageName);
+                            if (StringUtils.isNotBlank(attribute.getRefAttributeName())) {
+                                if (StringUtils.isBlank(attribute.getRefPackageName())) {
+                                    attribute.setRefPackageName(packageName);
+                                }
+                                if (StringUtils.isBlank(attribute.getRefEntityName())) {
+                                    attribute.setRefEntityName(entity.getName());
+                                }
+                                entity.updateReferenceTo(finalReferenceEntityDtoMaps.get(new PluginPackageEntityDto.PluginPackageEntityKey(attribute.getRefPackageName(), attribute.getRefEntityName())));
+                            }
+                        }
+                );
+            });
+        }
     }
 
     private Set<PluginPackageEntityDto> pullDynamicDataModelFromPlugin(PluginPackageDataModel dataModel) {

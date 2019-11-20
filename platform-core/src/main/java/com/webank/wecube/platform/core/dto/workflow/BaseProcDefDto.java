@@ -10,6 +10,8 @@ public abstract class BaseProcDefDto {
     private String procDefData;
     private String rootEntity;
 
+    private String createdTime;
+
     public String getProcDefId() {
         return procDefId;
     }
@@ -64,6 +66,14 @@ public abstract class BaseProcDefDto {
 
     public void setRootEntity(String rootEntity) {
         this.rootEntity = rootEntity;
+    }
+
+    public String getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(String createdTime) {
+        this.createdTime = createdTime;
     }
 
 }

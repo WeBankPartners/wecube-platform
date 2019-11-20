@@ -1,10 +1,10 @@
 <template>
   <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
     <TabPane :closable="false" name="hosts" :label="$t('hosts')">
-      <WeServer />
+      <WeServer ref="hosts" />
     </TabPane>
     <TabPane :closable="false" name="instances" :label="$t('instances')">
-      <WeService :servers="servers" />
+      <WeService :servers="servers" ref="instances" />
     </TabPane>
   </Tabs>
 </template>
@@ -38,7 +38,7 @@ export default {
       if (status === "OK") {
         this.servers = data.contents.map(_ => {
           return {
-            label: _.id,
+            label: _.name,
             value: _.id,
             key: _.id
           };
