@@ -294,5 +294,6 @@
   "plugin_load": "plugin loaded",
   "get_dynamic_model": "Sync data model",
   "apply_data_model": "Apply data model",
-  "instance_type": "Entity Type"
+  "instance_type": "Entity Type",
+  "input_correct_operator": "Please enter the correct operator . or ~ "
 }
