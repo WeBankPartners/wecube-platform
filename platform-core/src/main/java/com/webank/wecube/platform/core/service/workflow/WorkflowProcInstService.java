@@ -54,7 +54,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     @Autowired
     private WorkflowEngineService workflowEngineService;
-
+    
     public void proceedProcessInstance(ProceedProcInstRequestDto request) {
         if (request == null) {
             log.error("request is null");
