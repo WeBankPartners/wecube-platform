@@ -6,7 +6,7 @@ import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
 import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
-import com.webank.wecube.platform.core.support.parser.datamodel.DataModelExpressionDto;
+import com.webank.wecube.platform.core.support.datamodel.DataModelExpressionDto;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
