@@ -9,6 +9,8 @@ public interface DataModelExpressionService {
 
     List<Object> fetchData(DataModelExpressionToRootData expressionToRootData);
 
+    List<Object> targetEntityQuery(String packageName, String entityName);
+
     void writeBackData(DataModelExpressionToRootData expressionToRootData, Map<String, Object> updateData);
 
 }
