@@ -6,12 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 
@@ -23,7 +24,7 @@ public class WorkflowProcessInstanceController {
     private WorkflowProcInstService procInstService;
 
     @PostMapping("/process/instances")
-    public CommonResponseDto createProcessInstance(StartProcInstRequestDto requestDto) {
+    public CommonResponseDto createProcessInstance(@RequestBody StartProcInstRequestDto requestDto) {
         ProcInstInfoDto result = procInstService.createProcessInstance(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
@@ -44,15 +45,10 @@ public class WorkflowProcessInstanceController {
         return CommonResponseDto.okayWithData(result);
     }
     
-//    @GetMapping("/process/instances/{id}/outline")
-//    public CommonResponseDto getProcessInstanceOutline(@PathVariable(name="id") Integer procInstId){
-//        ProcInstOutlineDto result = procInstService.getProcessInstanceOutline(procInstId);
-//        
-//        
-//    }
 
-    @PutMapping("/process/instances/{id}")
-    public CommonResponseDto modifyProcessInstance() {
-        return null;
+    @PostMapping("/process/instances/proceed")
+    public CommonResponseDto proceedProcessInstance(@RequestBody ProceedProcInstRequestDto requestDto) {
+        procInstService.proceedProcessInstance(requestDto);
+        return CommonResponseDto.okay();
     }
 }

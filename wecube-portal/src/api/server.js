@@ -8,9 +8,16 @@ export const saveFlow = data =>
   req.post("/platform/v1/process/definitions/deploy", data);
 export const saveFlowDraft = data =>
   req.post("/platform/v1/process/definitions/draft", data);
-export const getAllFlow = () => req.get("/platform/v1/process/definitions");
+export const getAllFlow = (isIncludeDraft = true) => {
+  return isIncludeDraft
+    ? req.get("/platform/v1/process/definitions")
+    : req.get("/platform/v1/process/definitions?includeDraft=0");
+};
 export const getFlowDetailByID = id =>
   req.get(`/platform/v1/process/definitions/${id}/detail`);
+export const getFlowOutlineByID = id =>
+  req.get(`/platform/v1/process/definitions/${id}/outline`);
+
 export const getFlowPreview = data =>
   req.post(
     `/platform/v1/process/definitions/definition/input-parameters/preview`,
@@ -90,10 +97,14 @@ export const deleteRoleCiTypeCtrlAttributes = (roleCitypeId, data) =>
     `/platform/v1/admin/role-citypes/${roleCitypeId}/ctrl-attributes/delete`,
     data
   );
-export const getAllSystemVariables = status =>
-  req.get(
-    `/platform/v1/system-variables/all${status ? "?status=" + status : ""}`
-  );
+export const retrieveSystemVariables = data =>
+  req.post("/platform/v1/system-variables/retrieve", data);
+export const createSystemVariables = data =>
+  req.post("/platform/v1/system-variables/create", data);
+export const updateSystemVariables = data =>
+  req.post("/platform/v1/system-variables/update", data);
+export const deleteSystemVariables = data =>
+  req.post("/platform/v1/system-variables/delete", data);
 export const retrieveServers = data =>
   req.post("/platform/resource/servers/retrieve", data);
 export const createServers = data =>
@@ -102,10 +113,22 @@ export const updateServers = data =>
   req.post("/platform/resource/servers/update", data);
 export const deleteServers = data =>
   req.post("/platform/resource/servers/delete", data);
+export const createItems = data =>
+  req.post("/platform/resource/items/create", data);
+export const deleteItems = data =>
+  req.post("/platform/resource/items/delete", data);
+export const retrieveItems = data =>
+  req.post("/platform/resource/items/retrieve", data);
+export const updateItems = data =>
+  req.post("/platform/resource/items/update", data);
 export const getResourceServerStatus = () =>
   req.get("/platform/resource/constants/resource-server-status");
 export const getResourceServerType = () =>
-  req.get("/platform//resource/constants/resource-server-types");
+  req.get("/platform/resource/constants/resource-server-types");
+export const getResourceItemStatus = () =>
+  req.get("/platform/resource/constants/resource-item-status");
+export const getResourceItemType = () =>
+  req.get("/platform/resource/constants/resource-item-types");
 //enum
 export const getEnumList = data =>
   req.post(`/platform/v1/cmdb/enum/codes/query`, data);
