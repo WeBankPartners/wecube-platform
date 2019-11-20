@@ -10,7 +10,7 @@
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<package name="service-management" version="v0.2">
+<package name="servicemanagement" version="v0.2">
 
     <!-- 1.依赖分析 - 描述运行本插件包需要的其他插件包 -->
     <packageDependencies>
