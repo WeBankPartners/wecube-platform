@@ -252,6 +252,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
             dto.setProcDefVersion(String.valueOf(e.getProcDefVersion()));
             dto.setRootEntity(e.getRootEntity());
             dto.setStatus(e.getStatus());
+            
+            dto.setCreatedTime(formatDate(e.getCreatedTime()));
 
             procDefInfoDtos.add(dto);
 
