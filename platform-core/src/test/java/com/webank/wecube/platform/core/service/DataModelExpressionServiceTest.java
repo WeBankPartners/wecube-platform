@@ -111,24 +111,6 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbFwdNodeExpressionWriteBackShouldSucceed() {
-        // write back
-        mockFwdNodeExpressionServer(server);
-        final Map<String, Object> WRITE_BACK_DATA = Collections.singletonMap("code", "test");
-        DataModelExpressionToRootData expressionToRootData = new DataModelExpressionToRootData("wecmdb:system_design.code", "0001_0000000001");
-        dataModelExpressionService.writeBackData(
-                expressionToRootData, WRITE_BACK_DATA);
-        server.verify();
-
-        // fetch again to verify
-        mockFwdNodeExpressionServer(server);
-        List<Object> result = dataModelExpressionService.fetchData(expressionToRootData);
-        assert result.size() == 1;
-        assert result.get(0).equals(WRITE_BACK_DATA);
-        server.verify();
-    }
-
-    @Test
     public void wecmdbMultipleLinksWithMixedOpExpressionFetchShouldSucceed() {
         mockMultipleLinksWithMixedOpExpressionServer(server);
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -144,6 +126,16 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
         assert resultTwo.get(0).equals("PRD-GZ1-MGMT");
         assert resultTwo.get(1).equals("PRD-GZ1-PARTNERNET");
 
+        server.verify();
+    }
+
+    @Test
+    public void wecmdbFwdNodeExpressionWriteBackShouldSucceed() {
+        mockFwdNodeExpressionWriteBackServer(server);
+        final Map<String, Object> WRITE_BACK_DATA = Collections.singletonMap("code", "Test");
+        DataModelExpressionToRootData expressionToRootData = new DataModelExpressionToRootData("wecmdb:system_design.code", "0001_0000000001");
+        dataModelExpressionService.writeBackData(
+                expressionToRootData, WRITE_BACK_DATA);
         server.verify();
     }
 
@@ -821,6 +813,53 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "}", MediaType.APPLICATION_JSON));
 
 
+    }
+
+    private void mockFwdNodeExpressionWriteBackServer(MockRestServiceServer server) {
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design?filter=id,0001_0000000001", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"key_name\": \"EDP\",\n" +
+                        "            \"business_group\": 105,\n" +
+                        "            \"code\": \"EDP\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"r_guid\": \"0001_0000000001\",\n" +
+                        "            \"name\": \"Deposit Micro Core System\",\n" +
+                        "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"id\": \"0001_0000000001\",\n" +
+                        "            \"state\": 34,\n" +
+                        "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design/update", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"key_name\": \"EDP\",\n" +
+                        "            \"business_group\": 105,\n" +
+                        "            \"code\": \"Test\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"r_guid\": \"0001_0000000001\",\n" +
+                        "            \"name\": \"Deposit Micro Core System\",\n" +
+                        "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"id\": \"0001_0000000001\",\n" +
+                        "            \"state\": 34,\n" +
+                        "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
     }
 
 }
