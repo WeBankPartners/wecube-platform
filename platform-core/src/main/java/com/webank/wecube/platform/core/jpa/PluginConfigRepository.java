@@ -1,12 +1,5 @@
 package com.webank.wecube.platform.core.jpa;
 
-import com.webank.wecube.platform.core.utils.VersionUtils;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
-
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.ENABLED;
 import static com.webank.wecube.platform.core.utils.CollectionUtils.pickLastOne;
 
@@ -14,12 +7,21 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
+
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.utils.VersionUtils;
+
 public interface PluginConfigRepository extends CrudRepository<PluginConfig, Integer> {
     @Query("SELECT DISTINCT inf FROM PluginConfig cfg JOIN cfg.interfaces inf LEFT JOIN FETCH inf.inputParameters LEFT JOIN FETCH inf.outputParameters WHERE cfg.id = :pluginConfigId")
     List<PluginConfigInterface> findAllPluginConfigInterfacesByConfigIdAndFetchParameters(int pluginConfigId);
 
     @Query("SELECT DISTINCT inf FROM PluginConfig cfg JOIN cfg.interfaces inf LEFT JOIN FETCH inf.inputParameters LEFT JOIN FETCH inf.outputParameters WHERE inf.serviceName = :serviceName and cfg.status=:status")
-    List<PluginConfigInterface> findAllPluginConfigInterfaceByServiceNameAndStatusAndFetchParameters(String serviceName, Status status);
+    List<PluginConfigInterface> findAllPluginConfigInterfaceByServiceNameAndStatusAndFetchParameters(@Param("serviceName") String serviceName, @Param("status") Status status);
 
     Optional<List<PluginConfig>> findByStatus(Status status);
 

@@ -47,6 +47,11 @@ import com.webank.wecube.platform.workflow.parse.SubProcessAdditionalInfo;
 import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class WorkflowEngineService {
 

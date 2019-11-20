@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,6 +58,12 @@ public class WorkflowProcessDefinitionController {
         boolean includeDraftProcDef = (includeDraft == 1 ? true : false);
         List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef);
         return CommonResponseDto.okayWithData(result);
+    }
+    
+    @DeleteMapping("/process/definitions/{proc-def-id}")
+    public CommonResponseDto removeProcessDefinition(@PathVariable("proc-def-id")String procDefId){
+        procDefService.removeProcessDefinition(procDefId);
+        return CommonResponseDto.okay();
     }
 
     @GetMapping("/process/definitions/{id}/detail")
