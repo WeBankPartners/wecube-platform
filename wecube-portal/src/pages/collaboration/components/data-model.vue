@@ -64,12 +64,12 @@ export default {
         this.data = data.pluginPackageEntities.map(_ => {
           return {
             ..._,
-            id: _.name,
+            id: "[" + _.packageName + "]" + _.name,
             tos: _.referenceToEntityList.map(_ => {
-              return { ..._, id: _.name };
+              return { ..._, id: "[" + _.packageName + "]" + _.name };
             }),
             bys: _.referenceByEntityList.map(_ => {
-              return { ..._, id: _.name };
+              return { ..._, id: "[" + _.packageName + "]" + _.name };
             })
           };
         });
