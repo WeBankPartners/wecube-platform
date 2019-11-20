@@ -17,7 +17,7 @@ module.exports = {
         target: baseURL
       },
       "ui-resources": {
-        target: "http://129.204.99.160:8888"
+        target: "http://111.230.161.237:19090"
       }
     }
   },
