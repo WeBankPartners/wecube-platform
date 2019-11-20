@@ -107,6 +107,34 @@ public class PluginInvocationService {
     @Autowired
     private DataModelExpressionService dataModelExpressionService;
 
+    public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
+        if (log.isInfoEnabled()) {
+            log.info("handle end event:{}", cmd);
+        }
+
+        ProcInstInfoEntity procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(cmd.getProcInstId());
+        procInstEntity.setUpdatedTime(new Date());
+        procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
+        procInstInfoRepository.save(procInstEntity);
+
+        log.info("updated process instance {} to {}", procInstEntity.getId(), ProcInstInfoEntity.COMPLETED_STATUS);
+
+        List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
+                .findAllByProcInstId(procInstEntity.getId());
+
+        for (TaskNodeInstInfoEntity n : nodeInstEntities) {
+            if ("endEvent".equals(n.getNodeType())) {
+                n.setUpdatedTime(new Date());
+                n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+
+                taskNodeInstInfoRepository.save(n);
+
+                log.info("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
+            }
+        }
+
+    }
+
     /**
      * 
      * @param cmd
@@ -205,8 +233,7 @@ public class PluginInvocationService {
         PluginConfigInterface pluginConfigInterface = ctx.getPluginConfigInterface();
         PluginInstance pluginInstance = retrieveAvailablePluginInstance(pluginConfigInterface);
         String interfacePath = pluginConfigInterface.getPath();
-        String instanceHost = String.format("%s://%s:%s", pluginConfigInterface.getHttpMethod(),
-                pluginInstance.getHost(), pluginInstance.getPort());
+        String instanceHost = String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort());
 
         ctx.setInstanceHost(instanceHost);
         ctx.setInterfacePath(interfacePath);
@@ -250,17 +277,20 @@ public class PluginInvocationService {
                     }
 
                     // TODO FIXME
-//                    DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
-//                            entityDataId);
-//
-//                    List<Object> attrValsPerExpr = dataModelExpressionService.fetchData(criteria);
-//
-//                    if (attrValsPerExpr == null) {
-//                        log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
-//                        attrValsPerExpr = new ArrayList<>();
-//                    }
-                    
-                    //TODO FIXME remove me
+                    // DataModelExpressionToRootData criteria = new
+                    // DataModelExpressionToRootData(mappingEntityExpression,
+                    // entityDataId);
+                    //
+                    // List<Object> attrValsPerExpr =
+                    // dataModelExpressionService.fetchData(criteria);
+                    //
+                    // if (attrValsPerExpr == null) {
+                    // log.error("returned null while fetch data with
+                    // expression:{}", mappingEntityExpression);
+                    // attrValsPerExpr = new ArrayList<>();
+                    // }
+
+                    // TODO FIXME remove me
                     List<Object> attrValsPerExpr = new ArrayList<>();
                     attrValsPerExpr.add("888");
 
