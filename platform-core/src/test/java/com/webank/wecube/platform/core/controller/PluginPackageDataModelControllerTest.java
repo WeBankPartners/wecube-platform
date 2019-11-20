@@ -25,7 +25,6 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.client.RestTemplate;
-import com.webank.wecube.platform.core.controller.AbstractControllerTest;
 
 import java.io.File;
 import java.util.Optional;
@@ -45,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 //@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_COLLABORATION_PLUGIN_MANAGEMENT})
 public class PluginPackageDataModelControllerTest extends AbstractControllerTest {
 
+    public static final String PACKAGE_NAME_BY_UPLOAD = "servicemanagement";
     @Autowired
     private PluginPackageService pluginPackageService;
     @Autowired
@@ -68,7 +68,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
         mockDataModel();
         mvc.perform(get("/v1/models"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[*].packageName", containsInAnyOrder("package_1", "package_2")))
+                .andExpect(jsonPath("$.data[*].packageName", containsInAnyOrder("package1", "package2")))
                 .andExpect(jsonPath("$.data[*].version", containsInAnyOrder(1, 2)))
                 .andExpect(jsonPath("$.data[*].pluginPackageEntities[*].name", containsInAnyOrder("entity_1", "entity_2", "entity_3", "entity_4", "entity_5", "entity_6")))
                 .andDo(print())
@@ -78,7 +78,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     @Test
     public void getDataModelByPackageName() throws Exception {
         mockDataModel();
-        String packageName = "package_1";
+        String packageName = "package1";
         mvc.perform(get("/v1/packages/" + packageName + "/models"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
@@ -95,38 +95,37 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     public void getDataModelByMockedPackage() throws Exception {
         uploadCorrectPackage();
         final int MOCK_DATA_MODEL_NUMBER = 5;
-        mvc.perform(get("/v1/packages/" + "service-management" + "/models"))
+        mvc.perform(get("/v1/packages/" + PACKAGE_NAME_BY_UPLOAD + "/models"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Success")))
                 .andExpect(jsonPath("$.data.pluginPackageEntities", is(iterableWithSize(MOCK_DATA_MODEL_NUMBER))))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
-        System.out.println(dataModelRepository.findLatestDataModelByPackageName("service-management"));
     }
 
     @Test
     public void getRefByInfoByMockedPackage() throws Exception {
         uploadCorrectPackage();
         final int REF_BY_COUNT = 1;
-        mvc.perform(get("/v1/models/package/" + "service-management" + "/entity/" + "service_catalogue" + "/refById"))
+        mvc.perform(get("/v1/models/package/" + PACKAGE_NAME_BY_UPLOAD + "/entity/" + "service_catalogue" + "/refById"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Success")))
                 .andExpect(jsonPath("$.data", is(iterableWithSize(REF_BY_COUNT))))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
-        mvc.perform(get("/v1/models/package/" + "service-management" + "/entity/" + "service_pipeline" + "/refById"))
+        mvc.perform(get("/v1/models/package/" + PACKAGE_NAME_BY_UPLOAD + "/entity/" + "service_pipeline" + "/refById"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Success")))
                 .andExpect(jsonPath("$.data", is(iterableWithSize(REF_BY_COUNT))))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
-        mvc.perform(get("/v1/models/package/" + "service-management" + "/entity/" + "service_request_template" + "/refById"))
+        mvc.perform(get("/v1/models/package/" + PACKAGE_NAME_BY_UPLOAD + "/entity/" + "service_request_template" + "/refById"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Success")))
                 .andExpect(jsonPath("$.data", is(iterableWithSize(REF_BY_COUNT))))
                 .andDo(print())
                 .andReturn().getResponse().getContentAsString();
-        mvc.perform(get("/v1/models/package/" + "service-management" + "/entity/" + "service_request" + "/refById"))
+        mvc.perform(get("/v1/models/package/" + PACKAGE_NAME_BY_UPLOAD + "/entity/" + "service_request" + "/refById"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Success")))
                 .andExpect(jsonPath("$.data", is(iterableWithSize(REF_BY_COUNT))))
@@ -138,26 +137,26 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     private void mockDataModel() {
         String sqlStr =
                 "INSERT INTO plugin_packages (name, version, status, ui_package_included) VALUES " +
-                        "  ('package_1', '1.0', 'UNREGISTERED', 0) " +
-                        ", ('package_2', '1.1', 'UNREGISTERED', 0) " +
+                        "  ('package1', '1.0', 'UNREGISTERED', 0) " +
+                        ", ('package2', '1.1', 'UNREGISTERED', 0) " +
                         ";\n" +
                         "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic) VALUES " +
-                        "  (1, 1, 'package_1', false) " +
-                        ", (2, 1, 'package_2', false) " +
-                        ", (3, 2, 'package_2', false) " +
+                        "  (1, 1, 'package1', false) " +
+                        ", (2, 1, 'package2', false) " +
+                        ", (3, 2, 'package2', false) " +
                         ";\n" +
                         "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
-                        "  (1, 1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
-                        ", (2, 1, 1, 'package_1', 'entity_2', 'entity_2', 'entity_2_description') " +
-                        ", (3, 1, 1, 'package_1', 'entity_3', 'entity_3', 'entity_3_description') " +
+                        "  (1, 1, 1, 'package1', 'entity_1', 'entity_1', 'entity_1_description') " +
+                        ", (2, 1, 1, 'package1', 'entity_2', 'entity_2', 'entity_2_description') " +
+                        ", (3, 1, 1, 'package1', 'entity_3', 'entity_3', 'entity_3_description') " +
 
-                        ", (4, 2, 1, 'package_2', 'entity_4', 'entity_4', 'entity_4_description') " +
-                        ", (5, 2, 1, 'package_2', 'entity_5', 'entity_5', 'entity_5_description') " +
-                        ", (6, 2, 1, 'package_2', 'entity_6', 'entity_6', 'entity_6_description') " +
+                        ", (4, 2, 1, 'package2', 'entity_4', 'entity_4', 'entity_4_description') " +
+                        ", (5, 2, 1, 'package2', 'entity_5', 'entity_5', 'entity_5_description') " +
+                        ", (6, 2, 1, 'package2', 'entity_6', 'entity_6', 'entity_6_description') " +
 
-                        ", (7, 3, 2, 'package_2', 'entity_4', 'entity_4', 'entity_4_description') " +
-                        ", (8, 3, 2, 'package_2', 'entity_5', 'entity_5', 'entity_5_description') " +
-                        ", (9, 3, 2, 'package_2', 'entity_6', 'entity_6', 'entity_6_description') " +
+                        ", (7, 3, 2, 'package2', 'entity_4', 'entity_4', 'entity_4_description') " +
+                        ", (8, 3, 2, 'package2', 'entity_5', 'entity_5', 'entity_5_description') " +
+                        ", (9, 3, 2, 'package2', 'entity_6', 'entity_6', 'entity_6_description') " +
                         ";\n" +
                         "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
                         "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
@@ -189,7 +188,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeUNREGISTERED() throws Exception {
         mockSimpleDataModel();
 
-        String packageName = "package_1";
+        String packageName = "package1";
         Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
         assertThat(latestDataModelByPackageName.isPresent()).isTrue();
 
@@ -233,13 +232,13 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     private void mockSimpleDataModel() {
         String sqlStr =
                 "INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
-                        "  (1, 'package_1', '1.0', 'REGISTERED', 0) " +
+                        "  (1, 'package1', '1.0', 'REGISTERED', 0) " +
                         ";\n" +
                         "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic, update_method, update_path) VALUES " +
-                        "  (1, 1, 'package_1', 1, 'GET', '/data-model') " +
+                        "  (1, 1, 'package1', 1, 'GET', '/data-model') " +
                         ";\n" +
                         "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
-                        "  (1, 1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
+                        "  (1, 1, 1, 'package1', 'entity_1', 'entity_1', 'entity_1_description') " +
                         ";\n" +
                         "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
                         "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
@@ -252,7 +251,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     public void givenDynamicDataModelWhenPullThenReturnNewDataModel() {
         mockSimpleDataModel();
 
-        String packageName = "package_1";
+        String packageName = "package1";
         Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
         assertThat(latestDataModelByPackageName.isPresent()).isTrue();
 
@@ -301,7 +300,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
 
     private void uploadCorrectPackage() throws Exception {
         pluginPackageService.setS3Client(new FakeS3Client());
-        File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
+        File testPackage = new File("src/test/resources/testpackage/servicemanagement-v0.1.zip");
         MockMultipartFile mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
         mvc.perform(MockMvcRequestBuilders.multipart("/v1/packages").file(mockPluginPackageFile));
     }
