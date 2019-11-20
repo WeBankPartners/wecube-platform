@@ -27,8 +27,9 @@ import java.util.stream.Collectors;
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
 
+    private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}";
     private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
-    private static final String postRequestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
+
 
     @Autowired
     private RestTemplate restTemplate = new RestTemplate();
@@ -36,8 +37,8 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     private ApplicationProperties applicationProperties;
 
     private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
+    private static final String postRequestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
     final String UNIQUE_IDENTIFIER = "id";
-    private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?sorting={sortName},asc";
 
 
     private String requestActualUrl = "";
@@ -59,6 +60,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         Stack<DataModelExpressionDto> resultDtoStack = chainRequest(dataModelExpressionToRootData);
 
         return resultDtoStack.pop().getResultValue();
+    }
+
+    @Override
+    public List<Object> targetEntityQuery(String packageName, String entityName) {
+        Map<String, Object> getAllUrlParamMap = generateGetAllParamMap(this.applicationProperties.getGatewayUrl(), packageName, entityName);
+        CommonResponseDto request = getRequest(requestAllUrl, getAllUrlParamMap);
+        List<Object> result = commonResponseToList(request, "ALL");
+        return result;
     }
 
     @Override
@@ -354,6 +363,24 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     /**
+     * Generation of fetch all entity data url param map
+     *
+     * @param gatewayUrl  gate way url
+     * @param packageName package name
+     * @param entityName  entity name
+     * @return response map
+     */
+    private Map<String, Object> generateGetAllParamMap(Object gatewayUrl,
+                                                       Object packageName,
+                                                       Object entityName) {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("gatewayUrl", gatewayUrl);
+        paramMap.put("packageName", packageName);
+        paramMap.put("entityName", entityName);
+        return paramMap;
+    }
+
+    /**
      * Generation of data write back url param map
      *
      * @param gatewayUrl  gateway url
@@ -489,7 +516,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             returnList = Objects.requireNonNull(dataArray)
                     .stream()
                     .sorted(Comparator.comparing(o -> String.valueOf(o.get("id"))))
-                    .map(AbstractMap::toString)
                     .collect(Collectors.toList());
         } else {
             returnList = Objects.requireNonNull(dataArray)
