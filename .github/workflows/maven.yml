@@ -15,4 +15,6 @@ jobs:
         java-version: 1.8
     - name: Build with Maven
       run: mvn -pl -wecube-portal clean install 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v1      
 
