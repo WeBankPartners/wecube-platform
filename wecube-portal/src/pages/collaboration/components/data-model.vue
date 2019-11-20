@@ -65,11 +65,11 @@ export default {
           return {
             ..._,
             id: "[" + _.packageName + "]" + _.name,
-            tos: _.referenceToEntityList.map(_ => {
-              return { ..._, id: "[" + _.packageName + "]" + _.name };
+            tos: _.referenceToEntityList.map(to => {
+              return { ...to, id: "[" + to.packageName + "]" + to.name };
             }),
-            bys: _.referenceByEntityList.map(_ => {
-              return { ..._, id: "[" + _.packageName + "]" + _.name };
+            bys: _.referenceByEntityList.map(by => {
+              return { ...by, id: "[" + by.packageName + "]" + by.name };
             })
           };
         });
