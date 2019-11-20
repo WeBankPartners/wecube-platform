@@ -64,12 +64,12 @@ export default {
         this.data = data.pluginPackageEntities.map(_ => {
           return {
             ..._,
-            id: "[" + _.packageName + "]" + _.name,
+            id: _.name,
             tos: _.referenceToEntityList.map(_ => {
-              return { ..._, id: _.packageName + "_" + _.name };
+              return { ..._, id: _.name };
             }),
             bys: _.referenceByEntityList.map(_ => {
-              return { ..._, id: _.packageName + "_" + _.name };
+              return { ..._, id: _.name };
             })
           };
         });
@@ -99,8 +99,8 @@ export default {
       let addNodeAttr = node => {
         const color = "#273c75";
         return `"${node.id}" [id="${node.id}" label="${node.id +
-          "_" +
-          node.packageVersion}" shape="box" fontcolor="${color}"];`;
+          "_v" +
+          node.dataModelVersion}" shape="box" fontcolor="${color}"];`;
       };
       const nodeMap = new Map();
       this.data.forEach(node => {
