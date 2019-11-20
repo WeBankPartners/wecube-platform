@@ -12,7 +12,8 @@ public class ProcInstInfoDto {
     private String status;
     private String procDefId;
 
-    private String rootObjectId;
+    private String entityTypeId;
+    private String entityDataId;
 
     private List<TaskNodeInstDto> taskNodeInstances = new ArrayList<>();
 
@@ -72,12 +73,20 @@ public class ProcInstInfoDto {
         this.procDefId = procDefId;
     }
 
-    public String getRootObjectId() {
-        return rootObjectId;
+    public String getEntityTypeId() {
+        return entityTypeId;
     }
 
-    public void setRootObjectId(String rootObjectId) {
-        this.rootObjectId = rootObjectId;
+    public void setEntityTypeId(String entityTypeId) {
+        this.entityTypeId = entityTypeId;
+    }
+
+    public String getEntityDataId() {
+        return entityDataId;
+    }
+
+    public void setEntityDataId(String entityDataId) {
+        this.entityDataId = entityDataId;
     }
 
     public List<TaskNodeInstDto> getTaskNodeInstances() {
