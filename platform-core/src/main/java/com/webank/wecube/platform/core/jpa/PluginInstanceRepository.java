@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 
@@ -15,7 +16,7 @@ public interface PluginInstanceRepository extends CrudRepository<PluginInstance,
     Integer findMaxPortByHost(String hosts);
 
     @Query("SELECT instance FROM PluginInstance instance WHERE instance.containerStatus = :containerStatus and instance.pluginPackage.id = :packageId")
-    List<PluginInstance> findByContainerStatusAndPackageId(String containerStatus, Integer packageId);
+    List<PluginInstance> findByContainerStatusAndPackageId(@Param("containerStatus") String containerStatus, @Param("packageId") Integer packageId);
 
     List<PluginInstance> findByPackageId(int packageId);
 
