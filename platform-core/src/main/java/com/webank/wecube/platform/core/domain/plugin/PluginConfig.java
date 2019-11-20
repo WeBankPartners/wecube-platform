@@ -46,7 +46,7 @@ public class PluginConfig {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private Set<PluginConfigInterface> interfaces = new LinkedHashSet<>();
+    private Set<PluginConfigInterface> interfaces;
 
     @JsonInclude
     @EqualsAndHashCode.Include
