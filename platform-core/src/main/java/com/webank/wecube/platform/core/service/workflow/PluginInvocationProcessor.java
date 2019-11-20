@@ -30,6 +30,7 @@ public class PluginInvocationProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(PluginInvocationProcessor.class);
 
+    //TODO fixed number of pooled threads would be better here
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
     public void process(PluginInvocationOperation operation) {

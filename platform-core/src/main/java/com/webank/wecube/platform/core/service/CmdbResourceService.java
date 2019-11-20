@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.CmdbDataProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.workflow.CiRoutineItem;
+//import com.webank.wecube.platform.core.domain.workflow.CiRoutineItem;
 import com.webank.wecube.platform.core.dto.ResourceTreeDto;
 import com.webank.wecube.platform.core.support.cmdb.CmdbDataNotFoundException;
 import com.webank.wecube.platform.core.support.cmdb.CmdbServiceV2Stub;
@@ -466,137 +466,137 @@ public class CmdbResourceService {
         return null;
     }
 
-    private IntegrationQueryDto travelRoutine(List<CiRoutineItem> routines, int filterCiTypeId, AdhocIntegrationQueryDto rootDto, int position) {
-        if (position >= routines.size()) {
-            return null;
-        }
+//    private IntegrationQueryDto travelRoutine(List<CiRoutineItem> routines, int filterCiTypeId, AdhocIntegrationQueryDto rootDto, int position) {
+//        if (position >= routines.size()) {
+//            return null;
+//        }
+//
+//        CiRoutineItem item = routines.get(position);
+//        IntegrationQueryDto dto = new IntegrationQueryDto();
+//        dto.setName("index-" + position);
+//        dto.setCiTypeId(item.getCiTypeId());
+//
+//        Relationship parentRs = new Relationship();
+//        parentRs.setAttrId(item.getParentRs().getAttrId());
+//        parentRs.setIsReferedFromParent(item.getParentRs().getIsReferedFromParent() == 1);
+//        dto.setParentRs(parentRs);
+//
+//        IntegrationQueryDto childDto = travelRoutine(routines, filterCiTypeId, rootDto, ++position);
+//        if (childDto == null) {
+//            if (filterCiTypeId != item.getCiTypeId()) {
+//                log.error("routine tail ciType not right!!!");
+//                return null;
+//            }
+//
+//            dto.setAttrs(Arrays.asList(getAttrIdByCiTypeId(item.getCiTypeId(), "guid"), getAttrIdByCiTypeId(item.getCiTypeId(), "r_guid")));
+//            dto.setAttrKeyNames(Arrays.asList("tail$guid", "tail$r_guid"));
+//        } else {
+//            dto.setChildren(Arrays.asList(childDto));
+//        }
+//
+//        return dto;
+//    }
 
-        CiRoutineItem item = routines.get(position);
-        IntegrationQueryDto dto = new IntegrationQueryDto();
-        dto.setName("index-" + position);
-        dto.setCiTypeId(item.getCiTypeId());
-
-        Relationship parentRs = new Relationship();
-        parentRs.setAttrId(item.getParentRs().getAttrId());
-        parentRs.setIsReferedFromParent(item.getParentRs().getIsReferedFromParent() == 1);
-        dto.setParentRs(parentRs);
-
-        IntegrationQueryDto childDto = travelRoutine(routines, filterCiTypeId, rootDto, ++position);
-        if (childDto == null) {
-            if (filterCiTypeId != item.getCiTypeId()) {
-                log.error("routine tail ciType not right!!!");
-                return null;
-            }
-
-            dto.setAttrs(Arrays.asList(getAttrIdByCiTypeId(item.getCiTypeId(), "guid"), getAttrIdByCiTypeId(item.getCiTypeId(), "r_guid")));
-            dto.setAttrKeyNames(Arrays.asList("tail$guid", "tail$r_guid"));
-        } else {
-            dto.setChildren(Arrays.asList(childDto));
-        }
-
-        return dto;
-    }
-
-    private List<Map<String, Object>> getAllCiDataOfRootCi(int rootCiTypeId, int envEnumCat, String envEnumCode, int filterCiTypeId, String filterCiGuid, String routine) {
-        List<CiRoutineItem> routineItems = new ArrayList<>();
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JavaType javaType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, CiRoutineItem.class);
-            routineItems = (List<CiRoutineItem>) mapper.readValue(routine.getBytes(), javaType);
-        } catch (JsonParseException e) {
-            log.error("getAllCiDataOfRootCi erorrs", e);
-        } catch (JsonMappingException e) {
-            log.error("getAllCiDataOfRootCierorrs", e);
-        } catch (IOException e) {
-            log.error("getAllCiDataOfRootCi erorrs", e);
-        }
-
-        AdhocIntegrationQueryDto rootDto = new AdhocIntegrationQueryDto();
-
-        PaginationQuery queryRequest = new PaginationQuery();
-        List<PaginationQuery.Filter> filters = new ArrayList<PaginationQuery.Filter>();
-        String enumPorpertyNameOfEnv = getEnumPropertyNameByCiTypeId(rootCiTypeId, envEnumCat);
-        if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
-            PaginationQuery.Filter rootCifilter = new PaginationQuery.Filter("root$" + enumPorpertyNameOfEnv, "eq", getEnumCodeIdByCode(envEnumCat, envEnumCode));
-            filters.add(rootCifilter);
-        }
-
-        PaginationQuery.Filter targetRifilter = new PaginationQuery.Filter("tail$r_guid", "eq", filterCiGuid);
-        filters.add(targetRifilter);
-        queryRequest.setFilters(filters);
-
-        IntegrationQueryDto rootNode = new IntegrationQueryDto();
-        rootNode.setName("root");
-        rootNode.setCiTypeId(rootCiTypeId);
-
-        List<Integer> attrs = new ArrayList<Integer>();
-        List<String> attrKeyNames = new ArrayList<String>();
-
-        attrs.add(getAttrIdByCiTypeId(rootCiTypeId, "guid"));
-        attrKeyNames.add(CONSTANT_GUID_PATH);
-
-        if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
-            attrs.add(getAttrIdByCiTypeId(rootCiTypeId, enumPorpertyNameOfEnv));
-            attrKeyNames.add("root$" + enumPorpertyNameOfEnv);
-        }
-
-        rootNode.setAttrs(attrs);
-        rootNode.setAttrKeyNames(attrKeyNames);
-
-        rootDto.setCriteria(rootNode);
-        rootDto.setQueryRequest(queryRequest);
-
-        IntegrationQueryDto childQueryDto = travelRoutine(routineItems, filterCiTypeId, rootDto, 1);
-        if (childQueryDto != null) {
-            rootDto.getCriteria().setChildren(Arrays.asList(childQueryDto));
-        }
-
-        PaginationQueryResult<Map<String, Object>> results = cmdbServiceV2Stub.adhocIntegrationQuery(rootDto);
-
-        List<Map<String, Object>> ciDatas = results.getContents();
-
-        return ciDatas;
-    }
+//    private List<Map<String, Object>> getAllCiDataOfRootCi(int rootCiTypeId, int envEnumCat, String envEnumCode, int filterCiTypeId, String filterCiGuid, String routine) {
+//        List<CiRoutineItem> routineItems = new ArrayList<>();
+//        try {
+//            ObjectMapper mapper = new ObjectMapper();
+//            JavaType javaType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, CiRoutineItem.class);
+//            routineItems = (List<CiRoutineItem>) mapper.readValue(routine.getBytes(), javaType);
+//        } catch (JsonParseException e) {
+//            log.error("getAllCiDataOfRootCi erorrs", e);
+//        } catch (JsonMappingException e) {
+//            log.error("getAllCiDataOfRootCierorrs", e);
+//        } catch (IOException e) {
+//            log.error("getAllCiDataOfRootCi erorrs", e);
+//        }
+//
+//        AdhocIntegrationQueryDto rootDto = new AdhocIntegrationQueryDto();
+//
+//        PaginationQuery queryRequest = new PaginationQuery();
+//        List<PaginationQuery.Filter> filters = new ArrayList<PaginationQuery.Filter>();
+//        String enumPorpertyNameOfEnv = getEnumPropertyNameByCiTypeId(rootCiTypeId, envEnumCat);
+//        if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
+//            PaginationQuery.Filter rootCifilter = new PaginationQuery.Filter("root$" + enumPorpertyNameOfEnv, "eq", getEnumCodeIdByCode(envEnumCat, envEnumCode));
+//            filters.add(rootCifilter);
+//        }
+//
+//        PaginationQuery.Filter targetRifilter = new PaginationQuery.Filter("tail$r_guid", "eq", filterCiGuid);
+//        filters.add(targetRifilter);
+//        queryRequest.setFilters(filters);
+//
+//        IntegrationQueryDto rootNode = new IntegrationQueryDto();
+//        rootNode.setName("root");
+//        rootNode.setCiTypeId(rootCiTypeId);
+//
+//        List<Integer> attrs = new ArrayList<Integer>();
+//        List<String> attrKeyNames = new ArrayList<String>();
+//
+//        attrs.add(getAttrIdByCiTypeId(rootCiTypeId, "guid"));
+//        attrKeyNames.add(CONSTANT_GUID_PATH);
+//
+//        if (envEnumCode != null && enumPorpertyNameOfEnv != null) {
+//            attrs.add(getAttrIdByCiTypeId(rootCiTypeId, enumPorpertyNameOfEnv));
+//            attrKeyNames.add("root$" + enumPorpertyNameOfEnv);
+//        }
+//
+//        rootNode.setAttrs(attrs);
+//        rootNode.setAttrKeyNames(attrKeyNames);
+//
+//        rootDto.setCriteria(rootNode);
+//        rootDto.setQueryRequest(queryRequest);
+//
+//        IntegrationQueryDto childQueryDto = travelRoutine(routineItems, filterCiTypeId, rootDto, 1);
+//        if (childQueryDto != null) {
+//            rootDto.getCriteria().setChildren(Arrays.asList(childQueryDto));
+//        }
+//
+//        PaginationQueryResult<Map<String, Object>> results = cmdbServiceV2Stub.adhocIntegrationQuery(rootDto);
+//
+//        List<Map<String, Object>> ciDatas = results.getContents();
+//
+//        return ciDatas;
+//    }
 
     public List<ResourceTreeDto> getAllDeployTreesFromSubSys(String envCode, String SystemDesignGuid) {
         List<ResourceTreeDto> deployTrees = new ArrayList<>();
-        int systemDesignCiTypeId = cmdbDataProperties.getCiTypeIdOfSystemDesign();
-        int subsysCiTypeId = cmdbDataProperties.getCiTypeIdOfSubsys();
-        int envEnumCat = cmdbServiceV2Stub.getEnumCategoryByName(cmdbDataProperties.getEnumCategoryNameOfEnv()).getCatId();
-
-        String stateEnumCode = cmdbDataProperties.getEnumCodeOfStateDelete();
-
-        String routine = null;
-        List<CatCodeDto> codeOfRoutines = cmdbServiceV2Stub.getEnumCodeByCodeAndCategoryName(
-                cmdbDataProperties.getCodeOfDeployDetail(), cmdbDataProperties.getCatNameOfQueryDeployDesign());
-        if (codeOfRoutines.size() > 0) {
-            routine = codeOfRoutines.get(0).getValue();
-        }
-
-        if (routine == null) {
-            return null;
-        }
-
-        List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(subsysCiTypeId, envEnumCat, envCode, systemDesignCiTypeId, SystemDesignGuid, routine);
-
-        List<CiTypeAttrDto> attrOfSubsys = cmdbServiceV2Stub.getCiTypeAttributesByCiTypeIdAndPropertyName(subsysCiTypeId, cmdbDataProperties.getPropertyNameOfState());
-        if (attrOfSubsys.size() == 0) {
-            return null;
-        }
-
-        int stateEnumCatOfSubsys = attrOfSubsys.get(0).getReferenceId();
-
-        for (int i = 0; i < ciDatas.size(); i++) {
-            Object ciData = ciDatas.get(i);
-            Map ciDataMap = (Map) ciData;
-
-            Map<String, Object> filter = new HashMap<>();
-            filter.put("guid", ciDataMap.get(CONSTANT_GUID_PATH).toString());
-
-            List<ResourceTreeDto> resourceTrees = new ArrayList<>();
-            recursiveGetChildrenDataFilterState(subsysCiTypeId, stateEnumCatOfSubsys, stateEnumCode, resourceTrees, filter);
-            deployTrees.addAll(resourceTrees);
-        }
+//        int systemDesignCiTypeId = cmdbDataProperties.getCiTypeIdOfSystemDesign();
+//        int subsysCiTypeId = cmdbDataProperties.getCiTypeIdOfSubsys();
+//        int envEnumCat = cmdbServiceV2Stub.getEnumCategoryByName(cmdbDataProperties.getEnumCategoryNameOfEnv()).getCatId();
+//
+//        String stateEnumCode = cmdbDataProperties.getEnumCodeOfStateDelete();
+//
+//        String routine = null;
+//        List<CatCodeDto> codeOfRoutines = cmdbServiceV2Stub.getEnumCodeByCodeAndCategoryName(
+//                cmdbDataProperties.getCodeOfDeployDetail(), cmdbDataProperties.getCatNameOfQueryDeployDesign());
+//        if (codeOfRoutines.size() > 0) {
+//            routine = codeOfRoutines.get(0).getValue();
+//        }
+//
+//        if (routine == null) {
+//            return null;
+//        }
+//
+//        List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(subsysCiTypeId, envEnumCat, envCode, systemDesignCiTypeId, SystemDesignGuid, routine);
+//
+//        List<CiTypeAttrDto> attrOfSubsys = cmdbServiceV2Stub.getCiTypeAttributesByCiTypeIdAndPropertyName(subsysCiTypeId, cmdbDataProperties.getPropertyNameOfState());
+//        if (attrOfSubsys.size() == 0) {
+//            return null;
+//        }
+//
+//        int stateEnumCatOfSubsys = attrOfSubsys.get(0).getReferenceId();
+//
+//        for (int i = 0; i < ciDatas.size(); i++) {
+//            Object ciData = ciDatas.get(i);
+//            Map ciDataMap = (Map) ciData;
+//
+//            Map<String, Object> filter = new HashMap<>();
+//            filter.put("guid", ciDataMap.get(CONSTANT_GUID_PATH).toString());
+//
+//            List<ResourceTreeDto> resourceTrees = new ArrayList<>();
+//            recursiveGetChildrenDataFilterState(subsysCiTypeId, stateEnumCatOfSubsys, stateEnumCode, resourceTrees, filter);
+//            deployTrees.addAll(resourceTrees);
+//        }
 
         return deployTrees;
     }
@@ -745,19 +745,19 @@ public class CmdbResourceService {
         if (routineForGetingSystemDesignGuid == null) {
             return null;
         }
+//
+//        List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(ciTypeId, envEnumCat, envCode, systemDesignCiTypeId,
+//                systemDesignGuid, routineForGetingSystemDesignGuid);
+//        if (queryObject == null) {
+//            queryObject = PaginationQuery.defaultQueryObject();
+//        }
 
-        List<Map<String, Object>> ciDatas = getAllCiDataOfRootCi(ciTypeId, envEnumCat, envCode, systemDesignCiTypeId,
-                systemDesignGuid, routineForGetingSystemDesignGuid);
-        if (queryObject == null) {
-            queryObject = PaginationQuery.defaultQueryObject();
-        }
+//        List<Object> guids = ciDatas.stream().map(item -> item.get(CONSTANT_GUID_PATH)).collect(Collectors.toList());
+//        if (guids.size() == 0) {
+//            return null;
+//        }
 
-        List<Object> guids = ciDatas.stream().map(item -> item.get(CONSTANT_GUID_PATH)).collect(Collectors.toList());
-        if (guids.size() == 0) {
-            return null;
-        }
-
-        queryObject.addInFilter("guid", guids);
+//        queryObject.addInFilter("guid", guids);
         return cmdbServiceV2Stub.queryCiData(ciTypeId, queryObject);
     }
 

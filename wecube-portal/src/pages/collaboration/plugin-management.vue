@@ -134,6 +134,7 @@
         <PluginRegister
           v-if="isShowServicePanel"
           :pkgId="currentPlugin.id"
+          :pkgName="currentPlugin.name"
         ></PluginRegister>
       </Card>
     </Col>

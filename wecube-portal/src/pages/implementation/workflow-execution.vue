@@ -135,7 +135,10 @@ export default {
       }
     },
     getSelectionData() {
-      this.allTarget = [{ id: 1, regx: "A-B.c" }, { id: 2, regx: "D-C.c" }];
+      this.allTarget = [
+        { id: 1, regx: "A-B.c" },
+        { id: 2, regx: "D-C.c" }
+      ];
     },
     orchestrationSelectHandler() {
       this.getFlowOutlineData();
