@@ -7,20 +7,29 @@ import org.apache.commons.lang3.StringUtils;
 
 public class InputParamObject {
 
-    private String entityId;
+    private String entityTypeId;
+    
+    private String entityDataId;
 
     private List<String> attrNames = new ArrayList<>();
 
     private List<InputParamAttr> attrs = new ArrayList<>();
     
-    public String getEntityId() {
-        return entityId;
+    public String getEntityTypeId() {
+        return entityTypeId;
     }
 
-    public void setEntityId(String entityId) {
-        this.entityId = entityId;
+    public void setEntityTypeId(String entityTypeId) {
+        this.entityTypeId = entityTypeId;
     }
 
+    public String getEntityDataId() {
+        return entityDataId;
+    }
+
+    public void setEntityDataId(String entityDataId) {
+        this.entityDataId = entityDataId;
+    }
 
     public List<String> getAttrNames() {
         return attrNames;
