@@ -294,5 +294,6 @@
   "plugin_load": "插件加载完成",
   "get_dynamic_model": "同步数据模型",
   "apply_data_model": "应用数据模型",
-  "instance_type": "编排实体类型"
+  "instance_type": "编排实体类型",
+  "input_correct_operator": "请输入正确的操作符 . 或 ~ "
 }

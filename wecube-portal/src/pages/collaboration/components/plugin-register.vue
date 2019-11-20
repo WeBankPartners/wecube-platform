@@ -25,7 +25,6 @@
               <Select
                 @on-change="onSelectEntityType"
                 v-model="selectedEntityType"
-                disabled
               >
                 <OptionGroup
                   :label="pluginPackage.packageName"
@@ -34,7 +33,7 @@
                 >
                   <Option
                     v-for="item in pluginPackage.pluginPackageEntities"
-                    :value="pluginPackage.packageName + item.name"
+                    :value="item.name"
                     :key="item.name"
                     >{{ item.name }}</Option
                   >
@@ -97,19 +96,20 @@
                   <Col span="14" offset="1">
                     <FormItem :label-width="0">
                       <PathExp
-                        v-if="param.mappingType === 'context'"
+                        v-if="param.mappingType === 'entity'"
                         :rootPkg="pkgName"
-                        :rootEntity="currentPluginObj.entityName"
-                        :allDataModelsWithAttrs="allDataModelsWithAttrs"
+                        :rootEntity="selectedEntityType"
+                        :allDataModelsWithAttrs="allEntityType"
                         @getPluginPkgDataModel="getPluginPkgDataModel"
+                        v-model="param.mappingEntityExpression"
                       ></PathExp>
                       <span v-if="param.mappingType === 'system_variable'">{{
                         param.mappingSystemVariableId || "N/A"
                       }}</span>
-                      <span v-if="param.mappingType === 'entity'">{{
+                      <!-- <span v-if="param.mappingType === 'entity'">{{
                         param.mappingEntityExpression || "N/A"
-                      }}</span>
-                      <!-- <span v-if="param.mappingType === 'context'">N/A</span> -->
+                      }}</span> -->
+                      <span v-if="param.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
                   <Col span="2" offset="1">
@@ -254,7 +254,7 @@ export default {
     async getPluginPkgDataModel(pkgName) {
       if (!this.allDataModelsWithAttrs[pkgName]) {
         const { data, status, message } = await getPluginPkgDataModel(pkgName);
-        if (status === "OK") {
+        if (status === "OK" && data) {
           this.$set(this.allDataModelsWithAttrs, pkgName, data);
         }
       }
@@ -298,6 +298,7 @@ export default {
       this.selectedEntityType = this.plugins.find(
         plugin => plugin.name === val
       ).entityId;
+      this.selectedEntityType = this.currentPluginObj.entityName;
     },
     onSelectEntityType(val) {},
     async getAllDataModels() {
@@ -322,6 +323,7 @@ export default {
     this.getAllPluginByPkgId();
     this.getAllDataModels();
     this.getAllSystemEnumCodes();
+    this.selectedEntityType = this.currentPluginObj.entityName;
   }
 };
 </script>
