@@ -65,7 +65,7 @@ public class RestTemplateUtils {
 
         HttpMethod method = HttpMethod.POST;
         // set content type as form
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         // setup http request entity
         HttpEntity<List<Map<String, Object>>> requestEntity = new HttpEntity<>(requestParamMap, headers);
 
