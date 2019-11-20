@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service;
 
-import com.google.gson.Gson;
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
@@ -13,7 +12,9 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -21,7 +22,6 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
-    Gson gson = null;
 
     @Autowired
     DataModelExpressionServiceImpl dataModelExpressionService;
@@ -34,13 +34,12 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
 
     @Before
     public void setup() {
-        gson = new Gson();
         server = MockRestServiceServer.bindTo(restTemplate).build();
         gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
 
     @Test
-    public void wecmdbFwdNodeExpressionShouldSucceed() {
+    public void wecmdbFwdNodeExpressionFetchShouldSucceed() {
         mockFwdNodeExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -55,7 +54,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbOneLinkWithOpToExpressionShouldSucceed() {
+    public void wecmdbOneLinkWithOpToExpressionFetchShouldSucceed() {
         mockOneLinkWithOpToOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -66,7 +65,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbOneLinkWithOpByExpressionShouldSucceed() {
+    public void wecmdbOneLinkWithOpByExpressionFetchShouldSucceed() {
         mockOneLinkWithOpByOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -85,7 +84,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbMultipleLinksWithOpToOnlyExpressionShouldSucceed() {
+    public void wecmdbMultipleLinksWithOpToOnlyExpressionFetchShouldSucceed() {
         mockMultipleLinksWithOpToOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -100,7 +99,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbMultipleLinksWithOpByOnlyExpressionShouldSucceed() {
+    public void wecmdbMultipleLinksWithOpByOnlyExpressionFetchShouldSucceed() {
         mockMultipleLinksWithOpByOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
@@ -112,7 +111,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
-    public void wecmdbMultipleLinksWithMixedOpExpressionShouldSucceed() {
+    public void wecmdbMultipleLinksWithMixedOpExpressionFetchShouldSucceed() {
         mockMultipleLinksWithMixedOpExpressionServer(server);
         List<Object> resultOne = dataModelExpressionService.fetchData(
                 new DataModelExpressionToRootData("wecmdb:subsys~(subsys)wecmdb:unit.unit_design-wecmdb:unit_design.subsys_design-wecmdb:subsys_design.key_name", "0007_0000000001"));
@@ -127,6 +126,16 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
         assert resultTwo.get(0).equals("PRD-GZ1-MGMT");
         assert resultTwo.get(1).equals("PRD-GZ1-PARTNERNET");
 
+        server.verify();
+    }
+
+    @Test
+    public void wecmdbFwdNodeExpressionWriteBackShouldSucceed() {
+        mockFwdNodeExpressionWriteBackServer(server);
+        final Map<String, Object> WRITE_BACK_DATA = Collections.singletonMap("code", "Test");
+        DataModelExpressionToRootData expressionToRootData = new DataModelExpressionToRootData("wecmdb:system_design.code", "0001_0000000001");
+        dataModelExpressionService.writeBackData(
+                expressionToRootData, WRITE_BACK_DATA);
         server.verify();
     }
 
@@ -804,6 +813,53 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
                         "}", MediaType.APPLICATION_JSON));
 
 
+    }
+
+    private void mockFwdNodeExpressionWriteBackServer(MockRestServiceServer server) {
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design?filter=id,0001_0000000001", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"key_name\": \"EDP\",\n" +
+                        "            \"business_group\": 105,\n" +
+                        "            \"code\": \"EDP\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"r_guid\": \"0001_0000000001\",\n" +
+                        "            \"name\": \"Deposit Micro Core System\",\n" +
+                        "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"id\": \"0001_0000000001\",\n" +
+                        "            \"state\": 34,\n" +
+                        "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design/update", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"key_name\": \"EDP\",\n" +
+                        "            \"business_group\": 105,\n" +
+                        "            \"code\": \"Test\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"r_guid\": \"0001_0000000001\",\n" +
+                        "            \"name\": \"Deposit Micro Core System\",\n" +
+                        "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"id\": \"0001_0000000001\",\n" +
+                        "            \"state\": 34,\n" +
+                        "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
     }
 
 }
