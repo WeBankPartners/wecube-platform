@@ -134,7 +134,7 @@ public class PluginConfigInterfaceDto {
         if (null != getOutputParameters() && getOutputParameters().size() > 0) {
             getOutputParameters().forEach(outputParameter ->pluginConfigInterfaceOutputParameters.add(outputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_OUTPUT)));
         }
-        pluginConfigInterface.setInputParameters(pluginConfigInterfaceOutputParameters);
+        pluginConfigInterface.setOutputParameters(pluginConfigInterfaceOutputParameters);
 
         return pluginConfigInterface;
     }
