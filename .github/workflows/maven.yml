@@ -18,4 +18,4 @@ jobs:
     - uses: actions/upload-artifact@master
       with:
         name: platform-core_test-report
-        path: platform-core/target/surefire-reports
+        path: platform-core/target/surefire-reports/TEST-com.webank.wecube.platform.core.controller.PluginPackageDataModelControllerTest.xml
