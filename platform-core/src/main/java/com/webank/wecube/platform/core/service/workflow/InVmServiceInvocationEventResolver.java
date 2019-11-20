@@ -9,9 +9,15 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.workflow.delegate.ServiceInvocationEventResolver;
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service("InVmServiceInvocationEventResolver")
 public class InVmServiceInvocationEventResolver implements ServiceInvocationEventResolver {
     private static final Logger log = LoggerFactory.getLogger(InVmServiceInvocationEventResolver.class);
+    private static final String CUSTOM_SERVICE_BEAN_PREFIX = "srvBeanST-";
     @Autowired
     private PluginInvocationService pluginInvocationService;
 
@@ -20,7 +26,7 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
     }
 
     protected void resolveProcessInstanceEndEvent(ServiceInvocationEvent event) {
-//        pluginInstanceService.handleProcessInstanceEndEvent(pluginTriggerCommand(event));
+        pluginInvocationService.handleProcessInstanceEndEvent(pluginInvocationCommand(event));
     }
 
     protected void dispatch(ServiceInvocationEvent event) {
@@ -56,17 +62,35 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
     }
 
     private PluginInvocationCommand pluginInvocationCommand(ServiceInvocationEvent event) {
+
         PluginInvocationCommand cmd = new PluginInvocationCommand();
         cmd.setProcDefId(event.getDefinitionId());
         cmd.setProcDefKey(event.getDefinitionKey());
         cmd.setProcDefVersion(event.getDefinitionVersion());
         cmd.setProcInstKey(event.getBusinessKey());
         cmd.setProcInstId(event.getInstanceId());
-        cmd.setNodeId(event.getEventSourceId());
+        cmd.setNodeId(calculateNodeId(event));
         cmd.setNodeName(event.getEventSourceName());
         cmd.setExecutionId(event.getExecutionId());
 
         return cmd;
+    }
+
+    private String calculateNodeId(ServiceInvocationEvent event) {
+        if (event == null) {
+            return "";
+        }
+
+        String nodeId = event.getEventSourceId();
+        if (nodeId == null) {
+            nodeId = "";
+        }
+
+        if (nodeId.indexOf(CUSTOM_SERVICE_BEAN_PREFIX) >= 0) {
+            nodeId = nodeId.substring(CUSTOM_SERVICE_BEAN_PREFIX.length());
+        }
+
+        return nodeId;
     }
 
 }
