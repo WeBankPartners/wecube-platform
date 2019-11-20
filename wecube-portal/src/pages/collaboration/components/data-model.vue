@@ -65,11 +65,11 @@ export default {
           return {
             ..._,
             id: "[" + _.packageName + "]" + _.name,
-            tos: _.referenceToEntityList.map(_ => {
-              return { ..._, id: _.packageName + "_" + _.name };
+            tos: _.referenceToEntityList.map(to => {
+              return { ...to, id: "[" + to.packageName + "]" + to.name };
             }),
-            bys: _.referenceByEntityList.map(_ => {
-              return { ..._, id: _.packageName + "_" + _.name };
+            bys: _.referenceByEntityList.map(by => {
+              return { ...by, id: "[" + by.packageName + "]" + by.name };
             })
           };
         });
@@ -99,8 +99,8 @@ export default {
       let addNodeAttr = node => {
         const color = "#273c75";
         return `"${node.id}" [id="${node.id}" label="${node.id +
-          "_" +
-          node.packageVersion}" shape="box" fontcolor="${color}"];`;
+          "_v" +
+          node.dataModelVersion}" shape="box" fontcolor="${color}"];`;
       };
       const nodeMap = new Map();
       this.data.forEach(node => {
