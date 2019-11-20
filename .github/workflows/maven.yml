@@ -17,5 +17,5 @@ jobs:
       run: mvn -pl -wecube-portal clean install 
     - uses: actions/upload-artifact@master
       with:
-      name: platform-core_test-report
-      path: platform-core/target/surefire-reports
+        name: platform-core_test-report
+        path: platform-core/target/surefire-reports
