@@ -20,6 +20,11 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class PluginInvocationProcessor {
 

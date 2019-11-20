@@ -11,9 +11,19 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
     private String procDefId;
     private String procDefKey;
 
+    private String routineExpression;
+
     private List<String> previousNodeIds = new ArrayList<>();
     private List<String> succeedingNodeIds = new ArrayList<>();
-    
+
+    public String getRoutineExpression() {
+        return routineExpression;
+    }
+
+    public void setRoutineExpression(String routineExpression) {
+        this.routineExpression = routineExpression;
+    }
+
     public String getNodeDefId() {
         return nodeDefId;
     }
