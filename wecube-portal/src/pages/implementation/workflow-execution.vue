@@ -42,7 +42,7 @@
               <FormItem :label-width="100" :label="$t('select_orch')">
                 <Select
                   label
-                  v-model="selectedOrchestration"
+                  v-model="selectedFlow"
                   :disabled="isEnqueryPage"
                   @on-change="orchestrationSelectHandler"
                 >
@@ -116,7 +116,6 @@ export default {
       currentFlowNodeId: "",
       foundRefAry: [],
       selectedFlow: "",
-      selectedOrchestration: "",
       selectedTarget: "",
       showExcution: true,
       isShowBody: false,
@@ -145,11 +144,6 @@ export default {
       this.isShowBody = true;
       this.isEnqueryPage = true;
       this.$nextTick(() => {
-        // set selection box value
-        const found = this.allFlows.find(_ => _.id === this.selectedFlow);
-        this.selectedOrchestration = found.orchestration.orchestrationId;
-        this.selectedTarget = found.target.targetId;
-
         this.getModelData();
         this.getFlowOutlineData();
       });
@@ -157,7 +151,6 @@ export default {
     createHandler() {
       this.isShowBody = true;
       this.isEnqueryPage = false;
-      this.selectedOrchestration = "";
       this.selectedTarget = "";
       this.selectedFlow = "";
     },
@@ -171,10 +164,9 @@ export default {
     },
     async getFlowOutlineData() {
       let { status, data, message } = await getFlowOutlineByID(
-        this.selectedOrchestration
+        this.selectedFlow
       );
       if (status === "OK") {
-        console.log(22, data);
         this.flowData = data;
         this.initFlowGraph();
       }
@@ -225,9 +217,8 @@ export default {
         Faulted: "#FF6262",
         Timeouted: "#F7B500"
       };
-
       let nodes = this.flowData.flowNodes.map((_, index) => {
-        if (index === 0 || index === this.flowData.flowNodes.length - 1) {
+        if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
           return `${_.nodeId} [label="${
             _.nodeName
           }", fontsize="10", class="flow",style="${
