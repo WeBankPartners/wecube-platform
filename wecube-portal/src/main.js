@@ -69,12 +69,12 @@ const findPath = (routes, path) => {
   window.routers.concat(routes).forEach(route => {
     if (route.children) {
       route.children.forEach(child => {
-        if (child.path === path) {
+        if (child.path === path || child.redirect === path) {
           found = true;
         }
       });
     }
-    if (route.path === path) {
+    if (route.path === path || route.redirect === path) {
       found = true;
     }
   });
