@@ -599,3 +599,7 @@ export const getAllPluginPackageResourceFiles = () =>
 export const pullDynamicDataModel = name =>
   req.get(`/platform/v1/models/package/${name}`);
 export const applyNewDataModel = data => req.post(`/platform/v1/models`, data);
+export const getRefByIdInfoByPackageNameAndEntityName = (pkgName, entityName) =>
+  req.get(
+    `/platform/v1/models/package/${pkgName}/entity/${entityName}/refById`
+  );
