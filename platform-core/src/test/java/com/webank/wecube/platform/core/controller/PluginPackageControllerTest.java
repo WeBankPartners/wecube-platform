@@ -114,7 +114,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     public void givenPluginPackageNormalAndFakeS3ClientWhenUploadThenReturnSuccess() {
         pluginPackageService.setS3Client(new FakeS3Client());
 
-        File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
+        File testPackage = new File("src/test/resources/testpackage/servicemanagement-v0.1.zip");
         MockMultipartFile mockPluginPackageFile = null;
         try {
             mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
@@ -128,7 +128,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("status", is("OK")))
                     .andExpect(jsonPath("message", is("Success")))
-                    .andExpect(jsonPath("$.data.name", is("service-management")))
+                    .andExpect(jsonPath("$.data.name", is("servicemanagement")))
                     .andExpect(jsonPath("$.data.version", is("v0.1")))
                     .andExpect(jsonPath("$.data.uiPackageIncluded", is(true)))
                     .andDo(print())
@@ -288,7 +288,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get("/v1/packages/1/dependencies").contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.packageName", is("service-management")))
+                    .andExpect(jsonPath("$.data.packageName", is("servicemanagement")))
                     .andExpect(jsonPath("$.data.dependencies[*].packageName", contains("xxx", "xxx233")))
                     .andExpect(jsonPath("$.data.dependencies[*].version", contains("1.0", "1.5")))
                     .andDo(print())
@@ -447,7 +447,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     private void uploadCorrectPackage() throws Exception {
         pluginPackageService.setS3Client(new FakeS3Client());
-        File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
+        File testPackage = new File("src/test/resources/testpackage/servicemanagement-v0.1.zip");
         MockMultipartFile mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
         mvc.perform(MockMvcRequestBuilders.multipart("/v1/packages").file(mockPluginPackageFile));
     }
