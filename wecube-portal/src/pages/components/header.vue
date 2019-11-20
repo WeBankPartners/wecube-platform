@@ -2,25 +2,28 @@
   <Header>
     <div class="menus">
       <Menu mode="horizontal" theme="dark">
-        <Submenu
-          v-for="menu in menus"
-          :name="menu.code"
-          :key="menu.code"
-          :disabled="menu.submenus.length < 1"
-        >
-          <template slot="title">
-            {{ menu.title }}
-          </template>
-          <router-link
-            v-for="submenu in menu.submenus"
-            :key="submenu.code"
-            :to="submenu.link || ''"
+        <div v-for="menu in menus" :key="menu.code">
+          <MenuItem
+            v-if="menu.submenus.length < 1"
+            :name="menu.title"
+            style="cursor: not-allowed;"
           >
-            <MenuItem :name="submenu.code" :disabled="!submenu.link">
-              {{ submenu.title }}
-            </MenuItem>
-          </router-link>
-        </Submenu>
+            {{ menu.title }}
+          </MenuItem>
+
+          <Submenu v-else :name="menu.code">
+            <template slot="title" style="font-size: 16px">{{
+              menu.title
+            }}</template>
+            <router-link
+              v-for="submenu in menu.submenus"
+              :key="submenu.code"
+              :to="submenu.link || ''"
+            >
+              <MenuItem :name="submenu.code">{{ submenu.title }}</MenuItem>
+            </router-link>
+          </Submenu>
+        </div>
       </Menu>
     </div>
     <div class="header-right_container">
@@ -252,9 +255,35 @@ export default {
     .ivu-menu-horizontal {
       height: 50px;
       line-height: 50px;
+      display: flex;
 
       .ivu-menu-submenu {
         padding: 0 10px;
+        font-size: 15px;
+      }
+
+      .ivu-menu-item {
+        font-size: 15px;
+      }
+    }
+
+    .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu {
+      color: #fff;
+    }
+    .ivu-menu-item-active,
+    .ivu-menu-item:hover {
+      color: rgba(255, 255, 255, 0.7);
+      // cursor: pointer;
+    }
+    .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu-active,
+    .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu:hover {
+      color: #fff;
+    }
+
+    .ivu-menu-drop-list {
+      .ivu-menu-item-active,
+      .ivu-menu-item:hover {
+        color: black;
       }
     }
   }
