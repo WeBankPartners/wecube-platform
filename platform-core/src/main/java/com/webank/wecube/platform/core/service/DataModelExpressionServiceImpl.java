@@ -26,12 +26,15 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
     private static final String postRequestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
+
     @Autowired
     private RestTemplate restTemplate = new RestTemplate();
-    private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
     @Autowired
     private ApplicationProperties applicationProperties;
+
     private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
     final String UNIQUE_IDENTIFIER = "id";
     private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?sorting={sortName},asc";
@@ -445,7 +448,8 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 this.setRequestActualUrl(uriStr);
             response = RestTemplateUtils.sendPostRequestWithParamMap(restTemplate, uriStr, requestBodyParamMap, httpHeaders);
             if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
-                throw new WecubeCoreException(response.toString());
+                String msg = String.format("Error when sending post request to target server, the response is: [%s]", response.toString());
+                throw new WecubeCoreException(msg);
             }
             responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
             if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
