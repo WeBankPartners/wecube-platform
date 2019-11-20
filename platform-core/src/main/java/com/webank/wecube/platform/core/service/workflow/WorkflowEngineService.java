@@ -10,6 +10,7 @@ import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.ManagementService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.history.HistoricActivityInstance;
 import org.camunda.bpm.engine.repository.DeploymentWithDefinitions;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
@@ -18,6 +19,7 @@ import org.camunda.bpm.engine.runtime.EventSubscription;
 import org.camunda.bpm.engine.runtime.EventSubscriptionQuery;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
+import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.FlowNode;
 import org.camunda.bpm.model.bpmn.instance.StartEvent;
@@ -45,6 +47,11 @@ import com.webank.wecube.platform.workflow.parse.SubProcessAdditionalInfo;
 import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class WorkflowEngineService {
 
@@ -52,6 +59,11 @@ public class WorkflowEngineService {
     
     public static final int SERVICE_TASK_EXECUTE_SUCC = 0;
     public static final int SERVICE_TASK_EXECUTE_ERR = 1;
+    
+    public static final String PROCEED_ACT_RETRY = "retry";
+    public static final String PROCEED_ACT_SKIP = "skip";
+    
+    public static final String PREFIX_EXCEPT_SUB_USER_TASK = "exceptSubUT-";
 
     private static final String BPMN_SUFFIX = ".bpmn20.xml";
 
@@ -74,6 +86,37 @@ public class WorkflowEngineService {
 
     @Autowired
     protected ServiceNodeStatusRepository serviceNodeStatusRepository;
+    
+    @Autowired
+    protected TaskService taskService;
+    
+    public void proceedProcessInstance(String procInstanceId, String nodeId, String userAction){
+        String instanceId = procInstanceId;
+        String taskDefKey = PREFIX_EXCEPT_SUB_USER_TASK+nodeId;
+        
+        String act = StringUtils.isBlank(userAction)? "retry" : userAction;
+        
+        if( !(PROCEED_ACT_RETRY.equals(act) || PROCEED_ACT_SKIP.equals(act))){
+            log.error("invalid action met for {} {} {}", procInstanceId,  nodeId,  userAction);
+            throw new IllegalArgumentException();
+        }
+
+        Task task = taskService.createTaskQuery().processInstanceId(instanceId).active().taskDefinitionKey(taskDefKey).singleResult();
+
+        if (task == null) {
+            log.error("cannot find task with instanceId {} and taskId {}", instanceId, taskDefKey);
+            throw new WecubeCoreException("process instance restarting failed");
+        } else {
+
+            String actVarName = String.format("%s_%s", WorkflowConstants.VAR_KEY_USER_ACT, nodeId);
+
+            log.info("to complete task {} put {} {}", taskDefKey, WorkflowConstants.VAR_KEY_USER_ACT, act);
+            Map<String, Object> variables = new HashMap<String, Object>();
+            variables.put(actVarName, act);
+
+            taskService.complete(task.getId(), variables);
+        }
+    }
     
     public void handleServiceInvocationResult(ServiceInvocationEvent event){
         

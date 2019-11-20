@@ -7,6 +7,7 @@ import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,20 +39,12 @@ public class PluginConfigInterface {
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Where(clause = "type = 'INPUT'")
-    private Set<PluginConfigInterfaceParameter> inputParameters = new LinkedHashSet<>();
+    private Set<PluginConfigInterfaceParameter> inputParameters;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Where(clause = "type = 'OUTPUT'")
-    private Set<PluginConfigInterfaceParameter> outputParameters = new LinkedHashSet<>();
-
-    public void addInputParameter(PluginConfigInterfaceParameter parameter) {
-        this.inputParameters.add(parameter);
-    }
-
-    public void addOutputParameter(PluginConfigInterfaceParameter parameter) {
-        this.outputParameters.add(parameter);
-    }
+    private Set<PluginConfigInterfaceParameter> outputParameters;
 
     public Integer getId() {
         return id;
@@ -111,26 +104,24 @@ public class PluginConfigInterface {
 
     public Set<PluginConfigInterfaceParameter> getInputParameters() {
         // TODO: need to optimize
-        return inputParameters
-                .stream()
-                .sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return inputParameters == null ? null
+                : inputParameters.stream().sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setInputParameters(Set<PluginConfigInterfaceParameter> inputParameters) {
-        this.inputParameters = inputParameters;
+        this.inputParameters =inputParameters;
     }
 
     public Set<PluginConfigInterfaceParameter> getOutputParameters() {
         // TODO: need to optimize
-        return outputParameters
-                .stream()
-                .sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        return outputParameters == null ? null
+                : outputParameters.stream().sorted(Comparator.comparing(PluginConfigInterfaceParameter::getName))
+                        .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setOutputParameters(Set<PluginConfigInterfaceParameter> outputParameters) {
-        this.outputParameters = outputParameters;
+        this.outputParameters =  outputParameters;
     }
 
     public PluginConfigInterface() {

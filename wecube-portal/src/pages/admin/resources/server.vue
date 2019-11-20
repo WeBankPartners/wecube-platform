@@ -4,188 +4,232 @@
     :tableOuterActions="outerActions"
     :tableInnerActions="null"
     :tableColumns="tableColumns"
+    :pagination="pagination"
     @actionFun="actionFun"
+    @handleSubmit="handleSubmit"
+    @sortHandler="sortHandler"
     @getSelectedRows="onSelectedRowsChange"
+    @pageChange="pageChange"
+    @pageSizeChange="pageSizeChange"
     ref="table"
   />
 </template>
 
 <script>
 import {
-  getResourceServerType,
   getResourceServerStatus,
+  getResourceServerType,
   retrieveServers,
   createServers,
   updateServers,
   deleteServers
 } from "@/api/server.js";
 import { outerActions } from "@/const/actions.js";
+import moment from "moment";
+import { formatData } from "../../util/format.js";
+
+const booleanOptions = [
+  {
+    label: "true",
+    value: "true",
+    key: "true"
+  },
+  {
+    label: "false",
+    value: "false",
+    key: "false"
+  }
+];
+
 export default {
   data() {
     return {
+      payload: {
+        filters: [],
+        pageable: {
+          pageSize: 10,
+          startIndex: 0
+        },
+        paging: true
+      },
+      pagination: {
+        pageSize: 10,
+        currentPage: 1,
+        total: 0
+      },
       outerActions,
       tableData: [],
       tableColumns: [
         {
-          title: "Id",
+          title: this.$t("table_id"),
           key: "id",
           inputKey: "id",
           searchSeqNo: 1,
           displaySeqNo: 1,
+          disEditor: true,
+          disAdded: true,
           component: "Input",
           inputType: "text",
-          placeholder: "id"
+          placeholder: this.$t("table_id")
         },
         {
-          title: "Name",
+          title: this.$t("table_name"),
           key: "name",
           inputKey: "name",
           searchSeqNo: 2,
           displaySeqNo: 2,
           component: "Input",
           inputType: "text",
-          placeholder: "name"
+          placeholder: this.$t("table_name")
         },
         {
-          title: "Host",
+          title: this.$t("table_host"),
           key: "host",
           inputKey: "host",
           searchSeqNo: 3,
           displaySeqNo: 3,
           component: "Input",
           inputType: "text",
-          placeholder: "host"
+          placeholder: this.$t("table_host")
         },
         {
-          title: "Is Allocated",
+          title: this.$t("table_is_allocated"),
           key: "isAllocated",
           inputKey: "isAllocated",
           searchSeqNo: 4,
           displaySeqNo: 4,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "isAllocated",
-          options: [
-            {
-              label: "true",
-              value: "true",
-              key: "true"
-            },
-            {
-              label: "false",
-              value: "false",
-              key: "false"
-            }
-          ]
+          placeholder: this.$t("table_isAllocated"),
+          options: booleanOptions
         },
         {
-          title: "Login Username",
+          title: this.$t("table_login_username"),
           key: "loginUsername",
           inputKey: "loginUsername",
           searchSeqNo: 5,
           displaySeqNo: 5,
           component: "Input",
           inputType: "text",
-          placeholder: "loginUsername"
+          placeholder: this.$t("table_login_username")
         },
         {
-          title: "Login Password",
+          title: this.$t("table_login_password"),
           key: "loginPassword",
           inputKey: "loginPassword",
           searchSeqNo: 6,
           displaySeqNo: 6,
           component: "Input",
           inputType: "text",
-          placeholder: "loginPassword"
+          placeholder: this.$t("table_login_password")
         },
         {
-          title: "Port",
+          title: this.$t("table_port"),
           key: "port",
           inputKey: "port",
           searchSeqNo: 7,
           displaySeqNo: 7,
           component: "Input",
           inputType: "text",
-          placeholder: "port"
+          placeholder: this.$t("table_port")
         },
         {
-          title: "Purpose",
+          title: this.$t("table_purpose"),
           key: "purpose",
           inputKey: "purpose",
           searchSeqNo: 8,
           displaySeqNo: 8,
           component: "Input",
           inputType: "text",
-          placeholder: "purpose"
+          placeholder: this.$t("table_purpose")
         },
         {
-          title: "Status",
+          title: this.$t("table_status"),
           key: "status",
           inputKey: "status",
           searchSeqNo: 9,
           displaySeqNo: 9,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "status"
+          placeholder: this.$t("table_status")
         },
         {
-          title: "Type",
+          title: this.$t("table_type"),
           key: "type",
           inputKey: "type",
           searchSeqNo: 10,
           displaySeqNo: 10,
           component: "WeSelect",
           inputType: "select",
-          placeholder: "type"
+          placeholder: this.$t("table_type")
         }
       ]
     };
   },
   methods: {
     async queryData() {
-      const { status, message, data } = await retrieveServers({});
+      this.payload.pageable.pageSize = this.pagination.pageSize;
+      this.payload.pageable.startIndex =
+        (this.pagination.currentPage - 1) * this.pagination.pageSize;
+      const { status, message, data } = await retrieveServers(this.payload);
       if (status === "OK") {
         this.tableData = data.contents.map(_ => {
           _.isAllocated = _.isAllocated ? "true" : "false";
           return _;
         });
+        this.pagination.total = data.pageInfo.totalRows;
       }
     },
     async getResourceServerStatus() {
       const { status, message, data } = await getResourceServerStatus();
       if (status === "OK") {
-        let statusIndex;
-        this.tableColumns.find((_, i) => {
-          if (_.key === "status") {
-            statusIndex = i;
-          }
-        });
-        const statusOptions = data.map(_ => {
-          return {
-            label: _,
-            value: _,
-            key: _
-          };
-        });
-        this.$set(this.tableColumns[statusIndex], "options", statusOptions);
+        this.setOptions(data, "status");
       }
     },
     async getResourceServerType() {
       const { status, message, data } = await getResourceServerType();
       if (status === "OK") {
-        const typeOptions = data.map(_ => {
-          return {
-            label: _,
-            value: _,
-            key: _
-          };
-        });
-        this.$set(
-          this.tableColumns[this.tableColumns.length - 1],
-          "options",
-          typeOptions
-        );
+        this.setOptions(data, "type");
       }
+    },
+    setOptions(data, column) {
+      let statusIndex;
+      this.tableColumns.find((_, i) => {
+        if (_.key === column) {
+          statusIndex = i;
+        }
+      });
+      const options = data.map(_ => {
+        return {
+          label: _,
+          value: _,
+          key: _
+        };
+      });
+      this.$set(this.tableColumns[statusIndex], "options", options);
+    },
+    handleSubmit(data) {
+      this.payload.filters = data;
+      this.queryData();
+    },
+    sortHandler(data) {
+      if (data.order === "normal") {
+        delete this.payload.sorting;
+      } else {
+        this.payload.sorting = {
+          asc: data.order === "asc",
+          field: data.key
+        };
+      }
+      this.queryData();
+    },
+    pageChange(current) {
+      this.pagination.currentPage = current;
+      this.queryData();
+    },
+    pageSizeChange(size) {
+      this.pagination.pageSize = size;
+      this.queryData();
     },
     actionFun(type, data) {
       switch (type) {
@@ -365,15 +409,20 @@ export default {
           );
         });
     },
-    // TODO
-    async exportHandler() {}
+    async exportHandler() {
+      const { status, message, data } = await retrieveServers({});
+      if (status === "OK") {
+        this.$refs.table.export({
+          filename: this.$t("host"),
+          data: formatData(data.contents)
+        });
+      }
+    }
   },
   mounted() {
-    this.getResourceServerType();
     this.getResourceServerStatus();
+    this.getResourceServerType();
     this.queryData();
   }
 };
 </script>
-
-<style lang="scss" scoped></style>

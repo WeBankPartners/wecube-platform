@@ -3,31 +3,31 @@
     <Card dis-hover>
       <Row>
         <Col span="20">
-          <Form>
+          <Form label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
               <Select label v-model="selectedFlow" style="width:70%" clearable>
                 <Option
                   v-for="item in allFlows"
-                  :value="item.id"
-                  :key="item.id"
+                  :value="item.procDefId"
+                  :key="item.procDefId"
                 >
                   {{
-                    item.orchestration.orchestrationName +
+                    item.procDefName +
+                      " version_" +
+                      item.procDefVersion +
                       " " +
-                      item.target.targetName +
+                      (item.timestamp || "timestap") +
                       " " +
-                      item.timestamp +
-                      " " +
-                      item.createBy
+                      (item.createBy || "createBy")
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">{{
-                $t("query_orch")
-              }}</Button>
-              <Button type="success" @click="createHandler">{{
-                $t("create_orch")
-              }}</Button>
+              <Button type="info" @click="queryHandler">
+                {{ $t("query_orch") }}
+              </Button>
+              <Button type="success" @click="createHandler">
+                {{ $t("create_orch") }}
+              </Button>
             </FormItem>
           </Form>
         </Col>
@@ -44,13 +44,14 @@
                   label
                   v-model="selectedOrchestration"
                   :disabled="isEnqueryPage"
+                  @on-change="orchestrationSelectHandler"
                 >
                   <Option
-                    v-for="item in allOrchestration"
-                    :value="item.orchestrationId"
-                    :key="item.orchestrationId"
+                    v-for="item in allFlows"
+                    :value="item.procDefId"
+                    :key="item.procDefId"
                   >
-                    {{ item.orchestrationName }}
+                    {{ item.procDefName }}
                   </Option>
                 </Select>
               </FormItem>
@@ -61,24 +62,16 @@
                   label
                   v-model="selectedTarget"
                   :disabled="isEnqueryPage"
+                  @on-change="createFlowHandler"
                 >
                   <Option
                     v-for="item in allTarget"
-                    :value="item.targetId"
-                    :key="item.targetId"
+                    :value="item.id"
+                    :key="item.id"
+                    >{{ item.regx }}</Option
                   >
-                    {{ item.targetName }}
-                  </Option>
                 </Select>
               </FormItem>
-            </Col>
-            <Col span="2" offset="1">
-              <Button
-                v-if="!isEnqueryPage"
-                type="success"
-                @click="createFlowHandler"
-                >{{ $t("create_job") }}</Button
-              >
             </Col>
           </Form>
         </Row>
@@ -95,9 +88,9 @@
           >
             <div class="graph-container" id="graph"></div>
             <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
-                $t("execute")
-              }}</Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow">
+                {{ $t("execute") }}
+              </Button>
             </div>
           </Col>
         </Row>
@@ -106,20 +99,19 @@
   </div>
 </template>
 <script>
-import {} from "@/api/server";
+import { getAllFlow, getFlowOutlineByID } from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 import { addEvent, removeEvent } from "../util/event.js";
-import { modelData, flowData, allFlows } from "./mockData";
+import { modelData } from "./mockData";
 export default {
   data() {
     return {
       graph: {},
       flowGraph: {},
       modelData,
-      flowData,
-      allFlows,
-      allOrchestration: [],
+      flowData: {},
+      allFlows: [],
       allTarget: [],
       currentFlowNodeId: "",
       foundRefAry: [],
@@ -133,11 +125,23 @@ export default {
   },
   mounted() {
     this.getSelectionData();
+    this.getAllFlow();
   },
   methods: {
+    async getAllFlow() {
+      let { status, data, message } = await getAllFlow(false);
+      if (status === "OK") {
+        this.allFlows = data;
+      }
+    },
     getSelectionData() {
-      this.allOrchestration = this.allFlows.map(_ => _.orchestration);
-      this.allTarget = this.allFlows.map(_ => _.target);
+      this.allTarget = [
+        { id: 1, regx: "A-B.c" },
+        { id: 2, regx: "D-C.c" }
+      ];
+    },
+    orchestrationSelectHandler() {
+      this.getFlowOutlineData();
     },
     queryHandler() {
       if (!this.selectedFlow) return;
@@ -150,7 +154,7 @@ export default {
         this.selectedTarget = found.target.targetId;
 
         this.getModelData();
-        this.getFlowData();
+        this.getFlowOutlineData();
       });
     },
     createHandler() {
@@ -161,16 +165,22 @@ export default {
       this.selectedFlow = "";
     },
     createFlowHandler() {
+      console.log("selectedTarget is: ", this.selectedTarget);
       this.getModelData();
-      this.getFlowData();
     },
     getModelData() {
       // let { status, data, message } = await xxxx();
       this.initModelGraph();
     },
-    getFlowData() {
-      // let { status, data, message } = await xxxx();
-      this.initFlowGraph();
+    async getFlowOutlineData() {
+      let { status, data, message } = await getFlowOutlineByID(
+        this.selectedOrchestration
+      );
+      if (status === "OK") {
+        console.log(22, data);
+        this.flowData = data;
+        this.initFlowGraph();
+      }
     },
     renderModelGraph() {
       let nodes = this.modelData.map((_, index) => {
@@ -186,9 +196,9 @@ export default {
       let genEdge = () => {
         let pathAry = [];
         this.modelData.forEach(_ => {
-          if (_.toGraphNodeIds.length > 0) {
+          if (_.succeedingNodeIds.length > 0) {
             let current = [];
-            current = _.toGraphNodeIds.map(to => {
+            current = _.succeedingNodeIds.map(to => {
               return _.id + " -> " + to;
             });
             pathAry.push(current);
@@ -213,42 +223,44 @@ export default {
     renderFlowGraph(excution) {
       const statusColor = {
         Completed: "#5DB400",
-        NotStarted: "#7F8A96",
+        deployed: "#7F8A96",
         InProgress: "#3C83F8",
         Faulted: "#FF6262",
         Timeouted: "#F7B500"
       };
-      let nodes = this.flowData.map((_, index) => {
-        if (index === 0 || index === this.flowData.length - 1) {
-          return `${_.id} [label="${(_.id > 1 && _.id < this.flowData.length
-            ? _.id + "、"
-            : "") + _.name}", fontsize="10", class="flow",style="${
+
+      let nodes = this.flowData.flowNodes.map((_, index) => {
+        if (index === 0 || index === this.flowData.flowNodes.length - 1) {
+          return `${_.nodeId} [label="${
+            _.nodeName
+          }", fontsize="10", class="flow",style="${
             excution ? "filled" : "none"
           }" color="${
             excution ? statusColor[_.status] : "#7F8A96"
-          }" shape="circle", id="${_.id}"]`;
+          }" shape="circle", id="${_.nodeId}"]`;
         } else {
-          return `${_.id} [label="${(_.id > 0 && _.id < this.flowData.length
-            ? _.id + "、"
-            : "") + _.name}" fontsize="10" class="flow" style="${
+          console.log(111, excution, statusColor[_.status], _.status);
+          return `${_.nodeId} [label="${_.orderedNo +
+            "、" +
+            _.nodeName}" fontsize="10" class="flow" style="${
             excution ? "filled" : "none"
           }" color="${
             excution
               ? statusColor[_.status]
-              : _.id === this.currentFlowNodeId * 1
+              : _.nodeId === this.currentFlowNodeId
               ? "#5DB400"
               : "#7F8A96"
-          }"  shape="record" id="${_.id}"] height=.2`;
+          }"  shape="record" id="${_.nodeId}"] height=.2`;
         }
       });
       let genEdge = () => {
         let pathAry = [];
-        this.flowData.forEach(_ => {
-          if (_.toGraphNodeIds.length > 0) {
+        this.flowData.flowNodes.forEach(_ => {
+          if (_.succeedingNodeIds.length > 0) {
             let current = [];
-            current = _.toGraphNodeIds.map(to => {
+            current = _.succeedingNodeIds.map(to => {
               return (
-                _.id +
+                _.nodeId +
                 " -> " +
                 `${to} [color="${excution ? statusColor[_.status] : "black"}"]`
               );
@@ -279,10 +291,10 @@ export default {
       }
       this.showExcution = false;
       this.isEnqueryPage = true;
-      this.flowData.forEach((_, index) => {
+      this.flowData.flowNodes.forEach((_, index) => {
         setTimeout(() => {
           if (index > 0) {
-            this.flowData[index - 1].status = "Completed";
+            this.flowData.flowNodes[index - 1].status = "Completed";
           }
           _.status = "InProgress";
           this.renderFlowGraph(true);
@@ -306,12 +318,12 @@ export default {
         });
       }
     },
-    highlightModel(id) {
-      this.foundRefAry = this.flowData.find(
-        item => item.id == id
-      ).refGraphNodeIds;
+    highlightModel(nodeId) {
+      this.foundRefAry = this.flowData.flowNodes.find(
+        item => item.nodeId == nodeId
+      ).previousNodeIds;
       this.modelData.forEach(item => {
-        item["isHighlight"] = this.foundRefAry.includes(item.id);
+        item["isHighlight"] = this.foundRefAry.includes(item.nodeId);
       });
       this.renderModelGraph();
       removeEvent(".model", "click", this.modelClickHandler);

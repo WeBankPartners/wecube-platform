@@ -57,17 +57,17 @@
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram(false)">{{
-        $t("save_flow")
-      }}</Button>
+      <Button type="info" @click="saveDiagram(false)">
+        {{ $t("save_flow") }}
+      </Button>
       <!-- <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button> -->
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">
-          {{ $t("config_plugin") }}
-        </a>
+        <a href="javascript:void(0);" @click="openPluginModal">{{
+          $t("config_plugin")
+        }}</a>
         <br />
       </div>
 
@@ -128,9 +128,9 @@
             >
           </Select>
           <Select v-model="item.bindParamType" style="width:200px">
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
-              i.label
-            }}</Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
+              {{ i.label }}
+            </Option>
           </Select>
           <Select v-model="item.bindParamName" style="width:200px">
             <Option
@@ -143,9 +143,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
-          $t("confirm")
-        }}</Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
+          {{ $t("confirm") }}
+        </Button>
       </div>
     </Modal>
   </div>
@@ -217,7 +217,7 @@ export default {
         name: ""
       },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
-      allFlows: [{ procDefId: 100000, name: "add_new" }],
+      allFlows: [],
       allEntityType: [],
       selectedFlow: "",
       currentSelectedEntity: "",
@@ -259,7 +259,6 @@ export default {
       handler(val) {
         val && val !== 100000 && this.getFlowXml(val);
       }
-      // immediate: true
     }
   },
   created() {
@@ -287,7 +286,8 @@ export default {
     async getAllFlows() {
       const { data, message, status } = await getAllFlow();
       if (status === "OK") {
-        this.allFlows = this.allFlows.concat(data);
+        const aa = [{ procDefId: 100000, name: "add_new" }];
+        this.allFlows = aa.concat(data);
       }
     },
     async deleteFlow(id) {
@@ -346,11 +346,17 @@ export default {
 
         const payload = {
           procDefData: xmlString,
-          procDefId: "",
-          procDefKey: _this.newFlowID,
+          procDefId: isDraft
+            ? (_this.currentFlow && _this.currentFlow.procDefId) || ""
+            : "",
+          procDefKey: isDraft
+            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
+            : _this.newFlowID,
           procDefName: processName,
           rootEntity: _this.currentSelectedEntity,
-          status: "",
+          status: isDraft
+            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
+            : "",
           taskNodeInfos: _this.serviceTaskBindInfos
         };
 
@@ -411,30 +417,13 @@ export default {
       } else {
         this.pluginModalVisible = true;
         this.pluginForm =
-          this.currentFlow.taskNodeInfos.find(
-            _ => _.nodeId === this.currentNode.id
-          ) || this.defaultPluginForm;
-        /* TODO:** to be removed ** */
-        this.pluginForm.paramInfos.push({
-          bindNodeId: "MockNode1",
-          bindParamName: "MockParamsName1",
-          bindParamType: "in",
-          id: "mockId1",
-          nodeId: "nodeid",
-          paramName: "Mock PARAMS A"
-        });
-        this.pluginForm.paramInfos.push({
-          bindNodeId: "MockNode2",
-          bindParamName: "MockParamsName2",
-          bindParamType: "out",
-          id: "MockId2",
-          nodeId: "nodeid",
-          paramName: "Mock PARAMS B"
-        });
-        /* ************* */
-
-        // TODO:get flow's params infos - nodes
-        // this.getFlowsNodes()
+          (this.currentFlow &&
+            this.currentFlow.taskNodeInfos.find(
+              _ => _.nodeId === this.currentNode.id
+            )) ||
+          this.defaultPluginForm;
+        // get flow's params infos - nodes
+        this.getFlowsNodes();
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index);
         });
@@ -445,24 +434,23 @@ export default {
     },
     async getFlowsNodes() {
       // TODO:
-      // let { status, data, message} = await getFlowNodes(this.currentFlow.procDefId)
-      // if(status === "OK") {
-      //   this.currentflowsNodes = data
-      // }
+      let { status, data, message } = await getFlowNodes(
+        this.currentFlow.procDefId
+      );
+      if (status === "OK") {
+        this.currentflowsNodes = data;
+      }
     },
     async getParamsOptionsByNode(index) {
       // TODO:
 
-      // let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
-      //   this.currentFlow.procDefId,
-      //   this.pluginForm.paramInfos[index].bindNodeId
-      // );
-      // if (status === "OK") {
-      this.pluginForm.paramInfos[index].currentParamNames = [
-        { value: "paramsName1", label: "paramsName1" },
-        { value: "paramsName2", label: "paramsName2" }
-      ];
-      // }
+      let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
+        this.currentFlow.procDefId,
+        this.pluginForm.paramInfos[index].bindNodeId
+      );
+      if (status === "OK") {
+        this.pluginForm.paramInfos[index].currentParamNames = data;
+      }
     },
     bindRightClick() {
       var menu = document.getElementById("right_click_menu");

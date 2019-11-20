@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
@@ -7,75 +8,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-class TrimmedPluginPackageEntityDto {
-    private Integer id;
-    private String packageName;
-    private Integer dataModelVersion;
-    private String name;
-    private String displayName;
-
-
-    public TrimmedPluginPackageEntityDto(Integer entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
-        this.id = entityId;
-        this.packageName = packageName;
-        this.name = name;
-        this.displayName = displayName;
-        this.dataModelVersion = dataModelVersion;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getPackageName() {
-        return packageName;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public Integer getDataModelVersion() {
-        return dataModelVersion;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TrimmedPluginPackageEntityDto that = (TrimmedPluginPackageEntityDto) o;
-
-        return new EqualsBuilder()
-                .append(getPackageName(), that.getPackageName())
-                .append(getName(), that.getName())
-                .append(getDisplayName(), that.getDisplayName())
-                .append(getDataModelVersion(), that.getDataModelVersion())
-                .isEquals();
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder()
-                .append(getPackageName())
-                .append(getName())
-                .append(getDisplayName())
-                .append(getDataModelVersion())
-                .toHashCode();
-    }
-}
+import java.util.*;
 
 public class PluginPackageEntityDto {
     private Integer id;
@@ -141,14 +74,26 @@ public class PluginPackageEntityDto {
         return pluginPackageEntity;
     }
 
+    public TrimmedPluginPackageEntityDto toTrimmedPluginPackageEntityDto() {
+        return new TrimmedPluginPackageEntityDto(getId(), getPackageName(), getDataModelVersion(), getName(), getDisplayName());
+    }
+
     public void updateReferenceBy(Integer entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
         TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, dataModelVersion, name, displayName);
         this.referenceByEntityList.add(trimmedPluginPackageEntityDto);
     }
 
+    public void updateReferenceBy(TrimmedPluginPackageEntityDto trimmedEntityDto) {
+        updateReferenceBy(trimmedEntityDto.getId(), trimmedEntityDto.getPackageName(), trimmedEntityDto.getDataModelVersion(), trimmedEntityDto.getName(), trimmedEntityDto.getDisplayName());
+    }
+
     public void updateReferenceTo(Integer entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
         TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, dataModelVersion, name, displayName);
         this.referenceToEntityList.add(trimmedPluginPackageEntityDto);
+    }
+
+    public void updateReferenceTo(TrimmedPluginPackageEntityDto trimmedEntityDto) {
+        updateReferenceTo(trimmedEntityDto.getId(), trimmedEntityDto.getPackageName(), trimmedEntityDto.getDataModelVersion(), trimmedEntityDto.getName(), trimmedEntityDto.getDisplayName());
     }
 
     public Integer getId() {
@@ -226,5 +171,121 @@ public class PluginPackageEntityDto {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    public static class TrimmedPluginPackageEntityDto {
+        private Integer id;
+        private String packageName;
+        private Integer dataModelVersion;
+        private String name;
+        private String displayName;
+
+        public TrimmedPluginPackageEntityDto() {
+        }
+
+        public TrimmedPluginPackageEntityDto(Integer entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
+            this.id = entityId;
+            this.packageName = packageName;
+            this.name = name;
+            this.displayName = displayName;
+            this.dataModelVersion = dataModelVersion;
+        }
+
+        public Integer getId() {
+            return id;
+        }
+
+        public void setId(Integer id) {
+            this.id = id;
+        }
+
+        public String getPackageName() {
+            return packageName;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public Integer getDataModelVersion() {
+            return dataModelVersion;
+        }
+
+        @JsonIgnore
+        public PluginPackageEntityKey getPluginPackageEntityKey() {
+            return new PluginPackageEntityKey(getPackageName(), getName());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TrimmedPluginPackageEntityDto that = (TrimmedPluginPackageEntityDto) o;
+
+            return new EqualsBuilder()
+                    .append(getPackageName(), that.getPackageName())
+                    .append(getName(), that.getName())
+                    .append(getDisplayName(), that.getDisplayName())
+                    .append(getDataModelVersion(), that.getDataModelVersion())
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder()
+                    .append(getPackageName())
+                    .append(getName())
+                    .append(getDisplayName())
+                    .append(getDataModelVersion())
+                    .toHashCode();
+        }
+    }
+    public static class PluginPackageEntityKey{
+        String packageName;
+        String entityName;
+
+        public PluginPackageEntityKey() {
+        }
+
+        public PluginPackageEntityKey(String packageName, String entityName) {
+            this.packageName = packageName;
+            this.entityName = entityName;
+        }
+
+        public String getPackageName() {
+            return packageName;
+        }
+
+        public void setPackageName(String packageName) {
+            this.packageName = packageName;
+        }
+
+        public String getEntityName() {
+            return entityName;
+        }
+
+        public void setEntityName(String entityName) {
+            this.entityName = entityName;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            PluginPackageEntityKey that = (PluginPackageEntityKey) o;
+            return getPackageName().equals(that.getPackageName()) &&
+                    getEntityName().equals(that.getEntityName());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getPackageName(), getEntityName());
+        }
+
+
     }
 }
