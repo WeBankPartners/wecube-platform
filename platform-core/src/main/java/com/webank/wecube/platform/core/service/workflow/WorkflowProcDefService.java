@@ -158,6 +158,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
             fDto.setNodeDefId(nodeEntity.getId());
             fDto.setStatus(nodeEntity.getStatus());
             fDto.setOrderedNo(nodeEntity.getOrderedNo());
+            fDto.setRoutineExpression(nodeEntity.getRoutineExpression());
 
             List<String> previousNodeIds = unmarshalNodeIds(nodeEntity.getPreviousNodeIds());
             previousNodeIds.forEach(n -> fDto.addPreviousNodeIds(n));
@@ -231,7 +232,13 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
     public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef) {
 
-        List<ProcDefInfoEntity> procDefEntities = processDefInfoRepo.findAllDeployedOrDraftProcDefs();
+        List<ProcDefInfoEntity> procDefEntities = null;
+        if(includeDraftProcDef){
+            procDefEntities = processDefInfoRepo.findAllDeployedOrDraftProcDefs();
+        }else{
+            procDefEntities = processDefInfoRepo.findAllDeployedProcDefs();
+        }
+        
         if (procDefEntities == null) {
             return Collections.emptyList();
         }
@@ -245,6 +252,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
             dto.setProcDefVersion(String.valueOf(e.getProcDefVersion()));
             dto.setRootEntity(e.getRootEntity());
             dto.setStatus(e.getStatus());
+            
+            dto.setCreatedTime(formatDate(e.getCreatedTime()));
 
             procDefInfoDtos.add(dto);
 

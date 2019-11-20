@@ -9,6 +9,11 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent.EventType;
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEventImpl;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @Service
 public class PluginInvocationResultService {
     private static final Logger log = LoggerFactory.getLogger(PluginInvocationResultService.class);
