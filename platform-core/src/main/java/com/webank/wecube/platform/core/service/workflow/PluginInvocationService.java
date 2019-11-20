@@ -250,21 +250,15 @@ public class PluginInvocationService {
                     }
 
                     // TODO FIXME
-                    // DataModelExpressionToRootData criteria = new
-                    // DataModelExpressionToRootData(mappingEntityExpression,
-                    // entityDataId);
-                    //
-                    // List<Object> attrValsPerExpr =
-                    // dataModelExpressionService.fetchData(criteria);
-                    //
-                    // if (attrValsPerExpr == null) {
-                    // log.error("returned null while fetch data with
-                    // expression:{}", mappingEntityExpression);
-                    // attrValsPerExpr = new ArrayList<>();
-                    // }
+                    DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
+                            entityDataId);
 
-                    List<Object> attrValsPerExpr = new ArrayList<>();
-                    attrValsPerExpr.add("999");
+                    List<Object> attrValsPerExpr = dataModelExpressionService.fetchData(criteria);
+
+                    if (attrValsPerExpr == null) {
+                        log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
+                        attrValsPerExpr = new ArrayList<>();
+                    }
 
                     objectVals.addAll(attrValsPerExpr);
 
@@ -819,6 +813,24 @@ public class PluginInvocationService {
                 .findById(requestEntity.getRequestId());
 
         if (!requestEntityOpt.isPresent()) {
+            int round = 0;
+            while (round < 10) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                }
+
+                requestEntityOpt = taskNodeExecRequestRepository.findById(requestEntity.getRequestId());
+
+                if (requestEntityOpt.isPresent()) {
+                    break;
+                }
+
+                round++;
+            }
+        }
+
+        if (!requestEntityOpt.isPresent()) {
             log.error("request entity does not exist for {}", requestEntity.getRequestId());
 
         } else {
@@ -834,6 +846,24 @@ public class PluginInvocationService {
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         Optional<TaskNodeInstInfoEntity> nodeInstEntityOpt = taskNodeInstInfoRepository
                 .findById(nodeInstEntity.getId());
+
+        if (!nodeInstEntityOpt.isPresent()) {
+            int round = 0;
+            while (round < 10) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                }
+
+                nodeInstEntityOpt = taskNodeInstInfoRepository.findById(nodeInstEntity.getId());
+
+                if (nodeInstEntityOpt.isPresent()) {
+                    break;
+                }
+
+                round++;
+            }
+        }
 
         if (!nodeInstEntityOpt.isPresent()) {
             log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
