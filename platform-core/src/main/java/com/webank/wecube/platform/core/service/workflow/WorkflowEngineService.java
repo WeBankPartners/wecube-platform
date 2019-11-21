@@ -90,15 +90,30 @@ public class WorkflowEngineService {
     @Autowired
     protected TaskService taskService;
     
+    public String getTaskNodeStatus(String procInstanceId, String nodeId){
+        ServiceNodeStatusEntity nodeStatusEntity = serviceNodeStatusRepository
+                .findOneByProcInstanceIdAndNodeId(procInstanceId, nodeId);
+        
+        if(nodeStatusEntity == null){
+            return null;
+        }
+        
+        if(nodeStatusEntity.getStatus() == null){
+            return null;
+        }
+        
+        return nodeStatusEntity.getStatus().name();
+    }
+    
     public void proceedProcessInstance(String procInstanceId, String nodeId, String userAction){
         String instanceId = procInstanceId;
         String taskDefKey = PREFIX_EXCEPT_SUB_USER_TASK+nodeId;
         
-        String act = StringUtils.isBlank(userAction)? "retry" : userAction;
+        String act = StringUtils.isBlank(userAction)? PROCEED_ACT_RETRY : userAction;
         
         if( !(PROCEED_ACT_RETRY.equals(act) || PROCEED_ACT_SKIP.equals(act))){
             log.error("invalid action met for {} {} {}", procInstanceId,  nodeId,  userAction);
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(String.format("action {%s} is invalid.", userAction));
         }
 
         Task task = taskService.createTaskQuery().processInstanceId(instanceId).active().taskDefinitionKey(taskDefKey).singleResult();
