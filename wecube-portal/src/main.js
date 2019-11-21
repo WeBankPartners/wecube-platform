@@ -44,6 +44,33 @@ window.request = req;
 window.needReLoad = true;
 window.routers = [];
 
+class WatchRouters {
+  constructor() {
+    this.handles = {};
+  }
+  on(eventType, handle) {
+    if (!this.handles.hasOwnProperty(eventType)) {
+      this.handles[eventType] = [];
+    }
+    if (typeof handle == "function") {
+      this.handles[eventType].push(handle);
+    }
+    return this;
+  }
+  emit(eventType, path) {
+    if (this.handles.hasOwnProperty(eventType)) {
+      this.handles[eventType].forEach((item, key, arr) => {
+        item.apply(null, path);
+      });
+    }
+    return this;
+  }
+}
+let WatchRouter = new WatchRouters();
+WatchRouter.on("change", path => {
+  window.location.href = window.location.origin + "/#" + path;
+});
+
 window.addRoutes = (route, name) => {
   console.log(route, name);
   window.routers = window.routers.concat(route);
@@ -56,6 +83,9 @@ window.addRoutes = (route, name) => {
       children: route
     }
   ]);
+  if (window.sessionStorage.currentPath) {
+    WatchRouter.emit("change", [window.sessionStorage.currentPath]);
+  }
 };
 window.component = (name, comp) => {
   Vue.component(name, comp);
@@ -100,6 +130,7 @@ router.beforeEach((to, from, next) => {
         to.path === "/homepage"
       ) {
         /* has permission*/
+        window.sessionStorage.setItem("currentPath", to.path);
         next();
       } else {
         /* has no permission*/
