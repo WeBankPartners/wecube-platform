@@ -14,6 +14,6 @@ public interface DataModelExpressionService {
 
     void writeBackData(DataModelExpressionToRootData expressionToRootData, Map<String, Object> updateData);
 
-    TreeNode getPreviewTree(DataModelExpressionToRootData expressionToRootData);
+    List<TreeNode> getPreviewTree(DataModelExpressionToRootData expressionToRootData);
 
 }
