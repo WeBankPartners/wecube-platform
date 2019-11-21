@@ -93,6 +93,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         if (log.isInfoEnabled()) {
             log.info("process definition with id {} had been deleted successfully.", procDefId);
         }
+        
+        processDefInfoRepo.delete(procDef);
     }
 
     public List<InterfaceParameterDto> getTaskNodeParameters(String procDefId, String nodeDefId) {
