@@ -4,7 +4,7 @@
       <div ref="wecube_cmdb_attr" class="wecube_input_in">
         <textarea
           ref="textarea"
-          :rows="3"
+          :rows="2"
           @input="inputHandler"
           :value="inputVal"
         ></textarea>
@@ -20,7 +20,7 @@
                 opt.dataType === "ref"
                   ? isRefBy
                     ? `(${opt.name})${opt.refPackageName}:${opt.refEntityName}`
-                    : `${opt.name}-${opt.refPackageName}:${opt.refEntityName}`
+                    : `${opt.name}>${opt.refPackageName}:${opt.refEntityName}`
                   : opt.name
               }}
             </li>
@@ -103,9 +103,9 @@ export default {
       if (this.value) {
         this.inputVal = this.value
           .replace(/\~/g, " ~")
-          .replace(/\-/g, " -")
+          .replace(/\>/g, " >")
           .replace(/\./g, " .");
-        const pathList = this.value.split(/[~.-]/);
+        const pathList = this.value.split(/[~.>]/);
         let path = {};
         pathList.forEach(_ => {
           const ifEntity = _.indexOf(":");
@@ -140,7 +140,7 @@ export default {
         item.dataType === "ref"
           ? this.isRefBy
             ? `(${item.name})${item.refPackageName}:${item.refEntityName}`
-            : `${item.name}-${item.refPackageName}:${item.refEntityName}`
+            : `${item.name}>${item.refPackageName}:${item.refEntityName}`
           : item.name;
       this.currentPkg = item.refPackageName || item.packageName;
       this.currentEntity = item.refEntityName || item.entityName;
