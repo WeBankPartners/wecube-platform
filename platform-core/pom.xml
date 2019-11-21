@@ -178,28 +178,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.7.2</version>
-                <configuration>
-                    <listener>true</listener>
-                    <visitor>true</visitor>
-                    <arguments>
-                        <argument>-package</argument>
-                        <argument>com.webank.wecube.platform.core.parser.datamodel.generated</argument>
-                    </arguments>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>antlr-generate</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
