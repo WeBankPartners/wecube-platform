@@ -57,17 +57,17 @@
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram(false)">
-        {{ $t("save_flow") }}
-      </Button>
+      <Button type="info" @click="saveDiagram(false)">{{
+        $t("save_flow")
+      }}</Button>
       <!-- <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button> -->
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">{{
-          $t("config_plugin")
-        }}</a>
+        <a href="javascript:void(0);" @click="openPluginModal">
+          {{ $t("config_plugin") }}
+        </a>
         <br />
       </div>
 
@@ -86,7 +86,13 @@
         :label-width="100"
       >
         <FormItem :label="$t('locate_rules')" prop="routineExpression">
-          <Input v-model="pluginForm.routineExpression" />
+          <PathExp
+            v-if="pluginModalVisible"
+            :rootPkg="rootPkg"
+            :rootEntity="rootEntity"
+            :allDataModelsWithAttrs="allEntityType"
+            v-model="pluginForm.routineExpression"
+          ></PathExp>
         </FormItem>
         <FormItem :label="$t('plugin')" prop="serviceName">
           <Select filterable clearable v-model="pluginForm.serviceId">
@@ -128,9 +134,9 @@
             >
           </Select>
           <Select v-model="item.bindParamType" style="width:200px">
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
-              {{ i.label }}
-            </Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
+              i.label
+            }}</Option>
           </Select>
           <Select v-model="item.bindParamName" style="width:200px">
             <Option
@@ -143,9 +149,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
-          {{ $t("confirm") }}
-        </Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
+          $t("confirm")
+        }}</Button>
       </div>
     </Modal>
   </div>
@@ -169,6 +175,8 @@ import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 /* Right side toobar style */
 import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
+import PathExp from "../components/path-exp.vue";
+
 import {
   getAllFlow,
   saveFlow,
@@ -178,10 +186,9 @@ import {
   getFlowNodes,
   getParamsInfosByFlowIdAndNodeId,
   getAllDataModels,
-  getPluginInterfaceList
+  getPluginInterfaceList,
+  removeProcessDefinition
 } from "@/api/server.js";
-
-import AttrInput from "../components/attr-input";
 
 function setCTM(node, m) {
   var mstr =
@@ -203,7 +210,7 @@ function setCTM(node, m) {
 
 export default {
   components: {
-    AttrInput
+    PathExp
   },
   data() {
     return {
@@ -221,6 +228,8 @@ export default {
       allEntityType: [],
       selectedFlow: "",
       currentSelectedEntity: "",
+      rootPkg: "",
+      rootEntity: "",
       pluginModalVisible: false,
 
       pluginForm: {},
@@ -291,10 +300,20 @@ export default {
       }
     },
     async deleteFlow(id) {
-      console.log("delete flow, id is: ", id);
+      let { status, data, message } = await removeProcessDefinition(id);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message
+        });
+        this.getAllFlows();
+      }
     },
     onEntitySelect(v) {
       this.currentSelectedEntity = v;
+      this.rootPkg = this.currentSelectedEntity.split(":")[0];
+      this.rootEntity = this.currentSelectedEntity.split(":")[1];
+
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
       this.pluginForm = this.defaultPluginForm;
     },
@@ -499,6 +518,8 @@ export default {
           _this.bindRightClick();
           _this.serviceTaskBindInfos = data.taskNodeInfos;
           _this.currentSelectedEntity = data.rootEntity || "";
+          _this.rootPkg = data.rootEntity.split(":")[0] || "";
+          _this.rootEntity = data.rootEntity.split(":")[1] || "";
         });
       }
     },
