@@ -39,6 +39,21 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     }
 
     @Test
+    public void givenPackageNameWithDashAndFwdNodeExpressionWhenFetchThenShouldSucceed() {
+        mockPackageNameWithDashAndFwdNodeExpressionServer(server);
+
+        List<Object> resultOne = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("we-cmdb:system_design.code", "0001_0000000001"));
+        assert resultOne.get(0).equals("EDP");
+
+        List<Object> resultTwo = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("we-cmdb:unit.key_name", "0008_0000000003"));
+        assert resultTwo.get(0).equals("EDP-CORE_PRD-APP");
+
+        server.verify();
+    }
+
+    @Test
     public void wecmdbFwdNodeExpressionFetchShouldSucceed() {
         mockFwdNodeExpressionServer(server);
 
@@ -58,7 +73,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
         mockOneLinkWithOpToOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
-                new DataModelExpressionToRootData("wecmdb:subsys_design.system_design-wecmdb:system_design.code", "0002_0000000006"));
+                new DataModelExpressionToRootData("wecmdb:subsys_design.system_design>wecmdb:system_design.code", "0002_0000000006"));
         assert resultOne.get(0).equals("EDP");
 
         server.verify();
@@ -88,11 +103,11 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
         mockMultipleLinksWithOpToOnlyExpressionServer(server);
 
         List<Object> resultOne = dataModelExpressionService.fetchData(
-                new DataModelExpressionToRootData("wecmdb:subsys.subsys_design-wecmdb:subsys_design.system_design-wecmdb:system_design.key_name", "0007_0000000001"));
+                new DataModelExpressionToRootData("wecmdb:subsys.subsys_design>wecmdb:subsys_design.system_design>wecmdb:system_design.key_name", "0007_0000000001"));
         assert resultOne.get(0).equals("ECIF");
 
         List<Object> resultTwo = dataModelExpressionService.fetchData(
-                new DataModelExpressionToRootData("wecmdb:zone_link.zone1-wecmdb:zone.zone_design-wecmdb:zone_design.fixed_date", "0018_0000000002"));
+                new DataModelExpressionToRootData("wecmdb:zone_link.zone1>wecmdb:zone.zone_design>wecmdb:zone_design.fixed_date", "0018_0000000002"));
         assert resultTwo.get(0) == null;
 
         server.verify();
@@ -114,14 +129,14 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithMixedOpExpressionFetchShouldSucceed() {
         mockMultipleLinksWithMixedOpExpressionServer(server);
         List<Object> resultOne = dataModelExpressionService.fetchData(
-                new DataModelExpressionToRootData("wecmdb:subsys~(subsys)wecmdb:unit.unit_design-wecmdb:unit_design.subsys_design-wecmdb:subsys_design.key_name", "0007_0000000001"));
+                new DataModelExpressionToRootData("wecmdb:subsys~(subsys)wecmdb:unit.unit_design>wecmdb:unit_design.subsys_design>wecmdb:subsys_design.key_name", "0007_0000000001"));
 
         assert resultOne.size() == 2;
         assert resultOne.get(0).equals("ECIF-CORE");
         assert resultOne.get(1).equals("ECIF-CORE");
 
         List<Object> resultTwo = dataModelExpressionService.fetchData(
-                new DataModelExpressionToRootData("wecmdb:zone_design~(zone_design2)wecmdb:zone_link_design~(zone_link_design)wecmdb:zone_link.zone1-wecmdb:zone.key_name", "0023_0000000004"));
+                new DataModelExpressionToRootData("wecmdb:zone_design~(zone_design2)wecmdb:zone_link_design~(zone_link_design)wecmdb:zone_link.zone1>wecmdb:zone.key_name", "0023_0000000004"));
         assert resultTwo.size() == 2;
         assert resultTwo.get(0).equals("PRD-GZ1-MGMT");
         assert resultTwo.get(1).equals("PRD-GZ1-PARTNERNET");
@@ -137,6 +152,56 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
         dataModelExpressionService.writeBackData(
                 expressionToRootData, WRITE_BACK_DATA);
         server.verify();
+    }
+
+    private void mockPackageNameWithDashAndFwdNodeExpressionServer(MockRestServiceServer server) {
+        // mockFwdNodeExpression
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/we-cmdb/entities/system_design?filter=id,0001_0000000001", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"key_name\": \"EDP\",\n" +
+                        "            \"business_group\": 105,\n" +
+                        "            \"code\": \"EDP\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"r_guid\": \"0001_0000000001\",\n" +
+                        "            \"name\": \"Deposit Micro Core System\",\n" +
+                        "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"id\": \"0001_0000000001\",\n" +
+                        "            \"state\": 34,\n" +
+                        "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/we-cmdb/entities/unit?filter=id,0008_0000000003", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"code\": \"APP\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"package\": \"\",\n" +
+                        "            \"r_guid\": \"0008_0000000003\",\n" +
+                        "            \"description\": \"\",\n" +
+                        "            \"resource_set\": \"0020_0000000001\",\n" +
+                        "            \"key_name\": \"EDP-CORE_PRD-APP\",\n" +
+                        "            \"instance_num\": 1,\n" +
+                        "            \"subsys\": \"0007_0000000003\",\n" +
+                        "            \"id\": \"0008_0000000003\",\n" +
+                        "            \"state\": 37,\n" +
+                        "            \"fixed_date\": \"2019-07-24 16:30:37\",\n" +
+                        "            \"unit_design\": \"0003_0000000002\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
     }
 
     private void mockFwdNodeExpressionServer(MockRestServiceServer server) {

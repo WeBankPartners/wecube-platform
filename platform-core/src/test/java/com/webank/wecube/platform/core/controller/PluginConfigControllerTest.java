@@ -324,11 +324,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     private void mockMultipleVersionPluginConfig() {
 
         executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  (1, 'service-management', 'v1.0', 'UNREGISTERED')\n" +
-                " ,(2, 'service-management', 'v1.1', 'UNREGISTERED')\n" +
-                " ,(3, 'service-management', 'v1.2', 'UNREGISTERED')\n" +
-                " ,(4, 'service-management', 'v2.0', 'UNREGISTERED')\n" +
-                " ,(5, 'service-management', 'v2.1', 'REGISTERED');\n" +
+                "  (1, 'servicemanagement', 'v1.0', 'UNREGISTERED')\n" +
+                " ,(2, 'servicemanagement', 'v1.1', 'UNREGISTERED')\n" +
+                " ,(3, 'servicemanagement', 'v1.2', 'UNREGISTERED')\n" +
+                " ,(4, 'servicemanagement', 'v2.0', 'UNREGISTERED')\n" +
+                " ,(5, 'servicemanagement', 'v2.1', 'REGISTERED');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
                 " (11, 1, 'task', 1, 'ENABLED')\n" +
@@ -356,13 +356,13 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 ", (7, 2, 'OUTPUT', 'status', 'string', '', null, null, '') " +
                 ", (8, 2, 'OUTPUT', 'message', 'string', '', null, null, ''); " +
                 "INSERT INTO plugin_package_data_model(id, version, package_name) VALUES " +
-                "  (1, 1, 'service-management') " +
-                ", (2, 2, 'service-management') " +
+                "  (1, 1, 'servicemanagement') " +
+                ", (2, 2, 'servicemanagement') " +
                 ";\n" +
                 "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
-                " (1, 2, 2, 'service-management', 'entity_1', 'entity_1', 'entity_1_description')\n" +
-                ",(2, 2, 2, 'service-management', 'entity_2', 'entity_2', 'entity_2_description')\n" +
-                ",(3, 2, 2, 'service-management', 'entity_3', 'entity_3', 'entity_3_description');\n" +
+                " (1, 2, 2, 'servicemanagement', 'entity_1', 'entity_1', 'entity_1_description')\n" +
+                ",(2, 2, 2, 'servicemanagement', 'entity_2', 'entity_2', 'entity_2_description')\n" +
+                ",(3, 2, 2, 'servicemanagement', 'entity_3', 'entity_3', 'entity_3_description');\n" +
                 "\n" +
                 "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type) VALUES\n" +
                 " (1, NULL, 'attribute_1', 'attribute_1_description', 'INT')\n" +
