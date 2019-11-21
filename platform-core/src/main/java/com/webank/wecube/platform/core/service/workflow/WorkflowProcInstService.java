@@ -54,7 +54,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     @Autowired
     private WorkflowEngineService workflowEngineService;
-    
+
     public void proceedProcessInstance(ProceedProcInstRequestDto request) {
         if (request == null) {
             log.error("request is null");
@@ -69,6 +69,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         ProcInstInfoEntity procInst = procInstOpt.get();
+        refreshProcessInstanceStatus(procInst);
 
         Optional<TaskNodeInstInfoEntity> nodeInstOpt = taskNodeInstInfoRepository.findById(request.getNodeInstId());
         if (!nodeInstOpt.isPresent()) {
@@ -78,13 +79,11 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         TaskNodeInstInfoEntity nodeInst = nodeInstOpt.get();
-        
-        if(!procInst.getId().equals(nodeInst.getProcInstId())){
+
+        if (!procInst.getId().equals(nodeInst.getProcInstId())) {
             log.error("Illegal task node id:{}", nodeInst.getProcInstId());
             throw new WecubeCoreException("Illegal task node id");
         }
-
-        // TODO:refresh status first
 
         if (!ProcInstInfoEntity.IN_PROGRESS_STATUS.equals(procInst.getStatus())) {
             log.error("cannot proceed with such process instance status:{}", procInst.getStatus());
@@ -98,10 +97,35 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             throw new WecubeCoreException("Cannot proceed with such task node instance status");
         }
 
-        nodeInst.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
-        nodeInst.setUpdatedTime(new Date());
-        taskNodeInstInfoRepository.save(nodeInst);
         doProceedProcessInstance(request, procInst, nodeInst);
+        
+        String nodeStatus = workflowEngineService.getTaskNodeStatus(procInst.getProcInstKernelId(), nodeInst.getNodeId());
+        if(StringUtils.isNotBlank(nodeStatus)){
+            if(!nodeStatus.equals(nodeInst.getStatus())){
+                nodeInst.setUpdatedTime(new Date());
+                nodeInst.setStatus(nodeStatus);
+                taskNodeInstInfoRepository.save(nodeInst);
+            }
+        }
+    }
+
+    protected void refreshProcessInstanceStatus(ProcInstInfoEntity procInstEntity) {
+        List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
+                .findAllByProcInstId(procInstEntity.getId());
+        String kernelProcInstId = procInstEntity.getProcInstKernelId();
+        for (TaskNodeInstInfoEntity nie : nodeInstEntities) {
+            String nodeId = nie.getNodeId();
+            String nodeStatus = workflowEngineService.getTaskNodeStatus(kernelProcInstId, nodeId);
+            if (StringUtils.isBlank(nodeStatus)) {
+                continue;
+            }
+
+            if (!nodeStatus.equals(nie.getStatus())) {
+                nie.setStatus(nodeStatus);
+                nie.setUpdatedTime(new Date());
+                taskNodeInstInfoRepository.save(nie);
+            }
+        }
     }
 
     protected void doProceedProcessInstance(ProceedProcInstRequestDto request, ProcInstInfoEntity procInst,
