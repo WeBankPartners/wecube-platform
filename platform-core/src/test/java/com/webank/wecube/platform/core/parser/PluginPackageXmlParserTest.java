@@ -23,7 +23,7 @@ public class PluginPackageXmlParserTest {
         InputSource inputSource = new InputSource(Resources.getResource("register-for-parser-test.xml").openStream());
         PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
-        assertThat(pluginPackageDto.getName()).isEqualTo("service-management");
+        assertThat(pluginPackageDto.getName()).isEqualTo("servicemanagement");
         assertThat(pluginPackageDto.getVersion()).isEqualTo("v0.1");
 
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
