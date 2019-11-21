@@ -213,7 +213,7 @@ export default {
                   desc: `${key} ${this.$t("plugin_load")}`,
                   duration: 5
                 });
-              }, 2000);
+              }, 0);
             };
           }
         });
