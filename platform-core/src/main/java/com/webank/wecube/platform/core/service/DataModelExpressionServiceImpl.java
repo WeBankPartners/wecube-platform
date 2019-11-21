@@ -116,9 +116,9 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     @Override
-    public TreeNode getPreviewTree(DataModelExpressionToRootData expressionToRootData) {
+    public List<TreeNode> getPreviewTree(DataModelExpressionToRootData expressionToRootData) {
         chainRequest(expressionToRootData);
-        return this.treeNode;
+        return this.flattenTreeNode(this.treeNode);
     }
 
     /**
@@ -644,5 +644,16 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
 
         return returnList;
+    }
+
+    private List<TreeNode> flattenTreeNode(TreeNode treeNode) {
+        List<TreeNode> result = new ArrayList<>();
+        if (null != treeNode.getChildren() && !treeNode.getChildren().isEmpty()) {
+            Objects.requireNonNull(treeNode.getChildren()).forEach(childNode -> {
+                result.addAll(flattenTreeNode(childNode));
+            });
+        }
+        result.add(treeNode);
+        return result;
     }
 }
