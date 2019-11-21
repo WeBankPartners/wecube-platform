@@ -100,7 +100,6 @@
                         :rootPkg="pkgName"
                         :rootEntity="selectedEntityType"
                         :allDataModelsWithAttrs="allEntityType"
-                        @getPluginPkgDataModel="getPluginPkgDataModel"
                         v-model="param.mappingEntityExpression"
                       ></PathExp>
                       <span v-if="param.mappingType === 'system_variable'">{{
@@ -206,15 +205,14 @@
   </Row>
 </template>
 <script>
-import PathExp from "../../components/path_exp.vue";
+import PathExp from "../../components/path-exp.vue";
 import {
   getAllPluginByPkgId,
   getAllSystemEnumCodes,
   getAllDataModels,
   registerPlugin,
   deletePlugin,
-  savePluginConfig,
-  getPluginPkgDataModel
+  savePluginConfig
 } from "@/api/server";
 
 export default {
@@ -251,14 +249,6 @@ export default {
   },
   watch: {},
   methods: {
-    async getPluginPkgDataModel(pkgName) {
-      if (!this.allDataModelsWithAttrs[pkgName]) {
-        const { data, status, message } = await getPluginPkgDataModel(pkgName);
-        if (status === "OK" && data) {
-          this.$set(this.allDataModelsWithAttrs, pkgName, data);
-        }
-      }
-    },
     async regist() {
       const saveRes = await savePluginConfig(this.currentPluginObj);
       if (saveRes.status === "OK") {
