@@ -18,11 +18,8 @@ export const getFlowDetailByID = id =>
 export const getFlowOutlineByID = id =>
   req.get(`/platform/v1/process/definitions/${id}/outline`);
 
-export const getFlowPreview = data =>
-  req.post(
-    `/platform/v1/process/definitions/definition/input-parameters/preview`,
-    data
-  );
+export const removeProcessDefinition = id =>
+  req.delete(`platform/v1/process/definitions/${id}`);
 
 export const getParamsInfosByFlowIdAndNodeId = (flowId, nodeId) =>
   req.get(`platform/v1/process/definitions/${flowId}/tasknodes/${nodeId}`);
