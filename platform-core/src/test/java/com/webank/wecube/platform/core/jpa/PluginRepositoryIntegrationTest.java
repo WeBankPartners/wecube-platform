@@ -134,7 +134,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         }
     }
 
-    public static PluginPackage mockPluginPackage(String name, String version) {
+    private PluginPackage mockPluginPackage(String name, String version) {
         PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, new Timestamp(System.currentTimeMillis()), false,
                 newLinkedHashSet(), newLinkedHashSet(), null, newLinkedHashSet(),
                 newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
@@ -150,7 +150,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         return mockPluginPackage;
     }
 
-    public static PluginConfigInterface mockPluginConfigInterface(PluginConfig pluginConfig) {
+    private PluginConfigInterface mockPluginConfigInterface(PluginConfig pluginConfig) {
         PluginConfigInterface pluginConfigInterface = new PluginConfigInterface(null, pluginConfig, "create", "'create",
                 "Qcloud_vpc_create", "/v1/qcloud/vpc/create", "POST", newLinkedHashSet(), newLinkedHashSet());
         PluginConfigInterfaceParameter inputParameter = new PluginConfigInterfaceParameter(null, pluginConfigInterface,
@@ -164,7 +164,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         return pluginConfigInterface;
     }
 
-    public static PluginPackageDataModel mockPluginPackageDataModel(PluginPackage pluginPackage) {
+    public PluginPackageDataModel mockPluginPackageDataModel(PluginPackage pluginPackage) {
         long now = System.currentTimeMillis();
         PluginPackageDataModel mockPluginPackageDataModel = new PluginPackageDataModel(null, 1, pluginPackage.getName(), false, null, null, PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name(), now, null);
         mockPluginPackageDataModel.setPluginPackageEntities(mockPluginPackageEntityList(mockPluginPackageDataModel));
@@ -172,7 +172,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         return mockPluginPackageDataModel;
     }
 
-    public static Set<PluginPackageEntity> mockPluginPackageEntityList(PluginPackageDataModel dataModel) {
+    public Set<PluginPackageEntity> mockPluginPackageEntityList(PluginPackageDataModel dataModel) {
         Set<PluginPackageEntity> pluginPackageEntities = newLinkedHashSet();
         pluginPackageEntities
                 .add(new PluginPackageEntity(dataModel, "entity_1", "entity_1", "entity_1_description"));
@@ -195,7 +195,7 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
         return pluginPackageEntityList;
     }
 
-    public static void mockPluginPackageEntityListWithAttributes(Set<PluginPackageEntity> pluginPackageEntityList) {
+    public void mockPluginPackageEntityListWithAttributes(Set<PluginPackageEntity> pluginPackageEntityList) {
         for (PluginPackageEntity pluginPackageEntity : pluginPackageEntityList) {
             PluginPackageAttribute attribute_1 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_1",
                     "attribute_1_description", "str");
@@ -211,7 +211,8 @@ public class PluginRepositoryIntegrationTest extends DatabaseBasedTest {
                     new ArrayList<>(Arrays.asList(attribute_1, attribute_2, attribute_3, attribute_4, attribute_5)));
         }
     }
-    public static void mockPluginPackageEntityListWithAttributeList(List<PluginPackageEntity> pluginPackageEntityList) {
+
+    public void mockPluginPackageEntityListWithAttributeList(List<PluginPackageEntity> pluginPackageEntityList) {
         for (PluginPackageEntity pluginPackageEntity : pluginPackageEntityList) {
             PluginPackageAttribute attribute_1 = new PluginPackageAttribute(pluginPackageEntity, null, "attribute_1",
                     "attribute_1_description", "str");
