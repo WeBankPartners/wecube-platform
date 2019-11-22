@@ -23,11 +23,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 public class ResourceItemDto {
-    private Integer id;
+    private String id;
     private String name;
     private String type;
     private String additionalProperties;
-    private Integer resourceServerId;
+    private String resourceServerId;
     private Boolean isAllocated;
     private String purpose;
     private String status;
@@ -151,8 +151,8 @@ public class ResourceItemDto {
         }
     }
 
-    public ResourceItemDto(String name, String type, String additionalProperties, Integer resourceServerId,
-            String purpose) {
+    public ResourceItemDto(String name, String type, String additionalProperties, String resourceServerId,
+                           String purpose) {
         super();
         this.name = name;
         this.type = type;

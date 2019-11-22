@@ -145,7 +145,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get("/v1/packages").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains(1, 2, 3, 4)))
+                    .andExpect(jsonPath("$.data[*].id", contains("1", "2", "3", "4")))
                     .andExpect(jsonPath("$.data[*].name", contains("cmdb", "cmdb", "cmdb", "cmdb")))
                     .andExpect(jsonPath("$.data[*].version", contains("v1.0", "v1.1", "v1.2", "v1.3")))
                     .andDo(print())
@@ -284,9 +284,10 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
+        String packageName = "servicemanagement_v0.1";
 
         try {
-            mvc.perform(get("/v1/packages/1/dependencies").contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/dependencies", packageName)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.packageName", is("servicemanagement")))
                     .andExpect(jsonPath("$.data.dependencies[*].packageName", contains("xxx", "xxx233")))
@@ -300,9 +301,9 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Test
     public void getDependenciesByWrongPackageIdShouldReturnError() {
-        String wrongQueryId = "2";
+        String wrongQueryId = "nonexistentpackage_v0.1";
         try {
-            mvc.perform(get(String.format("/v1/packages/%s/dependencies", wrongQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/dependencies", wrongQueryId)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is(String.format("Cannot find package by id: [%s]", wrongQueryId))))
@@ -323,12 +324,17 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "1";
+        String correctQueryId = "servicemanagement_v0.1";
         try {
-            mvc.perform(get(String.format("/v1/packages/%s/menus", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/menus", correctQueryId)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data", is(iterableWithSize(MENU_NUM_WITH_BOTH_SYS_AND_CORE))))
+                    .andExpect(jsonPath("$.data[*].code", containsInAnyOrder(
+                            "JOBS", "JOBS_SERVICE_CATALOG_MANAGEMENT", "DESIGNING", "JOBS_TASK_MANAGEMENT",
+                            "IMPLEMENTATION", "MONITORING", "ADJUSTMENT", "INTELLIGENCE_OPS", "COLLABORATION",
+                            "ADMIN", "IMPLEMENTATION_WORKFLOW_EXECUTION", "COLLABORATION_PLUGIN_MANAGEMENT",
+                            "COLLABORATION_WORKFLOW_ORCHESTRATION", "ADMIN_BASE_DATA_MANAGEMENT")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -338,9 +344,9 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Test
     public void getMenuByWrongPackageIdShouldReturnError() {
-        String wrongQueryId = "2";
+        String wrongQueryId = "nonexistentpackage_v0.1";
         try {
-            mvc.perform(get(String.format("/v1/packages/%s/dependencies", wrongQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/dependencies", wrongQueryId)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is(String.format("Cannot find package by id: [%s]", wrongQueryId))))
@@ -352,7 +358,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
     }
 
-    @Ignore
     @Test
     public void getSystemParamsByCorrectPackageIdShouldReturnSuccess() {
         try {
@@ -360,11 +365,11 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "1";
+        String correctQueryId = "servicemanagement_v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains(1, 2)))
+                    .andExpect(jsonPath("$.data[*].id", contains("servicemanagement_v0.1_xxx_global", "servicemanagement_v0.1_xxx_plugin-package")))
                     .andExpect(jsonPath("$.data[*].name", contains("xxx", "xxx")))
                     .andExpect(jsonPath("$.data[*].defaultValue", contains("xxxx", "xxxx")))
                     .andExpect(jsonPath("$.data[*].scopeType", contains("global", "plugin-package")))
@@ -382,11 +387,11 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "1";
+        String correctQueryId = "servicemanagement_v0.1";
         try {
-            mvc.perform(get(String.format("/v1/packages/%s/authorities", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/authorities", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains(1, 2, 3)))
+                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("servicemanagement_v0.1_admin_JOBS_SERVICE_CATALOG_MANAGEMENT", "servicemanagement_v0.1_admin_JOBS_TASK_MANAGEMENT", "servicemanagement_v0.1_wecube_operator_JOBS_TASK_MANAGEMENT")))
                     .andExpect(jsonPath("$.data[*].roleName", contains("admin", "admin", "wecube_operator")))
                     .andExpect(jsonPath("$.data[*].menuCode", contains("JOBS_SERVICE_CATALOG_MANAGEMENT", "JOBS_TASK_MANAGEMENT", "JOBS_TASK_MANAGEMENT")))
                     .andDo(print())
@@ -403,16 +408,16 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "1";
+        String correctQueryId = "servicemanagement_v0.1";
         try {
-            mvc.perform(get(String.format("/v1/packages/%s/runtime-resources", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
+            mvc.perform(get(String.format("/v1/packages/%s/runtime-resources", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.docker[0].id", is(1)))
-                    .andExpect(jsonPath("$.data.mysql[0].id", is(1)))
+                    .andExpect(jsonPath("$.data.docker[0].id", is("DOCKER_servicemanagement_v0.1_service_management_service_management_22000:21000")))
+                    .andExpect(jsonPath("$.data.mysql[0].id", is("MYSQL_servicemanagement_v0.1_service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].schemaName", is("service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].initFileName", is("init.sql")))
                     .andExpect(jsonPath("$.data.mysql[0].upgradeFileName", is("upgrade.sql")))
-                    .andExpect(jsonPath("$.data.s3[0].id", is(1)))
+                    .andExpect(jsonPath("$.data.s3[0].id", is("S3_servicemanagement_v0.1_service_management")))
                     .andExpect(jsonPath("$.data.s3[0].bucketName", is("service_management")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -428,16 +433,15 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "1";
+        String packageId = "servicemanagement_v0.1";
         try {
-            mvc.perform(get(String.format("/v1/packages/%s/plugins", correctQueryId)))
+            mvc.perform(get(String.format("/v1/packages/%s/plugins", packageId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder(1, 2)))
-                    .andExpect(jsonPath("$.data[0].entityId", is(notNullValue())))
-                    .andExpect(jsonPath("$.data[1].entityId", is(notNullValue())))
+                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("servicemanagement_v0.1_service_request_service_request", "servicemanagement_v0.1_task_task")))
+                    .andExpect(jsonPath("$.data[*].entityId", containsInAnyOrder("servicemanagement_1_service_request", "servicemanagement_1_task")))
                     .andExpect(jsonPath("$.data[*].name", containsInAnyOrder("task", "service_request")))
                     .andExpect(jsonPath("$.data[*].status", containsInAnyOrder("DISABLED", "DISABLED")))
-                    .andExpect(jsonPath("$.data[*].pluginPackageId", containsInAnyOrder(1, 1)))
+                    .andExpect(jsonPath("$.data[*].pluginPackageId", contains("servicemanagement_v0.1", "servicemanagement_v0.1")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {

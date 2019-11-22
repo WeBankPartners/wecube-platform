@@ -35,7 +35,6 @@ import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
-import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
@@ -344,7 +343,7 @@ public class PluginInvocationService {
 
                 // TODO get value from system variable
                 if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
-                    Integer svId = param.getMappingSystemVariableId();
+                    String svId = param.getMappingSystemVariableId();
                     SystemVariable sVariable = systemVariableService.getSystemVariableById(svId);
 
                     if (sVariable == null && "Y".equals(param.getRequired())) {

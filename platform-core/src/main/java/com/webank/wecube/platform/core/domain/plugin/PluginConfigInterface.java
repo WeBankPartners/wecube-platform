@@ -3,22 +3,25 @@ package com.webank.wecube.platform.core.domain.plugin;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_config_interfaces")
 public class PluginConfigInterface {
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne
@@ -46,12 +49,25 @@ public class PluginConfigInterface {
     @Where(clause = "type = 'OUTPUT'")
     private Set<PluginConfigInterfaceParameter> outputParameters;
 
-    public Integer getId() {
-        return id;
+    public String getId() {
+        return this.id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginConfig ? (null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getName() : null) :null,
+                    null != pluginConfig ? (null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getVersion() : null) :null,
+                    null != pluginConfig ? pluginConfig.getName() : null,
+                    null != pluginConfig ? pluginConfig.getEntityName() : null,
+                    action,
+                    httpMethod);
+        }
     }
 
     public PluginConfig getPluginConfig() {
@@ -127,7 +143,7 @@ public class PluginConfigInterface {
     public PluginConfigInterface() {
     }
 
-    public PluginConfigInterface(Integer id, PluginConfig pluginConfig, String action, String serviceName, String serviceDisplayName, String path, String httpMethod, Set<PluginConfigInterfaceParameter> inputParameters, Set<PluginConfigInterfaceParameter> outputParameters) {
+    public PluginConfigInterface(String id, PluginConfig pluginConfig, String action, String serviceName, String serviceDisplayName, String path, String httpMethod, Set<PluginConfigInterfaceParameter> inputParameters, Set<PluginConfigInterfaceParameter> outputParameters) {
         this.id = id;
         this.pluginConfig = pluginConfig;
         this.action = action;

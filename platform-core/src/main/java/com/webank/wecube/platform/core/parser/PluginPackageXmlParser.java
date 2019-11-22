@@ -401,7 +401,7 @@ public class PluginPackageXmlParser {
             pluginConfigInterfaceParameter.setMappingType(getStringAttribute(parameterNode, "./@mappingType"));
             String mappingSystemVariableIdString = getStringAttribute(parameterNode, "./@mappingSystemVariableId");
             if (StringUtils.isNotEmpty(mappingSystemVariableIdString)) {
-                pluginConfigInterfaceParameter.setMappingSystemVariableId(Integer.parseInt(mappingSystemVariableIdString));
+                pluginConfigInterfaceParameter.setMappingSystemVariableId(mappingSystemVariableIdString);
             }
             String mappingEntityExpression = getStringAttribute(parameterNode, "./@mappingEntityExpression");
             if (StringUtils.isNotEmpty(mappingEntityExpression)) {

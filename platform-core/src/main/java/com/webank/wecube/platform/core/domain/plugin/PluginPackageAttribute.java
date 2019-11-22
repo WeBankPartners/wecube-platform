@@ -1,10 +1,14 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_package_attributes", uniqueConstraints = {
@@ -12,14 +16,15 @@ import javax.persistence.*;
 })
 public class PluginPackageAttribute {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "entity_id")
     private PluginPackageEntity pluginPackageEntity;
 
+    @JsonManagedReference
+    @JsonBackReference
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "reference_id", referencedColumnName="id")
     private PluginPackageAttribute pluginPackageAttribute;
@@ -49,14 +54,25 @@ public class PluginPackageAttribute {
         this.dataType = DataModelDataType.fromCode(dataType).getCode();
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginPackageEntity ? pluginPackageEntity.getPackageName() : null,
+                    null != pluginPackageEntity ? String.valueOf(pluginPackageEntity.getDataModelVersion()) : null,
+                    null!=pluginPackageEntity ? pluginPackageEntity.getName() : null,
+                    name,
+                    dataType);
+        }
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
     public PluginPackageEntity getPluginPackageEntity() {
         return pluginPackageEntity;
     }

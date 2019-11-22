@@ -28,10 +28,10 @@ public class PluginPackageResourceFileService {
     public Set<PluginPackageResourceFile> getAllPluginPackageResourceFiles() {
         Optional<Set<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findLatestPluginPackagesByStatusGroupByPackageName(REGISTERED, RUNNING, STOPPED);
         if (pluginPackagesOptional.isPresent()) {
-            Set<Integer> pluginPackageIds = pluginPackagesOptional.get().stream().map(p->p.getId()).collect(Collectors.toSet());
+            Set<String> pluginPackageIds = pluginPackagesOptional.get().stream().map(p->p.getId()).collect(Collectors.toSet());
 
             if (null != pluginPackageIds && pluginPackageIds.size() > 0) {
-                Optional<List<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = pluginPackageResourceFileRepository.findPluginPackageResourceFileByPluginPackageIds(pluginPackageIds.toArray(new Integer[pluginPackageIds.size()]));
+                Optional<List<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = pluginPackageResourceFileRepository.findPluginPackageResourceFileByPluginPackageIds(pluginPackageIds.toArray(new String[pluginPackageIds.size()]));
                 if (pluginPackageResourceFilesOptional.isPresent()) {
                     List<PluginPackageResourceFile> pluginPackageResourceFiles = pluginPackageResourceFilesOptional.get();
                     if (null != pluginPackageResourceFiles && pluginPackageResourceFiles.size() > 0) {

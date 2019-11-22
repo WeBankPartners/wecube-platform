@@ -4,16 +4,18 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_package_dependencies")
 public class PluginPackageDependency {
 
     @Id
-    @GeneratedValue
-    private int id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne
@@ -26,12 +28,25 @@ public class PluginPackageDependency {
     @Column
     private String dependencyPackageVersion;
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    "Dependency",
+                    null != pluginPackage ? pluginPackage.getName() : null,
+                    null != pluginPackage ? pluginPackage.getVersion() : null,
+                    dependencyPackageName,
+                    dependencyPackageVersion
+            );
+        }
     }
 
     public PluginPackage getPluginPackage() {
@@ -62,7 +77,7 @@ public class PluginPackageDependency {
         super();
     }
 
-    public PluginPackageDependency(int id, PluginPackage pluginPackage, String dependencyPackageName, String dependencyPackageVersion) {
+    public PluginPackageDependency(String id, PluginPackage pluginPackage, String dependencyPackageName, String dependencyPackageVersion) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.dependencyPackageName = dependencyPackageName;

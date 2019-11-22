@@ -16,9 +16,9 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.utils.VersionUtils;
 
-public interface PluginConfigRepository extends CrudRepository<PluginConfig, Integer> {
+public interface PluginConfigRepository extends CrudRepository<PluginConfig, String> {
     @Query("SELECT DISTINCT inf FROM PluginConfig cfg JOIN cfg.interfaces inf LEFT JOIN FETCH inf.inputParameters LEFT JOIN FETCH inf.outputParameters WHERE cfg.id = :pluginConfigId")
-    List<PluginConfigInterface> findAllPluginConfigInterfacesByConfigIdAndFetchParameters(int pluginConfigId);
+    List<PluginConfigInterface> findAllPluginConfigInterfacesByConfigIdAndFetchParameters(String pluginConfigId);
 
     @Query("SELECT DISTINCT inf FROM PluginConfig cfg JOIN cfg.interfaces inf LEFT JOIN FETCH inf.inputParameters LEFT JOIN FETCH inf.outputParameters WHERE inf.serviceName = :serviceName and cfg.status=:status")
     List<PluginConfigInterface> findAllPluginConfigInterfaceByServiceNameAndStatusAndFetchParameters(@Param("serviceName") String serviceName, @Param("status") Status status);

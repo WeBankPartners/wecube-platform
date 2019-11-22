@@ -32,8 +32,6 @@ import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 
-import com.webank.wecube.platform.core.service.ScpService;
-import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -142,7 +140,7 @@ public class PluginInstanceService {
         return Lists.newArrayList(pluginInstanceRepository.findAll());
     }
 
-    public List<PluginInstance> getAvailableInstancesByPackageId(int packageId) {
+    public List<PluginInstance> getAvailableInstancesByPackageId(String packageId) {
         return pluginInstanceRepository.findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING,
                 packageId);
     }
@@ -223,7 +221,7 @@ public class PluginInstanceService {
         return false;
     }
 
-    public void launchPluginInstance(Integer packageId, String hostIp, Integer port)
+    public void launchPluginInstance(String packageId, String hostIp, Integer port)
             throws Exception, WecubeCoreException {
         Optional<PluginPackage> pluginPackageResult = pluginPackageRepository.findById(packageId);
         if (!pluginPackageResult.isPresent())
@@ -254,7 +252,7 @@ public class PluginInstanceService {
         }
 
         if (needCreateS3Bucket) {
-            Integer s3BucketResourceId = initS3BucketResource(s3InfoSet, initMysqlReturn);
+            String s3BucketResourceId = initS3BucketResource(s3InfoSet, initMysqlReturn);
             if (s3BucketResourceId != null)
                 instance.setS3BucketResourceId(s3BucketResourceId);
         }
@@ -379,8 +377,8 @@ public class PluginInstanceService {
         logger.info(String.format("Init database[%s] tables has done..", mysqlInstance.getSchemaName()));
     }
 
-    private Integer initS3BucketResource(Set<PluginPackageRuntimeResourcesS3> s3InfoSet,
-            InitMysqlReturn initPaasResourceReturn) {
+    private String initS3BucketResource(Set<PluginPackageRuntimeResourcesS3> s3InfoSet,
+                                        InitMysqlReturn initPaasResourceReturn) {
         if (s3InfoSet.size() > 1) {
             logger.error(String.format("Apply [%d] s3 bucket is not allow", s3InfoSet.size()));
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket");
@@ -417,7 +415,7 @@ public class PluginInstanceService {
         return mysqlInstance;
     }
 
-    private Integer createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
+    private String createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.S3);
         ResourceServerDto s3Server = resourceManagementService.retrieveServers(queryRequest).getContents().get(0);
 
@@ -527,7 +525,7 @@ public class PluginInstanceService {
 
     private class InitMysqlReturn {
         DatabaseInfo dbInfo;
-        Integer mysqlInstanceResourceId;
+        String mysqlInstanceResourceId;
 
         public DatabaseInfo getDbInfo() {
             return dbInfo;
@@ -537,11 +535,11 @@ public class PluginInstanceService {
             this.dbInfo = dbInfo;
         }
 
-        public Integer getMysqlInstanceResourceId() {
+        public String getMysqlInstanceResourceId() {
             return mysqlInstanceResourceId;
         }
 
-        public void setMysqlInstanceResourceId(Integer mysqlInstanceResourceId) {
+        public void setMysqlInstanceResourceId(String mysqlInstanceResourceId) {
             this.mysqlInstanceResourceId = mysqlInstanceResourceId;
         }
     }

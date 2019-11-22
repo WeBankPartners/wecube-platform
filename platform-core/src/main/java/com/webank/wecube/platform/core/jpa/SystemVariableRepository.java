@@ -6,7 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import com.webank.wecube.platform.core.domain.SystemVariable;
 
-public interface SystemVariableRepository extends CrudRepository<SystemVariable, Integer> {
+public interface SystemVariableRepository extends CrudRepository<SystemVariable, String> {
     
     List<SystemVariable> findAllByStatus(String status);
 

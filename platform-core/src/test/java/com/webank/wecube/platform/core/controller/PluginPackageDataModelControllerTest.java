@@ -136,49 +136,49 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
 
     private void mockDataModel() {
         String sqlStr =
-                "INSERT INTO plugin_packages (name, version, status, ui_package_included) VALUES " +
-                        "  ('package1', '1.0', 'UNREGISTERED', 0) " +
-                        ", ('package2', '1.1', 'UNREGISTERED', 0) " +
+                "INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
+                        "  ('1', 'package1', '1.0', 'UNREGISTERED', 0) " +
+                        ", ('2', 'package2', '1.1', 'UNREGISTERED', 0) " +
                         ";\n" +
                         "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic) VALUES " +
-                        "  (1, 1, 'package1', false) " +
-                        ", (2, 1, 'package2', false) " +
-                        ", (3, 2, 'package2', false) " +
+                        "  ('1', 1, 'package1', false) " +
+                        ", ('2', 1, 'package2', false) " +
+                        ", ('3', 2, 'package2', false) " +
                         ";\n" +
                         "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
-                        "  (1, 1, 1, 'package1', 'entity_1', 'entity_1', 'entity_1_description') " +
-                        ", (2, 1, 1, 'package1', 'entity_2', 'entity_2', 'entity_2_description') " +
-                        ", (3, 1, 1, 'package1', 'entity_3', 'entity_3', 'entity_3_description') " +
+                        "  ('1', '1', 1, 'package1', 'entity_1', 'entity_1', 'entity_1_description') " +
+                        ", ('2', '1', 1, 'package1', 'entity_2', 'entity_2', 'entity_2_description') " +
+                        ", ('3', '1', 1, 'package1', 'entity_3', 'entity_3', 'entity_3_description') " +
 
-                        ", (4, 2, 1, 'package2', 'entity_4', 'entity_4', 'entity_4_description') " +
-                        ", (5, 2, 1, 'package2', 'entity_5', 'entity_5', 'entity_5_description') " +
-                        ", (6, 2, 1, 'package2', 'entity_6', 'entity_6', 'entity_6_description') " +
+                        ", ('4', '2', 1, 'package2', 'entity_4', 'entity_4', 'entity_4_description') " +
+                        ", ('5', '2', 1, 'package2', 'entity_5', 'entity_5', 'entity_5_description') " +
+                        ", ('6', '2', 1, 'package2', 'entity_6', 'entity_6', 'entity_6_description') " +
 
-                        ", (7, 3, 2, 'package2', 'entity_4', 'entity_4', 'entity_4_description') " +
-                        ", (8, 3, 2, 'package2', 'entity_5', 'entity_5', 'entity_5_description') " +
-                        ", (9, 3, 2, 'package2', 'entity_6', 'entity_6', 'entity_6_description') " +
+                        ", ('7', '3', 2, 'package2', 'entity_4', 'entity_4', 'entity_4_description') " +
+                        ", ('8', '3', 2, 'package2', 'entity_5', 'entity_5', 'entity_5_description') " +
+                        ", ('9', '3', 2, 'package2', 'entity_6', 'entity_6', 'entity_6_description') " +
                         ";\n" +
                         "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
-                        "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
-                        ", (2, 1, NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
-                        ", (3, 1, 1, 'attribute_3', 'attribute_3_description', 'INT') " +
-                        ", (4, 1, 1, 'attribute_4', 'attribute_4_description', 'REF') " +
-                        ", (5, 2, 2, 'attribute_5', 'attribute_5_description', 'REF') " +
-                        ", (6, 3, NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
+                        "  ('1', '1', NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        ", ('2', '1', NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
+                        ", ('3', '1', '1', 'attribute_3', 'attribute_3_description', 'INT') " +
+                        ", ('4', '1', '1', 'attribute_4', 'attribute_4_description', 'REF') " +
+                        ", ('5', '2', '2', 'attribute_5', 'attribute_5_description', 'REF') " +
+                        ", ('6', '3', NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
 
-                        ", (7, 4, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
-                        ", (8, 4, NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
-                        ", (9, 4, 1, 'attribute_3', 'attribute_3_description', 'INT') " +
-                        ", (10, 4, 1, 'attribute_4', 'attribute_4_description', 'REF') " +
-                        ", (11, 5, 2, 'attribute_5', 'attribute_5_description', 'REF') " +
-                        ", (12, 6, NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
+                        ", ('7', '4', NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        ", ('8', '4', NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
+                        ", ('9', '4', '1', 'attribute_3', 'attribute_3_description', 'INT') " +
+                        ", ('10', '4', '1', 'attribute_4', 'attribute_4_description', 'REF') " +
+                        ", ('11', '5', '2', 'attribute_5', 'attribute_5_description', 'REF') " +
+                        ", ('12', '6', NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
 
-                        ", (13, 7, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
-                        ", (14, 7, NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
-                        ", (15, 7, 1, 'attribute_3', 'attribute_3_description', 'INT') " +
-                        ", (16, 7, 1, 'attribute_4', 'attribute_4_description', 'REF') " +
-                        ", (17, 8, 2, 'attribute_5', 'attribute_5_description', 'REF') " +
-                        ", (18, 9, 3, 'attribute_6', 'attribute_6_description', 'REF')" +
+                        ", ('13', '7', NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        ", ('14', '7', NULL, 'attribute_2', 'attribute_2_description', 'INT') " +
+                        ", ('15', '7', '1', 'attribute_3', 'attribute_3_description', 'INT') " +
+                        ", ('16', '7', '1', 'attribute_4', 'attribute_4_description', 'REF') " +
+                        ", ('17', '8', '2', 'attribute_5', 'attribute_5_description', 'REF') " +
+                        ", ('18', '9', '3', 'attribute_6', 'attribute_6_description', 'REF')" +
                         ";\n";
         executeSql(sqlStr);
 
@@ -218,7 +218,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
                 .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
                 .andExpect(jsonPath("$.data.packageName", is(packageName)))
-                .andExpect(jsonPath("$.data.id", is(2)))
+                .andExpect(jsonPath("$.data.id", is("DataModel_package1_2_GET_DATA_MODEL_ENDPOINT")))
                 .andExpect(jsonPath("$.data.version", is(2)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].packageName", containsInAnyOrder(packageName)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].name", containsInAnyOrder("entity_1")))
