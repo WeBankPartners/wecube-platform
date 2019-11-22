@@ -13,7 +13,7 @@ public class PluginPackageDataModelDto {
     public static enum Source {
         PLUGIN_PACKAGE, DATA_MODEL_ENDPOINT
     }
-    private Integer id;
+    private String id;
 
     private Integer version;
 
@@ -34,7 +34,7 @@ public class PluginPackageDataModelDto {
     public PluginPackageDataModelDto() {
     }
 
-    public PluginPackageDataModelDto(Integer id, Integer version, String packageName, boolean isDynamic, String updatePath, String updateMethod, String updateSource, Long updateTime, Set<PluginPackageEntityDto> pluginPackageEntities) {
+    public PluginPackageDataModelDto(String id, Integer version, String packageName, boolean isDynamic, String updatePath, String updateMethod, String updateSource, Long updateTime, Set<PluginPackageEntityDto> pluginPackageEntities) {
         this.id = id;
         this.version = version;
         this.packageName = packageName;
@@ -46,11 +46,11 @@ public class PluginPackageDataModelDto {
         this.pluginPackageEntities = pluginPackageEntities;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
