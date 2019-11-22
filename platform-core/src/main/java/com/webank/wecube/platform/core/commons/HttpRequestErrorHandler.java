@@ -10,7 +10,12 @@ public class HttpRequestErrorHandler implements ResponseErrorHandler {
 
     @Override
     public boolean hasError(ClientHttpResponse clientHttpResponse) throws IOException {
-        return false;
+        boolean hasError = false;
+        int rawStatusCode = clientHttpResponse.getRawStatusCode();
+        if (rawStatusCode != 200) {
+            hasError = true;
+        }
+        return hasError;
     }
 
     @Override
