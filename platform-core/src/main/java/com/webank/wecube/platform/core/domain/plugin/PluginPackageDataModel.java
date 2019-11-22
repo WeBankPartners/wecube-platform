@@ -2,7 +2,6 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.LinkedHashSet;
