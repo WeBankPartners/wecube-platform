@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface PluginPackageDataModelRepository extends CrudRepository<PluginPackageDataModel, Integer> {
+public interface PluginPackageDataModelRepository extends CrudRepository<PluginPackageDataModel, String> {
 
     @Query(value = "SELECT dataModel " +
             "FROM PluginPackageDataModel dataModel " +

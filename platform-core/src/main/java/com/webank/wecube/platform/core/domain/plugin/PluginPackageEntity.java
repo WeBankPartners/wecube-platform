@@ -3,9 +3,12 @@ package com.webank.wecube.platform.core.domain.plugin;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.List;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_package_entities", uniqueConstraints = {
@@ -14,8 +17,7 @@ import java.util.List;
 public class PluginPackageEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne(cascade = CascadeType.ALL)
@@ -60,8 +62,19 @@ public class PluginPackageEntity {
         this.pluginPackageAttributeList = pluginPackageAttributes;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    packageName,
+                    String.valueOf(dataModelVersion),
+                    name
+            );
+        }
     }
 
     public PluginPackageDataModel getPluginPackageDataModel() {
