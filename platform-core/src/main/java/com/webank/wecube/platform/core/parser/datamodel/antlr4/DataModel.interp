@@ -1,7 +1,7 @@
 token literal names:
 null
 '~'
-'-'
+'>'
 '.'
 '('
 ')'
@@ -15,7 +15,7 @@ null
 token symbolic names:
 null
 TILDE
-DASH
+GT
 DOT
 LP
 RP
