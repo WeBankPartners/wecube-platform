@@ -2,16 +2,18 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_package_runtime_resources_s3")
 public class PluginPackageRuntimeResourcesS3 {
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
@@ -21,12 +23,24 @@ public class PluginPackageRuntimeResourcesS3 {
     @Column
     private String bucketName;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    "S3",
+                    null != pluginPackage ? pluginPackage.getName() : null,
+                    null != pluginPackage ? pluginPackage.getVersion() : null,
+                    bucketName
+            );
+        }
     }
 
     public PluginPackage getPluginPackage() {
@@ -49,7 +63,7 @@ public class PluginPackageRuntimeResourcesS3 {
         super();
     }
 
-    public PluginPackageRuntimeResourcesS3(Integer id, PluginPackage pluginPackage, String bucketName) {
+    public PluginPackageRuntimeResourcesS3(String id, PluginPackage pluginPackage, String bucketName) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.bucketName = bucketName;
