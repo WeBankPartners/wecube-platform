@@ -18,6 +18,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
 
 @Data
 @AllArgsConstructor
@@ -26,8 +27,9 @@ import lombok.ToString;
 @Table(name = "resource_server")
 public class ResourceServer {
     @Id
-    @GeneratedValue
-    private Integer id;
+    @GeneratedValue(generator = "resourceServerGenerator")
+    @GenericGenerator(name = "resourceServerGenerator", strategy = "org.hibernate.id.UUIDGenerator")
+    private String id;
 
     @NotBlank
     @Column(name = "name")

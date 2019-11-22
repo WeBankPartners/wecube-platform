@@ -83,7 +83,7 @@ public class SystemVariableService {
         return dtos;
     }
 
-    public SystemVariable getSystemVariableById(int varId) {
+    public SystemVariable getSystemVariableById(String varId) {
         Optional<SystemVariable> systemVariable = systemVariableRepository.findById(varId);
         if (systemVariable.isPresent()) {
             return systemVariable.get();
