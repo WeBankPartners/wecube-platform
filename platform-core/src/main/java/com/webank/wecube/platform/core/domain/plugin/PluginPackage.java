@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.common.base.Objects;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Comparator;

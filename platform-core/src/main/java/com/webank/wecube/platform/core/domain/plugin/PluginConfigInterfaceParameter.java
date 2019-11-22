@@ -5,11 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.Arrays;
 
 import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 

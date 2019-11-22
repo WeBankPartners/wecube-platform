@@ -1,9 +1,8 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import javax.persistence.*;
-
 import com.webank.wecube.platform.core.domain.ResourceItem;
-import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 
 import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
