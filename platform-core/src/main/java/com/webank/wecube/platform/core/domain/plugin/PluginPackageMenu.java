@@ -4,16 +4,18 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_package_menus")
 public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
 
     @Id
-    @GeneratedValue
-    private int id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH })
@@ -32,12 +34,24 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     @Column
     private String path;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginPackage ? pluginPackage.getName() : null,
+                    null != pluginPackage ? pluginPackage.getVersion() : null,
+                    code,
+                    category
+            );
+        }
     }
 
     public PluginPackage getPluginPackage() {
@@ -84,8 +98,8 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         super();
     }
 
-    public PluginPackageMenu(int id, PluginPackage pluginPackage, String code, String category, String displayName,
-            String path) {
+    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String displayName,
+                             String path) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.code = code;

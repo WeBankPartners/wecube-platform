@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 public class ResourceServerDto {
-    private Integer id;
+    private String id;
     private String name;
     private String host;
     private String port;

@@ -2,16 +2,18 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_package_runtime_resources_mysql")
 public class PluginPackageRuntimeResourcesMysql {
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
@@ -27,12 +29,24 @@ public class PluginPackageRuntimeResourcesMysql {
     @Column
     private String upgradeFileName;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    "MYSQL",
+                    null != pluginPackage ? pluginPackage.getName() : null,
+                    null != pluginPackage ? pluginPackage.getVersion() : null,
+                    schemaName
+            );
+        }
     }
 
     public PluginPackage getPluginPackage() {
@@ -71,7 +85,7 @@ public class PluginPackageRuntimeResourcesMysql {
         super();
     }
 
-    public PluginPackageRuntimeResourcesMysql(Integer id, PluginPackage pluginPackage, String schemaName, String initFileName, String upgradeFileName) {
+    public PluginPackageRuntimeResourcesMysql(String id, PluginPackage pluginPackage, String schemaName, String initFileName, String upgradeFileName) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.schemaName = schemaName;
