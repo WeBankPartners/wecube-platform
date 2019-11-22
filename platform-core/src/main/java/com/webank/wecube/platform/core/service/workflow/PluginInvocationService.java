@@ -277,22 +277,19 @@ public class PluginInvocationService {
                     }
 
                     // TODO FIXME
-                    // DataModelExpressionToRootData criteria = new
-                    // DataModelExpressionToRootData(mappingEntityExpression,
-                    // entityDataId);
-                    //
-                    // List<Object> attrValsPerExpr =
-                    // dataModelExpressionService.fetchData(criteria);
-                    //
-                    // if (attrValsPerExpr == null) {
-                    // log.error("returned null while fetch data with
-                    // expression:{}", mappingEntityExpression);
-                    // attrValsPerExpr = new ArrayList<>();
-                    // }
+                    DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
+                            entityDataId);
+
+                    List<Object> attrValsPerExpr = dataModelExpressionService.fetchData(criteria);
+
+                    if (attrValsPerExpr == null) {
+                        log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
+                        attrValsPerExpr = new ArrayList<>();
+                    }
 
                     // TODO FIXME remove me
-                    List<Object> attrValsPerExpr = new ArrayList<>();
-                    attrValsPerExpr.add("888");
+                    // List<Object> attrValsPerExpr = new ArrayList<>();
+                    // attrValsPerExpr.add("888");
 
                     objectVals.addAll(attrValsPerExpr);
 
