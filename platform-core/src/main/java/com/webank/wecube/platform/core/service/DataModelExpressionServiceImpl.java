@@ -392,9 +392,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             expressionDto.getReturnedJson().add(responseDtoList);
         }
 
-        if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null && expressionDto.getOpFetch() != null) {
+        if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null) {
             // final route, which is prev link and fetch
-            String attrName = expressionDto.getOpFetch().attr().getText();
+            String attrName;
+            if (expressionDto.getOpFetch() == null) {
+                attrName = DataModelExpressionParser.FETCH_ALL;
+            } else {
+                attrName = expressionDto.getOpFetch().attr().getText();
+            }
             List<Object> resultValueList = new ArrayList<>();
             for (CommonResponseDto lastRequestResult : lastRequestResultList) {
                 List<Object> fetchDataList = commonResponseToList(lastRequestResult, attrName);
@@ -590,8 +595,20 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
         response = RestTemplateUtils.sendGetRequestWithParamMap(restTemplate, uriStr, httpHeaders);
+        responseDto = checkResponse(response);
+        return responseDto;
+    }
+
+    private CommonResponseDto checkResponse(ResponseEntity<String> response) throws IOException {
+        CommonResponseDto responseDto;
         if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
-            throw new WecubeCoreException(response.toString());
+            if (response.getStatusCode().is4xxClientError()) {
+                throw new WecubeCoreException(String.format("Error code: [%s]. The target package doesn't implement the request controller.", response.getStatusCode().toString()));
+            }
+
+            if (response.getStatusCode().is5xxServerError()) {
+                throw new WecubeCoreException(String.format("Error code: [%s]. The target package's instance has error.", response.getStatusCode().toString()));
+            }
         }
         responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
         if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
@@ -611,7 +628,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      */
     private void postRequest(ChainRequestDto chainRequestDto, String requestUrl, Map<String, Object> paramMap, List<Map<String, Object>> requestBodyParamMap) throws WecubeCoreException {
         ResponseEntity<String> response;
-        CommonResponseDto responseDto;
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             // combine url with param map
@@ -621,21 +637,11 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             if (!chainRequestDto.getRequestActualUrl().equals(uriStr))
                 chainRequestDto.setRequestActualUrl(uriStr);
             response = RestTemplateUtils.sendPostRequestWithParamMap(restTemplate, uriStr, requestBodyParamMap, httpHeaders);
-            if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
-                String msg = String.format("Error when sending post request to target server, the response is: [%s]", response.toString());
-                throw new WecubeCoreException(msg);
-            }
-            responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
-            if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
-                String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
-                logger.error(msg);
-                throw new WecubeCoreException(msg);
-            }
+            checkResponse(response);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
             throw new WecubeCoreException(ex.getMessage());
         }
-
     }
 
     /**
