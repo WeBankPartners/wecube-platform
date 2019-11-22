@@ -149,6 +149,7 @@ export default {
         });
         this.$emit("allMenus", this.menus);
         window.myMenus = this.menus;
+        console.log(window.myMenus);
       }
     },
 
