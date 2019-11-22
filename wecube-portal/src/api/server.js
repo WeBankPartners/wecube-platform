@@ -18,6 +18,15 @@ export const getFlowDetailByID = id =>
 export const getFlowOutlineByID = id =>
   req.get(`/platform/v1/process/definitions/${id}/outline`);
 
+export const getTargetOptions = (pkgName, entityName) =>
+  req.get(
+    `platform/v1/dme/target-entity?entity=${entityName}&package=${pkgName}`
+  );
+export const getTreePreviewData = (flowId, targetId) =>
+  req.get(
+    `platform/v1/process/definitions/${flowId}/preview/entities/${targetId}`
+  );
+
 export const removeProcessDefinition = id =>
   req.delete(`platform/v1/process/definitions/${id}`);
 
