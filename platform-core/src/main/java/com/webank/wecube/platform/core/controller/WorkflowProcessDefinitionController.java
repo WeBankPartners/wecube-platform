@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
 import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
+import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefService;
 
 @RestController
@@ -28,6 +30,9 @@ public class WorkflowProcessDefinitionController {
 
     @Autowired
     private WorkflowProcDefService procDefService;
+    
+    @Autowired
+    private WorkflowDataService workflowDataService;
 
     @PostMapping("/process/definitions/deploy")
     public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
@@ -89,6 +94,12 @@ public class WorkflowProcessDefinitionController {
     public CommonResponseDto getTaskNodeParameters(@PathVariable("proc-def-id") String procDefId,
             @PathVariable("node-def-id") String nodeDefId) {
         List<InterfaceParameterDto> result = procDefService.getTaskNodeParameters(procDefId,nodeDefId);
+        return CommonResponseDto.okayWithData(result);
+    }
+    
+    @GetMapping("/process/definitions/{proc-def-id}/preview/entities/{entity-data-id}")
+    public CommonResponseDto getProcessDataPreview(@PathVariable("proc-def-id") String procDefId, @PathVariable("entity-data-id") String dataId){
+        List<GraphNodeDto> result = workflowDataService.getProcessDataPreview(procDefId, dataId);
         return CommonResponseDto.okayWithData(result);
     }
 
