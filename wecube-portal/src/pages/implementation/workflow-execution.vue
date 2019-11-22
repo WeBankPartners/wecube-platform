@@ -5,7 +5,7 @@
         <Col span="20">
           <Form label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select label v-model="selectedFlow" style="width:70%" clearable>
+              <Select v-model="selectedFlow" style="width:70%">
                 <Option
                   v-for="item in allFlows"
                   :value="item.procDefId"
@@ -22,12 +22,12 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">
-                {{ $t("query_orch") }}
-              </Button>
-              <Button type="success" @click="createHandler">
-                {{ $t("create_orch") }}
-              </Button>
+              <Button type="info" @click="queryHandler">{{
+                $t("query_orch")
+              }}</Button>
+              <Button type="success" @click="createHandler">{{
+                $t("create_orch")
+              }}</Button>
             </FormItem>
           </Form>
         </Col>
@@ -50,9 +50,8 @@
                     v-for="item in allFlows"
                     :value="item.procDefId"
                     :key="item.procDefId"
+                    >{{ item.procDefName }}</Option
                   >
-                    {{ item.procDefName }}
-                  </Option>
                 </Select>
               </FormItem>
             </Col>
@@ -62,13 +61,13 @@
                   label
                   v-model="selectedTarget"
                   :disabled="isEnqueryPage"
-                  @on-change="createFlowHandler"
+                  @on-change="onTargetSelectHandler"
                 >
                   <Option
                     v-for="item in allTarget"
                     :value="item.id"
                     :key="item.id"
-                    >{{ item.regx }}</Option
+                    >{{ item.key_name }}</Option
                   >
                 </Select>
               </FormItem>
@@ -88,9 +87,9 @@
           >
             <div class="graph-container" id="graph"></div>
             <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">
-                {{ $t("execute") }}
-              </Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
+                $t("execute")
+              }}</Button>
             </div>
           </Col>
         </Row>
@@ -99,17 +98,21 @@
   </div>
 </template>
 <script>
-import { getAllFlow, getFlowOutlineByID } from "@/api/server";
+import {
+  getAllFlow,
+  getFlowOutlineByID,
+  getTargetOptions,
+  getTreePreviewData
+} from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
 import { addEvent, removeEvent } from "../util/event.js";
-import { modelData } from "./mockData";
 export default {
   data() {
     return {
       graph: {},
       flowGraph: {},
-      modelData,
+      modelData: [],
       flowData: {},
       allFlows: [],
       allTarget: [],
@@ -123,7 +126,6 @@ export default {
     };
   },
   mounted() {
-    this.getSelectionData();
     this.getAllFlow();
   },
   methods: {
@@ -133,21 +135,28 @@ export default {
         this.allFlows = data;
       }
     },
-    getSelectionData() {
-      this.allTarget = [
-        { id: 1, regx: "A-B.c" },
-        { id: 2, regx: "D-C.c" }
-      ];
-    },
+
     orchestrationSelectHandler() {
       this.getFlowOutlineData();
+    },
+    async getTargetOptions() {
+      if (!this.flowData.rootEntity) return;
+      const pkgName = this.flowData.rootEntity.split(":")[0];
+      const entityName = this.flowData.rootEntity.split(":")[1];
+      let { status, data, message } = await getTargetOptions(
+        pkgName,
+        entityName
+      );
+      if (status === "OK") {
+        this.allTarget = data;
+      }
     },
     queryHandler() {
       if (!this.selectedFlow) return;
       this.isShowBody = true;
       this.isEnqueryPage = true;
       this.$nextTick(() => {
-        this.getModelData();
+        // this.getModelData();
         this.getFlowOutlineData();
       });
     },
@@ -156,14 +165,22 @@ export default {
       this.isEnqueryPage = false;
       this.selectedTarget = "";
       this.selectedFlow = "";
+      this.modelData = [];
+      this.flowData = {};
     },
-    createFlowHandler() {
+    onTargetSelectHandler() {
       console.log("selectedTarget is: ", this.selectedTarget);
       this.getModelData();
     },
-    getModelData() {
-      // let { status, data, message } = await xxxx();
-      this.initModelGraph();
+    async getModelData() {
+      let { status, data, message } = await getTreePreviewData(
+        this.selectedFlow,
+        this.selectedTarget
+      );
+      if (status === "OK") {
+        this.modelData = data;
+        this.initModelGraph();
+      }
     },
     async getFlowOutlineData() {
       let { status, data, message } = await getFlowOutlineByID(
@@ -172,6 +189,7 @@ export default {
       if (status === "OK") {
         this.flowData = data;
         this.initFlowGraph();
+        this.getTargetOptions();
       }
     },
     renderModelGraph() {
@@ -201,13 +219,16 @@ export default {
           .toString()
           .replace(/,/g, ";");
       };
+      let nodesToString = Array.isArray(nodes)
+        ? nodes.toString().replace(/,/g, ";") + ";"
+        : "";
+
       let nodesString =
         "digraph G { " +
         'bgcolor="transparent";' +
         'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8",fontsize=12];' +
         'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' +
-        nodes.toString().replace(/,/g, "; ") +
-        ";" +
+        nodesToString +
         genEdge() +
         "}";
       this.graph.graphviz.renderDot(nodesString).fit(true);
@@ -220,57 +241,65 @@ export default {
         Faulted: "#FF6262",
         Timeouted: "#F7B500"
       };
-      let nodes = this.flowData.flowNodes.map((_, index) => {
-        if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
-          return `${_.nodeId} [label="${
-            _.nodeName
-          }", fontsize="10", class="flow",style="${
-            excution ? "filled" : "none"
-          }" color="${
-            excution ? statusColor[_.status] : "#7F8A96"
-          }" shape="circle", id="${_.nodeId}"]`;
-        } else {
-          console.log(111, excution, statusColor[_.status], _.status);
-          return `${_.nodeId} [label="${_.orderedNo +
-            "、" +
-            _.nodeName}" fontsize="10" class="flow" style="${
-            excution ? "filled" : "none"
-          }" color="${
-            excution
-              ? statusColor[_.status]
-              : _.nodeId === this.currentFlowNodeId
-              ? "#5DB400"
-              : "#7F8A96"
-          }"  shape="record" id="${_.nodeId}"] height=.2`;
-        }
-      });
-      let genEdge = () => {
-        let pathAry = [];
-        this.flowData.flowNodes.forEach(_ => {
-          if (_.succeedingNodeIds.length > 0) {
-            let current = [];
-            current = _.succeedingNodeIds.map(to => {
-              return (
-                _.nodeId +
-                " -> " +
-                `${to} [color="${excution ? statusColor[_.status] : "black"}"]`
-              );
-            });
-            pathAry.push(current);
+      let nodes =
+        this.flowData &&
+        this.flowData.flowNodes &&
+        this.flowData.flowNodes.map((_, index) => {
+          if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
+            return `${_.nodeId} [label="${
+              _.nodeName
+            }", fontsize="10", class="flow",style="${
+              excution ? "filled" : "none"
+            }" color="${
+              excution ? statusColor[_.status] : "#7F8A96"
+            }" shape="circle", id="${_.nodeId}"]`;
+          } else {
+            return `${_.nodeId} [label="${_.orderedNo +
+              "、" +
+              _.nodeName}" fontsize="10" class="flow" style="${
+              excution ? "filled" : "none"
+            }" color="${
+              excution
+                ? statusColor[_.status]
+                : _.nodeId === this.currentFlowNodeId
+                ? "#5DB400"
+                : "#7F8A96"
+            }"  shape="record" id="${_.nodeId}"] height=.2`;
           }
         });
+      let genEdge = () => {
+        let pathAry = [];
+        this.flowData &&
+          this.flowData.flowNodes &&
+          this.flowData.flowNodes.forEach(_ => {
+            if (_.succeedingNodeIds.length > 0) {
+              let current = [];
+              current = _.succeedingNodeIds.map(to => {
+                return (
+                  _.nodeId +
+                  " -> " +
+                  `${to} [color="${
+                    excution ? statusColor[_.status] : "black"
+                  }"]`
+                );
+              });
+              pathAry.push(current);
+            }
+          });
         return pathAry
           .flat()
           .toString()
           .replace(/,/g, ";");
       };
+      let nodesToString = Array.isArray(nodes)
+        ? nodes.toString().replace(/,/g, ";") + ";"
+        : "";
       let nodesString =
         "digraph G {" +
         'bgcolor="transparent";' +
         'Node [fontname=Arial, height=".3", fontsize=12];' +
         'Edge [fontname=Arial, color="#7f8fa6", fontsize=10];' +
-        nodes.toString().replace(/,/g, ";") +
-        ";" +
+        nodesToString +
         genEdge() +
         "}";
       this.flowGraph.graphviz.renderDot(nodesString).fit(true);
