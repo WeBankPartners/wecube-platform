@@ -2,17 +2,13 @@ package com.webank.wecube.platform.core.dto;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.checkerframework.checker.guieffect.qual.UI;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /*
   This is a workaround solution to cater the parser logic for data model and other parts in register.xml
  */
 public class PluginPackageDto {
 
-    private Integer id;
+    private String id;
 
     private String name;
 
@@ -25,7 +21,7 @@ public class PluginPackageDto {
     public PluginPackageDto() {
     }
 
-    public PluginPackageDto(Integer id, String name, String version, PluginPackage pluginPackage, PluginPackageDataModelDto pluginPackageDataModelDto) {
+    public PluginPackageDto(String id, String name, String version, PluginPackage pluginPackage, PluginPackageDataModelDto pluginPackageDataModelDto) {
         this.id = id;
         this.name = name;
         this.version = version;
@@ -33,11 +29,11 @@ public class PluginPackageDto {
         this.pluginPackageDataModelDto = pluginPackageDataModelDto;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id != null ? id : pluginPackage.getId();
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
