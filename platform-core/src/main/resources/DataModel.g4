@@ -3,6 +3,8 @@ grammar DataModel;
 route
     : link fetch
     | entity fetch
+    | link
+    | entity
     ;
 
 link
