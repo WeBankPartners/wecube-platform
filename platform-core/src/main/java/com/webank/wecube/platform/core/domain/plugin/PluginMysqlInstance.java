@@ -1,15 +1,11 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.webank.wecube.platform.core.domain.ResourceItem;
+import org.hibernate.annotations.GenericGenerator;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_mysql_instances")
@@ -18,8 +14,7 @@ public class PluginMysqlInstance {
     public static final String MYSQL_INSTANCE_STATUS_INACTIVE = "inactive";
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
     @Column
     private String schemaName;
 
@@ -28,10 +23,10 @@ public class PluginMysqlInstance {
     private PluginPackage pluginPackage;
 
     @Column(name = "plugun_package_id", insertable = false, updatable = false)
-    private int pluginPackageId;
+    private String pluginPackageId;
 
     @Column(name = "resource_item_id")
-    private Integer resourceItemId;
+    private String resourceItemId;
 
     @ManyToOne
     @JoinColumn(name = "resource_item_id", insertable = false, updatable = false)
@@ -47,8 +42,8 @@ public class PluginMysqlInstance {
     public PluginMysqlInstance() {
     }
 
-    public PluginMysqlInstance(String schemaName, Integer resourceItemId, String username, String password,
-            String status, PluginPackage pluginPackage) {
+    public PluginMysqlInstance(String schemaName, String resourceItemId, String username, String password,
+                               String status, PluginPackage pluginPackage) {
         this.schemaName = schemaName;
         this.resourceItemId = resourceItemId;
         this.username = username;
@@ -57,8 +52,15 @@ public class PluginMysqlInstance {
         this.pluginPackage = pluginPackage;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginPackage ? pluginPackage.getName() : null, null != pluginPackage ? pluginPackage.getVersion() : null, schemaName, username);
+        }
     }
 
     public String getSchemaName() {
@@ -77,11 +79,11 @@ public class PluginMysqlInstance {
         return status;
     }
 
-    public Integer getResourceItemId() {
+    public String getResourceItemId() {
         return resourceItemId;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -89,7 +91,7 @@ public class PluginMysqlInstance {
         this.schemaName = schemaName;
     }
 
-    public void setResourceItemId(Integer resourceItemId) {
+    public void setResourceItemId(String resourceItemId) {
         this.resourceItemId = resourceItemId;
     }
 
@@ -113,11 +115,11 @@ public class PluginMysqlInstance {
         this.resourceItem = resourceItem;
     }
 
-    public int getPluginPackageId() {
+    public String getPluginPackageId() {
         return pluginPackageId;
     }
 
-    public void setPluginPackageId(int pluginPackageId) {
+    public void setPluginPackageId(String pluginPackageId) {
         this.pluginPackageId = pluginPackageId;
     }
 

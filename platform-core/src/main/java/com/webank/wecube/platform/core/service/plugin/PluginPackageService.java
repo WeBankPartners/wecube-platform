@@ -214,7 +214,7 @@ public class PluginPackageService {
         return allDistinctPackageNameListOpt.orElseGet(ArrayList::new);
     }
 
-    public PluginPackage registerPluginPackage(int pluginPackageId) {
+    public PluginPackage registerPluginPackage(String pluginPackageId) {
         if (!pluginPackageRepository.existsById(pluginPackageId)) {
             throw new WecubeCoreException(String.format("Plugin package id not found for id [%s]", pluginPackageId));
         }
@@ -234,7 +234,7 @@ public class PluginPackageService {
         return pluginPackageRepository.save(pluginPackage);
     }
 
-    public void decommissionPluginPackage(int pluginPackageId) {
+    public void decommissionPluginPackage(String pluginPackageId) {
         if (!pluginPackageRepository.existsById(pluginPackageId)) {
             throw new WecubeCoreException(String.format("Plugin package id not found for id [%s] ", pluginPackageId));
         }
@@ -329,17 +329,17 @@ public class PluginPackageService {
         this.s3Client = s3Client;
     }
 
-    public PluginPackage getPackageById(Integer packageId) throws WecubeCoreException {
+    public PluginPackage getPackageById(String packageId) throws WecubeCoreException {
         Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
         if (!packageFoundById.isPresent()) {
-            String msg = String.format("Cannot find package by id: [%d]", packageId);
+            String msg = String.format("Cannot find package by id: [%s]", packageId);
             log.error(msg);
             throw new WecubeCoreException(msg);
         }
         return packageFoundById.get();
     }
 
-    public PluginPackageDependencyDto getDependenciesById(Integer packageId) {
+    public PluginPackageDependencyDto getDependenciesById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
 
@@ -352,7 +352,7 @@ public class PluginPackageService {
         return dependencyDto;
     }
 
-    public List<MenuItemDto> getMenusById(Integer packageId) throws WecubeCoreException {
+    public List<MenuItemDto> getMenusById(String packageId) throws WecubeCoreException {
         List<MenuItemDto> returnMenuDto;
 
         // handling core's menus
@@ -386,17 +386,17 @@ public class PluginPackageService {
         return returnMenuDto;
     }
 
-    public Set<SystemVariable> getSystemVarsById(Integer packageId) {
+    public Set<SystemVariable> getSystemVarsById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         return packageFoundById.getSystemVariables();
     }
 
-    public Set<PluginPackageAuthority> getAuthoritiesById(Integer packageId) {
+    public Set<PluginPackageAuthority> getAuthoritiesById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         return packageFoundById.getPluginPackageAuthorities();
     }
 
-    public PluginPackageRuntimeResouceDto getResourcesById(Integer packageId) {
+    public PluginPackageRuntimeResouceDto getResourcesById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageRuntimeResourcesDocker> dockerSet = packageFoundById.getPluginPackageRuntimeResourcesDocker();
         Set<PluginPackageRuntimeResourcesMysql> mysqlSet = packageFoundById.getPluginPackageRuntimeResourcesMysql();
@@ -404,7 +404,7 @@ public class PluginPackageService {
         return (new PluginPackageRuntimeResouceDto(dockerSet, mysqlSet, s3Set));
     }
 
-    public Set<PluginConfig> getPluginsById(Integer packageId) {
+    public Set<PluginConfig> getPluginsById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginConfig> pluginConfigs = packageFoundById.getPluginConfigs();
         // TODO: need to optimize
