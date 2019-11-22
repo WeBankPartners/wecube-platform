@@ -392,14 +392,9 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             expressionDto.getReturnedJson().add(responseDtoList);
         }
 
-        if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null) {
+        if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null && expressionDto.getOpFetch() != null) {
             // final route, which is prev link and fetch
-            String attrName;
-            if (expressionDto.getOpFetch() == null) {
-                attrName = DataModelExpressionParser.FETCH_ALL;
-            } else {
-                attrName = expressionDto.getOpFetch().attr().getText();
-            }
+            String attrName = expressionDto.getOpFetch().attr().getText();
             List<Object> resultValueList = new ArrayList<>();
             for (CommonResponseDto lastRequestResult : lastRequestResultList) {
                 List<Object> fetchDataList = commonResponseToList(lastRequestResult, attrName);

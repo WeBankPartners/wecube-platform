@@ -14,6 +14,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +67,25 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
         List<Object> resultTwo = dataModelExpressionService.fetchData(
                 new DataModelExpressionToRootData("wecmdb:unit.key_name", "0008_0000000003"));
         assert resultTwo.get(0).equals("EDP-CORE_PRD-APP");
+
+        server.verify();
+    }
+
+    @Test
+    public void wecmdbFwdNodeExpressionFetchWithoutLastOpFetchShouldSucceed() {
+        mockFwdNodeExpressionServer(server);
+
+        final int WECMDB_SYSTEM_DESIGN_DATA_COLUMN_LENGTH = 11;
+        List<Object> resultOne = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:system_design", "0001_0000000001"));
+        LinkedHashMap<String, Object> resultOneMap = (LinkedHashMap<String, Object>) resultOne.get(0);
+        assertThat(resultOneMap.size()).isEqualTo(WECMDB_SYSTEM_DESIGN_DATA_COLUMN_LENGTH);
+
+        final int WECMDB_UNIT_DATA_COLUMN_LENGTH = 14;
+        List<Object> resultTwo = dataModelExpressionService.fetchData(
+                new DataModelExpressionToRootData("wecmdb:unit", "0008_0000000003"));
+        LinkedHashMap<String, Object> resultTwoMap = (LinkedHashMap<String, Object>) resultTwo.get(0);
+        assertThat(resultTwoMap.size()).isEqualTo(WECMDB_UNIT_DATA_COLUMN_LENGTH);
 
         server.verify();
     }
