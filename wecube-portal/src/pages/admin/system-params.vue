@@ -283,9 +283,12 @@ export default {
         let payload = {
           defaultValue: addObj.defaultValue,
           name: addObj.name,
+          value: addObj.value,
           pluginPackageId: addObj.pluginPackageId,
           pluginPackageName: addObj.pluginPackageName,
           scopeType: addObj.scopeType,
+          scopeValue: addObj.scopeValue,
+          seqNo: addObj.seqNo,
           status: addObj.status
         };
         const { status, message, data } = await createSystemVariables([
@@ -306,9 +309,12 @@ export default {
             id: _.id,
             defaultValue: _.defaultValue,
             name: _.name,
+            value: _.value,
             pluginPackageId: _.pluginPackageId,
             pluginPackageName: _.pluginPackageName,
             scopeType: _.scopeType,
+            scopeValue: _.scopeValue,
+            seqNo: _.seqNo,
             status: _.status
           };
         });
