@@ -12,28 +12,28 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class PluginConfigDto {
-    private Integer id;
-    private Integer pluginPackageId;
+    private String id;
+    private String pluginPackageId;
     private String name;
-    private Integer entityId;
+    private String entityId;
     private String entityName;
     private String status;
     private List<PluginConfigInterfaceDto> interfaces;
 
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public Integer getPluginPackageId() {
+    public String getPluginPackageId() {
         return pluginPackageId;
     }
 
-    public void setPluginPackageId(Integer pluginPackageId) {
+    public void setPluginPackageId(String pluginPackageId) {
         this.pluginPackageId = pluginPackageId;
     }
 
@@ -45,11 +45,11 @@ public class PluginConfigDto {
         this.name = name;
     }
 
-    public Integer getEntityId() {
+    public String getEntityId() {
         return entityId;
     }
 
-    public void setEntityId(Integer entityId) {
+    public void setEntityId(String entityId) {
         this.entityId = entityId;
     }
 
@@ -80,7 +80,7 @@ public class PluginConfigDto {
     public PluginConfigDto() {
     }
 
-    public PluginConfigDto(Integer id, Integer pluginPackageId, String name, Integer entityId, String entityName, String status, List<PluginConfigInterfaceDto> interfaces) {
+    public PluginConfigDto(String id, String pluginPackageId, String name, String entityId, String entityName, String status, List<PluginConfigInterfaceDto> interfaces) {
         this.id = id;
         this.pluginPackageId = pluginPackageId;
         this.name = name;

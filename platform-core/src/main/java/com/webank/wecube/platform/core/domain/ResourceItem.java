@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
 
 @Data
 @AllArgsConstructor
@@ -29,8 +30,9 @@ import lombok.ToString;
 @Table(name = "resource_item")
 public class ResourceItem {
     @Id
-    @GeneratedValue
-    private Integer id;
+    @GeneratedValue(generator = "resourceItemGenerator")
+    @GenericGenerator(name = "resourceItemGenerator", strategy = "org.hibernate.id.UUIDGenerator")
+    private String id;
 
     @Column(name = "name")
     private String name;
@@ -42,7 +44,7 @@ public class ResourceItem {
     private String additionalProperties;
 
     @Column(name = "resource_server_id")
-    private Integer resourceServerId;
+    private String resourceServerId;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
