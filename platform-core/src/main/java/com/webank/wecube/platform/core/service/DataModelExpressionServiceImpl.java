@@ -38,18 +38,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     private static final String postRequestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
     private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}";
     final String UNIQUE_IDENTIFIER = "id";
-//    private String requestActualUrl = "";
-//    private TreeNode treeNode;
-//    private List<TreeNode> anchorTreeNodeList = new ArrayList<>(); // stands for latest tree's most bottom leaves
-
-
-//    private String getRequestActualUrl() {
-//        return requestActualUrl;
-//    }
-//
-//    private void setRequestActualUrl(String requestActualUrl) {
-//        this.requestActualUrl = requestActualUrl;
-//    }
 
 
     @Override
@@ -590,6 +578,14 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return responseDto;
     }
 
+    /**
+     * Send request then transfer the response to common response dto
+     *
+     * @param httpHeaders http header
+     * @param uriStr      bind and expanded uri string
+     * @return common response dto
+     * @throws IOException exception when sending the request
+     */
     private CommonResponseDto requestThenTransferToCommonResponseDto(HttpHeaders httpHeaders, String uriStr) throws IOException {
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
@@ -679,6 +675,12 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return returnList;
     }
 
+    /**
+     * Flatten tree
+     *
+     * @param treeNode root tree node of a tree
+     * @return flattened tree node list
+     */
     private List<TreeNode> flattenTreeNode(TreeNode treeNode) {
         List<TreeNode> result = new ArrayList<>();
         if (null != treeNode.getChildren() && !treeNode.getChildren().isEmpty()) {
