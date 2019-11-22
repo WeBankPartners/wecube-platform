@@ -2,7 +2,7 @@
   <div>
     <Col span="4" v-for="(menuGroup, index) in menus" :key="menuGroup.id">
       <List size="small">
-        <h4 slot="header">{{ menuGroup.displayName }}</h4>
+        <h6 slot="header">{{ menuGroup.displayName }}</h6>
         <ListItem
           v-for="(menu, index) in menuGroup.children"
           :key="index"
