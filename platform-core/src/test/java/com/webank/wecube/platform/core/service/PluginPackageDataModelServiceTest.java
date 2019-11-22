@@ -4,9 +4,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
@@ -16,16 +14,20 @@ import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
+import org.assertj.core.util.Sets;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static com.webank.wecube.platform.core.jpa.PluginRepositoryIntegrationTest.mockPluginPackage;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
@@ -470,16 +472,16 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     private void mockSimpleDataModel() {
         String sqlStr =
                 "INSERT INTO plugin_packages (id, name, version) VALUES " +
-                        "  (1, 'package_1', '1.0') " +
+                        "  ('1', 'package_1', '1.0') " +
                         ";\n" +
                         "INSERT INTO plugin_package_data_model(id, version, package_name) VALUES " +
-                        "  (1, 1, 'package_1') " +
+                        "  ('1', 1, 'package_1') " +
                         ";\n" +
                         "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
-                        "  (1, 1, 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
+                        "  ('1', '1', 1, 'package_1', 'entity_1', 'entity_1', 'entity_1_description') " +
                         ";\n" +
                         "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
-                        "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        "  ('1', '1', NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
                         ";\n";
         executeSql(sqlStr);
 
@@ -526,4 +528,33 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         return dataModelDto;
     }
 
+    private PluginPackage mockPluginPackage(String name, String version) {
+        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, new Timestamp(System.currentTimeMillis()), false,
+                Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), null, Sets.newLinkedHashSet(),
+                Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
+        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity",
+                PluginConfig.Status.DISABLED, Sets.newLinkedHashSet());
+        mockPlugin.setInterfaces(Sets.newLinkedHashSet(mockPluginConfigInterface(mockPlugin)));
+        mockPluginPackage.addPluginConfig(mockPlugin);
+
+        Long now = System.currentTimeMillis();
+        PluginPackageDataModel mockPluginPackageDataModel = new PluginPackageDataModel(null, 1, mockPluginPackage.getName(), false, null, null, PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name(), now, null);
+        mockPluginPackage.setPluginPackageDataModel(mockPluginPackageDataModel);
+
+        return mockPluginPackage;
+    }
+
+    private PluginConfigInterface mockPluginConfigInterface(PluginConfig pluginConfig) {
+        PluginConfigInterface pluginConfigInterface = new PluginConfigInterface(null, pluginConfig, "create", "'create",
+                "Qcloud_vpc_create", "/v1/qcloud/vpc/create", "POST", Sets.newLinkedHashSet(), Sets.newLinkedHashSet());
+        PluginConfigInterfaceParameter inputParameter = new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_INPUT, "provider_params", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y");
+        PluginConfigInterfaceParameter inputParameter2 = new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_INPUT, "name", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y");
+        pluginConfigInterface.setInputParameters(com.google.common.collect.Sets.newHashSet(inputParameter, inputParameter2));
+        PluginConfigInterfaceParameter outputParameter = new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_OUTPUT, "id", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y");
+        pluginConfigInterface.setOutputParameters(com.google.common.collect.Sets.newHashSet(outputParameter));
+        return pluginConfigInterface;
+    }
 }

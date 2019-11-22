@@ -24,10 +24,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class PluginConfigControllerTest extends AbstractControllerTest {
 
-    public static final int NON_EXIST_ENTITY_ID = 999;
-    public static final int EXISTING_ENTITY_ID = 1;
-    public static final int NON_EXIST_PLUGIN_CONFIG_ID = 999;
-    public static final int PLUGIN_CONFIG_ID_WITHOUT_ENTITY = 99;
+    public static final String NON_EXIST_ENTITY_ID = "999";
+    public static final String EXISTING_ENTITY_ID = "1";
+    public static final String NON_EXIST_PLUGIN_CONFIG_ID = "999";
+    public static final String PLUGIN_CONFIG_ID_WITHOUT_ENTITY = "99";
     @Autowired
     private PluginConfigController pluginConfigController;
     @Autowired
@@ -37,7 +37,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public void givenEntityIdNotExistWhenSaveThenReturnError() {
         mockMultipleVersionPluginConfig();
 
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(31);
+        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById("31");
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
         PluginConfig pluginConfig = pluginConfigOptional.get();
@@ -84,7 +84,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public void givenNormalEntitySetWhenSaveThenReturnSuccess() {
         mockMultipleVersionPluginConfig();
 
-        int existingPluginConfigId = 41;
+        String existingPluginConfigId = "41";
         Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(existingPluginConfigId);
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
@@ -117,7 +117,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public void givenPluginConfigIsEnabledAlreadyWhenSaveThenReturnError() {
         mockMultipleVersionPluginConfig();
 
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(11);
+        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById("11");
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
         PluginConfig pluginConfig = pluginConfigOptional.get();
@@ -140,7 +140,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public void givenPluginConfigIsEnabledAlreadyWheEnableThenReturnError() {
         mockMultipleVersionPluginConfig();
 
-        int enabledPluginConfigId = 12;
+        String enabledPluginConfigId = "12";
         Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(enabledPluginConfigId);
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
@@ -164,7 +164,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public void givenPluginPackageIsUnregisteredWhenEnablePluginConfigThenReturnSuccess() {
         mockMultipleVersionPluginConfig();
 
-        int existingPluginConfigId = 32;
+        String existingPluginConfigId = "32";
         Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(existingPluginConfigId);
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
@@ -189,7 +189,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public void givenNormalEntitySetWhenEnableThenReturnSuccess() {
         mockMultipleVersionPluginConfig();
 
-        int existingPluginConfigId = 33;
+        String existingPluginConfigId = "33";
         Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(existingPluginConfigId);
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
@@ -255,7 +255,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public void givenNormalPluginConfigWhenDisableThenReturnSuccess() {
         mockMultipleVersionPluginConfig();
 
-        int existingPluginConfigId = 31;
+        String existingPluginConfigId = "31";
         Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(existingPluginConfigId);
         assertThat(pluginConfigOptional.isPresent()).isTrue();
 
@@ -324,53 +324,53 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     private void mockMultipleVersionPluginConfig() {
 
         executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  (1, 'servicemanagement', 'v1.0', 'UNREGISTERED')\n" +
-                " ,(2, 'servicemanagement', 'v1.1', 'UNREGISTERED')\n" +
-                " ,(3, 'servicemanagement', 'v1.2', 'UNREGISTERED')\n" +
-                " ,(4, 'servicemanagement', 'v2.0', 'UNREGISTERED')\n" +
-                " ,(5, 'servicemanagement', 'v2.1', 'REGISTERED');\n" +
+                "  ('1', 'servicemanagement', 'v1.0', 'UNREGISTERED')\n" +
+                " ,('2', 'servicemanagement', 'v1.1', 'UNREGISTERED')\n" +
+                " ,('3', 'servicemanagement', 'v1.2', 'UNREGISTERED')\n" +
+                " ,('4', 'servicemanagement', 'v2.0', 'UNREGISTERED')\n" +
+                " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
-                " (11, 1, 'task', 1, 'ENABLED')\n" +
-                ",(12, 5, 'service_request', 2, 'ENABLED')\n" +
-                ",(21, 2, 'Vpc Management', 17, 'DISABLED')\n" +
-                ",(31, 3, 'Vpc Management', 16, 'DISABLED')\n" +
-                ",(32, 4, 'Vpc Management', 16, 'DISABLED')\n" +
-                ",(33, 5, 'Vpc Management', 16, 'DISABLED');\n" +
+                " ('11', '1', 'task', 1, 'ENABLED')\n" +
+                ",('12', '5', 'service_request', 2, 'ENABLED')\n" +
+                ",('21', '2', 'Vpc Management', 17, 'DISABLED')\n" +
+                ",('31', '3', 'Vpc Management', 16, 'DISABLED')\n" +
+                ",('32', '4', 'Vpc Management', 16, 'DISABLED')\n" +
+                ",('33', '5', 'Vpc Management', 16, 'DISABLED');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, status) values\n" +
-                " (41, 3, 'Vpc Management', 'DISABLED')\n" +
-                ",(99, 3, 'Vpc Management', 'DISABLED');\n" +
+                " ('41', '3', 'Vpc Management', 'DISABLED')\n" +
+                ",('99', '3', 'Vpc Management', 'DISABLED');\n" +
                 "\n" +
                 "insert into plugin_config_interfaces (id, plugin_config_id, action, service_name, service_display_name, path, http_method) values " +
-                " (1, 11, 'create', 'service-management/task/create', 'service-management/task/create', '/service-management/tasks', 'POST')" +
-                ",(2, 12, 'update', 'service-management/service_request/update', 'service-management/service_request/update', '/service-management/service-requests/{service-request-id}/done', 'PUT');" +
+                " ('1', '11', 'create', 'service-management/task/create', 'service-management/task/create', '/service-management/tasks', 'POST')" +
+                ",('2', '12', 'update', 'service-management/service_request/update', 'service-management/service_request/update', '/service-management/service-requests/{service-request-id}/done', 'PUT');" +
                 "\n" +
                 "insert into plugin_config_interface_parameters(id, plugin_config_interface_id, type, name, data_type, mapping_type, mapping_entity_expression, mapping_system_variable_id, required) values " +
-                " (1, 1, 'INPUT', 'operatorRoleId', 'string', 'entity', 'name_xxx', null, 'Y') " +
-                ", (2, 1, 'INPUT', 'reporter', 'string', 'context', null, null, 'Y') " +
-                ", (3, 1, 'OUTPUT', 'status', 'string', '', null, null, '') " +
-                ", (4, 1, 'OUTPUT', 'message', 'string', '', null, null, '') " +
-                ", (5, 2, 'INPUT', 'service-request-id', 'string', 'system_variable', null, 1, 'Y') " +
-                ", (6, 2, 'INPUT', 'result', 'string', 'context', null, null, 'Y') " +
-                ", (7, 2, 'OUTPUT', 'status', 'string', '', null, null, '') " +
-                ", (8, 2, 'OUTPUT', 'message', 'string', '', null, null, ''); " +
+                " ('1', '1', 'INPUT', 'operatorRoleId', 'string', 'entity', 'name_xxx', null, 'Y') " +
+                ", ('2', '1', 'INPUT', 'reporter', 'string', 'context', null, null, 'Y') " +
+                ", ('3', '1', 'OUTPUT', 'status', 'string', '', null, null, '') " +
+                ", ('4', '1', 'OUTPUT', 'message', 'string', '', null, null, '') " +
+                ", ('5', '2', 'INPUT', 'service-request-id', 'string', 'system_variable', null, 1, 'Y') " +
+                ", ('6', '2', 'INPUT', 'result', 'string', 'context', null, null, 'Y') " +
+                ", ('7', '2', 'OUTPUT', 'status', 'string', '', null, null, '') " +
+                ", ('8', '2', 'OUTPUT', 'message', 'string', '', null, null, ''); " +
                 "INSERT INTO plugin_package_data_model(id, version, package_name) VALUES " +
-                "  (1, 1, 'servicemanagement') " +
-                ", (2, 2, 'servicemanagement') " +
+                "  ('1', 1, 'servicemanagement') " +
+                ", ('2', 2, 'servicemanagement') " +
                 ";\n" +
                 "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
-                " (1, 2, 2, 'servicemanagement', 'entity_1', 'entity_1', 'entity_1_description')\n" +
-                ",(2, 2, 2, 'servicemanagement', 'entity_2', 'entity_2', 'entity_2_description')\n" +
-                ",(3, 2, 2, 'servicemanagement', 'entity_3', 'entity_3', 'entity_3_description');\n" +
+                " ('1', '2', 2, 'servicemanagement', 'entity_1', 'entity_1', 'entity_1_description')\n" +
+                ",('2', '2', 2, 'servicemanagement', 'entity_2', 'entity_2', 'entity_2_description')\n" +
+                ",('3', '2', 2, 'servicemanagement', 'entity_3', 'entity_3', 'entity_3_description');\n" +
                 "\n" +
-                "INSERT INTO plugin_package_attributes(entity_id, reference_id, name, description, data_type) VALUES\n" +
-                " (1, NULL, 'attribute_1', 'attribute_1_description', 'INT')\n" +
-                " ,(1, NULL, 'attribute_2', 'attribute_2_description', 'INT')\n" +
-                " ,(1, 1, 'attribute_3', 'attribute_3_description', 'INT')\n" +
-                " ,(1, 1, 'attribute_4', 'attribute_4_description', 'REF')\n" +
-                " ,(2, 2, 'attribute_5', 'attribute_5_description', 'REF')\n" +
-                " ,(3, NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
+                "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES\n" +
+                " ('1', '1', NULL, 'attribute_1', 'attribute_1_description', 'INT')\n" +
+                " ,('2', '1', NULL, 'attribute_2', 'attribute_2_description', 'INT')\n" +
+                " ,('3', '1', '1', 'attribute_3', 'attribute_3_description', 'INT')\n" +
+                " ,('4', '1', '1', 'attribute_4', 'attribute_4_description', 'REF')\n" +
+                " ,('5', '2', '2', 'attribute_5', 'attribute_5_description', 'REF')\n" +
+                " ,('6', '3', NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
                 ";");
     }
 }
