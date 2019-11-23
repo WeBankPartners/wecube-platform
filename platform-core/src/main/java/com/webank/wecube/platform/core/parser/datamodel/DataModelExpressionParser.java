@@ -21,6 +21,29 @@ public class DataModelExpressionParser {
     }
 
     public Queue<DataModelExpressionDto> parse(String expression) {
+
+        Queue<DataModelExpressionDto> expressionQueue = checkExpressionSyntax(expression);
+
+        // check if the expressionQueue ends with opFetch, if not add FETCH_ALL;
+        List<DataModelExpressionDto> expressionDtoList = new ArrayList<>(expressionQueue);
+        if (null == expressionDtoList.get(expressionDtoList.size() - 1).getOpFetch()) {
+            expression = expression + "." + DataModelExpressionParser.FETCH_ALL;
+            expressionQueue = checkExpressionSyntax(expression);
+        }
+
+        // check if the parser reach to the end of expression
+        expressionDtoList = new ArrayList<>(expressionQueue);
+        String lastAttrName = expressionDtoList.get(expressionDtoList.size() - 1).getOpFetch().attr().getText();
+        Iterable<String> split = Splitter.on('.').split(expression);
+        String expressionLastAttrName = Iterables.getLast(split);
+        if (!expressionLastAttrName.equals(lastAttrName)) {
+            String msg = "The parser cannot reach to the end of the input expression, please verify your expression is valid or not.";
+            throw new WecubeCoreException(msg);
+        }
+        return expressionQueue;
+    }
+
+    private Queue<DataModelExpressionDto> checkExpressionSyntax(String expression) {
         CharStream inputStream = CharStreams.fromString(expression);
         DataModelLexer dataModelLexer = new DataModelLexer(inputStream);
         CommonTokenStream tokens = new CommonTokenStream(dataModelLexer);
@@ -35,18 +58,7 @@ public class DataModelExpressionParser {
         ParseTreeWalker walker = new ParseTreeWalker();
         DataModelExpressionListener evalByListener = new DataModelExpressionListener();
         walker.walk(evalByListener, tree);
-        Queue<DataModelExpressionDto> expressionQueue = evalByListener.getExpressionQueue();
-
-        // check if the parser reach to the end of expression
-        List<DataModelExpressionDto> expressionDtoList = new ArrayList<>(expressionQueue);
-        String lastAttrName = expressionDtoList.get(expressionDtoList.size() - 1).getOpFetch().attr().getText();
-        Iterable<String> split = Splitter.on('.').split(expression);
-        String expressionLastAttrName = Iterables.getLast(split);
-        if (!expressionLastAttrName.equals(lastAttrName)) {
-            String msg = "The parser cannot reach to the end of the input expression, please verify your expression is valid or not.";
-            throw new WecubeCoreException(msg);
-        }
-        return expressionQueue;
+        return evalByListener.getExpressionQueue();
     }
 
 }
