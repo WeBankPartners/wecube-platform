@@ -45,7 +45,11 @@ export default {
         return;
       }
       let currentLangKey = localStorage.getItem("lang") || navigator.language;
-      const menuObj = MENUS.find(m => m.link === this.$route.path);
+      const menuObj = window.myMenus
+        ? []
+            .concat(...window.myMenus.map(_ => _.submenus))
+            .find(m => m.link === this.$route.path)
+        : MENUS.find(m => m.link === this.$route.path);
       if (menuObj) {
         this.allMenusAry.forEach(_ => {
           _.submenus.forEach(sub => {
@@ -55,8 +59,7 @@ export default {
             }
           });
         });
-        this.childBreadcrumb =
-          currentLangKey === "zh-CN" ? menuObj.cnName : menuObj.enName;
+        this.childBreadcrumb = menuObj.title;
       } else {
         this.parentBreadcrumb = "-";
         this.childBreadcrumb = this.$route.path.substr(1);
