@@ -27,26 +27,26 @@ public class DataModelParser extends Parser {
     @Deprecated
     public static final String[] tokenNames;
     public static final String _serializedATN =
-            "\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\rT\4\2\t\2\4\3\t" +
+            "\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\rV\4\2\t\2\4\3\t" +
                     "\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4" +
-                    "\f\t\f\3\2\3\2\3\2\3\2\3\2\3\2\5\2\37\n\2\3\3\3\3\3\3\3\3\3\3\3\3\3\3" +
-                    "\3\3\3\3\5\3*\n\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\7\3\65\n\3\f\3\16" +
-                    "\38\13\3\3\4\3\4\3\4\3\5\3\5\3\6\3\6\3\7\3\7\3\7\3\7\3\b\3\b\3\b\3\b\3" +
-                    "\b\3\t\3\t\3\t\3\t\3\n\3\n\3\13\3\13\3\f\3\f\3\f\2\3\4\r\2\4\6\b\n\f\16" +
-                    "\20\22\24\26\2\3\3\2\n\13\2L\2\36\3\2\2\2\4)\3\2\2\2\69\3\2\2\2\b<\3\2" +
-                    "\2\2\n>\3\2\2\2\f@\3\2\2\2\16D\3\2\2\2\20I\3\2\2\2\22M\3\2\2\2\24O\3\2" +
-                    "\2\2\26Q\3\2\2\2\30\31\5\4\3\2\31\32\5\6\4\2\32\37\3\2\2\2\33\34\5\20" +
-                    "\t\2\34\35\5\6\4\2\35\37\3\2\2\2\36\30\3\2\2\2\36\33\3\2\2\2\37\3\3\2" +
-                    "\2\2 !\b\3\1\2!\"\5\20\t\2\"#\5\n\6\2#$\5\16\b\2$*\3\2\2\2%&\5\f\7\2&" +
-                    "\'\5\b\5\2\'(\5\20\t\2(*\3\2\2\2) \3\2\2\2)%\3\2\2\2*\66\3\2\2\2+,\f\4" +
-                    "\2\2,-\5\6\4\2-.\5\b\5\2./\5\20\t\2/\65\3\2\2\2\60\61\f\3\2\2\61\62\5" +
-                    "\n\6\2\62\63\5\16\b\2\63\65\3\2\2\2\64+\3\2\2\2\64\60\3\2\2\2\658\3\2" +
-                    "\2\2\66\64\3\2\2\2\66\67\3\2\2\2\67\5\3\2\2\28\66\3\2\2\29:\7\5\2\2:;" +
-                    "\5\26\f\2;\7\3\2\2\2<=\7\4\2\2=\t\3\2\2\2>?\7\3\2\2?\13\3\2\2\2@A\5\20" +
-                    "\t\2AB\7\5\2\2BC\5\26\f\2C\r\3\2\2\2DE\7\6\2\2EF\5\26\f\2FG\7\7\2\2GH" +
-                    "\5\20\t\2H\17\3\2\2\2IJ\5\22\n\2JK\7\t\2\2KL\5\24\13\2L\21\3\2\2\2MN\t" +
-                    "\2\2\2N\23\3\2\2\2OP\7\13\2\2P\25\3\2\2\2QR\7\13\2\2R\27\3\2\2\2\6\36" +
-                    ")\64\66";
+                    "\f\t\f\3\2\3\2\3\2\3\2\3\2\3\2\3\2\3\2\5\2!\n\2\3\3\3\3\3\3\3\3\3\3\3" +
+                    "\3\3\3\3\3\3\3\5\3,\n\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\3\7\3\67\n\3" +
+                    "\f\3\16\3:\13\3\3\4\3\4\3\4\3\5\3\5\3\6\3\6\3\7\3\7\3\7\3\7\3\b\3\b\3" +
+                    "\b\3\b\3\b\3\t\3\t\3\t\3\t\3\n\3\n\3\13\3\13\3\f\3\f\3\f\2\3\4\r\2\4\6" +
+                    "\b\n\f\16\20\22\24\26\2\3\3\2\n\13\2P\2 \3\2\2\2\4+\3\2\2\2\6;\3\2\2\2" +
+                    "\b>\3\2\2\2\n@\3\2\2\2\fB\3\2\2\2\16F\3\2\2\2\20K\3\2\2\2\22O\3\2\2\2" +
+                    "\24Q\3\2\2\2\26S\3\2\2\2\30\31\5\4\3\2\31\32\5\6\4\2\32!\3\2\2\2\33\34" +
+                    "\5\20\t\2\34\35\5\6\4\2\35!\3\2\2\2\36!\5\4\3\2\37!\5\20\t\2 \30\3\2\2" +
+                    "\2 \33\3\2\2\2 \36\3\2\2\2 \37\3\2\2\2!\3\3\2\2\2\"#\b\3\1\2#$\5\20\t" +
+                    "\2$%\5\n\6\2%&\5\16\b\2&,\3\2\2\2\'(\5\f\7\2()\5\b\5\2)*\5\20\t\2*,\3" +
+                    "\2\2\2+\"\3\2\2\2+\'\3\2\2\2,8\3\2\2\2-.\f\4\2\2./\5\6\4\2/\60\5\b\5\2" +
+                    "\60\61\5\20\t\2\61\67\3\2\2\2\62\63\f\3\2\2\63\64\5\n\6\2\64\65\5\16\b" +
+                    "\2\65\67\3\2\2\2\66-\3\2\2\2\66\62\3\2\2\2\67:\3\2\2\28\66\3\2\2\289\3" +
+                    "\2\2\29\5\3\2\2\2:8\3\2\2\2;<\7\5\2\2<=\5\26\f\2=\7\3\2\2\2>?\7\4\2\2" +
+                    "?\t\3\2\2\2@A\7\3\2\2A\13\3\2\2\2BC\5\20\t\2CD\7\5\2\2DE\5\26\f\2E\r\3" +
+                    "\2\2\2FG\7\6\2\2GH\5\26\f\2HI\7\7\2\2IJ\5\20\t\2J\17\3\2\2\2KL\5\22\n" +
+                    "\2LM\7\t\2\2MN\5\24\13\2N\21\3\2\2\2OP\t\2\2\2P\23\3\2\2\2QR\7\13\2\2" +
+                    "R\25\3\2\2\2ST\7\13\2\2T\27\3\2\2\2\6 +\668";
     public static final ATN _ATN =
             new ATNDeserializer().deserialize(_serializedATN.toCharArray());
     protected static final DFA[] _decisionToDFA;
@@ -142,7 +142,7 @@ public class DataModelParser extends Parser {
         RouteContext _localctx = new RouteContext(_ctx, getState());
         enterRule(_localctx, 0, RULE_route);
         try {
-            setState(28);
+            setState(30);
             _errHandler.sync(this);
             switch (getInterpreter().adaptivePredict(_input, 0, _ctx)) {
                 case 1:
@@ -161,6 +161,20 @@ public class DataModelParser extends Parser {
                     entity();
                     setState(26);
                     fetch();
+                }
+                break;
+                case 3:
+                    enterOuterAlt(_localctx, 3);
+                {
+                    setState(28);
+                    link(0);
+                }
+                break;
+                case 4:
+                    enterOuterAlt(_localctx, 4);
+                {
+                    setState(29);
+                    entity();
                 }
                 break;
             }
@@ -189,30 +203,30 @@ public class DataModelParser extends Parser {
             int _alt;
             enterOuterAlt(_localctx, 1);
             {
-                setState(39);
+                setState(41);
                 _errHandler.sync(this);
                 switch (getInterpreter().adaptivePredict(_input, 1, _ctx)) {
                     case 1: {
-                        setState(31);
-                        entity();
-                        setState(32);
-                        by();
                         setState(33);
+                        entity();
+                        setState(34);
+                        by();
+                        setState(35);
                         bwd_node();
                     }
                     break;
                     case 2: {
-                        setState(35);
-                        fwd_node();
-                        setState(36);
-                        to();
                         setState(37);
+                        fwd_node();
+                        setState(38);
+                        to();
+                        setState(39);
                         entity();
                     }
                     break;
                 }
                 _ctx.stop = _input.LT(-1);
-                setState(52);
+                setState(54);
                 _errHandler.sync(this);
                 _alt = getInterpreter().adaptivePredict(_input, 3, _ctx);
                 while (_alt != 2 && _alt != org.antlr.v4.runtime.atn.ATN.INVALID_ALT_NUMBER) {
@@ -220,39 +234,39 @@ public class DataModelParser extends Parser {
                         if (_parseListeners != null) triggerExitRuleEvent();
                         _prevctx = _localctx;
                         {
-                            setState(50);
+                            setState(52);
                             _errHandler.sync(this);
                             switch (getInterpreter().adaptivePredict(_input, 2, _ctx)) {
                                 case 1: {
                                     _localctx = new LinkContext(_parentctx, _parentState);
                                     pushNewRecursionContext(_localctx, _startState, RULE_link);
-                                    setState(41);
+                                    setState(43);
                                     if (!(precpred(_ctx, 2)))
                                         throw new FailedPredicateException(this, "precpred(_ctx, 2)");
-                                    setState(42);
-                                    fetch();
-                                    setState(43);
-                                    to();
                                     setState(44);
+                                    fetch();
+                                    setState(45);
+                                    to();
+                                    setState(46);
                                     entity();
                                 }
                                 break;
                                 case 2: {
                                     _localctx = new LinkContext(_parentctx, _parentState);
                                     pushNewRecursionContext(_localctx, _startState, RULE_link);
-                                    setState(46);
+                                    setState(48);
                                     if (!(precpred(_ctx, 1)))
                                         throw new FailedPredicateException(this, "precpred(_ctx, 1)");
-                                    setState(47);
+                                    setState(49);
                                     by();
-                                    setState(48);
+                                    setState(50);
                                     bwd_node();
                                 }
                                 break;
                             }
                         }
                     }
-                    setState(54);
+                    setState(56);
                     _errHandler.sync(this);
                     _alt = getInterpreter().adaptivePredict(_input, 3, _ctx);
                 }
@@ -273,9 +287,9 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(55);
+                setState(57);
                 match(DOT);
-                setState(56);
+                setState(58);
                 attr();
             }
         } catch (RecognitionException re) {
@@ -294,7 +308,7 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(58);
+                setState(60);
                 match(GT);
             }
         } catch (RecognitionException re) {
@@ -313,7 +327,7 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(60);
+                setState(62);
                 match(TILDE);
             }
         } catch (RecognitionException re) {
@@ -332,11 +346,11 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(62);
-                entity();
-                setState(63);
-                match(DOT);
                 setState(64);
+                entity();
+                setState(65);
+                match(DOT);
+                setState(66);
                 attr();
             }
         } catch (RecognitionException re) {
@@ -355,13 +369,13 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(66);
-                match(LP);
-                setState(67);
-                attr();
                 setState(68);
-                match(RP);
+                match(LP);
                 setState(69);
+                attr();
+                setState(70);
+                match(RP);
+                setState(71);
                 entity();
             }
         } catch (RecognitionException re) {
@@ -380,11 +394,11 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(71);
-                pkg();
-                setState(72);
-                match(SC);
                 setState(73);
+                pkg();
+                setState(74);
+                match(SC);
+                setState(75);
                 ety();
             }
         } catch (RecognitionException re) {
@@ -404,7 +418,7 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(75);
+                setState(77);
                 _la = _input.LA(1);
                 if (!(_la == DQM || _la == ID)) {
                     _errHandler.recoverInline(this);
@@ -430,7 +444,7 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(77);
+                setState(79);
                 match(ID);
             }
         } catch (RecognitionException re) {
@@ -449,7 +463,7 @@ public class DataModelParser extends Parser {
         try {
             enterOuterAlt(_localctx, 1);
             {
-                setState(79);
+                setState(81);
                 match(ID);
             }
         } catch (RecognitionException re) {
