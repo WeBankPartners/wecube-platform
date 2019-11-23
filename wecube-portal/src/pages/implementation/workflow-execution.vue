@@ -267,7 +267,8 @@ export default {
         deployed: "#7F8A96",
         InProgress: "#3C83F8",
         Faulted: "#FF6262",
-        Timeouted: "#F7B500"
+        Timeouted: "#F7B500",
+        NotStarted: "#7F8A96"
       };
       let nodes =
         this.flowData &&
@@ -381,18 +382,18 @@ export default {
       const found = this.allFlowInstances.find(
         _ => _.procInstKey === this.selectedFlowInstance
       );
-      let interval = null;
+      let timer = null;
 
       function start() {
-        if (interval != null) {
-          clearInterval(interval);
-          interval = null;
+        if (timer != null) {
+          clearInterval(timer);
+          timer = null;
         }
-        interval = setInterval(getStatus, 5000);
+        timer = setInterval(getStatus(), 5000);
       }
       function stop() {
-        clearInterval(interval);
-        interval = null;
+        clearInterval(timer);
+        timer = null;
       }
       const getStatus = async () => {
         let { status, data, message } = await getProcessInstance(
