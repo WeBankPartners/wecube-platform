@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.utils;
 
+import com.webank.wecube.platform.core.commons.HttpRequestErrorHandler;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,6 +28,7 @@ public class RestTemplateUtils {
         HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
 
         // send request and exchange the response to target class
+        restTemplate.setErrorHandler(new HttpRequestErrorHandler());
         return restTemplate.exchange(requestUri, method, requestEntity, String.class);
     }
 
