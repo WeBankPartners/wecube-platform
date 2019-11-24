@@ -50,7 +50,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     @Override
-    public List<Object> targetEntityQuery(String packageName, String entityName) {
+    public List<Object> retrieveEntity(String packageName, String entityName) {
         Map<String, Object> getAllUrlParamMap = generateGetAllParamMap(this.applicationProperties.getGatewayUrl(), packageName, entityName);
         CommonResponseDto request = getRequest(requestAllUrl, getAllUrlParamMap);
         return commonResponseToList(request, DataModelExpressionParser.FETCH_ALL);
@@ -107,6 +107,21 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         ChainRequestDto chainRequestDto = new ChainRequestDto(expressionToRootData);
         chainRequest(chainRequestDto);
         return this.flattenTreeNode(chainRequestDto.getTreeNode());
+    }
+
+    @Override
+    public List<Map<String, Object>> createEntity(String packageName, String entityName, List<Map<String, Object>> request) {
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Object>> updateEntity(String packageName, String entityName, List<Map<String, Object>> request) {
+        return null;
+    }
+
+    @Override
+    public void deleteEntity(String packageName, String entityName, List<Map<String, Object>> request) {
+
     }
 
     /**
@@ -685,9 +700,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     private List<TreeNode> flattenTreeNode(TreeNode treeNode) {
         List<TreeNode> result = new ArrayList<>();
         if (null != treeNode.getChildren() && !treeNode.getChildren().isEmpty()) {
-            Objects.requireNonNull(treeNode.getChildren()).forEach(childNode -> {
-                result.addAll(flattenTreeNode(childNode));
-            });
+            Objects.requireNonNull(treeNode.getChildren()).forEach(childNode -> result.addAll(flattenTreeNode(childNode)));
         }
         result.add(treeNode);
         return result;
