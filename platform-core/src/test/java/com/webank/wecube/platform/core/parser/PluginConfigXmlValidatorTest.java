@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.Assert.assertTrue;
 
 public class PluginConfigXmlValidatorTest {
     private PluginConfigXmlValidator validator;
@@ -113,4 +114,15 @@ public class PluginConfigXmlValidatorTest {
             assertThat(ex.getMessage()).contains("'{docker}'");
         }
     }
+
+    @Test
+    public void parsePluginPackageWithIsAsyncProcessingShouldSuccess() {
+        try {
+            validator.validate("/plugin/sample-plugin-config-v2-with-async-processing-interface.xml");
+            assertTrue(true);
+        } catch (WecubeCoreException e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
 }
