@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="wecube_app">
     <transition name="fade" mode="out-in">
       <router-view class="pages" :key="$route.name"></router-view>
     </transition>
@@ -18,7 +18,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-#app {
+#wecube_app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
