@@ -13,10 +13,8 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -169,7 +167,7 @@ public class DataModelExpressionServiceTest extends BaseSpringBootTest {
     @Test
     public void wecmdbFwdNodeExpressionWriteBackShouldSucceed() {
         mockFwdNodeExpressionWriteBackServer(server);
-        final Map<String, Object> WRITE_BACK_DATA = Collections.singletonMap("code", "Test");
+        final Object WRITE_BACK_DATA = "Test";
         DataModelExpressionToRootData expressionToRootData = new DataModelExpressionToRootData("wecmdb:system_design.code", "0001_0000000001");
         dataModelExpressionService.writeBackData(
                 expressionToRootData, WRITE_BACK_DATA);

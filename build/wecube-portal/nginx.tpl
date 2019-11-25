@@ -41,6 +41,9 @@ http {
 	location /wecube-monitor {
 		proxy_pass http://core;
 	}
+        location /weartifacts {
+		proxy_pass http://core;
+	}
    }
 }
 

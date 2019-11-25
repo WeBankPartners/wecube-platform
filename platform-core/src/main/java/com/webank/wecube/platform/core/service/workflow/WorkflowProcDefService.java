@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
-import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
@@ -31,7 +27,6 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
-import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcDefOutline;
 import com.webank.wecube.platform.workflow.model.ProcFlowNode;
@@ -51,10 +46,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     private TaskNodeParamRepository taskNodeParamRepo;
 
     @Autowired
-    private WorkflowEngineService workflowService;
-
-    @Autowired
-    private PluginConfigService pluginConfigService;
+    private WorkflowEngineService workflowEngineService;
 
     public void removeProcessDefinition(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
@@ -95,46 +87,6 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         }
         
         processDefInfoRepo.delete(procDef);
-    }
-
-    public List<InterfaceParameterDto> getTaskNodeParameters(String procDefId, String nodeDefId) {
-        List<InterfaceParameterDto> result = new ArrayList<>();
-        Optional<TaskNodeDefInfoEntity> entityOptional = taskNodeDefInfoRepo.findById(nodeDefId);
-        if (!entityOptional.isPresent()) {
-            return result;
-        }
-
-        TaskNodeDefInfoEntity e = entityOptional.get();
-        String serviceId = e.getServiceId();
-
-        if (StringUtils.isBlank(serviceId)) {
-            log.debug("service id is present for {}", nodeDefId);
-            return result;
-        }
-
-        PluginConfigInterface pci = pluginConfigService.getPluginConfigInterfaceByServiceName(serviceId);
-        Set<PluginConfigInterfaceParameter> inputParameters = pci.getInputParameters();
-        Set<PluginConfigInterfaceParameter> outputParameters = pci.getOutputParameters();
-
-        inputParameters.forEach(p -> {
-            InterfaceParameterDto d = new InterfaceParameterDto();
-            d.setType(p.getType());
-            d.setName(p.getName());
-            d.setDataType(p.getDataType());
-
-            result.add(d);
-        });
-
-        outputParameters.forEach(p -> {
-            InterfaceParameterDto d = new InterfaceParameterDto();
-            d.setType(p.getType());
-            d.setName(p.getName());
-            d.setDataType(p.getDataType());
-
-            result.add(d);
-        });
-
-        return result;
     }
 
     public List<TaskNodeDefBriefDto> getTaskNodeBriefs(String procDefId) {
@@ -189,29 +141,35 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDefEntity.getId());
 
         for (TaskNodeDefInfoEntity nodeEntity : nodeEntities) {
-            FlowNodeDefDto fDto = new FlowNodeDefDto();
-            fDto.setProcDefId(nodeEntity.getProcDefId());
-            fDto.setProcDefKey(nodeEntity.getProcDefKey());
-            fDto.setNodeId(nodeEntity.getNodeId());
-            fDto.setNodeName(nodeEntity.getNodeName());
-            fDto.setNodeType(nodeEntity.getNodeType());
-
-            fDto.setNodeDefId(nodeEntity.getId());
-            fDto.setStatus(nodeEntity.getStatus());
-            fDto.setOrderedNo(nodeEntity.getOrderedNo());
-            fDto.setRoutineExpression(nodeEntity.getRoutineExpression());
-
-            List<String> previousNodeIds = unmarshalNodeIds(nodeEntity.getPreviousNodeIds());
-            previousNodeIds.forEach(n -> fDto.addPreviousNodeIds(n));
-
-            List<String> succeedingNodeIds = unmarshalNodeIds(nodeEntity.getSucceedingNodeIds());
-
-            succeedingNodeIds.forEach(n -> fDto.addSucceedingNodeIds(n));
+            FlowNodeDefDto fDto = flowNodeDefDtoFromEntity(nodeEntity);
 
             result.addFlowNodes(fDto);
         }
 
         return result;
+    }
+    
+    private FlowNodeDefDto flowNodeDefDtoFromEntity(TaskNodeDefInfoEntity nodeEntity){
+        FlowNodeDefDto fDto = new FlowNodeDefDto();
+        fDto.setProcDefId(nodeEntity.getProcDefId());
+        fDto.setProcDefKey(nodeEntity.getProcDefKey());
+        fDto.setNodeId(nodeEntity.getNodeId());
+        fDto.setNodeName(nodeEntity.getNodeName());
+        fDto.setNodeType(nodeEntity.getNodeType());
+
+        fDto.setNodeDefId(nodeEntity.getId());
+        fDto.setStatus(nodeEntity.getStatus());
+        fDto.setOrderedNo(nodeEntity.getOrderedNo());
+        fDto.setRoutineExpression(nodeEntity.getRoutineExpression());
+
+        List<String> previousNodeIds = unmarshalNodeIds(nodeEntity.getPreviousNodeIds());
+        previousNodeIds.forEach(n -> fDto.addPreviousNodeIds(n));
+
+        List<String> succeedingNodeIds = unmarshalNodeIds(nodeEntity.getSucceedingNodeIds());
+
+        succeedingNodeIds.forEach(n -> fDto.addSucceedingNodeIds(n));
+        
+        return fDto;
     }
 
     public ProcDefInfoDto getProcessDefinition(String id) {
@@ -223,44 +181,18 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         ProcDefInfoEntity procDefEntity = procDefEntityOptional.get();
 
-        ProcDefInfoDto result = new ProcDefInfoDto();
-        result.setProcDefId(procDefEntity.getId());
-        result.setProcDefKey(procDefEntity.getProcDefKey());
-        result.setProcDefName(procDefEntity.getProcDefName());
-        result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVersion()));
-        result.setRootEntity(procDefEntity.getRootEntity());
-        result.setStatus(procDefEntity.getStatus());
+        ProcDefInfoDto result = procDefInfoDtoFromEntity(procDefEntity);
         result.setProcDefData(procDefEntity.getProcDefData());
 
         List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.findAllByProcDefId(id);
         for (TaskNodeDefInfoEntity e : taskNodeDefEntities) {
-            TaskNodeDefInfoDto tdto = new TaskNodeDefInfoDto();
-            tdto.setDescription(e.getDescription());
-            tdto.setNodeDefId(e.getId());
-            tdto.setNodeId(e.getNodeId());
-            tdto.setNodeName(e.getNodeName());
-            tdto.setNodeType(e.getNodeType());
-            tdto.setOrderedNo(e.getOrderedNo());
-            tdto.setProcDefKey(e.getProcDefKey());
-            tdto.setProcDefId(e.getProcDefId());
-            tdto.setRoutineExpression(e.getRoutineExpression());
-            tdto.setRoutineRaw(e.getRoutineRaw());
-            tdto.setServiceId(e.getServiceId());
-            tdto.setServiceName(e.getServiceName());
-            tdto.setStatus(e.getStatus());
-            tdto.setTimeoutExpression(e.getTimeoutExpression());
+            TaskNodeDefInfoDto tdto = taskNodeDefInfoDtoFromEntity(e);
 
             List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo.findAllByProcDefIdAndTaskNodeDefId(id,
                     e.getId());
 
             for (TaskNodeParamEntity tnpe : taskNodeParamEntities) {
-                TaskNodeDefParamDto pdto = new TaskNodeDefParamDto();
-                pdto.setId(tnpe.getId());
-                pdto.setNodeId(tnpe.getNodeId());
-                pdto.setParamName(tnpe.getParamName());
-                pdto.setBindNodeId(tnpe.getBindNodeId());
-                pdto.setBindParamName(tnpe.getBindParamName());
-                pdto.setBindParamType(tnpe.getBindParamType());
+                TaskNodeDefParamDto pdto = taskNodeDefParamDtoFromEntity(tnpe);
 
                 tdto.addParamInfos(pdto);
             }
@@ -269,6 +201,52 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         }
 
         return result;
+    }
+    
+    private ProcDefInfoDto procDefInfoDtoFromEntity(ProcDefInfoEntity procDefEntity){
+        ProcDefInfoDto result = new ProcDefInfoDto();
+        result.setProcDefId(procDefEntity.getId());
+        result.setProcDefKey(procDefEntity.getProcDefKey());
+        result.setProcDefName(procDefEntity.getProcDefName());
+        result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVersion()));
+        result.setRootEntity(procDefEntity.getRootEntity());
+        result.setStatus(procDefEntity.getStatus());
+//        result.setProcDefData(procDefEntity.getProcDefData());
+        result.setCreatedTime(formatDate(procDefEntity.getCreatedTime()));
+        
+        return result;
+    }
+    
+    private TaskNodeDefInfoDto taskNodeDefInfoDtoFromEntity(TaskNodeDefInfoEntity e){
+        TaskNodeDefInfoDto tdto = new TaskNodeDefInfoDto();
+        tdto.setDescription(e.getDescription());
+        tdto.setNodeDefId(e.getId());
+        tdto.setNodeId(e.getNodeId());
+        tdto.setNodeName(e.getNodeName());
+        tdto.setNodeType(e.getNodeType());
+        tdto.setOrderedNo(e.getOrderedNo());
+        tdto.setProcDefKey(e.getProcDefKey());
+        tdto.setProcDefId(e.getProcDefId());
+        tdto.setRoutineExpression(e.getRoutineExpression());
+        tdto.setRoutineRaw(e.getRoutineRaw());
+        tdto.setServiceId(e.getServiceId());
+        tdto.setServiceName(e.getServiceName());
+        tdto.setStatus(e.getStatus());
+        tdto.setTimeoutExpression(e.getTimeoutExpression());
+        
+        return tdto;
+    }
+    
+    private TaskNodeDefParamDto taskNodeDefParamDtoFromEntity(TaskNodeParamEntity tnpe){
+        TaskNodeDefParamDto pdto = new TaskNodeDefParamDto();
+        pdto.setId(tnpe.getId());
+        pdto.setNodeId(tnpe.getNodeId());
+        pdto.setParamName(tnpe.getParamName());
+        pdto.setBindNodeId(tnpe.getBindNodeId());
+        pdto.setBindParamName(tnpe.getBindParamName());
+        pdto.setBindParamType(tnpe.getBindParamType());
+        
+        return pdto;
     }
 
     public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef) {
@@ -286,16 +264,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         List<ProcDefInfoDto> procDefInfoDtos = new ArrayList<>();
         procDefEntities.forEach(e -> {
-            ProcDefInfoDto dto = new ProcDefInfoDto();
-            dto.setProcDefId(e.getId());
-            dto.setProcDefKey(e.getProcDefKey());
-            dto.setProcDefName(e.getProcDefName());
-            dto.setProcDefVersion(String.valueOf(e.getProcDefVersion()));
-            dto.setRootEntity(e.getRootEntity());
-            dto.setStatus(e.getStatus());
-
-            dto.setCreatedTime(formatDate(e.getCreatedTime()));
-
+            ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
             procDefInfoDtos.add(dto);
 
         });
@@ -335,7 +304,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         ProcDefInfoDto procDefResult = new ProcDefInfoDto();
         procDefResult.setProcDefId(draftEntity.getId());
-        procDefResult.setProcDefData(procDefDto.getProcDefData());
+        procDefResult.setProcDefData(draftEntity.getProcDefData());
         procDefResult.setProcDefKey(draftEntity.getProcDefKey());
         procDefResult.setProcDefName(draftEntity.getProcDefName());
         procDefResult.setRootEntity(draftEntity.getRootEntity());
@@ -492,7 +461,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         ProcessDefinition procDef = null;
         boolean deployFailed = false;
         try {
-            procDef = workflowService.deployProcessDefinition(procDefInfoDto);
+            procDef = workflowEngineService.deployProcessDefinition(procDefInfoDto);
         } catch (BpmnCustomizationException e) {
             log.error("failed to deploy process definition,msg={}", e.getMessage());
             deployFailed = true;
@@ -507,7 +476,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
             purgeProcessDefInfoEntity(draftProcDefEntity);
         }
 
-        ProcDefOutline procDefOutline = workflowService.getProcDefOutline(procDef);
+        ProcDefOutline procDefOutline = workflowEngineService.getProcDefOutline(procDef);
 
         return postDeployProcessDefinition(procDefEntity, procDef, procDefOutline);
 

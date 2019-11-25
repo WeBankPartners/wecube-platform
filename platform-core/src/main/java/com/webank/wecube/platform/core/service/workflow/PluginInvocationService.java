@@ -795,11 +795,53 @@ public class PluginInvocationService {
 
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
-
+        
         // TODO
         // Scenario 4: if output not needed and no need to write back to
         // entities
         // scenario 5: write back to entities if output configured
+        
+        PluginConfigInterface pci = ctx.getPluginConfigInterface();
+        Set<PluginConfigInterfaceParameter> outputParameters = pci.getOutputParameters();
+        
+        
+        if(outputParameters == null){
+            return;
+        }
+        
+        if(outputParameterMap == null || outputParameterMap.isEmpty()){
+            log.info("returned output is empty for request {}", ctx.getRequestId());
+            return;
+        }
+        
+        String nodeEntityId = (String) outputParameterMap.get("objId");
+        
+        if(StringUtils.isBlank(nodeEntityId)){
+            log.info("none entity ID found in output for request {}", ctx.getRequestId());
+            return;
+        }
+       
+        
+        for(PluginConfigInterfaceParameter pciParam : outputParameters){
+            String paramName = pciParam.getName();
+            String paramExpr = pciParam.getMappingEntityExpression();
+            
+            if(StringUtils.isBlank(paramExpr)){
+                log.info("expression not configured for {}", paramName);
+                continue;
+            }
+            
+            Object retVal = outputParameterMap.get(paramName);
+            
+            if(retVal == null){
+                log.info("returned value is null for {} {}", ctx.getRequestId(), paramName);
+                continue;
+            }
+            
+            DataModelExpressionToRootData dmeCriteria = new DataModelExpressionToRootData(paramExpr, nodeEntityId);
+            this.dataModelExpressionService.writeBackData(dmeCriteria, retVal);
+            
+        }
     }
 
     private void handlePluginInterfaceInvocationSuccess(PluginInterfaceInvocationResult pluginInvocationResult,
@@ -810,7 +852,7 @@ public class PluginInvocationService {
                 .findById(requestEntity.getRequestId());
 
         if (!requestEntityOpt.isPresent()) {
-            log.error("request entity does not exist for {}", requestEntity.getRequestId());
+            log.warn("request entity does not exist for {}", requestEntity.getRequestId());
 
         } else {
             requestEntity = requestEntityOpt.get();
@@ -825,7 +867,7 @@ public class PluginInvocationService {
                 .findById(nodeInstEntity.getId());
 
         if (!nodeInstEntityOpt.isPresent()) {
-            log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
+            log.warn("task node instance entity does not exist for {}", nodeInstEntity.getId());
         } else {
             nodeInstEntity = nodeInstEntityOpt.get();
             nodeInstEntity.setUpdatedTime(now);
@@ -862,7 +904,7 @@ public class PluginInvocationService {
         }
 
         if (!requestEntityOpt.isPresent()) {
-            log.error("request entity does not exist for {}", requestEntity.getRequestId());
+            log.warn("request entity does not exist for {}", requestEntity.getRequestId());
 
         } else {
             requestEntity = requestEntityOpt.get();
@@ -897,7 +939,7 @@ public class PluginInvocationService {
         }
 
         if (!nodeInstEntityOpt.isPresent()) {
-            log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
+            log.warn("task node instance entity does not exist for {}", nodeInstEntity.getId());
         } else {
             nodeInstEntity = nodeInstEntityOpt.get();
             nodeInstEntity.setUpdatedTime(now);
