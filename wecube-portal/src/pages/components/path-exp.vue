@@ -73,8 +73,17 @@ export default {
     },
     rootEntity: {
       handler(val) {
-        // this.inputVal = `${this.rootPkg}:${val}`;
+        console.log(this.allDataModelsWithAttrs);
+        const found = this.allEntity.find(_ => _.name === val);
+        this.currentPkg = found.packageName;
         this.currentEntity = val;
+        this.inputVal = `${this.currentPkg}:${val}`;
+        this.entityPath = [
+          {
+            entity: this.currentEntity,
+            pkg: this.currentPkg
+          }
+        ];
       }
     }
   },
