@@ -18,6 +18,9 @@ module.exports = {
       },
       "ui-resources": {
         target: "http://111.230.161.237:19090"
+      },
+      "wecube-monitor": {
+        target: "https://sandbox.webank.com"
       }
     }
   },
