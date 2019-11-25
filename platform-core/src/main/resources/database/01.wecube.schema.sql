@@ -135,7 +135,7 @@ create table plugin_config_interfaces (
     `service_display_name` VARCHAR(500) NOT NULL,
     `path` VARCHAR(500) NOT NULL, 
     `http_method` VARCHAR(10) NOT NULL, 
-    `is_async_processing` VARCHAR(1) NOT NULL
+    `is_async_processing` VARCHAR(1) DEFAULT 'N' 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists plugin_config_interface_parameters;
