@@ -93,7 +93,7 @@ public class WorkflowProcessDefinitionController {
     @GetMapping("/process/definitions/{proc-def-id}/tasknodes/{node-def-id}")
     public CommonResponseDto getTaskNodeParameters(@PathVariable("proc-def-id") String procDefId,
             @PathVariable("node-def-id") String nodeDefId) {
-        List<InterfaceParameterDto> result = procDefService.getTaskNodeParameters(procDefId,nodeDefId);
+        List<InterfaceParameterDto> result = workflowDataService.getTaskNodeParameters(procDefId,nodeDefId);
         return CommonResponseDto.okayWithData(result);
     }
     
