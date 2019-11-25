@@ -149,7 +149,6 @@ export default {
         });
         this.$emit("allMenus", this.menus);
         window.myMenus = this.menus;
-        console.log(window.myMenus);
       }
     },
 
@@ -164,8 +163,8 @@ export default {
 
         //   { relatedPath: "http://localhost:8888/js/app.3ed190d8.js",packageName:'itsm' },
         //   { relatedPath: "http://localhost:8888/css/app.4fbf708b.css",packageName:'itsm' },
-        //   { relatedPath: "http://localhost:8888/js/app.0bea37d0.js",packageName:'monitor' },
-        //   { relatedPath: "http://localhost:8888/css/app.6d544823.css",packageName:'monitor' },
+        // { relatedPath: "http://localhost:8888/js/app.6c85d4cb.js",packageName:'monitor' },
+        // { relatedPath: "http://localhost:8888/css/app.54dd0db0.css",packageName:'monitor' },
         //   { relatedPath: "http://localhost:8888/js/app.910d8b40.js",packageName:'cmdb' },
         //   { relatedPath: "http://localhost:8888/css/app.0e016ca6.css",packageName:'cmdb' },
 
@@ -179,7 +178,10 @@ export default {
         const eleContain = document.getElementsByTagName("body");
         let script = {};
         data.forEach(file => {
-          if (file.relatedPath.indexOf(".js") > -1) {
+          if (
+            file.relatedPath.indexOf(".js") > -1 &&
+            file.relatedPath.indexOf("artifacts") < 0
+          ) {
             let contains = document.createElement("script");
             contains.type = "text/javascript";
             contains.src = file.relatedPath;
@@ -232,6 +234,7 @@ export default {
   },
   mounted() {
     if (window.needReLoad) {
+      // setTimeout(()=>{this.getAllPluginPackageResourceFiles()},5000)
       this.getAllPluginPackageResourceFiles();
       window.needReLoad = false;
     }

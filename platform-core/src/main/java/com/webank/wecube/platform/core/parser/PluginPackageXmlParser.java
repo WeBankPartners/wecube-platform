@@ -407,7 +407,12 @@ public class PluginPackageXmlParser {
             if (StringUtils.isNotEmpty(mappingEntityExpression)) {
                 pluginConfigInterfaceParameter.setMappingEntityExpression(mappingEntityExpression);
             }
-            pluginConfigInterfaceParameter.setRequired(getStringAttribute(parameterNode, "./@required"));
+            String required = getStringAttribute(parameterNode, "./@required");
+            if (StringUtils.isNoneBlank(required)) {
+                pluginConfigInterfaceParameter.setRequired(required);
+            } else {
+                pluginConfigInterfaceParameter.setRequired("N");
+            }
 
             pluginConfigInterfaceParameters.add(pluginConfigInterfaceParameter);
         }
