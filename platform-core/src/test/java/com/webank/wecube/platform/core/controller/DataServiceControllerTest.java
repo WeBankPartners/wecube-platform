@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class DataModelExpressionControllerTest extends AbstractControllerTest {
+public class DataServiceControllerTest extends AbstractControllerTest {
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
@@ -40,7 +40,7 @@ public class DataModelExpressionControllerTest extends AbstractControllerTest {
 
         mockTargetEntityQueryServer();
         try {
-            mvc.perform(get("/v1/dme/target-entity?package=wecmdb&entity=system_design").accept(MediaType.APPLICATION_JSON))
+            mvc.perform(get("/v1/packages/wecmdb/entities/system_design/retrieve").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data", is(iterableWithSize(TARGET_ENTITY_SIZE))))
                     .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("0001_0000000001", "0001_0000000002", "0001_0000000003", "0001_0000000004")))
