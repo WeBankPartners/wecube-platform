@@ -220,7 +220,6 @@
 import PathExp from "../../components/path-exp.vue";
 import {
   getAllPluginByPkgId,
-  getAllSystemEnumCodes,
   getAllDataModels,
   registerPlugin,
   deletePlugin,
