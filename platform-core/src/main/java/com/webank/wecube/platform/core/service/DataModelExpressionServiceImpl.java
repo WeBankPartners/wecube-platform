@@ -57,7 +57,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     }
 
     @Override
-    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Map<String, Object> writeBackData) throws WecubeCoreException {
+    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object writeBackData) throws WecubeCoreException {
         ChainRequestDto chainRequestDto = new ChainRequestDto(expressionToRootData);
         Stack<DataModelExpressionDto> resultDtoStack = chainRequest(chainRequestDto);
         List<CommonResponseDto> lastRequestResponse;
@@ -90,15 +90,8 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
         String writeBackAttr = Objects.requireNonNull(finalFetchDto.getOpFetch()).attr().getText();
         Object writeBackId = commonResponseToList(lastRequestResponse.get(0), this.UNIQUE_IDENTIFIER).get(0);
-        if (!writeBackData.containsKey(writeBackAttr)) {
-            String msg = String.format("Cannot find attribute name [%s] from given write back data, " +
-                    "check if expression's last fetch attribute is in your write back data.", writeBackAttr);
-            logger.error(msg);
-            throw new WecubeCoreException(msg);
-        }
-        Object writeBackValue = writeBackData.get(writeBackAttr);
         Map<String, Object> postRequestUrlParamMap = generatePostUrlParamMap(this.applicationProperties.getGatewayUrl(), writeBackPackageName, writeBackEntityName);
-        List<Map<String, Object>> writeBackRequestBodyParamMap = generatePostBodyParamMap(writeBackId, writeBackAttr, writeBackValue);
+        List<Map<String, Object>> writeBackRequestBodyParamMap = generatePostBodyParamMap(writeBackId, writeBackAttr, writeBackData);
         postRequest(chainRequestDto, postRequestUrl, postRequestUrlParamMap, writeBackRequestBodyParamMap);
     }
 
@@ -514,11 +507,11 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @return generated param map for url binding
      */
     private List<Map<String, Object>> generatePostBodyParamMap(Object entityId,
-                                                               Object attributeName,
+                                                               String attributeName,
                                                                Object attributeValue) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put(this.UNIQUE_IDENTIFIER, entityId);
-        paramMap.put(attributeName.toString(), attributeValue);
+        paramMap.put(attributeName, attributeValue);
         return Collections.singletonList(paramMap);
 
     }
