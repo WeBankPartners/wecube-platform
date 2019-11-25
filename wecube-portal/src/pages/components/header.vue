@@ -178,10 +178,7 @@ export default {
         const eleContain = document.getElementsByTagName("body");
         let script = {};
         data.forEach(file => {
-          if (
-            file.relatedPath.indexOf(".js") > -1 &&
-            file.relatedPath.indexOf("artifacts") < 0
-          ) {
+          if (file.relatedPath.indexOf(".js") > -1) {
             let contains = document.createElement("script");
             contains.type = "text/javascript";
             contains.src = file.relatedPath;

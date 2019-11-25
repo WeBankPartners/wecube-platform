@@ -179,7 +179,7 @@ export default {
     createHandler() {
       this.isShowBody = true;
       this.isEnqueryPage = false;
-      this.this.selectedFlowInstance = "";
+      this.selectedFlowInstance = "";
       this.selectedTarget = "";
       this.selectedFlow = "";
       this.modelData = [];
