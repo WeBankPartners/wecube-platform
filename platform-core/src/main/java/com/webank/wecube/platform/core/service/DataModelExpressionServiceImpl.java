@@ -507,11 +507,11 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @return generated param map for url binding
      */
     private List<Map<String, Object>> generatePostBodyParamMap(Object entityId,
-                                                               Object attributeName,
+                                                               String attributeName,
                                                                Object attributeValue) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put(this.UNIQUE_IDENTIFIER, entityId);
-        paramMap.put(attributeName.toString(), attributeValue);
+        paramMap.put(attributeName, attributeValue);
         return Collections.singletonList(paramMap);
 
     }
