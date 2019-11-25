@@ -90,8 +90,7 @@ req.interceptors.response.use(
         });
       }
       return {
-        ...res.data,
-        user: res.headers["current_user"] || " - "
+        ...res.data
       };
     } else {
       return {
