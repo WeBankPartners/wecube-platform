@@ -518,8 +518,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                                                                Object attributeValue) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put(this.UNIQUE_IDENTIFIER, entityId);
-        paramMap.put("attr_name", attributeName);
-        paramMap.put("attr_value", attributeValue);
+        paramMap.put(attributeName.toString(), attributeValue);
         return Collections.singletonList(paramMap);
 
     }
@@ -594,7 +593,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return responseDto;
     }
 
-    private CommonResponseDto checkResponse(ResponseEntity<String> response) throws IOException {
+    private CommonResponseDto checkResponse(ResponseEntity<String> response) throws IOException, WecubeCoreException {
         CommonResponseDto responseDto;
         if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
             if (response.getStatusCode().is4xxClientError()) {
