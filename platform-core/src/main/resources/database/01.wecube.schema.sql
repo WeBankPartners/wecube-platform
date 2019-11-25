@@ -238,4 +238,20 @@ CREATE TABLE `resource_server` (
     PRIMARY KEY (`id`)
 );
 
+drop table if exists plugin_mysql_instances;
+CREATE TABLE `plugin_mysql_instances` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `password` VARCHAR(255) NULL DEFAULT NULL,
+    `plugun_package_id` INT(11) NULL DEFAULT NULL,
+    `resource_item_id` INT(11) NULL DEFAULT NULL,
+    `schema_name` VARCHAR(255) NULL DEFAULT NULL,
+    `status` VARCHAR(255) NULL DEFAULT NULL,
+    `username` VARCHAR(255) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `FK6twufg10tr0fk81uyf9tdtxf1` (`plugun_package_id`),
+    INDEX `FKn5plb1x3qnwxla4mixdhawo2o` (`resource_item_id`),
+    CONSTRAINT `FK6twufg10tr0fk81uyf9tdtxf1` FOREIGN KEY (`plugun_package_id`) REFERENCES `plugin_packages` (`id`),
+    CONSTRAINT `FKn5plb1x3qnwxla4mixdhawo2o` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
+) COLLATE='utf8_general_ci';
+
 SET FOREIGN_KEY_CHECKS = 1;
