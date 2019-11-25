@@ -810,7 +810,7 @@ public class PluginInvocationService {
                 .findById(requestEntity.getRequestId());
 
         if (!requestEntityOpt.isPresent()) {
-            log.error("request entity does not exist for {}", requestEntity.getRequestId());
+            log.warn("request entity does not exist for {}", requestEntity.getRequestId());
 
         } else {
             requestEntity = requestEntityOpt.get();
@@ -825,7 +825,7 @@ public class PluginInvocationService {
                 .findById(nodeInstEntity.getId());
 
         if (!nodeInstEntityOpt.isPresent()) {
-            log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
+            log.warn("task node instance entity does not exist for {}", nodeInstEntity.getId());
         } else {
             nodeInstEntity = nodeInstEntityOpt.get();
             nodeInstEntity.setUpdatedTime(now);
@@ -862,7 +862,7 @@ public class PluginInvocationService {
         }
 
         if (!requestEntityOpt.isPresent()) {
-            log.error("request entity does not exist for {}", requestEntity.getRequestId());
+            log.warn("request entity does not exist for {}", requestEntity.getRequestId());
 
         } else {
             requestEntity = requestEntityOpt.get();
@@ -897,7 +897,7 @@ public class PluginInvocationService {
         }
 
         if (!nodeInstEntityOpt.isPresent()) {
-            log.error("task node instance entity does not exist for {}", nodeInstEntity.getId());
+            log.warn("task node instance entity does not exist for {}", nodeInstEntity.getId());
         } else {
             nodeInstEntity = nodeInstEntityOpt.get();
             nodeInstEntity.setUpdatedTime(now);
