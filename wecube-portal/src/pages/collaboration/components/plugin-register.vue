@@ -1,23 +1,25 @@
 <template>
   <Row>
-    <Col span="3">
+    <Col span="6">
       <div v-if="plugins.length < 1">{{ $t("no_plugin") }}</div>
       <Menu
         theme="light"
         :active-name="currentPlugin"
         @on-select="selectPlugin"
+        style="width: 100%;"
       >
         <MenuItem
           v-for="(plugin, index) in plugins"
           :name="plugin.name"
           :key="index"
+          style="padding: 10px 5px;"
         >
           <Icon type="md-flower" />
           {{ plugin.name }}
         </MenuItem>
       </Menu>
     </Col>
-    <Col span="18" offset="3">
+    <Col span="18" offset="0" style="padding-left: 10px">
       <Form v-if="currentPlugin.length > 0" :model="form">
         <Row>
           <Col span="10" offset="0">
@@ -56,8 +58,8 @@
           <Col span="6" offset="1">
             <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
           </Col>
-          <Col span="3" offset="5">
-            <strong style="font-size:15px;">属性类型</strong>
+          <Col span="3" offset="4">
+            <strong style="font-size:15px;">{{ $t("attribute_type") }}</strong>
           </Col>
         </Row>
         <Row
@@ -72,12 +74,12 @@
           </Col>
           <Col span="21">
             <Row>
-              <Col span="2">
+              <Col span="3">
                 <FormItem :label-width="0">
                   <span>{{ $t("input_params") }}</span>
                 </FormItem>
               </Col>
-              <Col span="21" offset="1">
+              <Col span="21" offset="0">
                 <Row
                   v-for="param in interfaces['inputParameters']"
                   :key="param.id"
@@ -93,7 +95,7 @@
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="14" offset="1">
+                  <Col span="13" offset="1">
                     <FormItem :label-width="0">
                       <PathExp
                         v-if="param.mappingType === 'entity'"
@@ -141,7 +143,7 @@
                   <span>{{ $t("output_params") }}</span>
                 </FormItem>
               </Col>
-              <Col span="21" offset="0">
+              <Col span="20" offset="0">
                 <Row
                   v-for="outPut in interfaces['outputParameters']"
                   :key="outPut.id + 1000"
