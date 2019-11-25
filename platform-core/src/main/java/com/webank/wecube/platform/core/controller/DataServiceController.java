@@ -60,8 +60,13 @@ public class DataServiceController {
     public JsonResponse deleteCiData(@PathVariable("package-name") String packageName,
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
-        dataModelExpressionService.deleteEntity(packageName, entityName, request);
-        return JsonResponse.okay();
+        try {
+            dataModelExpressionService.deleteEntity(packageName, entityName, request);
+            return JsonResponse.okay();
+        } catch (WecubeCoreException e) {
+            return JsonResponse.error(e.getMessage());
+        }
+
     }
 
 }
