@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.service.UserManagerService;
+import com.webank.wecube.platform.core.service.MenuService;
 
 @Controller
 @RequestMapping("/v1")
 public class HomeController {
 
     @Autowired
-    private UserManagerService userManagerService;
+    private MenuService menuService;
 
     @GetMapping(value = { "/", "index.html" })
     public String index() {
@@ -40,10 +40,6 @@ public class HomeController {
     @GetMapping("/my-menus")
     @ResponseBody
     public JsonResponse getMenuItems(Principal principal) {
-        return okay().withData(userManagerService.getAllMenus());
-//        if (principal != null) {
-//            return okay().withData(userManagerService.getMenuItemsByUsername(principal.getName(), true));
-//        }
-//        return okay();
+        return okay().withData(menuService.getAllMenus());
     }
 }
