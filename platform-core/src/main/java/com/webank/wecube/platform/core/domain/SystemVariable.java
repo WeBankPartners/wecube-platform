@@ -10,6 +10,7 @@ import javax.persistence.Table;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 
 import lombok.EqualsAndHashCode;
@@ -31,6 +32,7 @@ public class SystemVariable {
 	@Column(name = "plugin_package_id")
     private Integer pluginPackageId;
 
+	@JsonBackReference
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
