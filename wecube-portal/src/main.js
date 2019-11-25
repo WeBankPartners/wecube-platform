@@ -185,4 +185,4 @@ window.addOptions = options => {
   });
 };
 
-vm.$mount("#app");
+vm.$mount("#wecube_app");
