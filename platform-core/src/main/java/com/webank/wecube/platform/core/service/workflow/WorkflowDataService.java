@@ -2,6 +2,8 @@ package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -10,11 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
+import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.service.DataModelExpressionService;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.support.datamodel.TreeNode;
 
 @Service
@@ -23,9 +31,55 @@ public class WorkflowDataService {
 
     @Autowired
     private WorkflowProcDefService workflowProcDefService;
+    
+    @Autowired
+    private TaskNodeDefInfoRepository taskNodeDefInfoRepo;
 
     @Autowired
     private DataModelExpressionService dataModelExpressionService;
+    
+    @Autowired
+    private PluginConfigService pluginConfigService;
+    
+    
+    public List<InterfaceParameterDto> getTaskNodeParameters(String procDefId, String nodeDefId) {
+        List<InterfaceParameterDto> result = new ArrayList<>();
+        Optional<TaskNodeDefInfoEntity> entityOptional = taskNodeDefInfoRepo.findById(nodeDefId);
+        if (!entityOptional.isPresent()) {
+            return result;
+        }
+
+        TaskNodeDefInfoEntity e = entityOptional.get();
+        String serviceId = e.getServiceId();
+
+        if (StringUtils.isBlank(serviceId)) {
+            log.debug("service id is present for {}", nodeDefId);
+            return result;
+        }
+
+        PluginConfigInterface pci = pluginConfigService.getPluginConfigInterfaceByServiceName(serviceId);
+        Set<PluginConfigInterfaceParameter> inputParameters = pci.getInputParameters();
+        Set<PluginConfigInterfaceParameter> outputParameters = pci.getOutputParameters();
+
+        inputParameters.forEach(p -> {
+            result.add(buildInterfaceParameterDto(p));
+        });
+
+        outputParameters.forEach(p -> {
+            result.add(buildInterfaceParameterDto(p));
+        });
+
+        return result;
+    }
+    
+    private InterfaceParameterDto buildInterfaceParameterDto(PluginConfigInterfaceParameter p){
+        InterfaceParameterDto d = new InterfaceParameterDto();
+        d.setType(p.getType());
+        d.setName(p.getName());
+        d.setDataType(p.getDataType());
+        
+        return d;
+    }
 
     public List<GraphNodeDto> getProcessDataPreview(String procDefId, String dataId) {
         if (StringUtils.isBlank(procDefId) || StringUtils.isBlank(dataId)) {
