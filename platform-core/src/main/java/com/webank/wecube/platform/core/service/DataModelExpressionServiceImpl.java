@@ -423,11 +423,22 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         chainRequestDto.setAnchorTreeNodeList(newAnchorTreeNodeList);
     }
 
+    /**
+     * Get response's id data from given attribute key and value
+     *
+     * @param lastRequestResponseDto last request's response dto
+     * @param requestAttributeName   key of filter
+     * @param requestAttributeValue  value of filter
+     * @return found responseId list
+     * @throws WecubeCoreException throws exception when there is an error converting response to LinkedHashMap
+     */
+    @SuppressWarnings("unchecked")
     private List<Object> getResponseIdFromAttribute(CommonResponseDto lastRequestResponseDto, String requestAttributeName, Object requestAttributeValue) throws WecubeCoreException {
         List<Object> result = new ArrayList<>();
         List<Object> requestResponseDataList = extractValueFromResponse(lastRequestResponseDto, DataModelExpressionParser.FETCH_ALL);
         requestResponseDataList.forEach(o -> {
-            if (!LinkedHashMap.class.getSimpleName().equals(o.getClass().getSimpleName())) {
+
+            if (!(o instanceof LinkedHashMap<?, ?>)) {
                 String msg = "Cannot transfer lastRequestResponse list to LinkedHashMap.";
                 logger.error(msg, lastRequestResponseDto, requestAttributeName, requestAttributeValue);
                 throw new WecubeCoreException(msg);
@@ -548,7 +559,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @throws WecubeCoreException catch exception during sending the request
      */
     private CommonResponseDto getRequest(ChainRequestDto chainRequestDto, String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
-        ResponseEntity<String> response;
         CommonResponseDto responseDto;
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
@@ -576,7 +586,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @throws WecubeCoreException catch exception during sending the request
      */
     private CommonResponseDto getRequest(String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
-        ResponseEntity<String> response;
         CommonResponseDto responseDto;
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
@@ -602,7 +611,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @Param chainRequestDto chain request dto scope
      */
     private void postRequest(ChainRequestDto chainRequestDto, String requestUrl, Map<String, Object> paramMap, List<Map<String, Object>> requestBodyParamMap) throws WecubeCoreException {
-        ResponseEntity<String> response;
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             // combine url with param map
@@ -739,6 +747,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @param responseDto common response dto
      * @return list of value fetched from expression
      */
+    @SuppressWarnings("unchecked")
     private List<Map<String, Object>> responseToMapList(CommonResponseDto responseDto) {
         List<Map<String, Object>> dataArray = new ArrayList<>();
         Object data = responseDto.getData();
