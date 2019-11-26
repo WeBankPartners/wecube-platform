@@ -84,6 +84,7 @@ export default {
             pkg: this.currentPkg
           }
         ];
+        this.$emit("input", this.inputVal.replace(" ", ""));
       }
     }
   },
