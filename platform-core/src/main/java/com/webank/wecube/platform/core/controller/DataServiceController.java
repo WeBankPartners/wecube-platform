@@ -19,9 +19,22 @@ public class DataServiceController {
     @Autowired
     private DataModelExpressionServiceImpl dataModelExpressionService;
 
+
+    @PostMapping("/packages/{package-name}/entities/{entity-name}/create")
+    public JsonResponse createEntity(@PathVariable("package-name") String packageName,
+                                     @PathVariable("entity-name") String entityName,
+                                     @RequestBody List<Map<String, Object>> request) {
+        try {
+            return JsonResponse.okayWithData(dataModelExpressionService.createEntity(packageName, entityName, request));
+        } catch (WecubeCoreException ex) {
+            return JsonResponse.error(ex.getMessage());
+        }
+
+    }
+
     @GetMapping("/packages/{package-name}/entities/{entity-name}/retrieve")
     @ResponseBody
-    public JsonResponse getRefByIdInfoByPackageNameAndEntityName(
+    public JsonResponse retrieveEntity(
             @PathVariable(value = "package-name") String packageName,
             @PathVariable(value = "entity-name") String entityName
     ) {
@@ -33,20 +46,8 @@ public class DataServiceController {
 
     }
 
-    @PostMapping("/packages/{package-name}/entities/{entity-name}/create")
-    public JsonResponse createCiData(@PathVariable("package-name") String packageName,
-                                     @PathVariable("entity-name") String entityName,
-                                     @RequestBody List<Map<String, Object>> request) {
-        try {
-            return JsonResponse.okayWithData(dataModelExpressionService.createEntity(packageName, entityName, request));
-        } catch (WecubeCoreException ex) {
-            return JsonResponse.error(ex.getMessage());
-        }
-
-    }
-
     @PostMapping("/packages/{package-name}/entities/{entity-name}/update")
-    public JsonResponse updateCiData(@PathVariable("package-name") String packageName,
+    public JsonResponse updateEntity(@PathVariable("package-name") String packageName,
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
         try {
@@ -57,7 +58,7 @@ public class DataServiceController {
     }
 
     @PostMapping("/packages/{package-name}/entities/{entity-name}/delete")
-    public JsonResponse deleteCiData(@PathVariable("package-name") String packageName,
+    public JsonResponse deleteEntity(@PathVariable("package-name") String packageName,
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
         try {
