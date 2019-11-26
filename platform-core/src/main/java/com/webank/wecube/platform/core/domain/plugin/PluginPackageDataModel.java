@@ -70,11 +70,8 @@ public class PluginPackageDataModel {
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
             this.id = String.join(KEY_COLUMN_DELIMITER,
-                    "DataModel",
                     packageName,
-                    String.valueOf(version),
-                    updateMethod,
-                    updateSource
+                    String.valueOf(version)
             );
         }
     }
