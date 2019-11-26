@@ -501,8 +501,8 @@ export default {
       this.isShowRuntimeManagementPanel = panel === "runtimeManagePanel";
     },
     async createPluginInstanceByPackageIdAndHostIp(ip, port) {
-      this.$Notice.success({
-        title: "Success",
+      this.$Notice.info({
+        title: "Info",
         desc: "Start Launching... It will take sometime."
       });
       this.isLoading = true;
