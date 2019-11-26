@@ -8,8 +8,8 @@
               <Select v-model="selectedFlowInstance" style="width:70%">
                 <Option
                   v-for="item in allFlowInstances"
-                  :value="item.procInstKey"
-                  :key="item.procInstKey"
+                  :value="item.id"
+                  :key="item.id"
                 >
                   {{
                     item.procInstName +
@@ -20,12 +20,12 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">
-                {{ $t("query_orch") }}
-              </Button>
-              <Button type="success" @click="createHandler">
-                {{ $t("create_orch") }}
-              </Button>
+              <Button type="info" @click="queryHandler">{{
+                $t("query_orch")
+              }}</Button>
+              <Button type="success" @click="createHandler">{{
+                $t("create_orch")
+              }}</Button>
             </FormItem>
           </Form>
         </Col>
@@ -79,9 +79,9 @@
           >
             <div class="graph-container" id="flow"></div>
             <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">
-                {{ $t("execute") }}
-              </Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
+                $t("execute")
+              }}</Button>
             </div>
           </Col>
           <Col
@@ -133,10 +133,19 @@ export default {
     this.getAllFlow();
   },
   methods: {
-    async getProcessInstances() {
+    async getProcessInstances(
+      isAfterCreate = false,
+      createResponse = undefined
+    ) {
       let { status, data, message } = await getProcessInstances();
       if (status === "OK") {
-        this.allFlowInstances = data;
+        this.allFlowInstances = data.sort((a, b) => {
+          return b.id - a.id;
+        });
+        if (isAfterCreate) {
+          this.selectedFlowInstance = createResponse.id;
+          this.processInstance();
+        }
       }
     },
     async getAllFlow() {
@@ -167,7 +176,7 @@ export default {
       this.isEnqueryPage = true;
       this.$nextTick(() => {
         const found = this.allFlowInstances.find(
-          _ => _.procInstKey === this.selectedFlowInstance
+          _ => _.id === this.selectedFlowInstance
         );
         this.getFlowOutlineData(found.procDefId);
         this.selectedFlow = found.procDefId;
@@ -372,15 +381,15 @@ export default {
         };
         let { status, data, message } = await createFlowInstance(payload);
         if (status === "OK") {
+          this.getProcessInstances(true, data);
           this.showExcution = false;
           this.isEnqueryPage = true;
-          this.processInstance();
         }
       }
     },
     processInstance() {
       const found = this.allFlowInstances.find(
-        _ => _.procInstKey === this.selectedFlowInstance
+        _ => _.id === this.selectedFlowInstance
       );
       let timer = null;
 
