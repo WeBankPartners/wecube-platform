@@ -73,6 +73,7 @@ export default {
             })
           };
         });
+        console.log(11, this.data);
         this.initGraph();
       }
     },
@@ -137,6 +138,7 @@ export default {
     },
     renderGraph() {
       let nodesString = this.genDOT();
+      console.log("nodesString", nodesString);
       this.graph.graphviz.renderDot(nodesString);
     },
     initGraph() {
