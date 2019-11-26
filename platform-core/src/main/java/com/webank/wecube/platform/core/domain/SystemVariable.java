@@ -65,7 +65,7 @@ public class SystemVariable {
 					null != pluginPackage ? pluginPackage.getName() : null,
 					null != pluginPackage ? pluginPackage.getVersion() : null,
 					name,
-					scopeType
+					SCOPE_TYPE_GLOBAL.equals(scopeType) ? SCOPE_TYPE_GLOBAL : scopeValue
 			);
 		}
 	}

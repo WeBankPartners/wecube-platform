@@ -5,20 +5,22 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 
 public class MenuItemDto implements Comparable<MenuItemDto> {
 
-    private Integer id;
+    private String id;
     private String category;
     private String code;
+    private String source;
+    private Integer menuOrder;
     private String displayName;
     private String path;
-    private String menuType;
 
-    public MenuItemDto(Integer id, String category, String code, String displayName, String path, String menuType) {
+    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String path) {
         this.id = id;
         this.category = category;
         this.code = code;
+        this.source = source;
+        this.menuOrder = menuOrder;
         this.displayName = displayName;
         this.path = path;
-        this.menuType = menuType;
     }
 
     public MenuItemDto() {
@@ -27,34 +29,35 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     public static MenuItemDto fromSystemMenuItem(MenuItem systemMenu) {
         MenuItemDto pluginPackageMenuDto = new MenuItemDto();
         pluginPackageMenuDto.setId(systemMenu.getId());
-        Integer category = systemMenu.getParentId();
+        String category = systemMenu.getParentCode();
         if (category != null) {
-            pluginPackageMenuDto.setCategory(category.toString());
+            pluginPackageMenuDto.setCategory(category);
         }
         pluginPackageMenuDto.setCode(systemMenu.getCode());
+        pluginPackageMenuDto.setSource(systemMenu.getSource());
+        pluginPackageMenuDto.setMenuOrder(systemMenu.getMenuOrder());
         pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
         pluginPackageMenuDto.setPath(null);
-        pluginPackageMenuDto.setMenuType("system");
         return pluginPackageMenuDto;
     }
 
-    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu, String parentId,
-            Integer transferredNewMenuId) {
+    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu) {
         MenuItemDto pluginPackageMenuDto = new MenuItemDto();
-        pluginPackageMenuDto.setId(transferredNewMenuId);
-        pluginPackageMenuDto.setCategory(parentId);
+        pluginPackageMenuDto.setId(packageMenu.getId());
+        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
         pluginPackageMenuDto.setCode(packageMenu.getCode());
+        pluginPackageMenuDto.setSource(packageMenu.getSource());
+        pluginPackageMenuDto.setMenuOrder(packageMenu.getMenuOrder());
         pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
         pluginPackageMenuDto.setPath(packageMenu.getPath());
-        pluginPackageMenuDto.setMenuType("package");
         return pluginPackageMenuDto;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -74,6 +77,22 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         this.code = code;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public Integer getMenuOrder() {
+        return menuOrder;
+    }
+
+    public void setMenuOrder(Integer menuOrder) {
+        this.menuOrder = menuOrder;
+    }
+
     public String getDisplayName() {
         return displayName;
     }
@@ -90,13 +109,6 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         this.path = path;
     }
 
-    public String getMenuType() {
-        return menuType;
-    }
-
-    public void setMenuType(String menuType) {
-        this.menuType = menuType;
-    }
 
     @Override
     public int compareTo(MenuItemDto o) {
