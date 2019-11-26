@@ -37,8 +37,8 @@
                     v-for="item in pluginPackage.pluginPackageEntities"
                     :value="item.name"
                     :key="item.name"
-                    >{{ item.name }}</Option
-                  >
+                    :label="item.name"
+                  ></Option>
                 </OptionGroup>
               </Select>
             </FormItem>
@@ -222,7 +222,6 @@
 import PathExp from "../../components/path-exp.vue";
 import {
   getAllPluginByPkgId,
-  getAllSystemEnumCodes,
   getAllDataModels,
   registerPlugin,
   deletePlugin,
@@ -281,6 +280,12 @@ export default {
       }
     },
     async pluginSave() {
+      this.currentPluginObj.entityName = this.selectedEntityType;
+      const entitys = [].concat(
+        ...this.allEntityType.map(_ => _.pluginPackageEntities)
+      );
+      const entityId = entitys.find(i => i.name === this.selectedEntityType).id;
+      this.currentPluginObj.entityId = entityId;
       const { data, status, message } = await savePluginConfig(
         this.currentPluginObj
       );

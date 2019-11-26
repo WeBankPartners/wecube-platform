@@ -36,7 +36,7 @@
           </Option>
         </Select>
       </Col>
-      <Col span="6" ofset="1">
+      <Col span="8" ofset="1">
         <span style="margin-right: 10px">{{ $t("instance_type") }}</span>
         <Select
           @on-change="onEntitySelect"

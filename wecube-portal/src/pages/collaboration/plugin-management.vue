@@ -332,25 +332,12 @@
 </template>
 <script>
 import {
-  getAllCITypesByLayerWithAttr,
   getAllPluginPkgs,
-  getPluginInterfaces,
-  getRefCiTypeFrom,
-  getRefCiTypeTo,
-  getCiTypeAttr,
   createPluginInstanceByPackageIdAndHostIp,
   removePluginInstance,
-  savePluginInstance,
   queryLog,
-  getPluginInstanceLogDetail,
-  getCiTypeAttrRefAndSelect,
-  getEnumCodesByCategoryId,
-  getAllSystemEnumCodes,
-  decommissionPluginConfig,
-  releasePluginConfig,
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
-  preconfigurePluginPackage,
   deletePluginPkg,
   registPluginPackage,
   getAvailableInstancesByPackageId,
@@ -514,8 +501,8 @@ export default {
       this.isShowRuntimeManagementPanel = panel === "runtimeManagePanel";
     },
     async createPluginInstanceByPackageIdAndHostIp(ip, port) {
-      this.$Notice.success({
-        title: "Success",
+      this.$Notice.info({
+        title: "Info",
         desc: "Start Launching... It will take sometime."
       });
       this.isLoading = true;
