@@ -1,6 +1,6 @@
-current_dir=$(shell pwd)
+current_dir:=$(shell pwd)
 date:=$(shell date +%Y%m%d%H%M%S)
-version=$(shell bash  ./build/version.sh)
+version:=$(shell bash  ./build/version.sh)
 remote_docker_image_registry=ccr.ccs.tencentyun.com/webankpartners
 
 clean:
