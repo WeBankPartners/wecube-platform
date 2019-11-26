@@ -1,6 +1,6 @@
-current_dir=$(shell pwd)
-date=$(shell date +%Y%m%d%H%M%S)
-version=$(shell bash  ./build/version.sh)
+current_dir:=$(shell pwd)
+date:=$(shell date +%Y%m%d%H%M%S)
+version:=$(shell bash  ./build/version.sh)
 remote_docker_image_registry=ccr.ccs.tencentyun.com/webankpartners
 
 clean:
@@ -36,16 +36,15 @@ push:
 
 env_config=smoke_branch.cfg
 target_host="tcp://10.0.0.1:2375"
-tag_date=$(date)
 deploy:
-	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(tag_date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-core:$(tag_date)-$(version)
+	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
+	docker push $(remote_docker_image_registry)/platform-core:$(date)-$(version)
 
-	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(tag_date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-gateway:$(tag_date)-$(version)
+	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker push $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
 
-	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(tag_date)-$(version)
-	docker push $(remote_docker_image_registry)/wecube-portal:$(tag_date)-$(version)
+	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker push $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
 	
-	sh build/deploy_generate_compose.sh $(env_config) $(tag_date)-$(version) $(tag_date)-$(version) $(tag_date)-$(version)
+	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version) $(date)-$(version) $(date)-$(version)
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
