@@ -188,7 +188,11 @@ public class PluginPackageXmlParser {
 
             systemVariable.setName(getNonNullStringAttribute(systemVariableNode, "./@name", "System variable name"));
             systemVariable.setDefaultValue(getStringAttribute(systemVariableNode, "./@defaultValue"));
-            systemVariable.setScopeType(getStringAttribute(systemVariableNode, "./@scopeType"));
+            String scopeType = getStringAttribute(systemVariableNode, "./@scopeType");
+            systemVariable.setScopeType(scopeType);
+            if (SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE.equals(scopeType)) {
+                systemVariable.setScopeValue(pluginPackage.getName());
+            }
 
             systemVariable.setPluginPackage(pluginPackage);
 
@@ -295,6 +299,7 @@ public class PluginPackageXmlParser {
             pluginPackageMenu.setCategory(getNonNullStringAttribute(pluginPackageMenuNode, "./@cat", "Plugin package menu category"));
             pluginPackageMenu.setDisplayName(getNonNullStringAttribute(pluginPackageMenuNode, "./@displayName", "Plugin package menu display name"));
             pluginPackageMenu.setPath(pluginPackageMenuNode.getTextContent());
+            pluginPackageMenu.setSource(MenuItem.Source.PLUGIN.name());
 
             pluginPackageMenu.setPluginPackage(pluginPackage);
 

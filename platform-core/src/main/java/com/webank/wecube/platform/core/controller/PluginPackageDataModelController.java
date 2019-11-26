@@ -26,7 +26,7 @@ public class PluginPackageDataModelController {
         return JsonResponse.okayWithData(pluginPackageDataModelService.packageView(packageName));
     }
 
-    @GetMapping("/models/package/{plugin-package-name}")
+    @GetMapping("/models/package/{plugin-package-name:.+}")
     @ResponseBody
     public JsonResponse pullDynamicDataModel(@PathVariable(value = "plugin-package-name") String packageName) {
         return JsonResponse.okayWithData(pluginPackageDataModelService.pullDynamicDataModel(packageName));
