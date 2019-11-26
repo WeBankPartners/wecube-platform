@@ -109,7 +109,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
     }
 
-    @Ignore
     @Test
     public void givenPluginPackageNormalAndFakeS3ClientWhenUploadThenReturnSuccess() {
         pluginPackageService.setS3Client(new FakeS3Client());
@@ -352,7 +351,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
     }
 
-    @Ignore
     @Test
     public void getSystemParamsByCorrectPackageIdShouldReturnSuccess() {
         try {
