@@ -218,7 +218,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
                 .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
                 .andExpect(jsonPath("$.data.packageName", is(packageName)))
-                .andExpect(jsonPath("$.data.id", is("DataModel_package1_2_GET_DATA_MODEL_ENDPOINT")))
+                .andExpect(jsonPath("$.data.id", is("package1:2")))
                 .andExpect(jsonPath("$.data.version", is(2)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].packageName", containsInAnyOrder(packageName)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].name", containsInAnyOrder("entity_1")))
@@ -232,16 +232,16 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     private void mockSimpleDataModel() {
         String sqlStr =
                 "INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
-                        "  (1, 'package1', '1.0', 'REGISTERED', 0) " +
+                        "  ('1', 'package1', '1.0', 'REGISTERED', 0) " +
                         ";\n" +
                         "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic, update_method, update_path) VALUES " +
-                        "  (1, 1, 'package1', 1, 'GET', '/data-model') " +
+                        "  ('1', 1, 'package1', 1, 'GET', '/data-model') " +
                         ";\n" +
                         "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
-                        "  (1, 1, 1, 'package1', 'entity_1', 'entity_1', 'entity_1_description') " +
+                        "  ('1', '1', 1, 'package1', 'entity_1', 'entity_1', 'entity_1_description') " +
                         ";\n" +
                         "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES " +
-                        "  (1, 1, NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
+                        "  ('1', '1', NULL, 'attribute_1', 'attribute_1_description', 'INT') " +
                         ";\n";
         executeSql(sqlStr);
 

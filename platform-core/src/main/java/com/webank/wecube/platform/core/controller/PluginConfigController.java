@@ -35,13 +35,13 @@ public class PluginConfigController {
         return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(entityId));
     }
 
-    @PostMapping("/plugins/enable/{plugin-config-id}")
+    @PostMapping("/plugins/enable/{plugin-config-id:.+}")
     @ResponseBody
     public JsonResponse enablePlugin(@PathVariable(value = "plugin-config-id") String pluginConfigId) {
         return okayWithData(pluginConfigService.enablePlugin(pluginConfigId));
     }
 
-    @PostMapping("/plugins/disable/{plugin-config-id}")
+    @PostMapping("/plugins/disable/{plugin-config-id:.+}")
     @ResponseBody
     public JsonResponse disablePlugin(@PathVariable(value = "plugin-config-id") String pluginConfigId) {
         return okayWithData(pluginConfigService.disablePlugin(pluginConfigId));
