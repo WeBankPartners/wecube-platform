@@ -93,6 +93,28 @@
         </Row>
       </Row>
     </Card>
+    <Modal
+      title="请选择操作"
+      v-model="workflowActionModalVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <div
+        class="workflowActionModal-container"
+        style="text-align: center;margin-top: 20px;"
+      >
+        <Button type="info" @click="workFlowActionHandler('retry')"
+          >重试</Button
+        >
+        <Button
+          type="info"
+          @click="workFlowActionHandler('skip')"
+          style="margin-left: 20px"
+          >跳过</Button
+        >
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -103,7 +125,8 @@ import {
   getTreePreviewData,
   createFlowInstance,
   getProcessInstances,
-  getProcessInstance
+  getProcessInstance,
+  retryProcessInstance
 } from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
@@ -125,7 +148,9 @@ export default {
       selectedTarget: "",
       showExcution: true,
       isShowBody: false,
-      isEnqueryPage: false
+      isEnqueryPage: false,
+      workflowActionModalVisible: false,
+      currentFailedNodeID: ""
     };
   },
   mounted() {
@@ -292,9 +317,11 @@ export default {
               excution ? statusColor[_.status] : "#7F8A96"
             }" shape="circle", id="${_.nodeId}"]`;
           } else {
+            const className =
+              _.status === "Faulted" || _.status === "Timeouted" ? "retry" : "";
             return `${_.nodeId} [label="${_.orderedNo +
               "、" +
-              _.nodeName}" fontsize="10" class="flow" style="${
+              _.nodeName}" fontsize="10" class="flow ${className}" style="${
               excution ? "filled" : "none"
             }" color="${
               excution
@@ -347,6 +374,7 @@ export default {
       // 区分已存在的flowInstance执行 和 新建的执行
       if (this.isEnqueryPage) {
         this.processInstance();
+        this.showExcution = false;
       } else {
         const currentTarget = this.allTarget.find(
           _ => _.id === this.selectedTarget
@@ -394,11 +422,16 @@ export default {
       let timer = null;
 
       function start() {
+        if (timer === null) {
+          getStatus();
+        }
         if (timer != null) {
           clearInterval(timer);
           timer = null;
         }
-        timer = setInterval(getStatus(), 5000);
+        timer = setInterval(() => {
+          getStatus();
+        }, 5000);
       }
       function stop() {
         clearInterval(timer);
@@ -414,12 +447,43 @@ export default {
             flowNodes: data.taskNodeInstances
           };
           this.renderFlowGraph(true);
+          removeEvent(".retry", "click", this.retryHandler);
+          addEvent(".retry", "click", this.retryHandler);
+          d3.selectAll(".retry").attr("cursor", "pointer");
           if (data.status === "Done") {
             stop();
           }
         }
       };
       start();
+    },
+    retryHandler(e) {
+      this.currentFailedNodeID = e.target.parentNode.getAttribute("id");
+      this.workflowActionModalVisible = true;
+    },
+    async workFlowActionHandler(type) {
+      const found = this.flowData.flowNodes.find(
+        _ => _.nodeId === this.currentFailedNodeID
+      );
+      if (!found) {
+        return;
+      }
+      const payload = {
+        act: type,
+        nodeInstId: found.id,
+        procInstId: found.procInstId
+      };
+      const { data, message, status } = await retryProcessInstance(payload);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc:
+            type === "retry"
+              ? "Retry"
+              : "Skip" + " action is proceed successfully"
+        });
+        this.workflowActionModalVisible = false;
+      }
     },
     bindFlowEvent() {
       if (this.isEnqueryPage !== true) {
