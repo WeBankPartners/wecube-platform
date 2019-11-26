@@ -314,5 +314,9 @@
   "table_default_value": "默认值",
   "table_scope_type": "范围类型",
   "table_scope_value": "范围",
-  "table_seq_no": "显示顺序"
+  "table_seq_no": "显示顺序",
+  "no_auth_provided": "本插件暂无权限设定",
+  "no_data_model_provided": "本插件暂无数据模型",
+  "reload_to_get_ui": "如果插件提供UI界面，重新加载可以获取插件页面",
+  "attribute_type": "属性类型"
 }

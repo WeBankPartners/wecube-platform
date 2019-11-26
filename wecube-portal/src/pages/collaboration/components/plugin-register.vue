@@ -1,23 +1,25 @@
 <template>
   <Row>
-    <Col span="3">
+    <Col span="6">
       <div v-if="plugins.length < 1">{{ $t("no_plugin") }}</div>
       <Menu
         theme="light"
         :active-name="currentPlugin"
         @on-select="selectPlugin"
+        style="width: 100%;"
       >
         <MenuItem
           v-for="(plugin, index) in plugins"
           :name="plugin.name"
           :key="index"
+          style="padding: 10px 5px;"
         >
           <Icon type="md-flower" />
           {{ plugin.name }}
         </MenuItem>
       </Menu>
     </Col>
-    <Col span="18" offset="3">
+    <Col span="18" offset="0" style="padding-left: 10px">
       <Form v-if="currentPlugin.length > 0" :model="form">
         <Row>
           <Col span="10" offset="0">
@@ -56,8 +58,8 @@
           <Col span="6" offset="1">
             <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
           </Col>
-          <Col span="3" offset="5">
-            <strong style="font-size:15px;">属性类型</strong>
+          <Col span="3" offset="4">
+            <strong style="font-size:15px;">{{ $t("attribute_type") }}</strong>
           </Col>
         </Row>
         <Row
@@ -72,12 +74,12 @@
           </Col>
           <Col span="21">
             <Row>
-              <Col span="2">
+              <Col span="3">
                 <FormItem :label-width="0">
                   <span>{{ $t("input_params") }}</span>
                 </FormItem>
               </Col>
-              <Col span="21" offset="1">
+              <Col span="21" offset="0">
                 <Row
                   v-for="param in interfaces['inputParameters']"
                   :key="param.id"
@@ -93,27 +95,43 @@
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="14" offset="1">
+                  <Col span="13" offset="1">
                     <FormItem :label-width="0">
                       <PathExp
                         v-if="param.mappingType === 'entity'"
                         :rootPkg="pkgName"
                         :rootEntity="selectedEntityType"
                         :allDataModelsWithAttrs="allEntityType"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
                         v-model="param.mappingEntityExpression"
                       ></PathExp>
-                      <span v-if="param.mappingType === 'system_variable'">{{
-                        param.mappingSystemVariableId || "N/A"
-                      }}</span>
-                      <!-- <span v-if="param.mappingType === 'entity'">{{
-                        param.mappingEntityExpression || "N/A"
-                      }}</span> -->
+                      <Select
+                        v-if="param.mappingType === 'system_variable'"
+                        v-model="param.mappingSystemVariableId"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                      >
+                        <Option
+                          v-for="item in allSystemVariables"
+                          :value="item.id"
+                          :key="item.id"
+                          >{{ item.name }}</Option
+                        >
+                      </Select>
                       <span v-if="param.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
-                  <Col span="2" offset="1">
+                  <Col span="4" offset="1">
                     <FormItem :label-width="0">
-                      {{ param.mappingType }}
+                      <Select
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        v-model="param.mappingType"
+                      >
+                        <Option value="context" key="context">context</Option>
+                        <Option value="system_variable" key="system_variable"
+                          >system_variable</Option
+                        >
+                        <Option value="entity" key="entity">entity</Option>
+                      </Select>
                     </FormItem>
                   </Col>
                 </Row>
@@ -125,7 +143,7 @@
                   <span>{{ $t("output_params") }}</span>
                 </FormItem>
               </Col>
-              <Col span="21" offset="0">
+              <Col span="20" offset="0">
                 <Row
                   v-for="outPut in interfaces['outputParameters']"
                   :key="outPut.id + 1000"
@@ -143,30 +161,30 @@
                   </Col>
                   <Col span="14" offset="1">
                     <FormItem :label-width="0">
-                      <!-- <Select
-                        placeholder="请选择"
-                        v-model="outPut.mappingSystemVariableId"
-                        clearable
+                      <Select
+                        v-if="outPut.mappingType === 'entity'"
+                        v-model="outPut.mappingEntityExpression"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
                       >
                         <Option
-                          v-for="attr in currentCiTyPeAttr"
-                          :key="attr.codeId"
-                          :value="attr.codeId"
-                          :label="attr.value"
+                          v-for="attr in currentEntityAttr"
+                          :key="attr.name"
+                          :value="attr.name"
+                          :label="attr.name"
                         ></Option>
-                      </Select> -->
-                      <span v-if="outPut.mappingType === 'system_variable'">{{
-                        outPut.mappingSystemVariableId || "N/A"
-                      }}</span>
-                      <span v-if="outPut.mappingType === 'entity'">{{
-                        outPut.mappingEntityExpression || "N/A"
-                      }}</span>
+                      </Select>
                       <span v-if="outPut.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
-                  <Col span="2" offset="1">
+                  <Col span="4" offset="1">
                     <FormItem :label-width="0">
-                      {{ outPut.mappingType }}
+                      <Select
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        v-model="outPut.mappingType"
+                      >
+                        <Option value="context" key="context">context</Option>
+                        <Option value="entity" key="entity">entity</Option>
+                      </Select>
                     </FormItem>
                   </Col>
                 </Row>
@@ -176,16 +194,12 @@
         </Row>
         <Row style="margin:20px auto">
           <Col span="5" offset="10">
-            <!-- <Button
-                type="primary"
-                v-if="
-                  currentPlugin.status === 'NOT_CONFIGURED' ||
-                    currentPlugin.status === 'CONFIGURED' ||
-                    currentPlugin.status === 'DECOMMISSIONED'
-                "
-                @click="pluginSave"
-                >保存</Button
-              > -->
+            <Button
+              type="primary"
+              v-if="currentPluginObj.status === 'DISABLED'"
+              @click="pluginSave"
+              >保存</Button
+            >
             <Button
               type="primary"
               v-if="currentPluginObj.status === 'DISABLED'"
@@ -208,11 +222,11 @@
 import PathExp from "../../components/path-exp.vue";
 import {
   getAllPluginByPkgId,
-  getAllSystemEnumCodes,
   getAllDataModels,
   registerPlugin,
   deletePlugin,
-  savePluginConfig
+  savePluginConfig,
+  retrieveSystemVariables
 } from "@/api/server";
 
 export default {
@@ -222,9 +236,9 @@ export default {
       currentPlugin: "",
       plugins: [],
       allEntityType: [],
-      currentCiTyPeAttr: [],
       selectedEntityType: "",
-      form: {}
+      form: {},
+      allSystemVariables: []
       // pluginInterfaces:[]
     };
   },
@@ -237,6 +251,13 @@ export default {
         plugin => plugin.name === this.currentPlugin
       );
       return found ? found : {};
+    },
+    currentEntityAttr() {
+      const allEntity = [].concat(
+        ...this.allEntityType.map(_ => _.pluginPackageEntities)
+      );
+      const found = allEntity.find(i => i.name === this.selectedEntityType);
+      return found ? found.attributes : [];
     }
   },
   props: {
@@ -249,6 +270,27 @@ export default {
   },
   watch: {},
   methods: {
+    async retrieveSystemVariables() {
+      const { data, status, message } = await retrieveSystemVariables({
+        filters: [],
+        paging: false
+      });
+      if (status === "OK") {
+        this.allSystemVariables = data.contents;
+      }
+    },
+    async pluginSave() {
+      const { data, status, message } = await savePluginConfig(
+        this.currentPluginObj
+      );
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message
+        });
+        this.getAllPluginByPkgId();
+      }
+    },
     async regist() {
       const saveRes = await savePluginConfig(this.currentPluginObj);
       if (saveRes.status === "OK") {
@@ -296,24 +338,12 @@ export default {
       if (status === "OK") {
         this.allEntityType = data;
       }
-    },
-    async getAllSystemEnumCodes() {
-      //   const { data, status, message } = await getAllSystemEnumCodes({
-      //     filters: [],
-      //     paging: false
-      //   });
-      //   if (status === "OK") {
-      //     this.currentCiTyPeAttr = data.contents
-      //       .filter(i => i.cat.catName != "tab_query_of_deploy_design")
-      //       .filter(i => i.cat.catName != "tab_query_of_architecture_design");
-      //   }
-      this.currentCiTyPeAttr = [];
     }
   },
   created() {
     this.getAllPluginByPkgId();
     this.getAllDataModels();
-    this.getAllSystemEnumCodes();
+    this.retrieveSystemVariables();
     this.selectedEntityType = this.currentPluginObj.entityName;
   }
 };
