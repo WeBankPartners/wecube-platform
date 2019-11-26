@@ -372,7 +372,12 @@ public class PluginPackageXmlParser {
             pluginConfigInterface.setServiceDisplayName(serviceName);
             pluginConfigInterface.setPath(getStringAttribute(interfaceNode, "./@path"));
             pluginConfigInterface.setHttpMethod(getStringAttribute(interfaceNode, "./@httpMethod"));
-            
+            String isAsyncProcessing = getStringAttribute(interfaceNode, "./@isAsyncProcessing");
+            if (StringUtils.isNotEmpty(isAsyncProcessing)) {
+                pluginConfigInterface.setIsAsyncProcessing(isAsyncProcessing);
+            } else {
+                pluginConfigInterface.setIsAsyncProcessing("N");
+            }
             NodeList inputParameterNodeList = xPathEvaluator.getNodeList("./inputParameters/parameter", interfaceNode);
             if (inputParameterNodeList != null && inputParameterNodeList.getLength() > 0) {
                 pluginConfigInterface.setInputParameters(parsePluginConfigInterfaceParameters(inputParameterNodeList, pluginConfigInterface, TYPE_INPUT, MAPPING_TYPE_CMDB_CI_TYPE));

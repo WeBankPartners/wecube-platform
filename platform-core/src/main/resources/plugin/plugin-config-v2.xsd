@@ -158,6 +158,7 @@
         <xs:attribute type="xs:string" name="action"/>
     <xs:attribute type="xs:string" name="path"/>
     <xs:attribute type="xs:string" name="httpMethod"/>
+    <xs:attribute type="xs:string" name="isAsyncProcessing"/>
   </xs:complexType>
   <xs:complexType name="pluginType">
     <xs:sequence>
