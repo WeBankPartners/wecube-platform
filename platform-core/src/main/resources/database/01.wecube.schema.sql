@@ -237,10 +237,10 @@ CREATE TABLE `plugin_instances` (
 
 drop table if exists plugin_mysql_instances;
 CREATE TABLE `plugin_mysql_instances` (
-    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `id` VARCHAR(256) PRIMARY KEY,
     `password` VARCHAR(255) NULL DEFAULT NULL,
-    `plugun_package_id` INT(11) NULL DEFAULT NULL,
-    `resource_item_id` INT(11) NULL DEFAULT NULL,
+    `plugun_package_id` VARCHAR(256) NULL DEFAULT NULL,
+    `resource_item_id` VARCHAR(256) NULL DEFAULT NULL,
     `schema_name` VARCHAR(255) NULL DEFAULT NULL,
     `status` VARCHAR(255) NULL DEFAULT NULL,
     `username` VARCHAR(255) NULL DEFAULT NULL,
