@@ -20,12 +20,12 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">{{
-                $t("query_orch")
-              }}</Button>
-              <Button type="success" @click="createHandler">{{
-                $t("create_orch")
-              }}</Button>
+              <Button type="info" @click="queryHandler">
+                {{ $t("query_orch") }}
+              </Button>
+              <Button type="success" @click="createHandler">
+                {{ $t("create_orch") }}
+              </Button>
             </FormItem>
           </Form>
         </Col>
@@ -79,9 +79,9 @@
           >
             <div class="graph-container" id="flow"></div>
             <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
-                $t("execute")
-              }}</Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow">
+                {{ $t("execute") }}
+              </Button>
             </div>
           </Col>
           <Col
@@ -94,7 +94,7 @@
       </Row>
     </Card>
     <Modal
-      title="请选择操作"
+      :title="$t('select_an_operation')"
       v-model="workflowActionModalVisible"
       :footer-hide="true"
       :mask-closable="false"
@@ -104,14 +104,14 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
-        <Button type="info" @click="workFlowActionHandler('retry')"
-          >重试</Button
-        >
+        <Button type="info" @click="workFlowActionHandler('retry')">{{
+          $t("retry")
+        }}</Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
           style="margin-left: 20px"
-          >跳过</Button
+          >{{ $t("skip") }}</Button
         >
       </div>
     </Modal>
@@ -478,9 +478,8 @@ export default {
         this.$Notice.success({
           title: "Success",
           desc:
-            type === "retry"
-              ? "Retry"
-              : "Skip" + " action is proceed successfully"
+            (type === "retry" ? "Retry" : "Skip") +
+            " action is proceed successfully"
         });
         this.workflowActionModalVisible = false;
       }
