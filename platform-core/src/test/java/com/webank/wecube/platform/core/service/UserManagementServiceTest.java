@@ -56,7 +56,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void sortSubMenusByIdShouldSuccess() {
         prepareDatabase();
 
-        Optional<PluginPackage> pluginPackage = pluginPackageRepository.findById("25");
+        Optional<PluginPackage> pluginPackage = pluginPackageRepository.findById("service-mt:v0.6");
         Set<PluginPackageMenu> packageMenus = pluginPackage.get().getPluginPackageMenus();
         List<PluginPackageMenu> menusDtos = userManagerService.sortPluginPackageMenusById(packageMenus);
         if (menusDtos.size() > 0) {

@@ -11,24 +11,19 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Sets;
+import com.webank.wecube.platform.core.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.MenuItem;
-import com.webank.wecube.platform.core.domain.Role;
-import com.webank.wecube.platform.core.domain.RoleMenu;
-import com.webank.wecube.platform.core.domain.RoleUser;
-import com.webank.wecube.platform.core.domain.User;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
@@ -44,7 +39,6 @@ import com.webank.wecube.platform.core.support.cmdb.dto.v2.RoleCiTypeCtrlAttrDto
 import com.webank.wecube.platform.core.support.cmdb.dto.v2.RoleCiTypeDto;
 
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.asm.Advice.Return;
 
 @Service
 @Slf4j
@@ -128,8 +122,6 @@ public class UserManagerService {
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
 
-        Map<String, Integer> categoryToId = pluginPackageService.updateCategoryToIdMapping(returnMenuDto);
-
         PluginPackage.Status[] statusArray = { PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
                 PluginPackage.Status.STOPPED };
         Optional<List<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findAllByStatus(statusArray);
@@ -142,19 +134,13 @@ public class UserManagerService {
 
                 for (int i = 0; i < packageMenusList.size(); i++) {
                     PluginPackageMenu packageMenu = packageMenusList.get(i);
-                    String transformedParentId = null;
-                    Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
-                    if (parentId == null) {
+                    if (! menuItemRepository.existsByCode(packageMenu.getCategory())) {
                         String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                                 packageMenu.getCategory());
                         log.error(msg);
                         throw new WecubeCoreException(msg);
                     }
-                    transformedParentId = parentId.toString();
-                    Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
-                    MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId,
-                            foundTopMenuId);
-                    categoryToId.put(transformedParentId, foundTopMenuId);
+                    MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
                     returnMenuDto.add(packageMenuDto);
                 }
             }
@@ -173,36 +159,6 @@ public class UserManagerService {
     public List<String> getMenuItemsByRoleId(int roleId) {
         return menuItemRepository.findMenuItemsByRoles(roleId).stream().map(MenuItem::getCode)
                 .collect(Collectors.toList());
-    }
-
-    public List<String> getMenuItemCodesByUsername(String username) {
-        return getMenuItemsByUsername(username, false).stream().map(MenuItem::getCode).collect(toList());
-    }
-
-    public List<MenuItem> getMenuItemsByUsername(String username, boolean withParentMenu) {
-        List<Role> roles = cmdbServiceStub.getRolesByUsername(username);
-        log.info("Roles {} found for user {}", roles, username);
-        if (isNotEmpty(roles)) {
-            Integer[] roleIds = roles.stream().map(Role::getRoleId).toArray(Integer[]::new);
-            List<MenuItem> menuItems = menuItemRepository.findMenuItemsByRoles(roleIds);
-            if (isNotEmpty(menuItems) && withParentMenu) {
-                Set<Integer> fetchedParentIds = Sets.newHashSet();
-                Set<Integer> toFetchedParentIds = Sets.newHashSet();
-                for (MenuItem menuItem : menuItems) {
-                    Integer parentId = menuItem.getParentId();
-                    if (parentId == null || parentId == 0) {
-                        fetchedParentIds.add(menuItem.getId());
-                    } else {
-                        toFetchedParentIds.add(parentId);
-                    }
-                }
-                toFetchedParentIds.removeAll(fetchedParentIds);
-                Iterable<MenuItem> parentMenus = menuItemRepository.findAllById(toFetchedParentIds);
-                parentMenus.forEach(menuItems::add);
-            }
-            return menuItems;
-        }
-        return Collections.emptyList();
     }
 
     public List<RoleCiTypeDto> getRoleCiTypesByRoleId(int roleId) {

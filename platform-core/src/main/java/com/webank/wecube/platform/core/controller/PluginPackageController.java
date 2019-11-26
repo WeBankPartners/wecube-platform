@@ -59,7 +59,7 @@ public class PluginPackageController {
 
     }
 
-    @PostMapping("/packages/register/{package-id}")
+    @PostMapping("/packages/register/{package-id:.+}")
     @ResponseBody
     public JsonResponse registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
         PluginPackage pluginPackage = null;
@@ -71,7 +71,7 @@ public class PluginPackageController {
         return okayWithData(pluginPackage);
     }
 
-    @PostMapping("/packages/decommission/{package-id}")
+    @PostMapping("/packages/decommission/{package-id:.+}")
     @ResponseBody
     public JsonResponse decommissionPluginPackage(@PathVariable(value = "package-id") String packageId) {
         try {

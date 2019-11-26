@@ -46,12 +46,9 @@ public class PluginPackageRuntimeResourcesDocker {
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
             this.id = String.join(KEY_COLUMN_DELIMITER,
-                    "DOCKER",
                     null != pluginPackage ? pluginPackage.getName() : null,
                     null != pluginPackage ? pluginPackage.getVersion() : null,
-                    imageName,
-                    containerName,
-                    portBindings
+                    imageName
             );
         }
     }

@@ -58,7 +58,10 @@ public class PluginMysqlInstance {
     @PrePersist
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginPackage ? pluginPackage.getName() : null, null != pluginPackage ? pluginPackage.getVersion() : null, schemaName, username);
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginPackage ? pluginPackage.getId() : null,
+                    schemaName,
+                    username);
         }
     }
 

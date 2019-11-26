@@ -64,8 +64,7 @@ public class PluginPackageAttribute {
                     null != pluginPackageEntity ? pluginPackageEntity.getPackageName() : null,
                     null != pluginPackageEntity ? String.valueOf(pluginPackageEntity.getDataModelVersion()) : null,
                     null!=pluginPackageEntity ? pluginPackageEntity.getName() : null,
-                    name,
-                    dataType);
+                    name);
         }
     }
 

@@ -109,7 +109,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
     }
 
-    @Ignore
     @Test
     public void givenPluginPackageNormalAndFakeS3ClientWhenUploadThenReturnSuccess() {
         pluginPackageService.setS3Client(new FakeS3Client());
@@ -145,7 +144,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get("/v1/packages").accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains("1", "2", "3", "4")))
+                    .andExpect(jsonPath("$.data[*].id", contains("cmdb:v1.0", "cmdb:v1.1", "cmdb:v1.2", "cmdb:v1.3")))
                     .andExpect(jsonPath("$.data[*].name", contains("cmdb", "cmdb", "cmdb", "cmdb")))
                     .andExpect(jsonPath("$.data[*].version", contains("v1.0", "v1.1", "v1.2", "v1.3")))
                     .andDo(print())
@@ -176,7 +175,8 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginPackage();
 
         try {
-            mvc.perform(post("/v1/packages/register/1"))
+            String packageId = "cmdb:v1.0";
+            mvc.perform(post("/v1/packages/register/" + packageId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -192,7 +192,8 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginPackage();
 
         try {
-            mvc.perform(post("/v1/packages/register/1"))
+            String packageId = "cmdb:v1.0";
+            mvc.perform(post("/v1/packages/register/" + packageId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -208,7 +209,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginPackage();
 
         try {
-            mvc.perform(post("/v1/packages/decommission/1"))
+            mvc.perform(post("/v1/packages/decommission/cmdb:v1.0"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
@@ -224,7 +225,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginPackageWithReference();
 
         try {
-            int pluginPackageIdInRUNNINGStatus = 4;
+            String pluginPackageIdInRUNNINGStatus = "cmdb:v1.3";
             mvc.perform(post("/v1/packages/decommission/" + pluginPackageIdInRUNNINGStatus))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
@@ -239,41 +240,41 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     private void mockMenus() {
         executeSql("delete from menu_items;\n" +
-                "insert into menu_items (id,parent_id,code,description) values\n" +
-                "(1,null,'JOBS','')\n" +
-                ",(2,null,'DESIGNING','')\n" +
-                ",(3,null,'IMPLEMENTATION','')\n" +
-                ",(4,null,'MONITORING','')\n" +
-                ",(5,null,'ADJUSTMENT','')\n" +
-                ",(6,null,'INTELLIGENCE_OPS','')\n" +
-                ",(7,null,'COLLABORATION','')\n" +
-                ",(8,null,'ADMIN','')\n" +
-                ",(305,3,'IMPLEMENTATION_WORKFLOW_EXECUTION','')\n" +
-                ",(701,7,'COLLABORATION_PLUGIN_MANAGEMENT','')\n" +
-                ",(702,7,'COLLABORATION_WORKFLOW_ORCHESTRATION','')\n" +
-                ",(803,8,'ADMIN_BASE_DATA_MANAGEMENT','');");
+                "insert into menu_items (id,parent_code,code,description) values\n" +
+                "('JOBS',null,'JOBS','')\n" +
+                ",('DESIGNING',null,'DESIGNING','')\n" +
+                ",('IMPLEMENTATION',null,'IMPLEMENTATION','')\n" +
+                ",('MONITORING',null,'MONITORING','')\n" +
+                ",('ADJUSTMENT',null,'ADJUSTMENT','')\n" +
+                ",('INTELLIGENCE_OPS',null,'INTELLIGENCE_OPS','')\n" +
+                ",('COLLABORATION',null,'COLLABORATION','')\n" +
+                ",('ADMIN',null,'ADMIN','')\n" +
+                ",('IMPLEMENTATION:IMPLEMENTATION_WORKFLOW_EXECUTION','IMPLEMENTATION','IMPLEMENTATION_WORKFLOW_EXECUTION','')\n" +
+                ",('COLLABORATION:COLLABORATION_PLUGIN_MANAGEMENT','COLLABORATION','COLLABORATION_PLUGIN_MANAGEMENT','')\n" +
+                ",('COLLABORATION:COLLABORATION_WORKFLOW_ORCHESTRATION','COLLABORATION','COLLABORATION_WORKFLOW_ORCHESTRATION','')\n" +
+                ",('ADMIN:ADMIN_BASE_DATA_MANAGEMENT','ADMIN','ADMIN_BASE_DATA_MANAGEMENT','');");
     }
 
     private void mockMultipleVersionPluginPackage() {
         executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  (1, 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
-                " ,(2, 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
-                " ,(3, 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
-                " ,(4, 'cmdb', 'v1.3', 'RUNNING')\n" +
+                "  ('cmdb:v1.0', 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
+                " ,('cmdb:v1.1', 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
+                " ,('cmdb:v1.2', 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
+                " ,('cmdb:v1.3', 'cmdb', 'v1.3', 'RUNNING')\n" +
                 ";");
     }
 
     private void mockMultipleVersionPluginPackageWithReference() {
         executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  (1, 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
-                " ,(2, 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
-                " ,(3, 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
-                " ,(4, 'cmdb', 'v1.3', 'RUNNING')\n" +
+                "  ('cmdb:v1.0', 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
+                " ,('cmdb:v1.1', 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
+                " ,('cmdb:v1.2', 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
+                " ,('cmdb:v1.3', 'cmdb', 'v1.3', 'RUNNING')\n" +
                 ";\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
-                " (11, 1, 'Vpc Management', 16, 'ENABLED')\n" +
-                ",(21, 2, 'Vpc Management', 17, 'ENABLED')\n" +
-                ",(31, 3, 'Vpc Management', 16, 'DISABLED')\n" +
+                " ('11', 'cmdb:v1.0', 'Vpc Management', 16, 'ENABLED')\n" +
+                ",('21', 'cmdb:v1.1', 'Vpc Management', 17, 'ENABLED')\n" +
+                ",('31', 'cmdb:v1.2', 'Vpc Management', 16, 'DISABLED')\n" +
                 ";");
     }
 
@@ -284,7 +285,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String packageName = "servicemanagement_v0.1";
+        String packageName = "servicemanagement:v0.1";
 
         try {
             mvc.perform(get(String.format("/v1/packages/%s/dependencies", packageName)))
@@ -301,7 +302,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Test
     public void getDependenciesByWrongPackageIdShouldReturnError() {
-        String wrongQueryId = "nonexistentpackage_v0.1";
+        String wrongQueryId = "nonexistentpackage:v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/dependencies", wrongQueryId)))
                     .andExpect(status().isOk())
@@ -324,7 +325,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "servicemanagement_v0.1";
+        String correctQueryId = "servicemanagement:v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/menus", correctQueryId)))
                     .andExpect(status().isOk())
@@ -344,7 +345,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Test
     public void getMenuByWrongPackageIdShouldReturnError() {
-        String wrongQueryId = "nonexistentpackage_v0.1";
+        String wrongQueryId = "nonexistentpackage:v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/dependencies", wrongQueryId)))
                     .andExpect(status().isOk())
@@ -365,11 +366,11 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "servicemanagement_v0.1";
+        String correctQueryId = "servicemanagement:v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains("servicemanagement_v0.1_xxx_global", "servicemanagement_v0.1_xxx_plugin-package")))
+                    .andExpect(jsonPath("$.data[*].id", contains("servicemanagement:v0.1:xxx:global", "servicemanagement:v0.1:xxx:servicemanagement")))
                     .andExpect(jsonPath("$.data[*].name", contains("xxx", "xxx")))
                     .andExpect(jsonPath("$.data[*].defaultValue", contains("xxxx", "xxxx")))
                     .andExpect(jsonPath("$.data[*].scopeType", contains("global", "plugin-package")))
@@ -387,11 +388,11 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "servicemanagement_v0.1";
+        String correctQueryId = "servicemanagement:v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/authorities", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("servicemanagement_v0.1_admin_JOBS_SERVICE_CATALOG_MANAGEMENT", "servicemanagement_v0.1_admin_JOBS_TASK_MANAGEMENT", "servicemanagement_v0.1_wecube_operator_JOBS_TASK_MANAGEMENT")))
+                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("servicemanagement:v0.1:admin:JOBS_SERVICE_CATALOG_MANAGEMENT", "servicemanagement:v0.1:admin:JOBS_TASK_MANAGEMENT", "servicemanagement:v0.1:wecube_operator:JOBS_TASK_MANAGEMENT")))
                     .andExpect(jsonPath("$.data[*].roleName", contains("admin", "admin", "wecube_operator")))
                     .andExpect(jsonPath("$.data[*].menuCode", contains("JOBS_SERVICE_CATALOG_MANAGEMENT", "JOBS_TASK_MANAGEMENT", "JOBS_TASK_MANAGEMENT")))
                     .andDo(print())
@@ -408,16 +409,16 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "servicemanagement_v0.1";
+        String correctQueryId = "servicemanagement:v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/runtime-resources", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.docker[0].id", is("DOCKER_servicemanagement_v0.1_service_management_service_management_22000:21000")))
-                    .andExpect(jsonPath("$.data.mysql[0].id", is("MYSQL_servicemanagement_v0.1_service_management")))
+                    .andExpect(jsonPath("$.data.docker[0].id", is("servicemanagement:v0.1:service_management")))
+                    .andExpect(jsonPath("$.data.mysql[0].id", is("servicemanagement:v0.1:service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].schemaName", is("service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].initFileName", is("init.sql")))
                     .andExpect(jsonPath("$.data.mysql[0].upgradeFileName", is("upgrade.sql")))
-                    .andExpect(jsonPath("$.data.s3[0].id", is("S3_servicemanagement_v0.1_service_management")))
+                    .andExpect(jsonPath("$.data.s3[0].id", is("servicemanagement:v0.1:service_management")))
                     .andExpect(jsonPath("$.data.s3[0].bucketName", is("service_management")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -433,15 +434,15 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String packageId = "servicemanagement_v0.1";
+        String packageId = "servicemanagement:v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/plugins", packageId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("servicemanagement_v0.1_service_request_service_request", "servicemanagement_v0.1_task_task")))
-                    .andExpect(jsonPath("$.data[*].entityId", containsInAnyOrder("servicemanagement_1_service_request", "servicemanagement_1_task")))
+                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("servicemanagement:v0.1:service_request:service_request", "servicemanagement:v0.1:task:task")))
+                    .andExpect(jsonPath("$.data[*].entityId", containsInAnyOrder("servicemanagement:1:service_request", "servicemanagement:1:task")))
                     .andExpect(jsonPath("$.data[*].name", containsInAnyOrder("task", "service_request")))
                     .andExpect(jsonPath("$.data[*].status", containsInAnyOrder("DISABLED", "DISABLED")))
-                    .andExpect(jsonPath("$.data[*].pluginPackageId", contains("servicemanagement_v0.1", "servicemanagement_v0.1")))
+                    .andExpect(jsonPath("$.data[*].pluginPackageId", contains("servicemanagement:v0.1", "servicemanagement:v0.1")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {

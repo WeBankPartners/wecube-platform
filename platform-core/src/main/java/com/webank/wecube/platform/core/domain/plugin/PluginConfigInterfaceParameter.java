@@ -75,7 +75,11 @@ public class PluginConfigInterfaceParameter {
     @PrePersist
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginConfigInterface ? pluginConfigInterface.getId() : null, type, name, dataType);
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginConfigInterface ? pluginConfigInterface.getId() : null,
+                    type,
+                    name,
+                    dataType);
         }
     }
 
