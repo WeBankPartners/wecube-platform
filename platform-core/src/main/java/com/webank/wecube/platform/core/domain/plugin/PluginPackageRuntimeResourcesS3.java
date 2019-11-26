@@ -34,7 +34,6 @@ public class PluginPackageRuntimeResourcesS3 {
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
             this.id = String.join(KEY_COLUMN_DELIMITER,
-                    "S3",
                     null != pluginPackage ? pluginPackage.getName() : null,
                     null != pluginPackage ? pluginPackage.getVersion() : null,
                     bucketName
