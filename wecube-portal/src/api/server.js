@@ -19,9 +19,7 @@ export const getFlowOutlineByID = id =>
   req.get(`/platform/v1/process/definitions/${id}/outline`);
 
 export const getTargetOptions = (pkgName, entityName) =>
-  req.get(
-    `platform/v1/dme/target-entity?entity=${entityName}&package=${pkgName}`
-  );
+  req.get(`platform/v1/packages/${pkgName}/entities/${entityName}/retrieve`);
 export const getTreePreviewData = (flowId, targetId) =>
   req.get(
     `platform/v1/process/definitions/${flowId}/preview/entities/${targetId}`
