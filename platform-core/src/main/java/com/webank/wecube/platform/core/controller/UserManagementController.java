@@ -112,19 +112,19 @@ public class UserManagementController {
         return okayWithData(userManagerService.getRoleCiTypesByRoleId(roleId));
     }
 
-    @GetMapping("/users/{username}/permissions")
-    @ResponseBody
-    public JsonResponse getPermissionsByUsername(@PathVariable(value = "username")String username) {
-        List<String> menuPermissions = userManagerService.getMenuItemCodesByUsername(username);
-        List<RoleCiTypeDto> ciTypePermissions = userManagerService.getRoleCiTypesByUsername(username);
-        return okayWithData(new Permissions(menuPermissions, ciTypePermissions));
-    }
-
-    @GetMapping("/users/{username}/menu-permissions")
-    @ResponseBody
-    public JsonResponse getMenuPermissionsByUsername(@PathVariable(value = "username")String username) {
-        return okayWithData(userManagerService.getMenuItemCodesByUsername(username));
-    }
+//    @GetMapping("/users/{username}/permissions")
+//    @ResponseBody
+//    public JsonResponse getPermissionsByUsername(@PathVariable(value = "username")String username) {
+//        List<String> menuPermissions = userManagerService.getMenuItemCodesByUsername(username);
+//        List<RoleCiTypeDto> ciTypePermissions = userManagerService.getRoleCiTypesByUsername(username);
+//        return okayWithData(new Permissions(menuPermissions, ciTypePermissions));
+//    }
+//
+//    @GetMapping("/users/{username}/menu-permissions")
+//    @ResponseBody
+//    public JsonResponse getMenuPermissionsByUsername(@PathVariable(value = "username")String username) {
+//        return okayWithData(userManagerService.getMenuItemCodesByUsername(username));
+//    }
 
     @GetMapping("/users/{username}/citype-permissions")
     @ResponseBody
