@@ -138,7 +138,7 @@ export default {
     },
     renderGraph() {
       let nodesString = this.genDOT();
-      console.log(111111, nodesString);
+      console.log("nodesString", nodesString);
       this.graph.graphviz.renderDot(nodesString);
     },
     initGraph() {
