@@ -89,10 +89,7 @@ req.interceptors.response.use(
           duration: 0
         });
       }
-      return {
-        ...res.data,
-        user: res.headers["current_user"] || " - "
-      };
+      return res.data instanceof Array ? res.data : { ...res.data };
     } else {
       return {
         data: throwError(res)
