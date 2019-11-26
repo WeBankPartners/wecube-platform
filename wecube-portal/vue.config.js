@@ -1,10 +1,10 @@
 const CompressionPlugin = require("compression-webpack-plugin");
 
-let isUsingLocalCore = true;
+let isUsingLocalCore = false;
 
 const baseURL = isUsingLocalCore
   ? "http://localhost:8080"
-  : "http://129.204.99.160:9098";
+  : "http://111.230.161.237:19100";
 
 module.exports = {
   devServer: {
@@ -18,6 +18,9 @@ module.exports = {
       },
       "ui-resources": {
         target: "http://111.230.161.237:19090"
+      },
+      "wecube-monitor": {
+        target: "https://sandbox.webank.com"
       }
     }
   },
