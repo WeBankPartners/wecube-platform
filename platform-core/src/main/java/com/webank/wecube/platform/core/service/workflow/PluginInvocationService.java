@@ -21,6 +21,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
@@ -548,7 +549,8 @@ public class PluginInvocationService {
 
     private PluginInstance retrieveAvailablePluginInstance(PluginConfigInterface itf) {
         PluginConfig config = itf.getPluginConfig();
-        String pluginName = config.getName();
+        PluginPackage pkg = config.getPluginPackage();
+        String pluginName = pkg.getName();
 
         List<PluginInstance> instances = pluginInstanceService.getRunningPluginInstances(pluginName);
 
