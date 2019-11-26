@@ -44,6 +44,12 @@ http {
         location /artifacts {
 		proxy_pass http://core;
 	}
+	location /saltstack {
+		proxy_pass http://core;
+	}
+	location /qcloud {
+		proxy_pass http://core;
+	}
    }
 }
 
