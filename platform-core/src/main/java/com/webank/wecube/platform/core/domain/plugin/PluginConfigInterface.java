@@ -35,6 +35,8 @@ public class PluginConfigInterface {
     private String path;
     @Column
     private String httpMethod;
+    @Column
+    private String isAsyncProcessing;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -154,5 +156,13 @@ public class PluginConfigInterface {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginConfig"});
+    }
+
+    public String getIsAsyncProcessing() {
+        return isAsyncProcessing;
+    }
+
+    public void setIsAsyncProcessing(String isAsyncProcessing) {
+        this.isAsyncProcessing = isAsyncProcessing;
     }
 }

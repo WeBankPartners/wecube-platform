@@ -45,7 +45,15 @@
                 "
                 :key="plugin.id"
               >
-                {{ plugin.name + "_" + plugin.version }}
+                <span
+                  :class="
+                    plugin.status !== 'DECOMMISSIONED'
+                      ? 'nonDecomissionedPkgName'
+                      : 'decomissionedPkgName'
+                  "
+                >
+                  {{ plugin.name + "_" + plugin.version }}
+                </span>
                 <span style="float: right; margin-right: 10px">
                   <Button
                     v-if="plugin.status !== 'DECOMMISSIONED'"
@@ -119,7 +127,7 @@
           ></RuntimesResources>
         </TabPane>
         <TabPane
-          v-if="currentPlugin.status !== 'DECOMMISSIONED'"
+          v-if="currentPlugin.status === 'UNREGISTERED'"
           name="confirm"
           :label="$t('confirm')"
         >
@@ -324,25 +332,12 @@
 </template>
 <script>
 import {
-  getAllCITypesByLayerWithAttr,
   getAllPluginPkgs,
-  getPluginInterfaces,
-  getRefCiTypeFrom,
-  getRefCiTypeTo,
-  getCiTypeAttr,
   createPluginInstanceByPackageIdAndHostIp,
   removePluginInstance,
-  savePluginInstance,
   queryLog,
-  getPluginInstanceLogDetail,
-  getCiTypeAttrRefAndSelect,
-  getEnumCodesByCategoryId,
-  getAllSystemEnumCodes,
-  decommissionPluginConfig,
-  releasePluginConfig,
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
-  preconfigurePluginPackage,
   deletePluginPkg,
   registPluginPackage,
   getAvailableInstancesByPackageId,
@@ -508,7 +503,7 @@ export default {
     async createPluginInstanceByPackageIdAndHostIp(ip, port) {
       this.$Notice.success({
         title: "Success",
-        desc: "Start Launching... It will take 5-15 mins"
+        desc: "Start Launching... It will take sometime."
       });
       this.isLoading = true;
       const {
@@ -526,7 +521,6 @@ export default {
           title: "Success",
           desc: "Instance launched successfully"
         });
-        // TODO
         this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
     },
@@ -538,7 +532,7 @@ export default {
       if (status === "OK") {
         this.$Notice.success({
           title: "Success",
-          desc: message || ""
+          desc: this.$t("reload_to_get_ui")
         });
       }
     },
@@ -803,4 +797,11 @@ export default {
   }
 };
 </script>
-<style lang="scss"></style>
+<style lang="scss">
+.decomissionedPkgName {
+  font-style: italic;
+  text-decoration: line-through;
+}
+.nonDecomissionedPkgName {
+}
+</style>

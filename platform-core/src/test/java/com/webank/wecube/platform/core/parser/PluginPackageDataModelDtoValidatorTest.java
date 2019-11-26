@@ -29,6 +29,18 @@ public class PluginPackageDataModelDtoValidatorTest {
     }
 
     @Test
+    public void givenPluginPackageParameterWithMappingTypeWhenValidateThenShouldSucceed() {
+        try {
+            InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-output-parameter-with-mappingtype.xml").openStream());
+            PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
+
+            new PluginPackageDataModelDtoValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
+        } catch (Exception e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
+    @Test
     public void givenPluginPackageWithDataModelButAttributeWithoutDataTypeWhenValidateThenShouldThrowException() {
         try {
             InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-with-data-model-entity-attribute-without-datatype.xml").openStream());

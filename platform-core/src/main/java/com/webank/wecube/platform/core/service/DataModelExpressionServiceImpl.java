@@ -6,7 +6,9 @@ import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
-import com.webank.wecube.platform.core.support.parser.datamodel.DataModelExpressionDto;
+import com.webank.wecube.platform.core.support.datamodel.ChainRequestDto;
+import com.webank.wecube.platform.core.support.datamodel.DataModelExpressionDto;
+import com.webank.wecube.platform.core.support.datamodel.TreeNode;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
@@ -26,38 +28,23 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
-
-    private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}";
-    private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
-
-
     @Autowired
     private RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ApplicationProperties applicationProperties;
 
+    private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
     private static final String requestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
     private static final String postRequestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
+    private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}";
     final String UNIQUE_IDENTIFIER = "id";
-
-
-    private String requestActualUrl = "";
-
-
-    private String getRequestActualUrl() {
-        return requestActualUrl;
-    }
-
-    private void setRequestActualUrl(String requestActualUrl) {
-        this.requestActualUrl = requestActualUrl;
-    }
 
 
     @Override
     public List<Object> fetchData(DataModelExpressionToRootData dataModelExpressionToRootData
     ) throws WecubeCoreException {
 
-        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(dataModelExpressionToRootData);
+        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new ChainRequestDto(dataModelExpressionToRootData));
 
         return resultDtoStack.pop().getResultValue();
     }
@@ -66,13 +53,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     public List<Object> targetEntityQuery(String packageName, String entityName) {
         Map<String, Object> getAllUrlParamMap = generateGetAllParamMap(this.applicationProperties.getGatewayUrl(), packageName, entityName);
         CommonResponseDto request = getRequest(requestAllUrl, getAllUrlParamMap);
-        List<Object> result = commonResponseToList(request, "ALL");
-        return result;
+        return commonResponseToList(request, DataModelExpressionParser.FETCH_ALL);
     }
 
     @Override
-    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Map<String, Object> writeBackData) throws WecubeCoreException {
-        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(expressionToRootData);
+    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object writeBackData) throws WecubeCoreException {
+        ChainRequestDto chainRequestDto = new ChainRequestDto(expressionToRootData);
+        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(chainRequestDto);
         List<CommonResponseDto> lastRequestResponse;
         DataModelExpressionDto finalFetchDto = Objects.requireNonNull(resultDtoStack.pop());
         String writeBackPackageName = null;
@@ -103,27 +90,27 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
         String writeBackAttr = Objects.requireNonNull(finalFetchDto.getOpFetch()).attr().getText();
         Object writeBackId = commonResponseToList(lastRequestResponse.get(0), this.UNIQUE_IDENTIFIER).get(0);
-        if (!writeBackData.containsKey(writeBackAttr)) {
-            String msg = String.format("Cannot find attribute name [%s] from given write back data, " +
-                    "check if expression's last fetch attribute is in your write back data.", writeBackAttr);
-            logger.error(msg);
-            throw new WecubeCoreException(msg);
-        }
-        Object writeBackValue = writeBackData.get(writeBackAttr);
         Map<String, Object> postRequestUrlParamMap = generatePostUrlParamMap(this.applicationProperties.getGatewayUrl(), writeBackPackageName, writeBackEntityName);
-        List<Map<String, Object>> writeBackRequestBodyParamMap = generatePostBodyParamMap(writeBackId, writeBackAttr, writeBackValue);
-        postRequest(postRequestUrl, postRequestUrlParamMap, writeBackRequestBodyParamMap);
+        List<Map<String, Object>> writeBackRequestBodyParamMap = generatePostBodyParamMap(writeBackId, writeBackAttr, writeBackData);
+        postRequest(chainRequestDto, postRequestUrl, postRequestUrlParamMap, writeBackRequestBodyParamMap);
+    }
+
+    @Override
+    public List<TreeNode> getPreviewTree(DataModelExpressionToRootData expressionToRootData) {
+        ChainRequestDto chainRequestDto = new ChainRequestDto(expressionToRootData);
+        chainRequest(chainRequestDto);
+        return this.flattenTreeNode(chainRequestDto.getTreeNode());
     }
 
     /**
      * Chain request operation from dataModelExpression and root Id data pair
      *
-     * @param dataModelExpressionToRootData a support class comprises data model expression and root id data
+     * @param chainRequestDto a support class comprises
      * @return request dto stack comprises returned value and intermediate responses, peek is the latest request
      */
-    private Stack<DataModelExpressionDto> chainRequest(DataModelExpressionToRootData dataModelExpressionToRootData) {
-        String dataModelExpression = dataModelExpressionToRootData.getDataModelExpression();
-        String rootIdData = dataModelExpressionToRootData.getRootData();
+    private Stack<DataModelExpressionDto> chainRequest(ChainRequestDto chainRequestDto) {
+        String dataModelExpression = chainRequestDto.getDataModelExpressionToRootData().getDataModelExpression();
+        String rootIdData = chainRequestDto.getDataModelExpressionToRootData().getRootData();
         Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
 
         Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
@@ -134,17 +121,17 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             throw new WecubeCoreException(msg);
         }
         boolean isStart = true;
-        List<CommonResponseDto> lastRequestResult = new ArrayList<>();
+        DataModelExpressionDto lastExpressionDto = null;
         while (!expressionDtoQueue.isEmpty()) {
             DataModelExpressionDto expressionDto = expressionDtoQueue.poll();
             if (isStart) {
-                resolveLink(expressionDto, rootIdData);
+                resolveLink(chainRequestDto, expressionDto, rootIdData);
                 isStart = false;
             } else {
-                resolveLink(expressionDto, lastRequestResult);
+                resolveLink(chainRequestDto, expressionDto, Objects.requireNonNull(lastExpressionDto));
             }
             if (!expressionDto.getReturnedJson().empty()) {
-                lastRequestResult = expressionDto.getReturnedJson().peek();
+                lastExpressionDto = expressionDto;
             }
             resultDtoStack.add(expressionDto);
         }
@@ -159,29 +146,35 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @param rootIdData    root data id data
      * @throws WecubeCoreException throw exception while request
      */
-    private void resolveLink(DataModelExpressionDto expressionDto, String rootIdData) throws WecubeCoreException {
+    private void resolveLink(ChainRequestDto chainRequestDto, DataModelExpressionDto expressionDto, String rootIdData) throws WecubeCoreException {
         // only invoke this condition when one "entity fetch" situation occurs
         if (expressionDto.getOpTo() == null && expressionDto.getOpBy() == null && expressionDto.getOpFetch() != null) {
 
             DataModelParser.EntityContext entity = expressionDto.getEntity();
             DataModelParser.FetchContext opFetch = expressionDto.getOpFetch();
 
-            // request
             String requestPackageName = entity.pkg().getText();
             String requestEntityName = entity.ety().getText();
+
+            // tree node
+            chainRequestDto.setTreeNode(new TreeNode(requestPackageName, requestEntityName, rootIdData, null, null));
+
+            // request
             Map<String, Object> requestParamMap = generateGetUrlParamMap(
                     this.applicationProperties.getGatewayUrl(),
                     requestPackageName,
                     requestEntityName,
-                    "id",
+                    this.UNIQUE_IDENTIFIER,
                     rootIdData,
-                    "id");
-            CommonResponseDto requestResponseDto = getRequest(requestUrl, requestParamMap);
-            expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
+                    this.UNIQUE_IDENTIFIER);
+
+            CommonResponseDto requestResponseDto = getRequest(chainRequestDto, requestUrl, requestParamMap);
+            expressionDto.getRequestUrlStack().add(Collections.singleton(chainRequestDto.getRequestActualUrl()));
             expressionDto.getReturnedJson().add(Collections.singletonList(requestResponseDto));
 
-            String secondRequstAttrName = opFetch.attr().getText();
-            List<Object> finalResult = commonResponseToList(requestResponseDto, secondRequstAttrName);
+            String fetchAttributeName = opFetch.attr().getText();
+            List<Object> finalResult = commonResponseToList(requestResponseDto, fetchAttributeName);
+
             expressionDto.setResultValue(finalResult);
         }
 
@@ -191,20 +184,22 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             // refTo
             DataModelParser.Fwd_nodeContext fwdNode = expressionDto.getFwdNode();
             DataModelParser.EntityContext entity = expressionDto.getEntity();
-
-            // first request
             String firstRequestPackageName = fwdNode.entity().pkg().getText();
             String firstRequestEntityName = fwdNode.entity().ety().getText();
 
+            // first tree node
+            chainRequestDto.setTreeNode(new TreeNode(firstRequestPackageName, firstRequestEntityName, rootIdData, null, new ArrayList<>()));
+
+            // first request
             Map<String, Object> firstRequestParamMap = generateGetUrlParamMap(
                     this.applicationProperties.getGatewayUrl(),
                     firstRequestPackageName,
                     firstRequestEntityName,
-                    "id",
+                    this.UNIQUE_IDENTIFIER,
                     rootIdData,
-                    "id");
-            CommonResponseDto firstRequestResponseDto = getRequest(requestUrl, firstRequestParamMap);
-            expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
+                    this.UNIQUE_IDENTIFIER);
+            CommonResponseDto firstRequestResponseDto = getRequest(chainRequestDto, requestUrl, firstRequestParamMap);
+            expressionDto.getRequestUrlStack().add(Collections.singleton(chainRequestDto.getRequestActualUrl()));
             expressionDto.getReturnedJson().add(Collections.singletonList(firstRequestResponseDto));
 
             // second request
@@ -219,13 +214,18 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                         this.applicationProperties.getGatewayUrl(),
                         secondRequestPackageName,
                         secondRequestEntityName,
-                        "id",
+                        this.UNIQUE_IDENTIFIER,
                         secondRequestIdData,
-                        "id");
-                CommonResponseDto secondRequestResponse = getRequest(requestUrl, secondRequestParamMap);
+                        this.UNIQUE_IDENTIFIER);
+                CommonResponseDto secondRequestResponse = getRequest(chainRequestDto, requestUrl, secondRequestParamMap);
                 responseDtoList.add(secondRequestResponse);
+
+                // set child tree node and update parent tree node
+                TreeNode childNode = new TreeNode(secondRequestPackageName, secondRequestEntityName, secondRequestIdData, chainRequestDto.getTreeNode(), new ArrayList<>());
+                chainRequestDto.getTreeNode().getChildren().add(childNode);
+                chainRequestDto.getAnchorTreeNodeList().add(childNode);
             }
-            expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
+            expressionDto.getRequestUrlStack().add(Collections.singleton(chainRequestDto.getRequestActualUrl()));
             expressionDto.getReturnedJson().add(responseDtoList);
         }
 
@@ -233,23 +233,30 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             // refBy
             DataModelParser.EntityContext entity = expressionDto.getEntity();
             DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
+            String requestPackageName = bwdNode.entity().pkg().getText();
+            String requestEntityName = bwdNode.entity().ety().getText();
+            String requestAttributeName = bwdNode.attr().getText();
 
-            // first request
-            // TODO: verify that the rootIdData is in the given entity
+            // first TreeNode, which is the entity
+            chainRequestDto.setTreeNode(new TreeNode(entity.pkg().getText(), entity.ety().getText(), rootIdData, null, new ArrayList<>()));
 
-            // second request
-            String secondRequestPackageName = bwdNode.entity().pkg().getText();
-            String secondRequestEntityName = bwdNode.entity().ety().getText();
-            String secondRequestAttributeName = bwdNode.attr().getText();
-            Map<String, Object> secondRequestParamMap = generateGetUrlParamMap(
+            // refBy request
+            Map<String, Object> requestParamMap = generateGetUrlParamMap(
                     this.applicationProperties.getGatewayUrl(),
-                    secondRequestPackageName,
-                    secondRequestEntityName,
-                    secondRequestAttributeName,
+                    requestPackageName,
+                    requestEntityName,
+                    requestAttributeName,
                     rootIdData,
-                    "id");
-            CommonResponseDto secondRequestResponse = getRequest(requestUrl, secondRequestParamMap);  // this response may have data with one or multiple lines.
-            expressionDto.getRequestUrlStack().add(Collections.singleton(requestActualUrl));
+                    this.UNIQUE_IDENTIFIER);
+            CommonResponseDto secondRequestResponse = getRequest(chainRequestDto, requestUrl, requestParamMap);  // this response may have data with one or multiple lines.
+            // second TreeNode, might be multiple
+            List<Object> refByDataIdList = commonResponseToList(secondRequestResponse, this.UNIQUE_IDENTIFIER);
+            refByDataIdList.forEach(id -> {
+                TreeNode childNode = new TreeNode(requestPackageName, requestEntityName, id, chainRequestDto.getTreeNode(), new ArrayList<>());
+                chainRequestDto.getTreeNode().getChildren().add(childNode);
+                chainRequestDto.getAnchorTreeNodeList().add(childNode);
+            });
+            expressionDto.getRequestUrlStack().add(Collections.singleton(chainRequestDto.getRequestActualUrl()));
             expressionDto.getReturnedJson().add(Collections.singletonList(secondRequestResponse));
 
         }
@@ -258,15 +265,31 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     /**
      * Resolve links which comprise previous links and final fetch action
      *
-     * @param expressionDto         subsequent link expression dto
-     * @param lastRequestResultList the request response from last link
+     * @param expressionDto     subsequent link expression dto
+     * @param lastExpressionDto the expression dto from last link
      * @throws WecubeCoreException throw exception through the request
      */
-    private void resolveLink(DataModelExpressionDto expressionDto, List<CommonResponseDto> lastRequestResultList) throws WecubeCoreException {
-        // only invoke this function when the non-first link is processed
-        // no need to process fwdNode
+    private void resolveLink(ChainRequestDto chainRequestDto, DataModelExpressionDto expressionDto, DataModelExpressionDto lastExpressionDto) throws WecubeCoreException {
+        List<CommonResponseDto> lastRequestResultList = lastExpressionDto.getReturnedJson().peek();
+        List<TreeNode> newAnchorTreeNodeList = new ArrayList<>();
+
+        // last request info
+        String lastRequestPackageName;
+        String lastRequestEntityName;
+        if (lastExpressionDto.getOpTo() != null) {
+            // the last expression is refTo
+            lastRequestPackageName = Objects.requireNonNull(lastExpressionDto.getEntity().pkg()).getText();
+            lastRequestEntityName = Objects.requireNonNull(lastExpressionDto.getEntity().ety()).getText();
+        } else {
+            // the last expression is refBy
+            lastRequestPackageName = Objects.requireNonNull(lastExpressionDto.getBwdNode().entity().pkg()).getText();
+            lastRequestEntityName = Objects.requireNonNull(lastExpressionDto.getBwdNode().entity().ety()).getText();
+        }
+
         if (expressionDto.getOpTo() != null) {
             // refTo
+
+            // new request info
             String requestId = expressionDto.getOpFetch().attr().getText();
             String requestPackageName = expressionDto.getEntity().pkg().getText();
             String requestEntityName = expressionDto.getEntity().ety().getText();
@@ -274,18 +297,42 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             Set<String> requestUrlSet = new HashSet<>();
             for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
+
+
+                // request for data and update the parent tree node
                 List<Object> requestIdDataList = commonResponseToList(lastRequestResponseDto, requestId);
                 for (Object requestIdData : requestIdDataList) {
+                    // find parent tree node, from attribute to id might found multiple ID which means multiple tree nodes
+                    List<Object> parentIdList = getResponseIdFromAttribute(lastRequestResponseDto, requestId, requestIdData);
+                    List<TreeNode> parentTreeNodeList = new ArrayList<>();
+                    Objects.requireNonNull(parentIdList).forEach(id -> {
+                        TreeNode parentNode = findParentNode(chainRequestDto.getAnchorTreeNodeList(), lastRequestPackageName, lastRequestEntityName, id);
+                        Objects.requireNonNull(parentNode, "Cannot find parent node from given last request info");
+                        parentTreeNodeList.add(parentNode);
+                    });
+
                     Map<String, Object> requestParamMap = generateGetUrlParamMap(
                             this.applicationProperties.getGatewayUrl(),
                             requestPackageName,
                             requestEntityName,
-                            "id",
+                            this.UNIQUE_IDENTIFIER,
                             requestIdData,
-                            "id");
-                    CommonResponseDto requestResponse = getRequest(requestUrl, requestParamMap);
-                    requestUrlSet.add(requestActualUrl);
+                            this.UNIQUE_IDENTIFIER);
+                    CommonResponseDto requestResponse = getRequest(chainRequestDto, requestUrl, requestParamMap);
+                    requestUrlSet.add(chainRequestDto.getRequestActualUrl());
                     responseDtoList.add(requestResponse);
+
+                    // set child tree node and update parent tree node
+                    List<Object> responseIdList = commonResponseToList(requestResponse, this.UNIQUE_IDENTIFIER);
+                    responseIdList.forEach(id -> {
+                        // the list's size is one due to it's referenceTo operation
+                        parentTreeNodeList.forEach(parentNode -> {
+                            // bind childNode which is generated by one id to multiple parents
+                            TreeNode childNode = new TreeNode(requestPackageName, requestEntityName, id, parentNode, new ArrayList<>());
+                            parentNode.getChildren().add(childNode);
+                            newAnchorTreeNodeList.add(childNode);
+                        });
+                    });
                 }
             }
             expressionDto.getRequestUrlStack().add(requestUrlSet);
@@ -294,6 +341,8 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
 
         if (expressionDto.getOpBy() != null) {
             // refBy
+
+            // new request info
             DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
             String requestPackageName = bwdNode.entity().pkg().getText();
             String requestEntityName = bwdNode.entity().ety().getText();
@@ -302,21 +351,34 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             List<CommonResponseDto> responseDtoList = new ArrayList<>();
             Set<String> requestUrlSet = new HashSet<>();
             for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
-                List<Object> requestIdDataList = commonResponseToList(lastRequestResponseDto, "id");
+
+                List<Object> requestIdDataList = commonResponseToList(lastRequestResponseDto, this.UNIQUE_IDENTIFIER);
                 for (Object requestIdData : requestIdDataList) {
                     Objects.requireNonNull(requestIdData,
                             "Cannot find 'id' from last request response. " +
                                     "Please ensure that the interface returned the data with one key named: 'id' as the development guideline requires.");
+                    // find parent tree node
+                    TreeNode parentNode = findParentNode(chainRequestDto.getAnchorTreeNodeList(), lastRequestPackageName, lastRequestEntityName, requestIdData);
+                    Objects.requireNonNull(parentNode, "Cannot find parent node from given last request info");
+
                     Map<String, Object> requestParamMap = generateGetUrlParamMap(
                             this.applicationProperties.getGatewayUrl(),
                             requestPackageName,
                             requestEntityName,
                             requestAttributeName,
                             requestIdData,
-                            "id");
-                    CommonResponseDto requestResponse = getRequest(requestUrl, requestParamMap);
-                    requestUrlSet.add(requestActualUrl);
+                            this.UNIQUE_IDENTIFIER);
+                    CommonResponseDto requestResponse = getRequest(chainRequestDto, requestUrl, requestParamMap);
+                    requestUrlSet.add(chainRequestDto.getRequestActualUrl());
                     responseDtoList.add(requestResponse);
+
+                    // set child tree node and update parent tree node
+                    List<Object> responseIdList = commonResponseToList(requestResponse, this.UNIQUE_IDENTIFIER);
+                    responseIdList.forEach(id -> {
+                        TreeNode childNode = new TreeNode(requestPackageName, requestEntityName, id, parentNode, new ArrayList<>());
+                        parentNode.getChildren().add(childNode);
+                        newAnchorTreeNodeList.add(childNode);
+                    });
                 }
             }
             expressionDto.getRequestUrlStack().add(requestUrlSet);
@@ -324,7 +386,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
 
         if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null && expressionDto.getOpFetch() != null) {
-            // route
+            // final route, which is prev link and fetch
             String attrName = expressionDto.getOpFetch().attr().getText();
             List<Object> resultValueList = new ArrayList<>();
             for (CommonResponseDto lastRequestResult : lastRequestResultList) {
@@ -333,6 +395,43 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             }
             expressionDto.setResultValue(resultValueList);
         }
+
+        // update anchor tree node list
+        chainRequestDto.setAnchorTreeNodeList(newAnchorTreeNodeList);
+    }
+
+    private List<Object> getResponseIdFromAttribute(CommonResponseDto lastRequestResponseDto, String requestAttributeName, Object requestAttributeValue) throws WecubeCoreException {
+        List<Object> result = new ArrayList<>();
+        List<Object> requestResponseDataList = commonResponseToList(lastRequestResponseDto, DataModelExpressionParser.FETCH_ALL);
+        requestResponseDataList.forEach(o -> {
+            if (!LinkedHashMap.class.getSimpleName().equals(o.getClass().getSimpleName())) {
+                String msg = "Cannot transfer lastRequestResponse list to LinkedHashMap.";
+                logger.error(msg, lastRequestResponseDto, requestAttributeName, requestAttributeValue);
+                throw new WecubeCoreException(msg);
+            }
+            LinkedHashMap<String, Object> requestResponseDataMap = (LinkedHashMap<String, Object>) o;
+            if (requestAttributeValue.equals(requestResponseDataMap.get(requestAttributeName))) {
+                result.add(requestResponseDataMap.get(this.UNIQUE_IDENTIFIER));
+            }
+        });
+
+        return result;
+    }
+
+    /**
+     * Find parent tree node from last link's operation
+     *
+     * @param anchorTreeNodeList     intermediate tree node list as anchor, which is the latest tree's most bottom leaves
+     * @param lastRequestPackageName last request package name
+     * @param lastRequestEntityName  last request entity name
+     * @param rootIdData             tree node's root id data
+     * @return found tree node or null
+     */
+    private TreeNode findParentNode(List<TreeNode> anchorTreeNodeList, String lastRequestPackageName, String lastRequestEntityName, Object rootIdData) {
+        for (TreeNode node : anchorTreeNodeList) {
+            if (node.equals(new TreeNode(lastRequestPackageName, lastRequestEntityName, rootIdData))) return node;
+        }
+        return null;
     }
 
     /**
@@ -408,12 +507,11 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @return generated param map for url binding
      */
     private List<Map<String, Object>> generatePostBodyParamMap(Object entityId,
-                                                               Object attributeName,
+                                                               String attributeName,
                                                                Object attributeValue) {
         Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("id", entityId);
-        paramMap.put("attr_name", attributeName);
-        paramMap.put("attr_value", attributeValue);
+        paramMap.put(this.UNIQUE_IDENTIFIER, entityId);
+        paramMap.put(attributeName, attributeValue);
         return Collections.singletonList(paramMap);
 
     }
@@ -426,27 +524,18 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @return common response dto
      * @throws WecubeCoreException catch exception during sending the request
      */
-    private CommonResponseDto getRequest(String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
+    private CommonResponseDto getRequest(ChainRequestDto chainRequestDto, String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
         ResponseEntity<String> response;
-        CommonResponseDto responseDto = null;
+        CommonResponseDto responseDto;
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             // combine url with param map
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            if (!this.getRequestActualUrl().equals(uriStr))
-                this.setRequestActualUrl(uriStr);
-            response = RestTemplateUtils.sendGetRequestWithParamMap(restTemplate, uriStr, httpHeaders);
-            if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
-                throw new WecubeCoreException(response.toString());
-            }
-            responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
-            if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
-                String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
-                logger.error(msg);
-                throw new WecubeCoreException(msg);
-            }
+            if (!chainRequestDto.getRequestActualUrl().equals(uriStr))
+                chainRequestDto.setRequestActualUrl(uriStr);
+            responseDto = requestThenTransferToCommonResponseDto(httpHeaders, uriStr);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
             throw new WecubeCoreException(ex.getMessage());
@@ -460,35 +549,86 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      *
      * @param requestUrl request url with place holders
      * @param paramMap   generated param map
+     * @return common response dto
      * @throws WecubeCoreException catch exception during sending the request
      */
-    private void postRequest(String requestUrl, Map<String, Object> paramMap, List<Map<String, Object>> requestBodyParamMap) throws WecubeCoreException {
+    private CommonResponseDto getRequest(String requestUrl, Map<String, Object> paramMap) throws WecubeCoreException {
         ResponseEntity<String> response;
-        CommonResponseDto responseDto = null;
+        CommonResponseDto responseDto;
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             // combine url with param map
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            if (!this.getRequestActualUrl().equals(uriStr))
-                this.setRequestActualUrl(uriStr);
-            response = RestTemplateUtils.sendPostRequestWithParamMap(restTemplate, uriStr, requestBodyParamMap, httpHeaders);
-            if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
-                String msg = String.format("Error when sending post request to target server, the response is: [%s]", response.toString());
-                throw new WecubeCoreException(msg);
-            }
-            responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
-            if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
-                String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
-                logger.error(msg);
-                throw new WecubeCoreException(msg);
-            }
+            responseDto = requestThenTransferToCommonResponseDto(httpHeaders, uriStr);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
             throw new WecubeCoreException(ex.getMessage());
         }
 
+        return responseDto;
+    }
+
+    /**
+     * Send request then transfer the response to common response dto
+     *
+     * @param httpHeaders http header
+     * @param uriStr      bind and expanded uri string
+     * @return common response dto
+     * @throws IOException exception when sending the request
+     */
+    private CommonResponseDto requestThenTransferToCommonResponseDto(HttpHeaders httpHeaders, String uriStr) throws IOException {
+        ResponseEntity<String> response;
+        CommonResponseDto responseDto;
+        response = RestTemplateUtils.sendGetRequestWithParamMap(restTemplate, uriStr, httpHeaders);
+        responseDto = checkResponse(response);
+        return responseDto;
+    }
+
+    private CommonResponseDto checkResponse(ResponseEntity<String> response) throws IOException, WecubeCoreException {
+        CommonResponseDto responseDto;
+        if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
+            if (response.getStatusCode().is4xxClientError()) {
+                throw new WecubeCoreException(String.format("Error code: [%s]. The target package doesn't implement the request controller.", response.getStatusCode().toString()));
+            }
+
+            if (response.getStatusCode().is5xxServerError()) {
+                throw new WecubeCoreException(String.format("Error code: [%s]. The target package's instance has error.", response.getStatusCode().toString()));
+            }
+        }
+        responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
+        if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
+            String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return responseDto;
+    }
+
+    /**
+     * Issue a request from request url with place holders and param map
+     *
+     * @param requestUrl request url with place holders
+     * @param paramMap   generated param map
+     * @throws WecubeCoreException catch exception during sending the request
+     */
+    private void postRequest(ChainRequestDto chainRequestDto, String requestUrl, Map<String, Object> paramMap, List<Map<String, Object>> requestBodyParamMap) throws WecubeCoreException {
+        ResponseEntity<String> response;
+        try {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            // combine url with param map
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
+            UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
+            String uriStr = uriComponents.toString();
+            if (!chainRequestDto.getRequestActualUrl().equals(uriStr))
+                chainRequestDto.setRequestActualUrl(uriStr);
+            response = RestTemplateUtils.sendPostRequestWithParamMap(restTemplate, uriStr, requestBodyParamMap, httpHeaders);
+            checkResponse(response);
+        } catch (IOException ex) {
+            logger.error(ex.getMessage());
+            throw new WecubeCoreException(ex.getMessage());
+        }
     }
 
     /**
@@ -515,12 +655,12 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         if (DataModelExpressionParser.FETCH_ALL.equals(attributeName)) {
             returnList = Objects.requireNonNull(dataArray)
                     .stream()
-                    .sorted(Comparator.comparing(o -> String.valueOf(o.get("id"))))
+                    .sorted(Comparator.comparing(o -> String.valueOf(o.get(this.UNIQUE_IDENTIFIER))))
                     .collect(Collectors.toList());
         } else {
             returnList = Objects.requireNonNull(dataArray)
                     .stream()
-                    .sorted(Comparator.comparing(o -> String.valueOf(o.get("id"))))
+                    .sorted(Comparator.comparing(o -> String.valueOf(o.get(this.UNIQUE_IDENTIFIER))))
                     .map(linkedTreeMap -> linkedTreeMap.get(attributeName))
                     .collect(Collectors.toList());
         }
@@ -528,5 +668,20 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         return returnList;
     }
 
-
+    /**
+     * Flatten tree
+     *
+     * @param treeNode root tree node of a tree
+     * @return flattened tree node list
+     */
+    private List<TreeNode> flattenTreeNode(TreeNode treeNode) {
+        List<TreeNode> result = new ArrayList<>();
+        if (null != treeNode.getChildren() && !treeNode.getChildren().isEmpty()) {
+            Objects.requireNonNull(treeNode.getChildren()).forEach(childNode -> {
+                result.addAll(flattenTreeNode(childNode));
+            });
+        }
+        result.add(treeNode);
+        return result;
+    }
 }

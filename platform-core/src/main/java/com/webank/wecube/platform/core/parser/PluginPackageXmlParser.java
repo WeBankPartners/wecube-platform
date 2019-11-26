@@ -377,7 +377,12 @@ public class PluginPackageXmlParser {
             pluginConfigInterface.setServiceDisplayName(serviceName);
             pluginConfigInterface.setPath(getStringAttribute(interfaceNode, "./@path"));
             pluginConfigInterface.setHttpMethod(getStringAttribute(interfaceNode, "./@httpMethod"));
-            
+            String isAsyncProcessing = getStringAttribute(interfaceNode, "./@isAsyncProcessing");
+            if (StringUtils.isNotEmpty(isAsyncProcessing)) {
+                pluginConfigInterface.setIsAsyncProcessing(isAsyncProcessing);
+            } else {
+                pluginConfigInterface.setIsAsyncProcessing("N");
+            }
             NodeList inputParameterNodeList = xPathEvaluator.getNodeList("./inputParameters/parameter", interfaceNode);
             if (inputParameterNodeList != null && inputParameterNodeList.getLength() > 0) {
                 pluginConfigInterface.setInputParameters(parsePluginConfigInterfaceParameters(inputParameterNodeList, pluginConfigInterface, TYPE_INPUT, MAPPING_TYPE_CMDB_CI_TYPE));
@@ -412,7 +417,12 @@ public class PluginPackageXmlParser {
             if (StringUtils.isNotEmpty(mappingEntityExpression)) {
                 pluginConfigInterfaceParameter.setMappingEntityExpression(mappingEntityExpression);
             }
-            pluginConfigInterfaceParameter.setRequired(getStringAttribute(parameterNode, "./@required"));
+            String required = getStringAttribute(parameterNode, "./@required");
+            if (StringUtils.isNoneBlank(required)) {
+                pluginConfigInterfaceParameter.setRequired(required);
+            } else {
+                pluginConfigInterfaceParameter.setRequired("N");
+            }
 
             pluginConfigInterfaceParameters.add(pluginConfigInterfaceParameter);
         }

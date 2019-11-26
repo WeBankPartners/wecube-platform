@@ -1,6 +1,5 @@
 // Generated from /Users/howechen/GitHub/wecube-platform/platform-core/src/main/resources/DataModel.g4 by ANTLR 4.7.2
 package com.webank.wecube.platform.core.parser.datamodel.antlr4;
-
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**

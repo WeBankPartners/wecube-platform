@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.controller;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.service.DataModelExpressionServiceImpl;
 import org.slf4j.Logger;
@@ -21,7 +22,12 @@ public class DataModelExpressionController {
             @RequestParam(value = "package") String packageName,
             @RequestParam(value = "entity") String entityName
     ) {
-        return JsonResponse.okayWithData(dataModelExpressionService.targetEntityQuery(packageName, entityName));
+        try {
+            return JsonResponse.okayWithData(dataModelExpressionService.targetEntityQuery(packageName, entityName));
+        } catch (WecubeCoreException ex) {
+            return JsonResponse.error(ex.getMessage());
+        }
+
     }
 
 }

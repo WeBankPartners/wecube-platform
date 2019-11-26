@@ -7,6 +7,7 @@
           :rows="2"
           @input="inputHandler"
           :value="inputVal"
+          :disabled="disabled"
         ></textarea>
         <!-- <span v-if="!isEndWithCIType" class="wecube-error-message">{{
           $t("select_non_ci_attr")
@@ -52,6 +53,7 @@ export default {
       required: false
     },
     rootPkg: {},
+    disabled: {},
     rootEntity: {},
     allDataModelsWithAttrs: {} //组件外层调用getDataModelByPackageName传入
   },
@@ -71,8 +73,17 @@ export default {
     },
     rootEntity: {
       handler(val) {
-        // this.inputVal = `${this.rootPkg}:${val}`;
+        console.log(this.allDataModelsWithAttrs);
+        const found = this.allEntity.find(_ => _.name === val);
+        this.currentPkg = found.packageName;
         this.currentEntity = val;
+        this.inputVal = `${this.currentPkg}:${val}`;
+        this.entityPath = [
+          {
+            entity: this.currentEntity,
+            pkg: this.currentPkg
+          }
+        ];
       }
     }
   },
