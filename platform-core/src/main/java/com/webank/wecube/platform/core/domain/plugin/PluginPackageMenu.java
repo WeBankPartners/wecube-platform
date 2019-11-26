@@ -26,7 +26,13 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     private String category;
 
     @Column
+    private String source;
+
+    @Column
     private String displayName;
+
+    @Column
+    private Integer menuOrder;
 
     @Column
     private String path;
@@ -43,10 +49,9 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
             this.id = String.join(KEY_COLUMN_DELIMITER,
-                    null != pluginPackage ? pluginPackage.getName() : null,
-                    null != pluginPackage ? pluginPackage.getVersion() : null,
-                    code,
-                    category
+                    null != pluginPackage ? pluginPackage.getId() : null,
+                    category,
+                    code
             );
         }
     }
@@ -75,12 +80,28 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this.category = category;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     public String getDisplayName() {
         return displayName;
     }
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public Integer getMenuOrder() {
+        return menuOrder;
+    }
+
+    public void setMenuOrder(Integer menuOrder) {
+        this.menuOrder = menuOrder;
     }
 
     public String getPath() {
@@ -95,13 +116,14 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         super();
     }
 
-    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String displayName,
-                             String path) {
+    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, Integer menuOrder, String path) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.code = code;
         this.category = category;
+        this.source = source;
         this.displayName = displayName;
+        this.menuOrder = menuOrder;
         this.path = path;
     }
 

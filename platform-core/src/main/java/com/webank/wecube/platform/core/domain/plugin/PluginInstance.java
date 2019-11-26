@@ -68,7 +68,11 @@ public class PluginInstance {
     @PrePersist
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginPackage ? pluginPackage.getName() : null, null != pluginPackage ? pluginPackage.getVersion() : null, instanceName, containerName, host, String.valueOf(port));
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginPackage ? pluginPackage.getId() : null,
+                    containerName,
+                    host,
+                    String.valueOf(port));
         }
     }
 
