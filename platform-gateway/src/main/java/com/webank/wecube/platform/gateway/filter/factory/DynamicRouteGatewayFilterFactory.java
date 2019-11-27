@@ -1,6 +1,9 @@
 package com.webank.wecube.platform.gateway.filter.factory;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,6 +26,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.webank.wecube.platform.gateway.dto.GenericResponseDto;
 import com.webank.wecube.platform.gateway.dto.RouteItemInfoDto;
 
+import wiremock.org.apache.commons.lang3.StringUtils;
+
 public class DynamicRouteGatewayFilterFactory
         extends AbstractGatewayFilterFactory<DynamicRouteGatewayFilterFactory.Config> {
 
@@ -43,7 +48,7 @@ public class DynamicRouteGatewayFilterFactory
         }
         return ((exchange, chain) -> {
             ServerHttpRequest req = exchange.getRequest();
-            log.info("Filter-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
+            log.info("Filter-IN-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
                     req.getURI().toString());
 
             boolean enabled = config.isEnabled();
@@ -64,7 +69,7 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("route:{} {}", route.getId(), route.getUri().toString());
             }
 
-            String newPath = req.getURI().getPath();
+            String newPath = decode(req.getURI().getRawPath());
             String baseUrl = null;
             try {
                 baseUrl = determineBaseUrl(newPath);
@@ -77,10 +82,13 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("base url:{}", baseUrl);
             }
 
-            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(req.getURI().getQuery()).encode().build()
-                    .toUri();
+            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(decode(req.getURI().getRawQuery()))
+                    .encode(Charset.forName("iso-8859-1")).build().toUri();
             ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
             ServerHttpRequest request = req.mutate().uri(newUri).build();
+            
+            log.info("Filter-OUT-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
+                    request.getURI().toString());
 
             Route newRoute = Route.async().asyncPredicate(route.getPredicate()).filters(route.getFilters())
                     .id(route.getId()).order(route.getOrder()).uri(newUri).build();
@@ -89,6 +97,25 @@ public class DynamicRouteGatewayFilterFactory
 
             return chain.filter(exchange.mutate().request(request).build());
         });
+    }
+    
+    protected String decode(String s){
+        if(StringUtils.isBlank(s)){
+            return s;
+        }
+        
+        String decodedStr = "";
+        try {
+            decodedStr = URLDecoder.decode(s, "iso-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            try {
+                decodedStr = URLDecoder.decode(s, "UTF-8");
+            } catch (UnsupportedEncodingException e1) {
+                decodedStr = s;
+            }
+        }
+        
+        return decodedStr;
     }
 
     protected String determineBaseUrl(String path) {
