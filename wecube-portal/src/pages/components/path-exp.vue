@@ -73,7 +73,6 @@ export default {
     },
     rootEntity: {
       handler(val) {
-        console.log(this.allDataModelsWithAttrs);
         const found = this.allEntity.find(_ => _.name === val);
         this.currentPkg = found.packageName;
         this.currentEntity = val;
@@ -139,7 +138,7 @@ export default {
           this.entityPath.push(path);
         });
       } else {
-        this.inputVal = `${this.rootPkg}:${this.rootEntity}`;
+        this.inputVal = `${this.rootPkg}:${this.rootEntity || ""}`;
         this.entityPath.push({
           entity: this.currentEntity,
           pkg: this.currentPkg
