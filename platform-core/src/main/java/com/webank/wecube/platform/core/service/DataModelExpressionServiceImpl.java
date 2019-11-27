@@ -594,7 +594,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            logger.info(uriStr, paramMap);
+            logger.info(String.format("Sending GET request to target url: [%s]", uriStr));
             responseDto = sendGetRequest(uriStr, httpHeaders);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
@@ -619,7 +619,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            logger.info(uriStr, paramMap, requestBodyParamMap);
+            logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, requestBodyParamMap));
             if (!chainRequestDto.getRequestActualUrl().equals(uriStr))
                 chainRequestDto.setRequestActualUrl(uriStr);
             sendPostRequest(uriStr, httpHeaders, requestBodyParamMap);
@@ -647,7 +647,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            logger.info(uriStr, paramMap, requestBody);
+            logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, requestBody));
             response = sendPostRequest(uriStr, httpHeaders, requestBody);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
@@ -665,6 +665,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @throws IOException exception when sending the request
      */
     private CommonResponseDto sendGetRequest(String uriStr, HttpHeaders httpHeaders) throws IOException {
+        logger.info(String.format("Sending GET request to target url: [%s]", uriStr));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
         response = RestTemplateUtils.sendGetRequestWithParamMap(restTemplate, uriStr, httpHeaders);
