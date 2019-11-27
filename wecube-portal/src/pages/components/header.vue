@@ -28,9 +28,9 @@
     </div>
     <div class="header-right_container">
       <div class="profile">
-        <Dropdown>
+        <Dropdown style="cursor: pointer">
           <span style="color: white">{{ user }}</span>
-          <Icon :size="18" type="md-arrow-dropdown"></Icon>
+          <Icon :size="18" type="ios-arrow-down" color="white" size="14"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/logout">
               <a href="/logout" style="width: 100%; display: block">
@@ -96,7 +96,7 @@ export default {
     async getMyMenus() {
       let { status, data, message, user } = await getMyMenus();
       if (status === "OK") {
-        this.user = user;
+        this.user = user || "Tea"; // Tea will show when no user information provided
         data.forEach(_ => {
           if (!_.category) {
             let menuObj = MENUS.find(m => m.code === _.code);
