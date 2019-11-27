@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.jpa;
 
-import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
@@ -19,8 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PluginPackageAttributeRepositoryTest extends BaseSpringBootTest {
     @Autowired
     private PluginPackageAttributeRepository attributeRepository;
-    @Autowired
-    private PluginPackageEntityRepository entityRepository;
     @Autowired
     private PluginPackageDataModelRepository dataModelRepository;
 
