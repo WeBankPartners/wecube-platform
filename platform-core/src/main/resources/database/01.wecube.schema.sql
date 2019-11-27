@@ -51,7 +51,7 @@ CREATE TABLE plugin_package_entities
     package_name        VARCHAR(50)                    NOT NULL,
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
-    description        VARCHAR(256)                   NOT NULL
+    description        VARCHAR(256)
 );
 
 DROP TABLE IF EXISTS plugin_package_attributes;
@@ -61,7 +61,7 @@ CREATE TABLE plugin_package_attributes
     entity_id    INTEGER                        NOT NULL,
     reference_id INTEGER,
     name         VARCHAR(100)                   NOT NULL,
-    description  VARCHAR(256)                   NOT NULL,
+    description  VARCHAR(256),
     data_type    VARCHAR(20)                    NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 

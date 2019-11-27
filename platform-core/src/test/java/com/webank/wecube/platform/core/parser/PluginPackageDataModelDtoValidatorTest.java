@@ -56,6 +56,18 @@ public class PluginPackageDataModelDtoValidatorTest {
     }
 
     @Test
+    public void givenPluginPackageWithDataModelButAttributeWithoutDescriptionWhenValidateThenShouldSucceed() {
+        try {
+            InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-with-data-model-entity-attribute-without-description.xml").openStream());
+            PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
+
+            new PluginPackageDataModelDtoValidator().validate(pluginPackageDto.getPluginPackageDataModelDto());
+        } catch (Exception e) {
+            fail("Xml should be correct without exception");
+        }
+    }
+
+    @Test
     public void givenPluginPackageWithDataModelButRefAttributeNameMissingWhenValidateThenShouldThrowException() {
         try {
             InputSource inputSource = new InputSource(Resources.getResource("plugin/sample-plugin-config-with-data-model-entity-but-ref-attribute-name-missing.xml").openStream());
