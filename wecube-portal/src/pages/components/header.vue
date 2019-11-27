@@ -171,8 +171,7 @@ export default {
         // ];
         this.$Notice.info({
           title: this.$t("notification_title"),
-          desc: this.$t("notification_desc"),
-          duration: 5
+          desc: this.$t("notification_desc")
         });
 
         const eleContain = document.getElementsByTagName("body");
@@ -210,8 +209,7 @@ export default {
               setTimeout(() => {
                 this.$Notice.success({
                   title: this.$t("notification_title"),
-                  desc: `${key} ${this.$t("plugin_load")}`,
-                  duration: 5
+                  desc: `${key} ${this.$t("plugin_load")}`
                 });
               }, 0);
             };
