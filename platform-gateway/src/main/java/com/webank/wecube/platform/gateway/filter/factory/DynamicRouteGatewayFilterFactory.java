@@ -64,7 +64,7 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("route:{} {}", route.getId(), route.getUri().toString());
             }
 
-            String newPath = req.getURI().getRawPath();
+            String newPath = req.getURI().getPath();
             String baseUrl = null;
             try {
                 baseUrl = determineBaseUrl(newPath);
@@ -77,7 +77,7 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("base url:{}", baseUrl);
             }
 
-            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(req.getURI().getRawQuery()).build()
+            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(req.getURI().getQuery()).encode().build()
                     .toUri();
             ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
             ServerHttpRequest request = req.mutate().uri(newUri).build();
