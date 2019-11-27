@@ -236,6 +236,7 @@ export default {
       this.selectedFlow = "";
       this.modelData = [];
       this.flowData = {};
+      this.showExcution = false;
       this.initModelGraph();
     },
     onTargetSelectHandler() {
@@ -313,7 +314,8 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-      this.graph.graphviz.renderDot(nodesString).fit(true);
+
+      this.graph.graphviz.renderDot(nodesString);
     },
     renderFlowGraph(excution) {
       const statusColor = {
@@ -339,9 +341,9 @@ export default {
           } else {
             const className =
               _.status === "Faulted" || _.status === "Timeouted" ? "retry" : "";
-            return `${_.nodeId} [label="${_.orderedNo +
+            return `${_.nodeId} [fixedsize=false label="${_.orderedNo +
               "、" +
-              _.nodeName}" fontsize="10" class="flow ${className}" style="${
+              _.nodeName}" class="flow ${className}" style="${
               excution ? "filled" : "none"
             }" color="${
               excution
@@ -349,7 +351,7 @@ export default {
                 : _.nodeId === this.currentFlowNodeId
                 ? "#5DB400"
                 : "#7F8A96"
-            }"  shape="record" id="${_.nodeId}"] height=.2`;
+            }"  shape="box" id="${_.nodeId}" ]`;
           }
         });
       let genEdge = () => {
@@ -387,7 +389,9 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-      this.flowGraph.graphviz.renderDot(nodesString).fit(true);
+      console.log("nodesString", nodesString);
+
+      this.flowGraph.graphviz.renderDot(nodesString);
       this.bindFlowEvent();
     },
     async excutionFlow() {
@@ -565,6 +569,7 @@ export default {
       const initEvent = () => {
         let graph;
         graph = d3.select(`#graph`);
+        debugger;
         graph.on("dblclick.zoom", null);
         this.graph.graphviz = graph.graphviz().zoom(false);
       };
