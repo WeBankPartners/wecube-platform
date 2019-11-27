@@ -566,6 +566,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
+            logger.info(uriStr, paramMap);
             if (!chainRequestDto.getRequestActualUrl().equals(uriStr))
                 chainRequestDto.setRequestActualUrl(uriStr);
             responseDto = sendGetRequest(uriStr, httpHeaders);
@@ -593,6 +594,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
+            logger.info(uriStr, paramMap);
             responseDto = sendGetRequest(uriStr, httpHeaders);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
@@ -617,6 +619,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
+            logger.info(uriStr, paramMap, requestBodyParamMap);
             if (!chainRequestDto.getRequestActualUrl().equals(uriStr))
                 chainRequestDto.setRequestActualUrl(uriStr);
             sendPostRequest(uriStr, httpHeaders, requestBodyParamMap);
@@ -644,6 +647,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
+            logger.info(uriStr, paramMap, requestBody);
             response = sendPostRequest(uriStr, httpHeaders, requestBody);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
