@@ -27,6 +27,7 @@
               <Select
                 @on-change="onSelectEntityType"
                 v-model="selectedEntityType"
+                :disabled="currentPluginObj.status === 'ENABLED'"
               >
                 <OptionGroup
                   :label="pluginPackage.packageName"
@@ -198,7 +199,7 @@
               type="primary"
               v-if="currentPluginObj.status === 'DISABLED'"
               @click="pluginSave"
-              >保存</Button
+              >{{ $t("save") }}</Button
             >
             <Button
               type="primary"
@@ -328,7 +329,7 @@ export default {
       const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
       if (status === "OK") {
         this.plugins = data;
-        this.selectPlugin(data[0].name || "");
+        // this.selectPlugin(data[0].name || "");
       }
     },
     selectPlugin(val) {
