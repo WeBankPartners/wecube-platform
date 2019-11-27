@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.jpa;
 
-import com.webank.wecube.platform.core.BaseSpringBootTest;
+import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
@@ -12,7 +12,7 @@ import java.util.Iterator;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PluginPackageEntityRepositoryTest extends BaseSpringBootTest {
+public class PluginPackageEntityRepositoryTest extends DatabaseBasedTest {
     @Autowired
     private PluginPackageEntityRepository entityRepository;
     @Autowired
