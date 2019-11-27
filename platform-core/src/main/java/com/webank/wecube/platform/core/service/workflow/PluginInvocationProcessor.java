@@ -160,7 +160,7 @@ public class PluginInvocationProcessor {
 
             try {
                 responseData = getPluginServiceStub().callPluginInterface(getInstanceHost(), getInterfacePath(),
-                        getPluginParameters());
+                        getPluginParameters(), this.requestId);
             } catch (Exception e) {
                 log.error("errors while operating {} {}", getInstanceHost(), getInterfacePath(), e);
                 PluginInterfaceInvocationResult errResult = new PluginInterfaceInvocationResult();
