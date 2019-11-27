@@ -20,12 +20,12 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">
-                {{ $t("query_orch") }}
-              </Button>
-              <Button type="success" @click="createHandler">
-                {{ $t("create_orch") }}
-              </Button>
+              <Button type="info" @click="queryHandler">{{
+                $t("query_orch")
+              }}</Button>
+              <Button type="success" @click="createHandler">{{
+                $t("create_orch")
+              }}</Button>
             </FormItem>
           </Form>
         </Col>
@@ -79,9 +79,9 @@
           >
             <div class="graph-container" id="flow"></div>
             <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">
-                {{ $t("execute") }}
-              </Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
+                $t("execute")
+              }}</Button>
             </div>
           </Col>
           <Col
@@ -104,9 +104,9 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
-        <Button type="info" @click="workFlowActionHandler('retry')">{{
-          $t("retry")
-        }}</Button>
+        <Button type="info" @click="workFlowActionHandler('retry')">
+          {{ $t("retry") }}
+        </Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
@@ -182,9 +182,12 @@ export default {
 
     orchestrationSelectHandler() {
       this.getFlowOutlineData(this.selectedFlow);
+      if (this.selectedFlow && this.isEnqueryPage === false) {
+        this.showExcution = true;
+      }
     },
     async getTargetOptions() {
-      if (!this.flowData.rootEntity) return;
+      if (!(this.flowData && this.flowData.rootEntity)) return;
       const pkgName = this.flowData.rootEntity.split(":")[0];
       const entityName = this.flowData.rootEntity.split(":")[1];
       let { status, data, message } = await getTargetOptions(
@@ -199,11 +202,26 @@ export default {
       if (!this.selectedFlowInstance) return;
       this.isShowBody = true;
       this.isEnqueryPage = true;
-      this.$nextTick(() => {
+      this.$nextTick(async () => {
         const found = this.allFlowInstances.find(
           _ => _.id === this.selectedFlowInstance
         );
-        this.getFlowOutlineData(found.procDefId);
+        let { status, data, message } = await getProcessInstance(
+          found && found.id
+        );
+        if (status === "OK") {
+          this.flowData = {
+            ...data,
+            flowNodes: data.taskNodeInstances
+          };
+          this.initFlowGraph(true);
+          removeEvent(".retry", "click", this.retryHandler);
+          addEvent(".retry", "click", this.retryHandler);
+          d3.selectAll(".retry").attr("cursor", "pointer");
+
+          this.showExcution = false;
+        }
+
         this.selectedFlow = found.procDefId;
         this.getTargetOptions();
         this.selectedTarget = found.entityDataId;
@@ -218,6 +236,8 @@ export default {
       this.selectedFlow = "";
       this.modelData = [];
       this.flowData = {};
+      this.showExcution = false;
+      this.initModelGraph();
     },
     onTargetSelectHandler() {
       this.getModelData();
@@ -281,9 +301,10 @@ export default {
           .toString()
           .replace(/,/g, ";");
       };
-      let nodesToString = Array.isArray(nodes)
-        ? nodes.toString().replace(/,/g, ";") + ";"
-        : "";
+      let nodesToString =
+        Array.isArray(nodes) && nodes.length > 0
+          ? nodes.toString().replace(/,/g, ";") + ";"
+          : "";
 
       let nodesString =
         "digraph G { " +
@@ -293,7 +314,8 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-      this.graph.graphviz.renderDot(nodesString).fit(true);
+
+      this.graph.graphviz.renderDot(nodesString);
     },
     renderFlowGraph(excution) {
       const statusColor = {
@@ -309,9 +331,8 @@ export default {
         this.flowData.flowNodes &&
         this.flowData.flowNodes.map((_, index) => {
           if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
-            return `${_.nodeId} [label="${
-              _.nodeName
-            }", fontsize="10", class="flow",style="${
+            return `${_.nodeId} [label="${_.nodeName ||
+              "Null"}", fontsize="10", class="flow",style="${
               excution ? "filled" : "none"
             }" color="${
               excution ? statusColor[_.status] : "#7F8A96"
@@ -319,9 +340,9 @@ export default {
           } else {
             const className =
               _.status === "Faulted" || _.status === "Timeouted" ? "retry" : "";
-            return `${_.nodeId} [label="${_.orderedNo +
+            return `${_.nodeId} [fixedsize=false label="${_.orderedNo +
               "、" +
-              _.nodeName}" fontsize="10" class="flow ${className}" style="${
+              _.nodeName}" class="flow ${className}" style="${
               excution ? "filled" : "none"
             }" color="${
               excution
@@ -329,7 +350,7 @@ export default {
                 : _.nodeId === this.currentFlowNodeId
                 ? "#5DB400"
                 : "#7F8A96"
-            }"  shape="record" id="${_.nodeId}"] height=.2`;
+            }"  shape="box" id="${_.nodeId}" ]`;
           }
         });
       let genEdge = () => {
@@ -367,7 +388,9 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-      this.flowGraph.graphviz.renderDot(nodesString).fit(true);
+      console.log("nodesString", nodesString);
+
+      this.flowGraph.graphviz.renderDot(nodesString);
       this.bindFlowEvent();
     },
     async excutionFlow() {
@@ -446,11 +469,11 @@ export default {
             ...data,
             flowNodes: data.taskNodeInstances
           };
-          this.renderFlowGraph(true);
+          this.initFlowGraph(true);
           removeEvent(".retry", "click", this.retryHandler);
           addEvent(".retry", "click", this.retryHandler);
           d3.selectAll(".retry").attr("cursor", "pointer");
-          if (data.status === "Done") {
+          if (data.status === "Completed") {
             stop();
           }
         }
@@ -545,13 +568,14 @@ export default {
       const initEvent = () => {
         let graph;
         graph = d3.select(`#graph`);
+        debugger;
         graph.on("dblclick.zoom", null);
         this.graph.graphviz = graph.graphviz().zoom(false);
       };
       initEvent();
       this.renderModelGraph();
     },
-    initFlowGraph() {
+    initFlowGraph(excution = false) {
       const initEvent = () => {
         let graph;
         graph = d3.select(`#flow`);
@@ -559,7 +583,7 @@ export default {
         this.flowGraph.graphviz = graph.graphviz().zoom(false);
       };
       initEvent();
-      this.renderFlowGraph();
+      this.renderFlowGraph(excution);
     }
   }
 };
