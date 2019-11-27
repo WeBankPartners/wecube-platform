@@ -331,9 +331,8 @@ export default {
         this.flowData.flowNodes &&
         this.flowData.flowNodes.map((_, index) => {
           if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
-            return `${_.nodeId} [label="${
-              _.nodeName
-            }", fontsize="10", class="flow",style="${
+            return `${_.nodeId} [label="${_.nodeName ||
+              "Null"}", fontsize="10", class="flow",style="${
               excution ? "filled" : "none"
             }" color="${
               excution ? statusColor[_.status] : "#7F8A96"
