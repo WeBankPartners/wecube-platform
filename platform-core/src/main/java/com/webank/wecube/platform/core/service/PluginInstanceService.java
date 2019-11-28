@@ -37,7 +37,9 @@ import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
+import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
@@ -90,6 +92,8 @@ public class PluginInstanceService {
     private ResourceProperties resourceProperties;
     @Autowired
     GatewayServiceStub gatewayServiceStub;
+    @Autowired
+    SystemVariableService systemVariableService;
 
     @Autowired
     private ResourceManagementService resourceManagementService;
@@ -98,7 +102,6 @@ public class PluginInstanceService {
 
     private static final int PLUGIN_DEFAULT_START_PORT = 20000;
     private static final int PLUGIN_DEFAULT_END_PORT = 30000;
-    private static final String SPACE = " ";
 
     public List<String> getAvailableContainerHosts() {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.DOCKER);
@@ -223,41 +226,85 @@ public class PluginInstanceService {
         return false;
     }
 
+    private String replaceAllocatePort(String str, Integer allocatePort) {
+        return  str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
+    }
+
+    private String replaceHostIp(String str, String ip) {
+        return str.replace("{{ALLOCATE_HOST}}", ip);
+    }
+
+    private String replaceBaseMountPath(String baseMountPathString) {
+        return systemVariableService.variableReplacement(null, baseMountPathString);
+    }
+
+    private String replaceSystemVariablesForEnvVariables(Integer packageId, String str) {
+        return systemVariableService.variableReplacement(packageId, str);
+    }
+
+    private DatabaseInfo handleCreateDatabase(Set<PluginPackageRuntimeResourcesMysql> mysqlInfoSet,
+            PluginPackage pluginPackage) {
+        if (mysqlInfoSet.size() == 0) {
+            return null;
+        }
+        if (mysqlInfoSet.size() > 1) {
+            logger.error(String.format("Apply [%d] schema is not allow", mysqlInfoSet.size()));
+            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
+        }
+
+        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findByPluginPackageIdAndStatus(
+                pluginPackage.getId(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
+        if (mysqlInstances.size() > 0) {
+            PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
+            ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
+            return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
+                    mysqlInstance.getUsername(), mysqlInstance.getPassword(), mysqlInstance.getResourceItemId());
+        } else {
+            return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
+        }
+    }
+
+    private Integer handleCreateS3Bucket(Set<PluginPackageRuntimeResourcesS3> s3InfoSet, PluginPackage pluginPackage) {
+        if (s3InfoSet.size() == 0) {
+            return null;
+        }
+        if (s3InfoSet.size() > 1) {
+            logger.error(String.format("Apply [%d] s3 bucket is not allow", s3InfoSet.size()));
+            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
+        }
+
+        List<ResourceItem> s3BucketsItems = resourceItemRepository
+                .findByNameAndType(s3InfoSet.iterator().next().getBucketName(), ResourceItemType.S3_BUCKET.toString());
+        if (s3BucketsItems.size() > 0) {
+            return s3BucketsItems.get(0).getId();
+        } else {
+            return initS3BucketResource(s3InfoSet);
+        }
+    }
+
     public void launchPluginInstance(Integer packageId, String hostIp, Integer port)
             throws Exception, WecubeCoreException {
         Optional<PluginPackage> pluginPackageResult = pluginPackageRepository.findById(packageId);
         if (!pluginPackageResult.isPresent())
             throw new WecubeCoreException("Plugin package id does not exist, id = " + packageId);
-        PluginPackage pluginPackage = pluginPackageResult.get();
 
+        PluginPackage pluginPackage = pluginPackageResult.get();
         validateLauchPluginInstanceParameters(pluginPackage, hostIp, port);
 
         Set<PluginPackageRuntimeResourcesDocker> dockerInfoSet = pluginPackage.getPluginPackageRuntimeResourcesDocker();
         Set<PluginPackageRuntimeResourcesMysql> mysqlInfoSet = pluginPackage.getPluginPackageRuntimeResourcesMysql();
         Set<PluginPackageRuntimeResourcesS3> s3InfoSet = pluginPackage.getPluginPackageRuntimeResourcesS3();
 
-        boolean needCreateMysql = isNeedToCreateNewMysqlChecking(mysqlInfoSet, pluginPackage);
-        boolean needCreateS3Bucket = isNeedToCreateNewBucketChecking(s3InfoSet, pluginPackage);
-
         PluginInstance instance = new PluginInstance();
         instance.setPluginPackage(pluginPackage);
 
-        InitMysqlReturn initMysqlReturn = new InitMysqlReturn();
-        CreateInstanceDto createContainerParameters = new CreateInstanceDto();
+        DatabaseInfo dbInfo = handleCreateDatabase(mysqlInfoSet, pluginPackage);
+        if (dbInfo != null)
+            instance.setPluginMysqlInstanceResourceId(dbInfo.getResourceItemId());
 
-        DatabaseInfo dbInfo = new DatabaseInfo();
-        String envVariable = "";
-        if (needCreateMysql) {
-            initMysqlReturn = initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
-            instance.setPluginMysqlInstanceResourceId(initMysqlReturn.getMysqlInstanceResourceId());
-            dbInfo = initMysqlReturn.getDbInfo();
-        }
-
-        if (needCreateS3Bucket) {
-            Integer s3BucketResourceId = initS3BucketResource(s3InfoSet, initMysqlReturn);
-            if (s3BucketResourceId != null)
-                instance.setS3BucketResourceId(s3BucketResourceId);
-        }
+        Integer s3BucketResourceId = handleCreateS3Bucket(s3InfoSet, pluginPackage);
+        if (s3BucketResourceId != null)
+            instance.setS3BucketResourceId(s3BucketResourceId);
 
         // 3. create docker instance
         if (dockerInfoSet.size() != 1) {
@@ -265,82 +312,65 @@ public class PluginInstanceService {
         }
         PluginPackageRuntimeResourcesDocker dockerInfo = dockerInfoSet.iterator().next();
 
-        createContainerParameters = new CreateInstanceDto(dockerInfo.getImageName(), dockerInfo.getContainerName(),
-                dockerInfo.getPortBindings().replace("{{host_port}}", String.valueOf(port)),
-                dockerInfo.getVolumeBindings().replace("{{base_mount_path}}", pluginProperties.getBaseMountPath()));
+        String portBindingString = replaceAllocatePort(dockerInfo.getPortBindings(), port);
+        String envVariablesString = replaceHostIp(dockerInfo.getEnvVariables(), hostIp);
+        String volumeBindingString = replaceBaseMountPath(dockerInfo.getVolumeBindings());
 
-        if (mysqlInfoSet.size() > 0 && !needCreateMysql) {
-            List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository
-                    .findByPluginPackageIdAndStatus(packageId, PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
-            if (mysqlInstances.size() == 0) {
-                throw new WecubeCoreException("Can not found plugin's mysql instance");
-            }
-            PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
-            ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
+        CreateInstanceDto createContainerParameters = new CreateInstanceDto(dockerInfo.getImageName(),
+                dockerInfo.getContainerName(), portBindingString, volumeBindingString);
 
-            dbInfo = new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
-                    mysqlInstance.getUsername(), mysqlInstance.getPassword());
+        if (mysqlInfoSet.size() != 0) {
+            envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost())
+                    .replace("{{DB_PORT}}", dbInfo.getPort()).replace("{{DB_SCHEMA}}", dbInfo.getSchema())
+                    .replace("{{DB_USER}}", dbInfo.getUser()).replace("{{DB_PWD}}", EncryptionUtils.decryptWithAes(
+                            dbInfo.getPassword(), resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema()));
         }
+        envVariablesString = replaceSystemVariablesForEnvVariables(packageId, envVariablesString);
 
-        if (dbInfo.getSchema() != null) {
-            String rawPassword = EncryptionUtils.decryptWithAes(dbInfo.getPassword(),
-                    resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema());
-            envVariable = dockerInfo.getEnvVariables().replace("{{db_host}}", dbInfo.getHost())
-                    .replace("{{db_port}}", dbInfo.getPort()).replace("{{db_schema}}", dbInfo.getSchema())
-                    .replace("{{db_user}}", dbInfo.getUser()).replace("{{db_password}}", rawPassword);
-        }
-
-        if (envVariable.isEmpty()) {
-            createContainerParameters
-                    .setEnvVariableParameters(dockerInfo.getEnvVariables().replace("{{minion_master_ip}}", hostIp));
-        } else {
-            createContainerParameters.setEnvVariableParameters(envVariable.replace("{{minion_master_ip}}", hostIp));
-        }
+        createContainerParameters.setEnvVariableParameters(envVariablesString.isEmpty() ? "" : envVariablesString);
 
         try {
             ResourceItemDto dockerResourceDto = createPluginDockerInstance(pluginPackage, hostIp,
                     createContainerParameters);
-
-            instance.setContainerName(dockerInfo.getContainerName());
-            instance.setInstanceName(pluginPackage.getName());
             instance.setDockerInstanceResourceId(dockerResourceDto.getId());
-            instance.setHost(hostIp);
-            instance.setPort(port);
         } catch (Exception e) {
             logger.error("Creating docker container instance meet error: ", e.getMessage());
             e.printStackTrace();
             throw new WecubeCoreException("Creating docker container instance meet error: " + e.getMessage());
         }
 
+        instance.setContainerName(dockerInfo.getContainerName());
+        instance.setInstanceName(pluginPackage.getName());
+        instance.setHost(hostIp);
+        instance.setPort(port);
+
         // 4. insert to DB
         instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_RUNNING);
         pluginInstanceRepository.save(instance);
 
-        // 6. notify gateway
+        // 6. register route
         GatewayResponse response = registerRoute(pluginPackage.getName(), hostIp, String.valueOf(port));
         if (!response.getStatus().equals(GatewayResponse.getStatusCodeOk())) {
             logger.error("Launch instance has done, but register routing information is failed, please check");
         }
     }
 
-    private InitMysqlReturn initMysqlDatabaseSchema(Set<PluginPackageRuntimeResourcesMysql> mysqlSet,
+    private DatabaseInfo initMysqlDatabaseSchema(Set<PluginPackageRuntimeResourcesMysql> mysqlSet,
             PluginPackage pluginPackage) {
-        InitMysqlReturn initPaasResourceReturn = new InitMysqlReturn();
         if (mysqlSet.size() != 0) {
             PluginMysqlInstance mysqlInstance = createPluginMysqlDatabase(mysqlSet.iterator().next());
-            initPaasResourceReturn.setMysqlInstanceResourceId(mysqlInstance.getId());
 
             ResourceServer dbServer = resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
                     .getResourceServer();
-            initPaasResourceReturn.setDbInfo(new DatabaseInfo(dbServer.getHost(), dbServer.getPort(),
-                    mysqlInstance.getSchemaName(), mysqlInstance.getUsername(), mysqlInstance.getPassword()));
+            DatabaseInfo dbInfo = new DatabaseInfo(dbServer.getHost(), dbServer.getPort(),
+                    mysqlInstance.getSchemaName(), mysqlInstance.getUsername(), mysqlInstance.getPassword(),
+                    mysqlInstance.getId());
 
             // execute init.sql
             initMysqlDatabaseTables(dbServer, mysqlInstance, pluginPackage);
-            return initPaasResourceReturn;
+            return dbInfo;
         }
-
-        return new InitMysqlReturn();
+        return null;
     }
 
     private void initMysqlDatabaseTables(ResourceServer dbServer, PluginMysqlInstance mysqlInstance,
@@ -379,8 +409,7 @@ public class PluginInstanceService {
         logger.info(String.format("Init database[%s] tables has done..", mysqlInstance.getSchemaName()));
     }
 
-    private Integer initS3BucketResource(Set<PluginPackageRuntimeResourcesS3> s3InfoSet,
-            InitMysqlReturn initPaasResourceReturn) {
+    private Integer initS3BucketResource(Set<PluginPackageRuntimeResourcesS3> s3InfoSet) {
         if (s3InfoSet.size() > 1) {
             logger.error(String.format("Apply [%d] s3 bucket is not allow", s3InfoSet.size()));
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket");
@@ -408,9 +437,10 @@ public class PluginInstanceService {
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
         PluginMysqlInstance mysqlInstance = new PluginMysqlInstance(mysqlInfo.getSchemaName(), result.get(0).getId(),
-                mysqlInfo.getSchemaName(), EncryptionUtils.encryptWithAes(dbPassword,
-                        resourceProperties.getPasswordEncryptionSeed(), mysqlInfo.getSchemaName()),
-                "active", mysqlInfo.getPluginPackage());
+                mysqlInfo.getSchemaName(),
+                EncryptionUtils.encryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
+                        mysqlInfo.getSchemaName()),
+                PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, mysqlInfo.getPluginPackage());
         pluginMysqlInstanceRepository.saveAndFlush(mysqlInstance);
 
         logger.info("Mysql Database schema creation has done...");
@@ -552,13 +582,16 @@ public class PluginInstanceService {
         String schema;
         String user;
         String password;
+        Integer resourceItemId;
 
-        private DatabaseInfo(String host, String port, String schema, String user, String password) {
+        private DatabaseInfo(String host, String port, String schema, String user, String password,
+                Integer resourceItemId) {
             this.host = host;
             this.port = port;
             this.schema = schema;
             this.user = user;
             this.password = password;
+            this.resourceItemId = resourceItemId;
         }
 
         public DatabaseInfo() {
@@ -602,6 +635,14 @@ public class PluginInstanceService {
 
         public void setSchema(String schema) {
             this.schema = schema;
+        }
+
+        public Integer getResourceItemId() {
+            return resourceItemId;
+        }
+
+        public void setResourceItemId(Integer resourceItemId) {
+            this.resourceItemId = resourceItemId;
         }
     }
 
