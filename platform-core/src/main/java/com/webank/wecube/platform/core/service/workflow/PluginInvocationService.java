@@ -62,6 +62,8 @@ public class PluginInvocationService {
     private static final String MAPPING_TYPE_CONTEXT = "context";
     private static final String MAPPING_TYPE_ENTITY = "entity";
     private static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
+    
+    private static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
 
     private static final int RESULT_CODE_OK = 0;
     private static final int RESULT_CODE_ERR = 1;
@@ -522,7 +524,7 @@ public class PluginInvocationService {
             String entityDataId = ipo.getEntityDataId();
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
-            inputMap.put("callbackParam", entityDataId);
+            inputMap.put(CALLBACK_PARAMETER_KEY, entityDataId);
 
             for (InputParamAttr attr : ipo.getAttrs()) {
                 TaskNodeExecParamEntity e = new TaskNodeExecParamEntity();
@@ -817,7 +819,7 @@ public class PluginInvocationService {
             return;
         }
         
-        String nodeEntityId = (String) outputParameterMap.get("callbackParam");
+        String nodeEntityId = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
         
         if(StringUtils.isBlank(nodeEntityId)){
             log.info("none entity ID found in output for request {}", ctx.getRequestId());
