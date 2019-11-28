@@ -3,7 +3,13 @@
     <Row style="margin-bottom: 10px">
       <Col span="6">
         <span style="margin-right: 10px">{{ $t("flow_name") }}</span>
-        <Select filterable clearable v-model="selectedFlow" style="width: 70%">
+        <Select
+          filterable
+          clearable
+          v-model="selectedFlow"
+          style="width: 70%"
+          @on-open-change="getAllFlows"
+        >
           <Option
             v-for="(item, index) in allFlows"
             :value="item.procDefId"
@@ -95,7 +101,12 @@
           ></PathExp>
         </FormItem>
         <FormItem :label="$t('plugin')" prop="serviceName">
-          <Select filterable clearable v-model="pluginForm.serviceId">
+          <Select
+            filterable
+            clearable
+            v-model="pluginForm.serviceId"
+            @on-open-change="getPluginInterfaceList"
+          >
             <Option
               v-for="(item, index) in allPlugins"
               :value="item.serviceName"
