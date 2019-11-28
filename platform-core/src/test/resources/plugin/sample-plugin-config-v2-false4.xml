@@ -99,7 +99,7 @@
         <plugin name="task management">
             <interface name="create" path="/service-management/tasks" httpMethod='POST'>
                 <inputParameters>
-                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>callbackUrl</parameter>
+                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='1' required='Y'>callbackUrl</parameter>
                     <parameter datatype="string" mappingType='context'  required='N'>description</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>name</parameter>
                     <parameter datatype="string" mappingType='entity' mappingEntityExpression='name_xxx' required='Y'>operatorRoleId</parameter>
@@ -117,7 +117,7 @@
         <plugin name="service request management">
             <interface name="update" path="/service-management/service-requests/{service-request-id}/done" httpMethod='PUT'>
                 <inputParameters>
-                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>service-request-id</parameter>
+                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='1' required='Y'>service-request-id</parameter>
                     <parameter datatype="string" mappingType='context'  required='Y'>result</parameter>
                 </inputParameters>
                 <outputParameters>
