@@ -83,6 +83,7 @@ export default {
             pkg: this.currentPkg
           }
         ];
+        this.options = [];
         this.$emit("input", this.inputVal.replace(" ", ""));
       }
     }
@@ -191,11 +192,14 @@ export default {
         if (v.data === ".") {
           this.currentOperator = v.data;
           this.isRefBy = false;
+          this.optionsHide = true;
           this.getAttrByEntity();
         }
         if (v.data === "~") {
           this.currentOperator = v.data;
           this.isRefBy = true;
+          this.optionsHide = true;
+          this.options = [];
           this.getRefByEntity();
         }
       }
@@ -240,6 +244,9 @@ export default {
   background: white;
   max-height: 200px;
   overflow: auto;
+}
+.wecube_attr_input {
+  margin-top: -5px;
 }
 .wecube_attr_input .ivu-poptip {
   width: 100%;
