@@ -20,7 +20,7 @@
               {{
                 opt.dataType === "ref"
                   ? isRefBy
-                    ? `(${opt.name})${opt.refPackageName}:${opt.refEntityName}`
+                    ? `(${opt.name})${opt.packageName}:${opt.entityName}`
                     : `${opt.name}>${opt.refPackageName}:${opt.refEntityName}`
                   : opt.name
               }}
@@ -151,7 +151,7 @@ export default {
       const newValue =
         item.dataType === "ref"
           ? this.isRefBy
-            ? `(${item.name})${item.refPackageName}:${item.refEntityName}`
+            ? `(${item.name})${item.packageName}:${item.entityName}`
             : `${item.name}>${item.refPackageName}:${item.refEntityName}`
           : item.name;
       this.currentPkg = item.refPackageName || item.packageName;
