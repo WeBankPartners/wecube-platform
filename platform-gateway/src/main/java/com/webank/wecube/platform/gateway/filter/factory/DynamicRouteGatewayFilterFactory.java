@@ -68,7 +68,7 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("route:{} {}", route.getId(), route.getUri().toString());
             }
 
-            String newPath = decode(req.getURI().getRawPath());
+            String newPath = req.getURI().getPath();
             String baseUrl = null;
             try {
                 baseUrl = determineBaseUrl(newPath);
@@ -81,36 +81,17 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("base url:{}", baseUrl);
             }
 
-            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(decode(req.getURI().getQuery()))
-                    .encode().build().toUri();
+            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl).build().toUri();
             ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
-            ServerHttpRequest request = req.mutate().uri(newUri).build();
             
-            log.info("Filter-OUT-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
-                    request.getURI().toString());
 
             Route newRoute = Route.async().asyncPredicate(route.getPredicate()).filters(route.getFilters())
                     .id(route.getId()).order(route.getOrder()).uri(newUri).build();
 
             exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, newRoute);
 
-            return chain.filter(exchange.mutate().request(request).build());
+            return chain.filter(exchange);
         });
-    }
-    
-    protected String decode(String s){
-        if(StringUtils.isBlank(s)){
-            return s;
-        }
-        
-        String decodedStr = "";
-        try {
-            decodedStr = URLDecoder.decode(s, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            decodedStr = s;
-        }
-        
-        return decodedStr;
     }
 
     protected String determineBaseUrl(String path) {
