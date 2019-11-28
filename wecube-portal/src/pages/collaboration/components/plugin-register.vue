@@ -6,7 +6,7 @@
         theme="light"
         :active-name="currentPlugin"
         @on-select="selectPlugin"
-        style="width: 100%;"
+        style="width: 100%;z-index:10"
       >
         <MenuItem
           v-for="(plugin, index) in plugins"
