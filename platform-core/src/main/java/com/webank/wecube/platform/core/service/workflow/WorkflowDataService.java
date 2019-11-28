@@ -31,17 +31,16 @@ public class WorkflowDataService {
 
     @Autowired
     private WorkflowProcDefService workflowProcDefService;
-    
+
     @Autowired
     private TaskNodeDefInfoRepository taskNodeDefInfoRepo;
 
     @Autowired
     private DataModelExpressionService dataModelExpressionService;
-    
+
     @Autowired
     private PluginConfigService pluginConfigService;
-    
-    
+
     public List<InterfaceParameterDto> getTaskNodeParameters(String procDefId, String nodeDefId) {
         List<InterfaceParameterDto> result = new ArrayList<>();
         Optional<TaskNodeDefInfoEntity> entityOptional = taskNodeDefInfoRepo.findById(nodeDefId);
@@ -71,13 +70,13 @@ public class WorkflowDataService {
 
         return result;
     }
-    
-    private InterfaceParameterDto buildInterfaceParameterDto(PluginConfigInterfaceParameter p){
+
+    private InterfaceParameterDto buildInterfaceParameterDto(PluginConfigInterfaceParameter p) {
         InterfaceParameterDto d = new InterfaceParameterDto();
         d.setType(p.getType());
         d.setName(p.getName());
         d.setDataType(p.getDataType());
-        
+
         return d;
     }
 
@@ -100,80 +99,89 @@ public class WorkflowDataService {
     protected List<GraphNodeDto> doFetchProcessPreviewData(ProcDefOutlineDto outline, String dataId) {
 
         List<GraphNodeDto> result = new ArrayList<>();
-        
-        for(FlowNodeDefDto f : outline.getFlowNodes()){
+
+        for (FlowNodeDefDto f : outline.getFlowNodes()) {
             String nodeType = f.getNodeType();
-            
-            if(!"subProcess".equals(nodeType)){
+
+            if (!"subProcess".equals(nodeType)) {
                 continue;
             }
             
-            log.debug("About to fetch data with {} and {}", f.getRoutineExpression(), dataId);
+            log.info("About to fetch data for node {} {}", f.getNodeDefId(), f.getNodeName());
+
+            log.info("About to fetch data with expression {} and data id {}", f.getRoutineExpression(), dataId);
             DataModelExpressionToRootData expr = new DataModelExpressionToRootData(f.getRoutineExpression(), dataId);
-            List<TreeNode> nodes = dataModelExpressionService.getPreviewTree(expr);
-            
-            if(nodes == null || nodes.isEmpty()){
-                log.debug("None data returned for {} and {}", f.getRoutineExpression(), dataId);
+            List<TreeNode> nodes = null;
+            try {
+                nodes = dataModelExpressionService.getPreviewTree(expr);
+            } catch (Exception e) {
+                log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId);
+                throw new WecubeCoreException(e.getMessage());
+            }
+
+            if (nodes == null || nodes.isEmpty()) {
+                log.warn("None data returned for {} and {}", f.getRoutineExpression(), dataId);
                 continue;
             }
             
-            for(TreeNode tn : nodes){
+            log.info("total {} records returned for {} and {}", f.getRoutineExpression(), dataId);
+
+            for (TreeNode tn : nodes) {
                 String treeNodeId = buildId(tn);
                 GraphNodeDto currNode = findGraphNodeDtoById(result, treeNodeId);
-                if(currNode == null){
+                if (currNode == null) {
                     currNode = new GraphNodeDto();
                     currNode.setDataId(tn.getRootId().toString());
                     currNode.setPackageName(tn.getPackageName());
                     currNode.setEntityName(tn.getEntityName());
-                    
+
                     addToResult(result, currNode);
                 }
-                
+
                 TreeNode parentTreeNode = tn.getParent();
-                if(parentTreeNode != null){
+                if (parentTreeNode != null) {
                     String parentTreeNodeId = buildId(parentTreeNode);
                     currNode.addPreviousIds(parentTreeNodeId);
                 }
-                
+
                 List<TreeNode> childrenTreeNodes = tn.getChildren();
-                if(childrenTreeNodes != null){
-                    for(TreeNode ctn : childrenTreeNodes){
+                if (childrenTreeNodes != null) {
+                    for (TreeNode ctn : childrenTreeNodes) {
                         String ctnId = buildId(ctn);
                         currNode.addSucceedingIds(ctnId);
                     }
                 }
             }
         }
-        
+
         return result;
-        
-        
+
     }
-    
-    private void addToResult(List<GraphNodeDto> result, GraphNodeDto...nodes){
-        for(GraphNodeDto n : nodes){
-            if(result.contains(n)){
+
+    private void addToResult(List<GraphNodeDto> result, GraphNodeDto... nodes) {
+        for (GraphNodeDto n : nodes) {
+            if (result.contains(n)) {
                 continue;
             }
-            
+
             GraphNodeDto exist = findGraphNodeDtoById(result, n.getId());
-            if(exist == null){
+            if (exist == null) {
                 result.add(n);
             }
         }
     }
-    
-    private GraphNodeDto findGraphNodeDtoById(List<GraphNodeDto> result, String id){
-        for(GraphNodeDto n : result){
-            if(n.getId().equals(id)){
+
+    private GraphNodeDto findGraphNodeDtoById(List<GraphNodeDto> result, String id) {
+        for (GraphNodeDto n : result) {
+            if (n.getId().equals(id)) {
                 return n;
             }
         }
-        
+
         return null;
     }
-    
-    private String buildId(TreeNode n){
+
+    private String buildId(TreeNode n) {
         return String.format("%s|%s|%s", n.getPackageName(), n.getEntityName(), n.getRootId());
     }
 
