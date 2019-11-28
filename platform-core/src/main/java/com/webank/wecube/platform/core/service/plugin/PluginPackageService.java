@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -18,7 +19,6 @@ import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -225,6 +225,15 @@ public class PluginPackageService {
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
             log.warn(errorMessage);
             throw new WecubeCoreException(errorMessage);
+        }
+
+        Optional<List<PluginPackage>> allByNameAndStatus = pluginPackageRepository.findAllByNameAndStatusIn(pluginPackage.getName(), Lists.newArrayList(REGISTERED, RUNNING, STOPPED));
+        if (allByNameAndStatus.isPresent()) {
+            List<PluginPackage> pluginPackages = allByNameAndStatus.get();
+            if (pluginPackages.size() > 1) {
+                String activePackagesString = pluginPackages.stream().map(it -> String.join(":", it.getName(), it.getVersion(), it.getStatus().name())).collect(Collectors.joining(","));
+                throw new WecubeCoreException(String.format("Not allowed to register more packages. Current active packages: [%s]", activePackagesString));
+            }
         }
 
         if (pluginPackage.isUiPackageIncluded()) {
