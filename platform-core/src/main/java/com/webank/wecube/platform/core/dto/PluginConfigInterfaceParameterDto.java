@@ -5,6 +5,9 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParame
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 public class PluginConfigInterfaceParameterDto {
+    public static enum MappingType {
+        context, entity, system_variable
+    }
     private Integer id;
     private Integer pluginConfigInterfaceId;
     private String type;
