@@ -1,8 +1,8 @@
-package com.webank.wecube.platform.core.support.parser.datamodel;
+package com.webank.wecube.platform.core.support.datamodel;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.parser.datamodel.generated.DataModelParser;
+import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
 
 import java.util.List;
 import java.util.Set;
@@ -29,6 +29,10 @@ public class DataModelExpressionDto {
     private DataModelParser.ByContext opBy;
     @JsonIgnore
     private DataModelParser.Bwd_nodeContext bwdNode;
+
+    // Tree node
+    @JsonIgnore
+    private TreeNode treeNode;
 
     // refTo constructor
     public DataModelExpressionDto(DataModelParser.LinkContext prevLink,
@@ -160,5 +164,13 @@ public class DataModelExpressionDto {
 
     public void setRequestUrlStack(Stack<Set<String>> requestUrlStack) {
         this.requestUrlStack = requestUrlStack;
+    }
+
+    public TreeNode getTreeNode() {
+        return treeNode;
+    }
+
+    public void setTreeNode(TreeNode treeNode) {
+        this.treeNode = treeNode;
     }
 }
