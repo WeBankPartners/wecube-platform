@@ -6,7 +6,7 @@
         theme="light"
         :active-name="currentPlugin"
         @on-select="selectPlugin"
-        style="width: 100%;"
+        style="width: 100%;z-index:10"
       >
         <MenuItem
           v-for="(plugin, index) in plugins"
@@ -25,6 +25,7 @@
           <Col span="10" offset="0">
             <FormItem :label-width="100" :label="$t('target_type')">
               <Select
+                filterable
                 @on-change="onSelectEntityType"
                 v-model="selectedEntityType"
                 :disabled="currentPluginObj.status === 'ENABLED'"
@@ -90,9 +91,8 @@
                       <Tooltip :content="param.name">
                         <span
                           style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >{{ param.name }}</span
                         >
-                          {{ param.name }}
-                        </span>
                       </Tooltip>
                     </FormItem>
                   </Col>
@@ -154,15 +154,14 @@
                       <Tooltip :content="outPut.name">
                         <span
                           style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >{{ outPut.name }}</span
                         >
-                          {{ outPut.name }}
-                        </span>
                       </Tooltip>
                     </FormItem>
                   </Col>
                   <Col span="14" offset="1">
                     <FormItem :label-width="0">
-                      <Select
+                      <!-- <Select
                         v-if="outPut.mappingType === 'entity'"
                         v-model="outPut.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -173,7 +172,15 @@
                           :value="attr.name"
                           :label="attr.name"
                         ></Option>
-                      </Select>
+                      </Select> -->
+                      <PathExp
+                        v-if="outPut.mappingType === 'entity'"
+                        :rootPkg="pkgName"
+                        :rootEntity="selectedEntityType"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        v-model="outPut.mappingEntityExpression"
+                      ></PathExp>
                       <span v-if="outPut.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
@@ -343,7 +350,18 @@ export default {
     async getAllDataModels() {
       const { data, status, message } = await getAllDataModels();
       if (status === "OK") {
-        this.allEntityType = data;
+        this.allEntityType = data.map(_ => {
+          // handle result sort by name
+          return {
+            ..._,
+            pluginPackageEntities: _.pluginPackageEntities.sort(function(a, b) {
+              var s = a.name.toLowerCase();
+              var t = b.name.toLowerCase();
+              if (s < t) return -1;
+              if (s > t) return 1;
+            })
+          };
+        });
       }
     }
   },
