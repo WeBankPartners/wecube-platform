@@ -3,7 +3,10 @@ package com.webank.wecube.platform.core.dto;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Set;
@@ -13,6 +16,10 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class PluginConfigInterfaceDto {
+    
+    @Autowired
+    PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
+    
     private Integer id;
     private Integer pluginConfigId;
     private String action;
@@ -135,6 +142,7 @@ public class PluginConfigInterfaceDto {
             getOutputParameters().forEach(outputParameter ->pluginConfigInterfaceOutputParameters.add(outputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_OUTPUT)));
         }
         pluginConfigInterface.setOutputParameters(pluginConfigInterfaceOutputParameters);
+        pluginConfigInterface.setIsAsyncProcessing(pluginConfigInterfaceRepository.findById(getId()).get().getIsAsyncProcessing());
 
         return pluginConfigInterface;
     }
