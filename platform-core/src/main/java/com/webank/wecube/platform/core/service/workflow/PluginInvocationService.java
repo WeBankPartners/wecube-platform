@@ -522,6 +522,7 @@ public class PluginInvocationService {
             String entityDataId = ipo.getEntityDataId();
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
+            inputMap.put("callbackParam", entityDataId);
 
             for (InputParamAttr attr : ipo.getAttrs()) {
                 TaskNodeExecParamEntity e = new TaskNodeExecParamEntity();
@@ -816,7 +817,7 @@ public class PluginInvocationService {
             return;
         }
         
-        String nodeEntityId = (String) outputParameterMap.get("objId");
+        String nodeEntityId = (String) outputParameterMap.get("callbackParam");
         
         if(StringUtils.isBlank(nodeEntityId)){
             log.info("none entity ID found in output for request {}", ctx.getRequestId());
