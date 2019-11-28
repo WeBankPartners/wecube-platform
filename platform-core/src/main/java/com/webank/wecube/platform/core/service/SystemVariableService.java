@@ -16,11 +16,11 @@ import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
+import com.webank.wecube.platform.core.utils.StringUtils;
 
 @Service
 @Transactional
 public class SystemVariableService {
-
     @Autowired
     private EntityRepository entityRepository;
 
@@ -36,7 +36,8 @@ public class SystemVariableService {
 
     @Transactional
     public List<SystemVariableDto> createSystemVariables(List<SystemVariableDto> resourceSystemVariables) {
-        Iterable<SystemVariable> savedDomains = systemVariableRepository.saveAll(convertVariableDtoToDomain(resourceSystemVariables));
+        Iterable<SystemVariable> savedDomains = systemVariableRepository
+                .saveAll(convertVariableDtoToDomain(resourceSystemVariables));
         return convertVariableDomainToDto(savedDomains);
     }
 
@@ -90,5 +91,40 @@ public class SystemVariableService {
         } else {
             throw new WecubeCoreException("System Variable not found for id: " + varId);
         }
+    }
+
+    public List<SystemVariable> getPluginSystemVariableByPackageIdAndName(Integer packageId, String varName) {
+        return systemVariableRepository.findAllByPluginPackageIdAndNameAndScopeTypeAndStatus(packageId, varName,
+                SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE, SystemVariable.ACTIVE);
+    }
+
+    public List<SystemVariable> getGlobalSystemVariableByName(String varName) {
+        return systemVariableRepository.findByNameAndScopeTypeAndStatus(varName, SystemVariable.SCOPE_TYPE_GLOBAL,
+                SystemVariable.ACTIVE);
+    }
+
+    public String variableReplacement(Integer packageId, String originalString) {
+        List<String> varList = StringUtils.findSystemVariableString(originalString);
+        for (int i = 0; i < varList.size(); i++) {
+            String varString = varList.get(i);
+            String varName = varString.substring(2, varString.length() - 2);
+            List<SystemVariable> varObjects = getPluginSystemVariableByPackageIdAndName(packageId, varName);
+            if (varObjects.size() == 0) {
+                varObjects = getGlobalSystemVariableByName(varName);
+                if (varObjects.size() == 0) {
+                    throw new WecubeCoreException(String.format("Can not found system variable[%s]", varName));
+                }
+            }
+            SystemVariable varObject = varObjects.get(0);
+            String varValue = varObject.getValue() == null || varObject.getValue().isEmpty()
+                    ? varObject.getDefaultValue()
+                    : varObject.getValue();
+            originalString = originalString.replace(varString, varValue);
+        }
+        return originalString;
+    }
+
+    public Iterable<SystemVariable> getAllSystemVariable() {
+        return systemVariableRepository.findAll();
     }
 }
