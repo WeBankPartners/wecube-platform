@@ -95,6 +95,20 @@ public class MenuItem {
         this(null);
     }
 
+    public MenuItem(String code, String parentCode, String description) {
+        this(null, code, parentCode, Source.SYSTEM.name(), description, null, null);
+    }
+
+    public MenuItem(String id, String code, String parentCode, String source, String description, Integer menuOrder, List<RoleMenu> assignedRoles) {
+        this.id = id;
+        this.code = code;
+        this.parentCode = parentCode;
+        this.source = source;
+        this.description = description;
+        this.menuOrder = menuOrder;
+        this.assignedRoles = assignedRoles;
+    }
+
     public MenuItem(String id) {
         this.setId(id);
     }
