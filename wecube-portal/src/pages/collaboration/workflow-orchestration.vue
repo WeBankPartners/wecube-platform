@@ -97,9 +97,9 @@
         <FormItem :label="$t('plugin')" prop="serviceName">
           <Select filterable clearable v-model="pluginForm.serviceId">
             <Option
-              v-for="item in allPlugins"
+              v-for="(item, index) in allPlugins"
               :value="item.serviceName"
-              :key="item.serviceName"
+              :key="index"
               >{{ item.serviceDisplayName }}</Option
             >
           </Select>
@@ -315,6 +315,7 @@ export default {
       this.rootEntity = this.currentSelectedEntity.split(":")[1];
 
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
+      this.defaultPluginForm.routineExpression = v;
       this.pluginForm = this.defaultPluginForm;
     },
     resetZoom() {
@@ -453,6 +454,7 @@ export default {
     },
     async getFlowsNodes() {
       // TODO:
+      if (!this.currentFlow) return;
       let { status, data, message } = await getFlowNodes(
         this.currentFlow.procDefId
       );
@@ -462,7 +464,7 @@ export default {
     },
     async getParamsOptionsByNode(index) {
       // TODO:
-
+      if (!this.currentFlow) return;
       let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
         this.currentFlow.procDefId,
         this.pluginForm.paramInfos[index].bindNodeId
