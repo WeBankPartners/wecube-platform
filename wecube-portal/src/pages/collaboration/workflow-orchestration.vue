@@ -139,12 +139,16 @@
           >
             <Option
               v-for="i in currentflowsNodes"
-              :value="i.value"
-              :key="i.value"
-              >{{ i.label }}</Option
+              :value="i.nodeDefId"
+              :key="i.nodeDefId"
+              >{{ i.nodeName }}</Option
             >
           </Select>
-          <Select v-model="item.bindParamType" style="width:200px">
+          <Select
+            v-model="item.bindParamType"
+            style="width:200px"
+            @on-change="onParamsNodeChange(index)"
+          >
             <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
               {{ i.label }}
             </Option>
@@ -152,9 +156,9 @@
           <Select v-model="item.bindParamName" style="width:200px">
             <Option
               v-for="i in item.currentParamNames"
-              :value="i.value"
-              :key="i.value"
-              >{{ i.label }}</Option
+              :value="i.name"
+              :key="i.name"
+              >{{ i.name }}</Option
             >
           </Select>
         </FormItem>
@@ -265,13 +269,10 @@ export default {
       allPlugins: [],
       timeSelection: ["5", "10", "20", "30", "60"],
       paramsTypes: [
-        { value: "in", label: "入参" },
-        { value: "out", label: "出参" }
+        { value: "INPUT", label: "入参" },
+        { value: "OUTPUT", label: "出参" }
       ],
-      currentflowsNodes: [
-        { value: "Node1", label: "Node1" },
-        { value: "Node2", label: "Node2" }
-      ]
+      currentflowsNodes: []
     };
   },
   watch: {
@@ -313,7 +314,7 @@ export default {
             return {
               paramName: _.name,
               bindNodeId: "",
-              bindParamType: "in",
+              bindParamType: "INPUT",
               bindParamName: ""
             };
           });
@@ -503,7 +504,10 @@ export default {
         this.pluginForm.paramInfos[index].bindNodeId
       );
       if (status === "OK") {
-        this.pluginForm.paramInfos[index].currentParamNames = data;
+        let res = data.filter(
+          _ => _.type === this.pluginForm.paramInfos[index].bindParamType
+        );
+        this.$set(this.pluginForm.paramInfos[index], "currentParamNames", res);
       }
     },
     bindRightClick() {
