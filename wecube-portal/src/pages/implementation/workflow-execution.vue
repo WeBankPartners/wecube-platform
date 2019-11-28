@@ -296,7 +296,8 @@ export default {
             const nodeId = _.packageName + "_" + _.entityName;
             let current = [];
             current = _.succeedingIds.map(to => {
-              return _.nodeId + " -> " + to;
+              let tos = to.split(":");
+              return nodeId + " -> " + (tos[0] + "_" + tos[1]);
             });
             pathAry.push(current);
           }
@@ -306,6 +307,7 @@ export default {
           .toString()
           .replace(/,/g, ";");
       };
+      console.log(1, nodes, 2, genEdge());
       let nodesToString =
         Array.isArray(nodes) && nodes.length > 0
           ? nodes.toString().replace(/,/g, ";") + ";"
