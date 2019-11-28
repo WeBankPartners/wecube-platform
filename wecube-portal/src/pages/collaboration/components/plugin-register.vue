@@ -25,6 +25,7 @@
           <Col span="10" offset="0">
             <FormItem :label-width="100" :label="$t('target_type')">
               <Select
+                filterable
                 @on-change="onSelectEntityType"
                 v-model="selectedEntityType"
                 :disabled="currentPluginObj.status === 'ENABLED'"
