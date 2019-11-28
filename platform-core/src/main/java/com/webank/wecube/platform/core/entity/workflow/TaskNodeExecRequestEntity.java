@@ -32,10 +32,13 @@ public class TaskNodeExecRequestEntity extends BaseTraceableEntity {
 
     @Column(name = "PROC_DEF_KERNEL_ID")
     private String procDefKernelId;
+    
     @Column(name = "PROC_DEF_KERNEL_KEY")
     private String procDefKernelKey;
+    
     @Column(name = "PROC_DEF_VER")
     private Integer procDefVersion;
+    
     @Column(name = "PROC_INST_KERNEL_ID")
     private String procInstKernelId;
 
@@ -44,8 +47,10 @@ public class TaskNodeExecRequestEntity extends BaseTraceableEntity {
 
     @Column(name = "NODE_ID")
     private String nodeId;
+    
     @Column(name = "NODE_NAME")
     private String nodeName;
+    
     @Column(name = "EXECUTION_ID")
     private String executionId;
 
