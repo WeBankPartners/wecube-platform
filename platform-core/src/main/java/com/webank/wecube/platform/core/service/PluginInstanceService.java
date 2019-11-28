@@ -227,13 +227,11 @@ public class PluginInstanceService {
     }
 
     private String replaceAllocatePort(String str, Integer allocatePort) {
-        str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
-        return str;
+        return  str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
     }
 
     private String replaceHostIp(String str, String ip) {
-        str.replace("{{ALLOCATE_HOST}}", ip);
-        return str;
+        return str.replace("{{ALLOCATE_HOST}}", ip);
     }
 
     private String replaceBaseMountPath(String baseMountPathString) {
