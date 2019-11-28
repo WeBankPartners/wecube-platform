@@ -3,7 +3,6 @@ package com.webank.wecube.platform.gateway.filter.factory;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -82,8 +81,8 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("base url:{}", baseUrl);
             }
 
-            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(decode(req.getURI().getRawQuery()))
-                    .encode(Charset.forName("iso-8859-1")).build().toUri();
+            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl + newPath).query(decode(req.getURI().getQuery()))
+                    .encode().build().toUri();
             ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
             ServerHttpRequest request = req.mutate().uri(newUri).build();
             
@@ -106,13 +105,9 @@ public class DynamicRouteGatewayFilterFactory
         
         String decodedStr = "";
         try {
-            decodedStr = URLDecoder.decode(s, "iso-8859-1");
+            decodedStr = URLDecoder.decode(s, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            try {
-                decodedStr = URLDecoder.decode(s, "UTF-8");
-            } catch (UnsupportedEncodingException e1) {
-                decodedStr = s;
-            }
+            decodedStr = s;
         }
         
         return decodedStr;

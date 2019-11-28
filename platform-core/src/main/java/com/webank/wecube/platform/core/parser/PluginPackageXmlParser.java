@@ -239,7 +239,7 @@ public class PluginPackageXmlParser {
 
             pluginPackageEntity.setName(getNonNullStringAttribute(entityNode, "./@name", "Entity name"));
             pluginPackageEntity.setDisplayName(getNonNullStringAttribute(entityNode, "./@displayName", "Entity display name"));
-            pluginPackageEntity.setDescription(getNonNullStringAttribute(entityNode, "./@description", "Entity description"));
+            pluginPackageEntity.setDescription(getStringAttribute(entityNode, "./@description"));
 
             NodeList entityAttributeNodes = xPathEvaluator.getNodeList("./attribute", entityNode);
             if (null != entityAttributeNodes && entityAttributeNodes.getLength() > 0) {
@@ -264,7 +264,7 @@ public class PluginPackageXmlParser {
             pluginPackageAttribute.setName(getNonNullStringAttribute(attributeNode, "./@name", "Entity attribute name"));
             String dataType = getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type");
             pluginPackageAttribute.setDataType(dataType);
-            pluginPackageAttribute.setDescription(getNonNullStringAttribute(attributeNode, "./@description", "Entity attribute description"));
+            pluginPackageAttribute.setDescription(getStringAttribute(attributeNode, "./@description"));
 
             String refPackage = getStringAttribute(attributeNode, "./@refPackage");
             if (StringUtils.isEmpty(refPackage) && DataModelDataType.Ref.getCode().equals(dataType)) {
