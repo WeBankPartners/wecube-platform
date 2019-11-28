@@ -74,6 +74,7 @@ WatchRouter.on("change", path => {
 window.addRoutes = (route, name) => {
   console.log(route, name);
   window.routers = window.routers.concat(route);
+  getChildRouters(route);
   router.addRoutes([
     {
       path: "/",
@@ -107,8 +108,29 @@ const findPath = (routes, path) => {
     if (route.path === path || route.redirect === path) {
       found = true;
     }
+    if (path.includes(route.path) && route.path !== "/") {
+      found = true;
+    }
   });
   return found;
+};
+
+let childRouters = [];
+
+const getChildRouters = routes => {
+  if (window.myMenus) {
+    const allLinks = [].concat(...window.myMenus.map(_ => _.submenus));
+    allLinks.forEach(_ => {
+      const found = routes.find(
+        i => i.path === _.link || i.redirect === _.link
+      );
+      if (found && found.children) {
+        found.children.forEach(child => {
+          childRouters.push({ link: `${found.path}/${child.path}` });
+        });
+      }
+    });
+  }
 };
 
 router.beforeEach((to, from, next) => {
@@ -120,7 +142,7 @@ router.beforeEach((to, from, next) => {
   } else {
     if (window.myMenus) {
       let isHasPermission = []
-        .concat(...window.myMenus.map(_ => _.submenus))
+        .concat(...window.myMenus.map(_ => _.submenus), childRouters)
         .find(_ => _.link === to.path);
       console.log(isHasPermission);
       if (
@@ -130,7 +152,10 @@ router.beforeEach((to, from, next) => {
         to.path === "/homepage"
       ) {
         /* has permission*/
-        window.sessionStorage.setItem("currentPath", to.path);
+        window.sessionStorage.setItem(
+          "currentPath",
+          to.path === "/404" ? "/homepage" : to.path
+        );
         next();
       } else {
         /* has no permission*/
@@ -160,4 +185,4 @@ window.addOptions = options => {
   });
 };
 
-vm.$mount("#app");
+vm.$mount("#wecube_app");

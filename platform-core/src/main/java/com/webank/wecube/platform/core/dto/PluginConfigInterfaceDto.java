@@ -3,9 +3,13 @@ package com.webank.wecube.platform.core.dto;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -13,6 +17,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class PluginConfigInterfaceDto {
+    
     private Integer id;
     private Integer pluginConfigId;
     private String action;
@@ -20,6 +25,7 @@ public class PluginConfigInterfaceDto {
     private String serviceDisplayName;
     private String path;
     private String httpMethod;
+    private String isAsyncProcessing;
     private List<PluginConfigInterfaceParameterDto> inputParameters;
     private List<PluginConfigInterfaceParameterDto> outputParameters;
 
@@ -135,6 +141,7 @@ public class PluginConfigInterfaceDto {
             getOutputParameters().forEach(outputParameter ->pluginConfigInterfaceOutputParameters.add(outputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_OUTPUT)));
         }
         pluginConfigInterface.setOutputParameters(pluginConfigInterfaceOutputParameters);
+        pluginConfigInterface.setIsAsyncProcessing(getIsAsyncProcessing());
 
         return pluginConfigInterface;
     }
@@ -149,6 +156,7 @@ public class PluginConfigInterfaceDto {
         pluginConfigInterfaceDto.setServiceDisplayName(pluginConfigInterface.getServiceDisplayName());
         pluginConfigInterfaceDto.setAction(pluginConfigInterface.getAction());
         pluginConfigInterfaceDto.setHttpMethod(pluginConfigInterface.getHttpMethod());
+        pluginConfigInterfaceDto.setIsAsyncProcessing(pluginConfigInterface.getIsAsyncProcessing());
 
         List<PluginConfigInterfaceParameterDto> interfaceInputParameterDtos = newArrayList();
         if (null != pluginConfigInterface.getInputParameters() && pluginConfigInterface.getInputParameters().size() > 0) {
@@ -161,6 +169,14 @@ public class PluginConfigInterfaceDto {
         }
         pluginConfigInterfaceDto.setOutputParameters(interfaceOutputParameterDtos);
         return pluginConfigInterfaceDto;
+    }
+
+    public String getIsAsyncProcessing() {
+        return isAsyncProcessing;
+    }
+
+    public void setIsAsyncProcessing(String isAsyncProcessing) {
+        this.isAsyncProcessing = isAsyncProcessing;
     }
 
 }

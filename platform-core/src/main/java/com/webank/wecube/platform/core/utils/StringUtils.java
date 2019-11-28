@@ -1,5 +1,11 @@
 package com.webank.wecube.platform.core.utils;
 
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.google.common.collect.Lists;
+
 public class StringUtils {
 
     public static boolean isValidIp(String ip) {
@@ -9,4 +15,18 @@ public class StringUtils {
         }
         return false;
     }
+
+    public static List<String> findSystemVariableString(String str) {
+
+        List<String> returnVarName = Lists.newArrayList();
+        Pattern pattern = Pattern.compile("\\{{2}(.*?)}}");
+//        Pattern pattern = Pattern.compile("(?<=\\{\\{).*?(?=}})");
+        Matcher matcher = pattern.matcher(str);
+        while (matcher.find()) {
+            returnVarName.add(matcher.group());
+        }
+
+        return returnVarName;
+    }
+
 }

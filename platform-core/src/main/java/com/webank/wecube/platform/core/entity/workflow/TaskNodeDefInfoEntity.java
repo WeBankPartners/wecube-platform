@@ -14,7 +14,7 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
     public static final String PREDEPLOY_STATUS = "predeploy";
 
     public static final String NODE_TYPE_SERVICE_TASK = "serviceTask";
-    public static final String NODE_TYPE_SUBPROCESS = "subprocess";
+    public static final String NODE_TYPE_SUBPROCESS = "subProcess";
 
     @Id
     @Column(name = "ID")

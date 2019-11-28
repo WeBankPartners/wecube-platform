@@ -7,8 +7,8 @@ import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
-import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
+import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -62,7 +61,7 @@ public class PluginPackageController {
     @PostMapping("/packages/register/{package-id}")
     @ResponseBody
     public JsonResponse registerPluginPackage(@PathVariable(value = "package-id") int packageId) {
-        PluginPackage pluginPackage = null;
+        PluginPackage pluginPackage;
         try {
             pluginPackage = pluginPackageService.registerPluginPackage(packageId);
         } catch (Exception e) {
