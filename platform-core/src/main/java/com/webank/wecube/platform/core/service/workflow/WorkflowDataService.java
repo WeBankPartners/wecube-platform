@@ -115,7 +115,7 @@ public class WorkflowDataService {
             try {
                 nodes = dataModelExpressionService.getPreviewTree(expr);
             } catch (Exception e) {
-                log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId);
+                log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId,e);
                 throw new WecubeCoreException(e.getMessage());
             }
 
@@ -182,7 +182,7 @@ public class WorkflowDataService {
     }
 
     private String buildId(TreeNode n) {
-        return String.format("%s|%s|%s", n.getPackageName(), n.getEntityName(), n.getRootId());
+        return String.format("%s:%s:%s", n.getPackageName(), n.getEntityName(), n.getRootId());
     }
 
 }
