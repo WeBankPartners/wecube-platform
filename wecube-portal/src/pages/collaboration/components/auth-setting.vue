@@ -1,5 +1,10 @@
 <template>
-  <div class="graph-container" id="auth-setting-graph"></div>
+  <div
+    v-if="data.length > 0"
+    class="graph-container"
+    id="auth-setting-graph"
+  ></div>
+  <span v-else>{{ $t("no_auth_provided") }}</span>
 </template>
 <script>
 import { getAuthSettings } from "@/api/server";

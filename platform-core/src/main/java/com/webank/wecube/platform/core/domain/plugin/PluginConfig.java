@@ -1,13 +1,18 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @JsonIgnoreType
 @Entity
@@ -104,7 +109,11 @@ public class PluginConfig {
     }
 
     public Set<PluginConfigInterface> getInterfaces() {
-        return interfaces;
+        // TODO: need to optimize
+        return interfaces
+                .stream()
+                .sorted(Comparator.comparing(PluginConfigInterface::getAction))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setInterfaces(Set<PluginConfigInterface> interfaces) {
@@ -126,7 +135,7 @@ public class PluginConfig {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
     }
 
 }
