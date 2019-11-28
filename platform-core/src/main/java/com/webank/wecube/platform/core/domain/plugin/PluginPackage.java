@@ -3,21 +3,20 @@ package com.webank.wecube.platform.core.domain.plugin;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_packages")
 public class PluginPackage {
+    public static final List<Status> ACTIVE_STATUS = Lists.newArrayList(Status.REGISTERED, Status.RUNNING, Status.STOPPED);
     public enum Status {
         UNREGISTERED, REGISTERED, RUNNING, STOPPED, DECOMMISSIONED
     }
