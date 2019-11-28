@@ -161,7 +161,7 @@
                   </Col>
                   <Col span="14" offset="1">
                     <FormItem :label-width="0">
-                      <Select
+                      <!-- <Select
                         v-if="outPut.mappingType === 'entity'"
                         v-model="outPut.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -172,7 +172,15 @@
                           :value="attr.name"
                           :label="attr.name"
                         ></Option>
-                      </Select>
+                      </Select> -->
+                      <PathExp
+                        v-if="outPut.mappingType === 'entity'"
+                        :rootPkg="pkgName"
+                        :rootEntity="selectedEntityType"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        v-model="outPut.mappingEntityExpression"
+                      ></PathExp>
                       <span v-if="outPut.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
