@@ -28,9 +28,9 @@
     </div>
     <div class="header-right_container">
       <div class="profile">
-        <Dropdown>
+        <Dropdown style="cursor: pointer">
           <span style="color: white">{{ user }}</span>
-          <Icon :size="18" type="md-arrow-dropdown"></Icon>
+          <Icon :size="18" type="ios-arrow-down" color="white" size="14"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/logout">
               <a href="/logout" style="width: 100%; display: block">
@@ -96,7 +96,7 @@ export default {
     async getMyMenus() {
       let { status, data, message, user } = await getMyMenus();
       if (status === "OK") {
-        this.user = user;
+        this.user = user || "Tea"; // Tea will show when no user information provided
         data.forEach(_ => {
           if (!_.category) {
             let menuObj = MENUS.find(m => m.code === _.code);
@@ -163,16 +163,15 @@ export default {
 
         //   { relatedPath: "http://localhost:8888/js/app.3ed190d8.js",packageName:'itsm' },
         //   { relatedPath: "http://localhost:8888/css/app.4fbf708b.css",packageName:'itsm' },
-        //   { relatedPath: "http://localhost:8888/js/app.0bea37d0.js",packageName:'monitor' },
-        //   { relatedPath: "http://localhost:8888/css/app.6d544823.css",packageName:'monitor' },
+        // { relatedPath: "http://localhost:8888/js/app.6c85d4cb.js",packageName:'monitor' },
+        // { relatedPath: "http://localhost:8888/css/app.54dd0db0.css",packageName:'monitor' },
         //   { relatedPath: "http://localhost:8888/js/app.910d8b40.js",packageName:'cmdb' },
         //   { relatedPath: "http://localhost:8888/css/app.0e016ca6.css",packageName:'cmdb' },
 
         // ];
         this.$Notice.info({
           title: this.$t("notification_title"),
-          desc: this.$t("notification_desc"),
-          duration: 5
+          desc: this.$t("notification_desc")
         });
 
         const eleContain = document.getElementsByTagName("body");
@@ -210,8 +209,7 @@ export default {
               setTimeout(() => {
                 this.$Notice.success({
                   title: this.$t("notification_title"),
-                  desc: `${key} ${this.$t("plugin_load")}`,
-                  duration: 5
+                  desc: `${key} ${this.$t("plugin_load")}`
                 });
               }, 0);
             };
@@ -231,6 +229,7 @@ export default {
   },
   mounted() {
     if (window.needReLoad) {
+      // setTimeout(()=>{this.getAllPluginPackageResourceFiles()},5000)
       this.getAllPluginPackageResourceFiles();
       window.needReLoad = false;
     }

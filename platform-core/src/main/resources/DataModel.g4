@@ -15,7 +15,7 @@ fetch
     : DOT attr
     ;
 to
-    : DASH
+    : GT
     ;
 by
     : TILDE
@@ -41,7 +41,7 @@ attr
     ;
 
 TILDE : '~';
-DASH : '-';
+GT : '>';
 DOT : '.';
 LP : '(';
 RP : ')';
@@ -54,7 +54,7 @@ DQM : '"''"';
 
 ID  : Letter LetterOrDigit*;
 PKG_ID : ID;
-fragment Letter: [a-zA-Z!@#$%^&*_];
+fragment Letter: [a-zA-Z!@#$%^&*_-];
 fragment Digit: [0-9];
 fragment LetterOrDigit: Letter | Digit;
 WS : [ \t\r\n]+ -> skip; // skip spaces, tabs, newlines
