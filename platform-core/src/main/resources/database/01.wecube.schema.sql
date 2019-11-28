@@ -52,7 +52,7 @@ CREATE TABLE plugin_package_entities
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
     description        VARCHAR(256)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 DROP TABLE IF EXISTS plugin_package_attributes;
 CREATE TABLE plugin_package_attributes
@@ -168,7 +168,7 @@ CREATE TABLE `plugin_instances` (
     INDEX `FKbqqlg3wrp1n0h926v5cojcjk7` (`s3bucket_resource_id`),
     CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
     CONSTRAINT `FKn8124r2uvtipsy1hfkjmd4jts` FOREIGN KEY (`package_id`) REFERENCES `plugin_packages` (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists menu_items;
 create table menu_items
@@ -189,7 +189,7 @@ create table plugin_package_resource_files
   package_version varchar(20) not null,
   source varchar(64) not null,
   related_path varchar(1024) not null
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists resource_item;
 CREATE TABLE `resource_item` (
@@ -208,7 +208,7 @@ CREATE TABLE `resource_item` (
     PRIMARY KEY (`id`),
     INDEX `FK2g8cf9beg7msqry6cmqedvv9n` (`resource_server_id`),
     CONSTRAINT `FK2g8cf9beg7msqry6cmqedvv9n` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists resource_server;
 CREATE TABLE `resource_server` (
@@ -227,7 +227,7 @@ CREATE TABLE `resource_server` (
     `updated_by` VARCHAR(255) NULL DEFAULT NULL ,
     `updated_date` DATETIME NULL DEFAULT NULL,
     PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists plugin_mysql_instances;
 CREATE TABLE `plugin_mysql_instances` (
