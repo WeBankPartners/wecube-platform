@@ -606,6 +606,12 @@ public class PluginInvocationService {
 
             return;
         }
+        
+        PluginConfigInterface pci = ctx.getPluginConfigInterface();
+        if("Y".equalsIgnoreCase(pci.getIsAsyncProcessing())){
+            log.info("such interface is asynchronous service : {} ", pci.getServiceName());
+            return;
+        }
 
         List<Object> resultData = pluginInvocationResult.getResultData();
 

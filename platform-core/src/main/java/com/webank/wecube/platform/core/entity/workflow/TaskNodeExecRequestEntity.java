@@ -30,6 +30,25 @@ public class TaskNodeExecRequestEntity extends BaseTraceableEntity {
     @Column(name = "IS_COMPLETED")
     private Boolean completed = false;
 
+    @Column(name = "PROC_DEF_KERNEL_ID")
+    private String procDefKernelId;
+    @Column(name = "PROC_DEF_KERNEL_KEY")
+    private String procDefKernelKey;
+    @Column(name = "PROC_DEF_VER")
+    private Integer procDefVersion;
+    @Column(name = "PROC_INST_KERNEL_ID")
+    private String procInstKernelId;
+
+    @Column(name = "PROC_INST_KERNEL_KEY")
+    private String procInstKernelKey;
+
+    @Column(name = "NODE_ID")
+    private String nodeId;
+    @Column(name = "NODE_NAME")
+    private String nodeName;
+    @Column(name = "EXECUTION_ID")
+    private String executionId;
+
     public String getRequestId() {
         return requestId;
     }
@@ -84,6 +103,78 @@ public class TaskNodeExecRequestEntity extends BaseTraceableEntity {
 
     public void setCompleted(Boolean completed) {
         this.completed = completed;
+    }
+
+    public String getProcDefKernelId() {
+        return procDefKernelId;
+    }
+
+    public void setProcDefKernelId(String procDefKernelId) {
+        this.procDefKernelId = procDefKernelId;
+    }
+
+    public String getProcDefKernelKey() {
+        return procDefKernelKey;
+    }
+
+    public void setProcDefKernelKey(String procDefKernelKey) {
+        this.procDefKernelKey = procDefKernelKey;
+    }
+
+    public Integer getProcDefVersion() {
+        return procDefVersion;
+    }
+
+    public void setProcDefVersion(Integer procDefVersion) {
+        this.procDefVersion = procDefVersion;
+    }
+
+    public String getProcInstKernelId() {
+        return procInstKernelId;
+    }
+
+    public void setProcInstKernelId(String procInstKernelId) {
+        this.procInstKernelId = procInstKernelId;
+    }
+
+    public String getProcInstKernelKey() {
+        return procInstKernelKey;
+    }
+
+    public void setProcInstKernelKey(String procInstKernelKey) {
+        this.procInstKernelKey = procInstKernelKey;
+    }
+
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    public void setNodeId(String nodeId) {
+        this.nodeId = nodeId;
+    }
+
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
+    }
+
+    public String getExecutionId() {
+        return executionId;
+    }
+
+    public void setExecutionId(String executionId) {
+        this.executionId = executionId;
+    }
+
+    public Boolean getCurrent() {
+        return current;
+    }
+
+    public Boolean getCompleted() {
+        return completed;
     }
 
 }
