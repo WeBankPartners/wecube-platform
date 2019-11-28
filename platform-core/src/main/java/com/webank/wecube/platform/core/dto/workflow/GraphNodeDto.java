@@ -3,11 +3,17 @@ package com.webank.wecube.platform.core.dto.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class GraphNodeDto {
 
+    private String packageName;
+    private String entityName;
+    private String dataId;
+
     private String id;
-    private List<String> srcGraphNodeIds = new ArrayList<>();
-    private List<String> toGraphNodeIds = new ArrayList<>();
+    private List<String> previousIds = new ArrayList<>();
+    private List<String> succeedingIds = new ArrayList<>();
 
     public GraphNodeDto(String id) {
         super();
@@ -19,47 +25,79 @@ public class GraphNodeDto {
     }
 
     public String getId() {
+        if(StringUtils.isBlank(id)){
+            this.id = buildId();
+        }
+        
         return id;
+    }
+
+    public String buildId() {
+        return String.format("%s:%s:%s", packageName, entityName, dataId);
     }
 
     public void setId(String id) {
         this.id = id;
     }
 
-    public List<String> getSrcGraphNodeIds() {
-        return srcGraphNodeIds;
+    public List<String> getPreviousIds() {
+        return previousIds;
     }
 
-    public void setSrcGraphNodeIds(List<String> srcGraphNodeIds) {
-        this.srcGraphNodeIds = srcGraphNodeIds;
+    public void setPreviousIds(List<String> previousIds) {
+        this.previousIds = previousIds;
     }
 
-    public List<String> getToGraphNodeIds() {
-        return toGraphNodeIds;
+    public List<String> getSucceedingIds() {
+        return succeedingIds;
     }
 
-    public void setToGraphNodeIds(List<String> toGraphNodeIds) {
-        this.toGraphNodeIds = toGraphNodeIds;
+    public void setSucceedingIds(List<String> succeedingIds) {
+        this.succeedingIds = succeedingIds;
     }
 
-    public GraphNodeDto addToGraphNodeIds(String... graphNodeIds) {
-        for (String gid : graphNodeIds) {
-            if (!this.getToGraphNodeIds().contains(gid)) {
-                this.getToGraphNodeIds().add(gid);
+    public GraphNodeDto addSucceedingIds(String... ids) {
+        for (String gid : ids) {
+            if (!this.getSucceedingIds().contains(gid)) {
+                this.getSucceedingIds().add(gid);
             }
         }
 
         return this;
     }
 
-    public GraphNodeDto addSrcGraphNodeIds(String... graphNodeIds) {
-        for (String gid : graphNodeIds) {
-            if (!this.getSrcGraphNodeIds().contains(gid)) {
-                this.getSrcGraphNodeIds().add(gid);
+    public GraphNodeDto addPreviousIds(String... ids) {
+        for (String gid : ids) {
+            if (!this.getPreviousIds().contains(gid)) {
+                this.getPreviousIds().add(gid);
             }
         }
 
         return this;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getEntityName() {
+        return entityName;
+    }
+
+    public void setEntityName(String entityName) {
+        this.entityName = entityName;
+    }
+
+    public String getDataId() {
+        return dataId;
+    }
+
+    public void setDataId(String dataId) {
+        this.dataId = dataId;
     }
 
 }

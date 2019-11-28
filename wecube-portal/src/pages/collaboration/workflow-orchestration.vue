@@ -3,7 +3,13 @@
     <Row style="margin-bottom: 10px">
       <Col span="6">
         <span style="margin-right: 10px">{{ $t("flow_name") }}</span>
-        <Select filterable clearable v-model="selectedFlow" style="width: 70%">
+        <Select
+          filterable
+          clearable
+          v-model="selectedFlow"
+          style="width: 70%"
+          @on-open-change="getAllFlows"
+        >
           <Option
             v-for="(item, index) in allFlows"
             :value="item.procDefId"
@@ -13,8 +19,8 @@
               index === 0
                 ? ""
                 : (item.procDefName || "Null") +
-                  "-" +
-                  item.procDefId +
+                  " " +
+                  item.createdTime +
                   (item.status === "draft" ? "*" : "")
             }}
             <Button
@@ -36,7 +42,7 @@
           </Option>
         </Select>
       </Col>
-      <Col span="6" ofset="1">
+      <Col span="8" ofset="1">
         <span style="margin-right: 10px">{{ $t("instance_type") }}</span>
         <Select
           @on-change="onEntitySelect"
@@ -60,7 +66,6 @@
       <Button type="info" @click="saveDiagram(false)">
         {{ $t("save_flow") }}
       </Button>
-      <!-- <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button> -->
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
@@ -86,14 +91,25 @@
         :label-width="100"
       >
         <FormItem :label="$t('locate_rules')" prop="routineExpression">
-          <Input v-model="pluginForm.routineExpression" />
+          <PathExp
+            v-if="pluginModalVisible"
+            :rootPkg="rootPkg"
+            :rootEntity="rootEntity"
+            :allDataModelsWithAttrs="allEntityType"
+            v-model="pluginForm.routineExpression"
+          ></PathExp>
         </FormItem>
         <FormItem :label="$t('plugin')" prop="serviceName">
-          <Select filterable clearable v-model="pluginForm.serviceId">
+          <Select
+            filterable
+            clearable
+            v-model="pluginForm.serviceId"
+            @on-open-change="getPluginInterfaceList"
+          >
             <Option
-              v-for="item in allPlugins"
+              v-for="(item, index) in allPlugins"
               :value="item.serviceName"
-              :key="item.serviceName"
+              :key="index"
               >{{ item.serviceDisplayName }}</Option
             >
           </Select>
@@ -119,6 +135,7 @@
             v-model="item.bindNodeId"
             style="width:200px"
             @on-change="onParamsNodeChange(index)"
+            @on-open-change="getFlowsNodes"
           >
             <Option
               v-for="i in currentflowsNodes"
@@ -169,6 +186,8 @@ import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 /* Right side toobar style */
 import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
+import PathExp from "../components/path-exp.vue";
+
 import {
   getAllFlow,
   saveFlow,
@@ -178,10 +197,9 @@ import {
   getFlowNodes,
   getParamsInfosByFlowIdAndNodeId,
   getAllDataModels,
-  getPluginInterfaceList
+  getPluginInterfaceList,
+  removeProcessDefinition
 } from "@/api/server.js";
-
-import AttrInput from "../components/attr-input";
 
 function setCTM(node, m) {
   var mstr =
@@ -203,7 +221,7 @@ function setCTM(node, m) {
 
 export default {
   components: {
-    AttrInput
+    PathExp
   },
   data() {
     return {
@@ -221,6 +239,8 @@ export default {
       allEntityType: [],
       selectedFlow: "",
       currentSelectedEntity: "",
+      rootPkg: "",
+      rootEntity: "",
       pluginModalVisible: false,
 
       pluginForm: {},
@@ -281,21 +301,55 @@ export default {
     },
     async getPluginInterfaceList() {
       let { status, data, message } = await getPluginInterfaceList();
-      this.allPlugins = data;
+      if (status === "OK") {
+        this.allPlugins = data;
+
+        let found = data.find(_ => _.serviceName === this.pluginForm.serviceId);
+        if (found) {
+          let needParams = found.inputParameters.filter(
+            _ => _.mappingType === "context"
+          );
+          this.pluginForm.paramInfos = needParams.map(_ => {
+            return {
+              paramName: _.name,
+              bindNodeId: "",
+              bindParamType: "in",
+              bindParamName: ""
+            };
+          });
+        }
+      }
     },
     async getAllFlows() {
       const { data, message, status } = await getAllFlow();
       if (status === "OK") {
-        const aa = [{ procDefId: 100000, name: "add_new" }];
-        this.allFlows = aa.concat(data);
+        let sortedResult = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase();
+          let t = b.createdTime.toLowerCase();
+          if (s > t) return -1;
+          if (s < t) return 1;
+        });
+        let new_val = [{ procDefId: 100000, name: "add_new" }];
+        this.allFlows = new_val.concat(sortedResult);
       }
     },
     async deleteFlow(id) {
-      console.log("delete flow, id is: ", id);
+      let { status, data, message } = await removeProcessDefinition(id);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message
+        });
+        this.getAllFlows();
+      }
     },
     onEntitySelect(v) {
       this.currentSelectedEntity = v;
+      this.rootPkg = this.currentSelectedEntity.split(":")[0];
+      this.rootEntity = this.currentSelectedEntity.split(":")[1];
+
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
+      this.defaultPluginForm.routineExpression = v;
       this.pluginForm = this.defaultPluginForm;
     },
     resetZoom() {
@@ -415,6 +469,7 @@ export default {
           desc: this.$t("select_entity_first")
         });
       } else {
+        this.getPluginInterfaceList();
         this.pluginModalVisible = true;
         this.pluginForm =
           (this.currentFlow &&
@@ -433,7 +488,7 @@ export default {
       this.getParamsOptionsByNode(index);
     },
     async getFlowsNodes() {
-      // TODO:
+      if (!this.currentFlow) return;
       let { status, data, message } = await getFlowNodes(
         this.currentFlow.procDefId
       );
@@ -442,8 +497,7 @@ export default {
       }
     },
     async getParamsOptionsByNode(index) {
-      // TODO:
-
+      if (!this.currentFlow) return;
       let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
         this.currentFlow.procDefId,
         this.pluginForm.paramInfos[index].bindNodeId
@@ -499,6 +553,8 @@ export default {
           _this.bindRightClick();
           _this.serviceTaskBindInfos = data.taskNodeInfos;
           _this.currentSelectedEntity = data.rootEntity || "";
+          _this.rootPkg = data.rootEntity.split(":")[0] || "";
+          _this.rootEntity = data.rootEntity.split(":")[1] || "";
         });
       }
     },

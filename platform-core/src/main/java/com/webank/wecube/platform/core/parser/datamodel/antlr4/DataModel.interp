@@ -1,7 +1,7 @@
 ***REMOVED***:
 null
 '~'
-'-'
+'>'
 '.'
 '('
 ')'
@@ -15,7 +15,7 @@ null
 ***REMOVED***:
 null
 TILDE
-DASH
+GT
 DOT
 LP
 RP
