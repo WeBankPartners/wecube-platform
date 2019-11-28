@@ -478,7 +478,8 @@ export default {
               _ => _.nodeId === this.currentNode.id
             )) ||
           this.defaultPluginForm;
-        // get flow's params infos - nodes
+        // get flow's params infos - nodes -
+        // TODO: 20191128 return is [] so no display back
         this.getFlowsNodes();
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index);
@@ -497,6 +498,7 @@ export default {
         this.currentflowsNodes = data.filter(
           _ => _.nodeId !== this.currentNode.id
         );
+        console.log("this.currentflowsNodes", this.currentflowsNodes);
       }
     },
     async getParamsOptionsByNode(index) {
@@ -509,6 +511,7 @@ export default {
         let res = data.filter(
           _ => _.type === this.pluginForm.paramInfos[index].bindParamType
         );
+        console.log("res", res);
         this.$set(this.pluginForm.paramInfos[index], "currentParamNames", res);
       }
     },
