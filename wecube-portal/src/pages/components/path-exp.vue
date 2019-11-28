@@ -20,7 +20,7 @@
               {{
                 opt.dataType === "ref"
                   ? isRefBy
-                    ? `(${opt.name})${opt.refPackageName}:${opt.refEntityName}`
+                    ? `(${opt.name})${opt.packageName}:${opt.entityName}`
                     : `${opt.name}>${opt.refPackageName}:${opt.refEntityName}`
                   : opt.name
               }}
@@ -84,7 +84,7 @@ export default {
           }
         ];
         this.options = [];
-        this.$emit("input", this.inputVal.replace(" ", ""));
+        this.$emit("input", this.inputVal.replace(/\s/g, ""));
       }
     }
   },
@@ -104,7 +104,7 @@ export default {
     this.currentEntity = this.rootEntity;
     this.currentPkg = this.rootPkg;
 
-    this.$emit("input", this.inputVal.replace(" ", ""));
+    this.$emit("input", this.inputVal.replace(/\s/g, ""));
     if (document.querySelector(".wecube_attr-ul")) {
       document.querySelector(".wecube_attr-ul").style.width =
         document.querySelector(".wecube_input_in textarea").clientWidth + "px";
@@ -151,11 +151,11 @@ export default {
       const newValue =
         item.dataType === "ref"
           ? this.isRefBy
-            ? `(${item.name})${item.refPackageName}:${item.refEntityName}`
+            ? `(${item.name})${item.packageName}:${item.entityName}`
             : `${item.name}>${item.refPackageName}:${item.refEntityName}`
           : item.name;
-      this.currentPkg = item.refPackageName || item.packageName;
-      this.currentEntity = item.refEntityName || item.entityName;
+      this.currentPkg = this.isRefBy ? item.packageName : item.refPackageName;
+      this.currentEntity = this.isRefBy ? item.entityName : item.refEntityName;
       this.entityPath.push({
         entity: this.currentEntity,
         pkg: this.currentPkg
@@ -163,7 +163,7 @@ export default {
       this.inputVal = this.inputVal + " " + this.currentOperator + newValue;
       this.options = [];
       this.$refs["textarea"].focus();
-      this.$emit("input", this.inputVal.replace(" ", ""));
+      this.$emit("input", this.inputVal.replace(/\s/g, ""));
     },
     inputHandler(v) {
       if (!v.data) {
@@ -174,10 +174,10 @@ export default {
           valList.splice(-1, 1);
           this.inputVal = valList.join(" ");
           this.entityPath.splice(-1, 1);
-          this.$emit("input", this.inputVal.replace(" ", ""));
+          this.$emit("input", this.inputVal.replace(/\s/g, ""));
         } else if (valList.length < 2) {
           this.inputVal = valList[0];
-          this.$emit("input", this.inputVal.replace(" ", ""));
+          this.$emit("input", this.inputVal.replace(/\s/g, ""));
         }
         this.$refs.textarea.value = this.inputVal;
         return;
