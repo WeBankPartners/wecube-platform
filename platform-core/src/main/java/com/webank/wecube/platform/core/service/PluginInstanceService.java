@@ -316,7 +316,7 @@ public class PluginInstanceService {
 
         String portBindingString = replaceAllocatePort(dockerInfo.getPortBindings(), port);
         String envVariablesString = replaceHostIp(dockerInfo.getEnvVariables(), hostIp);
-        String volumeBindingString = replaceBaseMountPath(dockerInfo.getPortBindings());
+        String volumeBindingString = replaceBaseMountPath(dockerInfo.getVolumeBindings());
 
         CreateInstanceDto createContainerParameters = new CreateInstanceDto(dockerInfo.getImageName(),
                 dockerInfo.getContainerName(), portBindingString, volumeBindingString);
