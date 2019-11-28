@@ -97,8 +97,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         }
 
         nodeEntities.forEach(e -> {
-            if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equals(e.getNodeType())
-                    || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equals(e.getNodeType())) {
+            if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(e.getNodeType())
+                    || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equalsIgnoreCase(e.getNodeType())) {
                 TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
                 d.setNodeDefId(e.getId());
                 d.setNodeId(e.getNodeId());
