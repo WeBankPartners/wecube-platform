@@ -505,6 +505,7 @@ export default {
             " action is proceed successfully"
         });
         this.workflowActionModalVisible = false;
+        this.processInstance();
       }
     },
     bindFlowEvent() {
