@@ -125,7 +125,7 @@
       <xs:extension base="xs:string">
         <xs:attribute type="xs:string" name="datatype" use="required"/>
         <xs:attribute type="xs:string" name="mappingType" use="optional"/>
-        <xs:attribute type="xs:string" name="mappingSystemVariableId" use="optional"/>
+        <xs:attribute type="xs:string" name="mappingSystemVariableName" use="optional"/>
         <xs:attribute type="xs:string" name="required" use="required"/>
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
       </xs:extension>
