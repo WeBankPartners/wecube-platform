@@ -48,7 +48,7 @@
                     v-for="item in allFlows"
                     :value="item.procDefId"
                     :key="item.procDefId"
-                    >{{ item.procDefName }}</Option
+                    >{{ item.procDefName + " " + item.createdTime }}</Option
                   >
                 </Select>
               </FormItem>
@@ -176,7 +176,12 @@ export default {
     async getAllFlow() {
       let { status, data, message } = await getAllFlow(false);
       if (status === "OK") {
-        this.allFlows = data;
+        this.allFlows = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase();
+          let t = b.createdTime.toLowerCase();
+          if (s > t) return -1;
+          if (s < t) return 1;
+        });
       }
     },
 
@@ -291,7 +296,7 @@ export default {
             const nodeId = _.packageName + "_" + _.entityName;
             let current = [];
             current = _.succeedingIds.map(to => {
-              return _nodeId + " -> " + to;
+              return _.nodeId + " -> " + to;
             });
             pathAry.push(current);
           }
@@ -569,7 +574,6 @@ export default {
       const initEvent = () => {
         let graph;
         graph = d3.select(`#graph`);
-        debugger;
         graph.on("dblclick.zoom", null);
         this.graph.graphviz = graph.graphviz().zoom(false);
       };
