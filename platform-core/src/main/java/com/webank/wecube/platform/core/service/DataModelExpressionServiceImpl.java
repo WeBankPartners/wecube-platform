@@ -28,9 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class DataModelExpressionServiceImpl implements DataModelExpressionService {
-    @Autowired
-    private RestTemplate restTemplate = new RestTemplate();
-    @Autowired
+    private RestTemplate restTemplate;
     private ApplicationProperties applicationProperties;
 
     private static final Logger logger = LoggerFactory.getLogger(DataModelExpressionServiceImpl.class);
@@ -40,6 +38,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     private static final String deleteRequestUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}/delete";
     private static final String requestAllUrl = "http://{gatewayUrl}/{packageName}/entities/{entityName}";
     final String UNIQUE_IDENTIFIER = "id";
+
+
+    @Autowired
+    public DataModelExpressionServiceImpl(RestTemplate restTemplate, ApplicationProperties applicationProperties) {
+        this.restTemplate = restTemplate;
+        this.applicationProperties = applicationProperties;
+    }
 
 
     @Override
@@ -566,7 +571,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            logger.info(uriStr, paramMap);
             if (!chainRequestDto.getRequestActualUrl().equals(uriStr))
                 chainRequestDto.setRequestActualUrl(uriStr);
             responseDto = sendGetRequest(uriStr, httpHeaders);
@@ -594,7 +598,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            logger.info(String.format("Sending GET request to target url: [%s]", uriStr));
             responseDto = sendGetRequest(uriStr, httpHeaders);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
@@ -619,7 +622,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, requestBodyParamMap));
             if (!chainRequestDto.getRequestActualUrl().equals(uriStr))
                 chainRequestDto.setRequestActualUrl(uriStr);
             sendPostRequest(uriStr, httpHeaders, requestBodyParamMap);
@@ -647,7 +649,6 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
             UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(paramMap);
             String uriStr = uriComponents.toString();
-            logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, requestBody));
             response = sendPostRequest(uriStr, httpHeaders, requestBody);
         } catch (IOException ex) {
             logger.error(ex.getMessage());
@@ -682,6 +683,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @throws IOException exception when sending the request
      */
     private CommonResponseDto sendPostRequest(String uriStr, HttpHeaders httpHeaders, List<Map<String, Object>> postRequestBodyParamMap) throws IOException {
+        logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, postRequestBodyParamMap));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
         response = RestTemplateUtils.sendPostRequestWithParamMap(restTemplate, uriStr, httpHeaders, postRequestBodyParamMap);
