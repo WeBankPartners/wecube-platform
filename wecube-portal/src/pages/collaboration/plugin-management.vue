@@ -471,7 +471,7 @@ export default {
       defaultCreateParams: "",
       selectHosts: [],
       availiableHostsWithPort: [],
-      isShowDecomissionedPackage: true
+      isShowDecomissionedPackage: false
     };
   },
   methods: {
