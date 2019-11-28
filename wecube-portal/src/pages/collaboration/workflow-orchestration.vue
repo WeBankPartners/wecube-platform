@@ -494,7 +494,9 @@ export default {
         this.currentFlow.procDefId
       );
       if (status === "OK") {
-        this.currentflowsNodes = data;
+        this.currentflowsNodes = data.filter(
+          _ => _.nodeId !== this.currentNode.id
+        );
       }
     },
     async getParamsOptionsByNode(index) {
