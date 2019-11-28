@@ -663,11 +663,11 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         CommonResponseDto responseDto;
         if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
             if (response.getStatusCode().is4xxClientError()) {
-                throw new WecubeCoreException(String.format("Error code: [%s]. The target package doesn't implement the request controller.", response.getStatusCode().toString()));
+                throw new WecubeCoreException(String.format("The target server returned error code: [%s]. The target server doesn't implement the request controller.", response.getStatusCode().toString()));
             }
 
             if (response.getStatusCode().is5xxServerError()) {
-                throw new WecubeCoreException(String.format("Error code: [%s]. The target package's instance has error.", response.getStatusCode().toString()));
+                throw new WecubeCoreException(String.format("The target server returned error code: [%s], which is an target server's internal error.", response.getStatusCode().toString()));
             }
         }
         responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
