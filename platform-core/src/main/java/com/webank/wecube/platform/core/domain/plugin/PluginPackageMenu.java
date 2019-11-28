@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.webank.wecube.platform.core.domain.MenuItem;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
@@ -114,6 +115,10 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
 
     public PluginPackageMenu() {
         super();
+    }
+
+    public PluginPackageMenu(PluginPackage pluginPackage, String code, String category, String displayName, String path) {
+        this(null, pluginPackage, code, category, MenuItem.Source.PLUGIN.name(), displayName, null, path);
     }
 
     public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, Integer menuOrder, String path) {
