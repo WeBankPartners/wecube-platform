@@ -19,8 +19,8 @@
               index === 0
                 ? ""
                 : (item.procDefName || "Null") +
-                  "-" +
-                  item.procDefId +
+                  " " +
+                  item.createdTime +
                   (item.status === "draft" ? "*" : "")
             }}
             <Button
@@ -63,17 +63,16 @@
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram(false)">{{
-        $t("save_flow")
-      }}</Button>
-      <!-- <Button type="success" @click="calcFlow">{{ $t("calc_form") }}</Button> -->
+      <Button type="info" @click="saveDiagram(false)">
+        {{ $t("save_flow") }}
+      </Button>
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">
-          {{ $t("config_plugin") }}
-        </a>
+        <a href="javascript:void(0);" @click="openPluginModal">{{
+          $t("config_plugin")
+        }}</a>
         <br />
       </div>
 
@@ -136,6 +135,7 @@
             v-model="item.bindNodeId"
             style="width:200px"
             @on-change="onParamsNodeChange(index)"
+            @on-open-change="getFlowsNodes"
           >
             <Option
               v-for="i in currentflowsNodes"
@@ -145,9 +145,9 @@
             >
           </Select>
           <Select v-model="item.bindParamType" style="width:200px">
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
-              i.label
-            }}</Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
+              {{ i.label }}
+            </Option>
           </Select>
           <Select v-model="item.bindParamName" style="width:200px">
             <Option
@@ -160,9 +160,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
-          $t("confirm")
-        }}</Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
+          {{ $t("confirm") }}
+        </Button>
       </div>
     </Modal>
   </div>
@@ -301,13 +301,36 @@ export default {
     },
     async getPluginInterfaceList() {
       let { status, data, message } = await getPluginInterfaceList();
-      this.allPlugins = data;
+      if (status === "OK") {
+        this.allPlugins = data;
+
+        let found = data.find(_ => _.serviceName === this.pluginForm.serviceId);
+        if (found) {
+          let needParams = found.inputParameters.filter(
+            _ => _.mappingType === "context"
+          );
+          this.pluginForm.paramInfos = needParams.map(_ => {
+            return {
+              paramName: _.name,
+              bindNodeId: "",
+              bindParamType: "in",
+              bindParamName: ""
+            };
+          });
+        }
+      }
     },
     async getAllFlows() {
       const { data, message, status } = await getAllFlow();
       if (status === "OK") {
-        const aa = [{ procDefId: 100000, name: "add_new" }];
-        this.allFlows = aa.concat(data);
+        let sortedResult = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase();
+          let t = b.createdTime.toLowerCase();
+          if (s > t) return -1;
+          if (s < t) return 1;
+        });
+        let new_val = [{ procDefId: 100000, name: "add_new" }];
+        this.allFlows = new_val.concat(sortedResult);
       }
     },
     async deleteFlow(id) {
@@ -446,6 +469,7 @@ export default {
           desc: this.$t("select_entity_first")
         });
       } else {
+        this.getPluginInterfaceList();
         this.pluginModalVisible = true;
         this.pluginForm =
           (this.currentFlow &&
@@ -464,7 +488,6 @@ export default {
       this.getParamsOptionsByNode(index);
     },
     async getFlowsNodes() {
-      // TODO:
       if (!this.currentFlow) return;
       let { status, data, message } = await getFlowNodes(
         this.currentFlow.procDefId
@@ -474,7 +497,6 @@ export default {
       }
     },
     async getParamsOptionsByNode(index) {
-      // TODO:
       if (!this.currentFlow) return;
       let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
         this.currentFlow.procDefId,
