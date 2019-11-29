@@ -4,7 +4,7 @@
       <div ref="wecube_cmdb_attr" class="wecube_input_in">
         <textarea
           ref="textarea"
-          :rows="2"
+          :rows="3"
           @input="inputHandler"
           :value="inputVal"
           :disabled="disabled"
@@ -261,7 +261,8 @@ export default {
 
   textarea {
     font-size: 11px;
-    line-height: 28px;
+    line-height: 20px;
+    word-break: break-all;
     width: 100%;
     border-radius: 5px;
   }
