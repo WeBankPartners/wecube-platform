@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
