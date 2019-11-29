@@ -315,7 +315,6 @@ export default {
           .toString()
           .replace(/,/g, ";");
       };
-      console.log(1, nodes, 2, genEdge());
       let nodesToString =
         Array.isArray(nodes) && nodes.length > 0
           ? nodes.toString().replace(/,/g, ";") + ";"
@@ -403,7 +402,6 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-      console.log("nodesString", nodesString);
 
       this.flowGraph.graphviz.renderDot(nodesString);
       this.bindFlowEvent();
@@ -530,15 +528,17 @@ export default {
           e.stopPropagation();
           d3.selectAll("g").attr("cursor", "pointer");
         });
-        addEvent(".flow", "click", e => {
-          e.preventDefault();
-          e.stopPropagation();
-          let g = e.currentTarget;
-          this.highlightModel(g.id);
-          this.currentFlowNodeId = g.id;
-          this.renderFlowGraph();
-        });
+        removeEvent(".flow", "click", this.flowNodesClickHandler);
+        addEvent(".flow", "click", this.flowNodesClickHandler);
       }
+    },
+    flowNodesClickHandler(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      let g = e.currentTarget;
+      this.highlightModel(g.id);
+      this.currentFlowNodeId = g.id;
+      this.renderFlowGraph();
     },
     highlightModel(nodeId) {
       this.foundRefAry = this.flowData.flowNodes
