@@ -45,7 +45,8 @@ export default {
       options: [],
       currentOperator: "",
       isRefBy: false,
-      entityPath: []
+      entityPath: [],
+      isLastNode: false
     };
   },
   props: {
@@ -84,6 +85,7 @@ export default {
           }
         ];
         this.options = [];
+        this.isLastNode = false;
         this.$emit("input", this.inputVal.replace(/\s/g, ""));
       }
     }
@@ -148,6 +150,7 @@ export default {
     },
     optClickHandler(item) {
       this.optionsHide = false;
+      this.isLastNode = !(item.dataType === "ref");
       const newValue =
         item.dataType === "ref"
           ? this.isRefBy
@@ -180,11 +183,20 @@ export default {
           this.$emit("input", this.inputVal.replace(/\s/g, ""));
         }
         this.$refs.textarea.value = this.inputVal;
+        this.isLastNode = false;
         return;
       } else {
         if (!(v.data === "." || v.data === "~")) {
           this.$Message.error({
             content: this.$t("input_correct_operator")
+          });
+          this.$refs.textarea.value = this.inputVal;
+          return;
+        }
+        if (this.isLastNode) {
+          this.optionsHide = false;
+          this.$Message.warning({
+            content: this.$t("is_model_attribute")
           });
           this.$refs.textarea.value = this.inputVal;
           return;
