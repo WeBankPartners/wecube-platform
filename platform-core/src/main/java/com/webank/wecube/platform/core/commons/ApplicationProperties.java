@@ -44,6 +44,34 @@ public class ApplicationProperties {
             return closeIdleConnectionWaitTimeSecs;
         }
 
+        public void setConnectTimeout(int connectTimeout) {
+            this.connectTimeout = connectTimeout;
+        }
+
+        public void setRequestTimeout(int requestTimeout) {
+            this.requestTimeout = requestTimeout;
+        }
+
+        public void setSocketTimeout(int socketTimeout) {
+            this.socketTimeout = socketTimeout;
+        }
+
+        public void setMaxTotalConnections(int maxTotalConnections) {
+            this.maxTotalConnections = maxTotalConnections;
+        }
+
+        public void setPoolSizeOfScheduler(int poolSizeOfScheduler) {
+            this.poolSizeOfScheduler = poolSizeOfScheduler;
+        }
+
+        public void setDefaultKeepAliveTimeMillis(int defaultKeepAliveTimeMillis) {
+            this.defaultKeepAliveTimeMillis = defaultKeepAliveTimeMillis;
+        }
+
+        public void setCloseIdleConnectionWaitTimeSecs(int closeIdleConnectionWaitTimeSecs) {
+            this.closeIdleConnectionWaitTimeSecs = closeIdleConnectionWaitTimeSecs;
+        }
+
     }
 
     @ConfigurationProperties(prefix = "wecube.core.plugin")
@@ -119,6 +147,62 @@ public class ApplicationProperties {
             return baseMountPath;
         }
 
+        public void setPluginDeployPath(String pluginDeployPath) {
+            this.pluginDeployPath = pluginDeployPath;
+        }
+
+        public void setPluginPackageBucketName(String pluginPackageBucketName) {
+            this.pluginPackageBucketName = pluginPackageBucketName;
+        }
+
+        public void setRegisterFile(String registerFile) {
+            this.registerFile = registerFile;
+        }
+
+        public void setImageFile(String imageFile) {
+            this.imageFile = imageFile;
+        }
+
+        public void setUiFile(String uiFile) {
+            this.uiFile = uiFile;
+        }
+
+        public void setInitDbSql(String initDbSql) {
+            this.initDbSql = initDbSql;
+        }
+
+        public void setUpgradeDbSql(String upgradeDbSql) {
+            this.upgradeDbSql = upgradeDbSql;
+        }
+
+        public void setPluginPackageNameOfDeploy(String pluginPackageNameOfDeploy) {
+            this.pluginPackageNameOfDeploy = pluginPackageNameOfDeploy;
+        }
+
+        public void setStaticResourceServerIp(String staticResourceServerIp) {
+            this.staticResourceServerIp = staticResourceServerIp;
+        }
+
+        public void setStaticResourceServerUser(String staticResourceServerUser) {
+            this.staticResourceServerUser = staticResourceServerUser;
+        }
+
+        public void setStaticResourceServerPassword(String staticResourceServerPassword) {
+            this.staticResourceServerPassword = staticResourceServerPassword;
+        }
+
+        public void setStaticResourceServerPort(Integer staticResourceServerPort) {
+            this.staticResourceServerPort = staticResourceServerPort;
+        }
+
+        public void setStaticResourceServerPath(String staticResourceServerPath) {
+            this.staticResourceServerPath = staticResourceServerPath;
+        }
+
+        public void setBaseMountPath(String baseMountPath) {
+            this.baseMountPath = baseMountPath;
+        }
+
     }
 
     @ConfigurationProperties(prefix = "wecube.core.s3")
@@ -139,6 +223,18 @@ public class ApplicationProperties {
             return secretKey;
         }
 
+        public void setEndpoint(String endpoint) {
+            this.endpoint = endpoint;
+        }
+
+        public void setAccessKey(String accessKey) {
+            this.accessKey = accessKey;
+        }
+
+        public void setSecretKey(String secretKey) {
+            this.secretKey = secretKey;
+        }
+
     }
 
     @ConfigurationProperties(prefix = "wecube.core.resource")
@@ -154,10 +250,22 @@ public class ApplicationProperties {
             return passwordEncryptionSeed;
         }
 
+        public void setDockerPullImageTimeout(Integer dockerPullImageTimeout) {
+            this.dockerPullImageTimeout = dockerPullImageTimeout;
+        }
+
+        public void setPasswordEncryptionSeed(String passwordEncryptionSeed) {
+            this.passwordEncryptionSeed = passwordEncryptionSeed;
+        }
+
     }
 
     public String getGatewayUrl() {
         return gatewayUrl;
+    }
+
+    public String setGatewayUrl(String gatewayUrl) {
+        return this.gatewayUrl = gatewayUrl;
     }
 
 }
