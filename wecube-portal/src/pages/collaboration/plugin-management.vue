@@ -531,6 +531,7 @@ export default {
         this.currentPlugin.id
       );
       if (status === "OK") {
+        this.$set(this.currentPlugin, "status", "REGISTERED");
         this.$Notice.success({
           title: "Success",
           desc: this.$t("reload_to_get_ui")
