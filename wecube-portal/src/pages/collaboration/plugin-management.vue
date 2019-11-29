@@ -106,6 +106,7 @@
           <DataModel
             v-if="currentTab === 'models'"
             :pkgId="currentPlugin.name"
+            @reGetPkgStatus="resetPkgStatus"
           ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" :label="$t('system_params')">
@@ -547,6 +548,9 @@ export default {
         this.swapPanel("");
       }
     },
+    resetPkgStatus() {
+      this.$set(this.currentPlugin, "status", "UNREGISTERED");
+    },
     configPlugin(packageId) {
       this.swapPanel("pluginConfigPanel");
       this.currentPlugin = this.plugins.find(_ => _.id === packageId);
@@ -759,6 +763,7 @@ export default {
       this.currentTab = name;
     },
     async getAllPluginPkgs() {
+      console.log(1);
       let { status, data, message } = await getAllPluginPkgs();
       if (status === "OK") {
         this.plugins = data.map(_ => {
