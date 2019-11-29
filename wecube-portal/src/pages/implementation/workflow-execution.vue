@@ -5,7 +5,11 @@
         <Col span="20">
           <Form label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select v-model="selectedFlowInstance" style="width:70%">
+              <Select
+                v-model="selectedFlowInstance"
+                style="width:70%"
+                filterable
+              >
                 <Option
                   v-for="item in allFlowInstances"
                   :value="item.id"
@@ -44,6 +48,7 @@
                   :disabled="isEnqueryPage"
                   @on-change="orchestrationSelectHandler"
                   @on-open-change="getAllFlow"
+                  filterable
                 >
                   <Option
                     v-for="item in allFlows"
@@ -62,6 +67,7 @@
                   :disabled="isEnqueryPage"
                   @on-change="onTargetSelectHandler"
                   @on-open-change="getTargetOptions"
+                  filterable
                 >
                   <Option
                     v-for="item in allTarget"
