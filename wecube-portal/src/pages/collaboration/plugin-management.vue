@@ -763,7 +763,6 @@ export default {
       this.currentTab = name;
     },
     async getAllPluginPkgs() {
-      console.log(1);
       let { status, data, message } = await getAllPluginPkgs();
       if (status === "OK") {
         this.plugins = data.map(_ => {
