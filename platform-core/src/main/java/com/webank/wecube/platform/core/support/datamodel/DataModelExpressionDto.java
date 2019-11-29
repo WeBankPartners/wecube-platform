@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -11,7 +12,7 @@ import java.util.Stack;
 public class DataModelExpressionDto {
     private String expression;
     private Stack<Set<String>> requestUrlStack = new Stack<>();
-    private Stack<List<CommonResponseDto>> returnedJson = new Stack<>();
+    private Stack<List<CommonResponseDto>> jsonResponseStack = new Stack<>();
     private List<Object> resultValue;
 
     // helper during processing
@@ -70,12 +71,19 @@ public class DataModelExpressionDto {
         this.opFetch = opFetch;
     }
 
-    public DataModelExpressionDto(String expression, Stack<List<CommonResponseDto>> returnedJson) {
+    public DataModelExpressionDto(String expression, Stack<List<CommonResponseDto>> jsonResponseStack) {
         this.expression = expression;
-        this.returnedJson = returnedJson;
+        this.jsonResponseStack = jsonResponseStack;
     }
 
     public DataModelExpressionDto() {
+    }
+
+    public DataModelExpressionDto(String requestUrl, CommonResponseDto responseDto) {
+        this.requestUrlStack = new Stack<>();
+        this.jsonResponseStack = new Stack<>();
+        this.requestUrlStack.add(Collections.singleton(requestUrl));
+        this.jsonResponseStack.add(Collections.singletonList(responseDto));
     }
 
     public String getExpression() {
@@ -86,12 +94,12 @@ public class DataModelExpressionDto {
         this.expression = expression;
     }
 
-    public Stack<List<CommonResponseDto>> getReturnedJson() {
-        return returnedJson;
+    public Stack<List<CommonResponseDto>> getJsonResponseStack() {
+        return jsonResponseStack;
     }
 
-    public void setReturnedJson(Stack<List<CommonResponseDto>> returnedJson) {
-        this.returnedJson = returnedJson;
+    public void setJsonResponseStack(Stack<List<CommonResponseDto>> jsonResponseStack) {
+        this.jsonResponseStack = jsonResponseStack;
     }
 
     public DataModelParser.Fwd_nodeContext getFwdNode() {

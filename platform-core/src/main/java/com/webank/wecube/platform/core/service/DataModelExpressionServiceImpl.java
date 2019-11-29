@@ -52,7 +52,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     public List<Object> fetchData(DataModelExpressionToRootData dataModelExpressionToRootData
     ) throws WecubeCoreException {
 
-        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new ChainRequestDto(dataModelExpressionToRootData));
+        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new ChainRequestDto(), dataModelExpressionToRootData);
 
         return resultDtoStack.pop().getResultValue();
     }
@@ -60,8 +60,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
 
     @Override
     public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object writeBackData) throws WecubeCoreException {
-        ChainRequestDto chainRequestDto = new ChainRequestDto(expressionToRootData);
-        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(chainRequestDto);
+        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new ChainRequestDto(), expressionToRootData);
         List<CommonResponseDto> lastRequestResponse;
         DataModelExpressionDto finalFetchDto = Objects.requireNonNull(resultDtoStack.pop());
         String writeBackPackageName = null;
@@ -70,12 +69,12 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             // no remain of stack, means the stack size is 1 when the function is invoked
             // {package}:{entity}.{attr} condition
             // the size of the stack is one
-            lastRequestResponse = Objects.requireNonNull(finalFetchDto.getReturnedJson(), "No returned json found by the request.").pop();
+            lastRequestResponse = Objects.requireNonNull(finalFetchDto.getJsonResponseStack(), "No returned json found by the request.").pop();
             writeBackPackageName = Objects.requireNonNull(finalFetchDto.getEntity().pkg(), "Cannot find package.").getText();
             writeBackEntityName = Objects.requireNonNull(finalFetchDto.getEntity().ety(), "Cannot find entity.").getText();
         } else {
             DataModelExpressionDto lastLinkDto = resultDtoStack.pop();
-            Stack<List<CommonResponseDto>> requestResponseList = lastLinkDto.getReturnedJson();
+            Stack<List<CommonResponseDto>> requestResponseList = lastLinkDto.getJsonResponseStack();
             lastRequestResponse = requestResponseList.pop();
             if (null != lastLinkDto.getOpFetch()) {
                 // refBy
@@ -95,14 +94,13 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         Map<String, Object> postRequestUrlParamMap = generatePostUrlParamMap(this.applicationProperties.getGatewayUrl(), writeBackPackageName, writeBackEntityName);
         List<Map<String, Object>> writeBackRequestBodyParamMap = generatePostBodyParamMap(writeBackId, writeBackAttr, writeBackData);
         UrlToResponseDto urlToResponseDto = InitiatePostRequest(updateRequestUrl, postRequestUrlParamMap, writeBackRequestBodyParamMap);
-        if (!chainRequestDto.getRequestActualUrl().equals(urlToResponseDto.getRequestUrl()))
-            chainRequestDto.setRequestActualUrl(urlToResponseDto.getRequestUrl());
+        resultDtoStack.add(new DataModelExpressionDto(urlToResponseDto.getRequestUrl(), urlToResponseDto.getResponseDto()));
     }
 
     @Override
     public List<TreeNode> getPreviewTree(DataModelExpressionToRootData expressionToRootData) {
-        ChainRequestDto chainRequestDto = new ChainRequestDto(expressionToRootData);
-        chainRequest(chainRequestDto);
+        ChainRequestDto chainRequestDto = new ChainRequestDto();
+        chainRequest(chainRequestDto, expressionToRootData);
         return this.flattenTreeNode(chainRequestDto.getTreeNode());
     }
 
@@ -139,9 +137,9 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @param chainRequestDto a support class comprises
      * @return request dto stack comprises returned value and intermediate responses, peek is the latest request
      */
-    private Stack<DataModelExpressionDto> chainRequest(ChainRequestDto chainRequestDto) {
-        String dataModelExpression = chainRequestDto.getDataModelExpressionToRootData().getDataModelExpression();
-        String rootIdData = chainRequestDto.getDataModelExpressionToRootData().getRootData();
+    private Stack<DataModelExpressionDto> chainRequest(ChainRequestDto chainRequestDto, DataModelExpressionToRootData dataModelExpressionToRootData) {
+        String dataModelExpression = dataModelExpressionToRootData.getDataModelExpression();
+        String rootIdData = dataModelExpressionToRootData.getRootData();
         Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
 
         Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
@@ -161,7 +159,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             } else {
                 resolveLink(chainRequestDto, expressionDto, Objects.requireNonNull(lastExpressionDto));
             }
-            if (!expressionDto.getReturnedJson().empty()) {
+            if (!expressionDtoQueue.isEmpty()) {
                 lastExpressionDto = expressionDto;
             }
             resultDtoStack.add(expressionDto);
@@ -196,14 +194,11 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                     requestPackageName,
                     requestEntityName,
                     this.UNIQUE_IDENTIFIER,
-                    rootIdData,
-                    this.UNIQUE_IDENTIFIER);
+                    rootIdData);
 
             UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
-            if (!chainRequestDto.getRequestActualUrl().equals(urlToResponseDto.getRequestUrl()))
-                chainRequestDto.setRequestActualUrl(urlToResponseDto.getRequestUrl());
-            expressionDto.getRequestUrlStack().add(Collections.singleton(chainRequestDto.getRequestActualUrl()));
-            expressionDto.getReturnedJson().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
+            expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
+            expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
 
             String fetchAttributeName = opFetch.attr().getText();
             List<Object> finalResult = extractValueFromResponse(urlToResponseDto.getResponseDto(), fetchAttributeName);
@@ -229,13 +224,10 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                     firstRequestPackageName,
                     firstRequestEntityName,
                     this.UNIQUE_IDENTIFIER,
-                    rootIdData,
-                    this.UNIQUE_IDENTIFIER);
+                    rootIdData);
             UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, firstRequestParamMap);
-            if (!chainRequestDto.getRequestActualUrl().equals(urlToResponseDto.getRequestUrl()))
-                chainRequestDto.setRequestActualUrl(urlToResponseDto.getRequestUrl());
-            expressionDto.getRequestUrlStack().add(Collections.singleton(chainRequestDto.getRequestActualUrl()));
-            expressionDto.getReturnedJson().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
+            expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
+            expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
 
             // second request
             // fwdNode returned data is the second request's id data
@@ -251,8 +243,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                         secondRequestPackageName,
                         secondRequestEntityName,
                         this.UNIQUE_IDENTIFIER,
-                        secondRequestIdData,
-                        this.UNIQUE_IDENTIFIER);
+                        secondRequestIdData);
                 UrlToResponseDto secondRequestUrlToResponseDto = InitiateGetRequest(requestUrl, secondRequestParamMap);
                 requestUrlSet.add(secondRequestUrlToResponseDto.getRequestUrl());
                 responseDtoList.add(secondRequestUrlToResponseDto.getResponseDto());
@@ -263,7 +254,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 chainRequestDto.getAnchorTreeNodeList().add(childNode);
             }
             expressionDto.getRequestUrlStack().add(requestUrlSet);
-            expressionDto.getReturnedJson().add(responseDtoList);
+            expressionDto.getJsonResponseStack().add(responseDtoList);
         }
 
         if (expressionDto.getOpBy() != null) {
@@ -283,13 +274,10 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                     requestPackageName,
                     requestEntityName,
                     requestAttributeName,
-                    rootIdData,
-                    this.UNIQUE_IDENTIFIER);
+                    rootIdData);
 
             // the response may have data with one or multiple lines.
             UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
-            if (!chainRequestDto.getRequestActualUrl().equals(urlToResponseDto.getRequestUrl()))
-                chainRequestDto.setRequestActualUrl(urlToResponseDto.getRequestUrl());
 
             // second TreeNode, might be multiple
             List<Object> refByDataIdList = extractValueFromResponse(urlToResponseDto.getResponseDto(), this.UNIQUE_IDENTIFIER);
@@ -298,8 +286,8 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 chainRequestDto.getTreeNode().getChildren().add(childNode);
                 chainRequestDto.getAnchorTreeNodeList().add(childNode);
             });
-            expressionDto.getRequestUrlStack().add(Collections.singleton(chainRequestDto.getRequestActualUrl()));
-            expressionDto.getReturnedJson().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
+            expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
+            expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
 
         }
     }
@@ -312,7 +300,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @throws WecubeCoreException throw exception through the request
      */
     private void resolveLink(ChainRequestDto chainRequestDto, DataModelExpressionDto expressionDto, DataModelExpressionDto lastExpressionDto) throws WecubeCoreException {
-        List<CommonResponseDto> lastRequestResultList = lastExpressionDto.getReturnedJson().peek();
+        List<CommonResponseDto> lastRequestResultList = lastExpressionDto.getJsonResponseStack().peek();
         List<TreeNode> newAnchorTreeNodeList = new ArrayList<>();
 
         // last request info
@@ -358,8 +346,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                             requestPackageName,
                             requestEntityName,
                             this.UNIQUE_IDENTIFIER,
-                            requestIdData,
-                            this.UNIQUE_IDENTIFIER);
+                            requestIdData);
                     UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
                     requestUrlSet.add(urlToResponseDto.getRequestUrl());
                     responseDtoList.add(urlToResponseDto.getResponseDto());
@@ -378,7 +365,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 }
             }
             expressionDto.getRequestUrlStack().add(requestUrlSet);
-            expressionDto.getReturnedJson().add(responseDtoList);
+            expressionDto.getJsonResponseStack().add(responseDtoList);
         }
 
         if (expressionDto.getOpBy() != null) {
@@ -408,8 +395,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                             requestPackageName,
                             requestEntityName,
                             requestAttributeName,
-                            requestIdData,
-                            this.UNIQUE_IDENTIFIER);
+                            requestIdData);
                     UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
                     requestUrlSet.add(urlToResponseDto.getRequestUrl());
                     responseDtoList.add(urlToResponseDto.getResponseDto());
@@ -424,7 +410,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
                 }
             }
             expressionDto.getRequestUrlStack().add(requestUrlSet);
-            expressionDto.getReturnedJson().add(responseDtoList);
+            expressionDto.getJsonResponseStack().add(responseDtoList);
         }
 
         if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null && expressionDto.getOpFetch() != null) {
@@ -440,6 +426,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
 
         // update anchor tree node list
         chainRequestDto.setAnchorTreeNodeList(newAnchorTreeNodeList);
+
     }
 
     /**
@@ -495,22 +482,19 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @param entityName    entity name
      * @param attributeName attribute name
      * @param value         value
-     * @param sortName      sort name
      * @return response map
      */
     private Map<String, Object> generateGetUrlParamMap(Object gatewayUrl,
                                                        Object packageName,
                                                        Object entityName,
                                                        Object attributeName,
-                                                       Object value,
-                                                       Object sortName) {
+                                                       Object value) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
         paramMap.put("entityName", entityName);
         paramMap.put("attributeName", attributeName);
         paramMap.put("value", value);
-//        paramMap.add("sortName", sortName);
         return paramMap;
     }
 
