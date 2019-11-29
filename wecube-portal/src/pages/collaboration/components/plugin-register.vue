@@ -1,6 +1,6 @@
 <template>
   <Row>
-    <Col span="6">
+    <Col span="5">
       <div v-if="plugins.length < 1">{{ $t("no_plugin") }}</div>
       <Menu
         theme="light"
@@ -19,7 +19,7 @@
         </MenuItem>
       </Menu>
     </Col>
-    <Col span="18" offset="0" style="padding-left: 10px">
+    <Col span="19" offset="0" style="padding-left: 10px">
       <Form v-if="currentPlugin.length > 0" :model="form">
         <Row>
           <Col span="10" offset="0">
@@ -71,7 +71,12 @@
         >
           <Col span="3">
             <FormItem :label-width="0">
-              <span>{{ interfaces.action }}</span>
+              <Tooltip :content="interfaces.action" style="width: 100%">
+                <span
+                  style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;width: 90%;"
+                  >{{ interfaces.action }}</span
+                >
+              </Tooltip>
             </FormItem>
           </Col>
           <Col span="21">
@@ -86,17 +91,17 @@
                   v-for="param in interfaces['inputParameters']"
                   :key="param.id"
                 >
-                  <Col span="4">
+                  <Col span="5">
                     <FormItem :label-width="0">
-                      <Tooltip :content="param.name">
+                      <Tooltip :content="param.name" style="width: 100%">
                         <span
-                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%;"
                           >{{ param.name }}</span
                         >
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="13" offset="1">
+                  <Col span="13" offset="0">
                     <FormItem :label-width="0">
                       <PathExp
                         v-if="param.mappingType === 'entity'"
@@ -161,7 +166,7 @@
                   </Col>
                   <Col span="14" offset="1">
                     <FormItem :label-width="0">
-                      <Select
+                      <!-- <Select
                         v-if="outPut.mappingType === 'entity'"
                         v-model="outPut.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -172,7 +177,15 @@
                           :value="attr.name"
                           :label="attr.name"
                         ></Option>
-                      </Select>
+                      </Select> -->
+                      <PathExp
+                        v-if="outPut.mappingType === 'entity'"
+                        :rootPkg="pkgName"
+                        :rootEntity="selectedEntityType"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        v-model="outPut.mappingEntityExpression"
+                      ></PathExp>
                       <span v-if="outPut.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
