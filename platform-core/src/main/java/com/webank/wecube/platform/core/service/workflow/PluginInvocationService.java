@@ -114,9 +114,11 @@ public class PluginInvocationService {
         if (log.isInfoEnabled()) {
             log.info("handle end event:{}", cmd);
         }
+        
+        Date currTime = new Date();
 
         ProcInstInfoEntity procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(cmd.getProcInstId());
-        procInstEntity.setUpdatedTime(new Date());
+        procInstEntity.setUpdatedTime(currTime);
         procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
         procInstInfoRepository.save(procInstEntity);
 
@@ -127,7 +129,7 @@ public class PluginInvocationService {
 
         for (TaskNodeInstInfoEntity n : nodeInstEntities) {
             if ("endEvent".equals(n.getNodeType())) {
-                n.setUpdatedTime(new Date());
+                n.setUpdatedTime(currTime);
                 n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
 
                 taskNodeInstInfoRepository.save(n);
@@ -220,10 +222,20 @@ public class PluginInvocationService {
 
         TaskNodeInstInfoEntity taskNodeInstEntity = ctx.getTaskNodeInstEntity();
 
+        PluginInvocationCommand cmd = ctx.getPluginInvocationCommand();
         TaskNodeExecRequestEntity requestEntity = new TaskNodeExecRequestEntity();
         requestEntity.setNodeInstId(taskNodeInstEntity.getId());
         requestEntity.setRequestId(requestId);
         requestEntity.setRequestUrl(ctx.getInstanceHost() + ctx.getInterfacePath());
+        
+        requestEntity.setExecutionId(cmd.getExecutionId());
+        requestEntity.setNodeId(cmd.getNodeId());
+        requestEntity.setNodeName(cmd.getNodeName());
+        requestEntity.setProcDefKernelId(cmd.getProcDefId());
+        requestEntity.setProcDefKernelKey(cmd.getProcDefKey());
+        requestEntity.setProcDefVersion(cmd.getProcDefVersion());
+        requestEntity.setProcInstKernelId(cmd.getProcInstId());
+        requestEntity.setProcInstKernelKey(cmd.getProcInstKey());
 
         taskNodeExecRequestRepository.save(requestEntity);
 
@@ -271,7 +283,7 @@ public class PluginInvocationService {
                 //
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
-                // TODO get value from entity expression
+                
                 if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
                     String mappingEntityExpression = param.getMappingEntityExpression();
 
@@ -279,7 +291,6 @@ public class PluginInvocationService {
                         log.debug("expression:{}", mappingEntityExpression);
                     }
 
-                    // TODO FIXME
                     DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
                             entityDataId);
 
@@ -290,15 +301,10 @@ public class PluginInvocationService {
                         attrValsPerExpr = new ArrayList<>();
                     }
 
-                    // TODO FIXME remove me
-                    // List<Object> attrValsPerExpr = new ArrayList<>();
-                    // attrValsPerExpr.add("888");
-
                     objectVals.addAll(attrValsPerExpr);
 
                 }
 
-                // TODO get value from execution context
                 if (MAPPING_TYPE_CONTEXT.equals(mappingType)) {
                     String curTaskNodeDefId = taskNodeDefEntity.getId();
                     TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
@@ -342,7 +348,6 @@ public class PluginInvocationService {
                     objectVals.add(finalInputParam);
                 }
 
-                // TODO get value from system variable
                 if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
                     Integer svId = param.getMappingSystemVariableId();
                     SystemVariable sVariable = systemVariableService.getSystemVariableById(svId);
@@ -604,6 +609,12 @@ public class PluginInvocationService {
         if (!pluginInvocationResult.isSuccess() || pluginInvocationResult.hasErrors()) {
             handleErrorInvocationResult(pluginInvocationResult, ctx);
 
+            return;
+        }
+        
+        PluginConfigInterface pci = ctx.getPluginConfigInterface();
+        if("Y".equalsIgnoreCase(pci.getIsAsyncProcessing())){
+            log.info("such interface is asynchronous service : {} ", pci.getServiceName());
             return;
         }
 

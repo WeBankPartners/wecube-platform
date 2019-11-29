@@ -191,6 +191,9 @@ public class PluginPackageXmlParser {
             systemVariable.setScopeType(getStringAttribute(systemVariableNode, "./@scopeType"));
 
             systemVariable.setPluginPackage(pluginPackage);
+            if (systemVariable.getScopeType() == SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE) {
+                systemVariable.setPluginPackageId(pluginPackage.getId());
+            }
 
             systemVariables.add(systemVariable);
         }
