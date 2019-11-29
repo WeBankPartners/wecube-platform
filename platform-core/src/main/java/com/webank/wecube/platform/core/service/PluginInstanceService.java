@@ -199,33 +199,6 @@ public class PluginInstanceService {
             throw new WecubeCoreException("'DECOMMISSIONED' or 'UNREGISTERED' state can not launch plugin instance ");
     }
 
-    private boolean isNeedToCreateNewMysqlChecking(Set<PluginPackageRuntimeResourcesMysql> mysqlInfoSet,
-            PluginPackage pluginPackage) {
-        if (mysqlInfoSet.size() > 1) {
-            logger.error(String.format("Apply [%d] schema is not allow", mysqlInfoSet.size()));
-            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
-        }
-        if (mysqlInfoSet.size() > 0 && pluginMysqlInstanceRepository
-                .findByPluginPackageIdAndStatus(pluginPackage.getId(), "active").size() == 0)
-            return true;
-
-        return false;
-    }
-
-    private boolean isNeedToCreateNewBucketChecking(Set<PluginPackageRuntimeResourcesS3> s3InfoSet,
-            PluginPackage pluginPackage) {
-        if (s3InfoSet.size() > 1) {
-            logger.error(String.format("Apply [%d] s3 bucket is not allow", s3InfoSet.size()));
-            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
-        }
-        if (s3InfoSet.size() > 0 && resourceItemRepository
-                .findByNameAndType(s3InfoSet.iterator().next().getBucketName(), ResourceItemType.S3_BUCKET.toString())
-                .size() == 0)
-            return true;
-
-        return false;
-    }
-
     private String replaceAllocatePort(String str, Integer allocatePort) {
         return  str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
     }
@@ -252,8 +225,8 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
         }
 
-        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findByPluginPackageIdAndStatus(
-                pluginPackage.getId(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
+        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findBySchemaNameAndStatus(
+                pluginPackage.getName(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
