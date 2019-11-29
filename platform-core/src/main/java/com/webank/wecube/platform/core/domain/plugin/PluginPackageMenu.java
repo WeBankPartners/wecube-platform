@@ -3,6 +3,8 @@ package com.webank.wecube.platform.core.domain.plugin;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
 
@@ -32,7 +34,8 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     @Column
     private String displayName;
 
-    @Column
+    @Generated(GenerationTime.INSERT)
+    @Column(name = "menu_order", nullable = false, updatable = false, columnDefinition = "integer auto_increment")
     private Integer menuOrder;
 
     @Column
