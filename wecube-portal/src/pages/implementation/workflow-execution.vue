@@ -43,12 +43,13 @@
                   v-model="selectedFlow"
                   :disabled="isEnqueryPage"
                   @on-change="orchestrationSelectHandler"
+                  @on-open-change="getAllFlow"
                 >
                   <Option
                     v-for="item in allFlows"
                     :value="item.procDefId"
                     :key="item.procDefId"
-                    >{{ item.procDefName }}</Option
+                    >{{ item.procDefName + " " + item.createdTime }}</Option
                   >
                 </Select>
               </FormItem>
@@ -60,6 +61,7 @@
                   v-model="selectedTarget"
                   :disabled="isEnqueryPage"
                   @on-change="onTargetSelectHandler"
+                  @on-open-change="getTargetOptions"
                 >
                   <Option
                     v-for="item in allTarget"
@@ -176,7 +178,12 @@ export default {
     async getAllFlow() {
       let { status, data, message } = await getAllFlow(false);
       if (status === "OK") {
-        this.allFlows = data;
+        this.allFlows = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase();
+          let t = b.createdTime.toLowerCase();
+          if (s > t) return -1;
+          if (s < t) return 1;
+        });
       }
     },
 
@@ -291,7 +298,8 @@ export default {
             const nodeId = _.packageName + "_" + _.entityName;
             let current = [];
             current = _.succeedingIds.map(to => {
-              return _nodeId + " -> " + to;
+              let tos = to.split(":");
+              return nodeId + " -> " + (tos[0] + "_" + tos[1]);
             });
             pathAry.push(current);
           }
@@ -301,6 +309,7 @@ export default {
           .toString()
           .replace(/,/g, ";");
       };
+      console.log(1, nodes, 2, genEdge());
       let nodesToString =
         Array.isArray(nodes) && nodes.length > 0
           ? nodes.toString().replace(/,/g, ";") + ";"
@@ -569,7 +578,6 @@ export default {
       const initEvent = () => {
         let graph;
         graph = d3.select(`#graph`);
-        debugger;
         graph.on("dblclick.zoom", null);
         this.graph.graphviz = graph.graphviz().zoom(false);
       };
