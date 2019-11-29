@@ -17,6 +17,7 @@ import java.util.Queue;
 
 public class DataModelExpressionParser {
     public final static String FETCH_ALL = "ALL";
+    public final static String FETCH_NONE = "NONE";
 
     public DataModelExpressionParser() {
     }

@@ -80,6 +80,7 @@ export default {
     async applyNewDataModel() {
       let { status, data, message } = await applyNewDataModel(this.dataModel);
       if (status === "OK") {
+        this.dataModel.dynamic && this.$emit("reGetPkgStatus");
         this.$Notice.success({
           title: "Success",
           desc: "Data model apply successfully"
