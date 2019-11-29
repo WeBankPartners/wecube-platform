@@ -4,9 +4,9 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import org.springframework.data.repository.CrudRepository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 public interface PluginPackageMenuRepository extends CrudRepository<PluginPackageMenu, String> {
     Optional<List<PluginPackageMenu>> findAllByPluginPackage_statusIn(Collection<PluginPackage.Status> statuses);
@@ -15,4 +15,32 @@ public interface PluginPackageMenuRepository extends CrudRepository<PluginPackag
         return findAllByPluginPackage_statusIn(PluginPackage.ACTIVE_STATUS);
     }
 
+    default Optional<List<PluginPackageMenu>> findAndMergePluginMenus() {
+        Optional<List<PluginPackageMenu>> allForAllActivePackages = findAllForAllActivePackages();
+        if (allForAllActivePackages.isPresent()) {
+            Map<String, TreeSet<PluginPackageMenu>> menuSetByMenuOrderMap = new HashMap<>();
+            List<PluginPackageMenu> pluginPackageMenus = allForAllActivePackages.get();
+            pluginPackageMenus.forEach(menu -> {
+                        if (!menuSetByMenuOrderMap.containsKey(menu.getCode())) {
+                            TreeSet<PluginPackageMenu> menus = new TreeSet<>(new PluginPackageMenuComparator());
+                            menus.add(menu);
+                            menuSetByMenuOrderMap.put(menu.getCode(), menus);
+                        } else {
+                            menuSetByMenuOrderMap.get(menu.getCode()).add(menu);
+                        }
+                    }
+            );
+
+            return Optional.of(menuSetByMenuOrderMap.values().stream().map(it->it.last()).collect(Collectors.toList()));
+        }
+
+        return Optional.empty();
+    }
+
+    class PluginPackageMenuComparator implements Comparator<PluginPackageMenu> {
+        @Override
+        public int compare(PluginPackageMenu menu1, PluginPackageMenu menu2) {
+            return menu1.getMenuOrder().compareTo(menu2.getMenuOrder());
+        }
+    }
 }
