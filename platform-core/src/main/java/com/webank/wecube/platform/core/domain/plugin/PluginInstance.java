@@ -1,12 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.webank.wecube.platform.core.domain.ResourceItem;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import javax.persistence.*;
 
 @Entity

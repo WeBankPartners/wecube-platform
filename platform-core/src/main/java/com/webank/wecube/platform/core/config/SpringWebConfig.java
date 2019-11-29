@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -10,8 +9,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import com.webank.wecube.platform.core.commons.ApplicationProperties;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -23,9 +20,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ComponentScan({"com.webank.wecube.platform.core.controller"})
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
-    @Autowired
-    private ApplicationProperties applicationProperties;
-
+//    @Autowired
+//    private ApplicationProperties applicationProperties;
 //    @Autowired
 //    private UserDetailsService userDetailsService;
 //

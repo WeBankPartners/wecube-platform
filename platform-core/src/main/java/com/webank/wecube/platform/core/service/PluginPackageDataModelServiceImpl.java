@@ -14,7 +14,6 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.*;
 import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.support.PluginPackageDataModelHelper;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -44,8 +43,6 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
     public static final String ATTRIBUTE_KEY_SEPARATOR = "`";
     @Autowired
     private PluginPackageDataModelRepository dataModelRepository;
-    @Autowired
-    private PluginPackageEntityRepository pluginPackageEntityRepository;
     @Autowired
     private PluginPackageAttributeRepository pluginPackageAttributeRepository;
     @Autowired
