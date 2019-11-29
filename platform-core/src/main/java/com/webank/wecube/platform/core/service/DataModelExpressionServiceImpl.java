@@ -139,6 +139,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     private Stack<DataModelExpressionDto> chainRequest(ChainRequestDto chainRequestDto) {
         String dataModelExpression = chainRequestDto.getDataModelExpressionToRootData().getDataModelExpression();
         String rootIdData = chainRequestDto.getDataModelExpressionToRootData().getRootData();
+        logger.info(String.format("Setting up chain request process, the DME is [%s] and the root id data is [%s].", dataModelExpression, rootIdData));
         Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
 
         Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
@@ -175,6 +176,7 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @throws WecubeCoreException throw exception while request
      */
     private void resolveLink(ChainRequestDto chainRequestDto, DataModelExpressionDto expressionDto, String rootIdData) throws WecubeCoreException {
+        logger.info(String.format("Resolving first link [%s] with root id data [%s]", expressionDto.getExpression(), rootIdData));
         // only invoke this condition when one "entity fetch" situation occurs
         if (expressionDto.getOpTo() == null && expressionDto.getOpBy() == null && expressionDto.getOpFetch() != null) {
 
@@ -299,6 +301,9 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      */
     private void resolveLink(ChainRequestDto chainRequestDto, DataModelExpressionDto expressionDto, DataModelExpressionDto lastExpressionDto) throws WecubeCoreException {
         List<CommonResponseDto> lastRequestResultList = lastExpressionDto.getReturnedJson().peek();
+        logger.info(String.format("Entering resolving subsequent link process, the last expression is [%s], and last request stack's top is [%s]", expressionDto.getExpression(), lastRequestResultList));
+        logger.info(String.format("Now resolving new subsequent link [%s]", expressionDto.getExpression()));
+
         List<TreeNode> newAnchorTreeNodeList = new ArrayList<>();
 
         // last request info
@@ -728,22 +733,33 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      */
     private List<Object> extractValueFromResponse(CommonResponseDto responseDto, String attributeName) {
         // transfer dto to List<LinkedTreeMap>
-
-        List<Object> returnList;
+        List<Object> returnList = new ArrayList<>();
         List<Map<String, Object>> dataArray = responseToMapList(responseDto);
 
-        if (DataModelExpressionParser.FETCH_ALL.equals(attributeName)) {
-            returnList = Objects.requireNonNull(dataArray)
-                    .stream()
-                    .sorted(Comparator.comparing(o -> String.valueOf(o.get(this.UNIQUE_IDENTIFIER))))
-                    .collect(Collectors.toList());
-        } else {
-            returnList = Objects.requireNonNull(dataArray)
-                    .stream()
-                    .sorted(Comparator.comparing(o -> String.valueOf(o.get(this.UNIQUE_IDENTIFIER))))
-                    .map(linkedTreeMap -> linkedTreeMap.get(attributeName))
-                    .collect(Collectors.toList());
+        logger.info(String.format("Extract value from given http request's response [%s] by attribute name: [%s]", dataArray, attributeName));
+
+        switch (attributeName) {
+            case DataModelExpressionParser.FETCH_ALL: {
+                returnList = Objects.requireNonNull(dataArray)
+                        .stream()
+                        .sorted(Comparator.comparing(o -> String.valueOf(o.get(this.UNIQUE_IDENTIFIER))))
+                        .collect(Collectors.toList());
+                break;
+            }
+            case DataModelExpressionParser.FETCH_NONE: {
+                break;
+            }
+            default: {
+                returnList = Objects.requireNonNull(dataArray)
+                        .stream()
+                        .sorted(Comparator.comparing(o -> String.valueOf(o.get(this.UNIQUE_IDENTIFIER))))
+                        .map(linkedTreeMap -> linkedTreeMap.get(attributeName))
+                        .collect(Collectors.toList());
+                break;
+            }
         }
+
+        logger.info(String.format("The extraction from request's response by given attribute name [%s] is [%s]", attributeName, returnList));
 
         return returnList;
     }
