@@ -149,6 +149,12 @@ public class HttpClientConfig {
         scheduler.setPoolSize(httpClientProperties.getPoolSizeOfScheduler());
         return scheduler;
     }
+    
+    @Bean
+    public RestTemplate restTemplate() {
+        RestTemplate template = restTemplateBuilder().build();
+        return template;
+    }
 
     @Bean
     public RestTemplateBuilder restTemplateBuilder() {
