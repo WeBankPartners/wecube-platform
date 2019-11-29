@@ -300,10 +300,9 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      * @throws WecubeCoreException throw exception through the request
      */
     private void resolveLink(ChainRequestDto chainRequestDto, DataModelExpressionDto expressionDto, DataModelExpressionDto lastExpressionDto) throws WecubeCoreException {
-        List<CommonResponseDto> lastRequestResultList = lastExpressionDto.getReturnedJson().peek();
-        logger.info(String.format("Entering resolving subsequent link process, the last expression is [%s], and last request stack's top is [%s]", expressionDto.getExpression(), lastRequestResultList));
-        logger.info(String.format("Now resolving new subsequent link [%s]", expressionDto.getExpression()));
+        logger.info(String.format("Entering resolving subsequent link process, the last expression is [%s], now resolving new subsequent link [%s].", lastExpressionDto.getExpression(), expressionDto.getExpression()));
 
+        List<CommonResponseDto> lastRequestResultList = lastExpressionDto.getReturnedJson().peek();
         List<TreeNode> newAnchorTreeNodeList = new ArrayList<>();
 
         // last request info
