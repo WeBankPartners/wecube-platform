@@ -131,6 +131,7 @@
                       <Select
                         :disabled="currentPluginObj.status === 'ENABLED'"
                         v-model="param.mappingType"
+                        @on-change="mappingTypeChange($event, param)"
                       >
                         <Option value="context" key="context">context</Option>
                         <Option value="system_variable" key="system_variable"
@@ -310,6 +311,11 @@ export default {
         this.getAllPluginByPkgId();
       }
     },
+    mappingTypeChange(v, param) {
+      if (v === "entity") {
+        param.mappingEntityExpression = null;
+      }
+    },
     async regist() {
       const saveRes = await savePluginConfig(this.currentPluginObj);
       if (saveRes.status === "OK") {
@@ -341,7 +347,9 @@ export default {
       const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
       if (status === "OK") {
         this.plugins = data;
-        // this.selectPlugin(data[0].name || "");
+        if (data.length === 1) {
+          this.selectPlugin(data[0].name || "");
+        }
       }
     },
     selectPlugin(val) {
