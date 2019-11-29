@@ -347,7 +347,9 @@ export default {
       const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
       if (status === "OK") {
         this.plugins = data;
-        // this.selectPlugin(data[0].name || "");
+        if (data.length === 1) {
+          this.selectPlugin(data[0].name || "");
+        }
       }
     },
     selectPlugin(val) {
