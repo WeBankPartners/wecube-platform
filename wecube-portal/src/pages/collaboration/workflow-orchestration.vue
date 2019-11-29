@@ -104,7 +104,7 @@
             filterable
             clearable
             v-model="pluginForm.serviceId"
-            @on-open-change="getPluginInterfaceList"
+            @on-open-change="getPluginInterfaceList(false)"
           >
             <Option
               v-for="(item, index) in allPlugins"
@@ -300,7 +300,7 @@ export default {
         this.allEntityType = data;
       }
     },
-    async getPluginInterfaceList() {
+    async getPluginInterfaceList(isUseOriginParamsInfo = true) {
       let { status, data, message } = await getPluginInterfaceList();
       if (status === "OK") {
         this.allPlugins = data;
@@ -310,6 +310,7 @@ export default {
           let needParams = found.inputParameters.filter(
             _ => _.mappingType === "context"
           );
+          if (isUseOriginParamsInfo) return;
           this.pluginForm.paramInfos = needParams.map(_ => {
             return {
               paramName: _.name,
@@ -480,9 +481,6 @@ export default {
           this.defaultPluginForm;
         // get flow's params infos - nodes -
         this.getFlowsNodes();
-        this.pluginForm.paramInfos.forEach((_, index) => {
-          this.onParamsNodeChange(index);
-        });
       }
     },
     onParamsNodeChange(index) {
@@ -498,6 +496,9 @@ export default {
           _ => _.nodeId !== this.currentNode.id
         );
         console.log("this.currentflowsNodes", this.currentflowsNodes);
+        this.pluginForm.paramInfos.forEach((_, index) => {
+          this.onParamsNodeChange(index);
+        });
       }
     },
     async getParamsOptionsByNode(index) {
