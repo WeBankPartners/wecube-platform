@@ -139,8 +139,8 @@
           >
             <Option
               v-for="i in currentflowsNodes"
-              :value="i.nodeDefId"
-              :key="i.nodeDefId"
+              :value="i.nodeId"
+              :key="i.nodeId"
               >{{ i.nodeName }}</Option
             >
           </Select>
@@ -479,7 +479,6 @@ export default {
             )) ||
           this.defaultPluginForm;
         // get flow's params infos - nodes -
-        // TODO: 20191128 return is [] so no display back
         this.getFlowsNodes();
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index);
@@ -502,10 +501,13 @@ export default {
       }
     },
     async getParamsOptionsByNode(index) {
+      const found = this.currentflowsNodes.find(
+        _ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId
+      );
       if (!this.currentFlow) return;
       let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
         this.currentFlow.procDefId,
-        this.pluginForm.paramInfos[index].bindNodeId
+        found.nodeDefId
       );
       if (status === "OK") {
         let res = data.filter(
