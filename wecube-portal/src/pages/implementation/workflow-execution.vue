@@ -43,6 +43,7 @@
                   v-model="selectedFlow"
                   :disabled="isEnqueryPage"
                   @on-change="orchestrationSelectHandler"
+                  @on-open-change="getAllFlow"
                 >
                   <Option
                     v-for="item in allFlows"
@@ -60,6 +61,7 @@
                   v-model="selectedTarget"
                   :disabled="isEnqueryPage"
                   @on-change="onTargetSelectHandler"
+                  @on-open-change="getTargetOptions"
                 >
                   <Option
                     v-for="item in allTarget"
