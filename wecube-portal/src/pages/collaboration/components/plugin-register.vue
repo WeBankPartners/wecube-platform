@@ -131,6 +131,7 @@
                       <Select
                         :disabled="currentPluginObj.status === 'ENABLED'"
                         v-model="param.mappingType"
+                        @on-change="mappingTypeChange($event, param)"
                       >
                         <Option value="context" key="context">context</Option>
                         <Option value="system_variable" key="system_variable"
@@ -308,6 +309,11 @@ export default {
           desc: message
         });
         this.getAllPluginByPkgId();
+      }
+    },
+    mappingTypeChange(v, param) {
+      if (v === "entity") {
+        param.mappingEntityExpression = null;
       }
     },
     async regist() {

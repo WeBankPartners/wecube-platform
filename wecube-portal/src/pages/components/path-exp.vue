@@ -102,9 +102,10 @@ export default {
     }
   },
   mounted() {
-    this.restorePathExp();
     this.currentEntity = this.rootEntity;
-    this.currentPkg = this.rootPkg;
+    const found = this.allEntity.find(_ => _.name === this.rootEntity);
+    this.currentPkg = found.packageName;
+    this.restorePathExp();
 
     this.$emit("input", this.inputVal.replace(/\s/g, ""));
     if (document.querySelector(".wecube_attr-ul")) {
@@ -141,7 +142,7 @@ export default {
           this.entityPath.push(path);
         });
       } else {
-        this.inputVal = `${this.rootPkg}:${this.rootEntity || ""}`;
+        this.inputVal = `${this.currentPkg}:${this.currentEntity || ""}`;
         this.entityPath.push({
           entity: this.currentEntity,
           pkg: this.currentPkg
