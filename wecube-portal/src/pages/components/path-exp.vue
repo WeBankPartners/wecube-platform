@@ -45,7 +45,8 @@ export default {
       options: [],
       currentOperator: "",
       isRefBy: false,
-      entityPath: []
+      entityPath: [],
+      isLastNode: false
     };
   },
   props: {
@@ -84,6 +85,7 @@ export default {
           }
         ];
         this.options = [];
+        this.isLastNode = false;
         this.$emit("input", this.inputVal.replace(/\s/g, ""));
       }
     }
@@ -100,9 +102,10 @@ export default {
     }
   },
   mounted() {
-    this.restorePathExp();
     this.currentEntity = this.rootEntity;
-    this.currentPkg = this.rootPkg;
+    const found = this.allEntity.find(_ => _.name === this.rootEntity);
+    this.currentPkg = found.packageName;
+    this.restorePathExp();
 
     this.$emit("input", this.inputVal.replace(/\s/g, ""));
     if (document.querySelector(".wecube_attr-ul")) {
@@ -139,7 +142,7 @@ export default {
           this.entityPath.push(path);
         });
       } else {
-        this.inputVal = `${this.rootPkg}:${this.rootEntity || ""}`;
+        this.inputVal = `${this.currentPkg}:${this.currentEntity || ""}`;
         this.entityPath.push({
           entity: this.currentEntity,
           pkg: this.currentPkg
@@ -148,6 +151,7 @@ export default {
     },
     optClickHandler(item) {
       this.optionsHide = false;
+      this.isLastNode = !(item.dataType === "ref");
       const newValue =
         item.dataType === "ref"
           ? this.isRefBy
@@ -180,11 +184,20 @@ export default {
           this.$emit("input", this.inputVal.replace(/\s/g, ""));
         }
         this.$refs.textarea.value = this.inputVal;
+        this.isLastNode = false;
         return;
       } else {
         if (!(v.data === "." || v.data === "~")) {
           this.$Message.error({
             content: this.$t("input_correct_operator")
+          });
+          this.$refs.textarea.value = this.inputVal;
+          return;
+        }
+        if (this.isLastNode) {
+          this.optionsHide = false;
+          this.$Message.warning({
+            content: this.$t("is_model_attribute")
           });
           this.$refs.textarea.value = this.inputVal;
           return;
