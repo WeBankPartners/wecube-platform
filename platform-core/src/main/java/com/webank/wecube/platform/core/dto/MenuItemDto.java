@@ -41,13 +41,13 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         return pluginPackageMenuDto;
     }
 
-    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu) {
+    public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu, MenuItem menuItem) {
         MenuItemDto pluginPackageMenuDto = new MenuItemDto();
         pluginPackageMenuDto.setId(packageMenu.getId());
         pluginPackageMenuDto.setCategory(packageMenu.getCategory());
         pluginPackageMenuDto.setCode(packageMenu.getCode());
         pluginPackageMenuDto.setSource(packageMenu.getSource());
-        pluginPackageMenuDto.setMenuOrder(packageMenu.getMenuOrder());
+        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
         pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
         pluginPackageMenuDto.setPath(packageMenu.getPath());
         return pluginPackageMenuDto;
@@ -112,6 +112,6 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
 
     @Override
     public int compareTo(MenuItemDto o) {
-        return this.getId().compareTo(o.getId());
+        return this.getMenuOrder().compareTo(o.getMenuOrder());
     }
 }

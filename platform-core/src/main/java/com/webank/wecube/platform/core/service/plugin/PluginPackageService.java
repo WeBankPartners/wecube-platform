@@ -373,13 +373,14 @@ public class PluginPackageService {
         Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
 
         for (PluginPackageMenu packageMenu : packageMenus) {
-            if (! menuItemRepository.existsByCode(packageMenu.getCategory())) {
+            MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
+            if (null == menuItem) {
                 String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                         packageMenu.getCategory());
                 log.error(msg);
                 throw new WecubeCoreException(msg);
             }
-            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
+            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
             returnMenuDto.add(packageMenuDto);
         }
         Collections.sort(returnMenuDto);

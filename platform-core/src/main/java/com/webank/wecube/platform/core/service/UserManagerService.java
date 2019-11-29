@@ -125,16 +125,17 @@ public class UserManagerService {
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
 
-        Optional<List<PluginPackageMenu>> optionalPluginPackageMenus = pluginPackageMenuRepository.findAllForAllActivePackages();
+        Optional<List<PluginPackageMenu>> optionalPluginPackageMenus = pluginPackageMenuRepository.findAndMergePluginMenus();
         if (optionalPluginPackageMenus.isPresent()) {
             optionalPluginPackageMenus.get().forEach(packageMenu -> {
-                if (!menuItemRepository.existsByCode(packageMenu.getCategory())) {
+                MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
+                if (null == menuItem) {
                     String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                             packageMenu.getCategory());
                     log.error(msg);
                     throw new WecubeCoreException(msg);
                 }
-                MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
+                MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
                 returnMenuDto.add(packageMenuDto);
             });
         }
