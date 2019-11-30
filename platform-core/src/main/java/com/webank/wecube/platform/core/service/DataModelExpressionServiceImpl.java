@@ -10,6 +10,7 @@ import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
 import com.webank.wecube.platform.core.support.datamodel.DataFlowTreeDto;
 import com.webank.wecube.platform.core.support.datamodel.DataModelExpressionDto;
 import com.webank.wecube.platform.core.support.datamodel.TreeNode;
+import com.webank.wecube.platform.core.support.datamodel.WriteBackTargetDto;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
@@ -60,40 +61,15 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
     @Override
     public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object writeBackData) {
         Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new DataFlowTreeDto(), expressionToRootData);
-        List<CommonResponseDto> lastRequestResponse;
-        DataModelExpressionDto finalFetchDto = Objects.requireNonNull(resultDtoStack.pop());
-        String writeBackPackageName = null;
-        String writeBackEntityName = null;
-        if (resultDtoStack.empty()) {
-            // no remain of stack, means the stack size is 1 when the function is invoked
-            // {package}:{entity}.{attr} condition
-            // the size of the stack is one
-            lastRequestResponse = Objects.requireNonNull(finalFetchDto.getJsonResponseStack(), "No returned json found by the request.").pop();
-            writeBackPackageName = Objects.requireNonNull(finalFetchDto.getEntity().pkg(), "Cannot find package.").getText();
-            writeBackEntityName = Objects.requireNonNull(finalFetchDto.getEntity().ety(), "Cannot find entity.").getText();
-        } else {
-            DataModelExpressionDto lastLinkDto = resultDtoStack.pop();
-            Stack<List<CommonResponseDto>> requestResponseList = lastLinkDto.getJsonResponseStack();
-            lastRequestResponse = requestResponseList.pop();
-            if (null != lastLinkDto.getOpFetch()) {
-                // refBy
-                writeBackPackageName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().pkg(), "Cannot find package.").getText();
-                writeBackEntityName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().ety(), "Cannot find entity.").getText();
-
-            }
-
-            if (null != lastLinkDto.getOpTo()) {
-                // refTo
-                writeBackPackageName = Objects.requireNonNull(lastLinkDto.getEntity().pkg(), "Cannot find package.").getText();
-                writeBackEntityName = Objects.requireNonNull(lastLinkDto.getEntity().ety(), "Cannot find attribute.").getText();
-            }
-        }
-        String writeBackAttr = Objects.requireNonNull(finalFetchDto.getOpFetch()).attr().getText();
-        Object writeBackId = extractValueFromResponse(lastRequestResponse.get(0), this.UNIQUE_IDENTIFIER).get(0);
-        Map<String, Object> postRequestUrlParamMap = generatePostUrlParamMap(this.applicationProperties.getGatewayUrl(), writeBackPackageName, writeBackEntityName);
-        List<Map<String, Object>> writeBackRequestBodyParamMap = generatePostBodyParamMap(writeBackId, writeBackAttr, writeBackData);
-        UrlToResponseDto urlToResponseDto = InitiatePostRequest(updateRequestUrl, postRequestUrlParamMap, writeBackRequestBodyParamMap);
-        resultDtoStack.add(new DataModelExpressionDto(urlToResponseDto.getRequestUrl(), urlToResponseDto.getResponseDto()));
+        WriteBackTargetDto writeBackTargetDto = findWriteBackTarget(resultDtoStack);
+        Object writeBackId = extractValueFromResponse(writeBackTargetDto.getLastRequestResponse().get(0), this.UNIQUE_IDENTIFIER).get(0);
+        Map<String, Object> postRequestUrlParamMap = generatePostUrlParamMap(
+                this.applicationProperties.getGatewayUrl(),
+                writeBackTargetDto.getWriteBackPackageName(),
+                writeBackTargetDto.getWriteBackEntityName()
+        );
+        List<Map<String, Object>> writeBackRequestBodyParamMap = generatePostBodyParamMap(writeBackId, writeBackTargetDto.getWriteBackAttributeName(), writeBackData);
+        InitiatePostRequest(updateRequestUrl, postRequestUrlParamMap, writeBackRequestBodyParamMap);
     }
 
     @Override
@@ -719,5 +695,38 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
         }
         result.add(treeNode);
         return result;
+    }
+
+    private WriteBackTargetDto findWriteBackTarget(Stack<DataModelExpressionDto> resultDtoStack) {
+        DataModelExpressionDto finalFetchDto = Objects.requireNonNull(resultDtoStack.pop());
+        List<CommonResponseDto> lastRequestResponse;
+        String writeBackPackageName = null;
+        String writeBackEntityName = null;
+        if (resultDtoStack.empty()) {
+            // no remain of stack, means the stack size is 1 when the function is invoked
+            // {package}:{entity}.{attr} condition
+            // the size of the stack is one
+            lastRequestResponse = Objects.requireNonNull(finalFetchDto.getJsonResponseStack(), "No returned json found by the request.").pop();
+            writeBackPackageName = Objects.requireNonNull(finalFetchDto.getEntity().pkg(), "Cannot find package.").getText();
+            writeBackEntityName = Objects.requireNonNull(finalFetchDto.getEntity().ety(), "Cannot find entity.").getText();
+        } else {
+            DataModelExpressionDto lastLinkDto = resultDtoStack.pop();
+            Stack<List<CommonResponseDto>> requestResponseList = lastLinkDto.getJsonResponseStack();
+            lastRequestResponse = requestResponseList.pop();
+            if (null != lastLinkDto.getOpFetch()) {
+                // refBy
+                writeBackPackageName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().pkg(), "Cannot find package.").getText();
+                writeBackEntityName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().ety(), "Cannot find entity.").getText();
+
+            }
+
+            if (null != lastLinkDto.getOpTo()) {
+                // refTo
+                writeBackPackageName = Objects.requireNonNull(lastLinkDto.getEntity().pkg(), "Cannot find package.").getText();
+                writeBackEntityName = Objects.requireNonNull(lastLinkDto.getEntity().ety(), "Cannot find attribute.").getText();
+            }
+        }
+        String writeBackAttr = Objects.requireNonNull(finalFetchDto.getOpFetch()).attr().getText();
+        return new WriteBackTargetDto(lastRequestResponse, writeBackPackageName, writeBackEntityName, writeBackAttr);
     }
 }
