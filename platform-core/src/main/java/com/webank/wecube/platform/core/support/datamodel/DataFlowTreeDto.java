@@ -3,7 +3,7 @@ package com.webank.wecube.platform.core.support.datamodel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainRequestDto {
+public class DataFlowTreeDto {
     private TreeNode treeNode;
     private List<TreeNode> anchorTreeNodeList = new ArrayList<>(); // stands for latest tree's most bottom leaves
 
