@@ -1,8 +1,8 @@
 package com.webank.wecube.platform.core.support.datamodel;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
+import com.webank.wecube.platform.core.utils.constant.DataModelExpressionOpType;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,27 +16,23 @@ public class DataModelExpressionDto {
     private List<Object> resultValue;
 
     // helper during processing
-    @JsonIgnore
+    private DataModelExpressionOpType dataModelExpressionOpType;
     private DataModelParser.LinkContext prevLink;
-    @JsonIgnore
     private DataModelParser.Fwd_nodeContext fwdNode;
-    @JsonIgnore
     private DataModelParser.FetchContext opFetch;
-    @JsonIgnore
     private DataModelParser.ToContext opTo;
-    @JsonIgnore
     private DataModelParser.EntityContext entity;
-    @JsonIgnore
     private DataModelParser.ByContext opBy;
-    @JsonIgnore
     private DataModelParser.Bwd_nodeContext bwdNode;
 
     // refTo constructor
-    public DataModelExpressionDto(DataModelParser.LinkContext prevLink,
+    public DataModelExpressionDto(DataModelExpressionOpType dataModelExpressionOpType,
+                                  DataModelParser.LinkContext prevLink,
                                   DataModelParser.Fwd_nodeContext fwdNode,
                                   DataModelParser.FetchContext opFetch,
                                   DataModelParser.ToContext opTo,
                                   DataModelParser.EntityContext entity) {
+        this.dataModelExpressionOpType = dataModelExpressionOpType;
         this.prevLink = prevLink;
         this.fwdNode = fwdNode;
         this.opFetch = opFetch;
@@ -45,10 +41,12 @@ public class DataModelExpressionDto {
     }
 
     // refBy constructor
-    public DataModelExpressionDto(DataModelParser.LinkContext prevLink,
+    public DataModelExpressionDto(DataModelExpressionOpType dataModelExpressionOpType,
+                                  DataModelParser.LinkContext prevLink,
                                   DataModelParser.EntityContext entity,
                                   DataModelParser.ByContext opBy,
                                   DataModelParser.Bwd_nodeContext bwdNode) {
+        this.dataModelExpressionOpType = dataModelExpressionOpType;
         this.prevLink = prevLink;
         this.entity = entity;
         this.opBy = opBy;
@@ -56,18 +54,27 @@ public class DataModelExpressionDto {
     }
 
     // route constructor with "prevLink fetch"
-    public DataModelExpressionDto(DataModelParser.LinkContext prevLink, DataModelParser.FetchContext opFetch) {
+    public DataModelExpressionDto(DataModelExpressionOpType dataModelExpressionOpType,
+                                  DataModelParser.LinkContext prevLink,
+                                  DataModelParser.FetchContext opFetch) {
+        this.dataModelExpressionOpType = dataModelExpressionOpType;
         this.prevLink = prevLink;
         this.opFetch = opFetch;
     }
 
     // route constructor with "entity fetch"
-    public DataModelExpressionDto(DataModelParser.EntityContext entity, DataModelParser.FetchContext opFetch) {
+    public DataModelExpressionDto(DataModelExpressionOpType dataModelExpressionOpType,
+                                  DataModelParser.EntityContext entity,
+                                  DataModelParser.FetchContext opFetch) {
+        this.dataModelExpressionOpType = dataModelExpressionOpType;
         this.entity = entity;
         this.opFetch = opFetch;
     }
 
-    public DataModelExpressionDto(String expression, Stack<List<CommonResponseDto>> jsonResponseStack) {
+    public DataModelExpressionDto(DataModelExpressionOpType dataModelExpressionOpType,
+                                  String expression,
+                                  Stack<List<CommonResponseDto>> jsonResponseStack) {
+        this.dataModelExpressionOpType = dataModelExpressionOpType;
         this.expression = expression;
         this.jsonResponseStack = jsonResponseStack;
     }
@@ -168,5 +175,13 @@ public class DataModelExpressionDto {
 
     public void setRequestUrlStack(Stack<Set<String>> requestUrlStack) {
         this.requestUrlStack = requestUrlStack;
+    }
+
+    public DataModelExpressionOpType getDataModelExpressionOpType() {
+        return dataModelExpressionOpType;
+    }
+
+    public void setDataModelExpressionOpType(DataModelExpressionOpType dataModelExpressionOpType) {
+        this.dataModelExpressionOpType = dataModelExpressionOpType;
     }
 }
