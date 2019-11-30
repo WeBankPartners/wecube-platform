@@ -171,119 +171,114 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
      */
     private void resolveLink(DataFlowTreeDto dataFlowTreeDto, DataModelExpressionDto expressionDto, String rootIdData) {
         logger.info(String.format("Resolving first link [%s] with root id data [%s]", expressionDto.getExpression(), rootIdData));
-        // only invoke this condition when one "entity fetch" situation occurs
-        if (expressionDto.getOpTo() == null && expressionDto.getOpBy() == null && expressionDto.getOpFetch() != null) {
 
-            DataModelParser.EntityContext entity = expressionDto.getEntity();
-            DataModelParser.FetchContext opFetch = expressionDto.getOpFetch();
+        DataModelParser.EntityContext entity = expressionDto.getEntity();
+        UrlToResponseDto urlToResponseDto;
+        String requestPackageName;
+        String requestEntityName;
+        Map<String, Object> requestParamMap;
+        switch (expressionDto.getDataModelExpressionOpType()) {
+            case ENTITY_FETCH:
+                requestPackageName = entity.pkg().getText();
+                requestEntityName = entity.ety().getText();
 
-            String requestPackageName = entity.pkg().getText();
-            String requestEntityName = entity.ety().getText();
+                // tree node
+                dataFlowTreeDto.setTreeNode(new TreeNode(requestPackageName, requestEntityName, rootIdData, null, null));
 
-            // tree node
-            dataFlowTreeDto.setTreeNode(new TreeNode(requestPackageName, requestEntityName, rootIdData, null, null));
-
-            // request
-            Map<String, Object> requestParamMap = generateGetUrlParamMap(
-                    this.applicationProperties.getGatewayUrl(),
-                    requestPackageName,
-                    requestEntityName,
-                    this.UNIQUE_IDENTIFIER,
-                    rootIdData);
-
-            UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
-            expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
-            expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
-
-            String fetchAttributeName = opFetch.attr().getText();
-            List<Object> finalResult = extractValueFromResponse(urlToResponseDto.getResponseDto(), fetchAttributeName);
-
-            expressionDto.setResultValue(finalResult);
-        }
-
-        // only invoke this function when the first link with rootIdData is processed
-        // no need to process prev_link
-        if (expressionDto.getOpTo() != null) {
-            // refTo
-            DataModelParser.Fwd_nodeContext fwdNode = expressionDto.getFwdNode();
-            DataModelParser.EntityContext entity = expressionDto.getEntity();
-            String firstRequestPackageName = fwdNode.entity().pkg().getText();
-            String firstRequestEntityName = fwdNode.entity().ety().getText();
-
-            // first tree node
-            dataFlowTreeDto.setTreeNode(new TreeNode(firstRequestPackageName, firstRequestEntityName, rootIdData, null, new ArrayList<>()));
-
-            // first request
-            Map<String, Object> firstRequestParamMap = generateGetUrlParamMap(
-                    this.applicationProperties.getGatewayUrl(),
-                    firstRequestPackageName,
-                    firstRequestEntityName,
-                    this.UNIQUE_IDENTIFIER,
-                    rootIdData);
-            UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, firstRequestParamMap);
-            expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
-            expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
-
-            // second request
-            // fwdNode returned data is the second request's id data
-            String secondRequestPackageName = entity.pkg().getText();
-            String secondRequestEntityName = entity.ety().getText();
-            String secondRequestAttrName = fwdNode.attr().getText();
-            List<Object> secondRequestIdDataList = extractValueFromResponse(urlToResponseDto.getResponseDto(), secondRequestAttrName);
-            List<CommonResponseDto> responseDtoList = new ArrayList<>();
-            Set<String> requestUrlSet = new LinkedHashSet<>();
-            for (Object secondRequestIdData : secondRequestIdDataList) {
-                Map<String, Object> secondRequestParamMap = generateGetUrlParamMap(
+                // request
+                requestParamMap = generateGetUrlParamMap(
                         this.applicationProperties.getGatewayUrl(),
-                        secondRequestPackageName,
-                        secondRequestEntityName,
+                        requestPackageName,
+                        requestEntityName,
                         this.UNIQUE_IDENTIFIER,
-                        secondRequestIdData);
-                UrlToResponseDto secondRequestUrlToResponseDto = InitiateGetRequest(requestUrl, secondRequestParamMap);
-                requestUrlSet.add(secondRequestUrlToResponseDto.getRequestUrl());
-                responseDtoList.add(secondRequestUrlToResponseDto.getResponseDto());
+                        rootIdData);
 
-                // set child tree node and update parent tree node
-                TreeNode childNode = new TreeNode(secondRequestPackageName, secondRequestEntityName, secondRequestIdData, dataFlowTreeDto.getTreeNode(), new ArrayList<>());
-                dataFlowTreeDto.getTreeNode().getChildren().add(childNode);
-                dataFlowTreeDto.getAnchorTreeNodeList().add(childNode);
-            }
-            expressionDto.getRequestUrlStack().add(requestUrlSet);
-            expressionDto.getJsonResponseStack().add(responseDtoList);
-        }
+                urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
+                expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
+                expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
 
-        if (expressionDto.getOpBy() != null) {
-            // refBy
-            DataModelParser.EntityContext entity = expressionDto.getEntity();
-            DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
-            String requestPackageName = bwdNode.entity().pkg().getText();
-            String requestEntityName = bwdNode.entity().ety().getText();
-            String requestAttributeName = bwdNode.attr().getText();
+                String fetchAttributeName = expressionDto.getOpFetch().attr().getText();
+                List<Object> finalResult = extractValueFromResponse(urlToResponseDto.getResponseDto(), fetchAttributeName);
 
-            // first TreeNode, which is the entity
-            dataFlowTreeDto.setTreeNode(new TreeNode(entity.pkg().getText(), entity.ety().getText(), rootIdData, null, new ArrayList<>()));
+                expressionDto.setResultValue(finalResult);
+                break;
+            case REF_TO:
+                String firstRequestPackageName = expressionDto.getFwdNode().entity().pkg().getText();
+                String firstRequestEntityName = expressionDto.getFwdNode().entity().ety().getText();
 
-            // refBy request
-            Map<String, Object> requestParamMap = generateGetUrlParamMap(
-                    this.applicationProperties.getGatewayUrl(),
-                    requestPackageName,
-                    requestEntityName,
-                    requestAttributeName,
-                    rootIdData);
+                // first tree node
+                dataFlowTreeDto.setTreeNode(new TreeNode(firstRequestPackageName, firstRequestEntityName, rootIdData, null, new ArrayList<>()));
 
-            // the response may have data with one or multiple lines.
-            UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
+                // first request
+                Map<String, Object> firstRequestParamMap = generateGetUrlParamMap(
+                        this.applicationProperties.getGatewayUrl(),
+                        firstRequestPackageName,
+                        firstRequestEntityName,
+                        this.UNIQUE_IDENTIFIER,
+                        rootIdData);
+                urlToResponseDto = InitiateGetRequest(requestUrl, firstRequestParamMap);
+                expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
+                expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
 
-            // second TreeNode, might be multiple
-            List<Object> refByDataIdList = extractValueFromResponse(urlToResponseDto.getResponseDto(), this.UNIQUE_IDENTIFIER);
-            refByDataIdList.forEach(id -> {
-                TreeNode childNode = new TreeNode(requestPackageName, requestEntityName, id, dataFlowTreeDto.getTreeNode(), new ArrayList<>());
-                dataFlowTreeDto.getTreeNode().getChildren().add(childNode);
-                dataFlowTreeDto.getAnchorTreeNodeList().add(childNode);
-            });
-            expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
-            expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
+                // second request
+                // fwdNode returned data is the second request's id data
+                String secondRequestPackageName = entity.pkg().getText();
+                String secondRequestEntityName = entity.ety().getText();
+                String secondRequestAttrName = expressionDto.getFwdNode().attr().getText();
+                List<Object> secondRequestIdDataList = extractValueFromResponse(urlToResponseDto.getResponseDto(), secondRequestAttrName);
+                List<CommonResponseDto> responseDtoList = new ArrayList<>();
+                Set<String> requestUrlSet = new LinkedHashSet<>();
+                for (Object secondRequestIdData : secondRequestIdDataList) {
+                    Map<String, Object> secondRequestParamMap = generateGetUrlParamMap(
+                            this.applicationProperties.getGatewayUrl(),
+                            secondRequestPackageName,
+                            secondRequestEntityName,
+                            this.UNIQUE_IDENTIFIER,
+                            secondRequestIdData);
+                    UrlToResponseDto secondRequestUrlToResponseDto = InitiateGetRequest(requestUrl, secondRequestParamMap);
+                    requestUrlSet.add(secondRequestUrlToResponseDto.getRequestUrl());
+                    responseDtoList.add(secondRequestUrlToResponseDto.getResponseDto());
 
+                    // set child tree node and update parent tree node
+                    TreeNode childNode = new TreeNode(secondRequestPackageName, secondRequestEntityName, secondRequestIdData, dataFlowTreeDto.getTreeNode(), new ArrayList<>());
+                    dataFlowTreeDto.getTreeNode().getChildren().add(childNode);
+                    dataFlowTreeDto.getAnchorTreeNodeList().add(childNode);
+                }
+                expressionDto.getRequestUrlStack().add(requestUrlSet);
+                expressionDto.getJsonResponseStack().add(responseDtoList);
+                break;
+            case REF_BY:
+                DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
+                requestPackageName = bwdNode.entity().pkg().getText();
+                requestEntityName = bwdNode.entity().ety().getText();
+                String requestAttributeName = bwdNode.attr().getText();
+
+                // first TreeNode, which is the entity
+                dataFlowTreeDto.setTreeNode(new TreeNode(entity.pkg().getText(), entity.ety().getText(), rootIdData, null, new ArrayList<>()));
+
+                // refBy request
+                requestParamMap = generateGetUrlParamMap(
+                        this.applicationProperties.getGatewayUrl(),
+                        requestPackageName,
+                        requestEntityName,
+                        requestAttributeName,
+                        rootIdData);
+
+                // the response may have data with one or multiple lines.
+                urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
+
+                // second TreeNode, might be multiple
+                List<Object> refByDataIdList = extractValueFromResponse(urlToResponseDto.getResponseDto(), this.UNIQUE_IDENTIFIER);
+                refByDataIdList.forEach(id -> {
+                    TreeNode childNode = new TreeNode(requestPackageName, requestEntityName, id, dataFlowTreeDto.getTreeNode(), new ArrayList<>());
+                    dataFlowTreeDto.getTreeNode().getChildren().add(childNode);
+                    dataFlowTreeDto.getAnchorTreeNodeList().add(childNode);
+                });
+                expressionDto.getRequestUrlStack().add(Collections.singleton(urlToResponseDto.getRequestUrl()));
+                expressionDto.getJsonResponseStack().add(Collections.singletonList(urlToResponseDto.getResponseDto()));
+                break;
+            default:
+                break;
         }
     }
 
@@ -312,112 +307,110 @@ public class DataModelExpressionServiceImpl implements DataModelExpressionServic
             lastRequestEntityName = Objects.requireNonNull(lastExpressionDto.getBwdNode().entity().ety()).getText();
         }
 
-        if (expressionDto.getOpTo() != null) {
-            // refTo
 
-            // new request info
-            String requestId = expressionDto.getOpFetch().attr().getText();
-            String requestPackageName = expressionDto.getEntity().pkg().getText();
-            String requestEntityName = expressionDto.getEntity().ety().getText();
+        String requestPackageName;
+        String requestEntityName;
+        List<CommonResponseDto> responseDtoList = new ArrayList<>();
+        Set<String> requestUrlSet = new HashSet<>();
+        switch (expressionDto.getDataModelExpressionOpType()) {
+            case REF_TO:
+                // new request info
+                String requestId = expressionDto.getOpFetch().attr().getText();
+                requestPackageName = expressionDto.getEntity().pkg().getText();
+                requestEntityName = expressionDto.getEntity().ety().getText();
+                for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
 
-            List<CommonResponseDto> responseDtoList = new ArrayList<>();
-            Set<String> requestUrlSet = new HashSet<>();
-            for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
 
+                    // request for data and update the parent tree node
+                    List<Object> requestIdDataList = extractValueFromResponse(lastRequestResponseDto, requestId);
+                    for (Object requestIdData : requestIdDataList) {
+                        // find parent tree node, from attribute to id might found multiple ID which means multiple tree nodes
+                        List<Object> parentIdList = getResponseIdFromAttribute(lastRequestResponseDto, requestId, requestIdData);
+                        List<TreeNode> parentTreeNodeList = new ArrayList<>();
+                        Objects.requireNonNull(parentIdList).forEach(id -> {
+                            TreeNode parentNode = findParentNode(dataFlowTreeDto.getAnchorTreeNodeList(), lastRequestPackageName, lastRequestEntityName, id);
+                            Objects.requireNonNull(parentNode, "Cannot find parent node from given last request info");
+                            parentTreeNodeList.add(parentNode);
+                        });
 
-                // request for data and update the parent tree node
-                List<Object> requestIdDataList = extractValueFromResponse(lastRequestResponseDto, requestId);
-                for (Object requestIdData : requestIdDataList) {
-                    // find parent tree node, from attribute to id might found multiple ID which means multiple tree nodes
-                    List<Object> parentIdList = getResponseIdFromAttribute(lastRequestResponseDto, requestId, requestIdData);
-                    List<TreeNode> parentTreeNodeList = new ArrayList<>();
-                    Objects.requireNonNull(parentIdList).forEach(id -> {
-                        TreeNode parentNode = findParentNode(dataFlowTreeDto.getAnchorTreeNodeList(), lastRequestPackageName, lastRequestEntityName, id);
+                        Map<String, Object> requestParamMap = generateGetUrlParamMap(
+                                this.applicationProperties.getGatewayUrl(),
+                                requestPackageName,
+                                requestEntityName,
+                                this.UNIQUE_IDENTIFIER,
+                                requestIdData);
+                        UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
+                        requestUrlSet.add(urlToResponseDto.getRequestUrl());
+                        responseDtoList.add(urlToResponseDto.getResponseDto());
+
+                        // set child tree node and update parent tree node
+                        List<Object> responseIdList = extractValueFromResponse(urlToResponseDto.getResponseDto(), this.UNIQUE_IDENTIFIER);
+                        responseIdList.forEach(id -> {
+                            // the list's size is one due to it's referenceTo operation
+                            parentTreeNodeList.forEach(parentNode -> {
+                                // bind childNode which is generated by one id to multiple parents
+                                TreeNode childNode = new TreeNode(requestPackageName, requestEntityName, id, parentNode, new ArrayList<>());
+                                parentNode.getChildren().add(childNode);
+                                newAnchorTreeNodeList.add(childNode);
+                            });
+                        });
+                    }
+                }
+                expressionDto.getRequestUrlStack().add(requestUrlSet);
+                expressionDto.getJsonResponseStack().add(responseDtoList);
+                break;
+            case REF_BY:
+                // new request info
+                DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
+                requestPackageName = bwdNode.entity().pkg().getText();
+                requestEntityName = bwdNode.entity().ety().getText();
+                String requestAttributeName = bwdNode.attr().getText();
+
+                for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
+
+                    List<Object> requestIdDataList = extractValueFromResponse(lastRequestResponseDto, this.UNIQUE_IDENTIFIER);
+                    for (Object requestIdData : requestIdDataList) {
+                        Objects.requireNonNull(requestIdData,
+                                "Cannot find 'id' from last request response. " +
+                                        "Please ensure that the interface returned the data with one key named: 'id' as the development guideline requires.");
+                        // find parent tree node
+                        TreeNode parentNode = findParentNode(dataFlowTreeDto.getAnchorTreeNodeList(), lastRequestPackageName, lastRequestEntityName, requestIdData);
                         Objects.requireNonNull(parentNode, "Cannot find parent node from given last request info");
-                        parentTreeNodeList.add(parentNode);
-                    });
 
-                    Map<String, Object> requestParamMap = generateGetUrlParamMap(
-                            this.applicationProperties.getGatewayUrl(),
-                            requestPackageName,
-                            requestEntityName,
-                            this.UNIQUE_IDENTIFIER,
-                            requestIdData);
-                    UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
-                    requestUrlSet.add(urlToResponseDto.getRequestUrl());
-                    responseDtoList.add(urlToResponseDto.getResponseDto());
+                        Map<String, Object> requestParamMap = generateGetUrlParamMap(
+                                this.applicationProperties.getGatewayUrl(),
+                                requestPackageName,
+                                requestEntityName,
+                                requestAttributeName,
+                                requestIdData);
+                        UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
+                        requestUrlSet.add(urlToResponseDto.getRequestUrl());
+                        responseDtoList.add(urlToResponseDto.getResponseDto());
 
-                    // set child tree node and update parent tree node
-                    List<Object> responseIdList = extractValueFromResponse(urlToResponseDto.getResponseDto(), this.UNIQUE_IDENTIFIER);
-                    responseIdList.forEach(id -> {
-                        // the list's size is one due to it's referenceTo operation
-                        parentTreeNodeList.forEach(parentNode -> {
-                            // bind childNode which is generated by one id to multiple parents
+                        // set child tree node and update parent tree node
+                        List<Object> responseIdList = extractValueFromResponse(urlToResponseDto.getResponseDto(), this.UNIQUE_IDENTIFIER);
+                        responseIdList.forEach(id -> {
                             TreeNode childNode = new TreeNode(requestPackageName, requestEntityName, id, parentNode, new ArrayList<>());
                             parentNode.getChildren().add(childNode);
                             newAnchorTreeNodeList.add(childNode);
                         });
-                    });
+                    }
                 }
-            }
-            expressionDto.getRequestUrlStack().add(requestUrlSet);
-            expressionDto.getJsonResponseStack().add(responseDtoList);
-        }
-
-        if (expressionDto.getOpBy() != null) {
-            // refBy
-
-            // new request info
-            DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
-            String requestPackageName = bwdNode.entity().pkg().getText();
-            String requestEntityName = bwdNode.entity().ety().getText();
-            String requestAttributeName = bwdNode.attr().getText();
-
-            List<CommonResponseDto> responseDtoList = new ArrayList<>();
-            Set<String> requestUrlSet = new HashSet<>();
-            for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
-
-                List<Object> requestIdDataList = extractValueFromResponse(lastRequestResponseDto, this.UNIQUE_IDENTIFIER);
-                for (Object requestIdData : requestIdDataList) {
-                    Objects.requireNonNull(requestIdData,
-                            "Cannot find 'id' from last request response. " +
-                                    "Please ensure that the interface returned the data with one key named: 'id' as the development guideline requires.");
-                    // find parent tree node
-                    TreeNode parentNode = findParentNode(dataFlowTreeDto.getAnchorTreeNodeList(), lastRequestPackageName, lastRequestEntityName, requestIdData);
-                    Objects.requireNonNull(parentNode, "Cannot find parent node from given last request info");
-
-                    Map<String, Object> requestParamMap = generateGetUrlParamMap(
-                            this.applicationProperties.getGatewayUrl(),
-                            requestPackageName,
-                            requestEntityName,
-                            requestAttributeName,
-                            requestIdData);
-                    UrlToResponseDto urlToResponseDto = InitiateGetRequest(requestUrl, requestParamMap);
-                    requestUrlSet.add(urlToResponseDto.getRequestUrl());
-                    responseDtoList.add(urlToResponseDto.getResponseDto());
-
-                    // set child tree node and update parent tree node
-                    List<Object> responseIdList = extractValueFromResponse(urlToResponseDto.getResponseDto(), this.UNIQUE_IDENTIFIER);
-                    responseIdList.forEach(id -> {
-                        TreeNode childNode = new TreeNode(requestPackageName, requestEntityName, id, parentNode, new ArrayList<>());
-                        parentNode.getChildren().add(childNode);
-                        newAnchorTreeNodeList.add(childNode);
-                    });
+                expressionDto.getRequestUrlStack().add(requestUrlSet);
+                expressionDto.getJsonResponseStack().add(responseDtoList);
+                break;
+            case LINK_FETCH:
+                // final route, which is prev link and fetch
+                String attrName = expressionDto.getOpFetch().attr().getText();
+                List<Object> resultValueList = new ArrayList<>();
+                for (CommonResponseDto lastRequestResult : lastRequestResultList) {
+                    List<Object> fetchDataList = extractValueFromResponse(lastRequestResult, attrName);
+                    resultValueList.addAll(fetchDataList);
                 }
-            }
-            expressionDto.getRequestUrlStack().add(requestUrlSet);
-            expressionDto.getJsonResponseStack().add(responseDtoList);
-        }
-
-        if (expressionDto.getOpBy() == null && expressionDto.getOpTo() == null && expressionDto.getOpFetch() != null) {
-            // final route, which is prev link and fetch
-            String attrName = expressionDto.getOpFetch().attr().getText();
-            List<Object> resultValueList = new ArrayList<>();
-            for (CommonResponseDto lastRequestResult : lastRequestResultList) {
-                List<Object> fetchDataList = extractValueFromResponse(lastRequestResult, attrName);
-                resultValueList.addAll(fetchDataList);
-            }
-            expressionDto.setResultValue(resultValueList);
+                expressionDto.setResultValue(resultValueList);
+                break;
+            default:
+                break;
         }
 
         // update anchor tree node list
