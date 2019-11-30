@@ -31,10 +31,6 @@ public class DataModelExpressionDto {
     @JsonIgnore
     private DataModelParser.Bwd_nodeContext bwdNode;
 
-    // Tree node
-    @JsonIgnore
-    private TreeNode treeNode;
-
     // refTo constructor
     public DataModelExpressionDto(DataModelParser.LinkContext prevLink,
                                   DataModelParser.Fwd_nodeContext fwdNode,
@@ -172,13 +168,5 @@ public class DataModelExpressionDto {
 
     public void setRequestUrlStack(Stack<Set<String>> requestUrlStack) {
         this.requestUrlStack = requestUrlStack;
-    }
-
-    public TreeNode getTreeNode() {
-        return treeNode;
-    }
-
-    public void setTreeNode(TreeNode treeNode) {
-        this.treeNode = treeNode;
     }
 }
