@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.service;
 
 import java.util.*;
+
+import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,11 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +27,9 @@ public class MenuService {
 
     @Autowired
     PluginPackageService pluginPackageService;
+
     @Autowired
-    PluginPackageRepository pluginPackageRepository;
+    private PluginPackageMenuRepository pluginPackageMenuRepository;
 
     public List<MenuItem> getAllSysMenuItems() {
         return Lists.newArrayList(menuItemRepository.findAll());
@@ -50,28 +51,19 @@ public class MenuService {
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
 
-        PluginPackage.Status[] statusArray = { PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
-                PluginPackage.Status.STOPPED };
-        Optional<List<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findAllByStatus(statusArray);
-        if (pluginPackagesOptional.isPresent()) {
-            List<PluginPackage> packages = pluginPackagesOptional.get();
-
-            for (PluginPackage packageDomain : packages) {
-                Set<PluginPackageMenu> packageMenus = packageDomain.getPluginPackageMenus();
-                List<PluginPackageMenu> packageMenusList = sortPluginPackageMenusById(packageMenus);
-
-                for (int i = 0; i < packageMenusList.size(); i++) {
-                    PluginPackageMenu packageMenu = packageMenusList.get(i);
-                    if (! menuItemRepository.existsByCode(packageMenu.getCategory())) {
-                        String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
-                                packageMenu.getCategory());
-                        log.error(msg);
-                        throw new WecubeCoreException(msg);
-                    }
-                    MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
-                    returnMenuDto.add(packageMenuDto);
+        Optional<List<PluginPackageMenu>> optionalPluginPackageMenus = pluginPackageMenuRepository.findAndMergePluginMenus();
+        if (optionalPluginPackageMenus.isPresent()) {
+            optionalPluginPackageMenus.get().forEach(packageMenu -> {
+                MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
+                if (null == menuItem) {
+                    String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                            packageMenu.getCategory());
+                    log.error(msg);
+                    throw new WecubeCoreException(msg);
                 }
-            }
+                MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
+                returnMenuDto.add(packageMenuDto);
+            });
         }
         Collections.sort(returnMenuDto);
 

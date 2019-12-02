@@ -240,19 +240,19 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     private void mockMenus() {
         executeSql("delete from menu_items;\n" +
-                "insert into menu_items (id,parent_code,code,description) values\n" +
-                "('JOBS',null,'JOBS','')\n" +
-                ",('DESIGNING',null,'DESIGNING','')\n" +
-                ",('IMPLEMENTATION',null,'IMPLEMENTATION','')\n" +
-                ",('MONITORING',null,'MONITORING','')\n" +
-                ",('ADJUSTMENT',null,'ADJUSTMENT','')\n" +
-                ",('INTELLIGENCE_OPS',null,'INTELLIGENCE_OPS','')\n" +
-                ",('COLLABORATION',null,'COLLABORATION','')\n" +
-                ",('ADMIN',null,'ADMIN','')\n" +
-                ",('IMPLEMENTATION:IMPLEMENTATION_WORKFLOW_EXECUTION','IMPLEMENTATION','IMPLEMENTATION_WORKFLOW_EXECUTION','')\n" +
-                ",('COLLABORATION:COLLABORATION_PLUGIN_MANAGEMENT','COLLABORATION','COLLABORATION_PLUGIN_MANAGEMENT','')\n" +
-                ",('COLLABORATION:COLLABORATION_WORKFLOW_ORCHESTRATION','COLLABORATION','COLLABORATION_WORKFLOW_ORCHESTRATION','')\n" +
-                ",('ADMIN:ADMIN_BASE_DATA_MANAGEMENT','ADMIN','ADMIN_BASE_DATA_MANAGEMENT','');");
+                "insert into menu_items (id,parent_code,code,source,menu_order,description) values\n" +
+                "('JOBS',null,'JOBS','SYSTEM', 1, '')\n" +
+                ",('DESIGNING',null,'DESIGNING','SYSTEM', 2, '')\n" +
+                ",('IMPLEMENTATION',null,'IMPLEMENTATION','SYSTEM', 3, '')\n" +
+                ",('MONITORING',null,'MONITORING','SYSTEM', 4, '')\n" +
+                ",('ADJUSTMENT',null,'ADJUSTMENT','SYSTEM', 5, '')\n" +
+                ",('INTELLIGENCE_OPS',null,'INTELLIGENCE_OPS','SYSTEM', 6, '')\n" +
+                ",('COLLABORATION',null,'COLLABORATION','SYSTEM', 7, '')\n" +
+                ",('ADMIN',null,'ADMIN','SYSTEM', 8, '')\n" +
+                ",('IMPLEMENTATION:IMPLEMENTATION_WORKFLOW_EXECUTION','IMPLEMENTATION','IMPLEMENTATION_WORKFLOW_EXECUTION','SYSTEM', 9, '')\n" +
+                ",('COLLABORATION:COLLABORATION_PLUGIN_MANAGEMENT','COLLABORATION','COLLABORATION_PLUGIN_MANAGEMENT','SYSTEM', 10, '')\n" +
+                ",('COLLABORATION:COLLABORATION_WORKFLOW_ORCHESTRATION','COLLABORATION','COLLABORATION_WORKFLOW_ORCHESTRATION','SYSTEM', 11, '')\n" +
+                ",('ADMIN:ADMIN_BASE_DATA_MANAGEMENT','ADMIN','ADMIN_BASE_DATA_MANAGEMENT','SYSTEM', 12, '');");
     }
 
     private void mockMultipleVersionPluginPackage() {

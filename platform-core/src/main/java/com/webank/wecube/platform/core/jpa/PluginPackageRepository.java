@@ -17,7 +17,17 @@ public interface PluginPackageRepository extends CrudRepository<PluginPackage, S
     @Query("SELECT p FROM PluginPackage p WHERE p.status IN :statuses")
     Optional<List<PluginPackage>> findAllByStatus(PluginPackage.Status... statuses);
 
+    default Optional<List<PluginPackage>> findAllActive() {
+        return findAllByStatus(PluginPackage.ACTIVE_STATUS.toArray(new PluginPackage.Status[0]));
+    }
+
     List<PluginPackage> findAllByName(String name);
+
+    Optional<List<PluginPackage>> findAllByNameAndStatusIn(String name, Collection<PluginPackage.Status> statuses);
+
+    default Optional<List<PluginPackage>> findAllActiveByName(String name) {
+        return findAllByNameAndStatusIn(name, PluginPackage.ACTIVE_STATUS);
+    }
 
     default Optional<PluginPackage> findLatestVersionByName(String name, String... excludeVersions) {
         List<PluginPackage> pluginPackages = findAllByName(name);

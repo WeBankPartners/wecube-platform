@@ -196,7 +196,7 @@ CREATE TABLE `resource_server` (
     `updated_by` VARCHAR(255) NULL DEFAULT NULL ,
     `updated_date` DATETIME NULL DEFAULT NULL,
     PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists resource_item;
 CREATE TABLE `resource_item` (
@@ -207,7 +207,7 @@ CREATE TABLE `resource_item` (
     `is_allocated` INT(11) NULL DEFAULT NULL,
     `name` VARCHAR(255) NULL DEFAULT NULL,
     `purpose` VARCHAR(255) NULL DEFAULT NULL,
-    `resource_server_id` INT(11) NULL DEFAULT NULL,
+    `resource_server_id` VARCHAR(64) DEFAULT NULL,
     `status` VARCHAR(255) NULL DEFAULT NULL,
     `type` VARCHAR(255) NULL DEFAULT NULL,
     `updated_by` VARCHAR(255) NULL DEFAULT NULL,
@@ -225,7 +225,7 @@ CREATE TABLE `plugin_instances` (
     `port` INT(11) NULL DEFAULT NULL,
     `container_status` VARCHAR(255) NULL DEFAULT NULL,
     `package_id` VARCHAR(256) DEFAULT NULL,
-    `docker_instance_resource_id` INT(11) NULL DEFAULT NULL,
+    `docker_instance_resource_id` VARCHAR(128) DEFAULT NULL,
     `instance_name` VARCHAR(255) NULL DEFAULT NULL,
     `plugin_mysql_instance_resource_id` VARCHAR(128) DEFAULT NULL,
     `s3bucket_resource_id` VARCHAR(128) DEFAULT NULL,
@@ -234,7 +234,7 @@ CREATE TABLE `plugin_instances` (
     INDEX `FKbqqlg3wrp1n0h926v5cojcjk7` (`s3bucket_resource_id`),
     CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
     CONSTRAINT `FKn8124r2uvtipsy1hfkjmd4jts` FOREIGN KEY (`package_id`) REFERENCES `plugin_packages` (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 
 drop table if exists plugin_mysql_instances;
