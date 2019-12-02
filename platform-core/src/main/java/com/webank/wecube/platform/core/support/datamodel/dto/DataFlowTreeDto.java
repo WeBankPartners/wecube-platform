@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.support.datamodel;
+package com.webank.wecube.platform.core.support.datamodel.dto;
 
 import java.util.ArrayList;
 import java.util.List;
