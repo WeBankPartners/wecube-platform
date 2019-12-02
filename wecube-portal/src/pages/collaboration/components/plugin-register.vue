@@ -1,12 +1,12 @@
 <template>
   <Row>
-    <Col span="6">
+    <Col span="5">
       <div v-if="plugins.length < 1">{{ $t("no_plugin") }}</div>
       <Menu
         theme="light"
         :active-name="currentPlugin"
         @on-select="selectPlugin"
-        style="width: 100%;"
+        style="width: 100%;z-index:10"
       >
         <MenuItem
           v-for="(plugin, index) in plugins"
@@ -19,14 +19,16 @@
         </MenuItem>
       </Menu>
     </Col>
-    <Col span="18" offset="0" style="padding-left: 10px">
+    <Col span="19" offset="0" style="padding-left: 10px">
       <Form v-if="currentPlugin.length > 0" :model="form">
         <Row>
           <Col span="10" offset="0">
             <FormItem :label-width="100" :label="$t('target_type')">
               <Select
+                filterable
                 @on-change="onSelectEntityType"
                 v-model="selectedEntityType"
+                :disabled="currentPluginObj.status === 'ENABLED'"
               >
                 <OptionGroup
                   :label="pluginPackage.packageName"
@@ -37,8 +39,8 @@
                     v-for="item in pluginPackage.pluginPackageEntities"
                     :value="item.name"
                     :key="item.name"
-                    >{{ item.name }}</Option
-                  >
+                    :label="item.name"
+                  ></Option>
                 </OptionGroup>
               </Select>
             </FormItem>
@@ -69,7 +71,12 @@
         >
           <Col span="3">
             <FormItem :label-width="0">
-              <span>{{ interfaces.action }}</span>
+              <Tooltip :content="interfaces.action" style="width: 100%">
+                <span
+                  style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;width: 90%;"
+                  >{{ interfaces.action }}</span
+                >
+              </Tooltip>
             </FormItem>
           </Col>
           <Col span="21">
@@ -84,18 +91,17 @@
                   v-for="param in interfaces['inputParameters']"
                   :key="param.id"
                 >
-                  <Col span="4">
+                  <Col span="5">
                     <FormItem :label-width="0">
-                      <Tooltip :content="param.name">
+                      <Tooltip :content="param.name" style="width: 100%">
                         <span
-                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%;"
+                          >{{ param.name }}</span
                         >
-                          {{ param.name }}
-                        </span>
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="13" offset="1">
+                  <Col span="13" offset="0">
                     <FormItem :label-width="0">
                       <PathExp
                         v-if="param.mappingType === 'entity'"
@@ -125,6 +131,7 @@
                       <Select
                         :disabled="currentPluginObj.status === 'ENABLED'"
                         v-model="param.mappingType"
+                        @on-change="mappingTypeChange($event, param)"
                       >
                         <Option value="context" key="context">context</Option>
                         <Option value="system_variable" key="system_variable"
@@ -153,15 +160,14 @@
                       <Tooltip :content="outPut.name">
                         <span
                           style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          >{{ outPut.name }}</span
                         >
-                          {{ outPut.name }}
-                        </span>
                       </Tooltip>
                     </FormItem>
                   </Col>
                   <Col span="14" offset="1">
                     <FormItem :label-width="0">
-                      <Select
+                      <!-- <Select
                         v-if="outPut.mappingType === 'entity'"
                         v-model="outPut.mappingEntityExpression"
                         :disabled="currentPluginObj.status === 'ENABLED'"
@@ -172,7 +178,15 @@
                           :value="attr.name"
                           :label="attr.name"
                         ></Option>
-                      </Select>
+                      </Select> -->
+                      <PathExp
+                        v-if="outPut.mappingType === 'entity'"
+                        :rootPkg="pkgName"
+                        :rootEntity="selectedEntityType"
+                        :allDataModelsWithAttrs="allEntityType"
+                        :disabled="currentPluginObj.status === 'ENABLED'"
+                        v-model="outPut.mappingEntityExpression"
+                      ></PathExp>
                       <span v-if="outPut.mappingType === 'context'">N/A</span>
                     </FormItem>
                   </Col>
@@ -198,7 +212,7 @@
               type="primary"
               v-if="currentPluginObj.status === 'DISABLED'"
               @click="pluginSave"
-              >保存</Button
+              >{{ $t("save") }}</Button
             >
             <Button
               type="primary"
@@ -280,6 +294,12 @@ export default {
       }
     },
     async pluginSave() {
+      this.currentPluginObj.entityName = this.selectedEntityType;
+      const entitys = [].concat(
+        ...this.allEntityType.map(_ => _.pluginPackageEntities)
+      );
+      const entityId = entitys.find(i => i.name === this.selectedEntityType).id;
+      this.currentPluginObj.entityId = entityId;
       const { data, status, message } = await savePluginConfig(
         this.currentPluginObj
       );
@@ -289,6 +309,11 @@ export default {
           desc: message
         });
         this.getAllPluginByPkgId();
+      }
+    },
+    mappingTypeChange(v, param) {
+      if (v === "entity") {
+        param.mappingEntityExpression = null;
       }
     },
     async regist() {
@@ -322,7 +347,9 @@ export default {
       const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
       if (status === "OK") {
         this.plugins = data;
-        this.selectPlugin(data[0].name || "");
+        if (data.length === 1) {
+          this.selectPlugin(data[0].name || "");
+        }
       }
     },
     selectPlugin(val) {
@@ -336,7 +363,18 @@ export default {
     async getAllDataModels() {
       const { data, status, message } = await getAllDataModels();
       if (status === "OK") {
-        this.allEntityType = data;
+        this.allEntityType = data.map(_ => {
+          // handle result sort by name
+          return {
+            ..._,
+            pluginPackageEntities: _.pluginPackageEntities.sort(function(a, b) {
+              var s = a.name.toLowerCase();
+              var t = b.name.toLowerCase();
+              if (s < t) return -1;
+              if (s > t) return 1;
+            })
+          };
+        });
       }
     }
   },
