@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.support.datamodel;
+package com.webank.wecube.platform.core.support.datamodel.dto;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
