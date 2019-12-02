@@ -54,8 +54,8 @@ CREATE TABLE plugin_package_entities
     package_name        VARCHAR(63)                    NOT NULL,
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
-    description        VARCHAR(256)                   NOT NULL
-);
+    description        VARCHAR(256)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 DROP TABLE IF EXISTS plugin_package_attributes;
 CREATE TABLE plugin_package_attributes
@@ -64,7 +64,7 @@ CREATE TABLE plugin_package_attributes
     entity_id    VARCHAR(256)                        NOT NULL,
     reference_id VARCHAR(256),
     name         VARCHAR(100)                   NOT NULL,
-    description  VARCHAR(256)                   NOT NULL,
+    description  VARCHAR(256),
     data_type    VARCHAR(20)                    NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
@@ -154,8 +154,9 @@ CREATE TABLE `plugin_config_interface_parameters` (
     `required` varchar(5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
-DROP TABLE if EXISTS menu_items;
-CREATE TABLE menu_items
+
+drop table if exists menu_items;
+create table menu_items
 (
   id VARCHAR(256) PRIMARY KEY,
     parent_code VARCHAR(64),
@@ -176,7 +177,7 @@ create table plugin_package_resource_files
   package_version varchar(20) not null,
   source varchar(64) not null,
   related_path varchar(1024) not null
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists resource_server;
 CREATE TABLE `resource_server` (
@@ -195,7 +196,7 @@ CREATE TABLE `resource_server` (
     `updated_by` VARCHAR(255) NULL DEFAULT NULL ,
     `updated_date` DATETIME NULL DEFAULT NULL,
     PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists resource_item;
 CREATE TABLE `resource_item` (
@@ -206,7 +207,7 @@ CREATE TABLE `resource_item` (
     `is_allocated` INT(11) NULL DEFAULT NULL,
     `name` VARCHAR(255) NULL DEFAULT NULL,
     `purpose` VARCHAR(255) NULL DEFAULT NULL,
-    `resource_server_id` INT(11) NULL DEFAULT NULL,
+    `resource_server_id` VARCHAR(64) DEFAULT NULL,
     `status` VARCHAR(255) NULL DEFAULT NULL,
     `type` VARCHAR(255) NULL DEFAULT NULL,
     `updated_by` VARCHAR(255) NULL DEFAULT NULL,
@@ -214,7 +215,7 @@ CREATE TABLE `resource_item` (
     PRIMARY KEY (`id`),
     INDEX `FK2g8cf9beg7msqry6cmqedvv9n` (`resource_server_id`),
     CONSTRAINT `FK2g8cf9beg7msqry6cmqedvv9n` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists plugin_instances;
 CREATE TABLE `plugin_instances` (
@@ -224,7 +225,7 @@ CREATE TABLE `plugin_instances` (
     `port` INT(11) NULL DEFAULT NULL,
     `container_status` VARCHAR(255) NULL DEFAULT NULL,
     `package_id` VARCHAR(256) DEFAULT NULL,
-    `docker_instance_resource_id` INT(11) NULL DEFAULT NULL,
+    `docker_instance_resource_id` VARCHAR(128) DEFAULT NULL,
     `instance_name` VARCHAR(255) NULL DEFAULT NULL,
     `plugin_mysql_instance_resource_id` VARCHAR(128) DEFAULT NULL,
     `s3bucket_resource_id` VARCHAR(128) DEFAULT NULL,
@@ -233,14 +234,15 @@ CREATE TABLE `plugin_instances` (
     INDEX `FKbqqlg3wrp1n0h926v5cojcjk7` (`s3bucket_resource_id`),
     CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
     CONSTRAINT `FKn8124r2uvtipsy1hfkjmd4jts` FOREIGN KEY (`package_id`) REFERENCES `plugin_packages` (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
+
 
 drop table if exists plugin_mysql_instances;
 CREATE TABLE `plugin_mysql_instances` (
     `id` VARCHAR(256) PRIMARY KEY,
     `password` VARCHAR(255) NULL DEFAULT NULL,
-    `plugun_package_id` VARCHAR(256) NULL DEFAULT NULL,
-    `resource_item_id` VARCHAR(256) NULL DEFAULT NULL,
+    `plugun_package_id` VARCHAR(256) DEFAULT NULL,
+    `resource_item_id` VARCHAR(256) DEFAULT NULL,
     `schema_name` VARCHAR(255) NULL DEFAULT NULL,
     `status` VARCHAR(255) NULL DEFAULT NULL,
     `username` VARCHAR(255) NULL DEFAULT NULL,
@@ -250,5 +252,6 @@ CREATE TABLE `plugin_mysql_instances` (
     CONSTRAINT `FK6twufg10tr0fk81uyf9tdtxf1` FOREIGN KEY (`plugun_package_id`) REFERENCES `plugin_packages` (`id`),
     CONSTRAINT `FKn5plb1x3qnwxla4mixdhawo2o` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 SET FOREIGN_KEY_CHECKS = 1;
