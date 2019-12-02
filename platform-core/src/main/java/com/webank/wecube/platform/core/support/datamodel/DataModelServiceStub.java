@@ -222,6 +222,35 @@ public class DataModelServiceStub {
     }
 
     /**
+     * Get response's id data from given attribute key and value
+     *
+     * @param lastRequestResponseDto last request's response dto
+     * @param requestAttributeName   key of filter
+     * @param requestAttributeValue  value of filter
+     * @return found responseId list
+     * @throws WecubeCoreException throws exception when there is an error converting response to LinkedHashMap
+     */
+    @SuppressWarnings("unchecked")
+    public List<Object> getResponseIdFromAttribute(CommonResponseDto lastRequestResponseDto, String requestAttributeName, Object requestAttributeValue) throws WecubeCoreException {
+        List<Object> result = new ArrayList<>();
+        List<Object> requestResponseDataList = this.extractValueFromResponse(lastRequestResponseDto, DataModelExpressionParser.FETCH_ALL);
+        requestResponseDataList.forEach(o -> {
+
+            if (!(o instanceof LinkedHashMap<?, ?>)) {
+                String msg = "Cannot transfer lastRequestResponse list to LinkedHashMap.";
+                logger.error(msg, lastRequestResponseDto, requestAttributeName, requestAttributeValue);
+                throw new WecubeCoreException(msg);
+            }
+            LinkedHashMap<String, Object> requestResponseDataMap = (LinkedHashMap<String, Object>) o;
+            if (requestAttributeValue.equals(requestResponseDataMap.get(requestAttributeName))) {
+                result.add(requestResponseDataMap.get(DataModelServiceStub.UNIQUE_IDENTIFIER));
+            }
+        });
+
+        return result;
+    }
+
+    /**
      * Handle response and resolve it to list of objects
      *
      * @param responseDto   common response dto
