@@ -9,7 +9,10 @@ import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
@@ -118,7 +121,11 @@ public class PluginConfig {
     }
 
     public Set<PluginConfigInterface> getInterfaces() {
-        return interfaces;
+        // TODO: need to optimize
+        return interfaces
+                .stream()
+                .sorted(Comparator.comparing(PluginConfigInterface::getAction))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public void setInterfaces(Set<PluginConfigInterface> interfaces) {
@@ -140,7 +147,7 @@ public class PluginConfig {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
     }
 
 }

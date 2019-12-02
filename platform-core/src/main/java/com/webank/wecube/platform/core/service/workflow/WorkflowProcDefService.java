@@ -97,8 +97,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         }
 
         nodeEntities.forEach(e -> {
-            if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equals(e.getNodeType())
-                    || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equals(e.getNodeType())) {
+            if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(e.getNodeType())
+                    || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equalsIgnoreCase(e.getNodeType())) {
                 TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
                 d.setNodeDefId(e.getId());
                 d.setNodeId(e.getNodeId());
@@ -273,6 +273,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
     public ProcDefInfoDto draftProcessDefinition(ProcDefInfoDto procDefDto) {
         String originalId = procDefDto.getProcDefId();
+        
+        Date currTime = new Date();
 
         ProcDefInfoEntity draftEntity = null;
         if (!StringUtils.isBlank(originalId)) {
@@ -298,7 +300,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         draftEntity.setProcDefKey(procDefDto.getProcDefKey());
         draftEntity.setProcDefName(procDefDto.getProcDefName());
         draftEntity.setRootEntity(procDefDto.getRootEntity());
-        draftEntity.setUpdatedTime(new Date());
+        draftEntity.setUpdatedTime(currTime);
 
         processDefInfoRepo.save(draftEntity);
 
@@ -341,7 +343,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 draftNodeEntity.setServiceId(nodeDto.getServiceId());
                 draftNodeEntity.setServiceName(nodeDto.getServiceName());
                 draftNodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
-                draftNodeEntity.setUpdatedTime(new Date());
+                draftNodeEntity.setUpdatedTime(currTime);
 
                 taskNodeDefInfoRepo.save(draftNodeEntity);
 
@@ -372,7 +374,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                         draftNodeParamEntity.setParamName(nodeParamDto.getParamName());
                         draftNodeParamEntity.setProcDefId(draftEntity.getId());
                         draftNodeParamEntity.setTaskNodeDefId(draftNodeEntity.getId());
-                        draftNodeParamEntity.setUpdatedTime(new Date());
+                        draftNodeParamEntity.setUpdatedTime(currTime);
 
                         taskNodeParamRepo.save(draftNodeParamEntity);
 
@@ -398,6 +400,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     public ProcDefOutlineDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto) {
 
         String originalId = procDefInfoDto.getProcDefId();
+        
+        Date currTime = new Date();
 
         ProcDefInfoEntity draftProcDefEntity = null;
         if (!StringUtils.isBlank(originalId)) {
@@ -416,7 +420,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         procDefEntity.setProcDefKey(procDefInfoDto.getProcDefKey());
         procDefEntity.setRootEntity(procDefInfoDto.getRootEntity());
         procDefEntity.setStatus(ProcDefInfoEntity.PREDEPLOY_STATUS);
-        procDefEntity.setUpdatedTime(new Date());
+        procDefEntity.setUpdatedTime(currTime);
 
         processDefInfoRepo.save(procDefEntity);
 
@@ -434,7 +438,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 nodeEntity.setServiceId(nodeDto.getServiceId());
                 nodeEntity.setServiceName(nodeDto.getServiceName());
                 nodeEntity.setStatus(TaskNodeDefInfoEntity.PREDEPLOY_STATUS);
-                nodeEntity.setUpdatedTime(new Date());
+                nodeEntity.setUpdatedTime(currTime);
                 nodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
 
                 taskNodeDefInfoRepo.save(nodeEntity);
@@ -450,7 +454,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                         paramEntity.setParamName(paramDto.getParamName());
                         paramEntity.setProcDefId(procDefEntity.getId());
                         paramEntity.setStatus(TaskNodeParamEntity.PREDEPLOY_STATUS);
-                        paramEntity.setUpdatedTime(new Date());
+                        paramEntity.setTaskNodeDefId(nodeEntity.getId());
+                        paramEntity.setUpdatedTime(currTime);
 
                         taskNodeParamRepo.save(paramEntity);
                     }
