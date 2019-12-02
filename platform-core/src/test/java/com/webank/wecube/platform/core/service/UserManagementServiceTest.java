@@ -21,7 +21,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 public class UserManagementServiceTest extends DatabaseBasedTest {
     @Autowired
-    UserManagerService userManagerService;
+    MenuService userManagerService;
     @Autowired
     PluginPackageRepository pluginPackageRepository;
 

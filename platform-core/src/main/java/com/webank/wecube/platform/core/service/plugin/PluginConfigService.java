@@ -2,10 +2,7 @@ package com.webank.wecube.platform.core.service.plugin;
 
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
@@ -21,11 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.*;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
+import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.entity;
+import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 
 @Service
 @Transactional
@@ -97,6 +97,10 @@ public class PluginConfigService {
 
         String entityId = pluginConfig.getEntityId();
         if (StringUtils.isNotBlank(entityId)) {
+        if (DISABLED != pluginConfig.getStatus()) {
+            throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
+        }
+
             Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository.findById(entityId);
             if (!pluginPackageEntityOptional.isPresent()) {
                 String errorMessage = String.format("PluginPackageEntity not found for id: [%s] for plugin config: %s", entityId, pluginConfig.getName());
@@ -105,11 +109,42 @@ public class PluginConfigService {
             }
         }
 
-        if (DISABLED != pluginConfig.getStatus()) {
-            throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
-        }
+        checkMandatoryParameters(pluginConfig);
+
         pluginConfig.setStatus(ENABLED);
         return PluginConfigDto.fromDomain(pluginConfigRepository.save(pluginConfig));
+    }
+
+    private void checkMandatoryParameters(PluginConfig pluginConfig) {
+        Set<PluginConfigInterface> interfaces = pluginConfig.getInterfaces();
+        if (null != interfaces && interfaces.size() > 0) {
+            interfaces.forEach(intf->{
+                Set<PluginConfigInterfaceParameter> inputParameters = intf.getInputParameters();
+                if (null != inputParameters && inputParameters.size() > 0){
+                    inputParameters.forEach(inputParameter -> {
+                        if ("Y".equalsIgnoreCase(inputParameter.getRequired())) {
+                            if (system_variable.name().equals(inputParameter.getMappingType()) && inputParameter.getMappingSystemVariableId() == null ) {
+                                throw new WecubeCoreException(String.format("System variable is required for parameter [%s]", inputParameter.getId()));
+                            }
+                            if (entity.name().equals(inputParameter.getMappingType()) && StringUtils.isBlank(inputParameter.getMappingEntityExpression())) {
+                                throw new WecubeCoreException(String.format("Entity expression is required for parameter [%s]", inputParameter.getId()));
+                            }
+                        }
+                    });
+                }
+                Set<PluginConfigInterfaceParameter> outputParameters = intf.getOutputParameters();
+                if (null != outputParameters && outputParameters.size() > 0) {
+                    outputParameters.forEach(outputParameter -> {
+                        if ("Y".equalsIgnoreCase(outputParameter.getRequired())) {
+                            if (entity.name().equals(outputParameter.getMappingType()) && StringUtils.isBlank(outputParameter.getMappingEntityExpression())) {
+                                throw new WecubeCoreException(String.format("Entity expression is required for parameter [%s]", outputParameter.getId()));
+                            }
+                        }
+                    });
+                }
+                    }
+            );
+        }
     }
 
     public PluginConfigDto disablePlugin(String pluginConfigId) {

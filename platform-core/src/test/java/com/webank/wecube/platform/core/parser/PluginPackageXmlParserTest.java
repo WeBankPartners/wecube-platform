@@ -48,6 +48,8 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackageDataModelDto.getPackageName()).isEqualTo(pluginPackageDto.getName());
         assertThat(pluginPackageDataModelDto.getVersion()).isEqualTo(1);
         assertThat(pluginPackageDataModelDto.getPluginPackageEntities()).hasSize(5);
+        
+        assertThat(pluginPackage.getSystemVariables().iterator().next().getStatus()).isEqualTo("active");
     }
 
 }

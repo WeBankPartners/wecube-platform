@@ -12,7 +12,10 @@ public interface TaskNodeParamRepository extends JpaRepository<TaskNodeParamEnti
 
     List<TaskNodeParamEntity> findAllByProcDefId(String procDefId);
 
-    List<TaskNodeParamEntity> findAllByProcDefIdAndTaskNodeDefId(String procDefId, String taskNodeDefId);
+    @Query("select t from TaskNodeParamEntity t "
+            + " where t.procDefId = :procDefId and t.taskNodeDefId = :taskNodeDefId ")
+    List<TaskNodeParamEntity> findAllByProcDefIdAndTaskNodeDefId(@Param("procDefId") String procDefId,
+            @Param("taskNodeDefId") String taskNodeDefId);
 
     @Query("select t from TaskNodeParamEntity t "
             + " where t.taskNodeDefId = :taskNodeDefId and t.paramName = :paramName")

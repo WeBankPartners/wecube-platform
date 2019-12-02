@@ -186,6 +186,7 @@ public class PluginPackageXmlParser {
 
             SystemVariable systemVariable = new SystemVariable();
 
+            systemVariable.setStatus(SystemVariable.ACTIVE);
             systemVariable.setName(getNonNullStringAttribute(systemVariableNode, "./@name", "System variable name"));
             systemVariable.setDefaultValue(getStringAttribute(systemVariableNode, "./@defaultValue"));
             String scopeType = getStringAttribute(systemVariableNode, "./@scopeType");
@@ -195,6 +196,9 @@ public class PluginPackageXmlParser {
             }
 
             systemVariable.setPluginPackage(pluginPackage);
+            if (systemVariable.getScopeType() == SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE) {
+                systemVariable.setPluginPackageId(pluginPackage.getId());
+            }
 
             systemVariables.add(systemVariable);
         }
@@ -243,7 +247,7 @@ public class PluginPackageXmlParser {
 
             pluginPackageEntity.setName(getNonNullStringAttribute(entityNode, "./@name", "Entity name"));
             pluginPackageEntity.setDisplayName(getNonNullStringAttribute(entityNode, "./@displayName", "Entity display name"));
-            pluginPackageEntity.setDescription(getNonNullStringAttribute(entityNode, "./@description", "Entity description"));
+            pluginPackageEntity.setDescription(getStringAttribute(entityNode, "./@description"));
 
             NodeList entityAttributeNodes = xPathEvaluator.getNodeList("./attribute", entityNode);
             if (null != entityAttributeNodes && entityAttributeNodes.getLength() > 0) {
@@ -268,7 +272,7 @@ public class PluginPackageXmlParser {
             pluginPackageAttribute.setName(getNonNullStringAttribute(attributeNode, "./@name", "Entity attribute name"));
             String dataType = getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type");
             pluginPackageAttribute.setDataType(dataType);
-            pluginPackageAttribute.setDescription(getNonNullStringAttribute(attributeNode, "./@description", "Entity attribute description"));
+            pluginPackageAttribute.setDescription(getStringAttribute(attributeNode, "./@description"));
 
             String refPackage = getStringAttribute(attributeNode, "./@refPackage");
             if (StringUtils.isEmpty(refPackage) && DataModelDataType.Ref.getCode().equals(dataType)) {

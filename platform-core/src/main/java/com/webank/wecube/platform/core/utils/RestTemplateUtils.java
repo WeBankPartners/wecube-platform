@@ -10,7 +10,6 @@ import java.util.Map;
 
 public class RestTemplateUtils {
 
-
     /**
      * Send get request to url with params
      *
@@ -63,7 +62,7 @@ public class RestTemplateUtils {
      * @param headers      request headers
      * @return String
      */
-    public static ResponseEntity<String> sendPostRequestWithParamMap(RestTemplate restTemplate, String requestUri, List<Map<String, Object>> requestParamMap, HttpHeaders headers) {
+    public static ResponseEntity<String> sendPostRequestWithParamMap(RestTemplate restTemplate, String requestUri, HttpHeaders headers, List<Map<String, Object>> requestParamMap) {
 
         HttpMethod method = HttpMethod.POST;
         // set content type as form
