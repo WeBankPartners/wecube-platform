@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
