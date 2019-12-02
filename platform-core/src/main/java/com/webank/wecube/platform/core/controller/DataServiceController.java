@@ -2,9 +2,7 @@ package com.webank.wecube.platform.core.controller;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.service.DataModelExpressionServiceImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.webank.wecube.platform.core.service.datamodel.NonExpressionServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,18 +12,20 @@ import java.util.Map;
 @RestController
 @RequestMapping("/v1")
 public class DataServiceController {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    private NonExpressionServiceImpl nonExpressionService;
 
     @Autowired
-    private DataModelExpressionServiceImpl dataModelExpressionService;
-
+    public DataServiceController(NonExpressionServiceImpl nonExpressionService) {
+        this.nonExpressionService = nonExpressionService;
+    }
 
     @PostMapping("/packages/{package-name}/entities/{entity-name}/create")
     public JsonResponse createEntity(@PathVariable("package-name") String packageName,
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
         try {
-            return JsonResponse.okayWithData(dataModelExpressionService.createEntity(packageName, entityName, request));
+            return JsonResponse.okayWithData(nonExpressionService.createEntity(packageName, entityName, request));
         } catch (WecubeCoreException ex) {
             return JsonResponse.error(ex.getMessage());
         }
@@ -39,7 +39,7 @@ public class DataServiceController {
             @PathVariable(value = "entity-name") String entityName
     ) {
         try {
-            return JsonResponse.okayWithData(dataModelExpressionService.retrieveEntity(packageName, entityName));
+            return JsonResponse.okayWithData(nonExpressionService.retrieveEntity(packageName, entityName));
         } catch (WecubeCoreException ex) {
             return JsonResponse.error(ex.getMessage());
         }
@@ -51,7 +51,7 @@ public class DataServiceController {
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
         try {
-            return JsonResponse.okayWithData(dataModelExpressionService.updateEntity(packageName, entityName, request));
+            return JsonResponse.okayWithData(nonExpressionService.updateEntity(packageName, entityName, request));
         } catch (WecubeCoreException ex) {
             return JsonResponse.error(ex.getMessage());
         }
@@ -62,7 +62,7 @@ public class DataServiceController {
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
         try {
-            dataModelExpressionService.deleteEntity(packageName, entityName, request);
+            nonExpressionService.deleteEntity(packageName, entityName, request);
             return JsonResponse.okay();
         } catch (WecubeCoreException e) {
             return JsonResponse.error(e.getMessage());
