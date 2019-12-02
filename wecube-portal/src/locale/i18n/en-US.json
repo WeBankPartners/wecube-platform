@@ -318,5 +318,6 @@
   "no_auth_provided": "No Auths provided for now",
   "no_data_model_provided": "No Data Model provided for now",
   "reload_to_get_ui": "If UI provided by plugin, please reload to see new plugin's page",
-  "attribute_type": "Attribute Type"
+  "attribute_type": "Attribute Type",
+  "is_model_attribute": "Current end node is entity's non-ref attribute"
 }
