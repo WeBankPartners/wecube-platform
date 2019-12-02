@@ -186,6 +186,7 @@ public class PluginPackageXmlParser {
 
             SystemVariable systemVariable = new SystemVariable();
 
+            systemVariable.setStatus(SystemVariable.ACTIVE);
             systemVariable.setName(getNonNullStringAttribute(systemVariableNode, "./@name", "System variable name"));
             systemVariable.setDefaultValue(getStringAttribute(systemVariableNode, "./@defaultValue"));
             systemVariable.setScopeType(getStringAttribute(systemVariableNode, "./@scopeType"));
