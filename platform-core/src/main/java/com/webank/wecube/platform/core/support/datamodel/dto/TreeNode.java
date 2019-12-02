@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.support.datamodel;
+package com.webank.wecube.platform.core.support.datamodel.dto;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
