@@ -7,6 +7,9 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 public class PluginConfigInterfaceParameterDto {
     private String id;
     private String pluginConfigInterfaceId;
+    public static enum MappingType {
+        context, entity, system_variable
+    }
     private String type;
     private String name;
     private String dataType;
