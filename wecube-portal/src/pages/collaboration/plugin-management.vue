@@ -45,7 +45,15 @@
                 "
                 :key="plugin.id"
               >
-                {{ plugin.name + "_" + plugin.version }}
+                <span
+                  :class="
+                    plugin.status !== 'DECOMMISSIONED'
+                      ? 'nonDecomissionedPkgName'
+                      : 'decomissionedPkgName'
+                  "
+                >
+                  {{ plugin.name + "_" + plugin.version }}
+                </span>
                 <span style="float: right; margin-right: 10px">
                   <Button
                     v-if="plugin.status !== 'DECOMMISSIONED'"
@@ -98,6 +106,7 @@
           <DataModel
             v-if="currentTab === 'models'"
             :pkgId="currentPlugin.name"
+            @reGetPkgStatus="resetPkgStatus"
           ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" :label="$t('system_params')">
@@ -119,7 +128,7 @@
           ></RuntimesResources>
         </TabPane>
         <TabPane
-          v-if="currentPlugin.status !== 'DECOMMISSIONED'"
+          v-if="currentPlugin.status === 'UNREGISTERED'"
           name="confirm"
           :label="$t('confirm')"
         >
@@ -324,25 +333,12 @@
 </template>
 <script>
 import {
-  getAllCITypesByLayerWithAttr,
   getAllPluginPkgs,
-  getPluginInterfaces,
-  getRefCiTypeFrom,
-  getRefCiTypeTo,
-  getCiTypeAttr,
   createPluginInstanceByPackageIdAndHostIp,
   removePluginInstance,
-  savePluginInstance,
   queryLog,
-  getPluginInstanceLogDetail,
-  getCiTypeAttrRefAndSelect,
-  getEnumCodesByCategoryId,
-  getAllSystemEnumCodes,
-  decommissionPluginConfig,
-  releasePluginConfig,
   getAvailableContainerHosts,
   getAvailablePortByHostIp,
-  preconfigurePluginPackage,
   deletePluginPkg,
   registPluginPackage,
   getAvailableInstancesByPackageId,
@@ -476,7 +472,7 @@ export default {
       defaultCreateParams: "",
       selectHosts: [],
       availiableHostsWithPort: [],
-      isShowDecomissionedPackage: true
+      isShowDecomissionedPackage: false
     };
   },
   methods: {
@@ -506,9 +502,9 @@ export default {
       this.isShowRuntimeManagementPanel = panel === "runtimeManagePanel";
     },
     async createPluginInstanceByPackageIdAndHostIp(ip, port) {
-      this.$Notice.success({
-        title: "Success",
-        desc: "Start Launching... It will take 5-15 mins"
+      this.$Notice.info({
+        title: "Info",
+        desc: "Start Launching... It will take sometime."
       });
       this.isLoading = true;
       const {
@@ -526,7 +522,6 @@ export default {
           title: "Success",
           desc: "Instance launched successfully"
         });
-        // TODO
         this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
     },
@@ -536,9 +531,10 @@ export default {
         this.currentPlugin.id
       );
       if (status === "OK") {
+        this.$set(this.currentPlugin, "status", "REGISTERED");
         this.$Notice.success({
           title: "Success",
-          desc: message || ""
+          desc: this.$t("reload_to_get_ui")
         });
       }
     },
@@ -552,6 +548,9 @@ export default {
         this.getAllPluginPkgs();
         this.swapPanel("");
       }
+    },
+    resetPkgStatus() {
+      this.$set(this.currentPlugin, "status", "UNREGISTERED");
     },
     configPlugin(packageId) {
       this.swapPanel("pluginConfigPanel");
@@ -803,4 +802,11 @@ export default {
   }
 };
 </script>
-<style lang="scss"></style>
+<style lang="scss">
+.decomissionedPkgName {
+  font-style: italic;
+  text-decoration: line-through;
+}
+.nonDecomissionedPkgName {
+}
+</style>

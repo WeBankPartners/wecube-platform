@@ -4,9 +4,10 @@
       <div ref="wecube_cmdb_attr" class="wecube_input_in">
         <textarea
           ref="textarea"
-          :rows="2"
+          :rows="3"
           @input="inputHandler"
           :value="inputVal"
+          :disabled="disabled"
         ></textarea>
         <!-- <span v-if="!isEndWithCIType" class="wecube-error-message">{{
           $t("select_non_ci_attr")
@@ -19,7 +20,7 @@
               {{
                 opt.dataType === "ref"
                   ? isRefBy
-                    ? `(${opt.name})${opt.refPackageName}:${opt.refEntityName}`
+                    ? `(${opt.name})${opt.packageName}:${opt.entityName}`
                     : `${opt.name}>${opt.refPackageName}:${opt.refEntityName}`
                   : opt.name
               }}
@@ -44,7 +45,8 @@ export default {
       options: [],
       currentOperator: "",
       isRefBy: false,
-      entityPath: []
+      entityPath: [],
+      isLastNode: false
     };
   },
   props: {
@@ -52,6 +54,7 @@ export default {
       required: false
     },
     rootPkg: {},
+    disabled: {},
     rootEntity: {},
     allDataModelsWithAttrs: {} //组件外层调用getDataModelByPackageName传入
   },
@@ -71,8 +74,19 @@ export default {
     },
     rootEntity: {
       handler(val) {
-        // this.inputVal = `${this.rootPkg}:${val}`;
+        const found = this.allEntity.find(_ => _.name === val);
+        this.currentPkg = found.packageName;
         this.currentEntity = val;
+        this.inputVal = `${this.currentPkg}:${val}`;
+        this.entityPath = [
+          {
+            entity: this.currentEntity,
+            pkg: this.currentPkg
+          }
+        ];
+        this.options = [];
+        this.isLastNode = false;
+        this.$emit("input", this.inputVal.replace(/\s/g, ""));
       }
     }
   },
@@ -88,11 +102,12 @@ export default {
     }
   },
   mounted() {
-    this.restorePathExp();
     this.currentEntity = this.rootEntity;
-    this.currentPkg = this.rootPkg;
+    const found = this.allEntity.find(_ => _.name === this.rootEntity);
+    this.currentPkg = found.packageName;
+    this.restorePathExp();
 
-    this.$emit("input", this.inputVal.replace(" ", ""));
+    this.$emit("input", this.inputVal.replace(/\s/g, ""));
     if (document.querySelector(".wecube_attr-ul")) {
       document.querySelector(".wecube_attr-ul").style.width =
         document.querySelector(".wecube_input_in textarea").clientWidth + "px";
@@ -127,7 +142,7 @@ export default {
           this.entityPath.push(path);
         });
       } else {
-        this.inputVal = `${this.rootPkg}:${this.rootEntity}`;
+        this.inputVal = `${this.currentPkg}:${this.currentEntity || ""}`;
         this.entityPath.push({
           entity: this.currentEntity,
           pkg: this.currentPkg
@@ -136,14 +151,15 @@ export default {
     },
     optClickHandler(item) {
       this.optionsHide = false;
+      this.isLastNode = !(item.dataType === "ref");
       const newValue =
         item.dataType === "ref"
           ? this.isRefBy
-            ? `(${item.name})${item.refPackageName}:${item.refEntityName}`
+            ? `(${item.name})${item.packageName}:${item.entityName}`
             : `${item.name}>${item.refPackageName}:${item.refEntityName}`
           : item.name;
-      this.currentPkg = item.refPackageName || item.packageName;
-      this.currentEntity = item.refEntityName || item.entityName;
+      this.currentPkg = this.isRefBy ? item.packageName : item.refPackageName;
+      this.currentEntity = this.isRefBy ? item.entityName : item.refEntityName;
       this.entityPath.push({
         entity: this.currentEntity,
         pkg: this.currentPkg
@@ -151,7 +167,7 @@ export default {
       this.inputVal = this.inputVal + " " + this.currentOperator + newValue;
       this.options = [];
       this.$refs["textarea"].focus();
-      this.$emit("input", this.inputVal.replace(" ", ""));
+      this.$emit("input", this.inputVal.replace(/\s/g, ""));
     },
     inputHandler(v) {
       if (!v.data) {
@@ -162,12 +178,13 @@ export default {
           valList.splice(-1, 1);
           this.inputVal = valList.join(" ");
           this.entityPath.splice(-1, 1);
-          this.$emit("input", this.inputVal.replace(" ", ""));
+          this.$emit("input", this.inputVal.replace(/\s/g, ""));
         } else if (valList.length < 2) {
           this.inputVal = valList[0];
-          this.$emit("input", this.inputVal.replace(" ", ""));
+          this.$emit("input", this.inputVal.replace(/\s/g, ""));
         }
         this.$refs.textarea.value = this.inputVal;
+        this.isLastNode = false;
         return;
       } else {
         if (!(v.data === "." || v.data === "~")) {
@@ -177,14 +194,25 @@ export default {
           this.$refs.textarea.value = this.inputVal;
           return;
         }
+        if (this.isLastNode) {
+          this.optionsHide = false;
+          this.$Message.warning({
+            content: this.$t("is_model_attribute")
+          });
+          this.$refs.textarea.value = this.inputVal;
+          return;
+        }
         if (v.data === ".") {
           this.currentOperator = v.data;
           this.isRefBy = false;
+          this.optionsHide = true;
           this.getAttrByEntity();
         }
         if (v.data === "~") {
           this.currentOperator = v.data;
           this.isRefBy = true;
+          this.optionsHide = true;
+          this.options = [];
           this.getRefByEntity();
         }
       }
@@ -230,6 +258,9 @@ export default {
   max-height: 200px;
   overflow: auto;
 }
+.wecube_attr_input {
+  margin-top: -5px;
+}
 .wecube_attr_input .ivu-poptip {
   width: 100%;
 }
@@ -243,7 +274,8 @@ export default {
 
   textarea {
     font-size: 11px;
-    line-height: 28px;
+    line-height: 20px;
+    word-break: break-all;
     width: 100%;
     border-radius: 5px;
   }

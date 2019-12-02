@@ -83,7 +83,7 @@ public class QueryRequest {
         return this;
     }
 
-    public QueryRequest addInFilter(String name, List values) {
+    public QueryRequest addInFilter(String name, List<Object> values) {
         filters.add(new Filter(name, "in", values));
         return this;
     }

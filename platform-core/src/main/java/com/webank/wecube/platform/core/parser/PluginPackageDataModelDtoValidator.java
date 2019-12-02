@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.parser;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 import org.apache.commons.lang3.StringUtils;

@@ -2,7 +2,6 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-
 import javax.persistence.*;
 
 import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
