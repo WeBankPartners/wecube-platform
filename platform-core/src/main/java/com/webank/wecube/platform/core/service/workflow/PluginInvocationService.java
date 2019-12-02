@@ -1,54 +1,30 @@
 package com.webank.wecube.platform.core.service.workflow;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.domain.plugin.*;
+import com.webank.wecube.platform.core.entity.workflow.*;
+import com.webank.wecube.platform.core.jpa.workflow.*;
+import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
+import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
+import com.webank.wecube.platform.core.model.workflow.InputParamObject;
+import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
+import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
+import com.webank.wecube.platform.core.service.PluginInstanceService;
+import com.webank.wecube.platform.core.service.SystemVariableService;
+import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
+import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
+import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
+import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
+import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
-import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
-import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
-import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcInstInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
-import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
-import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
-import com.webank.wecube.platform.core.model.workflow.InputParamObject;
-import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
-import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
-import com.webank.wecube.platform.core.service.DataModelExpressionService;
-import com.webank.wecube.platform.core.service.PluginInstanceService;
-import com.webank.wecube.platform.core.service.SystemVariableService;
-import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
-import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
-import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
-import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
-import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
+import java.util.*;
 
 /**
  * 
@@ -108,7 +84,7 @@ public class PluginInvocationService {
     private TaskNodeExecRequestRepository taskNodeExecRequestRepository;
 
     @Autowired
-    private DataModelExpressionService dataModelExpressionService;
+    private ExpressionService expressionService;
 
     public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
@@ -294,7 +270,7 @@ public class PluginInvocationService {
                     DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
                             entityDataId);
 
-                    List<Object> attrValsPerExpr = dataModelExpressionService.fetchData(criteria);
+                    List<Object> attrValsPerExpr = expressionService.fetchData(criteria);
 
                     if (attrValsPerExpr == null) {
                         log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
@@ -894,8 +870,9 @@ public class PluginInvocationService {
             }
 
             DataModelExpressionToRootData dmeCriteria = new DataModelExpressionToRootData(paramExpr, nodeEntityId);
-            this.dataModelExpressionService.writeBackData(dmeCriteria, retVal);
 
+            this.expressionService.writeBackData(dmeCriteria, retVal);
+            
         }
     }
 
