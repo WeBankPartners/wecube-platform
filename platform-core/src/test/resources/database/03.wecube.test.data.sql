@@ -6,3 +6,9 @@ INSERT INTO `plugin_packages` (`id`, `name`, `version`, `status`, `upload_timest
 
 INSERT INTO `plugin_package_menus` (`id`, `plugin_package_id`, `code`, `category`, source, menu_order, `display_name`, `path`) VALUES ('JOBS:JOBS_SERVICE_CATALOG_MANAGEMENT', '25', 'JOBS_SERVICE_CATALOG_MANAGEMENT', 'JOBS', 'PLUGIN', 1, 'Servive Catalog Management', '/service-catalog');
 INSERT INTO `plugin_package_menus` (`id`, `plugin_package_id`, `code`, `category`, source, menu_order, `display_name`, `path`) VALUES ('JOBS:JOBS_TASK_MANAGEMENT', '25', 'JOBS_TASK_MANAGEMENT', 'JOBS', 'PLUGIN', 2, 'Task Management', '/task-management');
+
+INSERT INTO `plugin_packages` (`id`, `name`, `version`, `status`, `upload_timestamp`, `ui_package_included`) VALUES ('service-mgmt:v1.0', 'service-mgmt', 'v1.0', 'UNREGISTERED', '2019-11-25 20:31:48', '1');
+INSERT INTO `system_variables` (`id`, `plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (1, NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`, `plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (2, NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`, `plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (3, NULL, 'ALLOCATE_PORT', NULL, '20000', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`, `plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (4, NULL, 'ALLOCATE_HOST', NULL, NULL, 'global', NULL, 0, 'active');
