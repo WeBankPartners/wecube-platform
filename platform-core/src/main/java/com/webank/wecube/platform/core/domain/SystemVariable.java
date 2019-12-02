@@ -1,13 +1,8 @@
 package com.webank.wecube.platform.core.domain;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -15,6 +10,8 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "system_variables")
@@ -26,11 +23,10 @@ public class SystemVariable {
 	public static final String SCOPE_TYPE_PLUGIN_PACKAGE = "plugin-package";
 
 	@Id
-	@GeneratedValue
-	private Integer id;
+	private String id;
 
 	@Column(name = "plugin_package_id")
-    private Integer pluginPackageId;
+    private String pluginPackageId;
 
 	@JsonBackReference
     @EqualsAndHashCode.Exclude
@@ -55,12 +51,24 @@ public class SystemVariable {
 	@Column
 	private String status;
 
-	public Integer getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(String id) {
 		this.id = id;
+	}
+
+	@PrePersist
+	public void initId() {
+		if (null == this.id || this.id.trim().equals("")) {
+			this.id = String.join(KEY_COLUMN_DELIMITER,
+					null != pluginPackage ? pluginPackage.getName() : null,
+					null != pluginPackage ? pluginPackage.getVersion() : null,
+					name,
+					SCOPE_TYPE_GLOBAL.equals(scopeType) ? SCOPE_TYPE_GLOBAL : scopeValue
+			);
+		}
 	}
 
 	public PluginPackage getPluginPackage() {
@@ -68,7 +76,10 @@ public class SystemVariable {
 	}
 
 	public void setPluginPackage(PluginPackage pluginPackage) {
-		this.pluginPackage = pluginPackage;
+		if (null != pluginPackage) {
+			this.pluginPackage = pluginPackage;
+			this.pluginPackageId = pluginPackage.getId();
+		}
 	}
 
 	public String getName() {
@@ -143,14 +154,14 @@ public class SystemVariable {
 		return SCOPE_TYPE_PLUGIN_PACKAGE;
 	}
 
-	public SystemVariable(Integer id, String name, String value, String defaultValue, String scopeType, String scopeValue, PluginPackage pluginPackage, Integer seqNo, String status) {
+	public SystemVariable(String id, String name, String value, String defaultValue, String scopeType, String scopeValue, PluginPackage pluginPackage, Integer seqNo, String status) {
 		this.id = id;
 		this.name = name;
 		this.value = value;
 		this.defaultValue = defaultValue;
 		this.scopeType = scopeType;
 		this.scopeValue = scopeValue;
-		this.pluginPackage = pluginPackage;
+		setPluginPackage(pluginPackage);
 		this.seqNo = seqNo;
 		this.status = status;
 	}
@@ -164,11 +175,11 @@ public class SystemVariable {
 		return ReflectionToStringBuilder.toStringExclude(this, new String[] {"pluginPackage"});
 	}
 
-    public Integer getPluginPackageId() {
-        return pluginPackageId;
+    public String getPluginPackageId() {
+        return null != pluginPackageId ? pluginPackageId : (null != pluginPackage ? pluginPackage.getId() : null);
     }
 
-    public void setPluginPackageId(Integer pluginPackageId) {
+    public void setPluginPackageId(String pluginPackageId) {
         this.pluginPackageId = pluginPackageId;
     }
 }

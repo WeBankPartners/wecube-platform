@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import javax.persistence.*;
 
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @Entity
 @Table(name = "plugin_package_menus")
 public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
 
     @Id
-    @GeneratedValue
-    private int id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH })
@@ -24,17 +25,34 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     private String category;
 
     @Column
+    private String source;
+
+    @Column
     private String displayName;
+
+    @Column
+    private Integer menuOrder;
 
     @Column
     private String path;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginPackage ? pluginPackage.getId() : null,
+                    category,
+                    code
+            );
+        }
     }
 
     public PluginPackage getPluginPackage() {
@@ -61,12 +79,28 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this.category = category;
     }
 
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     public String getDisplayName() {
         return displayName;
     }
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public Integer getMenuOrder() {
+        return menuOrder;
+    }
+
+    public void setMenuOrder(Integer menuOrder) {
+        this.menuOrder = menuOrder;
     }
 
     public String getPath() {
@@ -81,13 +115,14 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         super();
     }
 
-    public PluginPackageMenu(int id, PluginPackage pluginPackage, String code, String category, String displayName,
-            String path) {
+    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, Integer menuOrder, String path) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.code = code;
         this.category = category;
+        this.source = source;
         this.displayName = displayName;
+        this.menuOrder = menuOrder;
         this.path = path;
     }
 

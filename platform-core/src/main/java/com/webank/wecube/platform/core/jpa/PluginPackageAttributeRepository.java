@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 
-public interface PluginPackageAttributeRepository extends CrudRepository<PluginPackageAttribute, Integer> {
+public interface PluginPackageAttributeRepository extends CrudRepository<PluginPackageAttribute, String> {
 
     // find all "reference by info " by referenced package name, package version, entity name
     @Query(" SELECT childAttribute FROM PluginPackageAttribute childAttribute " +

@@ -214,7 +214,7 @@ public class PluginPackageService {
         return allDistinctPackageNameListOpt.orElseGet(ArrayList::new);
     }
 
-    public PluginPackage registerPluginPackage(int pluginPackageId) {
+    public PluginPackage registerPluginPackage(String pluginPackageId) {
         if (!pluginPackageRepository.existsById(pluginPackageId)) {
             throw new WecubeCoreException(String.format("Plugin package id not found for id [%s]", pluginPackageId));
         }
@@ -234,7 +234,7 @@ public class PluginPackageService {
         return pluginPackageRepository.save(pluginPackage);
     }
 
-    public void decommissionPluginPackage(int pluginPackageId) {
+    public void decommissionPluginPackage(String pluginPackageId) {
         if (!pluginPackageRepository.existsById(pluginPackageId)) {
             throw new WecubeCoreException(String.format("Plugin package id not found for id [%s] ", pluginPackageId));
         }
@@ -329,17 +329,17 @@ public class PluginPackageService {
         this.s3Client = s3Client;
     }
 
-    public PluginPackage getPackageById(Integer packageId) throws WecubeCoreException {
+    public PluginPackage getPackageById(String packageId) throws WecubeCoreException {
         Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
         if (!packageFoundById.isPresent()) {
-            String msg = String.format("Cannot find package by id: [%d]", packageId);
+            String msg = String.format("Cannot find package by id: [%s]", packageId);
             log.error(msg);
             throw new WecubeCoreException(msg);
         }
         return packageFoundById.get();
     }
 
-    public PluginPackageDependencyDto getDependenciesById(Integer packageId) {
+    public PluginPackageDependencyDto getDependenciesById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageDependency> dependencySet = packageFoundById.getPluginPackageDependencies();
 
@@ -352,51 +352,42 @@ public class PluginPackageService {
         return dependencyDto;
     }
 
-    public List<MenuItemDto> getMenusById(Integer packageId) throws WecubeCoreException {
+    public List<MenuItemDto> getMenusById(String packageId) throws WecubeCoreException {
         List<MenuItemDto> returnMenuDto;
 
         // handling core's menus
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
 
-        // update categoryToId mapping, which is system menu's category to its latest id
-        Map<String, Integer> categoryToId = updateCategoryToIdMapping(returnMenuDto);
-
         // handling package's menus
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageMenu> packageMenus = packageFoundById.getPluginPackageMenus();
 
         for (PluginPackageMenu packageMenu : packageMenus) {
-            String transformedParentId = null;
-            Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
-            if (parentId == null) {
+            if (! menuItemRepository.existsByCode(packageMenu.getCategory())) {
                 String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                         packageMenu.getCategory());
                 log.error(msg);
                 throw new WecubeCoreException(msg);
             }
-            transformedParentId = parentId.toString();
-            Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
-            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId,
-                    foundTopMenuId);
-            categoryToId.put(transformedParentId, foundTopMenuId);
+            MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
             returnMenuDto.add(packageMenuDto);
         }
         Collections.sort(returnMenuDto);
         return returnMenuDto;
     }
 
-    public Set<SystemVariable> getSystemVarsById(Integer packageId) {
+    public Set<SystemVariable> getSystemVarsById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         return packageFoundById.getSystemVariables();
     }
 
-    public Set<PluginPackageAuthority> getAuthoritiesById(Integer packageId) {
+    public Set<PluginPackageAuthority> getAuthoritiesById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         return packageFoundById.getPluginPackageAuthorities();
     }
 
-    public PluginPackageRuntimeResouceDto getResourcesById(Integer packageId) {
+    public PluginPackageRuntimeResouceDto getResourcesById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginPackageRuntimeResourcesDocker> dockerSet = packageFoundById.getPluginPackageRuntimeResourcesDocker();
         Set<PluginPackageRuntimeResourcesMysql> mysqlSet = packageFoundById.getPluginPackageRuntimeResourcesMysql();
@@ -404,7 +395,7 @@ public class PluginPackageService {
         return (new PluginPackageRuntimeResouceDto(dockerSet, mysqlSet, s3Set));
     }
 
-    public Set<PluginConfig> getPluginsById(Integer packageId) {
+    public Set<PluginConfig> getPluginsById(String packageId) {
         PluginPackage packageFoundById = getPackageById(packageId);
         Set<PluginConfig> pluginConfigs = packageFoundById.getPluginConfigs();
         // TODO: need to optimize
@@ -445,24 +436,6 @@ public class PluginPackageService {
                 updateDependencyDto(dependency, dependencyDto);
             }
         });
-    }
-
-    public Map<String, Integer> updateCategoryToIdMapping(List<MenuItemDto> inputMenuItemDto) {
-        Map<String, Integer> categoryToId = new HashMap<>();
-        for (int i = 1; i <= 8; i++) {
-            categoryToId.put(Integer.toString(i), 0);
-        }
-        for (MenuItemDto menuItemDto : inputMenuItemDto) {
-            String menuCategory = menuItemDto.getCategory();
-            Integer menuId = menuItemDto.getId();
-            if (!StringUtils.isEmpty(menuCategory)) {
-                if (menuId > categoryToId.get(menuCategory)) {
-                    categoryToId.put(menuCategory, menuId + 1);
-                }
-            }
-
-        }
-        return categoryToId;
     }
 
     private void deployPluginUiResources(PluginPackage pluginPackage) {

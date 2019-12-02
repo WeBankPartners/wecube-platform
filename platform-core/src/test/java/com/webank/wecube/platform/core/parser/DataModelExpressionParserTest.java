@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.core.parser;
 
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
-import com.webank.wecube.platform.core.support.datamodel.DataModelExpressionDto;
+import com.webank.wecube.platform.core.support.datamodel.dto.DataModelExpressionDto;
 import org.junit.Test;
 
 import java.util.ArrayList;

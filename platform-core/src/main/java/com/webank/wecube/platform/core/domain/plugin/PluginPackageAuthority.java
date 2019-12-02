@@ -5,13 +5,14 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @Entity
 @Table(name = "plugin_package_authorities")
 public class PluginPackageAuthority {
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
@@ -24,12 +25,23 @@ public class PluginPackageAuthority {
     @Column
     private String menuCode;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginPackage ? pluginPackage.getName() : null,
+                    null != pluginPackage ? pluginPackage.getVersion() : null,
+                    roleName,
+                    menuCode);
+        }
     }
 
     public PluginPackage getPluginPackage() {
@@ -60,7 +72,7 @@ public class PluginPackageAuthority {
         super();
     }
 
-    public PluginPackageAuthority(Integer id, PluginPackage pluginPackage, String roleName, String menuCode) {
+    public PluginPackageAuthority(String id, PluginPackage pluginPackage, String roleName, String menuCode) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.roleName = roleName;

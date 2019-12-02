@@ -1,15 +1,19 @@
 package com.webank.wecube.platform.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-@Data
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @Entity @Table(name = "menu_items")
 public class MenuItem {
+    public static enum Source {
+        SYSTEM, PLUGIN
+    }
     private static final long serialVersionUID = -2952735933715107252L;
 
     public final static String ROLE_PREFIX = "MENU_";
@@ -60,18 +64,30 @@ public class MenuItem {
 
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @Column(unique = true)
     private String code;
 
-    @Column(name = "parent_id")
-    private Integer parentId;
+    @Column(name = "parent_code")
+    private String parentCode;
+
+    @Column
+    private String source;
+
     @Column
     private String description;
 
-    @JsonIgnore @EqualsAndHashCode.Exclude @ToString.Exclude
+    @Column
+    private Integer menuOrder;
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = (null != parentCode? parentCode + KEY_COLUMN_DELIMITER : "") + code;
+        }
+    }
+    @JsonIgnore
     @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RoleMenu> assignedRoles = new ArrayList<>();
 
@@ -79,8 +95,80 @@ public class MenuItem {
         this(null);
     }
 
-    public MenuItem(Integer id) {
+    public MenuItem(String id) {
         this.setId(id);
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getParentCode() {
+        return parentCode;
+    }
+
+    public void setParentCode(String parentCode) {
+        this.parentCode = parentCode;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Integer getMenuOrder() {
+        return menuOrder;
+    }
+
+    public void setMenuOrder(Integer menuOrder) {
+        this.menuOrder = menuOrder;
+    }
+
+    public List<RoleMenu> getAssignedRoles() {
+        return assignedRoles;
+    }
+
+    public void setAssignedRoles(List<RoleMenu> assignedRoles) {
+        this.assignedRoles = assignedRoles;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MenuItem menuItem = (MenuItem) o;
+        return getId().equals(menuItem.getId()) &&
+                getCode().equals(menuItem.getCode()) &&
+                Objects.equals(getParentCode(), menuItem.getParentCode()) &&
+                Objects.equals(getDescription(), menuItem.getDescription()) &&
+                Objects.equals(getMenuOrder(), menuItem.getMenuOrder());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getCode(), getParentCode(), getDescription(), getMenuOrder());
+    }
 }

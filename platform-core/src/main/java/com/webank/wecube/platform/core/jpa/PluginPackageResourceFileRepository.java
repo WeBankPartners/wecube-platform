@@ -7,9 +7,9 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface PluginPackageResourceFileRepository extends CrudRepository<PluginPackageResourceFile, Integer> {
+public interface PluginPackageResourceFileRepository extends CrudRepository<PluginPackageResourceFile, String> {
 
     @Query("SELECT DISTINCT resourceFile FROM PluginPackageResourceFile resourceFile JOIN resourceFile.pluginPackage package WHERE package.id IN :pluginPackageIds")
-    Optional<List<PluginPackageResourceFile>> findPluginPackageResourceFileByPluginPackageIds(Integer... pluginPackageIds);
+    Optional<List<PluginPackageResourceFile>> findPluginPackageResourceFileByPluginPackageIds(String... pluginPackageIds);
 
 }
