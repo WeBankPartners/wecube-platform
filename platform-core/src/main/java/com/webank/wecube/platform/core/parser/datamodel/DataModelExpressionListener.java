@@ -2,7 +2,8 @@ package com.webank.wecube.platform.core.parser.datamodel;
 
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelBaseListener;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
-import com.webank.wecube.platform.core.support.datamodel.DataModelExpressionDto;
+import com.webank.wecube.platform.core.support.datamodel.dto.DataModelExpressionDto;
+import com.webank.wecube.platform.core.utils.constant.DataModelExpressionOpType;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -20,12 +21,11 @@ public class DataModelExpressionListener extends DataModelBaseListener {
         DataModelExpressionDto dataModelExpressionDto = null;
         if (ctx.link() != null) {
             // "prevLink fetch"
-            dataModelExpressionDto = new DataModelExpressionDto(ctx.link(), ctx.fetch());
-
+            dataModelExpressionDto = new DataModelExpressionDto(DataModelExpressionOpType.LINK_FETCH, ctx.link(), ctx.fetch());
         }
         if (ctx.entity() != null) {
             // "entity fetch"
-            dataModelExpressionDto = new DataModelExpressionDto(ctx.entity(), ctx.fetch());
+            dataModelExpressionDto = new DataModelExpressionDto(DataModelExpressionOpType.ENTITY_FETCH, ctx.entity(), ctx.fetch());
         }
         assert dataModelExpressionDto != null;
         dataModelExpressionDto.setExpression(ctx.getText());
@@ -40,11 +40,11 @@ public class DataModelExpressionListener extends DataModelBaseListener {
         if (ctx.to() != null) {
             // "to" link with fwdNode/prevLink and entity
             // "fwdNode fetch opTo entity" or "prevLink fetch opTo entity"
-            dataModelExpressionDto = new DataModelExpressionDto(ctx.link(), ctx.fwd_node(), ctx.fetch(), ctx.to(), ctx.entity());
+            dataModelExpressionDto = new DataModelExpressionDto(DataModelExpressionOpType.REF_TO, ctx.link(), ctx.fwd_node(), ctx.fetch(), ctx.to(), ctx.entity());
         } else {
             // "by" link with entity/prevLink and bkwNode
             // "entity opBy bwdNode" or "prevLink opBy bwdNode"
-            dataModelExpressionDto = new DataModelExpressionDto(ctx.link(), ctx.entity(), ctx.by(), ctx.bwd_node());
+            dataModelExpressionDto = new DataModelExpressionDto(DataModelExpressionOpType.REF_BY, ctx.link(), ctx.entity(), ctx.by(), ctx.bwd_node());
         }
         dataModelExpressionDto.setExpression(ctx.getText());
         expressionQueue.add(dataModelExpressionDto);
