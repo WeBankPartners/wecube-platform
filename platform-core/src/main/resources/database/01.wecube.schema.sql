@@ -216,7 +216,7 @@ CREATE TABLE `resource_item` (
 ) ENGINE=InnoDB  COLLATE=utf8_general_ci;
 
 drop table if exists plugin_instances;
-CREATE TABLE `plugin_instances1` (
+CREATE TABLE `plugin_instances` (
     `id` VARCHAR(255) PRIMARY KEY,
     `host` VARCHAR(255) NULL DEFAULT NULL,
     `container_name` VARCHAR(255) NULL DEFAULT NULL,
