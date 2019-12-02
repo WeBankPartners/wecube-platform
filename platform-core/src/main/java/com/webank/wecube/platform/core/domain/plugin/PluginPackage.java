@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.common.base.Objects;
 import com.webank.wecube.platform.core.domain.SystemVariable;
@@ -12,6 +13,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @Entity
 @Table(name = "plugin_packages")
 public class PluginPackage {
@@ -20,8 +23,7 @@ public class PluginPackage {
     }
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @Column
     private String name;
@@ -47,6 +49,7 @@ public class PluginPackage {
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginPackageMenu> pluginPackageMenus = new LinkedHashSet<>();
 
+    @JsonIgnore
     @Transient
     private PluginPackageDataModel pluginPackageDataModel;
 
@@ -85,7 +88,7 @@ public class PluginPackage {
     public PluginPackage() {
     }
 
-    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded) {
+    public PluginPackage(String id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded) {
         this.id = id;
         this.name = name;
         this.version = version;
@@ -94,7 +97,7 @@ public class PluginPackage {
         this.uiPackageIncluded = uiPackageIncluded;
     }
 
-    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, PluginPackageDataModel pluginPackageDataModel) {
+    public PluginPackage(String id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, PluginPackageDataModel pluginPackageDataModel) {
         this.id = id;
         this.name = name;
         this.version = version;
@@ -104,7 +107,7 @@ public class PluginPackage {
         this.pluginPackageDataModel = pluginPackageDataModel;
     }
 
-    public PluginPackage(Integer id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, PluginPackageDataModel pluginPackageDataModel, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
+    public PluginPackage(String id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, PluginPackageDataModel pluginPackageDataModel, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
         this.id = id;
         this.name = name;
         this.version = version;
@@ -123,11 +126,18 @@ public class PluginPackage {
         this.pluginPackageResourceFiles = pluginPackageResourceFiles;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER, name, version);
+        }
+    }
+
+    public void setId(String id) {
         this.id = id;
     }
 

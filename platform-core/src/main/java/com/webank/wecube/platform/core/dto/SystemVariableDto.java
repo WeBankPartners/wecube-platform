@@ -6,8 +6,8 @@ import com.webank.wecube.platform.core.domain.SystemVariable;
 
 @JsonInclude(Include.NON_NULL)
 public class SystemVariableDto {
-    private Integer id;
-    private Integer pluginPackageId;
+    private String id;
+    private String pluginPackageId;
     private String pluginPackageName;
     private String name;
     private String value;
@@ -77,19 +77,19 @@ public class SystemVariableDto {
         return systemVariable;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public Integer getPluginPackageId() {
+    public String getPluginPackageId() {
         return pluginPackageId;
     }
 
-    public void setPluginPackageId(Integer pluginPackageId) {
+    public void setPluginPackageId(String pluginPackageId) {
         this.pluginPackageId = pluginPackageId;
     }
 

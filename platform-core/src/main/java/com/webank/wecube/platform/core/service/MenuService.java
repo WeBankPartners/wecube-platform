@@ -50,8 +50,6 @@ public class MenuService {
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
 
-        Map<String, Integer> categoryToId = pluginPackageService.updateCategoryToIdMapping(returnMenuDto);
-
         PluginPackage.Status[] statusArray = { PluginPackage.Status.REGISTERED, PluginPackage.Status.RUNNING,
                 PluginPackage.Status.STOPPED };
         Optional<List<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findAllByStatus(statusArray);
@@ -64,19 +62,13 @@ public class MenuService {
 
                 for (int i = 0; i < packageMenusList.size(); i++) {
                     PluginPackageMenu packageMenu = packageMenusList.get(i);
-                    String transformedParentId = null;
-                    Integer parentId = menuItemRepository.findByCode(packageMenu.getCategory()).getId();
-                    if (parentId == null) {
+                    if (! menuItemRepository.existsByCode(packageMenu.getCategory())) {
                         String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                                 packageMenu.getCategory());
                         log.error(msg);
                         throw new WecubeCoreException(msg);
                     }
-                    transformedParentId = parentId.toString();
-                    Integer foundTopMenuId = categoryToId.get(transformedParentId) + 1;
-                    MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, transformedParentId,
-                            foundTopMenuId);
-                    categoryToId.put(transformedParentId, foundTopMenuId);
+                    MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu);
                     returnMenuDto.add(packageMenuDto);
                 }
             }

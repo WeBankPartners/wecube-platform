@@ -7,10 +7,10 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface PluginConfigInterfaceRepository extends CrudRepository<PluginConfigInterface, Integer> {
+public interface PluginConfigInterfaceRepository extends CrudRepository<PluginConfigInterface, String> {
 
     Optional<List<PluginConfigInterface>> findPluginConfigInterfaceByPluginConfig_Status(Status status);
 
-    Optional<List<PluginConfigInterface>> findPluginConfigInterfaceByPluginConfig_EntityIdAndPluginConfig_Status(Integer entityId, Status status);
+    Optional<List<PluginConfigInterface>> findPluginConfigInterfaceByPluginConfig_EntityIdAndPluginConfig_Status(String entityId, Status status);
 
 }

@@ -30,19 +30,19 @@ public class PluginPackageResourceFileRepositoryTest  extends DatabaseBasedTest 
     @Test
     public void givenMultiplePackageWithResourceFilesWhenQueryThenReturnCorrectFilenameList() {
         long currentTimeMillis = System.currentTimeMillis();
-        PluginPackage serviceManagementV1PluginPackage = new PluginPackage(1, SERVICE_MANAGEMENT, "v0.1", DECOMMISSIONED, new Timestamp(currentTimeMillis - 500000), false);
-        PluginPackage serviceManagementV2PluginPackage = new PluginPackage(2, SERVICE_MANAGEMENT, "v0.2", STOPPED, new Timestamp(currentTimeMillis - 400000), false);
-        PluginPackage serviceManagementV3PluginPackage = new PluginPackage(3, SERVICE_MANAGEMENT, "v0.3", RUNNING, new Timestamp(currentTimeMillis - 300000), false);
-        PluginPackage serviceManagementV4PluginPackage = new PluginPackage(4, SERVICE_MANAGEMENT, "v0.4", UNREGISTERED, new Timestamp(currentTimeMillis - 200000), false);
-        PluginPackage cmdbPluginPackage = new PluginPackage(5, CMDB, "v1.0", REGISTERED, new Timestamp(currentTimeMillis - 100000), false);
-        PluginPackage cmdbPluginPackage2 = new PluginPackage(6, CMDB, "v2.0", UNREGISTERED, new Timestamp(currentTimeMillis), false);
+        PluginPackage serviceManagementV1PluginPackage = new PluginPackage("1", SERVICE_MANAGEMENT, "v0.1", DECOMMISSIONED, new Timestamp(currentTimeMillis - 500000), false);
+        PluginPackage serviceManagementV2PluginPackage = new PluginPackage("2", SERVICE_MANAGEMENT, "v0.2", STOPPED, new Timestamp(currentTimeMillis - 400000), false);
+        PluginPackage serviceManagementV3PluginPackage = new PluginPackage("3", SERVICE_MANAGEMENT, "v0.3", RUNNING, new Timestamp(currentTimeMillis - 300000), false);
+        PluginPackage serviceManagementV4PluginPackage = new PluginPackage("4", SERVICE_MANAGEMENT, "v0.4", UNREGISTERED, new Timestamp(currentTimeMillis - 200000), false);
+        PluginPackage cmdbPluginPackage = new PluginPackage("5", CMDB, "v1.0", REGISTERED, new Timestamp(currentTimeMillis - 100000), false);
+        PluginPackage cmdbPluginPackage2 = new PluginPackage("6", CMDB, "v2.0", UNREGISTERED, new Timestamp(currentTimeMillis), false);
 
-        PluginPackageResourceFile sm1PluginPackageResourceFile = new PluginPackageResourceFile(1, serviceManagementV1PluginPackage, SERVICE_MANAGEMENT, "v0.1", UI_ZIP, SERVICE_MANAGEMENT + "/" + "dist/sm-v1.js");
-        PluginPackageResourceFile sm2PluginPackageResourceFile = new PluginPackageResourceFile(2, serviceManagementV2PluginPackage, SERVICE_MANAGEMENT, "v0.2", UI_ZIP, SERVICE_MANAGEMENT + "/" + "dist/sm-v2.js");
-        PluginPackageResourceFile sm3PluginPackageResourceFile = new PluginPackageResourceFile(3, serviceManagementV3PluginPackage, SERVICE_MANAGEMENT, "v0.3", UI_ZIP, SERVICE_MANAGEMENT + "/" + "dist/sm-v3.js");
-        PluginPackageResourceFile sm4PluginPackageResourceFile = new PluginPackageResourceFile(4, serviceManagementV4PluginPackage, SERVICE_MANAGEMENT, "v0.4", UI_ZIP, SERVICE_MANAGEMENT + "/" + "dist/sm-v4.js");
-        PluginPackageResourceFile cmdb1PluginPackageResourceFile = new PluginPackageResourceFile(5, cmdbPluginPackage, CMDB, "v1.0", UI_ZIP, CMDB + "/" + "dist/cmdb-v1.js");
-        PluginPackageResourceFile cmdb2PluginPackageResourceFile = new PluginPackageResourceFile(6, cmdbPluginPackage2, CMDB, "v2.0", UI_ZIP, CMDB + "/" + "dist/cmdb-v2.js");
+        PluginPackageResourceFile sm1PluginPackageResourceFile = new PluginPackageResourceFile("1", serviceManagementV1PluginPackage, SERVICE_MANAGEMENT, "v0.1", UI_ZIP, SERVICE_MANAGEMENT + "/" + "dist/sm-v1.js");
+        PluginPackageResourceFile sm2PluginPackageResourceFile = new PluginPackageResourceFile("2", serviceManagementV2PluginPackage, SERVICE_MANAGEMENT, "v0.2", UI_ZIP, SERVICE_MANAGEMENT + "/" + "dist/sm-v2.js");
+        PluginPackageResourceFile sm3PluginPackageResourceFile = new PluginPackageResourceFile("3", serviceManagementV3PluginPackage, SERVICE_MANAGEMENT, "v0.3", UI_ZIP, SERVICE_MANAGEMENT + "/" + "dist/sm-v3.js");
+        PluginPackageResourceFile sm4PluginPackageResourceFile = new PluginPackageResourceFile("4", serviceManagementV4PluginPackage, SERVICE_MANAGEMENT, "v0.4", UI_ZIP, SERVICE_MANAGEMENT + "/" + "dist/sm-v4.js");
+        PluginPackageResourceFile cmdb1PluginPackageResourceFile = new PluginPackageResourceFile("5", cmdbPluginPackage, CMDB, "v1.0", UI_ZIP, CMDB + "/" + "dist/cmdb-v1.js");
+        PluginPackageResourceFile cmdb2PluginPackageResourceFile = new PluginPackageResourceFile("6", cmdbPluginPackage2, CMDB, "v2.0", UI_ZIP, CMDB + "/" + "dist/cmdb-v2.js");
 
         serviceManagementV1PluginPackage.setPluginPackageResourceFiles(Sets.newHashSet(sm1PluginPackageResourceFile));
         serviceManagementV2PluginPackage.setPluginPackageResourceFiles(Sets.newHashSet(sm2PluginPackageResourceFile));
@@ -63,7 +63,7 @@ public class PluginPackageResourceFileRepositoryTest  extends DatabaseBasedTest 
         assertThat(pluginPackages).hasSize(2);
         assertThat(pluginPackages.contains(serviceManagementV3PluginPackage)).isTrue();
         assertThat(pluginPackages.contains(cmdbPluginPackage)).isTrue();
-        Optional<List<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = pluginPackageResourceFileRepository.findPluginPackageResourceFileByPluginPackageIds(pluginPackages.stream().map(p -> p.getId()).collect(Collectors.toSet()).toArray(new Integer[pluginPackages.size()]));
+        Optional<List<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = pluginPackageResourceFileRepository.findPluginPackageResourceFileByPluginPackageIds(pluginPackages.stream().map(p -> p.getId()).collect(Collectors.toSet()).toArray(new String[pluginPackages.size()]));
 
         assertThat(pluginPackageResourceFilesOptional.isPresent()).isTrue();
         List<PluginPackageResourceFile> pluginPackageResourceFiles = pluginPackageResourceFilesOptional.get();

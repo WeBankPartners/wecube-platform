@@ -8,6 +8,8 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @Entity
 @Table(name = "plugin_config_interface_parameters")
 public class PluginConfigInterfaceParameter {
@@ -17,12 +19,9 @@ public class PluginConfigInterfaceParameter {
 
     public static final String MAPPING_TYPE_NOT_AVAILABLE = "N/A";
     public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
-    public static final String MAPPING_TYPE_CMDB_ENUM_CODE = "CMDB_ENUM_CODE";
-    public static final String MAPPING_TYPE_RUNTIME = "RUNTIME";
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @EqualsAndHashCode.Exclude
@@ -42,21 +41,21 @@ public class PluginConfigInterfaceParameter {
     @Column
     private String mappingEntityExpression;
     @Column
-    private Integer mappingSystemVariableId;
+    private String mappingSystemVariableId;
     @Column
     private String required;
 
     @JsonInclude
     @ToString.Include
     @EqualsAndHashCode.Include
-    public Integer getInterfaceId() {
+    public String getInterfaceId() {
         return pluginConfigInterface == null ? null : pluginConfigInterface.getId();
     }
 
     public PluginConfigInterfaceParameter() {
     }
 
-    public PluginConfigInterfaceParameter(Integer id, PluginConfigInterface pluginConfigInterface, String type, String name, String dataType, String mappingType, String mappingEntityExpression, Integer mappingSystemVariableId, String required) {
+    public PluginConfigInterfaceParameter(String id, PluginConfigInterface pluginConfigInterface, String type, String name, String dataType, String mappingType, String mappingEntityExpression, String mappingSystemVariableId, String required) {
         this.id = id;
         this.pluginConfigInterface = pluginConfigInterface;
         this.type = type;
@@ -68,11 +67,23 @@ public class PluginConfigInterfaceParameter {
         this.required = required;
     }
 
-    public Integer getId() {
+
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginConfigInterface ? pluginConfigInterface.getId() : null,
+                    type,
+                    name,
+                    dataType);
+        }
+    }
+
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -124,11 +135,11 @@ public class PluginConfigInterfaceParameter {
         this.mappingEntityExpression = mappingEntityExpression;
     }
 
-    public Integer getMappingSystemVariableId() {
+    public String getMappingSystemVariableId() {
         return mappingSystemVariableId;
     }
 
-    public void setMappingSystemVariableId(Integer mappingSystemVariableId) {
+    public void setMappingSystemVariableId(String mappingSystemVariableId) {
         this.mappingSystemVariableId = mappingSystemVariableId;
     }
 

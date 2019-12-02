@@ -84,7 +84,7 @@ public class SystemVariableService {
         return dtos;
     }
 
-    public SystemVariable getSystemVariableById(int varId) {
+    public SystemVariable getSystemVariableById(String varId) {
         Optional<SystemVariable> systemVariable = systemVariableRepository.findById(varId);
         if (systemVariable.isPresent()) {
             return systemVariable.get();
@@ -93,7 +93,7 @@ public class SystemVariableService {
         }
     }
 
-    public List<SystemVariable> getPluginSystemVariableByPackageIdAndName(Integer packageId, String varName) {
+    public List<SystemVariable> getPluginSystemVariableByPackageIdAndName(String packageId, String varName) {
         return systemVariableRepository.findAllByPluginPackageIdAndNameAndScopeTypeAndStatus(packageId, varName,
                 SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE, SystemVariable.ACTIVE);
     }
@@ -103,7 +103,7 @@ public class SystemVariableService {
                 SystemVariable.ACTIVE);
     }
 
-    public String variableReplacement(Integer packageId, String originalString) {
+    public String variableReplacement(String packageId, String originalString) {
         List<String> varList = StringUtils.findSystemVariableString(originalString);
         for (int i = 0; i < varList.size(); i++) {
             String varString = varList.get(i);
