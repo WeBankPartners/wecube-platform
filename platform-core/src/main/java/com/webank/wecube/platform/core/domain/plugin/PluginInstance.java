@@ -3,6 +3,8 @@ package com.webank.wecube.platform.core.domain.plugin;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import javax.persistence.*;
 
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @Entity
 @Table(name = "plugin_instances")
 public class PluginInstance {
@@ -10,8 +12,7 @@ public class PluginInstance {
     public static final String CONTAINER_STATUS_REMOVED = "REMOVED";
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @ManyToOne
@@ -19,7 +20,7 @@ public class PluginInstance {
     private PluginPackage pluginPackage;
 
     @Column(name = "package_id", updatable = false, insertable = false)
-    private Integer packageId;
+    private String packageId;
 
     @Column
     private String instanceName;
@@ -34,13 +35,13 @@ public class PluginInstance {
     private Integer port;
 
     @Column
-    private Integer pluginMysqlInstanceResourceId;
+    private String pluginMysqlInstanceResourceId;
 
     @Column(name = "s3bucket_resource_id")
-    private Integer s3BucketResourceId;
+    private String s3BucketResourceId;
 
     @Column
-    private Integer dockerInstanceResourceId;
+    private String dockerInstanceResourceId;
 
     @Column
     private String containerStatus;
@@ -48,8 +49,8 @@ public class PluginInstance {
     public PluginInstance() {
     }
 
-    public PluginInstance(Integer id, PluginPackage pluginPackage, String instanceName, String host, Integer port,
-            String containerStatus) {
+    public PluginInstance(String id, PluginPackage pluginPackage, String instanceName, String host, Integer port,
+                          String containerStatus) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.instanceName = instanceName;
@@ -58,11 +59,23 @@ public class PluginInstance {
         this.containerStatus = containerStatus;
     }
 
-    public Integer getId() {
+
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginPackage ? pluginPackage.getId() : null,
+                    containerName,
+                    host,
+                    String.valueOf(port));
+        }
+    }
+
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -82,11 +95,11 @@ public class PluginInstance {
         this.containerStatus = containerStatus;
     }
 
-    public Integer getS3BucketResourceId() {
+    public String getS3BucketResourceId() {
         return s3BucketResourceId;
     }
 
-    public void setS3BucketResourceId(Integer s3BucketResourceId) {
+    public void setS3BucketResourceId(String s3BucketResourceId) {
         this.s3BucketResourceId = s3BucketResourceId;
     }
 
@@ -114,27 +127,27 @@ public class PluginInstance {
         this.port = port;
     }
 
-    public Integer getDockerInstanceResourceId() {
+    public String getDockerInstanceResourceId() {
         return dockerInstanceResourceId;
     }
 
-    public void setDockerInstanceResourceId(Integer dockerInstanceResourceId) {
+    public void setDockerInstanceResourceId(String dockerInstanceResourceId) {
         this.dockerInstanceResourceId = dockerInstanceResourceId;
     }
 
-    public Integer getPluginMysqlInstanceResourceId() {
+    public String getPluginMysqlInstanceResourceId() {
         return pluginMysqlInstanceResourceId;
     }
 
-    public void setPluginMysqlInstanceResourceId(Integer pluginMysqlInstanceResourceId) {
+    public void setPluginMysqlInstanceResourceId(String pluginMysqlInstanceResourceId) {
         this.pluginMysqlInstanceResourceId = pluginMysqlInstanceResourceId;
     }
 
-    public Integer getPackageId() {
+    public String getPackageId() {
         return packageId;
     }
 
-    public void setPackageId(Integer packageId) {
+    public void setPackageId(String packageId) {
         this.packageId = packageId;
     }
 
