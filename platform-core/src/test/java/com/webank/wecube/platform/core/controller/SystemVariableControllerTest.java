@@ -1,18 +1,25 @@
 package com.webank.wecube.platform.core.controller;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.webank.wecube.platform.core.jpa.PluginRepositoryIntegrationTest.mockPluginPackage;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
 import static com.webank.wecube.platform.core.utils.JsonUtils.toJsonString;
 import static com.webank.wecube.platform.core.utils.JsonUtils.toObject;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.util.Sets.newLinkedHashSet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Sets;
+import com.webank.wecube.platform.core.domain.plugin.*;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -21,7 +28,6 @@ import org.springframework.test.web.servlet.ResultHandler;
 
 import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 
@@ -102,11 +108,11 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
                     public void handle(MvcResult result) throws Exception {
                         JsonResponse jsonResponse = toObject(result.getResponse().getContentAsString(), JsonResponse.class);
                         Map prop = (Map) ((List) jsonResponse.getData()).get(0);
-                        variable.setId((int) prop.get("id"));
+                        variable.setId(String.valueOf(prop.get("id")));
                     }
                 });
 
-        assertThat(variable.getId()).isGreaterThan(0);
+        assertThat(variable.getId()).isNotBlank();
 
         // create-verify
         String reqJson = toJsonString(QueryRequest.defaultQueryObject()
@@ -162,11 +168,43 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     private void mockSystemVariables() {
         PluginPackage pluginPackage = mockPluginPackage("mockPluginPackage", "v1");
         pluginPackageRepository.save(pluginPackage);
-        executeSql("insert into system_variables (id, plugin_package_id, name, value, scope_type, scope_value, seq_no, status) values\n" +
-                " (1, 1, 'propA', 'valueX', 'global', null,  1, 'active')\n" +
-                ",(2, 1, 'propB', 'valueY', 'global', null,  2, 'inactive')\n" +
-                ",(3, 1, 'propC', 'valueZ', 'plugin-package', 'qcloud', 3, 'inactive')\n" +
-                ",(4, 1, 'propC', 'valuez', 'plugin-package', 'qcloud', 4, 'active')\n" +
+        executeSql("INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
+                "  ('1', 'package1', '1.0', 'UNREGISTERED', 0); " +
+                "insert into system_variables (id, plugin_package_id, name, value, scope_type, scope_value, seq_no, status) values\n" +
+                " ('1', '1', 'propA', 'valueX', 'global', null,  1, 'active')\n" +
+                ",('2', '1', 'propB', 'valueY', 'global', null,  2, 'inactive')\n" +
+                ",('3', '1', 'propC', 'valueZ', 'plugin-package', 'qcloud', 3, 'inactive')\n" +
+                ",('4', '1', 'propC', 'valuez', 'plugin-package', 'qcloud', 4, 'active')\n" +
                 ";");
+    }
+
+    private PluginPackage mockPluginPackage(String name, String version) {
+        PluginPackage mockPluginPackage = new PluginPackage(null, name, version, UNREGISTERED, new Timestamp(System.currentTimeMillis()), false,
+                newLinkedHashSet(), newLinkedHashSet(), null, newLinkedHashSet(),
+                newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet(), newLinkedHashSet());
+        PluginConfig mockPlugin = new PluginConfig(null, mockPluginPackage, "mockPlugin", null, "mockEntity",
+                PluginConfig.Status.DISABLED, newLinkedHashSet());
+        mockPlugin.setInterfaces(newLinkedHashSet(mockPluginConfigInterface(mockPlugin)));
+        mockPluginPackage.addPluginConfig(mockPlugin);
+
+        Long now = System.currentTimeMillis();
+        PluginPackageDataModel mockPluginPackageDataModel = new PluginPackageDataModel(null, 1, mockPluginPackage.getName(), false, null, null, PluginPackageDataModelDto.Source.PLUGIN_PACKAGE.name(), now, null);
+        mockPluginPackage.setPluginPackageDataModel(mockPluginPackageDataModel);
+
+        return mockPluginPackage;
+    }
+
+    private PluginConfigInterface mockPluginConfigInterface(PluginConfig pluginConfig) {
+        PluginConfigInterface pluginConfigInterface = new PluginConfigInterface(null, pluginConfig, "create", "'create",
+                "Qcloud_vpc_create", "/v1/qcloud/vpc/create", "POST", newLinkedHashSet(), newLinkedHashSet());
+        PluginConfigInterfaceParameter inputParameter = new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_INPUT, "provider_params", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y");
+        PluginConfigInterfaceParameter inputParameter2 = new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_INPUT, "name", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y");
+        pluginConfigInterface.setInputParameters(Sets.newHashSet(inputParameter, inputParameter2));
+        PluginConfigInterfaceParameter outputParameter = new PluginConfigInterfaceParameter(null, pluginConfigInterface,
+                TYPE_OUTPUT, "id", "string", MAPPING_TYPE_CMDB_CI_TYPE, null, null, "Y");
+        pluginConfigInterface.setOutputParameters(Sets.newHashSet(outputParameter));
+        return pluginConfigInterface;
     }
 }
