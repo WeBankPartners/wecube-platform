@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import static com.webank.wecube.platform.core.utils.CollectionUtils.pickLastOne;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-public interface PluginPackageRepository extends CrudRepository<PluginPackage, Integer> {
+public interface PluginPackageRepository extends CrudRepository<PluginPackage, String> {
 
     @Query("SELECT p FROM PluginPackage p WHERE p.status IN :statuses")
     Optional<List<PluginPackage>> findAllByStatus(PluginPackage.Status... statuses);
