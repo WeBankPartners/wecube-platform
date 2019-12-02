@@ -104,7 +104,7 @@
             filterable
             clearable
             v-model="pluginForm.serviceId"
-            @on-open-change="getPluginInterfaceList"
+            @on-open-change="getPluginInterfaceList(false)"
           >
             <Option
               v-for="(item, index) in allPlugins"
@@ -139,8 +139,8 @@
           >
             <Option
               v-for="i in currentflowsNodes"
-              :value="i.nodeDefId"
-              :key="i.nodeDefId"
+              :value="i.nodeId"
+              :key="i.nodeId"
               >{{ i.nodeName }}</Option
             >
           </Select>
@@ -300,7 +300,7 @@ export default {
         this.allEntityType = data;
       }
     },
-    async getPluginInterfaceList() {
+    async getPluginInterfaceList(isUseOriginParamsInfo = true) {
       let { status, data, message } = await getPluginInterfaceList();
       if (status === "OK") {
         this.allPlugins = data;
@@ -310,6 +310,7 @@ export default {
           let needParams = found.inputParameters.filter(
             _ => _.mappingType === "context"
           );
+          if (isUseOriginParamsInfo) return;
           this.pluginForm.paramInfos = needParams.map(_ => {
             return {
               paramName: _.name,
@@ -478,11 +479,8 @@ export default {
               _ => _.nodeId === this.currentNode.id
             )) ||
           this.defaultPluginForm;
-        // get flow's params infos - nodes
+        // get flow's params infos - nodes -
         this.getFlowsNodes();
-        this.pluginForm.paramInfos.forEach((_, index) => {
-          this.onParamsNodeChange(index);
-        });
       }
     },
     onParamsNodeChange(index) {
@@ -497,18 +495,26 @@ export default {
         this.currentflowsNodes = data.filter(
           _ => _.nodeId !== this.currentNode.id
         );
+        console.log("this.currentflowsNodes", this.currentflowsNodes);
+        this.pluginForm.paramInfos.forEach((_, index) => {
+          this.onParamsNodeChange(index);
+        });
       }
     },
     async getParamsOptionsByNode(index) {
+      const found = this.currentflowsNodes.find(
+        _ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId
+      );
       if (!this.currentFlow) return;
       let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
         this.currentFlow.procDefId,
-        this.pluginForm.paramInfos[index].bindNodeId
+        found.nodeDefId
       );
       if (status === "OK") {
         let res = data.filter(
           _ => _.type === this.pluginForm.paramInfos[index].bindParamType
         );
+        console.log("res", res);
         this.$set(this.pluginForm.paramInfos[index], "currentParamNames", res);
       }
     },

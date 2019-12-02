@@ -199,35 +199,8 @@ public class PluginInstanceService {
             throw new WecubeCoreException("'DECOMMISSIONED' or 'UNREGISTERED' state can not launch plugin instance ");
     }
 
-    private boolean isNeedToCreateNewMysqlChecking(Set<PluginPackageRuntimeResourcesMysql> mysqlInfoSet,
-            PluginPackage pluginPackage) {
-        if (mysqlInfoSet.size() > 1) {
-            logger.error(String.format("Apply [%d] schema is not allow", mysqlInfoSet.size()));
-            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
-        }
-        if (mysqlInfoSet.size() > 0 && pluginMysqlInstanceRepository
-                .findByPluginPackageIdAndStatus(pluginPackage.getId(), "active").size() == 0)
-            return true;
-
-        return false;
-    }
-
-    private boolean isNeedToCreateNewBucketChecking(Set<PluginPackageRuntimeResourcesS3> s3InfoSet,
-            PluginPackage pluginPackage) {
-        if (s3InfoSet.size() > 1) {
-            logger.error(String.format("Apply [%d] s3 bucket is not allow", s3InfoSet.size()));
-            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
-        }
-        if (s3InfoSet.size() > 0 && resourceItemRepository
-                .findByNameAndType(s3InfoSet.iterator().next().getBucketName(), ResourceItemType.S3_BUCKET.toString())
-                .size() == 0)
-            return true;
-
-        return false;
-    }
-
     private String replaceAllocatePort(String str, Integer allocatePort) {
-        return  str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
+        return str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
     }
 
     private String replaceHostIp(String str, String ip) {
@@ -252,8 +225,8 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
         }
 
-        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findByPluginPackageIdAndStatus(
-                pluginPackage.getId(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
+        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findBySchemaNameAndStatus(
+                pluginPackage.getName(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
@@ -555,27 +528,6 @@ public class PluginInstanceService {
         return trim(instance.getHost()) + ":" + trim(instance.getPort().toString());
     }
 
-    private class InitMysqlReturn {
-        DatabaseInfo dbInfo;
-        Integer mysqlInstanceResourceId;
-
-        public DatabaseInfo getDbInfo() {
-            return dbInfo;
-        }
-
-        public void setDbInfo(DatabaseInfo dbInfo) {
-            this.dbInfo = dbInfo;
-        }
-
-        public Integer getMysqlInstanceResourceId() {
-            return mysqlInstanceResourceId;
-        }
-
-        public void setMysqlInstanceResourceId(Integer mysqlInstanceResourceId) {
-            this.mysqlInstanceResourceId = mysqlInstanceResourceId;
-        }
-    }
-
     private class DatabaseInfo {
         String host;
         String port;
@@ -601,48 +553,24 @@ public class PluginInstanceService {
             return user;
         }
 
-        public void setUser(String user) {
-            this.user = user;
-        }
-
         public String getPassword() {
             return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
         }
 
         public String getHost() {
             return host;
         }
 
-        public void setHost(String host) {
-            this.host = host;
-        }
-
         public String getPort() {
             return port;
-        }
-
-        public void setPort(String port) {
-            this.port = port;
         }
 
         public String getSchema() {
             return schema;
         }
 
-        public void setSchema(String schema) {
-            this.schema = schema;
-        }
-
         public Integer getResourceItemId() {
             return resourceItemId;
-        }
-
-        public void setResourceItemId(Integer resourceItemId) {
-            this.resourceItemId = resourceItemId;
         }
     }
 
