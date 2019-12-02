@@ -8,5 +8,9 @@ import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
 
 public interface PluginMysqlInstanceRepository extends JpaRepository<PluginMysqlInstance, Integer> {
     List<PluginMysqlInstance> findByPluginPackageIdAndStatus(Integer pluginPackageId, String status);
+
     PluginMysqlInstance findByPluginPackageId(int packageId);
+
+    List<PluginMysqlInstance> findBySchemaNameAndStatus(String schemaName, String status);
+
 }

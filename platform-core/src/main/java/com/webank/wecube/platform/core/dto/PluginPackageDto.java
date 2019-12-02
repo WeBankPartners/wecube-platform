@@ -2,10 +2,6 @@ package com.webank.wecube.platform.core.dto;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.checkerframework.checker.guieffect.qual.UI;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /*
   This is a workaround solution to cater the parser logic for data model and other parts in register.xml

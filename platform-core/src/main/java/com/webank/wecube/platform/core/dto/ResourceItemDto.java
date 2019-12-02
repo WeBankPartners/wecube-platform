@@ -140,6 +140,7 @@ public class ResourceItemDto {
         return new HashMap<String, String>();
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, String> convertToMap(String additionalProperties) {
         try {
             return JsonUtils.toObject(additionalProperties, Map.class);
