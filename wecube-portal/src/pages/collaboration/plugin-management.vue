@@ -106,6 +106,7 @@
           <DataModel
             v-if="currentTab === 'models'"
             :pkgId="currentPlugin.name"
+            @reGetPkgStatus="resetPkgStatus"
           ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" :label="$t('system_params')">
@@ -471,7 +472,7 @@ export default {
       defaultCreateParams: "",
       selectHosts: [],
       availiableHostsWithPort: [],
-      isShowDecomissionedPackage: true
+      isShowDecomissionedPackage: false
     };
   },
   methods: {
@@ -501,8 +502,8 @@ export default {
       this.isShowRuntimeManagementPanel = panel === "runtimeManagePanel";
     },
     async createPluginInstanceByPackageIdAndHostIp(ip, port) {
-      this.$Notice.success({
-        title: "Success",
+      this.$Notice.info({
+        title: "Info",
         desc: "Start Launching... It will take sometime."
       });
       this.isLoading = true;
@@ -530,6 +531,7 @@ export default {
         this.currentPlugin.id
       );
       if (status === "OK") {
+        this.$set(this.currentPlugin, "status", "REGISTERED");
         this.$Notice.success({
           title: "Success",
           desc: this.$t("reload_to_get_ui")
@@ -546,6 +548,9 @@ export default {
         this.getAllPluginPkgs();
         this.swapPanel("");
       }
+    },
+    resetPkgStatus() {
+      this.$set(this.currentPlugin, "status", "UNREGISTERED");
     },
     configPlugin(packageId) {
       this.swapPanel("pluginConfigPanel");
