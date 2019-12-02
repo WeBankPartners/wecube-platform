@@ -33,7 +33,7 @@ public class GraphNodeDto {
     }
 
     public String buildId() {
-        return String.format("%s|%s|%s", packageName, entityName, dataId);
+        return String.format("%s:%s:%s", packageName, entityName, dataId);
     }
 
     public void setId(String id) {

@@ -80,6 +80,7 @@ export default {
     async applyNewDataModel() {
       let { status, data, message } = await applyNewDataModel(this.dataModel);
       if (status === "OK") {
+        this.dataModel.dynamic && this.$emit("reGetPkgStatus");
         this.$Notice.success({
           title: "Success",
           desc: "Data model apply successfully"
@@ -91,7 +92,7 @@ export default {
       var dots = [
         "digraph  {",
         'bgcolor="transparent";',
-        'Node [fontname=Arial,shape="none",width="0.7", height="0.8", color="#273c75" ,fontsize=10];',
+        'Node [fontname=Arial,shape="none",width="0.7", height="0.8", color="#273c75"];',
         'Edge [fontname=Arial, minlen="1", color="#000", fontsize=10];'
       ];
       let drawConnection = (from, to) => {
@@ -99,7 +100,7 @@ export default {
       };
       let addNodeAttr = node => {
         const color = "#273c75";
-        return `"${node.id}" [id="${node.id}" label="${node.id +
+        return `"${node.id}" [fixedsize=false id="${node.id}" label="${node.id +
           "_v" +
           node.dataModelVersion}" shape="box" fontcolor="${color}"];`;
       };

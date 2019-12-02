@@ -5,6 +5,7 @@ import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse;
 
 public class PluginRemoteCallException extends RemoteCallException {
 
+    private static final long serialVersionUID = -722980206574018150L;
     private transient PluginResponse pluginResponse;
 
     public PluginRemoteCallException(String message) {

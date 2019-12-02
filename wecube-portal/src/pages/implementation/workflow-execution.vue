@@ -5,7 +5,11 @@
         <Col span="20">
           <Form label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select v-model="selectedFlowInstance" style="width:70%">
+              <Select
+                v-model="selectedFlowInstance"
+                style="width:70%"
+                filterable
+              >
                 <Option
                   v-for="item in allFlowInstances"
                   :value="item.id"
@@ -43,12 +47,14 @@
                   v-model="selectedFlow"
                   :disabled="isEnqueryPage"
                   @on-change="orchestrationSelectHandler"
+                  @on-open-change="getAllFlow"
+                  filterable
                 >
                   <Option
                     v-for="item in allFlows"
                     :value="item.procDefId"
                     :key="item.procDefId"
-                    >{{ item.procDefName }}</Option
+                    >{{ item.procDefName + " " + item.createdTime }}</Option
                   >
                 </Select>
               </FormItem>
@@ -60,6 +66,8 @@
                   v-model="selectedTarget"
                   :disabled="isEnqueryPage"
                   @on-change="onTargetSelectHandler"
+                  @on-open-change="getTargetOptions"
+                  filterable
                 >
                   <Option
                     v-for="item in allTarget"
@@ -93,6 +101,28 @@
         </Row>
       </Row>
     </Card>
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="workflowActionModalVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
+      <div
+        class="workflowActionModal-container"
+        style="text-align: center;margin-top: 20px;"
+      >
+        <Button type="info" @click="workFlowActionHandler('retry')">
+          {{ $t("retry") }}
+        </Button>
+        <Button
+          type="info"
+          @click="workFlowActionHandler('skip')"
+          style="margin-left: 20px"
+          >{{ $t("skip") }}</Button
+        >
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -103,7 +133,8 @@ import {
   getTreePreviewData,
   createFlowInstance,
   getProcessInstances,
-  getProcessInstance
+  getProcessInstance,
+  retryProcessInstance
 } from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
@@ -125,7 +156,9 @@ export default {
       selectedTarget: "",
       showExcution: true,
       isShowBody: false,
-      isEnqueryPage: false
+      isEnqueryPage: false,
+      workflowActionModalVisible: false,
+      currentFailedNodeID: ""
     };
   },
   mounted() {
@@ -151,15 +184,23 @@ export default {
     async getAllFlow() {
       let { status, data, message } = await getAllFlow(false);
       if (status === "OK") {
-        this.allFlows = data;
+        this.allFlows = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase();
+          let t = b.createdTime.toLowerCase();
+          if (s > t) return -1;
+          if (s < t) return 1;
+        });
       }
     },
 
     orchestrationSelectHandler() {
       this.getFlowOutlineData(this.selectedFlow);
+      if (this.selectedFlow && this.isEnqueryPage === false) {
+        this.showExcution = true;
+      }
     },
     async getTargetOptions() {
-      if (!this.flowData.rootEntity) return;
+      if (!(this.flowData && this.flowData.rootEntity)) return;
       const pkgName = this.flowData.rootEntity.split(":")[0];
       const entityName = this.flowData.rootEntity.split(":")[1];
       let { status, data, message } = await getTargetOptions(
@@ -174,11 +215,26 @@ export default {
       if (!this.selectedFlowInstance) return;
       this.isShowBody = true;
       this.isEnqueryPage = true;
-      this.$nextTick(() => {
+      this.$nextTick(async () => {
         const found = this.allFlowInstances.find(
           _ => _.id === this.selectedFlowInstance
         );
-        this.getFlowOutlineData(found.procDefId);
+        let { status, data, message } = await getProcessInstance(
+          found && found.id
+        );
+        if (status === "OK") {
+          this.flowData = {
+            ...data,
+            flowNodes: data.taskNodeInstances
+          };
+          this.initFlowGraph(true);
+          removeEvent(".retry", "click", this.retryHandler);
+          addEvent(".retry", "click", this.retryHandler);
+          d3.selectAll(".retry").attr("cursor", "pointer");
+
+          this.showExcution = false;
+        }
+
         this.selectedFlow = found.procDefId;
         this.getTargetOptions();
         this.selectedTarget = found.entityDataId;
@@ -193,6 +249,8 @@ export default {
       this.selectedFlow = "";
       this.modelData = [];
       this.flowData = {};
+      this.showExcution = false;
+      this.initModelGraph();
     },
     onTargetSelectHandler() {
       this.getModelData();
@@ -246,7 +304,8 @@ export default {
             const nodeId = _.packageName + "_" + _.entityName;
             let current = [];
             current = _.succeedingIds.map(to => {
-              return _nodeId + " -> " + to;
+              let tos = to.split(":");
+              return nodeId + " -> " + (tos[0] + "_" + tos[1]);
             });
             pathAry.push(current);
           }
@@ -256,9 +315,10 @@ export default {
           .toString()
           .replace(/,/g, ";");
       };
-      let nodesToString = Array.isArray(nodes)
-        ? nodes.toString().replace(/,/g, ";") + ";"
-        : "";
+      let nodesToString =
+        Array.isArray(nodes) && nodes.length > 0
+          ? nodes.toString().replace(/,/g, ";") + ";"
+          : "";
 
       let nodesString =
         "digraph G { " +
@@ -268,7 +328,8 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-      this.graph.graphviz.renderDot(nodesString).fit(true);
+
+      this.graph.graphviz.renderDot(nodesString);
     },
     renderFlowGraph(excution) {
       const statusColor = {
@@ -284,17 +345,18 @@ export default {
         this.flowData.flowNodes &&
         this.flowData.flowNodes.map((_, index) => {
           if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
-            return `${_.nodeId} [label="${
-              _.nodeName
-            }", fontsize="10", class="flow",style="${
+            return `${_.nodeId} [label="${_.nodeName ||
+              "Null"}", fontsize="10", class="flow",style="${
               excution ? "filled" : "none"
             }" color="${
               excution ? statusColor[_.status] : "#7F8A96"
             }" shape="circle", id="${_.nodeId}"]`;
           } else {
-            return `${_.nodeId} [label="${_.orderedNo +
+            const className =
+              _.status === "Faulted" || _.status === "Timeouted" ? "retry" : "";
+            return `${_.nodeId} [fixedsize=false label="${_.orderedNo +
               "、" +
-              _.nodeName}" fontsize="10" class="flow" style="${
+              _.nodeName}" class="flow ${className}" style="${
               excution ? "filled" : "none"
             }" color="${
               excution
@@ -302,7 +364,7 @@ export default {
                 : _.nodeId === this.currentFlowNodeId
                 ? "#5DB400"
                 : "#7F8A96"
-            }"  shape="record" id="${_.nodeId}"] height=.2`;
+            }"  shape="box" id="${_.nodeId}" ]`;
           }
         });
       let genEdge = () => {
@@ -340,13 +402,15 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-      this.flowGraph.graphviz.renderDot(nodesString).fit(true);
+
+      this.flowGraph.graphviz.renderDot(nodesString);
       this.bindFlowEvent();
     },
     async excutionFlow() {
       // 区分已存在的flowInstance执行 和 新建的执行
       if (this.isEnqueryPage) {
         this.processInstance();
+        this.showExcution = false;
       } else {
         const currentTarget = this.allTarget.find(
           _ => _.id === this.selectedTarget
@@ -394,11 +458,16 @@ export default {
       let timer = null;
 
       function start() {
+        if (timer === null) {
+          getStatus();
+        }
         if (timer != null) {
           clearInterval(timer);
           timer = null;
         }
-        timer = setInterval(getStatus(), 5000);
+        timer = setInterval(() => {
+          getStatus();
+        }, 5000);
       }
       function stop() {
         clearInterval(timer);
@@ -413,13 +482,44 @@ export default {
             ...data,
             flowNodes: data.taskNodeInstances
           };
-          this.renderFlowGraph(true);
-          if (data.status === "Done") {
+          this.initFlowGraph(true);
+          removeEvent(".retry", "click", this.retryHandler);
+          addEvent(".retry", "click", this.retryHandler);
+          d3.selectAll(".retry").attr("cursor", "pointer");
+          if (data.status === "Completed") {
             stop();
           }
         }
       };
       start();
+    },
+    retryHandler(e) {
+      this.currentFailedNodeID = e.target.parentNode.getAttribute("id");
+      this.workflowActionModalVisible = true;
+    },
+    async workFlowActionHandler(type) {
+      const found = this.flowData.flowNodes.find(
+        _ => _.nodeId === this.currentFailedNodeID
+      );
+      if (!found) {
+        return;
+      }
+      const payload = {
+        act: type,
+        nodeInstId: found.id,
+        procInstId: found.procInstId
+      };
+      const { data, message, status } = await retryProcessInstance(payload);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc:
+            (type === "retry" ? "Retry" : "Skip") +
+            " action is proceed successfully"
+        });
+        this.workflowActionModalVisible = false;
+        this.processInstance();
+      }
     },
     bindFlowEvent() {
       if (this.isEnqueryPage !== true) {
@@ -428,15 +528,17 @@ export default {
           e.stopPropagation();
           d3.selectAll("g").attr("cursor", "pointer");
         });
-        addEvent(".flow", "click", e => {
-          e.preventDefault();
-          e.stopPropagation();
-          let g = e.currentTarget;
-          this.highlightModel(g.id);
-          this.currentFlowNodeId = g.id;
-          this.renderFlowGraph();
-        });
+        removeEvent(".flow", "click", this.flowNodesClickHandler);
+        addEvent(".flow", "click", this.flowNodesClickHandler);
       }
+    },
+    flowNodesClickHandler(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      let g = e.currentTarget;
+      this.highlightModel(g.id);
+      this.currentFlowNodeId = g.id;
+      this.renderFlowGraph();
     },
     highlightModel(nodeId) {
       this.foundRefAry = this.flowData.flowNodes
@@ -488,7 +590,7 @@ export default {
       initEvent();
       this.renderModelGraph();
     },
-    initFlowGraph() {
+    initFlowGraph(excution = false) {
       const initEvent = () => {
         let graph;
         graph = d3.select(`#flow`);
@@ -496,7 +598,7 @@ export default {
         this.flowGraph.graphviz = graph.graphviz().zoom(false);
       };
       initEvent();
-      this.renderFlowGraph();
+      this.renderFlowGraph(excution);
     }
   }
 };
