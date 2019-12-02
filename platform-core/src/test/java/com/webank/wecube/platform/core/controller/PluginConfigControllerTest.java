@@ -1,21 +1,29 @@
 package com.webank.wecube.platform.core.controller;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
+import java.sql.Timestamp;
 import java.util.Optional;
+import java.util.Set;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 import static com.webank.wecube.platform.core.utils.JsonUtils.toJsonString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.fail;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -32,6 +40,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     private PluginConfigController pluginConfigController;
     @Autowired
     private PluginConfigRepository pluginConfigRepository;
+    @Autowired
+    private PluginPackageRepository packageRepository;
 
     @Test
     public void givenEntityIdNotExistWhenSaveThenReturnError() {
@@ -318,6 +328,102 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void givenMandatoryAttributeIsMissingWhenRegisterThenThrowException() {
+        PluginPackage pluginPackage = new PluginPackage();
+        pluginPackage.setName("wecmdb");
+        pluginPackage.setVersion("v0.1");
+        pluginPackage.setStatus(PluginPackage.Status.REGISTERED);
+        pluginPackage.setUiPackageIncluded(false);
+        pluginPackage.setUploadTimestamp(new Timestamp(System.currentTimeMillis()));
+
+        PluginConfig pluginConfig = new PluginConfig();
+        pluginPackage.setPluginConfigs(newHashSet(pluginConfig));
+
+        pluginConfig.setPluginPackage(pluginPackage);
+        pluginConfig.setName("Confirmation");
+        pluginConfig.setEntityName(null);
+        pluginConfig.setEntityId(null);
+        pluginConfig.setStatus(PluginConfig.Status.DISABLED);
+
+        PluginConfigInterface configInterface = new PluginConfigInterface();
+
+        configInterface.setPluginConfig(pluginConfig);
+        pluginConfig.setInterfaces(newHashSet(configInterface));
+
+        configInterface.setAction("Confirm");
+        configInterface.setPath("/wecmdb/confirm");
+        configInterface.setServiceName("Confirm:/confirm");
+        configInterface.setHttpMethod("POST");
+        configInterface.setServiceDisplayName("Confirm:/confirm");
+        configInterface.setIsAsyncProcessing("N");
+
+        PluginConfigInterfaceParameter inputParameter = new PluginConfigInterfaceParameter();
+        inputParameter.setName("name");
+        inputParameter.setType(PluginConfigInterfaceParameter.TYPE_INPUT);
+        inputParameter.setDataType("string");
+        inputParameter.setRequired("Y");
+        inputParameter.setMappingType(system_variable.name());
+        inputParameter.setMappingSystemVariableId(null);
+        inputParameter.setMappingEntityExpression(null);
+
+        PluginConfigInterfaceParameter outputStatus = new PluginConfigInterfaceParameter();
+        outputStatus.setType(PluginConfigInterfaceParameter.TYPE_OUTPUT);
+        outputStatus.setName("status");
+        outputStatus.setDataType("string");
+
+        PluginConfigInterfaceParameter outputMessage = new PluginConfigInterfaceParameter();
+        outputMessage.setType(PluginConfigInterfaceParameter.TYPE_OUTPUT);
+        outputMessage.setName("message");
+        outputMessage.setDataType("string");
+
+        configInterface.setInputParameters(newHashSet(inputParameter));
+        configInterface.setOutputParameters(newHashSet(outputMessage, outputStatus));
+
+        PluginPackage savedPluginPackage = packageRepository.save(pluginPackage);
+
+        assertThat(savedPluginPackage.getName()).isEqualTo("wecmdb");
+        assertThat(savedPluginPackage.getVersion()).isEqualTo("v0.1");
+        assertThat(savedPluginPackage.getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
+
+        Set<PluginConfig> pluginConfigs = savedPluginPackage.getPluginConfigs();
+        assertThat(pluginConfigs).isNotNull();
+        assertThat(pluginConfigs).hasSize(1);
+
+        PluginConfig config = pluginConfigs.iterator().next();
+        assertThat(config.getName()).isEqualTo("Confirmation");
+        assertThat(config.getStatus()).isEqualTo(PluginConfig.Status.DISABLED);
+
+        Set<PluginConfigInterface> interfaces = config.getInterfaces();
+        assertThat(interfaces).isNotNull();
+        assertThat(interfaces).hasSize(1);
+
+        PluginConfigInterface pluginConfigInterface = interfaces.iterator().next();
+        assertThat(pluginConfigInterface.getAction()).isEqualTo("Confirm");
+
+        Set<PluginConfigInterfaceParameter> inputParameters = pluginConfigInterface.getInputParameters();
+        assertThat(inputParameters).isNotNull();
+        assertThat(inputParameters).hasSize(1);
+
+        PluginConfigInterfaceParameter pluginConfigInterfaceParameter = inputParameters.iterator().next();
+        assertThat(pluginConfigInterfaceParameter).isNotNull();
+        assertThat(pluginConfigInterfaceParameter.getName()).isEqualTo("name");
+        assertThat(pluginConfigInterfaceParameter.getRequired()).isEqualTo("Y");
+
+        String id = config.getId();
+        assertThat(id).isNotNull();
+
+        try {
+            mvc.perform(post("/v1/plugins/enable/" + id))
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+        } catch (Exception e) {
+            assertThat(e instanceof WecubeCoreException).isTrue();
+            assertThat(e.getMessage()).isNotNull();
+            assertThat(e.getMessage()).isEqualTo("System variable is required for parameter [1]");
         }
     }
 
