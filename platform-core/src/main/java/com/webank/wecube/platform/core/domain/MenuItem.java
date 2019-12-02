@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -78,13 +80,14 @@ public class MenuItem {
     @Column
     private String description;
 
-    @Column
+    @Generated(GenerationTime.INSERT)
+    @Column(name = "menu_order", nullable = false, updatable = false, columnDefinition = "integer auto_increment")
     private Integer menuOrder;
 
     @PrePersist
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
-            this.id = (null != parentCode? parentCode + KEY_COLUMN_DELIMITER : "") + code;
+            this.id = ((null != parentCode && !parentCode.trim().equals("")) ? parentCode + KEY_COLUMN_DELIMITER : "") + code;
         }
     }
     @JsonIgnore
@@ -93,6 +96,20 @@ public class MenuItem {
 
     public MenuItem() {
         this(null);
+    }
+
+    public MenuItem(String code, String parentCode, String description) {
+        this(null, code, parentCode, Source.SYSTEM.name(), description, null, null);
+    }
+
+    public MenuItem(String id, String code, String parentCode, String source, String description, Integer menuOrder, List<RoleMenu> assignedRoles) {
+        this.id = id;
+        this.code = code;
+        this.parentCode = parentCode;
+        this.source = source;
+        this.description = description;
+        this.menuOrder = menuOrder;
+        this.assignedRoles = assignedRoles;
     }
 
     public MenuItem(String id) {
