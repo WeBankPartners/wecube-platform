@@ -41,13 +41,13 @@ public class PluginConfigService {
     @Autowired
     private PluginPackageEntityRepository pluginPackageEntityRepository;
 
-    public List<PluginConfigInterface> getPluginConfigInterfaces(int pluginConfigId) {
+    public List<PluginConfigInterface> getPluginConfigInterfaces(String pluginConfigId) {
         return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
     }
 
     public PluginConfigDto savePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
         ensurePluginConfigIsValid(pluginConfigDto);
-        Integer packageId = pluginConfigDto.getPluginPackageId();
+        String packageId = pluginConfigDto.getPluginPackageId();
         PluginPackage pluginPackage = pluginPackageRepository.findById(packageId).get();
 
         PluginConfig pluginConfig = pluginConfigDto.toDomain(pluginPackage);
@@ -62,20 +62,19 @@ public class PluginConfigService {
     }
 
     private void ensurePluginConfigIsValid(PluginConfigDto pluginConfig) {
-        if (null == pluginConfig.getPluginPackageId()
-                || pluginConfig.getPluginPackageId() < 1
+        if (StringUtils.isBlank(pluginConfig.getPluginPackageId())
                 || !pluginPackageRepository.existsById(pluginConfig.getPluginPackageId())) {
             throw new WecubeCoreException(String.format("Cannot find PluginPackage with id=%s in PluginConfig", pluginConfig.getPluginPackageId()));
         }
-        if (null == pluginConfig.getId() || pluginConfig.getId() < 1) {
+        if (StringUtils.isBlank(pluginConfig.getId())) {
             throw new WecubeCoreException("Invalid pluginConfig with id: " + pluginConfig.getId());
         }
         if (!pluginConfigRepository.existsById(pluginConfig.getId())) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfig.getId());
         }
 
-        Integer entityId = pluginConfig.getEntityId();
-        if (null != entityId && entityId.intValue() > 0) {
+        String entityId = pluginConfig.getEntityId();
+        if (StringUtils.isNotBlank(entityId)) {
             Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository.findById(entityId);
             if (!pluginPackageEntityOptional.isPresent()) {
                 String errorMessage = String.format("PluginPackageEntity not found for id: [%s] for plugin config: %s", entityId, pluginConfig.getName());
@@ -85,7 +84,7 @@ public class PluginConfigService {
         }
     }
 
-    public PluginConfigDto enablePlugin(int pluginConfigId) {
+    public PluginConfigDto enablePlugin(String pluginConfigId) {
         if (!pluginConfigRepository.existsById(pluginConfigId)) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
         }
@@ -96,12 +95,12 @@ public class PluginConfigService {
             throw new WecubeCoreException("Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
+        String entityId = pluginConfig.getEntityId();
+        if (StringUtils.isNotBlank(entityId)) {
         if (DISABLED != pluginConfig.getStatus()) {
             throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
         }
 
-        Integer entityId = pluginConfig.getEntityId();
-        if (null != entityId && entityId.intValue() > 0) {
             Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository.findById(entityId);
             if (!pluginPackageEntityOptional.isPresent()) {
                 String errorMessage = String.format("PluginPackageEntity not found for id: [%s] for plugin config: %s", entityId, pluginConfig.getName());
@@ -148,7 +147,7 @@ public class PluginConfigService {
         }
     }
 
-    public PluginConfigDto disablePlugin(int pluginConfigId) {
+    public PluginConfigDto disablePlugin(String pluginConfigId) {
         if (!pluginConfigRepository.existsById(pluginConfigId)) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
         }
@@ -179,7 +178,7 @@ public class PluginConfigService {
         return pluginConfigInterfaceDtos;
     }
 
-    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(int entityId) {
+    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String entityId) {
         Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigInterfaceRepository.findPluginConfigInterfaceByPluginConfig_EntityIdAndPluginConfig_Status(entityId, ENABLED);
         List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
         if (pluginConfigsOptional.isPresent()) {
