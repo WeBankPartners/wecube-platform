@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.service.datamodel;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.UrlToResponseDto;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
@@ -258,7 +257,7 @@ public class ExpressionServiceImpl implements ExpressionService {
                     List<Object> requestIdDataList = dataModelServiceStub.extractValueFromResponse(lastRequestResponseDto, requestId);
                     for (Object requestIdData : requestIdDataList) {
                         // find parent tree node, from attribute to id might found multiple ID which means multiple tree nodes
-                        List<Object> parentIdList = getResponseIdFromAttribute(lastRequestResponseDto, requestId, requestIdData);
+                        List<Object> parentIdList = dataModelServiceStub.getResponseIdFromAttribute(lastRequestResponseDto, requestId, requestIdData);
                         List<TreeNode> parentTreeNodeList = new ArrayList<>();
                         Objects.requireNonNull(parentIdList).forEach(id -> {
                             TreeNode parentNode = findParentNode(dataFlowTreeDto.getAnchorTreeNodeList(), lastRequestPackageName, lastRequestEntityName, id);
@@ -349,35 +348,6 @@ public class ExpressionServiceImpl implements ExpressionService {
         // update anchor tree node list
         dataFlowTreeDto.setAnchorTreeNodeList(newAnchorTreeNodeList);
 
-    }
-
-    /**
-     * Get response's id data from given attribute key and value
-     *
-     * @param lastRequestResponseDto last request's response dto
-     * @param requestAttributeName   key of filter
-     * @param requestAttributeValue  value of filter
-     * @return found responseId list
-     * @throws WecubeCoreException throws exception when there is an error converting response to LinkedHashMap
-     */
-    @SuppressWarnings("unchecked")
-    private List<Object> getResponseIdFromAttribute(CommonResponseDto lastRequestResponseDto, String requestAttributeName, Object requestAttributeValue) throws WecubeCoreException {
-        List<Object> result = new ArrayList<>();
-        List<Object> requestResponseDataList = dataModelServiceStub.extractValueFromResponse(lastRequestResponseDto, DataModelExpressionParser.FETCH_ALL);
-        requestResponseDataList.forEach(o -> {
-
-            if (!(o instanceof LinkedHashMap<?, ?>)) {
-                String msg = "Cannot transfer lastRequestResponse list to LinkedHashMap.";
-                logger.error(msg, lastRequestResponseDto, requestAttributeName, requestAttributeValue);
-                throw new WecubeCoreException(msg);
-            }
-            LinkedHashMap<String, Object> requestResponseDataMap = (LinkedHashMap<String, Object>) o;
-            if (requestAttributeValue.equals(requestResponseDataMap.get(requestAttributeName))) {
-                result.add(requestResponseDataMap.get(DataModelServiceStub.UNIQUE_IDENTIFIER));
-            }
-        });
-
-        return result;
     }
 
     /**
