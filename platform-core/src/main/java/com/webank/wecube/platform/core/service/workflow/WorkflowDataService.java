@@ -1,16 +1,5 @@
 package com.webank.wecube.platform.core.service.workflow;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
@@ -21,9 +10,19 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
-import com.webank.wecube.platform.core.service.DataModelExpressionService;
+import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
-import com.webank.wecube.platform.core.support.datamodel.TreeNode;
+import com.webank.wecube.platform.core.support.datamodel.dto.TreeNode;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class WorkflowDataService {
@@ -36,7 +35,7 @@ public class WorkflowDataService {
     private TaskNodeDefInfoRepository taskNodeDefInfoRepo;
 
     @Autowired
-    private DataModelExpressionService dataModelExpressionService;
+    private ExpressionService expressionService;
 
     @Autowired
     private PluginConfigService pluginConfigService;
@@ -113,7 +112,7 @@ public class WorkflowDataService {
             DataModelExpressionToRootData expr = new DataModelExpressionToRootData(f.getRoutineExpression(), dataId);
             List<TreeNode> nodes = null;
             try {
-                nodes = dataModelExpressionService.getPreviewTree(expr);
+                nodes = expressionService.getPreviewTree(expr);
             } catch (Exception e) {
                 log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId,e);
                 throw new WecubeCoreException(e.getMessage());

@@ -5,7 +5,7 @@ import com.google.common.collect.Iterables;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelLexer;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
-import com.webank.wecube.platform.core.support.datamodel.DataModelExpressionDto;
+import com.webank.wecube.platform.core.support.datamodel.dto.DataModelExpressionDto;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
