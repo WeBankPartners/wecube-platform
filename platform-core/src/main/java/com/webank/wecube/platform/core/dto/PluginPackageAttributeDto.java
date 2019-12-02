@@ -8,7 +8,7 @@ import org.springframework.util.StringUtils;
 import java.util.Objects;
 
 public class PluginPackageAttributeDto {
-    private Integer id;
+    private String id;
     private String packageName;
     private String entityName;
     private String name;
@@ -18,7 +18,7 @@ public class PluginPackageAttributeDto {
     private String refEntityName;
     private String refAttributeName;
 
-    public PluginPackageAttributeDto(Integer attributeId,
+    public PluginPackageAttributeDto(String attributeId,
                                      String name,
                                      String description,
                                      String dataType,
@@ -97,11 +97,11 @@ public class PluginPackageAttributeDto {
         return pluginPackageAttribute;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
