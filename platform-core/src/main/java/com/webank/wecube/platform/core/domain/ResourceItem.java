@@ -5,32 +5,20 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @Entity
 @Table(name = "resource_item")
 public class ResourceItem {
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @Column(name = "name")
     private String name;
@@ -42,10 +30,8 @@ public class ResourceItem {
     private String additionalProperties;
 
     @Column(name = "resource_server_id")
-    private Integer resourceServerId;
+    private String resourceServerId;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "resource_server_id", insertable = false, updatable = false)
     private ResourceServer resourceServer;
@@ -71,6 +57,17 @@ public class ResourceItem {
     @Column(name = "updated_date")
     private Timestamp updatedDate;
 
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != resourceServer ? resourceServer.getId() : null,
+                    name,
+                    type
+            );
+        }
+    }
+
     public Map<String, String> getAdditionalPropertiesMap() {
         if (additionalProperties != null) {
             return convertToMap(additionalProperties);
@@ -84,5 +81,134 @@ public class ResourceItem {
         } catch (IOException e) {
             throw new WecubeCoreException(String.format("Failed to parse resource_item.additional_properties [%s] : Invalid json format.", additionalProperties), e);
         }
+    }
+
+    public ResourceItem() {
+    }
+
+    public ResourceItem(String id, String name, String type, String additionalProperties, String resourceServerId, ResourceServer resourceServer, Integer isAllocated, String purpose, String status, String createdBy, Timestamp createdDate, String updatedBy, Timestamp updatedDate) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.additionalProperties = additionalProperties;
+        this.resourceServerId = resourceServerId;
+        this.resourceServer = resourceServer;
+        this.isAllocated = isAllocated;
+        this.purpose = purpose;
+        this.status = status;
+        this.createdBy = createdBy;
+        this.createdDate = createdDate;
+        this.updatedBy = updatedBy;
+        this.updatedDate = updatedDate;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getAdditionalProperties() {
+        return additionalProperties;
+    }
+
+    public void setAdditionalProperties(String additionalProperties) {
+        this.additionalProperties = additionalProperties;
+    }
+
+    public String getResourceServerId() {
+        return resourceServerId;
+    }
+
+    public void setResourceServerId(String resourceServerId) {
+        this.resourceServerId = resourceServerId;
+    }
+
+    public ResourceServer getResourceServer() {
+        return resourceServer;
+    }
+
+    public void setResourceServer(ResourceServer resourceServer) {
+        this.resourceServer = resourceServer;
+    }
+
+    public Integer getIsAllocated() {
+        return isAllocated;
+    }
+
+    public void setIsAllocated(Integer isAllocated) {
+        this.isAllocated = isAllocated;
+    }
+
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Timestamp getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Timestamp createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Timestamp getUpdatedDate() {
+        return updatedDate;
+    }
+
+    public void setUpdatedDate(Timestamp updatedDate) {
+        this.updatedDate = updatedDate;
+    }
+
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[] {"resourceServer"});
     }
 }

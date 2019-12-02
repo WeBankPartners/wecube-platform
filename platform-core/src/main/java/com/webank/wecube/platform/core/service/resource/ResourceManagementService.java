@@ -134,7 +134,7 @@ public class ResourceManagementService {
         return enrichedItems;
     }
 
-    private ResourceServer getResourceServerById(Integer resourceServerId) {
+    private ResourceServer getResourceServerById(String resourceServerId) {
         if (resourceServerId != null) {
             Optional<ResourceServer> enrichedServerOpt = resourceServerRepository.findById(resourceServerId);
             if (enrichedServerOpt.isPresent()) {
