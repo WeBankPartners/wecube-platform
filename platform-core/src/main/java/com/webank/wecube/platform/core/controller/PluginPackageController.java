@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.controller;
 
-import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.SystemVariable;
@@ -11,10 +10,7 @@ import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
-import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,12 +24,6 @@ import static com.webank.wecube.platform.core.domain.JsonResponse.*;
 @RestController
 @RequestMapping("/v1")
 public class PluginPackageController {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
-    @Autowired
-    private PluginProperties pluginProperties;
-    @Autowired
-    private PluginConfigService pluginConfigService;
 
     @Autowired
     private PluginPackageService pluginPackageService;
