@@ -2,7 +2,7 @@ package com.webank.wecube.platform.core.parser.datamodel;
 
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelBaseListener;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
-import com.webank.wecube.platform.core.support.datamodel.DataModelExpressionDto;
+import com.webank.wecube.platform.core.support.datamodel.dto.DataModelExpressionDto;
 import com.webank.wecube.platform.core.utils.constant.DataModelExpressionOpType;
 
 import java.util.LinkedList;

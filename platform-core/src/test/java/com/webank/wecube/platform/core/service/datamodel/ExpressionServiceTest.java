@@ -1,9 +1,9 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.datamodel;
 
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
-import com.webank.wecube.platform.core.support.datamodel.TreeNode;
+import com.webank.wecube.platform.core.support.datamodel.dto.TreeNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +21,11 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-public class DataModelExpressionServiceTest extends BaseSpringBootTest {
+public class ExpressionServiceTest extends BaseSpringBootTest {
 
 
     @Autowired
-    DataModelExpressionServiceImpl dataModelExpressionService;
+    ExpressionServiceImpl dataModelExpressionService;
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
