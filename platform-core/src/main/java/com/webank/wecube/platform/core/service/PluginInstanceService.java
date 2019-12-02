@@ -225,8 +225,8 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
         }
 
-        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findByPluginPackageIdAndStatus(
-                pluginPackage.getId(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
+        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findBySchemaNameAndStatus(
+                pluginPackage.getName(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
