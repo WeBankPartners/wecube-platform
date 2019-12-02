@@ -1,12 +1,10 @@
 package com.webank.wecube.platform.core.config;
 
-
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HeaderElement;
@@ -46,7 +44,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties.HttpClientProperties;
-import com.webank.wecube.platform.core.interceptor.RestTemplateInterceptor;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,9 +54,6 @@ public class HttpClientConfig {
 
     @Autowired
     private HttpClientProperties httpClientProperties;
-
-    @Autowired
-    private RestTemplateInterceptor restTemplateInterceptor;
 
     @Bean
     public PoolingHttpClientConnectionManager poolingConnectionManager() {
@@ -77,12 +71,11 @@ public class HttpClientConfig {
             log.error("Pooling Connection Manager Initialisation failure because of " + e.getMessage(), e);
         }
 
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder
-                .<ConnectionSocketFactory>create().register("https", sslsf)
-                .register("http", new PlainConnectionSocketFactory())
-                .build();
+        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("https", sslsf).register("http", new PlainConnectionSocketFactory()).build();
 
-        PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(
+                socketFactoryRegistry);
         poolingConnectionManager.setMaxTotal(httpClientProperties.getMaxTotalConnections());
         return poolingConnectionManager;
     }
@@ -92,7 +85,8 @@ public class HttpClientConfig {
         return new ConnectionKeepAliveStrategy() {
             @Override
             public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
-                HeaderElementIterator it = new BasicHeaderElementIterator(response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+                HeaderElementIterator it = new BasicHeaderElementIterator(
+                        response.headerIterator(HTTP.CONN_KEEP_ALIVE));
                 while (it.hasNext()) {
                     HeaderElement he = it.nextElement();
                     String param = he.getName();
@@ -114,10 +108,8 @@ public class HttpClientConfig {
                 .setConnectTimeout(httpClientProperties.getConnectTimeout())
                 .setSocketTimeout(httpClientProperties.getSocketTimeout()).build();
 
-        return HttpClients.custom()
-                .setDefaultRequestConfig(requestConfig)
-                .setConnectionManager(poolingConnectionManager())
-                .setKeepAliveStrategy(connectionKeepAliveStrategy())
+        return HttpClients.custom().setDefaultRequestConfig(requestConfig)
+                .setConnectionManager(poolingConnectionManager()).setKeepAliveStrategy(connectionKeepAliveStrategy())
                 .build();
     }
 
@@ -131,7 +123,8 @@ public class HttpClientConfig {
                     if (connectionManager != null) {
                         log.trace("run IdleConnectionMonitor - Closing expired and idle connections...");
                         connectionManager.closeExpiredConnections();
-                        connectionManager.closeIdleConnections(httpClientProperties.getCloseIdleConnectionWaitTimeSecs(), TimeUnit.SECONDS);
+                        connectionManager.closeIdleConnections(
+                                httpClientProperties.getCloseIdleConnectionWaitTimeSecs(), TimeUnit.SECONDS);
                     } else {
                         log.trace("run IdleConnectionMonitor - Http Client Connection manager is not initialised");
                     }
@@ -156,11 +149,10 @@ public class HttpClientConfig {
         scheduler.setPoolSize(httpClientProperties.getPoolSizeOfScheduler());
         return scheduler;
     }
-
+    
     @Bean
     public RestTemplate restTemplate() {
         RestTemplate template = restTemplateBuilder().build();
-        template.setInterceptors(Collections.singletonList(restTemplateInterceptor));
         return template;
     }
 
@@ -179,7 +171,9 @@ public class HttpClientConfig {
         public void customize(RestTemplate restTemplate) {
             restTemplate.setRequestFactory(clientHttpRequestFactory());
             restTemplate.getInterceptors().add(new CustomClientHttpRequestInterceptor());
-            //TODO: please remove this custom converter when upstream system (eg.CMDB) refactor all stupid content-type 'text/json;charset=utf-8' to 'application/json'
+            // TODO: please remove this custom converter when upstream system (eg.CMDB)
+            // refactor all stupid content-type 'text/json;charset=utf-8' to
+            // 'application/json'
             MappingJackson2HttpMessageConverter textJsonConverter = new MappingJackson2HttpMessageConverter();
             textJsonConverter.setSupportedMediaTypes(Arrays.asList(new MediaType("text", "*")));
             restTemplate.getMessageConverters().add(textJsonConverter);
@@ -189,7 +183,8 @@ public class HttpClientConfig {
     private class CustomClientHttpRequestInterceptor implements ClientHttpRequestInterceptor {
 
         @Override
-        public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
+                throws IOException {
             logRequestDetails(request);
             ClientHttpResponse response = execution.execute(request, body);
             logResponseDetails(response);

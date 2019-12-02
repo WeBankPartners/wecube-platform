@@ -3,21 +3,15 @@ package com.webank.wecube.platform.core.dto;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
-import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
-
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class PluginConfigInterfaceDto {
-    
+
     private Integer id;
     private Integer pluginConfigId;
     private String action;
@@ -104,7 +98,10 @@ public class PluginConfigInterfaceDto {
     public PluginConfigInterfaceDto() {
     }
 
-    public PluginConfigInterfaceDto(Integer id, Integer pluginConfigId, String action, String serviceName, String serviceDisplayName, String path, String httpMethod, List<PluginConfigInterfaceParameterDto> inputParameters, List<PluginConfigInterfaceParameterDto> outputParameters) {
+    public PluginConfigInterfaceDto(Integer id, Integer pluginConfigId, String action, String serviceName,
+            String serviceDisplayName, String path, String httpMethod,
+            List<PluginConfigInterfaceParameterDto> inputParameters,
+            List<PluginConfigInterfaceParameterDto> outputParameters) {
         this.id = id;
         this.pluginConfigId = pluginConfigId;
         this.action = action;
@@ -132,13 +129,15 @@ public class PluginConfigInterfaceDto {
         pluginConfigInterface.setHttpMethod(getHttpMethod());
         Set<PluginConfigInterfaceParameter> pluginConfigInterfaceInputParameters = newLinkedHashSet();
         if (null != getInputParameters() && getInputParameters().size() > 0) {
-            getInputParameters().forEach(inputParameter ->pluginConfigInterfaceInputParameters.add(inputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_INPUT)));
+            getInputParameters().forEach(inputParameter -> pluginConfigInterfaceInputParameters
+                    .add(inputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_INPUT)));
         }
         pluginConfigInterface.setInputParameters(pluginConfigInterfaceInputParameters);
 
         Set<PluginConfigInterfaceParameter> pluginConfigInterfaceOutputParameters = newLinkedHashSet();
         if (null != getOutputParameters() && getOutputParameters().size() > 0) {
-            getOutputParameters().forEach(outputParameter ->pluginConfigInterfaceOutputParameters.add(outputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_OUTPUT)));
+            getOutputParameters().forEach(outputParameter -> pluginConfigInterfaceOutputParameters
+                    .add(outputParameter.toDomain(pluginConfigInterface, PluginConfigInterfaceParameter.TYPE_OUTPUT)));
         }
         pluginConfigInterface.setOutputParameters(pluginConfigInterfaceOutputParameters);
         pluginConfigInterface.setIsAsyncProcessing(getIsAsyncProcessing());
@@ -159,13 +158,19 @@ public class PluginConfigInterfaceDto {
         pluginConfigInterfaceDto.setIsAsyncProcessing(pluginConfigInterface.getIsAsyncProcessing());
 
         List<PluginConfigInterfaceParameterDto> interfaceInputParameterDtos = newArrayList();
-        if (null != pluginConfigInterface.getInputParameters() && pluginConfigInterface.getInputParameters().size() > 0) {
-            pluginConfigInterface.getInputParameters().forEach(pluginConfigInterfaceParameter -> interfaceInputParameterDtos.add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
+        if (null != pluginConfigInterface.getInputParameters()
+                && pluginConfigInterface.getInputParameters().size() > 0) {
+            pluginConfigInterface.getInputParameters()
+                    .forEach(pluginConfigInterfaceParameter -> interfaceInputParameterDtos
+                            .add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
         }
         pluginConfigInterfaceDto.setInputParameters(interfaceInputParameterDtos);
         List<PluginConfigInterfaceParameterDto> interfaceOutputParameterDtos = newArrayList();
-        if (null != pluginConfigInterface.getOutputParameters() && pluginConfigInterface.getOutputParameters().size() > 0) {
-            pluginConfigInterface.getOutputParameters().forEach(pluginConfigInterfaceParameter -> interfaceOutputParameterDtos.add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
+        if (null != pluginConfigInterface.getOutputParameters()
+                && pluginConfigInterface.getOutputParameters().size() > 0) {
+            pluginConfigInterface.getOutputParameters()
+                    .forEach(pluginConfigInterfaceParameter -> interfaceOutputParameterDtos
+                            .add(PluginConfigInterfaceParameterDto.fromDomain(pluginConfigInterfaceParameter)));
         }
         pluginConfigInterfaceDto.setOutputParameters(interfaceOutputParameterDtos);
         return pluginConfigInterfaceDto;

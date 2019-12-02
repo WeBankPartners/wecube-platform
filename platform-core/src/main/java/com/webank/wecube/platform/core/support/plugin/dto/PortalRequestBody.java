@@ -10,8 +10,4 @@ public class PortalRequestBody<DATATYPE> {
 
     private List<Integer> instanceIds;
 
-    public static class SearchPluginLogRequest extends PortalRequestBody<PluginRequest.PluginLoggingInfoRequest> {
-    }
-
-
 }

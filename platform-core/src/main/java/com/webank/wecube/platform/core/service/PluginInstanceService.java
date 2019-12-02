@@ -200,7 +200,7 @@ public class PluginInstanceService {
     }
 
     private String replaceAllocatePort(String str, Integer allocatePort) {
-        return  str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
+        return str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
     }
 
     private String replaceHostIp(String str, String ip) {
@@ -528,27 +528,6 @@ public class PluginInstanceService {
         return trim(instance.getHost()) + ":" + trim(instance.getPort().toString());
     }
 
-    private class InitMysqlReturn {
-        DatabaseInfo dbInfo;
-        Integer mysqlInstanceResourceId;
-
-        public DatabaseInfo getDbInfo() {
-            return dbInfo;
-        }
-
-        public void setDbInfo(DatabaseInfo dbInfo) {
-            this.dbInfo = dbInfo;
-        }
-
-        public Integer getMysqlInstanceResourceId() {
-            return mysqlInstanceResourceId;
-        }
-
-        public void setMysqlInstanceResourceId(Integer mysqlInstanceResourceId) {
-            this.mysqlInstanceResourceId = mysqlInstanceResourceId;
-        }
-    }
-
     private class DatabaseInfo {
         String host;
         String port;
@@ -574,48 +553,24 @@ public class PluginInstanceService {
             return user;
         }
 
-        public void setUser(String user) {
-            this.user = user;
-        }
-
         public String getPassword() {
             return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
         }
 
         public String getHost() {
             return host;
         }
 
-        public void setHost(String host) {
-            this.host = host;
-        }
-
         public String getPort() {
             return port;
-        }
-
-        public void setPort(String port) {
-            this.port = port;
         }
 
         public String getSchema() {
             return schema;
         }
 
-        public void setSchema(String schema) {
-            this.schema = schema;
-        }
-
         public Integer getResourceItemId() {
             return resourceItemId;
-        }
-
-        public void setResourceItemId(Integer resourceItemId) {
-            this.resourceItemId = resourceItemId;
         }
     }
 
