@@ -234,6 +234,7 @@ CREATE TABLE `plugin_instances1` (
 ) ENGINE=InnoDB  COLLATE=utf8_general_ci;
 
 
+
 drop table if exists plugin_mysql_instances;
 CREATE TABLE `plugin_mysql_instances` (
     `id` VARCHAR(255) PRIMARY KEY,
@@ -248,6 +249,7 @@ CREATE TABLE `plugin_mysql_instances` (
     CONSTRAINT `FK6twufg10tr0fk81uyf9tdtxf1` FOREIGN KEY (`plugun_package_id`) REFERENCES `plugin_packages` (`id`),
     CONSTRAINT `FKn5plb1x3qnwxla4mixdhawo2o` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
 ) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+
 
 
 SET FOREIGN_KEY_CHECKS = 1;
