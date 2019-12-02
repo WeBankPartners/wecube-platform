@@ -226,17 +226,20 @@ public class ExpressionServiceImpl implements ExpressionService {
         List<CommonResponseDto> lastRequestResultList = lastExpressionDto.getJsonResponseStack().peek();
         List<TreeNode> newAnchorTreeNodeList = new ArrayList<>();
 
-        // last request info
-        String lastRequestPackageName;
-        String lastRequestEntityName;
-        if (lastExpressionDto.getOpTo() != null) {
-            // the last expression is refTo
-            lastRequestPackageName = Objects.requireNonNull(lastExpressionDto.getEntity().pkg()).getText();
-            lastRequestEntityName = Objects.requireNonNull(lastExpressionDto.getEntity().ety()).getText();
-        } else {
-            // the last expression is refBy
-            lastRequestPackageName = Objects.requireNonNull(lastExpressionDto.getBwdNode().entity().pkg()).getText();
-            lastRequestEntityName = Objects.requireNonNull(lastExpressionDto.getBwdNode().entity().ety()).getText();
+        // last request info for building preview tree usage
+        String lastRequestPackageName = "";
+        String lastRequestEntityName = "";
+        switch (lastExpressionDto.getDataModelExpressionOpType()) {
+            case REF_TO:
+                lastRequestPackageName = Objects.requireNonNull(lastExpressionDto.getEntity().pkg()).getText();
+                lastRequestEntityName = Objects.requireNonNull(lastExpressionDto.getEntity().ety()).getText();
+                break;
+            case REF_BY:
+                lastRequestPackageName = Objects.requireNonNull(lastExpressionDto.getBwdNode().entity().pkg()).getText();
+                lastRequestEntityName = Objects.requireNonNull(lastExpressionDto.getBwdNode().entity().ety()).getText();
+                break;
+            default:
+                break;
         }
 
 
@@ -251,16 +254,16 @@ public class ExpressionServiceImpl implements ExpressionService {
                 requestPackageName = expressionDto.getEntity().pkg().getText();
                 requestEntityName = expressionDto.getEntity().ety().getText();
                 for (CommonResponseDto lastRequestResponseDto : lastRequestResultList) {
-
-
                     // request for data and update the parent tree node
                     List<Object> requestIdDataList = dataModelServiceStub.extractValueFromResponse(lastRequestResponseDto, requestId);
                     for (Object requestIdData : requestIdDataList) {
                         // find parent tree node, from attribute to id might found multiple ID which means multiple tree nodes
                         List<Object> parentIdList = dataModelServiceStub.getResponseIdFromAttribute(lastRequestResponseDto, requestId, requestIdData);
                         List<TreeNode> parentTreeNodeList = new ArrayList<>();
+                        String finalLastRequestPackageName = lastRequestPackageName;
+                        String finalLastRequestEntityName = lastRequestEntityName;
                         Objects.requireNonNull(parentIdList).forEach(id -> {
-                            TreeNode parentNode = findParentNode(dataFlowTreeDto.getAnchorTreeNodeList(), lastRequestPackageName, lastRequestEntityName, id);
+                            TreeNode parentNode = findParentNode(dataFlowTreeDto.getAnchorTreeNodeList(), finalLastRequestPackageName, finalLastRequestEntityName, id);
                             Objects.requireNonNull(parentNode, "Cannot find parent node from given last request info");
                             parentTreeNodeList.add(parentNode);
                         });
@@ -344,7 +347,6 @@ public class ExpressionServiceImpl implements ExpressionService {
             default:
                 break;
         }
-
         // update anchor tree node list
         dataFlowTreeDto.setAnchorTreeNodeList(newAnchorTreeNodeList);
 
@@ -382,11 +384,17 @@ public class ExpressionServiceImpl implements ExpressionService {
         return result;
     }
 
+    /**
+     * Find write back target
+     *
+     * @param resultDtoStack the resolved expression dto result stack
+     * @return the write back target dto which contains info to execute write back function
+     */
     private WriteBackTargetDto findWriteBackTarget(Stack<DataModelExpressionDto> resultDtoStack) {
         DataModelExpressionDto finalFetchDto = Objects.requireNonNull(resultDtoStack.pop());
         List<CommonResponseDto> lastRequestResponse;
-        String writeBackPackageName = null;
-        String writeBackEntityName = null;
+        String writeBackPackageName = "";
+        String writeBackEntityName = "";
         if (resultDtoStack.empty()) {
             // no remain of stack, means the stack size is 1 when the function is invoked
             // {package}:{entity}.{attr} condition
@@ -398,17 +406,17 @@ public class ExpressionServiceImpl implements ExpressionService {
             DataModelExpressionDto lastLinkDto = resultDtoStack.pop();
             Stack<List<CommonResponseDto>> requestResponseList = lastLinkDto.getJsonResponseStack();
             lastRequestResponse = requestResponseList.pop();
-            if (null != lastLinkDto.getOpFetch()) {
-                // refBy
-                writeBackPackageName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().pkg(), "Cannot find package.").getText();
-                writeBackEntityName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().ety(), "Cannot find entity.").getText();
-
-            }
-
-            if (null != lastLinkDto.getOpTo()) {
-                // refTo
-                writeBackPackageName = Objects.requireNonNull(lastLinkDto.getEntity().pkg(), "Cannot find package.").getText();
-                writeBackEntityName = Objects.requireNonNull(lastLinkDto.getEntity().ety(), "Cannot find attribute.").getText();
+            switch (lastLinkDto.getDataModelExpressionOpType()) {
+                case REF_TO:
+                    writeBackPackageName = Objects.requireNonNull(lastLinkDto.getEntity().pkg(), "Cannot find package.").getText();
+                    writeBackEntityName = Objects.requireNonNull(lastLinkDto.getEntity().ety(), "Cannot find attribute.").getText();
+                    break;
+                case REF_BY:
+                    writeBackPackageName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().pkg(), "Cannot find package.").getText();
+                    writeBackEntityName = Objects.requireNonNull(lastLinkDto.getBwdNode().entity().ety(), "Cannot find entity.").getText();
+                    break;
+                default:
+                    break;
             }
         }
         String writeBackAttr = Objects.requireNonNull(finalFetchDto.getOpFetch()).attr().getText();
