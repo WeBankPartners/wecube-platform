@@ -10,7 +10,6 @@ CREATE TABLE `plugin_packages` (
                             UNIQUE INDEX `name` (`name`, `version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
-
 drop table if exists plugin_package_dependencies;
 create table plugin_package_dependencies (
   id VARCHAR(256) PRIMARY KEY,
@@ -55,8 +54,8 @@ CREATE TABLE plugin_package_entities
     package_name        VARCHAR(63)                    NOT NULL,
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
-    description        VARCHAR(256)                   NOT NULL
-);
+    description        VARCHAR(256)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 DROP TABLE IF EXISTS plugin_package_attributes;
 CREATE TABLE plugin_package_attributes
@@ -65,7 +64,7 @@ CREATE TABLE plugin_package_attributes
     entity_id    VARCHAR(256)                        NOT NULL,
     reference_id VARCHAR(256),
     name         VARCHAR(100)                   NOT NULL,
-    description  VARCHAR(256)                   NOT NULL,
+    description  VARCHAR(256),
     data_type    VARCHAR(20)                    NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
@@ -138,7 +137,8 @@ create table plugin_config_interfaces (
     `service_name` VARCHAR(500) NOT NULL, 
     `service_display_name` VARCHAR(500) NOT NULL,
     `path` VARCHAR(500) NOT NULL, 
-    `http_method` VARCHAR(10) NOT NULL
+    `http_method` VARCHAR(10) NOT NULL, 
+    `is_async_processing` VARCHAR(1) DEFAULT 'N' 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists plugin_config_interface_parameters;
@@ -154,8 +154,9 @@ CREATE TABLE `plugin_config_interface_parameters` (
     `required` varchar(5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
-DROP TABLE if EXISTS menu_items;
-CREATE TABLE menu_items
+
+drop table if exists menu_items;
+create table menu_items
 (
   id VARCHAR(256) PRIMARY KEY,
     parent_code VARCHAR(64),
@@ -167,15 +168,6 @@ CREATE TABLE menu_items
     KEY `menu_item_order` (`menu_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
-drop table if exists role_menu;
-create table role_menu
-(
-    id      INTEGER auto_increment primary key,
-    role_id INTEGER not null,
-    menu_id INTEGER not null,
-    unique key uk_roleid_menuid (role_id, menu_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
-
 drop table if exists plugin_package_resource_files;
 create table plugin_package_resource_files
 (
@@ -185,7 +177,7 @@ create table plugin_package_resource_files
   package_version varchar(20) not null,
   source varchar(64) not null,
   related_path varchar(1024) not null
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists resource_server;
 CREATE TABLE `resource_server` (
@@ -223,7 +215,7 @@ CREATE TABLE `resource_item` (
     PRIMARY KEY (`id`),
     INDEX `FK2g8cf9beg7msqry6cmqedvv9n` (`resource_server_id`),
     CONSTRAINT `FK2g8cf9beg7msqry6cmqedvv9n` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ;
 
 drop table if exists plugin_instances;
 CREATE TABLE `plugin_instances` (
@@ -243,5 +235,23 @@ CREATE TABLE `plugin_instances` (
     CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
     CONSTRAINT `FKn8124r2uvtipsy1hfkjmd4jts` FOREIGN KEY (`package_id`) REFERENCES `plugin_packages` (`id`)
 );
+
+
+drop table if exists plugin_mysql_instances;
+CREATE TABLE `plugin_mysql_instances` (
+    `id` VARCHAR(256) PRIMARY KEY,
+    `password` VARCHAR(255) NULL DEFAULT NULL,
+    `plugun_package_id` VARCHAR(256) DEFAULT NULL,
+    `resource_item_id` VARCHAR(256) DEFAULT NULL,
+    `schema_name` VARCHAR(255) NULL DEFAULT NULL,
+    `status` VARCHAR(255) NULL DEFAULT NULL,
+    `username` VARCHAR(255) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `FK6twufg10tr0fk81uyf9tdtxf1` (`plugun_package_id`),
+    INDEX `FKn5plb1x3qnwxla4mixdhawo2o` (`resource_item_id`),
+    CONSTRAINT `FK6twufg10tr0fk81uyf9tdtxf1` FOREIGN KEY (`plugun_package_id`) REFERENCES `plugin_packages` (`id`),
+    CONSTRAINT `FKn5plb1x3qnwxla4mixdhawo2o` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 SET FOREIGN_KEY_CHECKS = 1;
