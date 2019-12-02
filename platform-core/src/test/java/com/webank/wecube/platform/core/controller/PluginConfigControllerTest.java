@@ -413,11 +413,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         assertThat(pluginConfigInterfaceParameter.getName()).isEqualTo("name");
         assertThat(pluginConfigInterfaceParameter.getRequired()).isEqualTo("Y");
 
-        Integer id = config.getId();
+        String id = config.getId();
         assertThat(id).isNotNull();
 
         try {
-            mvc.perform(post("/v1/plugins/enable/" + id.intValue()))
+            mvc.perform(post("/v1/plugins/enable/" + id))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
