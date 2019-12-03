@@ -16,7 +16,7 @@
       <div slot="content">
         <div class="wecube_attr-ul">
           <ul v-for="opt in options" :key="opt.id">
-            <li class="" @click="optClickHandler(opt)">
+            <li class @click="optClickHandler(opt)">
               {{
                 opt.dataType === "ref"
                   ? isRefBy
@@ -95,7 +95,24 @@ export default {
       let entity = [];
       this.allDataModelsWithAttrs.forEach(_ => {
         if (_.pluginPackageEntities) {
-          entity = entity.concat(_.pluginPackageEntities);
+          entity = entity.concat(_.pluginPackageEntities).map(i => {
+            console.log("i", i);
+
+            return {
+              ...i,
+              attributes: i.attributes.concat({
+                dataType: "str",
+                description: "NONE",
+                entityName: i.name,
+                id: i.id + "__NONE",
+                name: "NONE",
+                packageName: _.packageName,
+                refAttributeName: null,
+                refEntityName: null,
+                refPackageName: null
+              })
+            };
+          });
         }
       });
       return entity;
