@@ -12,8 +12,8 @@ public interface SystemVariableRepository extends CrudRepository<SystemVariable,
 
     List<SystemVariable> findAllByScopeType(String scopeType);
 
-    List<SystemVariable> findAllByPluginPackageIdAndNameAndScopeTypeAndStatus(String pluginPackageId, String name,
-                                                                              String scopeType, String status);
+    List<SystemVariable> findAllByPluginPackage_IdAndNameAndScopeTypeAndStatus(String pluginPackageId, String name,
+                                                                               String scopeType, String status);
 
     List<SystemVariable> findByNameAndScopeTypeAndStatus(String name, String scopeType, String status);
 
