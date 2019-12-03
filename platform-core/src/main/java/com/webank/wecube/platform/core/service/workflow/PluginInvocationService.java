@@ -1,10 +1,36 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.*;
-import com.webank.wecube.platform.core.entity.workflow.*;
-import com.webank.wecube.platform.core.jpa.workflow.*;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
+import com.webank.wecube.platform.core.jpa.workflow.ProcInstInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
@@ -12,19 +38,10 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.SystemVariableService;
-import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
-import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
 
 /**
  * 
@@ -32,20 +49,13 @@ import java.util.*;
  *
  */
 @Service
-public class PluginInvocationService {
-    private static final Logger log = LoggerFactory.getLogger(PluginInvocationService.class);
+public class PluginInvocationService extends AbstractPluginInvocationService{
 
     private static final String MAPPING_TYPE_CONTEXT = "context";
     private static final String MAPPING_TYPE_ENTITY = "entity";
     private static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
 
-    private static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
 
-    private static final int RESULT_CODE_OK = 0;
-    private static final int RESULT_CODE_ERR = 1;
-
-    @Autowired
-    private PluginInvocationResultService pluginInvocationResultService;
 
     @Autowired
     private PluginServiceStub pluginServiceStub;
@@ -57,25 +67,15 @@ public class PluginInvocationService {
     private ProcInstInfoRepository procInstInfoRepository;
 
     @Autowired
-    private TaskNodeInstInfoRepository taskNodeInstInfoRepository;
+    protected PluginInstanceService pluginInstanceService;
 
-    @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepository;
-
-    @Autowired
-    private PluginConfigService pluginConfigService;
 
     @Autowired
     private ProcExecBindingRepository procExecBindingRepository;
 
-    @Autowired
-    private TaskNodeExecParamRepository taskNodeExecParamRepository;
 
     @Autowired
     private SystemVariableService systemVariableService;
-
-    @Autowired
-    private PluginInstanceService pluginInstanceService;
 
     @Autowired
     private TaskNodeParamRepository taskNodeParamRepository;
@@ -83,8 +83,7 @@ public class PluginInvocationService {
     @Autowired
     private TaskNodeExecRequestRepository taskNodeExecRequestRepository;
 
-    @Autowired
-    private ExpressionService expressionService;
+
 
     public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
@@ -373,32 +372,14 @@ public class PluginInvocationService {
             return retDataValues.get(0);
         }
         
-        if("string".equalsIgnoreCase(paramType)){
+        if(DATA_TYPE_STRING.equalsIgnoreCase(paramType)){
             return assembleValueList(retDataValues);
         }else{
             return retDataValues;
         }
     }
     
-    private String assembleValueList(List<Object> retDataValues){
-        StringBuilder sb = new StringBuilder();
-        boolean isFirst = true;
-        sb.append("[");
-        
-        for(Object dv : retDataValues){
-            if(!isFirst){
-                sb.append(",");
-            }else{
-                isFirst = false;
-            }
-            
-            sb.append(dv);
-        }
-        
-        sb.append("]");
-        
-        return sb.toString();
-    }
+    
     
     private List<Object> parseDataValueFromContext(List<TaskNodeExecParamEntity> execParamEntities){
         List<Object> retDataValues = new ArrayList<>();
@@ -590,38 +571,7 @@ public class PluginInvocationService {
 
     }
 
-    protected String asString(Object val, String sType) {
-        if (val == null) {
-            return null;
-        }
-        if (val instanceof String && "string".equals(sType)) {
-            return (String) val;
-        }
-
-        if (val instanceof Integer && "int".equals(sType)) {
-            return String.valueOf(val);
-        }
-
-        return val.toString();
-
-    }
-
-    protected Object fromString(String val, String sType) {
-        if ("string".equals(sType)) {
-            return val;
-        }
-
-        if (StringUtils.isBlank(val)) {
-            return null;
-        }
-
-        if ("int".equals(sType)) {
-            return Integer.parseInt(val);
-        }
-
-        // TODO
-        return val;
-    }
+    
 
     public void handlePluginInterfaceInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx) {
@@ -682,17 +632,7 @@ public class PluginInvocationService {
         return;
     }
 
-    private String trimWithMaxLength(String s) {
-        if (s == null) {
-            return "";
-        }
-
-        if (s.length() < 100) {
-            return s;
-        }
-
-        return s.substring(0, 100);
-    }
+    
 
     private void handleNullResultData(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx) {
@@ -778,7 +718,7 @@ public class PluginInvocationService {
 
             String paramDataType = null;
             if (p == null) {
-                paramDataType = "string";
+                paramDataType = DATA_TYPE_STRING;
             } else {
                 paramDataType = p.getDataType();
             }
@@ -797,39 +737,8 @@ public class PluginInvocationService {
         }
     }
 
-    private PluginConfigInterfaceParameter findPreConfiguredPluginConfigInterfaceParameter(
-            Set<PluginConfigInterfaceParameter> outputParameters, String paramName) {
-        for (PluginConfigInterfaceParameter p : outputParameters) {
-            if (p.getName().equals(paramName)) {
-                return p;
-            }
-        }
-
-        return null;
-    }
-
-    private List<Map<String, Object>> validateAndCastResultData(List<Object> resultData) {
-        List<Map<String, Object>> outputParameterMaps = new ArrayList<Map<String, Object>>();
-
-        for (Object obj : resultData) {
-            if (obj == null) {
-                continue;
-            }
-
-            if (!(obj instanceof Map)) {
-                log.error("unexpected data type:returned object is not a instance of map, obj={}", obj);
-                throw new WecubeCoreException("Unexpected data type");
-            }
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> retRecord = (Map<String, Object>) obj;
-
-            outputParameterMaps.add(retRecord);
-        }
-
-        return outputParameterMaps;
-
-    }
+    
+    
 
     private void handleSingleOutputMap(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx, Map<String, Object> outputParameterMap) {
@@ -981,5 +890,5 @@ public class PluginInvocationService {
         }
 
     }
-
+    
 }
