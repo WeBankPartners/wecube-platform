@@ -11,9 +11,9 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class PluginConfigInterfaceDto {
+    private String id;
+    private String pluginConfigId;
 
-    private Integer id;
-    private Integer pluginConfigId;
     private String action;
     private String serviceName;
     private String serviceDisplayName;
@@ -23,19 +23,19 @@ public class PluginConfigInterfaceDto {
     private List<PluginConfigInterfaceParameterDto> inputParameters;
     private List<PluginConfigInterfaceParameterDto> outputParameters;
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public Integer getPluginConfigId() {
+    public String getPluginConfigId() {
         return pluginConfigId;
     }
 
-    public void setPluginConfigId(Integer pluginConfig) {
+    public void setPluginConfigId(String pluginConfig) {
         this.pluginConfigId = pluginConfig;
     }
 
@@ -98,10 +98,7 @@ public class PluginConfigInterfaceDto {
     public PluginConfigInterfaceDto() {
     }
 
-    public PluginConfigInterfaceDto(Integer id, Integer pluginConfigId, String action, String serviceName,
-            String serviceDisplayName, String path, String httpMethod,
-            List<PluginConfigInterfaceParameterDto> inputParameters,
-            List<PluginConfigInterfaceParameterDto> outputParameters) {
+    public PluginConfigInterfaceDto(String id, String pluginConfigId, String action, String serviceName, String serviceDisplayName, String path, String httpMethod, List<PluginConfigInterfaceParameterDto> inputParameters, List<PluginConfigInterfaceParameterDto> outputParameters) {
         this.id = id;
         this.pluginConfigId = pluginConfigId;
         this.action = action;
