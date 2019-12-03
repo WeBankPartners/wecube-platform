@@ -575,7 +575,18 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 taskNodeParamRepo.save(n);
             });
         }
+        
+        List<TaskNodeParamEntity> nodeParamEntitiesToRemove = taskNodeParamRepo.findAllByProcDefIdAndStatus(procDefEntity.getId(), TaskNodeParamEntity.PREDEPLOY_STATUS);
+        List<TaskNodeDefInfoEntity> nodeEntitiesToRemove = taskNodeDefInfoRepo.findAllByProcDefIdAndStatus(procDefEntity.getId(), TaskNodeParamEntity.PREDEPLOY_STATUS);
 
+        nodeParamEntitiesToRemove.forEach(m -> {
+            taskNodeParamRepo.delete(m);
+        });
+        
+        nodeEntitiesToRemove.forEach(m -> {
+            taskNodeDefInfoRepo.delete(m);
+        });
+        
         return result;
     }
 
