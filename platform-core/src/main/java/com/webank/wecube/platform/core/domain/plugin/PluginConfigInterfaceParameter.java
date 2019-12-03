@@ -80,6 +80,7 @@ public class PluginConfigInterfaceParameter {
                     type,
                     name,
                     dataType);
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
