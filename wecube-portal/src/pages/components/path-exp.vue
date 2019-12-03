@@ -96,8 +96,6 @@ export default {
       this.allDataModelsWithAttrs.forEach(_ => {
         if (_.pluginPackageEntities) {
           entity = entity.concat(_.pluginPackageEntities).map(i => {
-            console.log("i", i);
-
             return {
               ...i,
               attributes: i.attributes.concat({
