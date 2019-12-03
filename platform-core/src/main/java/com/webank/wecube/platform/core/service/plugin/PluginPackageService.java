@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -14,6 +13,7 @@ import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
 import com.webank.wecube.platform.core.service.CommandService;
+import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.support.S3Client;
@@ -75,6 +75,12 @@ public class PluginPackageService {
     private ScpService scpService;
     @Autowired
     private CommandService commandService;
+
+    @Autowired
+    private PluginInstanceService instanceService;
+
+    @Autowired
+    private PluginConfigService pluginConfigService;
 
     @Transactional
     public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
@@ -215,10 +221,22 @@ public class PluginPackageService {
     }
 
     public PluginPackage registerPluginPackage(String pluginPackageId) {
-        if (!pluginPackageRepository.existsById(pluginPackageId)) {
-            throw new WecubeCoreException(String.format("Plugin package id not found for id [%s]", pluginPackageId));
-        }
+        ensurePluginPackageExists(pluginPackageId);
+
         PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+
+        ensurePluginPackageIsAllowedToRegister(pluginPackage);
+
+        ensureNoMoreThanTwoActivePackages(pluginPackage);
+
+        deployPluginUiResourcesIfRequired(pluginPackage);
+
+        pluginPackage.setStatus(REGISTERED);
+
+        return pluginPackageRepository.save(pluginPackage);
+    }
+
+    private void ensurePluginPackageIsAllowedToRegister(PluginPackage pluginPackage) {
         if (UNREGISTERED != pluginPackage.getStatus()) {
             String errorMessage = String.format(
                     "Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]",
@@ -226,8 +244,10 @@ public class PluginPackageService {
             log.warn(errorMessage);
             throw new WecubeCoreException(errorMessage);
         }
+    }
 
-        Optional<List<PluginPackage>> allByNameAndStatus = pluginPackageRepository.findAllByNameAndStatusIn(pluginPackage.getName(), Lists.newArrayList(REGISTERED, RUNNING, STOPPED));
+    private void ensureNoMoreThanTwoActivePackages(PluginPackage pluginPackage) {
+        Optional<List<PluginPackage>> allByNameAndStatus = pluginPackageRepository.findAllActiveByName(pluginPackage.getName());
         if (allByNameAndStatus.isPresent()) {
             List<PluginPackage> pluginPackages = allByNameAndStatus.get();
             if (pluginPackages.size() > 1) {
@@ -235,28 +255,21 @@ public class PluginPackageService {
                 throw new WecubeCoreException(String.format("Not allowed to register more packages. Current active packages: [%s]", activePackagesString));
             }
         }
-
-        if (pluginPackage.isUiPackageIncluded()) {
-            deployPluginUiResources(pluginPackage);
-        }
-        pluginPackage.setStatus(REGISTERED);
-        return pluginPackageRepository.save(pluginPackage);
     }
 
     public void decommissionPluginPackage(String pluginPackageId) {
-        if (!pluginPackageRepository.existsById(pluginPackageId)) {
-            throw new WecubeCoreException(String.format("Plugin package id not found for id [%s] ", pluginPackageId));
-        }
-        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
-        if (RUNNING.equals(pluginPackage.getStatus())) {
-            String errorMessage = String.format("Failed to decommission Plugin[%s/%s] due to package is RUNNING",
-                    pluginPackage.getName(), pluginPackage.getVersion());
-            log.warn(errorMessage);
-            throw new WecubeCoreException(errorMessage);
-        }
-        pluginPackage.setStatus(DECOMMISSIONED);
-        pluginPackageRepository.save(pluginPackage);
+        ensurePluginPackageExists(pluginPackageId);
 
+        ensureNoPluginInstanceIsRunningForPluginPackage(pluginPackageId);
+
+        PluginPackage pluginPackage = decommissionPluginPackageAndDisableAllItsPlugins(pluginPackageId);
+
+        removeLocalDockerImageFiles(pluginPackage);
+
+        removePluginUiResourcesIfRequired(pluginPackage);
+    }
+
+    private void removeLocalDockerImageFiles(PluginPackage pluginPackage) {
         // Remove related docker image file
         String versionPath = SystemUtils.getTempFolderPath() + pluginPackage.getName() + "-"
                 + pluginPackage.getVersion() + "/";
@@ -268,8 +281,29 @@ public class PluginPackageService {
             log.error("Remove plugin package file failed: {}", e);
             throw new WecubeCoreException("Remove plugin package file failed.");
         }
-        if (pluginPackage.isUiPackageIncluded()) {
-            removePluginUiResources(pluginPackage);
+    }
+
+    private PluginPackage decommissionPluginPackageAndDisableAllItsPlugins(String pluginPackageId) {
+        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+
+        pluginPackage.setStatus(DECOMMISSIONED);
+
+        pluginPackageRepository.save(pluginPackage);
+
+        pluginConfigService.disableAllPluginsForPluginPackage(pluginPackageId);
+        return pluginPackage;
+    }
+
+    private void ensureNoPluginInstanceIsRunningForPluginPackage(String pluginPackageId) {
+        List<PluginInstance> pluginInstances = instanceService.getAvailableInstancesByPackageId(pluginPackageId);
+        if (null != pluginInstances && pluginInstances.size() > 0) {
+            throw new WecubeCoreException(String.format("Decommission plugin package [%s] failure. There are still %d plugin instance%s running", pluginPackageId, pluginInstances.size(), pluginInstances.size() > 1 ? "es" : ""));
+        }
+    }
+
+    private void ensurePluginPackageExists(String pluginPackageId) {
+        if (!pluginPackageRepository.existsById(pluginPackageId)) {
+            throw new WecubeCoreException(String.format("Plugin package id not found for id [%s] ", pluginPackageId));
         }
     }
 
@@ -448,7 +482,10 @@ public class PluginPackageService {
         });
     }
 
-    private void deployPluginUiResources(PluginPackage pluginPackage) {
+    private void deployPluginUiResourcesIfRequired(PluginPackage pluginPackage) {
+        if (!pluginPackage.isUiPackageIncluded()) {
+            return;
+        }
         // download UI package from MinIO
         String tmpFolderName = SystemUtils.getTempFolderPath()
                 + new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
@@ -501,7 +538,11 @@ public class PluginPackageService {
         log.info("UI package deployment has done...");
     }
 
-    private void removePluginUiResources(PluginPackage pluginPackage) {
+    private void removePluginUiResourcesIfRequired(PluginPackage pluginPackage) {
+        if (!pluginPackage.isUiPackageIncluded()) {
+            return;
+        }
+
         String remotePath = pluginProperties.getStaticResourceServerPath() + File.separator + pluginPackage.getName()
                 + File.separator + pluginPackage.getVersion() + File.separator;
 
