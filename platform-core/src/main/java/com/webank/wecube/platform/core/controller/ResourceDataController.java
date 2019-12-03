@@ -27,13 +27,13 @@ public class ResourceDataController {
     
     @PostMapping("/mysql/query")
     @ResponseBody
-    public JsonResponse queryDB(@PathVariable("package_id")int packageId, @RequestBody SqlQueryRequest sqlQueryRequest){
+    public JsonResponse queryDB(@PathVariable("package_id") String packageId, @RequestBody SqlQueryRequest sqlQueryRequest){
         return okayWithData(resourceDataQueryService.queryDB(packageId, sqlQueryRequest));
     }
 
     @GetMapping("/s3/files")
     @ResponseBody
-    public JsonResponse queryS3Files(@PathVariable("package_id")int packageId){
+    public JsonResponse queryS3Files(@PathVariable("package_id") String packageId){
         return okayWithData(resourceDataQueryService.queryS3Files(packageId));
     }
     
