@@ -12,3 +12,5 @@ INSERT INTO `system_variables` (`id`, `plugin_package_id`, `name`, `value`, `def
 INSERT INTO `system_variables` (`id`, `plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (2, NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', NULL, 0, 'active');
 INSERT INTO `system_variables` (`id`, `plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (3, 'service-mgmt:v1.0', 'ALLOCATE_PORT', NULL, '20000', 'plugin-package', NULL, 0, 'active');
 INSERT INTO `system_variables` (`id`, `plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (4, 'service-mgmt:v1.0', 'ALLOCATE_HOST', NULL, NULL, 'plugin-package', NULL, 0, 'active');
+
+INSERT INTO `plugin_instances` (`id`, `host`, `container_name`, `port`, `container_status`, `package_id`, `docker_instance_resource_id`, `instance_name`, `plugin_mysql_instance_resource_id`, `s3bucket_resource_id`) VALUES ('service-mgmt:v1.0:service-mgmt:10.0.2.12:20003', '10.0.2.12', 'service-mgmt', 20003, 'RUNNING', 'service-mgmt:v1.0', NULL, 'wecmdb', NULL, NULL);

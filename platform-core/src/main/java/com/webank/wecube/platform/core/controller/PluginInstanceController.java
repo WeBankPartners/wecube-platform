@@ -51,7 +51,7 @@ public class PluginInstanceController {
         return okay();
     }
 
-    @DeleteMapping("/packages/instances/{instance-id}")
+    @DeleteMapping("/packages/instances/{instance-id}/remove")
     @ResponseBody
     public JsonResponse removePluginInstance(@PathVariable(value = "instance-id") String instanceId) {
         try {
