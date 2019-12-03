@@ -34,49 +34,6 @@ public class SystemVariableDto {
         return systemVariableDto;
     }
 
-    public static SystemVariable toDomain(SystemVariableDto dto, SystemVariable existedSystemVariable) {
-        SystemVariable systemVariable = existedSystemVariable;
-        if (systemVariable == null) {
-            systemVariable = new SystemVariable();
-        }
-
-        if (dto.getId() != null) {
-            systemVariable.setId(dto.getId());
-        }
-
-        if (dto.getPluginPackageId() != null) {
-            systemVariable.setPluginPackageId(dto.getPluginPackageId());
-        }
-
-        if (dto.getName() != null) {
-            systemVariable.setName(dto.getName());
-        }
-
-        if (dto.getValue() != null) {
-            systemVariable.setValue(dto.getValue());
-        }
-
-        if (dto.getDefaultValue() != null) {
-            systemVariable.setDefaultValue(dto.getDefaultValue());
-        }
-
-        if (dto.getScopeType() != null) {
-            systemVariable.setScopeType(dto.getScopeType());
-        }
-
-        if (dto.getSeqNo() != null) {
-            systemVariable.setSeqNo(dto.getSeqNo());
-        }
-
-        if (dto.getStatus() != null) {
-            systemVariable.setStatus(dto.getStatus());
-        } else {
-            systemVariable.setStatus(SystemVariable.ACTIVE);
-        }
-
-        return systemVariable;
-    }
-
     public String getId() {
         return id;
     }
