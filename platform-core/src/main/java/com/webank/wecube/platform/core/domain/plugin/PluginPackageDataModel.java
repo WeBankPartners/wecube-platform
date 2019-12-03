@@ -8,14 +8,15 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @Entity
 @Table(name = "plugin_package_data_model", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"packageName", "version"})
 })
 public class PluginPackageDataModel {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private String id;
 
     @Column(name = "version")
     private Integer version = 1;
@@ -45,7 +46,7 @@ public class PluginPackageDataModel {
     public PluginPackageDataModel() {
     }
 
-    public PluginPackageDataModel(Integer id, Integer version, String packageName, boolean isDynamic, String updatePath, String updateMethod, String updateSource, Long updateTime, Set<PluginPackageEntity> pluginPackageEntities) {
+    public PluginPackageDataModel(String id, Integer version, String packageName, boolean isDynamic, String updatePath, String updateMethod, String updateSource, Long updateTime, Set<PluginPackageEntity> pluginPackageEntities) {
         this.id = id;
         this.version = version;
         this.packageName = packageName;
@@ -57,12 +58,22 @@ public class PluginPackageDataModel {
         this.pluginPackageEntities = pluginPackageEntities;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
+    }
+
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    packageName,
+                    String.valueOf(version)
+            );
+        }
     }
 
     public Integer getVersion() {
