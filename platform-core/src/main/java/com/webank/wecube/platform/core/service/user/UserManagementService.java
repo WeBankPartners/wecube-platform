@@ -1,28 +1,27 @@
 package com.webank.wecube.platform.core.service.user;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-
-import java.util.List;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 
 public interface UserManagementService {
-    List<CommonResponseDto> createUser(List<Object> requestBody);
+    CommonResponseDto createUser(JSONObject jsonObject);
 
-    List<CommonResponseDto> retrieveUser();
+    CommonResponseDto retrieveUser();
 
-    List<CommonResponseDto> updateUser(List<Object> requestBody);
+    CommonResponseDto deleteUser(Long id);
 
-    List<CommonResponseDto> deleteUser(List<Object> requestBody);
+    CommonResponseDto createRole(JSONObject jsonObject);
 
-    List<CommonResponseDto> createRole(List<Object> requestBody);
+    CommonResponseDto retrieveRole();
 
-    List<CommonResponseDto> retrieveRole();
+    CommonResponseDto deleteRole(Long id);
 
-    List<CommonResponseDto> updateRole(List<Object> requestBody);
+    CommonResponseDto getRolesByUserName(String userName);
 
-    List<CommonResponseDto> deleteRole(List<Object> requestBody);
+    CommonResponseDto getUsersByRoleId(Long userId);
 
-    List<CommonResponseDto> grantRoleToUser(List<Object> requestBody);
+    CommonResponseDto grantRoleForUsers(Long roleId, JSONObject userIdList);
 
-    List<CommonResponseDto> revokeRoleFromUser(List<Object> requestBody);
+    CommonResponseDto revokeRoleFromUser(Long roleId, JSONObject jsonObject);
 
 }
