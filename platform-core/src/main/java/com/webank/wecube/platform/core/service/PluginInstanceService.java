@@ -499,7 +499,7 @@ public class PluginInstanceService {
         removeDockerInstanceDto.setId(instance.getDockerInstanceResourceId());
         logger.info("removeDockerInstanceDto = " + removeDockerInstanceDto.toString());
         resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
-        instance.setContainerStatus(PluginInstance.CONTAINER_STATUS_REMOVED);
+        pluginInstanceRepository.deleteById(instanceId);
     }
 
     private boolean isHostIpAvailable(String hostIp) {
