@@ -18,7 +18,7 @@ public interface PluginInstanceRepository extends CrudRepository<PluginInstance,
     @Query("SELECT instance FROM PluginInstance instance WHERE instance.containerStatus = :containerStatus and instance.pluginPackage.id = :packageId")
     List<PluginInstance> findByContainerStatusAndPackageId(@Param("containerStatus") String containerStatus, @Param("packageId") String packageId);
 
-    List<PluginInstance> findByPackageId(int packageId);
+    List<PluginInstance> findByPackageId(String packageId);
 
     List<PluginInstance> findAllByContainerStatus(String containerStatus);
 
