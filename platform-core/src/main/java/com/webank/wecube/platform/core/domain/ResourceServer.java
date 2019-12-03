@@ -74,6 +74,7 @@ public class ResourceServer {
                     name,
                     type
             );
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
