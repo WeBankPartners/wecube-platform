@@ -65,6 +65,7 @@ public class ResourceItem {
                     name,
                     type
             );
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
