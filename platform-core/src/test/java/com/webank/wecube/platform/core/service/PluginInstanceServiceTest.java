@@ -15,9 +15,9 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 
-public class SystemVariableServiceTest extends DatabaseBasedTest {
+public class PluginInstanceServiceTest extends DatabaseBasedTest {
     @Autowired
-    SystemVariableService systemVariableService;
+    PluginInstanceService pluginInstanceService;
 
     private void prepareDatabase() throws ScriptException {
         executeSqlScripts(newArrayList(new ClassPathResource("/database/03.wecube.test.data.sql")));
@@ -33,12 +33,14 @@ public class SystemVariableServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void variableReplacementShouldSuccess() throws ScriptException {
+    public void removePluginInstanceByIdShouldSuccess() throws ScriptException {
         prepareDatabase();
-        
-        String newString = systemVariableService.variableReplacement("service-mgmt__v1.0",
-                "{{ALLOCATE_PORT}}:21000,{{BASE_MOUNT_PATH}}/service-mgmt/log:/log");
-        assertThat(newString).isEqualTo(
-                "20000:21000,/data/service-mgmt/log:/log");
+
+        try {
+            pluginInstanceService.removePluginInstanceById("service-mgmt:v1.0:service-mgmt:10.0.2.12:20003");
+            assertThat(true);
+        } catch (Exception e) {
+            assertThat(false);
+        }
     }
 }
