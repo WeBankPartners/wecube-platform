@@ -5,23 +5,23 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParame
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 public class PluginConfigInterfaceParameterDto {
+    private String id;
+    private String pluginConfigInterfaceId;
     public static enum MappingType {
         context, entity, system_variable
     }
-    private Integer id;
-    private Integer pluginConfigInterfaceId;
     private String type;
     private String name;
     private String dataType;
     private String mappingType;
     private String mappingEntityExpression;
-    private Integer mappingSystemVariableId;
+    private String mappingSystemVariableId;
     private String required;
 
     public PluginConfigInterfaceParameterDto() {
     }
 
-    public PluginConfigInterfaceParameterDto(Integer id, Integer pluginConfigInterfaceId, String type, String name, String dataType, String mappingType, String mappingEntityExpression, Integer mappingSystemVariableId, String required) {
+    public PluginConfigInterfaceParameterDto(String id, String pluginConfigInterfaceId, String type, String name, String dataType, String mappingType, String mappingEntityExpression, String mappingSystemVariableId, String required) {
         this.id = id;
         this.pluginConfigInterfaceId = pluginConfigInterfaceId;
         this.type = type;
@@ -33,19 +33,19 @@ public class PluginConfigInterfaceParameterDto {
         this.required = required;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public Integer getPluginConfigInterfaceId() {
+    public String getPluginConfigInterfaceId() {
         return pluginConfigInterfaceId;
     }
 
-    public void setPluginConfigInterfaceId(Integer pluginConfigInterfaceId) {
+    public void setPluginConfigInterfaceId(String pluginConfigInterfaceId) {
         this.pluginConfigInterfaceId = pluginConfigInterfaceId;
     }
 
@@ -89,11 +89,11 @@ public class PluginConfigInterfaceParameterDto {
         this.mappingEntityExpression = mappingEntityExpression;
     }
 
-    public Integer getMappingSystemVariableId() {
+    public String getMappingSystemVariableId() {
         return mappingSystemVariableId;
     }
 
-    public void setMappingSystemVariableId(Integer mappingSystemVariableId) {
+    public void setMappingSystemVariableId(String mappingSystemVariableId) {
         this.mappingSystemVariableId = mappingSystemVariableId;
     }
 
