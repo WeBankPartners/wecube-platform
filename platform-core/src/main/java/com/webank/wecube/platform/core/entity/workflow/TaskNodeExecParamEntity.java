@@ -12,7 +12,7 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
     public static final String PARAM_TYPE_REQUEST = "INPUT";
     public static final String PARAM_TYPE_RESPONSE = "OUTPUT";
 
-    public static final String PARAM_DATA_TYPE_INT = "int";
+    public static final String PARAM_DATA_TYPE_NUMBER = "number";
     public static final String PARAM_DATA_TYPE_STRING = "string";
     public static final String PARAM_DATA_TYPE_TIMESTAMP = "timestamp";
 

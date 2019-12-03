@@ -65,6 +65,7 @@ public class PluginConfigInterface {
                     null != pluginConfig ? pluginConfig.getName() : null,
                     null != pluginConfig ? pluginConfig.getEntityName() : null,
                     action);
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 

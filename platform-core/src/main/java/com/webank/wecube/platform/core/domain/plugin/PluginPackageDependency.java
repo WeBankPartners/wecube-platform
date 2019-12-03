@@ -43,6 +43,7 @@ public class PluginPackageDependency {
                     dependencyPackageName,
                     dependencyPackageVersion
             );
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 

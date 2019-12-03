@@ -70,6 +70,7 @@ public class PluginMysqlInstance {
                     null != pluginPackage ? pluginPackage.getId() : null,
                     schemaName,
                     username);
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
