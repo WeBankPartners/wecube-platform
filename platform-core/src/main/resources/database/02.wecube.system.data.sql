@@ -15,8 +15,7 @@ insert into menu_items (id,parent_code,code,source,menu_order,description) value
 ,('ADMIN:ADMIN_RESOURCES_MANAGEMENT','ADMIN','ADMIN_RESOURCES_MANAGEMENT','SYSTEM', 13, '');
 
 
-INSERT INTO `system_variables` (`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
-INSERT INTO `system_variables` (`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', NULL, 0, 'active');
-INSERT INTO `system_variables` (`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (NULL, 'CMDB_URL', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
-INSERT INTO `system_variables` (`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (NULL, 'CALLBACK_URL', NULL, 'http://127.0.0.1:19090/workflow/callback', 'global', NULL, 0, 'active');
-
+INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES ('global:CORE_ADDR', NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES ('global:BASE_MOUNT_PATH', NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES ('global:CMDB_URL', NULL, 'CMDB_URL', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES ('global:CALLBACK_URL', NULL, 'CALLBACK_URL', NULL, 'http://127.0.0.1:19090/workflow/callback', 'global', NULL, 0, 'active');
