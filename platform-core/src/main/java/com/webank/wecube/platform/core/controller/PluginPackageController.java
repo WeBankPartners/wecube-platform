@@ -48,10 +48,10 @@ public class PluginPackageController {
 
     }
 
-    @PostMapping("/packages/register/{package-id}")
+    @PostMapping("/packages/register/{package-id:.+}")
     @ResponseBody
-    public JsonResponse registerPluginPackage(@PathVariable(value = "package-id") int packageId) {
-        PluginPackage pluginPackage;
+    public JsonResponse registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
+        PluginPackage pluginPackage = null;
         try {
             pluginPackage = pluginPackageService.registerPluginPackage(packageId);
         } catch (Exception e) {
@@ -60,9 +60,9 @@ public class PluginPackageController {
         return okayWithData(pluginPackage);
     }
 
-    @PostMapping("/packages/decommission/{package-id}")
+    @PostMapping("/packages/decommission/{package-id:.+}")
     @ResponseBody
-    public JsonResponse decommissionPluginPackage(@PathVariable(value = "package-id") int packageId) {
+    public JsonResponse decommissionPluginPackage(@PathVariable(value = "package-id") String packageId) {
         try {
             pluginPackageService.decommissionPluginPackage(packageId);
         } catch (Exception e) {
@@ -73,7 +73,7 @@ public class PluginPackageController {
 
     @GetMapping("/packages/{id}/dependencies")
     @ResponseBody
-    public JsonResponse getDependenciesById(@PathVariable(value = "id") Integer packageId) {
+    public JsonResponse getDependenciesById(@PathVariable(value = "id") String packageId) {
         PluginPackageDependencyDto dependencySetFoundById;
         try {
             dependencySetFoundById = pluginPackageService.getDependenciesById(packageId);
@@ -85,7 +85,7 @@ public class PluginPackageController {
 
     @GetMapping("/packages/{id}/menus")
     @ResponseBody
-    public JsonResponse getMenusById(@PathVariable(value = "id") Integer packageId) {
+    public JsonResponse getMenusById(@PathVariable(value = "id") String packageId) {
         List<MenuItemDto> menuList;
         try {
             menuList = pluginPackageService.getMenusById(packageId);
@@ -97,7 +97,7 @@ public class PluginPackageController {
 
     @GetMapping("/packages/{id}/system-parameters")
     @ResponseBody
-    public JsonResponse getSystemParamsById(@PathVariable(value = "id") Integer packageId) {
+    public JsonResponse getSystemParamsById(@PathVariable(value = "id") String packageId) {
         Set<SystemVariable> systemVariableSet;
         try {
             systemVariableSet = pluginPackageService.getSystemVarsById(packageId);
@@ -109,7 +109,7 @@ public class PluginPackageController {
 
     @GetMapping("/packages/{id}/authorities")
     @ResponseBody
-    public JsonResponse getAuthorityById(@PathVariable(value = "id") Integer packageId) {
+    public JsonResponse getAuthorityById(@PathVariable(value = "id") String packageId) {
         Set<PluginPackageAuthority> authoritySet;
         try {
             authoritySet = pluginPackageService.getAuthoritiesById(packageId);
@@ -121,7 +121,7 @@ public class PluginPackageController {
 
     @GetMapping("/packages/{id}/runtime-resources")
     @ResponseBody
-    public JsonResponse getResourceById(@PathVariable(value = "id") Integer packageId) {
+    public JsonResponse getResourceById(@PathVariable(value = "id") String packageId) {
         PluginPackageRuntimeResouceDto resouceFoundById;
         try {
             resouceFoundById = pluginPackageService.getResourcesById(packageId);
@@ -133,7 +133,7 @@ public class PluginPackageController {
 
     @GetMapping("/packages/{id}/plugins")
     @ResponseBody
-    public JsonResponse getPluginsById(@PathVariable(value = "id") Integer packageId) {
+    public JsonResponse getPluginsById(@PathVariable(value = "id") String packageId) {
         Set<PluginConfigDto> pluginConfigDtos = newLinkedHashSet();
 
         Set<PluginConfig> pluginConfigs = pluginPackageService.getPluginsById(packageId);
