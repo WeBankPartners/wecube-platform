@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.parser;
 
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.commons.XPathEvaluator;
 import com.webank.wecube.platform.core.domain.*;
@@ -8,11 +9,8 @@ import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
-import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.message.ReusableMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -28,13 +26,10 @@ import java.util.stream.Collectors;
 
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+import static com.webank.wecube.platform.core.utils.Constants.GLOBAL_SYSTEM_VARIABLES;
 import static org.apache.commons.lang3.StringUtils.trim;
 
 public class PluginPackageXmlParser {
-    @Autowired
-    SystemVariableRepository systemVariableRepository;
-
     private final static String SEPARATOR_OF_NAMES = "/";
     public static final String DEFAULT_DATA_MODEL_UPDATE_PATH = "/data-model";
     public static final String DEFAULT_DATA_MODEL_UPDATE_METHOD = "GET";
@@ -57,10 +52,8 @@ public class PluginPackageXmlParser {
     }
 
     private boolean equalGlobalSystemVariableName(String systemVariableName) {
-        List<SystemVariable> systemVariables = systemVariableRepository
-                .findAllByScopeTypeAndStatus(SystemVariable.SCOPE_TYPE_GLOBAL, SystemVariable.ACTIVE);
-        return systemVariables.stream().filter(x -> systemVariableName.equals(x.getName())).collect(Collectors.toList())
-                .size() > 0;
+        return Lists.newArrayList(GLOBAL_SYSTEM_VARIABLES).stream().filter(x -> systemVariableName.equals(x))
+                .collect(Collectors.toList()).size() > 0;
     }
 
     public PluginPackageDto parsePluginPackage() throws XPathExpressionException {
