@@ -12,12 +12,22 @@ import java.util.stream.Collectors;
 import static com.webank.wecube.platform.core.utils.CollectionUtils.pickLastOne;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-public interface PluginPackageRepository extends CrudRepository<PluginPackage, Integer> {
+public interface PluginPackageRepository extends CrudRepository<PluginPackage, String> {
 
     @Query("SELECT p FROM PluginPackage p WHERE p.status IN :statuses")
     Optional<List<PluginPackage>> findAllByStatus(PluginPackage.Status... statuses);
 
+    default Optional<List<PluginPackage>> findAllActive() {
+        return findAllByStatus(PluginPackage.ACTIVE_STATUS.toArray(new PluginPackage.Status[0]));
+    }
+
     List<PluginPackage> findAllByName(String name);
+
+    Optional<List<PluginPackage>> findAllByNameAndStatusIn(String name, Collection<PluginPackage.Status> statuses);
+
+    default Optional<List<PluginPackage>> findAllActiveByName(String name) {
+        return findAllByNameAndStatusIn(name, PluginPackage.ACTIVE_STATUS);
+    }
 
     default Optional<PluginPackage> findLatestVersionByName(String name, String... excludeVersions) {
         List<PluginPackage> pluginPackages = findAllByName(name);
