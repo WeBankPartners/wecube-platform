@@ -158,7 +158,8 @@ export default {
       isShowBody: false,
       isEnqueryPage: false,
       workflowActionModalVisible: false,
-      currentFailedNodeID: ""
+      currentFailedNodeID: "",
+      timer: null
     };
   },
   mounted() {
@@ -212,6 +213,8 @@ export default {
       }
     },
     queryHandler() {
+      clearInterval(this.timer);
+      this.timer = null;
       if (!this.selectedFlowInstance) return;
       this.isShowBody = true;
       this.isEnqueryPage = true;
@@ -242,6 +245,8 @@ export default {
       });
     },
     createHandler() {
+      clearInterval(this.timer);
+      this.timer = null;
       this.isShowBody = true;
       this.isEnqueryPage = false;
       this.selectedFlowInstance = "";
@@ -455,47 +460,46 @@ export default {
         }
       }
     },
-    processInstance() {
+    start() {
+      if (this.timer === null) {
+        this.getStatus();
+      }
+      if (this.timer != null) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+      this.timer = setInterval(() => {
+        this.getStatus();
+      }, 5000);
+    },
+    stop() {
+      clearInterval(this.timer);
+      this.timer = null;
+    },
+    async getStatus() {
       const found = this.allFlowInstances.find(
         _ => _.id === this.selectedFlowInstance
       );
-      let timer = null;
-
-      function start() {
-        if (timer === null) {
-          getStatus();
+      let { status, data, message } = await getProcessInstance(
+        found && found.id
+      );
+      if (status === "OK") {
+        this.flowData = {
+          ...data,
+          flowNodes: data.taskNodeInstances
+        };
+        this.initFlowGraph(true);
+        removeEvent(".retry", "click", this.retryHandler);
+        addEvent(".retry", "click", this.retryHandler);
+        d3.selectAll(".retry").attr("cursor", "pointer");
+        if (data.status === "Completed") {
+          this.stop();
         }
-        if (timer != null) {
-          clearInterval(timer);
-          timer = null;
-        }
-        timer = setInterval(() => {
-          getStatus();
-        }, 5000);
       }
-      function stop() {
-        clearInterval(timer);
-        timer = null;
-      }
-      const getStatus = async () => {
-        let { status, data, message } = await getProcessInstance(
-          found && found.id
-        );
-        if (status === "OK") {
-          this.flowData = {
-            ...data,
-            flowNodes: data.taskNodeInstances
-          };
-          this.initFlowGraph(true);
-          removeEvent(".retry", "click", this.retryHandler);
-          addEvent(".retry", "click", this.retryHandler);
-          d3.selectAll(".retry").attr("cursor", "pointer");
-          if (data.status === "Completed") {
-            stop();
-          }
-        }
-      };
-      start();
+    },
+    processInstance() {
+      this.timer = null;
+      this.start();
     },
     retryHandler(e) {
       this.currentFailedNodeID = e.target.parentNode.getAttribute("id");
