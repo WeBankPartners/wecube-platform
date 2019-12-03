@@ -140,7 +140,7 @@ public class SystemVariableService {
     }
 
     public List<SystemVariable> getPluginSystemVariableByPackageIdAndName(String packageId, String varName) {
-        return systemVariableRepository.findAllByPluginPackageIdAndNameAndScopeTypeAndStatus(packageId, varName,
+        return systemVariableRepository.findAllByPluginPackage_IdAndNameAndScopeTypeAndStatus(packageId, varName,
                 SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE, SystemVariable.ACTIVE);
     }
 
