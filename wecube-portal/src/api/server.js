@@ -216,7 +216,7 @@ export const decommissionPluginConfig = configId =>
 export const releasePluginConfig = configId =>
   req.post(`/platform/v1/plugin/configs/${configId}/release`);
 export const removePluginInstance = instanceId =>
-  req.delete(`/platform/v1/packages/instances/${instanceId}`);
+  req.delete(`/platform/v1/packages/instances/${instanceId}/remove`);
 export const queryLog = data =>
   req.post(`/platform/v1/plugin/packages/instances/log`, data);
 export const getPluginInstanceLogDetail = (id, data) =>
