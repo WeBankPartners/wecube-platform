@@ -27,6 +27,7 @@ public class DataModelServiceStub {
     public static final String CHAIN_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
     public static final String CREATE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/create";
     public static final String RETRIEVE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}";
+    public static final String RETRIEVE_REQUEST_WITH_FILTER_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}?{requestParams}";
     public static final String UPDATE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
     public static final String DELETE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/delete";
     public static final String UNIQUE_IDENTIFIER = "id";
@@ -181,6 +182,18 @@ public class DataModelServiceStub {
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
         paramMap.put("entityName", entityName);
+        return paramMap;
+    }
+
+    public Map<String, Object> generateGetUrlParamMapWithFilters(String gatewayUrl, String packageName, String entityName, Map<String, String> allFilters) {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("gatewayUrl", gatewayUrl);
+        paramMap.put("packageName", packageName);
+        paramMap.put("entityName", entityName);
+        paramMap.put("requestParams", allFilters.entrySet()
+                .stream()
+                .map(stringStringEntry -> stringStringEntry.getKey() + "=" + stringStringEntry.getValue())
+                .collect(Collectors.joining("&")));
         return paramMap;
     }
 
