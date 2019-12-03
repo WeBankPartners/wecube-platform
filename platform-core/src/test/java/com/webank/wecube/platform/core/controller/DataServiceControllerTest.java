@@ -74,6 +74,25 @@ public class DataServiceControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void retrieveEntityWithRequestParamShouldSucceed() {
+        int TARGET_ENTITY_SIZE = 1;
+
+        mockRetrieveEntityWithRequestParamServer();
+        try {
+            mvc.perform(get("/v1/packages/wecmdb/entities/system_design/retrieve?filter=id,0001_0000000001").accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is(CommonResponseDto.STATUS_OK)))
+                    .andExpect(jsonPath("$.data", is(iterableWithSize(TARGET_ENTITY_SIZE))))
+                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("0001_0000000001")))
+                    .andDo(print())
+                    .andReturn().getResponse();
+        } catch (Exception e) {
+            fail("Failed to fetch target entity: " + e.getMessage());
+        }
+        this.server.verify();
+    }
+
+    @Test
     public void updateEntityShouldSucceed() {
         final String UPDATED_ENTITY_CODE = "updated_system_design_code";
         mockUpdateEntityServer();
@@ -228,6 +247,30 @@ public class DataServiceControllerTest extends AbstractControllerTest {
                         "            \"id\": \"0001_0000000004\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": \"2019-07-24 21:18:02\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+    }
+
+    private void mockRetrieveEntityWithRequestParamServer() {
+        this.server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design?filter=id,0001_0000000001", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"key_name\": \"EDP\",\n" +
+                        "            \"business_group\": 105,\n" +
+                        "            \"code\": \"EDP\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"r_guid\": \"0001_0000000001\",\n" +
+                        "            \"name\": \"Deposit Micro Core System\",\n" +
+                        "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"id\": \"0001_0000000001\",\n" +
+                        "            \"state\": 34,\n" +
+                        "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
                         "        }\n" +
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
