@@ -218,7 +218,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
                 .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
                 .andExpect(jsonPath("$.data.packageName", is(packageName)))
-                .andExpect(jsonPath("$.data.id", is("package1:2")))
+                .andExpect(jsonPath("$.data.id", is("package1__2")))
                 .andExpect(jsonPath("$.data.version", is(2)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].packageName", containsInAnyOrder(packageName)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].name", containsInAnyOrder("entity_1")))

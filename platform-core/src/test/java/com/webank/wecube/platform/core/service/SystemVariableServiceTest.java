@@ -36,7 +36,7 @@ public class SystemVariableServiceTest extends DatabaseBasedTest {
     public void variableReplacementShouldSuccess() throws ScriptException {
         prepareDatabase();
         
-        String newString = systemVariableService.variableReplacement("service-mgmt:v1.0",
+        String newString = systemVariableService.variableReplacement("service-mgmt__v1.0",
                 "{{ALLOCATE_PORT}}:21000,{{BASE_MOUNT_PATH}}/service-mgmt/log:/log");
         assertThat(newString).isEqualTo(
                 "20000:21000,/data/service-mgmt/log:/log");

@@ -72,6 +72,7 @@ public class PluginInstance {
                     containerName,
                     host,
                     String.valueOf(port));
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 

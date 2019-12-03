@@ -343,30 +343,34 @@ export default {
       let nodes =
         this.flowData &&
         this.flowData.flowNodes &&
-        this.flowData.flowNodes.map((_, index) => {
-          if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
-            return `${_.nodeId} [label="${_.nodeName ||
-              "Null"}", fontsize="10", class="flow",style="${
-              excution ? "filled" : "none"
-            }" color="${
-              excution ? statusColor[_.status] : "#7F8A96"
-            }" shape="circle", id="${_.nodeId}"]`;
-          } else {
-            const className =
-              _.status === "Faulted" || _.status === "Timeouted" ? "retry" : "";
-            return `${_.nodeId} [fixedsize=false label="${_.orderedNo +
-              "、" +
-              _.nodeName}" class="flow ${className}" style="${
-              excution ? "filled" : "none"
-            }" color="${
-              excution
-                ? statusColor[_.status]
-                : _.nodeId === this.currentFlowNodeId
-                ? "#5DB400"
-                : "#7F8A96"
-            }"  shape="box" id="${_.nodeId}" ]`;
-          }
-        });
+        this.flowData.flowNodes
+          .filter(i => i.status != "predeploy")
+          .map((_, index) => {
+            if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
+              return `${_.nodeId} [label="${_.nodeName ||
+                "Null"}", fontsize="10", class="flow",style="${
+                excution ? "filled" : "none"
+              }" color="${
+                excution ? statusColor[_.status] : "#7F8A96"
+              }" shape="circle", id="${_.nodeId}"]`;
+            } else {
+              const className =
+                _.status === "Faulted" || _.status === "Timeouted"
+                  ? "retry"
+                  : "";
+              return `${_.nodeId} [fixedsize=false label="${_.orderedNo +
+                "、" +
+                _.nodeName}" class="flow ${className}" style="${
+                excution ? "filled" : "none"
+              }" color="${
+                excution
+                  ? statusColor[_.status]
+                  : _.nodeId === this.currentFlowNodeId
+                  ? "#5DB400"
+                  : "#7F8A96"
+              }"  shape="box" id="${_.nodeId}" ]`;
+            }
+          });
       let genEdge = () => {
         let pathAry = [];
         this.flowData &&
