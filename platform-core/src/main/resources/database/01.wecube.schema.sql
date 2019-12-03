@@ -7,8 +7,8 @@ CREATE TABLE `plugin_packages` (
     `status`                VARCHAR(20) NOT NULL default 'UNREGISTERED',
     `upload_timestamp`      timestamp default current_timestamp,
     `ui_package_included`   BIT default 0,
-                            UNIQUE INDEX `name` (`name`, `version`)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+    UNIQUE INDEX `name` (`name`, `version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_dependencies;
 create table plugin_package_dependencies (
@@ -16,7 +16,7 @@ create table plugin_package_dependencies (
   plugin_package_id VARCHAR(255) not null,
   dependency_package_name VARCHAR(50) not null,
   dependency_package_version varchar(20) not null
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_menus;
 create table plugin_package_menus (
@@ -29,7 +29,7 @@ create table plugin_package_menus (
   menu_order INTEGER NOT NULL AUTO_INCREMENT,
   path VARCHAR(256) not null,
   KEY `plugin_package_menu_order` (`menu_order`)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 DROP TABLE IF EXISTS plugin_package_data_model;
 CREATE TABLE plugin_package_data_model
@@ -43,7 +43,7 @@ CREATE TABLE plugin_package_data_model
     update_source       VARCHAR(32),
     update_time         BIGINT   default 0     NOT NULL,
     UNIQUE uk_plugin_package_data_model(package_name, version)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 DROP TABLE IF EXISTS plugin_package_entities;
 CREATE TABLE plugin_package_entities
@@ -55,7 +55,7 @@ CREATE TABLE plugin_package_entities
     name               VARCHAR(100)                   NOT NULL,
     display_name       VARCHAR(100)                   NOT NULL,
     description        VARCHAR(256)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 DROP TABLE IF EXISTS plugin_package_attributes;
 CREATE TABLE plugin_package_attributes
@@ -66,7 +66,7 @@ CREATE TABLE plugin_package_attributes
     name         VARCHAR(100)                   NOT NULL,
     description  VARCHAR(256),
     data_type    VARCHAR(20)                    NOT NULL
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists system_variables;
 create table system_variables (
@@ -80,7 +80,7 @@ create table system_variables (
   seq_no INTEGER null default 0,
   status varchar(50) null default 'active',
   index idx_prop_scope_val (plugin_package_id)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_authorities;
 create table plugin_package_authorities (
@@ -88,7 +88,7 @@ create table plugin_package_authorities (
   plugin_package_id VARCHAR(255) not null,
   role_name varchar(64) not null,
   menu_code varchar(64) not null
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 
 drop table if exists plugin_package_runtime_resources_docker;
@@ -100,7 +100,7 @@ create table plugin_package_runtime_resources_docker (
   port_bindings varchar(64) not null, 
   volume_bindings varchar(1024) not null,
   env_variables varchar(2000)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_runtime_resources_mysql;
 create table plugin_package_runtime_resources_mysql (
@@ -109,14 +109,14 @@ create table plugin_package_runtime_resources_mysql (
   schema_name varchar(128) not null,
   init_file_name varchar(256),
   upgrade_file_name varchar(256)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_runtime_resources_s3;
 create table plugin_package_runtime_resources_s3 (
   id VARCHAR(255) PRIMARY KEY,
   plugin_package_id VARCHAR(255) not null,
   bucket_name varchar(32) not null
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 
 drop table if exists plugin_configs;
@@ -127,7 +127,7 @@ CREATE TABLE `plugin_configs` (
   `entity_id` VARCHAR(255) NULL DEFAULT NULL,
   `entity_name` VARCHAR(100) NOT NULL,
   `status` VARCHAR(20) NOT NULL default 'DISABLED'
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_config_interfaces;
 create table plugin_config_interfaces (
@@ -139,7 +139,7 @@ create table plugin_config_interfaces (
     `path` VARCHAR(500) NOT NULL, 
     `http_method` VARCHAR(10) NOT NULL, 
     `is_async_processing` VARCHAR(1) DEFAULT 'N' 
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_config_interface_parameters;
 CREATE TABLE `plugin_config_interface_parameters` (
@@ -152,7 +152,7 @@ CREATE TABLE `plugin_config_interface_parameters` (
     `mapping_entity_expression` varchar(1024) NULL DEFAULT NULL,
     `mapping_system_variable_id` VARCHAR(500) NULL DEFAULT NULL,
     `required` varchar(5)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 
 drop table if exists menu_items;
@@ -166,7 +166,7 @@ create table menu_items
     menu_order INTEGER NOT NULL AUTO_INCREMENT,
     UNIQUE KEY uk_code (code),
     KEY `menu_item_order` (`menu_order`)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_resource_files;
 create table plugin_package_resource_files
@@ -177,7 +177,7 @@ create table plugin_package_resource_files
   package_version varchar(20) not null,
   source varchar(64) not null,
   related_path varchar(1024) not null
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists resource_server;
 CREATE TABLE `resource_server` (
@@ -195,7 +195,7 @@ CREATE TABLE `resource_server` (
     `type` VARCHAR(255) NULL DEFAULT NULL ,
     `updated_by` VARCHAR(255) NULL DEFAULT NULL ,
     `updated_date` DATETIME NULL DEFAULT NULL
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists resource_item;
 CREATE TABLE `resource_item` (
@@ -213,7 +213,7 @@ CREATE TABLE `resource_item` (
     `updated_date` DATETIME NULL DEFAULT NULL,
     INDEX `FK2g8cf9beg7msqry6cmqedvv9n` (`resource_server_id`),
     CONSTRAINT `FK2g8cf9beg7msqry6cmqedvv9n` FOREIGN KEY (`resource_server_id`) REFERENCES `resource_server` (`id`)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_instances;
 CREATE TABLE `plugin_instances` (
@@ -231,7 +231,7 @@ CREATE TABLE `plugin_instances` (
     INDEX `FKbqqlg3wrp1n0h926v5cojcjk7` (`s3bucket_resource_id`),
     CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
     CONSTRAINT `FKn8124r2uvtipsy1hfkjmd4jts` FOREIGN KEY (`package_id`) REFERENCES `plugin_packages` (`id`)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 
 
@@ -248,7 +248,7 @@ CREATE TABLE `plugin_mysql_instances` (
     INDEX `FKn5plb1x3qnwxla4mixdhawo2o` (`resource_item_id`),
     CONSTRAINT `FK6twufg10tr0fk81uyf9tdtxf1` FOREIGN KEY (`plugun_package_id`) REFERENCES `plugin_packages` (`id`),
     CONSTRAINT `FKn5plb1x3qnwxla4mixdhawo2o` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
-) ENGINE=InnoDB  COLLATE=utf8_general_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 
 
