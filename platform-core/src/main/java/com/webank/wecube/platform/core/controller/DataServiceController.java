@@ -37,10 +37,11 @@ public class DataServiceController {
     @ResponseBody
     public JsonResponse retrieveEntity(
             @PathVariable(value = "package-name") String packageName,
-            @PathVariable(value = "entity-name") String entityName
+            @PathVariable(value = "entity-name") String entityName,
+            @RequestParam Map<String, String> allFilters
     ) {
         try {
-            return JsonResponse.okayWithData(nonExpressionService.retrieveEntity(packageName, entityName));
+            return JsonResponse.okayWithData(nonExpressionService.retrieveEntity(packageName, entityName, allFilters));
         } catch (WecubeCoreException ex) {
             return JsonResponse.error(ex.getMessage());
         }
