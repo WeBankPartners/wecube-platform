@@ -104,7 +104,7 @@ export default {
   mounted() {
     this.currentEntity = this.rootEntity;
     const found = this.allEntity.find(_ => _.name === this.rootEntity);
-    this.currentPkg = found.packageName;
+    this.currentPkg = found ? found.packageName : "";
     this.restorePathExp();
 
     this.$emit("input", this.inputVal.replace(/\s/g, ""));

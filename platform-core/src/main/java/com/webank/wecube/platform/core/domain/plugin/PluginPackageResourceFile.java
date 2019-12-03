@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.domain.plugin;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.google.common.base.Objects;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -11,8 +12,9 @@ import javax.persistence.*;
 public class PluginPackageResourceFile {
 
     @Id
-    @GeneratedValue
-    private int id;
+    @GeneratedValue(generator = "resourceFileGenerator")
+    @GenericGenerator(name = "resourceFileGenerator", strategy = "org.hibernate.id.UUIDGenerator")
+    private String id;
 
     @JsonBackReference
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
@@ -30,11 +32,11 @@ public class PluginPackageResourceFile {
     @Column
     private String relatedPath;
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -84,7 +86,7 @@ public class PluginPackageResourceFile {
         super();
     }
 
-    public PluginPackageResourceFile(int id, PluginPackage pluginPackage, String packageName, String packageVersion, String source, String relatedPath) {
+    public PluginPackageResourceFile(String id, PluginPackage pluginPackage, String packageName, String packageVersion, String source, String relatedPath) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.packageName = packageName;
@@ -98,8 +100,7 @@ public class PluginPackageResourceFile {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PluginPackageResourceFile that = (PluginPackageResourceFile) o;
-        return id == that.id &&
-                Objects.equal(packageName, that.packageName) &&
+        return Objects.equal(packageName, that.packageName) &&
                 Objects.equal(packageVersion, that.packageVersion) &&
                 Objects.equal(source, that.source) &&
                 Objects.equal(relatedPath, that.relatedPath);
@@ -107,7 +108,7 @@ public class PluginPackageResourceFile {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, packageName, packageVersion, source, relatedPath);
+        return Objects.hashCode(packageName, packageVersion, source, relatedPath);
     }
 
     @Override

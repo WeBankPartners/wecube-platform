@@ -11,7 +11,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.*;
 
 public class PluginPackageEntityDto {
-    private Integer id;
+    private String id;
     private String packageName;
     private String name;
     private String displayName;
@@ -23,7 +23,7 @@ public class PluginPackageEntityDto {
     private List<PluginPackageAttributeDto> attributes = new ArrayList<>();
 
 
-    public PluginPackageEntityDto(Integer id, String name, String displayName, String description, List<PluginPackageAttributeDto> attributes) {
+    public PluginPackageEntityDto(String id, String name, String displayName, String description, List<PluginPackageAttributeDto> attributes) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
@@ -78,7 +78,7 @@ public class PluginPackageEntityDto {
         return new TrimmedPluginPackageEntityDto(getId(), getPackageName(), getDataModelVersion(), getName(), getDisplayName());
     }
 
-    public void updateReferenceBy(Integer entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
+    public void updateReferenceBy(String entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
         TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, dataModelVersion, name, displayName);
         this.referenceByEntityList.add(trimmedPluginPackageEntityDto);
     }
@@ -87,7 +87,7 @@ public class PluginPackageEntityDto {
         updateReferenceBy(trimmedEntityDto.getId(), trimmedEntityDto.getPackageName(), trimmedEntityDto.getDataModelVersion(), trimmedEntityDto.getName(), trimmedEntityDto.getDisplayName());
     }
 
-    public void updateReferenceTo(Integer entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
+    public void updateReferenceTo(String entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
         TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, dataModelVersion, name, displayName);
         this.referenceToEntityList.add(trimmedPluginPackageEntityDto);
     }
@@ -96,11 +96,11 @@ public class PluginPackageEntityDto {
         updateReferenceTo(trimmedEntityDto.getId(), trimmedEntityDto.getPackageName(), trimmedEntityDto.getDataModelVersion(), trimmedEntityDto.getName(), trimmedEntityDto.getDisplayName());
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -174,7 +174,7 @@ public class PluginPackageEntityDto {
     }
 
     public static class TrimmedPluginPackageEntityDto {
-        private Integer id;
+        private String id;
         private String packageName;
         private Integer dataModelVersion;
         private String name;
@@ -183,7 +183,7 @@ public class PluginPackageEntityDto {
         public TrimmedPluginPackageEntityDto() {
         }
 
-        public TrimmedPluginPackageEntityDto(Integer entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
+        public TrimmedPluginPackageEntityDto(String entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
             this.id = entityId;
             this.packageName = packageName;
             this.name = name;
@@ -191,11 +191,11 @@ public class PluginPackageEntityDto {
             this.dataModelVersion = dataModelVersion;
         }
 
-        public Integer getId() {
+        public String getId() {
             return id;
         }
 
-        public void setId(Integer id) {
+        public void setId(String id) {
             this.id = id;
         }
 
