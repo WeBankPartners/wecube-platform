@@ -73,6 +73,7 @@ public class PluginConfig {
                     null != pluginPackage ? pluginPackage.getVersion() : null,
                     name,
                     entityName);
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
