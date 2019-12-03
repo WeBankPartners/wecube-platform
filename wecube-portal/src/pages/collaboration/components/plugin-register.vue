@@ -28,6 +28,7 @@
                 @on-change="onSelectEntityType"
                 v-model="selectedEntityType"
                 :disabled="currentPluginObj.status === 'ENABLED'"
+                @on-open-change="getAllDataModels"
               >
                 <OptionGroup
                   :label="pluginPackage.packageName"
@@ -114,6 +115,7 @@
                         v-if="param.mappingType === 'system_variable'"
                         v-model="param.mappingSystemVariableId"
                         :disabled="currentPluginObj.status === 'ENABLED'"
+                        @on-open-change="retrieveSystemVariables"
                       >
                         <Option
                           v-for="item in allSystemVariables"

@@ -10,6 +10,7 @@
         >{{ $t("get_dynamic_model") }}</Button
       >
       <Button
+        :disabled="isApplyBtnDisabled"
         size="small"
         shape="circle"
         type="primary"
@@ -17,6 +18,11 @@
         @click="applyNewDataModel"
         >{{ $t("apply_data_model") }}</Button
       >
+    </div>
+    <div
+      v-if="!dataModel.dynamic && dataModel.pluginPackageEntities.length === 0"
+    >
+      {{ $t("no_data_model_provided") }}
     </div>
     <div class="graph-container" id="data-model-graph"></div>
   </div>
@@ -35,7 +41,8 @@ export default {
     return {
       data: [],
       dataModel: {},
-      graph: {}
+      graph: {},
+      isApplyBtnDisabled: true
     };
   },
   watch: {
@@ -60,6 +67,9 @@ export default {
         ? await pullDynamicDataModel(this.pkgId)
         : await getPluginPkgDataModel(this.pkgId);
       if (status === "OK") {
+        if (this.dataModel.dynamic) {
+          this.isApplyBtnDisabled = false;
+        }
         this.dataModel = data;
         this.data = data.pluginPackageEntities.map(_ => {
           return {
@@ -80,7 +90,10 @@ export default {
     async applyNewDataModel() {
       let { status, data, message } = await applyNewDataModel(this.dataModel);
       if (status === "OK") {
-        this.dataModel.dynamic && this.$emit("reGetPkgStatus");
+        if (this.dataModel.dynamic) {
+          this.$emit("reGetPkgStatus");
+          this.isApplyBtnDisabled = true;
+        }
         this.$Notice.success({
           title: "Success",
           desc: "Data model apply successfully"
