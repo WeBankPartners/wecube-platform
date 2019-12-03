@@ -4,8 +4,6 @@ import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 
 import lombok.EqualsAndHashCode;
@@ -32,26 +30,26 @@ public class SystemVariable {
     @JoinColumn(name = "plugin_package_id", insertable = false, updatable = false)
     private PluginPackage pluginPackage;
 
-    @Column
-    private String name;
-    @Column
-    private String value;
-    @Column
-    private String defaultValue;
-    @Column
-    private String scopeType;
-    @Column
-    private String scopeValue;
+	@Column
+	private String name;
+	@Column
+	private String value;
+	@Column
+	private String defaultValue;
+	@Column
+	private String scopeType;
+	@Column
+	private String scopeValue;
 
-    @Column
-    private Integer seqNo;
-    @Column
-    private String status;
+	@Column
+	private Integer seqNo;
+	@Column
+	private String status;
 
-    public String getId() {
-        return id;
-    }
-
+	public String getId() {
+		return id;
+	}
+	
     public void setId(String id) {
         this.id = id;
     }
