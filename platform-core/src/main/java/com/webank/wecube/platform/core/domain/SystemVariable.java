@@ -167,8 +167,4 @@ public class SystemVariable {
         return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
     }
 
-    public String getPluginPackageId() {
-        return null != pluginPackage ? pluginPackage.getId() : null;
-    }
-
 }
