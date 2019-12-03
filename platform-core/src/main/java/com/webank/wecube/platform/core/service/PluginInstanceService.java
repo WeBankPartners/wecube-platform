@@ -225,8 +225,8 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
         }
 
-        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findBySchemaNameAndStatus(
-                pluginPackage.getName(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
+        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository
+                .findBySchemaNameAndStatus(pluginPackage.getName(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
@@ -491,6 +491,7 @@ public class PluginInstanceService {
     }
 
     public void removePluginInstanceById(String instanceId) throws Exception {
+        logger.info("Remove instanceId is " + instanceId);
         Optional<PluginInstance> instanceOptional = pluginInstanceRepository.findById(instanceId);
         PluginInstance instance = instanceOptional.get();
         ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
@@ -537,7 +538,7 @@ public class PluginInstanceService {
         String resourceItemId;
 
         private DatabaseInfo(String host, String port, String schema, String user, String password,
-                             String resourceItemId) {
+                String resourceItemId) {
             this.host = host;
             this.port = port;
             this.schema = schema;
