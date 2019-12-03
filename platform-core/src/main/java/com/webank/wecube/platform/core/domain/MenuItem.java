@@ -88,6 +88,7 @@ public class MenuItem {
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
             this.id = ((null != parentCode && !parentCode.trim().equals("")) ? parentCode + KEY_COLUMN_DELIMITER : "") + code;
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
     @JsonIgnore
