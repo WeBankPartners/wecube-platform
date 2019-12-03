@@ -21,12 +21,12 @@ public class PluginPackageRepositoryTest  extends DatabaseBasedTest {
     @Test
     public void givenMultiplePluginPackageWithDifferentStatusWhenFindIdsByStatusThenShouldReturnCorrectIds() {
         long currentTimeMillis = System.currentTimeMillis();
-        PluginPackage serviceManagementV1PluginPackage = new PluginPackage(1, "servicemanagement", "v0.1", DECOMMISSIONED, new Timestamp(currentTimeMillis - 500000), false);
-        PluginPackage serviceManagementV2PluginPackage = new PluginPackage(2, "servicemanagement", "v0.2", STOPPED, new Timestamp(currentTimeMillis - 400000), false);
-        PluginPackage serviceManagementV3PluginPackage = new PluginPackage(3, "servicemanagement", "v0.3", RUNNING, new Timestamp(currentTimeMillis - 300000), false);
-        PluginPackage serviceManagementV4PluginPackage = new PluginPackage(4, "servicemanagement", "v0.4", UNREGISTERED, new Timestamp(currentTimeMillis - 200000), false);
-        PluginPackage cmdbPluginPackage = new PluginPackage(5, "cmdb", "v1.0", REGISTERED, new Timestamp(currentTimeMillis - 100000), false);
-        PluginPackage cmdbPluginPackage2 = new PluginPackage(6, "cmdb", "v2.0", UNREGISTERED, new Timestamp(currentTimeMillis), false);
+        PluginPackage serviceManagementV1PluginPackage = new PluginPackage("1", "servicemanagement", "v0.1", DECOMMISSIONED, new Timestamp(currentTimeMillis - 500000), false);
+        PluginPackage serviceManagementV2PluginPackage = new PluginPackage("2", "servicemanagement", "v0.2", STOPPED, new Timestamp(currentTimeMillis - 400000), false);
+        PluginPackage serviceManagementV3PluginPackage = new PluginPackage("3", "servicemanagement", "v0.3", RUNNING, new Timestamp(currentTimeMillis - 300000), false);
+        PluginPackage serviceManagementV4PluginPackage = new PluginPackage("4", "servicemanagement", "v0.4", UNREGISTERED, new Timestamp(currentTimeMillis - 200000), false);
+        PluginPackage cmdbPluginPackage = new PluginPackage("5", "cmdb", "v1.0", REGISTERED, new Timestamp(currentTimeMillis - 100000), false);
+        PluginPackage cmdbPluginPackage2 = new PluginPackage("6", "cmdb", "v2.0", UNREGISTERED, new Timestamp(currentTimeMillis), false);
 
         pluginPackageRepository.saveAll(Arrays.asList(serviceManagementV1PluginPackage, serviceManagementV2PluginPackage, serviceManagementV3PluginPackage, serviceManagementV4PluginPackage, cmdbPluginPackage, cmdbPluginPackage2));
 
