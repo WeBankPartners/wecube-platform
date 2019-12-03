@@ -202,10 +202,8 @@ public class PluginPackageXmlParser {
                 systemVariable.setScopeValue(pluginPackage.getName());
             }
 
-            systemVariable.setPluginPackage(pluginPackage);
             if (systemVariable.getScopeType() == SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE) {
-                systemVariable.setPluginPackageId(
-                        String.join(KEY_COLUMN_DELIMITER, pluginPackage.getName(), pluginPackage.getVersion()));
+                systemVariable.setPluginPackage(pluginPackage);
             }
 
             systemVariables.add(systemVariable);
