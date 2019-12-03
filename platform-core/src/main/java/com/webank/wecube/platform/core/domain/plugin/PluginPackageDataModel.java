@@ -73,6 +73,7 @@ public class PluginPackageDataModel {
                     packageName,
                     String.valueOf(version)
             );
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
