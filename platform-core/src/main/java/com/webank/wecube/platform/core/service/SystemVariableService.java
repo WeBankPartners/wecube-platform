@@ -15,6 +15,7 @@ import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 import com.webank.wecube.platform.core.utils.StringUtils;
 
@@ -26,6 +27,8 @@ public class SystemVariableService {
 
     @Autowired
     private SystemVariableRepository systemVariableRepository;
+    @Autowired
+    PluginPackageRepository pluginPackageRepository;
 
     public QueryResponse<SystemVariableDto> retrieveSystemVariables(QueryRequest queryRequest) {
         QueryResponse<SystemVariable> queryResponse = entityRepository.query(SystemVariable.class, queryRequest);
@@ -72,10 +75,53 @@ public class SystemVariableService {
                     existedServer = existedSystemVariableOpt.get();
                 }
             }
-            SystemVariable domain = SystemVariableDto.toDomain(dto, existedServer);
+            SystemVariable domain = toDomain(dto, existedServer);
             domains.add(domain);
         });
         return domains;
+    }
+    
+    public SystemVariable toDomain(SystemVariableDto dto, SystemVariable existedSystemVariable) {
+        SystemVariable systemVariable = existedSystemVariable;
+        if (systemVariable == null) {
+            systemVariable = new SystemVariable();
+        }
+
+        if (dto.getId() != null) {
+            systemVariable.setId(dto.getId());
+        }
+
+        if (dto.getPluginPackageId() != null) {
+            systemVariable.setPluginPackage(pluginPackageRepository.findById(dto.getPluginPackageId()).get());
+        }
+
+        if (dto.getName() != null) {
+            systemVariable.setName(dto.getName());
+        }
+
+        if (dto.getValue() != null) {
+            systemVariable.setValue(dto.getValue());
+        }
+
+        if (dto.getDefaultValue() != null) {
+            systemVariable.setDefaultValue(dto.getDefaultValue());
+        }
+
+        if (dto.getScopeType() != null) {
+            systemVariable.setScopeType(dto.getScopeType());
+        }
+
+        if (dto.getSeqNo() != null) {
+            systemVariable.setSeqNo(dto.getSeqNo());
+        }
+
+        if (dto.getStatus() != null) {
+            systemVariable.setStatus(dto.getStatus());
+        } else {
+            systemVariable.setStatus(SystemVariable.ACTIVE);
+        }
+
+        return systemVariable;
     }
 
     private List<SystemVariableDto> convertVariableDomainToDto(Iterable<SystemVariable> savedDomains) {
@@ -94,7 +140,7 @@ public class SystemVariableService {
     }
 
     public List<SystemVariable> getPluginSystemVariableByPackageIdAndName(String packageId, String varName) {
-        return systemVariableRepository.findAllByPluginPackageIdAndNameAndScopeTypeAndStatus(packageId, varName,
+        return systemVariableRepository.findAllByPluginPackage_IdAndNameAndScopeTypeAndStatus(packageId, varName,
                 SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE, SystemVariable.ACTIVE);
     }
 
