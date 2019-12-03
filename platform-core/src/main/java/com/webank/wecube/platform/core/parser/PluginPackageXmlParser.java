@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.parser;
 
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.commons.XPathEvaluator;
 import com.webank.wecube.platform.core.domain.*;
@@ -21,10 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+import static com.webank.wecube.platform.core.utils.Constants.GLOBAL_SYSTEM_VARIABLES;
 import static org.apache.commons.lang3.StringUtils.trim;
 
 public class PluginPackageXmlParser {
@@ -47,6 +49,11 @@ public class PluginPackageXmlParser {
     private PluginPackageXmlParser(InputSource inputSource)
             throws IOException, SAXException, ParserConfigurationException {
         xPathEvaluator = XPathEvaluator.newInstance(inputSource);
+    }
+
+    private boolean equalGlobalSystemVariableName(String systemVariableName) {
+        return Lists.newArrayList(GLOBAL_SYSTEM_VARIABLES).stream().filter(x -> systemVariableName.equals(x))
+                .collect(Collectors.toList()).size() > 0;
     }
 
     public PluginPackageDto parsePluginPackage() throws XPathExpressionException {
@@ -194,19 +201,21 @@ public class PluginPackageXmlParser {
             SystemVariable systemVariable = new SystemVariable();
 
             systemVariable.setStatus(SystemVariable.ACTIVE);
-            systemVariable.setName(getNonNullStringAttribute(systemVariableNode, "./@name", "System variable name"));
+
+            String systemVariableName = getNonNullStringAttribute(systemVariableNode, "./@name",
+                    "System variable name");
+            if (equalGlobalSystemVariableName(systemVariableName)) {
+                throw new WecubeCoreException(
+                        String.format("Repeated define WeCube Global System Variable [%s]", systemVariableName));
+            }
+            systemVariable.setName(systemVariableName);
             systemVariable.setDefaultValue(getStringAttribute(systemVariableNode, "./@defaultValue"));
             String scopeType = getStringAttribute(systemVariableNode, "./@scopeType");
             systemVariable.setScopeType(scopeType);
             if (SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE.equals(scopeType)) {
                 systemVariable.setScopeValue(pluginPackage.getName());
             }
-
             systemVariable.setPluginPackage(pluginPackage);
-            if (systemVariable.getScopeType() == SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE) {
-                systemVariable.setPluginPackageId(
-                        String.join(KEY_COLUMN_DELIMITER, pluginPackage.getName(), pluginPackage.getVersion()));
-            }
 
             systemVariables.add(systemVariable);
         }
