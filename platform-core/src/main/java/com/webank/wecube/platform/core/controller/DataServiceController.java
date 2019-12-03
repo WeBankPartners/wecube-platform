@@ -21,6 +21,7 @@ public class DataServiceController {
     }
 
     @PostMapping("/packages/{package-name}/entities/{entity-name}/create")
+    @ResponseBody
     public JsonResponse createEntity(@PathVariable("package-name") String packageName,
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
@@ -47,6 +48,7 @@ public class DataServiceController {
     }
 
     @PostMapping("/packages/{package-name}/entities/{entity-name}/update")
+    @ResponseBody
     public JsonResponse updateEntity(@PathVariable("package-name") String packageName,
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
@@ -58,6 +60,7 @@ public class DataServiceController {
     }
 
     @PostMapping("/packages/{package-name}/entities/{entity-name}/delete")
+    @ResponseBody
     public JsonResponse deleteEntity(@PathVariable("package-name") String packageName,
                                      @PathVariable("entity-name") String entityName,
                                      @RequestBody List<Map<String, Object>> request) {
