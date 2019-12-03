@@ -490,7 +490,7 @@ public class PluginInstanceService {
         return result.get(0);
     }
 
-    public void removePluginInstanceById(Integer instanceId) throws Exception {
+    public void removePluginInstanceById(String instanceId) throws Exception {
         Optional<PluginInstance> instanceOptional = pluginInstanceRepository.findById(instanceId);
         PluginInstance instance = instanceOptional.get();
         ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
