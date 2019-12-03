@@ -14,6 +14,7 @@ public interface TaskNodeDefInfoRepository extends JpaRepository<TaskNodeDefInfo
             + " where t.procDefId = :procDefId and t.nodeId = :nodeId and t.status = :status")
     TaskNodeDefInfoEntity findOneWithProcessIdAndNodeIdAndStatus(@Param("procDefId") String procDefId,
             @Param("nodeId") String nodeId, @Param("status") String status);
-    
-    List<TaskNodeDefInfoEntity> findAllByProcDefId(String procDefId);
+
+    @Query("select t from TaskNodeDefInfoEntity t " + " where t.procDefId = :procDefId and t.status != 'predeploy' ")
+    List<TaskNodeDefInfoEntity> findAllByProcDefId(@Param("procDefId") String procDefId);
 }
