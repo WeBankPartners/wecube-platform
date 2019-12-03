@@ -29,9 +29,16 @@ public class NonExpressionServiceImpl implements NonExpressionService {
     }
 
     @Override
-    public List<Object> retrieveEntity(String packageName, String entityName) {
-        Map<String, Object> getAllUrlParamMap = dataModelServiceStub.generateGetAllParamMap(this.applicationProperties.getGatewayUrl(), packageName, entityName);
-        UrlToResponseDto urlToResponseDto = dataModelServiceStub.initiateGetRequest(DataModelServiceStub.RETRIEVE_REQUEST_URL, getAllUrlParamMap);
+    public List<Object> retrieveEntity(String packageName, String entityName, Map<String, String> allFilters) {
+        UrlToResponseDto urlToResponseDto;
+        if (allFilters.isEmpty()) {
+            Map<String, Object> getAllUrlParamMap = dataModelServiceStub.generateGetAllParamMap(this.applicationProperties.getGatewayUrl(), packageName, entityName);
+            urlToResponseDto = dataModelServiceStub.initiateGetRequest(DataModelServiceStub.RETRIEVE_REQUEST_URL, getAllUrlParamMap);
+        } else {
+            Map<String, Object> getAllUrlParamMap = dataModelServiceStub.generateGetUrlParamMapWithFilters(this.applicationProperties.getGatewayUrl(), packageName, entityName, allFilters);
+            urlToResponseDto = dataModelServiceStub.initiateGetRequest(DataModelServiceStub.RETRIEVE_REQUEST_WITH_FILTER_URL, getAllUrlParamMap);
+        }
+
         return dataModelServiceStub.extractValueFromResponse(urlToResponseDto.getResponseDto(), DataModelExpressionParser.FETCH_ALL);
     }
 
