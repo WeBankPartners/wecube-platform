@@ -68,6 +68,7 @@ public class SystemVariable {
 					name,
 					SCOPE_TYPE_GLOBAL.equals(scopeType) ? SCOPE_TYPE_GLOBAL : scopeValue
 			);
+			this.id = this.id.replaceAll("\\s+", "_");
 		}
 	}
 
