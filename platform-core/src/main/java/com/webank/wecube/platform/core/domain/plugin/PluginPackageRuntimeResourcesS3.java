@@ -38,6 +38,7 @@ public class PluginPackageRuntimeResourcesS3 {
                     null != pluginPackage ? pluginPackage.getVersion() : null,
                     bucketName
             );
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
