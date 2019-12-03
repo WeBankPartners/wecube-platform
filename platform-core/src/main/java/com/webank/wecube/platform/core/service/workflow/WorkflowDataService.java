@@ -123,7 +123,7 @@ public class WorkflowDataService {
                 continue;
             }
             
-            log.info("total {} records returned for {} and {}", f.getRoutineExpression(), dataId);
+            log.info("total {} records returned for {} and {}", nodes.size(), f.getRoutineExpression(), dataId);
 
             for (TreeNode tn : nodes) {
                 String treeNodeId = buildId(tn);

@@ -13,9 +13,9 @@
             action="platform/v1/packages"
             :headers="setUploadActionHeader"
           >
-            <Button icon="ios-cloud-upload-outline">{{
-              $t("upload_plugin_btn")
-            }}</Button>
+            <Button icon="ios-cloud-upload-outline">
+              {{ $t("upload_plugin_btn") }}
+            </Button>
           </Upload>
         </Card>
       </Row>
@@ -32,9 +32,9 @@
             </Col>
           </Row>
           <div style="height: 70%; overflow: auto">
-            <span v-if="plugins.length < 1">{{
-              $t("no_plugin_packages")
-            }}</span>
+            <span v-if="plugins.length < 1">
+              {{ $t("no_plugin_packages") }}
+            </span>
             <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
               <Panel
                 :name="plugin.id + ''"
@@ -51,9 +51,8 @@
                       ? 'nonDecomissionedPkgName'
                       : 'decomissionedPkgName'
                   "
+                  >{{ plugin.name + "_" + plugin.version }}</span
                 >
-                  {{ plugin.name + "_" + plugin.version }}
-                </span>
                 <span style="float: right; margin-right: 10px">
                   <Button
                     v-if="plugin.status !== 'DECOMMISSIONED'"
@@ -132,9 +131,9 @@
           name="confirm"
           :label="$t('confirm')"
         >
-          <Button type="info" @click="registPackage()">{{
-            $t("confirm_to_regist_plugin")
-          }}</Button>
+          <Button type="info" @click="registPackage()">
+            {{ $t("confirm_to_regist_plugin") }}
+          </Button>
         </TabPane>
       </Tabs>
     </Col>
@@ -157,9 +156,9 @@
           <Row class="instances-container">
             <Collapse value="1" @on-change="onRuntimeCollapseChange">
               <Panel name="1">
-                <span style="font-size: 14px; font-weight: 600">{{
-                  $t("runtime_container")
-                }}</span>
+                <span style="font-size: 14px; font-weight: 600">
+                  {{ $t("runtime_container") }}
+                </span>
                 <p slot="content">
                   <Card dis-hover>
                     <Row>
@@ -197,9 +196,9 @@
                             style="border-bottom: 1px solid gray; padding: 10px 0"
                           >
                             <div class="instance-item">
-                              <Col span="4">{{
-                                item.ip + ":" + item.port
-                              }}</Col>
+                              <Col span="4">
+                                {{ item.ip + ":" + item.port }}
+                              </Col>
                               <Button
                                 size="small"
                                 type="success"
@@ -275,9 +274,9 @@
                 </p>
               </Panel>
               <Panel name="2">
-                <span style="font-size: 14px; font-weight: 600">{{
-                  $t("database")
-                }}</span>
+                <span style="font-size: 14px; font-weight: 600">
+                  {{ $t("database") }}
+                </span>
                 <Row slot="content">
                   <Row>
                     <Col span="16">
@@ -288,9 +287,9 @@
                       />
                     </Col>
                     <Col span="4" offset="1">
-                      <Button @click="getDBTableData">{{
-                        $t("execute")
-                      }}</Button>
+                      <Button @click="getDBTableData">
+                        {{ $t("execute") }}
+                      </Button>
                     </Col>
                   </Row>
                   <Row style="margin-top: 20px">
@@ -314,9 +313,9 @@
                 </Row>
               </Panel>
               <Panel name="3">
-                <span style="font-size: 14px; font-weight: 600">{{
-                  $t("storage_service")
-                }}</span>
+                <span style="font-size: 14px; font-weight: 600">
+                  {{ $t("storage_service") }}
+                </span>
                 <Row slot="content">
                   <Table
                     :columns="storageServiceColumns"
@@ -538,16 +537,24 @@ export default {
         });
       }
     },
-    async deletePlugin(packageId) {
-      let { status, data, message } = await deletePluginPkg(packageId);
-      if (status === "OK") {
-        this.$Notice.success({
-          title: "Success",
-          desc: message || ""
-        });
-        this.getAllPluginPkgs();
-        this.swapPanel("");
-      }
+    deletePlugin(packageId) {
+      this.$Modal.confirm({
+        title: this.$t("confirm_to_delete"),
+        "z-index": 1000000,
+        onOk: async packageId => {
+          let { status, data, message } = await deletePluginPkg(packageId);
+          if (status === "OK") {
+            this.$Notice.success({
+              title: "Success",
+              desc: this.$t("reload_to_delete_ui")
+            });
+            this.getAllPluginPkgs();
+            this.swapPanel("");
+          }
+        },
+        onCancel: () => {}
+      });
+      document.querySelector(".ivu-modal-mask").click();
     },
     resetPkgStatus() {
       this.$set(this.currentPlugin, "status", "UNREGISTERED");

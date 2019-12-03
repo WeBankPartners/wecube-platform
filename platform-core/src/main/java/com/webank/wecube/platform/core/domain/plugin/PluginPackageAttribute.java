@@ -65,6 +65,7 @@ public class PluginPackageAttribute {
                     null != pluginPackageEntity ? String.valueOf(pluginPackageEntity.getDataModelVersion()) : null,
                     null!=pluginPackageEntity ? pluginPackageEntity.getName() : null,
                     name);
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
