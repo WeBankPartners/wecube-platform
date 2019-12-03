@@ -253,18 +253,18 @@ public class DataModelServiceStub {
     /**
      * Handle response and resolve it to list of objects
      *
-     * @param responseDto   common response dto
-     * @param attributeName the attribute name the expression want to fetch
+     * @param responseDto common response dto
+     * @param keyName     the key name the expression want to fetch
      * @return list of value fetched from expression
      */
-    public List<Object> extractValueFromResponse(CommonResponseDto responseDto, String attributeName) {
+    public List<Object> extractValueFromResponse(CommonResponseDto responseDto, String keyName) {
         // transfer dto to List<LinkedTreeMap>
-        List<Object> returnList = new ArrayList<>();
         List<Map<String, Object>> dataArray = responseToMapList(responseDto);
 
-        logger.info(String.format("Extract value from given http request's response [%s] by attribute name: [%s]", dataArray, attributeName));
+        logger.info(String.format("Extract value from given http request's response [%s] by attribute name: [%s]", dataArray, keyName));
 
-        switch (attributeName) {
+        List<Object> returnList;
+        switch (keyName) {
             case DataModelExpressionParser.FETCH_ALL: {
                 returnList = Objects.requireNonNull(dataArray)
                         .stream()
@@ -273,19 +273,20 @@ public class DataModelServiceStub {
                 break;
             }
             case DataModelExpressionParser.FETCH_NONE: {
+                returnList = new ArrayList<>();
                 break;
             }
             default: {
                 returnList = Objects.requireNonNull(dataArray)
                         .stream()
                         .sorted(Comparator.comparing(o -> String.valueOf(o.get(DataModelServiceStub.UNIQUE_IDENTIFIER))))
-                        .map(linkedTreeMap -> linkedTreeMap.get(attributeName))
+                        .map(linkedTreeMap -> linkedTreeMap.get(keyName))
                         .collect(Collectors.toList());
                 break;
             }
         }
 
-        logger.info(String.format("The extraction from request's response by given attribute name [%s] is [%s]", attributeName, returnList));
+        logger.info(String.format("The extraction from request's response by given attribute name [%s] is [%s]", keyName, returnList));
 
         return returnList;
     }
