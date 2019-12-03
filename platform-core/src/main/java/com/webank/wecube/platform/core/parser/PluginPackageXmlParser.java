@@ -24,6 +24,7 @@ import java.util.*;
 
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 import static org.apache.commons.lang3.StringUtils.trim;
 
 public class PluginPackageXmlParser {
@@ -31,17 +32,20 @@ public class PluginPackageXmlParser {
     public static final String DEFAULT_DATA_MODEL_UPDATE_PATH = "/data-model";
     public static final String DEFAULT_DATA_MODEL_UPDATE_METHOD = "GET";
 
-    public static PluginPackageXmlParser newInstance(InputStream inputStream) throws ParserConfigurationException, SAXException, IOException {
+    public static PluginPackageXmlParser newInstance(InputStream inputStream)
+            throws ParserConfigurationException, SAXException, IOException {
         return new PluginPackageXmlParser(new InputSource(inputStream));
     }
 
-    public static PluginPackageXmlParser newInstance(InputSource inputSource) throws ParserConfigurationException, SAXException, IOException {
+    public static PluginPackageXmlParser newInstance(InputSource inputSource)
+            throws ParserConfigurationException, SAXException, IOException {
         return new PluginPackageXmlParser(inputSource);
     }
 
     private XPathEvaluator xPathEvaluator;
 
-    private PluginPackageXmlParser(InputSource inputSource) throws IOException, SAXException, ParserConfigurationException {
+    private PluginPackageXmlParser(InputSource inputSource)
+            throws IOException, SAXException, ParserConfigurationException {
         xPathEvaluator = XPathEvaluator.newInstance(inputSource);
     }
 
@@ -84,7 +88,6 @@ public class PluginPackageXmlParser {
             pluginPackage.setPluginPackageAuthorities(parseAuthorities(authorityNodes, pluginPackage));
         }
 
-
         NodeList dockerNodes = xPathEvaluator.getNodeList("/package/resourceDependencies/docker");
 
         if (null != dockerNodes && dockerNodes.getLength() > 0) {
@@ -94,7 +97,8 @@ public class PluginPackageXmlParser {
 
                 PluginPackageRuntimeResourcesDocker docker = new PluginPackageRuntimeResourcesDocker();
                 docker.setImageName(getNonNullStringAttribute(dockerNode, "./@imageName", "Docker image name"));
-                docker.setContainerName(getNonNullStringAttribute(dockerNode, "./@containerName", "Docker container name"));
+                docker.setContainerName(
+                        getNonNullStringAttribute(dockerNode, "./@containerName", "Docker container name"));
                 docker.setPortBindings(getStringAttribute(dockerNode, "./@portBindings"));
                 docker.setVolumeBindings(getStringAttribute(dockerNode, "./@volumeBindings"));
                 docker.setEnvVariables(getStringAttribute(dockerNode, "./@envVariables"));
@@ -150,7 +154,8 @@ public class PluginPackageXmlParser {
         return pluginPackageDto;
     }
 
-    private Set<PluginPackageAuthority> parseAuthorities(NodeList authorityNodes, PluginPackage pluginPackage) throws XPathExpressionException {
+    private Set<PluginPackageAuthority> parseAuthorities(NodeList authorityNodes, PluginPackage pluginPackage)
+            throws XPathExpressionException {
         Set<PluginPackageAuthority> pluginPackageAuthorities = new LinkedHashSet<>();
         for (int i = 0; i < authorityNodes.getLength(); i++) {
             Node authorityNode = authorityNodes.item(i);
@@ -165,7 +170,8 @@ public class PluginPackageXmlParser {
 
                     Node roleMenuNode = roleMenuNodes.item(j);
 
-                    String menu_code_in_authority = getNonNullStringAttribute(roleMenuNode, "./@code", "Menu code in authority");
+                    String menu_code_in_authority = getNonNullStringAttribute(roleMenuNode, "./@code",
+                            "Menu code in authority");
                     pluginPackageAuthority.setMenuCode(menu_code_in_authority);
 
                     pluginPackageAuthority.setPluginPackage(pluginPackage);
@@ -178,7 +184,8 @@ public class PluginPackageXmlParser {
         return pluginPackageAuthorities;
     }
 
-    private Set<SystemVariable> parseSystemVariables(NodeList systemVariableNodes, PluginPackage pluginPackage) throws XPathExpressionException {
+    private Set<SystemVariable> parseSystemVariables(NodeList systemVariableNodes, PluginPackage pluginPackage)
+            throws XPathExpressionException {
         Set<SystemVariable> systemVariables = new LinkedHashSet<>();
 
         for (int i = 0; i < systemVariableNodes.getLength(); i++) {
@@ -197,7 +204,8 @@ public class PluginPackageXmlParser {
 
             systemVariable.setPluginPackage(pluginPackage);
             if (systemVariable.getScopeType() == SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE) {
-                systemVariable.setPluginPackageId(pluginPackage.getId());
+                systemVariable.setPluginPackageId(
+                        String.join(KEY_COLUMN_DELIMITER, pluginPackage.getName(), pluginPackage.getVersion()));
             }
 
             systemVariables.add(systemVariable);
@@ -205,7 +213,8 @@ public class PluginPackageXmlParser {
         return systemVariables;
     }
 
-    private PluginPackageDataModelDto parseDataModel(Node dataModelNode, PluginPackageDto pluginPackageDto) throws XPathExpressionException {
+    private PluginPackageDataModelDto parseDataModel(Node dataModelNode, PluginPackageDto pluginPackageDto)
+            throws XPathExpressionException {
         PluginPackageDataModelDto pluginPackageDataModelDto = new PluginPackageDataModelDto();
         pluginPackageDataModelDto.setPackageName(pluginPackageDto.getName());
         pluginPackageDataModelDto.setVersion(1);
@@ -227,13 +236,15 @@ public class PluginPackageXmlParser {
         NodeList entityNodes = xPathEvaluator.getNodeList("./entity", dataModelNode);
 
         if (null != entityNodes && entityNodes.getLength() > 0) {
-            pluginPackageDataModelDto.setPluginPackageEntities(parseDataModelEntities(entityNodes, pluginPackageDataModelDto));
+            pluginPackageDataModelDto
+                    .setPluginPackageEntities(parseDataModelEntities(entityNodes, pluginPackageDataModelDto));
         }
 
         return pluginPackageDataModelDto;
     }
 
-    private Set<PluginPackageEntityDto> parseDataModelEntities(NodeList entityNodes, PluginPackageDataModelDto dataModelDto) throws XPathExpressionException {
+    private Set<PluginPackageEntityDto> parseDataModelEntities(NodeList entityNodes,
+            PluginPackageDataModelDto dataModelDto) throws XPathExpressionException {
         Set<PluginPackageEntityDto> pluginPackageEntities = new LinkedHashSet<>();
 
         for (int i = 0; i < entityNodes.getLength(); i++) {
@@ -242,16 +253,19 @@ public class PluginPackageXmlParser {
             PluginPackageEntityDto pluginPackageEntity = new PluginPackageEntityDto();
 
             pluginPackageEntity.setPackageName(dataModelDto.getPackageName());
-            // set data model version as 1 by default, where there is version update on DataModel.version, update Entity.dataModelVersion as well.
+            // set data model version as 1 by default, where there is version update on
+            // DataModel.version, update Entity.dataModelVersion as well.
             pluginPackageEntity.setDataModelVersion(1);
 
             pluginPackageEntity.setName(getNonNullStringAttribute(entityNode, "./@name", "Entity name"));
-            pluginPackageEntity.setDisplayName(getNonNullStringAttribute(entityNode, "./@displayName", "Entity display name"));
+            pluginPackageEntity
+                    .setDisplayName(getNonNullStringAttribute(entityNode, "./@displayName", "Entity display name"));
             pluginPackageEntity.setDescription(getStringAttribute(entityNode, "./@description"));
 
             NodeList entityAttributeNodes = xPathEvaluator.getNodeList("./attribute", entityNode);
             if (null != entityAttributeNodes && entityAttributeNodes.getLength() > 0) {
-                pluginPackageEntity.setAttributes(parseDataModelEntityAttributes(entityAttributeNodes, pluginPackageEntity));
+                pluginPackageEntity
+                        .setAttributes(parseDataModelEntityAttributes(entityAttributeNodes, pluginPackageEntity));
             }
 
             pluginPackageEntities.add(pluginPackageEntity);
@@ -259,7 +273,8 @@ public class PluginPackageXmlParser {
         return pluginPackageEntities;
     }
 
-    private List<PluginPackageAttributeDto> parseDataModelEntityAttributes(NodeList entityAttributeNodes, PluginPackageEntityDto pluginPackageEntity) throws XPathExpressionException {
+    private List<PluginPackageAttributeDto> parseDataModelEntityAttributes(NodeList entityAttributeNodes,
+            PluginPackageEntityDto pluginPackageEntity) throws XPathExpressionException {
         List<PluginPackageAttributeDto> pluginPackageAttributes = new ArrayList<>();
         for (int i = 0; i < entityAttributeNodes.getLength(); i++) {
             Node attributeNode = entityAttributeNodes.item(i);
@@ -269,7 +284,8 @@ public class PluginPackageXmlParser {
             pluginPackageAttribute.setPackageName(pluginPackageEntity.getPackageName());
             pluginPackageAttribute.setEntityName(pluginPackageEntity.getName());
 
-            pluginPackageAttribute.setName(getNonNullStringAttribute(attributeNode, "./@name", "Entity attribute name"));
+            pluginPackageAttribute
+                    .setName(getNonNullStringAttribute(attributeNode, "./@name", "Entity attribute name"));
             String dataType = getNonNullStringAttribute(attributeNode, "./@datatype", "Entity attribute data type");
             pluginPackageAttribute.setDataType(dataType);
             pluginPackageAttribute.setDescription(getStringAttribute(attributeNode, "./@description"));
@@ -292,16 +308,20 @@ public class PluginPackageXmlParser {
         return pluginPackageAttributes;
     }
 
-    private Set<PluginPackageMenu> parseMenus(NodeList menuNodes, PluginPackage pluginPackage) throws XPathExpressionException {
+    private Set<PluginPackageMenu> parseMenus(NodeList menuNodes, PluginPackage pluginPackage)
+            throws XPathExpressionException {
         Set<PluginPackageMenu> pluginPackageMenus = new LinkedHashSet<>();
 
         for (int i = 0; i < menuNodes.getLength(); i++) {
             Node pluginPackageMenuNode = menuNodes.item(i);
 
             PluginPackageMenu pluginPackageMenu = new PluginPackageMenu();
-            pluginPackageMenu.setCode(getNonNullStringAttribute(pluginPackageMenuNode, "./@code", "Plugin package menu code"));
-            pluginPackageMenu.setCategory(getNonNullStringAttribute(pluginPackageMenuNode, "./@cat", "Plugin package menu category"));
-            pluginPackageMenu.setDisplayName(getNonNullStringAttribute(pluginPackageMenuNode, "./@displayName", "Plugin package menu display name"));
+            pluginPackageMenu
+                    .setCode(getNonNullStringAttribute(pluginPackageMenuNode, "./@code", "Plugin package menu code"));
+            pluginPackageMenu.setCategory(
+                    getNonNullStringAttribute(pluginPackageMenuNode, "./@cat", "Plugin package menu category"));
+            pluginPackageMenu.setDisplayName(getNonNullStringAttribute(pluginPackageMenuNode, "./@displayName",
+                    "Plugin package menu display name"));
             pluginPackageMenu.setPath(pluginPackageMenuNode.getTextContent());
             pluginPackageMenu.setSource(MenuItem.Source.PLUGIN.name());
 
@@ -313,7 +333,8 @@ public class PluginPackageXmlParser {
         return pluginPackageMenus;
     }
 
-    private Set<PluginPackageDependency> parsePackageDependencies(NodeList packageDependencyNodes, PluginPackage pluginPackage) throws XPathExpressionException {
+    private Set<PluginPackageDependency> parsePackageDependencies(NodeList packageDependencyNodes,
+            PluginPackage pluginPackage) throws XPathExpressionException {
         Set<PluginPackageDependency> pluginPackageDependencies = new LinkedHashSet<>();
         for (int i = 0; i < packageDependencyNodes.getLength(); i++) {
             Node pluginPackageDependencyNode = packageDependencyNodes.item(i);
@@ -321,8 +342,10 @@ public class PluginPackageXmlParser {
             PluginPackageDependency pluginPackageDependency = new PluginPackageDependency();
             pluginPackageDependency.setPluginPackage(pluginPackage);
 
-            pluginPackageDependency.setDependencyPackageName(getNonNullStringAttribute(pluginPackageDependencyNode, "./@name", "Package dependency name"));
-            pluginPackageDependency.setDependencyPackageVersion(getNonNullStringAttribute(pluginPackageDependencyNode, "./@version", "Package dependency version"));
+            pluginPackageDependency.setDependencyPackageName(
+                    getNonNullStringAttribute(pluginPackageDependencyNode, "./@name", "Package dependency name"));
+            pluginPackageDependency.setDependencyPackageVersion(
+                    getNonNullStringAttribute(pluginPackageDependencyNode, "./@version", "Package dependency version"));
 
             pluginPackageDependency.setPluginPackage(pluginPackage);
 
@@ -331,7 +354,8 @@ public class PluginPackageXmlParser {
         return pluginPackageDependencies;
     }
 
-    private String getNonNullStringAttribute(Node attributeNode, String attributeExpression, String attributeDescription) throws XPathExpressionException {
+    private String getNonNullStringAttribute(Node attributeNode, String attributeExpression,
+            String attributeDescription) throws XPathExpressionException {
         return ensureNotNull(getStringAttribute(attributeNode, attributeExpression), attributeDescription);
     }
 
@@ -339,11 +363,13 @@ public class PluginPackageXmlParser {
         return xPathEvaluator.getString(attributeExpression, attributeNode);
     }
 
-    private Boolean getBooleanAttribute(Node attributeNode, String attributeExpression) throws XPathExpressionException {
+    private Boolean getBooleanAttribute(Node attributeNode, String attributeExpression)
+            throws XPathExpressionException {
         return xPathEvaluator.getBoolean(attributeExpression, attributeNode);
     }
 
-    private Set<PluginConfig> parsePluginConfigs(NodeList pluginNodeList, PluginPackage pluginPackage) throws XPathExpressionException {
+    private Set<PluginConfig> parsePluginConfigs(NodeList pluginNodeList, PluginPackage pluginPackage)
+            throws XPathExpressionException {
         Set<PluginConfig> pluginConfigs = new LinkedHashSet<>();
 
         for (int i = 0; i < pluginNodeList.getLength(); i++) {
@@ -357,7 +383,8 @@ public class PluginPackageXmlParser {
 
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
-                pluginConfig.setInterfaces(new HashSet<>(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig)));
+                pluginConfig.setInterfaces(
+                        new HashSet<>(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig)));
             }
 
             pluginConfigs.add(pluginConfig);
@@ -365,7 +392,8 @@ public class PluginPackageXmlParser {
         return pluginConfigs;
     }
 
-    private List<PluginConfigInterface> parsePluginConfigInterfaces(NodeList interfaceNodeList, PluginConfig pluginConfig) throws XPathExpressionException {
+    private List<PluginConfigInterface> parsePluginConfigInterfaces(NodeList interfaceNodeList,
+            PluginConfig pluginConfig) throws XPathExpressionException {
         List<PluginConfigInterface> pluginConfigInterfaces = new ArrayList<>();
 
         for (int i = 0; i < interfaceNodeList.getLength(); i++) {
@@ -375,8 +403,10 @@ public class PluginPackageXmlParser {
             pluginConfigInterface.setPluginConfig(pluginConfig);
             pluginConfigInterfaces.add(pluginConfigInterface);
 
-            pluginConfigInterface.setAction(ensureNotNull(trim(xPathEvaluator.getString("./@action", interfaceNode)), "Plugin interface name"));
-            String serviceName = createServiceName(pluginConfig.getPluginPackage().getName(), pluginConfig.getName(), pluginConfigInterface.getAction());
+            pluginConfigInterface.setAction(
+                    ensureNotNull(trim(xPathEvaluator.getString("./@action", interfaceNode)), "Plugin interface name"));
+            String serviceName = createServiceName(pluginConfig.getPluginPackage().getName(), pluginConfig.getName(),
+                    pluginConfigInterface.getAction());
             pluginConfigInterface.setServiceName(serviceName);
             pluginConfigInterface.setServiceDisplayName(serviceName);
             pluginConfigInterface.setPath(getStringAttribute(interfaceNode, "./@path"));
@@ -389,18 +419,23 @@ public class PluginPackageXmlParser {
             }
             NodeList inputParameterNodeList = xPathEvaluator.getNodeList("./inputParameters/parameter", interfaceNode);
             if (inputParameterNodeList != null && inputParameterNodeList.getLength() > 0) {
-                pluginConfigInterface.setInputParameters(parsePluginConfigInterfaceParameters(inputParameterNodeList, pluginConfigInterface, TYPE_INPUT, MAPPING_TYPE_CMDB_CI_TYPE));
+                pluginConfigInterface.setInputParameters(parsePluginConfigInterfaceParameters(inputParameterNodeList,
+                        pluginConfigInterface, TYPE_INPUT, MAPPING_TYPE_CMDB_CI_TYPE));
             }
-            NodeList outputParameterNodeList = xPathEvaluator.getNodeList("./outputParameters/parameter", interfaceNode);
+            NodeList outputParameterNodeList = xPathEvaluator.getNodeList("./outputParameters/parameter",
+                    interfaceNode);
             if (outputParameterNodeList != null && outputParameterNodeList.getLength() > 0) {
-                pluginConfigInterface.setOutputParameters(parsePluginConfigInterfaceParameters(outputParameterNodeList, pluginConfigInterface, TYPE_OUTPUT, MAPPING_TYPE_NOT_AVAILABLE));
+                pluginConfigInterface.setOutputParameters(parsePluginConfigInterfaceParameters(outputParameterNodeList,
+                        pluginConfigInterface, TYPE_OUTPUT, MAPPING_TYPE_NOT_AVAILABLE));
             }
         }
 
         return pluginConfigInterfaces;
     }
 
-    private Set<PluginConfigInterfaceParameter> parsePluginConfigInterfaceParameters(NodeList parameterNodeList, PluginConfigInterface pluginConfigInterface, String parameterType, String mappingType) throws XPathExpressionException {
+    private Set<PluginConfigInterfaceParameter> parsePluginConfigInterfaceParameters(NodeList parameterNodeList,
+            PluginConfigInterface pluginConfigInterface, String parameterType, String mappingType)
+            throws XPathExpressionException {
         Set<PluginConfigInterfaceParameter> pluginConfigInterfaceParameters = new LinkedHashSet<>();
         for (int i = 0; i < parameterNodeList.getLength(); i++) {
             Node parameterNode = parameterNodeList.item(i);
@@ -435,9 +470,11 @@ public class PluginPackageXmlParser {
 
     private String ensureNotNull(String name, String description) {
         name = trim(name);
-        if (name == null) throw new WecubeCoreException(description + " is required.");
+        if (name == null)
+            throw new WecubeCoreException(description + " is required.");
         if (name.contains(SEPARATOR_OF_NAMES))
-            throw new WecubeCoreException(String.format("Illegal character[%s] detected in %s[%s]", SEPARATOR_OF_NAMES, description, name));
+            throw new WecubeCoreException(
+                    String.format("Illegal character[%s] detected in %s[%s]", SEPARATOR_OF_NAMES, description, name));
         return name;
     }
 
