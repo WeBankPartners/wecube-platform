@@ -133,6 +133,7 @@ public class PluginPackage {
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
             this.id = String.join(KEY_COLUMN_DELIMITER, name, version);
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 

@@ -41,6 +41,7 @@ public class PluginPackageAuthority {
                     null != pluginPackage ? pluginPackage.getVersion() : null,
                     roleName,
                     menuCode);
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 

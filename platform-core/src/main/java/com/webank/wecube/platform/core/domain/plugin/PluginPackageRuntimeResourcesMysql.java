@@ -44,6 +44,7 @@ public class PluginPackageRuntimeResourcesMysql {
                     null != pluginPackage ? pluginPackage.getVersion() : null,
                     schemaName
             );
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
