@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.utils;
 
 import com.webank.wecube.platform.core.commons.HttpRequestErrorHandler;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -69,6 +70,26 @@ public class RestTemplateUtils {
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         // setup http request entity
         HttpEntity<List<Map<String, Object>>> requestEntity = new HttpEntity<>(requestParamMap, headers);
+
+        // send request and exchange the response to target class
+        return restTemplate.exchange(requestUri, method, requestEntity, String.class);
+    }
+
+    /**
+     * Send post request to url with params
+     *
+     * @param restTemplate restTemplate
+     * @param requestUri   target uri
+     * @param headers      request headers
+     * @return String
+     */
+    public static ResponseEntity<String> sendPostRequestWithJsonObject(RestTemplate restTemplate, String requestUri, HttpHeaders headers, JSONObject requestJsonObject) {
+
+        HttpMethod method = HttpMethod.POST;
+        // set content type as form
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        // setup http request entity
+        HttpEntity<JSONObject> requestEntity = new HttpEntity<>(requestJsonObject, headers);
 
         // send request and exchange the response to target class
         return restTemplate.exchange(requestUri, method, requestEntity, String.class);
