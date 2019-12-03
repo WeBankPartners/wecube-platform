@@ -8,8 +8,11 @@ import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
+import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.message.ReusableMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -21,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
@@ -28,6 +32,9 @@ import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMIT
 import static org.apache.commons.lang3.StringUtils.trim;
 
 public class PluginPackageXmlParser {
+    @Autowired
+    SystemVariableRepository systemVariableRepository;
+
     private final static String SEPARATOR_OF_NAMES = "/";
     public static final String DEFAULT_DATA_MODEL_UPDATE_PATH = "/data-model";
     public static final String DEFAULT_DATA_MODEL_UPDATE_METHOD = "GET";
@@ -47,6 +54,13 @@ public class PluginPackageXmlParser {
     private PluginPackageXmlParser(InputSource inputSource)
             throws IOException, SAXException, ParserConfigurationException {
         xPathEvaluator = XPathEvaluator.newInstance(inputSource);
+    }
+
+    private boolean equalGlobalSystemVariableName(String systemVariableName) {
+        List<SystemVariable> systemVariables = systemVariableRepository
+                .findAllByScopeTypeAndStatus(SystemVariable.SCOPE_TYPE_GLOBAL, SystemVariable.ACTIVE);
+        return systemVariables.stream().filter(x -> systemVariableName.equals(x.getName())).collect(Collectors.toList())
+                .size() > 0;
     }
 
     public PluginPackageDto parsePluginPackage() throws XPathExpressionException {
@@ -194,7 +208,14 @@ public class PluginPackageXmlParser {
             SystemVariable systemVariable = new SystemVariable();
 
             systemVariable.setStatus(SystemVariable.ACTIVE);
-            systemVariable.setName(getNonNullStringAttribute(systemVariableNode, "./@name", "System variable name"));
+
+            String systemVariableName = getNonNullStringAttribute(systemVariableNode, "./@name",
+                    "System variable name");
+            if (equalGlobalSystemVariableName(systemVariableName)) {
+                throw new WecubeCoreException(
+                        String.format("Repeated define WeCube Global System Variable [%s]", systemVariableName));
+            }
+            systemVariable.setName(systemVariableName);
             systemVariable.setDefaultValue(getStringAttribute(systemVariableNode, "./@defaultValue"));
             String scopeType = getStringAttribute(systemVariableNode, "./@scopeType");
             systemVariable.setScopeType(scopeType);
