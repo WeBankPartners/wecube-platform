@@ -340,6 +340,11 @@ public class PluginInvocationProcessor {
             this.pluginInvocationCommand = pluginInvocationCommand;
             return this;
         }
+        
+        public PluginInterfaceInvocationContext withRequestId(String requestId) {
+            this.requestId = requestId;
+            return this;
+        }
 
     }
 
