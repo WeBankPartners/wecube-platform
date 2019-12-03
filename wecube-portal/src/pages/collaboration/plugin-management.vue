@@ -538,11 +538,12 @@ export default {
       }
     },
     deletePlugin(packageId) {
+      let pkgId = packageId;
       this.$Modal.confirm({
         title: this.$t("confirm_to_delete"),
         "z-index": 1000000,
-        onOk: async packageId => {
-          let { status, data, message } = await deletePluginPkg(packageId);
+        onOk: async () => {
+          let { status, data, message } = await deletePluginPkg(pkgId);
           if (status === "OK") {
             this.$Notice.success({
               title: "Success",
