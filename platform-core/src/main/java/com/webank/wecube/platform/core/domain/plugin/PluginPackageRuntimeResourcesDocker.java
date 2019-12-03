@@ -50,6 +50,7 @@ public class PluginPackageRuntimeResourcesDocker {
                     null != pluginPackage ? pluginPackage.getVersion() : null,
                     imageName
             );
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
