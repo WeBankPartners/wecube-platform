@@ -14,6 +14,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+
 @JsonIgnoreType
 @Entity
 @Table(name = "plugin_configs")
@@ -24,8 +26,7 @@ public class PluginConfig {
     }
 
     @Id
-    @GeneratedValue
-    private Integer id;
+    private String id;
 
     @JsonBackReference
     @EqualsAndHashCode.Exclude
@@ -38,7 +39,7 @@ public class PluginConfig {
     private String name;
 
     @Column
-    private Integer entityId;
+    private String entityId;
 
     @Column
     private String entityName;
@@ -56,15 +57,26 @@ public class PluginConfig {
     @JsonInclude
     @EqualsAndHashCode.Include
     @ToString.Include
-    public Integer getPluginPackageId() {
+    public String getPluginPackageId() {
         return pluginPackage == null ? null : pluginPackage.getId();
     }
 
-    public Integer getId() {
-        return id;
+    public String getId() {
+        return this.id;
     }
 
-    public void setId(Integer id) {
+    @PrePersist
+    public void initId() {
+        if (null == this.id || this.id.trim().equals("")) {
+            this.id = String.join(KEY_COLUMN_DELIMITER,
+                    null != pluginPackage ? pluginPackage.getName() : null,
+                    null != pluginPackage ? pluginPackage.getVersion() : null,
+                    name,
+                    entityName);
+        }
+    }
+
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -84,11 +96,11 @@ public class PluginConfig {
         this.name = name;
     }
 
-    public Integer getEntityId() {
+    public String getEntityId() {
         return entityId;
     }
 
-    public void setEntityId(Integer entityId) {
+    public void setEntityId(String entityId) {
         this.entityId = entityId;
     }
 
@@ -123,7 +135,7 @@ public class PluginConfig {
     public PluginConfig() {
     }
 
-    public PluginConfig(Integer id, PluginPackage pluginPackage, String name, Integer entityId, String entityName, Status status, Set<PluginConfigInterface> interfaces) {
+    public PluginConfig(String id, PluginPackage pluginPackage, String name, String entityId, String entityName, Status status, Set<PluginConfigInterface> interfaces) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.name = name;

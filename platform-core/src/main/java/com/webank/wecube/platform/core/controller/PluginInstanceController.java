@@ -41,7 +41,7 @@ public class PluginInstanceController {
 
     @PostMapping("/packages/{package-id}/hosts/{host-ip}/ports/{port}/instance/launch")
     @ResponseBody
-    public JsonResponse createPluginInstanceByPackageIdAndHostIp(@PathVariable(value = "package-id") int packageId,
+    public JsonResponse createPluginInstanceByPackageIdAndHostIp(@PathVariable(value = "package-id") String packageId,
             @PathVariable(value = "host-ip") String hostIp, @PathVariable(value = "port") int port) {
         try {
             pluginInstanceService.launchPluginInstance(packageId, hostIp, port);
@@ -53,7 +53,7 @@ public class PluginInstanceController {
 
     @DeleteMapping("/packages/instances/{instance-id}")
     @ResponseBody
-    public JsonResponse removePluginInstance(@PathVariable(value = "instance-id") int instanceId) {
+    public JsonResponse removePluginInstance(@PathVariable(value = "instance-id") String instanceId) {
         try {
             pluginInstanceService.removePluginInstanceById(instanceId);
         } catch (Exception e) {
@@ -71,7 +71,7 @@ public class PluginInstanceController {
 
     @GetMapping("/packages/{package-id}/instances")
     @ResponseBody
-    public JsonResponse getAvailableInstancesByPackageId(@PathVariable(value = "package-id") int packageId) {
+    public JsonResponse getAvailableInstancesByPackageId(@PathVariable(value = "package-id") String packageId) {
         return okayWithData(pluginInstanceService.getAvailableInstancesByPackageId(packageId));
     }
 

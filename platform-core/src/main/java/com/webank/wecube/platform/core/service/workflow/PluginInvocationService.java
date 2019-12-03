@@ -329,7 +329,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService{
                 }
 
                 if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
-                    Integer svId = param.getMappingSystemVariableId();
+                    String svId = param.getMappingSystemVariableId();
                     SystemVariable sVariable = systemVariableService.getSystemVariableById(svId);
 
                     if (sVariable == null && "Y".equals(param.getRequired())) {

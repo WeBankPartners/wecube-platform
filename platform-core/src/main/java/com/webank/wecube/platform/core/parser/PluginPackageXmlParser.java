@@ -189,7 +189,11 @@ public class PluginPackageXmlParser {
             systemVariable.setStatus(SystemVariable.ACTIVE);
             systemVariable.setName(getNonNullStringAttribute(systemVariableNode, "./@name", "System variable name"));
             systemVariable.setDefaultValue(getStringAttribute(systemVariableNode, "./@defaultValue"));
-            systemVariable.setScopeType(getStringAttribute(systemVariableNode, "./@scopeType"));
+            String scopeType = getStringAttribute(systemVariableNode, "./@scopeType");
+            systemVariable.setScopeType(scopeType);
+            if (SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE.equals(scopeType)) {
+                systemVariable.setScopeValue(pluginPackage.getName());
+            }
 
             systemVariable.setPluginPackage(pluginPackage);
             if (systemVariable.getScopeType() == SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE) {
@@ -299,6 +303,7 @@ public class PluginPackageXmlParser {
             pluginPackageMenu.setCategory(getNonNullStringAttribute(pluginPackageMenuNode, "./@cat", "Plugin package menu category"));
             pluginPackageMenu.setDisplayName(getNonNullStringAttribute(pluginPackageMenuNode, "./@displayName", "Plugin package menu display name"));
             pluginPackageMenu.setPath(pluginPackageMenuNode.getTextContent());
+            pluginPackageMenu.setSource(MenuItem.Source.PLUGIN.name());
 
             pluginPackageMenu.setPluginPackage(pluginPackage);
 
@@ -410,7 +415,7 @@ public class PluginPackageXmlParser {
             pluginConfigInterfaceParameter.setMappingType(getStringAttribute(parameterNode, "./@mappingType"));
             String mappingSystemVariableIdString = getStringAttribute(parameterNode, "./@mappingSystemVariableId");
             if (StringUtils.isNotEmpty(mappingSystemVariableIdString)) {
-                pluginConfigInterfaceParameter.setMappingSystemVariableId(Integer.parseInt(mappingSystemVariableIdString));
+                pluginConfigInterfaceParameter.setMappingSystemVariableId(mappingSystemVariableIdString);
             }
             String mappingEntityExpression = getStringAttribute(parameterNode, "./@mappingEntityExpression");
             if (StringUtils.isNotEmpty(mappingEntityExpression)) {

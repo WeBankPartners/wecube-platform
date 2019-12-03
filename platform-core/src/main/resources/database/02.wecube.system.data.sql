@@ -1,20 +1,21 @@
 delete from menu_items;
-insert into menu_items (id,parent_id,code,description) values
-(1,null,'JOBS','')
-,(2,null,'DESIGNING','')
-,(3,null,'IMPLEMENTATION','')
-,(4,null,'MONITORING','')
-,(5,null,'ADJUSTMENT','')
-,(6,null,'INTELLIGENCE_OPS','')
-,(7,null,'COLLABORATION','')
-,(8,null,'ADMIN','')
-,(305,3,'IMPLEMENTATION_WORKFLOW_EXECUTION','')
-,(701,7,'COLLABORATION_PLUGIN_MANAGEMENT','')
-,(702,7,'COLLABORATION_WORKFLOW_ORCHESTRATION','')
-,(801,8,'ADMIN_SYSTEM_PARAMS','')
-,(802,8,'ADMIN_RESOURCES_MANAGEMENT','');
+insert into menu_items (id,parent_code,code,source,menu_order,description) values
+('JOBS',null,'JOBS','SYSTEM', 1, '')
+,('DESIGNING',null,'DESIGNING','SYSTEM', 2, '')
+,('IMPLEMENTATION',null,'IMPLEMENTATION','SYSTEM', 3, '')
+,('MONITORING',null,'MONITORING','SYSTEM', 4, '')
+,('ADJUSTMENT',null,'ADJUSTMENT','SYSTEM', 5, '')
+,('INTELLIGENCE_OPS',null,'INTELLIGENCE_OPS','SYSTEM', 6, '')
+,('COLLABORATION',null,'COLLABORATION','SYSTEM', 7, '')
+,('ADMIN',null,'ADMIN','SYSTEM', 8, '')
+,('IMPLEMENTATION:IMPLEMENTATION_WORKFLOW_EXECUTION','IMPLEMENTATION','IMPLEMENTATION_WORKFLOW_EXECUTION','SYSTEM', 9, '')
+,('COLLABORATION:COLLABORATION_PLUGIN_MANAGEMENT','COLLABORATION','COLLABORATION_PLUGIN_MANAGEMENT','SYSTEM', 10, '')
+,('COLLABORATION:COLLABORATION_WORKFLOW_ORCHESTRATION','COLLABORATION','COLLABORATION_WORKFLOW_ORCHESTRATION','SYSTEM', 11, '')
+,('ADMIN:ADMIN_SYSTEM_PARAMS','ADMIN','ADMIN_SYSTEM_PARAMS','SYSTEM', 12, '')
+,('ADMIN:ADMIN_RESOURCES_MANAGEMENT','ADMIN','ADMIN_RESOURCES_MANAGEMENT','SYSTEM', 13, '');
 
-INSERT INTO `system_variables` (`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
-INSERT INTO `system_variables` (`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', NULL, 0, 'active');
-INSERT INTO `system_variables` (`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (NULL, 'CMDB_URL', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
-INSERT INTO `system_variables` (`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES (NULL, 'CALLBACK_URL', NULL, 'http://127.0.0.1:19090/workflow/callback', 'global', NULL, 0, 'active');
+
+INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES ('global:CORE_ADDR', NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES ('global:BASE_MOUNT_PATH', NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES ('global:CMDB_URL', NULL, 'CMDB_URL', NULL, 'http://127.0.0.1:19090', 'global', NULL, 0, 'active');
+INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `seq_no`, `status`) VALUES ('global:CALLBACK_URL', NULL, 'CALLBACK_URL', NULL, 'http://127.0.0.1:19090/workflow/callback', 'global', NULL, 0, 'active');

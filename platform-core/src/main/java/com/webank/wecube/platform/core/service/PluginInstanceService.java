@@ -145,7 +145,7 @@ public class PluginInstanceService {
         return Lists.newArrayList(pluginInstanceRepository.findAll());
     }
 
-    public List<PluginInstance> getAvailableInstancesByPackageId(int packageId) {
+    public List<PluginInstance> getAvailableInstancesByPackageId(String packageId) {
         return pluginInstanceRepository.findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING,
                 packageId);
     }
@@ -211,7 +211,7 @@ public class PluginInstanceService {
         return systemVariableService.variableReplacement(null, baseMountPathString);
     }
 
-    private String replaceSystemVariablesForEnvVariables(Integer packageId, String str) {
+    private String replaceSystemVariablesForEnvVariables(String packageId, String str) {
         return systemVariableService.variableReplacement(packageId, str);
     }
 
@@ -237,7 +237,7 @@ public class PluginInstanceService {
         }
     }
 
-    private Integer handleCreateS3Bucket(Set<PluginPackageRuntimeResourcesS3> s3InfoSet, PluginPackage pluginPackage) {
+    private String handleCreateS3Bucket(Set<PluginPackageRuntimeResourcesS3> s3InfoSet, PluginPackage pluginPackage) {
         if (s3InfoSet.size() == 0) {
             return null;
         }
@@ -255,7 +255,7 @@ public class PluginInstanceService {
         }
     }
 
-    public void launchPluginInstance(Integer packageId, String hostIp, Integer port)
+    public void launchPluginInstance(String packageId, String hostIp, Integer port)
             throws Exception, WecubeCoreException {
         Optional<PluginPackage> pluginPackageResult = pluginPackageRepository.findById(packageId);
         if (!pluginPackageResult.isPresent())
@@ -275,7 +275,7 @@ public class PluginInstanceService {
         if (dbInfo != null)
             instance.setPluginMysqlInstanceResourceId(dbInfo.getResourceItemId());
 
-        Integer s3BucketResourceId = handleCreateS3Bucket(s3InfoSet, pluginPackage);
+        String s3BucketResourceId = handleCreateS3Bucket(s3InfoSet, pluginPackage);
         if (s3BucketResourceId != null)
             instance.setS3BucketResourceId(s3BucketResourceId);
 
@@ -382,7 +382,7 @@ public class PluginInstanceService {
         logger.info(String.format("Init database[%s] tables has done..", mysqlInstance.getSchemaName()));
     }
 
-    private Integer initS3BucketResource(Set<PluginPackageRuntimeResourcesS3> s3InfoSet) {
+    private String initS3BucketResource(Set<PluginPackageRuntimeResourcesS3> s3InfoSet) {
         if (s3InfoSet.size() > 1) {
             logger.error(String.format("Apply [%d] s3 bucket is not allow", s3InfoSet.size()));
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket");
@@ -420,7 +420,7 @@ public class PluginInstanceService {
         return mysqlInstance;
     }
 
-    private Integer createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
+    private String createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.S3);
         ResourceServerDto s3Server = resourceManagementService.retrieveServers(queryRequest).getContents().get(0);
 
@@ -490,7 +490,7 @@ public class PluginInstanceService {
         return result.get(0);
     }
 
-    public void removePluginInstanceById(Integer instanceId) throws Exception {
+    public void removePluginInstanceById(String instanceId) throws Exception {
         Optional<PluginInstance> instanceOptional = pluginInstanceRepository.findById(instanceId);
         PluginInstance instance = instanceOptional.get();
         ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
@@ -534,10 +534,10 @@ public class PluginInstanceService {
         String schema;
         String user;
         String password;
-        Integer resourceItemId;
+        String resourceItemId;
 
         private DatabaseInfo(String host, String port, String schema, String user, String password,
-                Integer resourceItemId) {
+                             String resourceItemId) {
             this.host = host;
             this.port = port;
             this.schema = schema;
@@ -569,7 +569,7 @@ public class PluginInstanceService {
             return schema;
         }
 
-        public Integer getResourceItemId() {
+        public String getResourceItemId() {
             return resourceItemId;
         }
     }
