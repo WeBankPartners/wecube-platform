@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.*;
 import java.util.Comparator;
@@ -71,8 +72,8 @@ public class PluginConfig {
             this.id = String.join(KEY_COLUMN_DELIMITER,
                     null != pluginPackage ? pluginPackage.getName() : null,
                     null != pluginPackage ? pluginPackage.getVersion() : null,
-                    name,
-                    entityName);
+                    StringUtils.isNoneBlank(entityName) ? name + KEY_COLUMN_DELIMITER + entityName : name
+            );
             this.id = this.id.replaceAll("\\s+", "_");
         }
     }
