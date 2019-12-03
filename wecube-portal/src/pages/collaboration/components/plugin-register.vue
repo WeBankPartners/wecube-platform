@@ -358,9 +358,7 @@ export default {
       ).entityId;
       this.selectedEntityType = this.currentPluginObj.entityName;
     },
-    onSelectEntityType(val) {
-      console.log(this.allEntityType);
-    },
+    onSelectEntityType(val) {},
     async getAllDataModels() {
       const { data, status, message } = await getAllDataModels();
       if (status === "OK") {

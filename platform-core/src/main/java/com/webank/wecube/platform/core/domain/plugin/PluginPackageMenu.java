@@ -57,6 +57,7 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
                     category,
                     code
             );
+            this.id = this.id.replaceAll("\\s+", "_");
         }
     }
 
