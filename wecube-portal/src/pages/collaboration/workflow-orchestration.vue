@@ -87,8 +87,8 @@
       <Form
         ref="pluginConfigForm"
         :model="pluginForm"
-        label-position="left"
-        :label-width="100"
+        label-position="right"
+        :label-width="150"
       >
         <FormItem :label="$t('locate_rules')" prop="routineExpression">
           <PathExp
@@ -133,7 +133,8 @@
         >
           <Select
             v-model="item.bindNodeId"
-            style="width:200px"
+            style="width:30%"
+            v-if="item.bindType === 'context'"
             @on-change="onParamsNodeChange(index)"
             @on-open-change="getFlowsNodes"
           >
@@ -146,14 +147,19 @@
           </Select>
           <Select
             v-model="item.bindParamType"
-            style="width:200px"
+            v-if="item.bindType === 'context'"
+            style="width:30%"
             @on-change="onParamsNodeChange(index)"
           >
             <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
               {{ i.label }}
             </Option>
           </Select>
-          <Select v-model="item.bindParamName" style="width:200px">
+          <Select
+            v-if="item.bindType === 'context'"
+            v-model="item.bindParamName"
+            style="width:30%"
+          >
             <Option
               v-for="i in item.currentParamNames"
               :value="i.name"
@@ -161,6 +167,7 @@
               >{{ i.name }}</Option
             >
           </Select>
+          <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
         </FormItem>
       </Form>
       <div slot="footer">
@@ -308,7 +315,7 @@ export default {
         let found = data.find(_ => _.serviceName === this.pluginForm.serviceId);
         if (found) {
           let needParams = found.inputParameters.filter(
-            _ => _.mappingType === "context"
+            _ => _.mappingType === "context" || _.mappingType === "constant"
           );
           if (isUseOriginParamsInfo) return;
           this.pluginForm.paramInfos = needParams.map(_ => {
@@ -316,7 +323,9 @@ export default {
               paramName: _.name,
               bindNodeId: "",
               bindParamType: "INPUT",
-              bindParamName: ""
+              bindParamName: "",
+              bindType: _.mappingType,
+              bindValue: ""
             };
           });
         }

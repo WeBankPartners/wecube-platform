@@ -124,7 +124,13 @@
                           >{{ item.name }}</Option
                         >
                       </Select>
-                      <span v-if="param.mappingType === 'context'">N/A</span>
+                      <span
+                        v-if="
+                          param.mappingType === 'context' ||
+                            param.mappingType === 'constant'
+                        "
+                        >N/A</span
+                      >
                     </FormItem>
                   </Col>
                   <Col span="4" offset="1">
@@ -139,6 +145,9 @@
                           >system_variable</Option
                         >
                         <Option value="entity" key="entity">entity</Option>
+                        <Option value="constant" key="constant"
+                          >constant</Option
+                        >
                       </Select>
                     </FormItem>
                   </Col>
