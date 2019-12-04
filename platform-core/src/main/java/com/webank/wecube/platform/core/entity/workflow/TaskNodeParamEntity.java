@@ -12,6 +12,10 @@ public class TaskNodeParamEntity extends BaseStatusFeaturedEntity {
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";
     public static final String PREDEPLOY_STATUS = "predeploy";
+    
+    public static final String BIND_TYPE_CONTEXT = "context";
+    public static final String BIND_TYPE_CONSTANT = "constant";
+    
 
     @Id
     @Column(name = "ID")
@@ -37,6 +41,12 @@ public class TaskNodeParamEntity extends BaseStatusFeaturedEntity {
 
     @Column(name = "BIND_PARAM_NAME")
     private String bindParamName;
+    
+    @Column(name = "BIND_TYPE")
+    private String bindType;
+    
+    @Column(name = "BIND_VAL")
+    private String bindValue;
 
     public String getId() {
         return id;
@@ -102,4 +112,19 @@ public class TaskNodeParamEntity extends BaseStatusFeaturedEntity {
         this.taskNodeDefId = taskNodeDefId;
     }
 
+    public String getBindType() {
+        return bindType;
+    }
+
+    public void setBindType(String bindType) {
+        this.bindType = bindType;
+    }
+
+    public String getBindValue() {
+        return bindValue;
+    }
+
+    public void setBindValue(String bindValue) {
+        this.bindValue = bindValue;
+    }
 }
