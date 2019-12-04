@@ -8,6 +8,9 @@ public class TaskNodeDefParamDto {
     private String bindNodeId;
     private String bindParamType; // Input,Output
     private String bindParamName;
+    
+    private String bindType; //context,constant
+    private String bindValue;
 
     public String getId() {
         return id;
@@ -55,6 +58,22 @@ public class TaskNodeDefParamDto {
 
     public void setBindParamName(String bindParamName) {
         this.bindParamName = bindParamName;
+    }
+    
+    public String getBindType() {
+        return bindType;
+    }
+
+    public void setBindType(String bindType) {
+        this.bindType = bindType;
+    }
+
+    public String getBindValue() {
+        return bindValue;
+    }
+
+    public void setBindValue(String bindValue) {
+        this.bindValue = bindValue;
     }
 
     @Override
