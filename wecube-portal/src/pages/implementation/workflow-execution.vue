@@ -35,7 +35,7 @@
         </Col>
       </Row>
       <Row
-        v-if="isShowBody"
+        v-show="isShowBody"
         style="border:1px solid #ebe7e7;border-radius:3px; padding:20px"
       >
         <Row>
@@ -263,6 +263,7 @@ export default {
       this.getModelData();
     },
     async getModelData() {
+      if (!this.selectedFlow || !this.selectedTarget) return;
       let { status, data, message } = await getTreePreviewData(
         this.selectedFlow,
         this.selectedTarget
@@ -334,8 +335,6 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-      console.log("nodesString", nodesString);
-
       this.graph.graphviz.renderDot(nodesString);
     },
     renderFlowGraph(excution) {
@@ -504,6 +503,7 @@ export default {
       this.start();
     },
     retryHandler(e) {
+      debugger;
       this.currentFailedNodeID = e.target.parentNode.getAttribute("id");
       this.workflowActionModalVisible = true;
     },
