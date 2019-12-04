@@ -16,6 +16,8 @@ import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMIT
 @Entity
 @Table(name = "plugin_config_interfaces")
 public class PluginConfigInterface {
+    public static final String DEFAULT_INTERFACE_TYPE = "EXECUTION";
+    public static final String DEFAULT_IS_ASYNC_PROCESSING_VALUE = "N";
 
     @Id
     private String id;
@@ -37,6 +39,8 @@ public class PluginConfigInterface {
     private String httpMethod;
     @Column
     private String isAsyncProcessing;
+    @Column
+    private String type;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -59,12 +63,15 @@ public class PluginConfigInterface {
     @PrePersist
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER,
-                    null != pluginConfig ? (null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getName() : null) :null,
-                    null != pluginConfig ? (null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getVersion() : null) :null,
+            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginConfig
+                    ? (null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getName() : null)
+                    : null,
+                    null != pluginConfig
+                            ? (null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getVersion()
+                                    : null)
+                            : null,
                     null != pluginConfig ? pluginConfig.getName() : null,
-                    null != pluginConfig ? pluginConfig.getEntityName() : null,
-                    action);
+                    null != pluginConfig ? pluginConfig.getEntityName() : null, action);
             this.id = this.id.replaceAll("\\s+", "_");
         }
     }
@@ -125,7 +132,7 @@ public class PluginConfigInterface {
     }
 
     public void setInputParameters(Set<PluginConfigInterfaceParameter> inputParameters) {
-        this.inputParameters =inputParameters;
+        this.inputParameters = inputParameters;
     }
 
     public Set<PluginConfigInterfaceParameter> getOutputParameters() {
@@ -136,13 +143,15 @@ public class PluginConfigInterface {
     }
 
     public void setOutputParameters(Set<PluginConfigInterfaceParameter> outputParameters) {
-        this.outputParameters =  outputParameters;
+        this.outputParameters = outputParameters;
     }
 
     public PluginConfigInterface() {
     }
 
-    public PluginConfigInterface(String id, PluginConfig pluginConfig, String action, String serviceName, String serviceDisplayName, String path, String httpMethod, Set<PluginConfigInterfaceParameter> inputParameters, Set<PluginConfigInterfaceParameter> outputParameters) {
+    public PluginConfigInterface(String id, PluginConfig pluginConfig, String action, String serviceName,
+            String serviceDisplayName, String path, String httpMethod,
+            Set<PluginConfigInterfaceParameter> inputParameters, Set<PluginConfigInterfaceParameter> outputParameters) {
         this.id = id;
         this.pluginConfig = pluginConfig;
         this.action = action;
@@ -156,7 +165,7 @@ public class PluginConfigInterface {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginConfig"});
+        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginConfig" });
     }
 
     public String getIsAsyncProcessing() {
@@ -165,5 +174,13 @@ public class PluginConfigInterface {
 
     public void setIsAsyncProcessing(String isAsyncProcessing) {
         this.isAsyncProcessing = isAsyncProcessing;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }
