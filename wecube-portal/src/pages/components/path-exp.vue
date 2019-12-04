@@ -96,19 +96,22 @@ export default {
       this.allDataModelsWithAttrs.forEach(_ => {
         if (_.pluginPackageEntities) {
           entity = entity.concat(_.pluginPackageEntities).map(i => {
+            let noneFound = i.attributes.find(_ => _.name === "NONE");
             return {
               ...i,
-              attributes: i.attributes.concat({
-                dataType: "str",
-                description: "NONE",
-                entityName: i.name,
-                id: i.id + "__NONE",
-                name: "NONE",
-                packageName: _.packageName,
-                refAttributeName: null,
-                refEntityName: null,
-                refPackageName: null
-              })
+              attributes: !!noneFound
+                ? i.attributes
+                : i.attributes.concat({
+                    dataType: "str",
+                    description: "NONE",
+                    entityName: i.name,
+                    id: i.id + "__NONE",
+                    name: "NONE",
+                    packageName: _.packageName,
+                    refAttributeName: null,
+                    refEntityName: null,
+                    refPackageName: null
+                  })
             };
           });
         }
