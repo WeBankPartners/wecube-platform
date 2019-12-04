@@ -1,10 +1,14 @@
 package com.webank.wecube.platform.core.utils;
 
 import com.webank.wecube.platform.core.commons.HttpRequestErrorHandler;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.*;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -93,5 +97,37 @@ public class RestTemplateUtils {
 
         // send request and exchange the response to target class
         return restTemplate.exchange(requestUri, method, requestEntity, String.class);
+    }
+
+    /**
+     * Check response from a http request
+     *
+     * @param response response from http request
+     * @return transferred commonResponseDto from response
+     * @throws WecubeCoreException while JsonUtils transferring response to CommonResponseDto class
+     */
+    public static CommonResponseDto checkResponse(ResponseEntity<String> response) throws WecubeCoreException {
+        if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
+            if (response.getStatusCode().is4xxClientError()) {
+                throw new WecubeCoreException(String.format("The target server returned error code: [%s]. The target server doesn't implement the request controller.", response.getStatusCode().toString()));
+            }
+
+            if (response.getStatusCode().is5xxServerError()) {
+                throw new WecubeCoreException(String.format("The target server returned error code: [%s], which is an target server's internal error.", response.getStatusCode().toString()));
+            }
+        }
+        CommonResponseDto responseDto;
+        try {
+            responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
+        } catch (IOException e) {
+            String msg = "Cannot transfer response from target server to CommonResponseDto class, the target server doesn't standardize the response style.";
+            throw new WecubeCoreException(msg);
+        }
+
+        if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
+            String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
+            throw new WecubeCoreException(msg);
+        }
+        return responseDto;
     }
 }
