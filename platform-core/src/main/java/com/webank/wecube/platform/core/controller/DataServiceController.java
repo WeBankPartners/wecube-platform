@@ -38,7 +38,7 @@ public class DataServiceController {
     public JsonResponse retrieveEntity(
             @PathVariable(value = "package-name") String packageName,
             @PathVariable(value = "entity-name") String entityName,
-            @RequestParam Map<String, String> allFilters
+            @RequestParam(required = false) Map<String, String> allFilters
     ) {
         try {
             return JsonResponse.okayWithData(nonExpressionService.retrieveEntity(packageName, entityName, allFilters));
