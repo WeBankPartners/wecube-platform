@@ -424,8 +424,16 @@ public class PluginPackageXmlParser {
             if (StringUtils.isNotEmpty(isAsyncProcessing)) {
                 pluginConfigInterface.setIsAsyncProcessing(isAsyncProcessing);
             } else {
-                pluginConfigInterface.setIsAsyncProcessing("N");
+                pluginConfigInterface.setIsAsyncProcessing(PluginConfigInterface.DEFAULT_IS_ASYNC_PROCESSING_VALUE);
             }
+
+            String interfaceType = getStringAttribute(interfaceNode, "./@type");
+            if (StringUtils.isNotEmpty(interfaceType)) {
+                pluginConfigInterface.setType(interfaceType);
+            } else {
+                pluginConfigInterface.setType(PluginConfigInterface.DEFAULT_INTERFACE_TYPE);
+            }
+
             NodeList inputParameterNodeList = xPathEvaluator.getNodeList("./inputParameters/parameter", interfaceNode);
             if (inputParameterNodeList != null && inputParameterNodeList.getLength() > 0) {
                 pluginConfigInterface.setInputParameters(parsePluginConfigInterfaceParameters(inputParameterNodeList,
