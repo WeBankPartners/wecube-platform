@@ -21,6 +21,8 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     private String status;
     
     private String orderedNo;
+    
+    private String taskCategory; //APPROVAL,EXECUTION
 
     private List<TaskNodeDefParamDto> paramInfos = new ArrayList<>();
 
@@ -47,8 +49,6 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     public void setProcDefId(String processDefId) {
         this.procDefId = processDefId;
     }
-
-   
 
     public String getServiceId() {
         return serviceId;
@@ -104,6 +104,14 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
 
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    public String getTaskCategory() {
+        return taskCategory;
+    }
+
+    public void setTaskCategory(String taskCategory) {
+        this.taskCategory = taskCategory;
     }
 
     public List<TaskNodeDefParamDto> getParamInfos() {

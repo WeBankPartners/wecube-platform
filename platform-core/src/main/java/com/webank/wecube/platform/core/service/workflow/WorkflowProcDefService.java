@@ -233,6 +233,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         tdto.setServiceName(e.getServiceName());
         tdto.setStatus(e.getStatus());
         tdto.setTimeoutExpression(e.getTimeoutExpression());
+        tdto.setTaskCategory(e.getTaskCategory());
 
         return tdto;
     }
@@ -346,6 +347,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 draftNodeEntity.setServiceName(nodeDto.getServiceName());
                 draftNodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
                 draftNodeEntity.setUpdatedTime(currTime);
+                draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
                 taskNodeDefInfoRepo.save(draftNodeEntity);
 
@@ -445,6 +447,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 nodeEntity.setStatus(TaskNodeDefInfoEntity.PREDEPLOY_STATUS);
                 nodeEntity.setUpdatedTime(currTime);
                 nodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
+                nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
                 taskNodeDefInfoRepo.save(nodeEntity);
 
