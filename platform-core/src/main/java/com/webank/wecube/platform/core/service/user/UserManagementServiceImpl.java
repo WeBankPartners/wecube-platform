@@ -24,16 +24,16 @@ public class UserManagementServiceImpl implements UserManagementService {
     private static final String USER_ID_PLACE_HOLDER = "userId";
     private static final String USER_NAME_PLACE_HOLDER = "userName";
     private static final String ROLE_ID_PLACE_HOLDER = "roleId";
-    private static final String AUTH_SERVER_USER_CREATE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users/create";
-    private static final String AUTH_SERVER_USER_RETRIEVE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users/retrieve";
-    private static final String AUTH_SERVER_USER_DELETE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users/{" + USER_ID_PLACE_HOLDER + "}/delete";
-    private static final String AUTH_SERVER_ROLE_CREATE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/create";
-    private static final String AUTH_SERVER_ROLE_RETRIEVE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/retrieve";
-    private static final String AUTH_SERVER_ROLE_DELETE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}/delete";
+    private static final String AUTH_SERVER_USER_CREATE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users";
+    private static final String AUTH_SERVER_USER_RETRIEVE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users";
+    private static final String AUTH_SERVER_USER_DELETE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users/{" + USER_ID_PLACE_HOLDER + "}";
+    private static final String AUTH_SERVER_ROLE_CREATE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles";
+    private static final String AUTH_SERVER_ROLE_RETRIEVE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles";
+    private static final String AUTH_SERVER_ROLE_DELETE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}";
     private static final String AUTH_SERVER_USER2ROLE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users/{" + USER_NAME_PLACE_HOLDER + "}/roles";
     private static final String AUTH_SERVER_ROLE2USER_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}/users";
-    private static final String AUTH_SERVER_GRANT_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}/users/grant";
-    private static final String AUTH_SERVER_REVOKE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}/users/revoke";
+    private static final String AUTH_SERVER_GRANT_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}/users";
+    private static final String AUTH_SERVER_REVOKE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}/users";
 
     private String gatewayUrl;
     private RestTemplate restTemplate;
