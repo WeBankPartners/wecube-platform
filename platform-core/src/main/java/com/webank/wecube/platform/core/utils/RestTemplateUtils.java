@@ -23,7 +23,6 @@ public class RestTemplateUtils {
      * @return String
      */
     public static ResponseEntity<String> sendGetRequestWithUrlParamMap(RestTemplate restTemplate, String requestUri, HttpHeaders headers) {
-
         HttpMethod method = HttpMethod.GET;
         // set content type as form
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -45,6 +44,17 @@ public class RestTemplateUtils {
      */
     public static ResponseEntity<String> sendGetRequestWithUrlParamMap(RestTemplate restTemplate, URI requestUri, HttpHeaders headers) {
         return sendGetRequestWithUrlParamMap(restTemplate, requestUri.getPath(), headers);
+    }
+
+    /**
+     * Send get request to url without params
+     *
+     * @param restTemplate restTemplate
+     * @param url          target url
+     * @return String
+     */
+    public ResponseEntity<String> sendGetRequestWithoutUrlParamMap(RestTemplate restTemplate, String url) {
+        return restTemplate.getForEntity(url, String.class);
     }
 
     /**
@@ -125,17 +135,6 @@ public class RestTemplateUtils {
 
         // send request and exchange the response to target class
         return restTemplate.exchange(requestUri, method, requestEntity, String.class);
-    }
-
-    /**
-     * Send get request to url without params
-     *
-     * @param restTemplate restTemplate
-     * @param url          target url
-     * @return String
-     */
-    public ResponseEntity<String> sendGetRequestWithoutUrlParamMap(RestTemplate restTemplate, String url) {
-        return restTemplate.getForEntity(url, String.class);
     }
 
     /**
