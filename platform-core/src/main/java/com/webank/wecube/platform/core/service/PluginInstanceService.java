@@ -222,16 +222,19 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
         }
 
-        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository
-                .findBySchemaNameAndStatus(pluginPackage.getName(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
-        if (mysqlInstances.size() > 0) {
-            PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
-            ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
-            return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
-                    mysqlInstance.getUsername(), mysqlInstance.getPassword(), mysqlInstance.getResourceItemId());
-        } else {
-            return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
+        List<PluginPackage> sameNamePackages = pluginPackageRepository.findAllByName(pluginPackage.getName());
+        for (PluginPackage pkg : sameNamePackages) {
+            List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository
+                    .findByPluginPackageIdAndStatus(pkg.getId(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
+            if (mysqlInstances.size() > 0) {
+                PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
+                ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
+                return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(),
+                        mysqlInstance.getSchemaName(), mysqlInstance.getUsername(), mysqlInstance.getPassword(),
+                        mysqlInstance.getResourceItemId());
+            }
         }
+        return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
     }
 
     private String handleCreateS3Bucket(Set<PluginPackageRuntimeResourcesS3> s3InfoSet, PluginPackage pluginPackage) {
