@@ -57,5 +57,5 @@ deploy:
 	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	
-	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version) $(date)-$(version) $(date)-$(version)
+	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
