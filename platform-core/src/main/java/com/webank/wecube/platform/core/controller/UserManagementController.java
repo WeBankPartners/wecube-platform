@@ -98,7 +98,7 @@ public class UserManagementController {
     public CommonResponseDto grantRoleForUsers(@PathVariable(value = "role-id") Long roleId,
                                                @RequestBody List<Object> userIdList) {
         try {
-            return CommonResponseDto.okayWithData(userManagementService.grantRoleForUsers(roleId, userIdList));
+            return CommonResponseDto.okayWithData(userManagementService.grantRoleToUsers(roleId, userIdList));
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -109,7 +109,7 @@ public class UserManagementController {
     public CommonResponseDto revokeRoleForUsers(@PathVariable(value = "role-id") Long roleId,
                                                 @RequestBody List<Object> requestBody) {
         try {
-            return CommonResponseDto.okayWithData(userManagementService.revokeRoleFromUser(roleId, requestBody));
+            return CommonResponseDto.okayWithData(userManagementService.revokeRoleFromUsers(roleId, requestBody));
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
