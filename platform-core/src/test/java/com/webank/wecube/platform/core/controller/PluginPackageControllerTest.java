@@ -229,7 +229,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
             mvc.perform(post("/v1/packages/decommission/" + pluginPackageIdInRUNNINGStatus))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("Failed to decommission plugin package with error message [Failed to decommission Plugin[cmdb/v1.3] due to package is RUNNING]")))
+                    .andExpect(jsonPath("$.message", is("Failed to decommission plugin package with error message [Decommission plugin package [cmdb__v1.3] failure. There are still 1 plugin instance running]")))
                     .andDo(print())
                     .andReturn().getResponse();
         } catch (Exception e) {
@@ -275,7 +275,9 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                 " ('11', 'cmdb__v1.0', 'Vpc Management', 16, 'ENABLED')\n" +
                 ",('21', 'cmdb__v1.1', 'Vpc Management', 17, 'ENABLED')\n" +
                 ",('31', 'cmdb__v1.2', 'Vpc Management', 16, 'DISABLED')\n" +
-                ";");
+                ";" +
+                "INSERT INTO plugin_instances (id, host, container_name, port, container_status, package_id, docker_instance_resource_id, instance_name, plugin_mysql_instance_resource_id, s3bucket_resource_id) VALUES\n" +
+                " ('cmdb__v1.3__cmdb__10.0.2.12__20003', '10.0.2.12', 'cmdb', 20003, 'RUNNING', 'cmdb__v1.3', NULL, 'wecmdb', NULL, NULL);\n");
     }
 
     @Test
