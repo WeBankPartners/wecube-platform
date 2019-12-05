@@ -51,9 +51,10 @@ import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService{
 
-    private static final String MAPPING_TYPE_CONTEXT = "context";
-    private static final String MAPPING_TYPE_ENTITY = "entity";
-    private static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
+    public static final String MAPPING_TYPE_CONTEXT = "context";
+    public static final String MAPPING_TYPE_ENTITY = "entity";
+    public static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
+    public static final String MAPPING_TYPE_CONSTANT = "constant";
 
 
 
