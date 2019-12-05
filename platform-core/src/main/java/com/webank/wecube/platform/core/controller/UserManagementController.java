@@ -95,8 +95,8 @@ public class UserManagementController {
 
     @PostMapping("/roles/{role-id}/users/grant")
     @ResponseBody
-    public CommonResponseDto grantRoleForUsers(@PathVariable(value = "role-id") Long roleId,
-                                               @RequestBody List<Object> userIdList) {
+    public CommonResponseDto grantRoleToUsers(@PathVariable(value = "role-id") Long roleId,
+                                              @RequestBody List<Object> userIdList) {
         try {
             return CommonResponseDto.okayWithData(userManagementService.grantRoleToUsers(roleId, userIdList));
         } catch (WecubeCoreException ex) {
@@ -106,8 +106,8 @@ public class UserManagementController {
 
     @DeleteMapping("/roles/{role-id}/users/revoke")
     @ResponseBody
-    public CommonResponseDto revokeRoleForUsers(@PathVariable(value = "role-id") Long roleId,
-                                                @RequestBody List<Object> requestBody) {
+    public CommonResponseDto revokeRoleFromUsers(@PathVariable(value = "role-id") Long roleId,
+                                                 @RequestBody List<Object> requestBody) {
         try {
             return CommonResponseDto.okayWithData(userManagementService.revokeRoleFromUsers(roleId, requestBody));
         } catch (WecubeCoreException ex) {
