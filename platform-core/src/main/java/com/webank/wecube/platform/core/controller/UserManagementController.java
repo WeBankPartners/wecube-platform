@@ -4,8 +4,10 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("v1/")
@@ -19,9 +21,9 @@ public class UserManagementController {
 
     @PostMapping("/users/create")
     @ResponseBody
-    public CommonResponseDto createUser(@RequestBody JSONObject jsonObject) {
+    public CommonResponseDto createUser(@RequestBody Map<String, Object> requestBody) {
         try {
-            return CommonResponseDto.okayWithData(userManagementService.createUser(jsonObject));
+            return CommonResponseDto.okayWithData(userManagementService.createUser(requestBody));
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -50,9 +52,9 @@ public class UserManagementController {
 
     @PostMapping("/roles/create")
     @ResponseBody
-    public CommonResponseDto createRole(@RequestBody JSONObject jsonObject) {
+    public CommonResponseDto createRole(@RequestBody Map<String, Object> requestBody) {
         try {
-            return CommonResponseDto.okayWithData(userManagementService.createRole(jsonObject));
+            return CommonResponseDto.okayWithData(userManagementService.createRole(requestBody));
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -94,7 +96,7 @@ public class UserManagementController {
     @PostMapping("/roles/{role-id}/users/grant")
     @ResponseBody
     public CommonResponseDto grantRoleForUsers(@PathVariable(value = "role-id") Long roleId,
-                                               @RequestBody JSONObject userIdList) {
+                                               @RequestBody List<Object> userIdList) {
         try {
             return CommonResponseDto.okayWithData(userManagementService.grantRoleForUsers(roleId, userIdList));
         } catch (WecubeCoreException ex) {
@@ -105,9 +107,9 @@ public class UserManagementController {
     @DeleteMapping("/roles/{role-id}/users/revoke")
     @ResponseBody
     public CommonResponseDto revokeRoleForUsers(@PathVariable(value = "role-id") Long roleId,
-                                                @RequestBody JSONObject userIdList) {
+                                                @RequestBody List<Object> requestBody) {
         try {
-            return CommonResponseDto.okayWithData(userManagementService.revokeRoleFromUser(roleId, userIdList));
+            return CommonResponseDto.okayWithData(userManagementService.revokeRoleFromUser(roleId, requestBody));
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
