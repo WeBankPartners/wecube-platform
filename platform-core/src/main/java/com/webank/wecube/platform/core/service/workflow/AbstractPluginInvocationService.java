@@ -57,11 +57,11 @@ public abstract class AbstractPluginInvocationService {
             return "";
         }
 
-        if (s.length() < 100) {
+        if (s.length() < 220) {
             return s;
         }
 
-        return s.substring(0, 100);
+        return s.substring(0, 220);
     }
 
     protected String asString(Object val, String sType) {
