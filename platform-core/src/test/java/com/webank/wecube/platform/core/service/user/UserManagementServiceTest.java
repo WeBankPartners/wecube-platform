@@ -147,7 +147,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 
     private void mockCreateUserServer(MockRestServiceServer server) {
         String createUserJsonString = "{\"password\":\"howehowe\",\"userName\":\"howe\"}";
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users/create", this.gatewayUrl)))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().json(createUserJsonString))
                 .andRespond(withSuccess("{\n" +
@@ -169,7 +169,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     private void mockRetrieveUserServer(MockRestServiceServer server) {
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users/retrieve", this.gatewayUrl)))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
@@ -192,7 +192,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     private void mockDeleteUserServer(MockRestServiceServer server) {
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users/1/delete", this.gatewayUrl)))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users/1", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
@@ -204,7 +204,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 
     private void mockCreateRoleServer(MockRestServiceServer server) {
         String createRoleJsonString = "{\"displayName\":\"fake administrator\",\"name\":\"fakeAdministrator\"}";
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/create", this.gatewayUrl)))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().json(createRoleJsonString))
                 .andRespond(withSuccess("{\n" +
@@ -223,7 +223,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     private void mockRetrieveRoleServer(MockRestServiceServer server) {
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/retrieve", this.gatewayUrl)))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
@@ -244,7 +244,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     private void mockDeleteRoleServer(MockRestServiceServer server) {
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/1/delete", this.gatewayUrl)))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/1", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.DELETE))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
@@ -301,7 +301,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private void mockGrantRoleToUsersServer(MockRestServiceServer server) {
         String grantRoleToUserJsonString = "[2]";
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/2/users/grant", this.gatewayUrl)))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/2/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().string(grantRoleToUserJsonString))
                 .andRespond(withSuccess("{\n" +
@@ -314,7 +314,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 
     private void mockRevokeRoleFromUsers(MockRestServiceServer server) {
         String revokeRoleFromUserJsonString = "[2]";
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/2/users/revoke", this.gatewayUrl)))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/2/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.DELETE))
                 .andExpect(content().string(revokeRoleFromUserJsonString))
                 .andRespond(withSuccess("{\n" +
