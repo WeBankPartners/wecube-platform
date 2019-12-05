@@ -126,7 +126,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto grantRoleForUsers(Long roleId, List<Object> userIdList) {
+    public CommonResponseDto grantRoleToUsers(Long roleId, List<Object> userIdList) {
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         requestUrlMap.put(ROLE_ID_PLACE_HOLDER, String.valueOf(roleId));
@@ -136,7 +136,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto revokeRoleFromUser(Long roleId, List<Object> requestObject) {
+    public CommonResponseDto revokeRoleFromUsers(Long roleId, List<Object> requestObject) {
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         requestUrlMap.put(ROLE_ID_PLACE_HOLDER, String.valueOf(roleId));

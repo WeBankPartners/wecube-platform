@@ -22,8 +22,8 @@ public interface UserManagementService {
 
     CommonResponseDto getUsersByRoleId(Long userId);
 
-    CommonResponseDto grantRoleForUsers(Long roleId, List<Object> userIdList);
+    CommonResponseDto grantRoleToUsers(Long roleId, List<Object> userIdList);
 
-    CommonResponseDto revokeRoleFromUser(Long roleId, List<Object> jsonObject);
+    CommonResponseDto revokeRoleFromUsers(Long roleId, List<Object> jsonObject);
 
 }
