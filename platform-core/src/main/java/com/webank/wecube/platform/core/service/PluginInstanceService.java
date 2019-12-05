@@ -222,18 +222,15 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
         }
 
-        List<PluginPackage> sameNamePackages = pluginPackageRepository.findAllByName(pluginPackage.getName());
-        for (PluginPackage pkg : sameNamePackages) {
-            List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository
-                    .findByPluginPackageIdAndStatus(pkg.getId(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
-            if (mysqlInstances.size() > 0) {
-                PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
-                ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
-                return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(),
-                        mysqlInstance.getSchemaName(), mysqlInstance.getUsername(), mysqlInstance.getPassword(),
-                        mysqlInstance.getResourceItemId());
-            }
+        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findByStatusAndPluginPackage_name(
+                PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, pluginPackage.getName());
+        if (mysqlInstances.size() > 0) {
+            PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
+            ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
+            return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
+                    mysqlInstance.getUsername(), mysqlInstance.getPassword(), mysqlInstance.getResourceItemId());
         }
+
         return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
     }
 
@@ -414,7 +411,7 @@ public class PluginInstanceService {
                 EncryptionUtils.encryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
                         mysqlInfo.getSchemaName()),
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, mysqlInfo.getPluginPackage());
-        pluginMysqlInstanceRepository.saveAndFlush(mysqlInstance);
+        pluginMysqlInstanceRepository.save(mysqlInstance);
 
         logger.info("Mysql Database schema creation has done...");
         return mysqlInstance;
