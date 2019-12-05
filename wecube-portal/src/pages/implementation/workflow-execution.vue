@@ -24,18 +24,18 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">{{
-                $t("query_orch")
-              }}</Button>
-              <Button type="success" @click="createHandler">{{
-                $t("create_orch")
-              }}</Button>
+              <Button type="info" @click="queryHandler">
+                {{ $t("query_orch") }}
+              </Button>
+              <Button type="success" @click="createHandler">
+                {{ $t("create_orch") }}
+              </Button>
             </FormItem>
           </Form>
         </Col>
       </Row>
       <Row
-        v-if="isShowBody"
+        v-show="isShowBody"
         style="border:1px solid #ebe7e7;border-radius:3px; padding:20px"
       >
         <Row>
@@ -87,9 +87,9 @@
           >
             <div class="graph-container" id="flow"></div>
             <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
-                $t("execute")
-              }}</Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow">
+                {{ $t("execute") }}
+              </Button>
             </div>
           </Col>
           <Col
@@ -112,9 +112,9 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
-        <Button type="info" @click="workFlowActionHandler('retry')">
-          {{ $t("retry") }}
-        </Button>
+        <Button type="info" @click="workFlowActionHandler('retry')">{{
+          $t("retry")
+        }}</Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
@@ -255,12 +255,15 @@ export default {
       this.modelData = [];
       this.flowData = {};
       this.showExcution = false;
-      this.initModelGraph();
+      this.$nextTick(() => {
+        this.initModelGraph();
+      });
     },
     onTargetSelectHandler() {
       this.getModelData();
     },
     async getModelData() {
+      if (!this.selectedFlow || !this.selectedTarget) return;
       let { status, data, message } = await getTreePreviewData(
         this.selectedFlow,
         this.selectedTarget
@@ -285,7 +288,7 @@ export default {
     },
     renderModelGraph() {
       let nodes = this.modelData.map((_, index) => {
-        const nodeId = _.packageName + "_" + _.entityName;
+        const nodeId = _.packageName + "_" + _.entityName + "_" + _.dataId;
         let color = _.isHighlight ? "#5DB400" : "black";
         const isRecord = _.refFlowNodeIds.length > 0;
         const shape = isRecord ? "Mrecord" : "ellipse";
@@ -306,11 +309,10 @@ export default {
 
         this.modelData.forEach(_ => {
           if (_.succeedingIds.length > 0) {
-            const nodeId = _.packageName + "_" + _.entityName;
+            const nodeId = _.packageName + "_" + _.entityName + "_" + _.dataId;
             let current = [];
             current = _.succeedingIds.map(to => {
-              let tos = to.split(":");
-              return nodeId + " -> " + (tos[0] + "_" + tos[1]);
+              return nodeId + " -> " + to.replace(/:/g, "_");
             });
             pathAry.push(current);
           }
@@ -333,7 +335,6 @@ export default {
         nodesToString +
         genEdge() +
         "}";
-
       this.graph.graphviz.renderDot(nodesString);
     },
     renderFlowGraph(excution) {
@@ -502,6 +503,7 @@ export default {
       this.start();
     },
     retryHandler(e) {
+      debugger;
       this.currentFailedNodeID = e.target.parentNode.getAttribute("id");
       this.workflowActionModalVisible = true;
     },
@@ -549,31 +551,51 @@ export default {
       this.renderFlowGraph();
     },
     highlightModel(nodeId) {
+      let temp = [];
+
       this.foundRefAry = this.flowData.flowNodes
         .find(item => item.nodeId == nodeId)
-        .routineExpression.split(/[~.>]/);
+        .routineExpression.split(/[~.>()]/)
+        .filter(i => i.length > 0);
       this.modelData.forEach(item => {
         item["isHighlight"] = this.foundRefAry[
           this.foundRefAry.length - 1
         ].includes(item.entityName);
+        this.foundRefAry.forEach(i => {
+          if (item.id.includes(i)) {
+            temp.push(
+              item.packageName + "_" + item.entityName + "_" + item.dataId
+            );
+          }
+        });
       });
-      this.renderModelGraph();
+      this.initModelGraph();
       removeEvent(".model", "click", this.modelClickHandler);
-      this.foundRefAry.forEach(_ => {
+      temp.forEach(_ => {
         // replace ':' by _'
-        addEvent(`#${_.replace(/:/g, "_")}`, "click", this.modelClickHandler);
+        addEvent(`#${_}`, "click", this.modelClickHandler);
       });
     },
     modelClickHandler(e) {
       e.preventDefault();
       e.stopPropagation();
       let g = e.currentTarget;
+      let temp = [];
       let foundModelNode = this.modelData.find(
-        _ => _.packageName + "_" + _.entityName == g.id
+        _ => _.packageName + "_" + _.entityName + "_" + _.dataId === g.id
       );
       const currentFlow = this.flowData.flowNodes.find(
         i => i.nodeId === this.currentFlowNodeId
       );
+      this.modelData.forEach(item => {
+        this.foundRefAry.forEach(i => {
+          if (item.id.includes(i)) {
+            temp.push(
+              item.packageName + "_" + item.entityName + "_" + item.dataId
+            );
+          }
+        });
+      });
       const flowNodeIndex = foundModelNode.refFlowNodeIds.indexOf(
         currentFlow.orderedNo
       );
@@ -583,9 +605,9 @@ export default {
         foundModelNode.refFlowNodeIds.push(currentFlow.orderedNo);
       }
       document.getElementById("graph").innerHTML = "";
-      this.renderModelGraph();
-      this.foundRefAry.forEach(_ => {
-        addEvent(`#${_.replace(/:/g, "_")}`, "click", this.modelClickHandler);
+      this.initModelGraph();
+      temp.forEach(_ => {
+        addEvent(`#${_}`, "click", this.modelClickHandler);
       });
     },
     initModelGraph() {
