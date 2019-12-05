@@ -125,4 +125,34 @@ public class PluginConfigXmlValidatorTest {
         }
     }
 
+    @Test
+    public void parseXmlWithConstantParamShouldSuccess() {
+        try {
+            validator.validate("/plugin/register-with-constant-params.xml");
+            assertTrue(true);
+        } catch (WecubeCoreException e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void parseXmlWithValidInterfaceTypeShouldSuccess() {
+        try {
+            validator.validate("/plugin/register-with-valid-interface-type.xml");
+            assertTrue(true);
+        } catch (WecubeCoreException e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void parseXmlWithInvalidInterfaceTypeShouldFailed() {
+        try {
+            validator.validate("/plugin/register-with-invalid-interface-type.xml");
+            assertTrue(false);
+        } catch (WecubeCoreException e) {
+            assertThat(e.getMessage()).contains("XML validation failed");
+        }
+    }
+
 }

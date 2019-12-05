@@ -26,8 +26,8 @@ public class SystemVariable {
     @JsonBackReference
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "plugin_package_id", insertable = false, updatable = false)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinColumn(name = "plugin_package_id")
     private PluginPackage pluginPackage;
 
 	@Column

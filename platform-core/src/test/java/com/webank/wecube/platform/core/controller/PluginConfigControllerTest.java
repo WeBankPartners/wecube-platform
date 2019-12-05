@@ -298,11 +298,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
-                    .andExpect(jsonPath("$.data.length()", is(2)))
-                    .andExpect(jsonPath("$.data[*].action", containsInAnyOrder("create", "update")))
-                    .andExpect(jsonPath("$.data[*].serviceName", containsInAnyOrder("service-management/task/create", "service-management/service_request/update")))
-                    .andExpect(jsonPath("$.data[*].path", containsInAnyOrder("/service-management/tasks", "/service-management/service-requests/{service-request-id}/done")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", containsInAnyOrder("POST", "PUT")))
+                    .andExpect(jsonPath("$.data.length()", is(1)))
+                    .andExpect(jsonPath("$.data[*].action", containsInAnyOrder("update")))
+                    .andExpect(jsonPath("$.data[*].serviceName", containsInAnyOrder("service-management/service_request/update")))
+                    .andExpect(jsonPath("$.data[*].path", containsInAnyOrder("/service-management/service-requests/{service-request-id}/done")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", containsInAnyOrder("PUT")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {

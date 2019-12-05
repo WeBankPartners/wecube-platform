@@ -94,8 +94,11 @@
                   <Col span="5">
                     <FormItem :label-width="0">
                       <Tooltip :content="param.name" style="width: 100%">
+                        <span v-if="param.required === 'Y'" style="color:red"
+                          >*</span
+                        >
                         <span
-                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%;"
+                          style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%;"
                           >{{ param.name }}</span
                         >
                       </Tooltip>
@@ -124,7 +127,13 @@
                           >{{ item.name }}</Option
                         >
                       </Select>
-                      <span v-if="param.mappingType === 'context'">N/A</span>
+                      <span
+                        v-if="
+                          param.mappingType === 'context' ||
+                            param.mappingType === 'constant'
+                        "
+                        >N/A</span
+                      >
                     </FormItem>
                   </Col>
                   <Col span="4" offset="1">
@@ -139,6 +148,9 @@
                           >system_variable</Option
                         >
                         <Option value="entity" key="entity">entity</Option>
+                        <Option value="constant" key="constant"
+                          >constant</Option
+                        >
                       </Select>
                     </FormItem>
                   </Col>
@@ -159,8 +171,11 @@
                   <Col span="4">
                     <FormItem :label-width="0">
                       <Tooltip :content="outPut.name">
+                        <span v-if="outPut.required === 'Y'" style="color:red"
+                          >*</span
+                        >
                         <span
-                          style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                          style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                           >{{ outPut.name }}</span
                         >
                       </Tooltip>
