@@ -86,7 +86,7 @@ public class DataModelServiceStub {
         logger.info(String.format("Sending GET request to target url: [%s]", uriStr));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
-        response = RestTemplateUtils.sendGetRequestWithParamMap(this.restTemplate, uriStr, this.httpHeaders);
+        response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, uriStr, this.httpHeaders);
         responseDto = RestTemplateUtils.checkResponse(response);
         return new UrlToResponseDto(uriStr, responseDto);
     }
@@ -101,7 +101,7 @@ public class DataModelServiceStub {
         logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, postRequestBodyParamMap));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
-        response = RestTemplateUtils.sendPostRequestWithParamMap(this.restTemplate, uriStr, this.httpHeaders, postRequestBodyParamMap);
+        response = RestTemplateUtils.sendPostRequestWithBody(this.restTemplate, uriStr, this.httpHeaders, postRequestBodyParamMap);
         responseDto = RestTemplateUtils.checkResponse(response);
         return new UrlToResponseDto(uriStr, responseDto);
     }

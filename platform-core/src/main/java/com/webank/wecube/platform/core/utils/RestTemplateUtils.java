@@ -3,7 +3,6 @@ package com.webank.wecube.platform.core.utils;
 import com.webank.wecube.platform.core.commons.HttpRequestErrorHandler;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -23,7 +22,7 @@ public class RestTemplateUtils {
      * @param headers      request headers
      * @return String
      */
-    public static ResponseEntity<String> sendGetRequestWithParamMap(RestTemplate restTemplate, String requestUri, HttpHeaders headers) {
+    public static ResponseEntity<String> sendGetRequestWithUrlParamMap(RestTemplate restTemplate, String requestUri, HttpHeaders headers) {
 
         HttpMethod method = HttpMethod.GET;
         // set content type as form
@@ -44,19 +43,8 @@ public class RestTemplateUtils {
      * @param headers      request headers
      * @return String
      */
-    public static ResponseEntity<String> sendGetRequestWithParamMap(RestTemplate restTemplate, URI requestUri, HttpHeaders headers) {
-        return sendGetRequestWithParamMap(restTemplate, requestUri.getPath(), headers);
-    }
-
-    /**
-     * Send get request to url without params
-     *
-     * @param restTemplate restTemplate
-     * @param url          target url
-     * @return String
-     */
-    public ResponseEntity<String> sendGetRequestWithoutParam(RestTemplate restTemplate, String url) {
-        return restTemplate.getForEntity(url, String.class);
+    public static ResponseEntity<String> sendGetRequestWithUrlParamMap(RestTemplate restTemplate, URI requestUri, HttpHeaders headers) {
+        return sendGetRequestWithUrlParamMap(restTemplate, requestUri.getPath(), headers);
     }
 
     /**
@@ -67,7 +55,7 @@ public class RestTemplateUtils {
      * @param headers      request headers
      * @return String
      */
-    public static ResponseEntity<String> sendPostRequestWithParamMap(RestTemplate restTemplate, String requestUri, HttpHeaders headers, List<Map<String, Object>> requestParamMap) {
+    public static ResponseEntity<String> sendPostRequestWithBody(RestTemplate restTemplate, String requestUri, HttpHeaders headers, List<Map<String, Object>> requestParamMap) {
 
         HttpMethod method = HttpMethod.POST;
         // set content type as form
@@ -87,16 +75,67 @@ public class RestTemplateUtils {
      * @param headers      request headers
      * @return String
      */
-    public static ResponseEntity<String> sendPostRequestWithJsonObject(RestTemplate restTemplate, String requestUri, HttpHeaders headers, JSONObject requestJsonObject) {
+    public static ResponseEntity<String> sendPostRequestWithObject(RestTemplate restTemplate, String requestUri, HttpHeaders headers, Object requestBody) {
 
         HttpMethod method = HttpMethod.POST;
         // set content type as form
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         // setup http request entity
-        HttpEntity<JSONObject> requestEntity = new HttpEntity<>(requestJsonObject, headers);
+        HttpEntity<Object> requestEntity = new HttpEntity<>(requestBody, headers);
 
         // send request and exchange the response to target class
         return restTemplate.exchange(requestUri, method, requestEntity, String.class);
+    }
+
+    /**
+     * Send post request to url with params
+     *
+     * @param restTemplate restTemplate
+     * @param requestUri   target uri
+     * @param headers      request headers
+     * @return String
+     */
+    public static ResponseEntity<String> sendDeleteWithoutBody(RestTemplate restTemplate, String requestUri, HttpHeaders headers) {
+
+        HttpMethod method = HttpMethod.DELETE;
+        // set content type as form
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        // setup http request entity
+        HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
+
+        // send request and exchange the response to target class
+        return restTemplate.exchange(requestUri, method, requestEntity, String.class);
+    }
+
+    /**
+     * Send post request to url with params
+     *
+     * @param restTemplate restTemplate
+     * @param requestUri   target uri
+     * @param headers      request headers
+     * @return String
+     */
+    public static ResponseEntity<String> sendDeleteWithBody(RestTemplate restTemplate, String requestUri, HttpHeaders headers, Object requestBody) {
+
+        HttpMethod method = HttpMethod.DELETE;
+        // set content type as form
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        // setup http request entity
+        HttpEntity<Object> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        // send request and exchange the response to target class
+        return restTemplate.exchange(requestUri, method, requestEntity, String.class);
+    }
+
+    /**
+     * Send get request to url without params
+     *
+     * @param restTemplate restTemplate
+     * @param url          target url
+     * @return String
+     */
+    public ResponseEntity<String> sendGetRequestWithoutUrlParamMap(RestTemplate restTemplate, String url) {
+        return restTemplate.getForEntity(url, String.class);
     }
 
     /**
