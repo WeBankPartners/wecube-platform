@@ -1,16 +1,17 @@
 #!/bin/bash
 
-if [ $# -ne 4 ]
+if [ $# -ne 2 ]
   then
-    echo "Usage: deploy_generate_compose.sh CONFIG PLIATFORM_CORE_IMAGE_VERSION PORTAL_IMAGE_VERSION GATEWAY_IMAGE_VERSION"
+    echo "Usage: deploy_generate_compose.sh CONFIG VERSION "
     exit 1
 fi
 
 source $1
 
 wecube_image_version=$2
-portal_image_version=$3
-gateway_image_version=$4
+portal_image_version=$2
+gateway_image_version=$2
+auth_server_image_version=$2
 
 build_path=$(dirname $0)
 
