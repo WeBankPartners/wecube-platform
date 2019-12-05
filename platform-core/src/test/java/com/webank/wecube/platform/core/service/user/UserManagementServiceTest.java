@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.service.user;
 
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,17 +12,18 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 public class UserManagementServiceTest extends DatabaseBasedTest {
     @Autowired
     UserManagementServiceImpl userManagementService;
-    String createUserJsonString = "{\"password\":\"howehowe\",\"userName\":\"howe\"}";
-    String createRoleJsonString = "{\"displayName\":\"fake administrator\",\"name\":\"fakeAdministrator\"}";
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
@@ -39,14 +41,16 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void createUserShouldSucceed() {
         mockCreateUserServer(this.server);
         Map<String, Object> createUserMap = mockCreateUserMap();
-        userManagementService.createUser(createUserMap);
+        CommonResponseDto responseDto = userManagementService.createUser(createUserMap);
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
 
     @Test
     public void retrieveUserShouldSucceed() {
         mockRetrieveUserServer(this.server);
-        userManagementService.retrieveUser();
+        CommonResponseDto responseDto = userManagementService.retrieveUser();
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
 
@@ -54,7 +58,8 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void deleteUserShouldSucceed() {
         mockDeleteUserServer(this.server);
         Long userId = 1L;
-        userManagementService.deleteUser(userId);
+        CommonResponseDto responseDto = userManagementService.deleteUser(userId);
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
 
@@ -62,7 +67,8 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void createRoleShouldSucceed() {
         mockCreateRoleServer(this.server);
         Map<String, Object> createUserMap = mockCreateRoleMap();
-        userManagementService.createRole(createUserMap);
+        CommonResponseDto responseDto = userManagementService.createRole(createUserMap);
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
 
@@ -70,15 +76,56 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     @Test
     public void retrieveRoleShouldSucceed() {
         mockRetrieveRoleServer(this.server);
-        userManagementService.retrieveRole();
+        CommonResponseDto responseDto = userManagementService.retrieveRole();
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
 
     @Test
     public void deleteRoleShouldSucceed() {
         mockDeleteRoleServer(this.server);
-        Long userId = 1L;
-        userManagementService.deleteRole(userId);
+        Long roleId = 1L;
+        CommonResponseDto responseDto = userManagementService.deleteRole(roleId);
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+        this.server.verify();
+    }
+
+    @Test
+    public void getRolesFromUserShouldSucceed() {
+        mockGetRolesFromUserServer(this.server);
+        String userName = "howe";
+        CommonResponseDto responseDto = userManagementService.getRolesByUserName(userName);
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+        this.server.verify();
+    }
+
+    @Test
+    public void getUsersFromRoleShouldSucceed() {
+        mockGetUsersFromRoleServer(this.server);
+        Long roleId = 1L;
+        CommonResponseDto responseDto = userManagementService.getUsersByRoleId(roleId);
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+        this.server.verify();
+    }
+
+    @Test
+    public void grantRoleForUserShouldSucceed() {
+        mockGrantRoleToUsersServer(this.server);
+        Long roleId = 2L;
+        List<Object> userIdList = Collections.singletonList(2);
+        CommonResponseDto responseDto = userManagementService.grantRoleToUsers(roleId, userIdList);
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+        this.server.verify();
+    }
+
+
+    @Test
+    public void revokeRoleFromUserShouldSucceed() {
+        mockRevokeRoleFromUsers(this.server);
+        Long roleId = 2L;
+        List<Object> userIdList = Collections.singletonList(2);
+        CommonResponseDto responseDto = userManagementService.revokeRoleFromUsers(roleId, userIdList);
+        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
 
@@ -99,6 +146,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 
 
     private void mockCreateUserServer(MockRestServiceServer server) {
+        String createUserJsonString = "{\"password\":\"howehowe\",\"userName\":\"howe\"}";
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users/create", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().json(createUserJsonString))
@@ -155,6 +203,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 
 
     private void mockCreateRoleServer(MockRestServiceServer server) {
+        String createRoleJsonString = "{\"displayName\":\"fake administrator\",\"name\":\"fakeAdministrator\"}";
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/create", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().json(createRoleJsonString))
@@ -204,4 +253,75 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
                         "}", MediaType.APPLICATION_JSON));
 
     }
+
+    private void mockGetRolesFromUserServer(MockRestServiceServer server) {
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users/howe/roles", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": [\n" +
+                        "    {\n" +
+                        "      \"createdBy\": null,\n" +
+                        "      \"updatedBy\": null,\n" +
+                        "      \"createdTime\": \"2019-12-04T06:56:39.000+0000\",\n" +
+                        "      \"updatedTime\": null,\n" +
+                        "      \"id\": 1,\n" +
+                        "      \"name\": \"fakeAdministrator\",\n" +
+                        "      \"displayName\": \"fake administrator\"\n" +
+                        "    }\n" +
+                        "  ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+    }
+
+    private void mockGetUsersFromRoleServer(MockRestServiceServer server) {
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/1/users", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": [\n" +
+                        "    {\n" +
+                        "      \"createdBy\": null,\n" +
+                        "      \"updatedBy\": null,\n" +
+                        "      \"createdTime\": \"2019-12-04T06:56:18.000+0000\",\n" +
+                        "      \"updatedTime\": null,\n" +
+                        "      \"id\": 1,\n" +
+                        "      \"username\": \"howe\",\n" +
+                        "      \"password\": \"$2a$10$4tn9dqctE6VcEMTVkyR/We4P6e4qZWz.Qt5qCbnE1tudPlACVQOsi\",\n" +
+                        "      \"active\": true,\n" +
+                        "      \"blocked\": null\n" +
+                        "    }\n" +
+                        "  ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+    }
+
+    private void mockGrantRoleToUsersServer(MockRestServiceServer server) {
+        String grantRoleToUserJsonString = "[2]";
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/2/users/grant", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().string(grantRoleToUserJsonString))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": null\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+    }
+
+    private void mockRevokeRoleFromUsers(MockRestServiceServer server) {
+        String revokeRoleFromUserJsonString = "[2]";
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/2/users/revoke", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.DELETE))
+                .andExpect(content().string(revokeRoleFromUserJsonString))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": null\n" +
+                        "}", MediaType.APPLICATION_JSON));
+    }
+
 }
