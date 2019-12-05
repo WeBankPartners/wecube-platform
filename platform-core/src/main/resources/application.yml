@@ -44,11 +44,6 @@ camunda:
       history-level: full
       database:
          schema-update: true
-       
-      admin-user:
-         id: demo
-         password: demo
-         first-name: Kermit
       filter:
          create: All tasks
       job-execution:
