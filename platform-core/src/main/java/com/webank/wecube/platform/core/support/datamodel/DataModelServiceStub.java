@@ -4,7 +4,6 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.UrlToResponseDto;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
-import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,40 +37,6 @@ public class DataModelServiceStub {
     @Autowired
     public DataModelServiceStub(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-    }
-
-    /**
-     * Check response from a http request
-     *
-     * @param response response from http request
-     * @return transferred commonResponseDto from response
-     * @throws WecubeCoreException while JsonUtils transferring response to CommonResponseDto class
-     */
-    private static CommonResponseDto checkResponse(ResponseEntity<String> response) throws WecubeCoreException {
-        CommonResponseDto responseDto;
-        if (StringUtils.isEmpty(response.getBody()) || response.getStatusCode().isError()) {
-            if (response.getStatusCode().is4xxClientError()) {
-                throw new WecubeCoreException(String.format("The target server returned error code: [%s]. The target server doesn't implement the request controller.", response.getStatusCode().toString()));
-            }
-
-            if (response.getStatusCode().is5xxServerError()) {
-                throw new WecubeCoreException(String.format("The target server returned error code: [%s], which is an target server's internal error.", response.getStatusCode().toString()));
-            }
-        }
-        try {
-            responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
-        } catch (IOException e) {
-            String msg = "Cannot transfer response from target server to CommonResponseDto class, the target server doesn't standardize the response style.";
-            logger.error(msg);
-            throw new WecubeCoreException(msg);
-        }
-
-        if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
-            String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
-            logger.error(msg);
-            throw new WecubeCoreException(msg);
-        }
-        return responseDto;
     }
 
     /**
@@ -123,8 +86,8 @@ public class DataModelServiceStub {
         logger.info(String.format("Sending GET request to target url: [%s]", uriStr));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
-        response = RestTemplateUtils.sendGetRequestWithParamMap(this.restTemplate, uriStr, this.httpHeaders);
-        responseDto = checkResponse(response);
+        response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, uriStr, this.httpHeaders);
+        responseDto = RestTemplateUtils.checkResponse(response);
         return new UrlToResponseDto(uriStr, responseDto);
     }
 
@@ -138,8 +101,8 @@ public class DataModelServiceStub {
         logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, postRequestBodyParamMap));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
-        response = RestTemplateUtils.sendPostRequestWithParamMap(this.restTemplate, uriStr, this.httpHeaders, postRequestBodyParamMap);
-        responseDto = checkResponse(response);
+        response = RestTemplateUtils.sendPostRequestWithBody(this.restTemplate, uriStr, this.httpHeaders, postRequestBodyParamMap);
+        responseDto = RestTemplateUtils.checkResponse(response);
         return new UrlToResponseDto(uriStr, responseDto);
     }
 
@@ -266,18 +229,18 @@ public class DataModelServiceStub {
     /**
      * Handle response and resolve it to list of objects
      *
-     * @param responseDto   common response dto
-     * @param attributeName the attribute name the expression want to fetch
+     * @param responseDto common response dto
+     * @param keyName     the key name the expression want to fetch
      * @return list of value fetched from expression
      */
-    public List<Object> extractValueFromResponse(CommonResponseDto responseDto, String attributeName) {
+    public List<Object> extractValueFromResponse(CommonResponseDto responseDto, String keyName) {
         // transfer dto to List<LinkedTreeMap>
-        List<Object> returnList = new ArrayList<>();
         List<Map<String, Object>> dataArray = responseToMapList(responseDto);
 
-        logger.info(String.format("Extract value from given http request's response [%s] by attribute name: [%s]", dataArray, attributeName));
+        logger.info(String.format("Extract value from given http request's response [%s] by attribute name: [%s]", dataArray, keyName));
 
-        switch (attributeName) {
+        List<Object> returnList;
+        switch (keyName) {
             case DataModelExpressionParser.FETCH_ALL: {
                 returnList = Objects.requireNonNull(dataArray)
                         .stream()
@@ -286,19 +249,20 @@ public class DataModelServiceStub {
                 break;
             }
             case DataModelExpressionParser.FETCH_NONE: {
+                returnList = new ArrayList<>();
                 break;
             }
             default: {
                 returnList = Objects.requireNonNull(dataArray)
                         .stream()
                         .sorted(Comparator.comparing(o -> String.valueOf(o.get(DataModelServiceStub.UNIQUE_IDENTIFIER))))
-                        .map(linkedTreeMap -> linkedTreeMap.get(attributeName))
+                        .map(linkedTreeMap -> linkedTreeMap.get(keyName))
                         .collect(Collectors.toList());
                 break;
             }
         }
 
-        logger.info(String.format("The extraction from request's response by given attribute name [%s] is [%s]", attributeName, returnList));
+        logger.info(String.format("The extraction from request's response by given attribute name [%s] is [%s]", keyName, returnList));
 
         return returnList;
     }
