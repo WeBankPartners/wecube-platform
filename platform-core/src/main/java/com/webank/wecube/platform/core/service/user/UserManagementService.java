@@ -6,24 +6,24 @@ import java.util.List;
 import java.util.Map;
 
 public interface UserManagementService {
-    CommonResponseDto createUser(Map<String, Object> jsonObject);
+    CommonResponseDto createUser(String token, Map<String, Object> jsonObject);
 
-    CommonResponseDto retrieveUser();
+    CommonResponseDto retrieveUser(String token);
 
-    CommonResponseDto deleteUser(Long id);
+    CommonResponseDto deleteUser(String token, Long id);
 
-    CommonResponseDto createRole(Map<String, Object> requestBody);
+    CommonResponseDto createRole(String token, Map<String, Object> requestBody);
 
-    CommonResponseDto retrieveRole();
+    CommonResponseDto retrieveRole(String token);
 
-    CommonResponseDto deleteRole(Long id);
+    CommonResponseDto deleteRole(String token, Long id);
 
-    CommonResponseDto getRolesByUserName(String userName);
+    CommonResponseDto getRolesByUserName(String token, String userName);
 
-    CommonResponseDto getUsersByRoleId(Long userId);
+    CommonResponseDto getUsersByRoleId(String token, Long userId);
 
-    CommonResponseDto grantRoleToUsers(Long roleId, List<Object> userIdList);
+    CommonResponseDto grantRoleToUsers(String token, Long roleId, List<Object> userIdList);
 
-    CommonResponseDto revokeRoleFromUsers(Long roleId, List<Object> jsonObject);
+    CommonResponseDto revokeRoleFromUsers(String token, Long roleId, List<Object> jsonObject);
 
 }
