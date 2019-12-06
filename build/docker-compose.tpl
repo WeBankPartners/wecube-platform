@@ -80,5 +80,22 @@ services:
       - STATIC_RESOURCE_SERVER_PORT={{STATIC_RESOURCE_SERVER_PORT}}
       - STATIC_RESOURCE_SERVER_PATH={{STATIC_RESOURCE_SERVER_PATH}}
       - GATEWAY_URL={{GATEWAY_URL}}
+      
+  auth-server:
+    image: {{AUTH_SERVER_IMAGE_NAME}}:{{AUTH_SERVER_IMAGE_VERSION}}
+    restart: always
+    volumes:
+      - /data/auth_server/log:/log/ 
+      - /etc/localtime:/etc/localtime
+    ports:
+      - {{AUTH_SERVER_PORT}}:8080
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_SERVER_ADDR={{AUTH_SERVER_MYSQL_ADDR}}
+      - MYSQL_SERVER_PORT={{AUTH_SERVER_MYSQL_PORT}}
+      - MYSQL_SERVER_DATABASE_NAME={{AUTH_SERVER_DATABASE_NAME}}
+      - MYSQL_USER_NAME={{AUTH_SERVER_MYSQL_USER_NAME}}
+      - MYSQL_USER_PASSWORD={{AUTH_SERVER_MYSQL_USER_PASSWORD}}
+      
 
    
