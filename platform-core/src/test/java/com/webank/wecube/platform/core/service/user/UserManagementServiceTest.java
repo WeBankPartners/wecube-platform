@@ -30,6 +30,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private ApplicationProperties applicationProperties;
     private String gatewayUrl;
     private MockRestServiceServer server;
+    String token = "Bearer test_token";
 
     @Before
     public void setup() {
@@ -41,7 +42,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void createUserShouldSucceed() {
         mockCreateUserServer(this.server);
         Map<String, Object> createUserMap = mockCreateUserMap();
-        CommonResponseDto responseDto = userManagementService.createUser(createUserMap);
+        CommonResponseDto responseDto = userManagementService.createUser(this.token, createUserMap);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -49,7 +50,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     @Test
     public void retrieveUserShouldSucceed() {
         mockRetrieveUserServer(this.server);
-        CommonResponseDto responseDto = userManagementService.retrieveUser();
+        CommonResponseDto responseDto = userManagementService.retrieveUser(this.token);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -58,7 +59,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void deleteUserShouldSucceed() {
         mockDeleteUserServer(this.server);
         Long userId = 1L;
-        CommonResponseDto responseDto = userManagementService.deleteUser(userId);
+        CommonResponseDto responseDto = userManagementService.deleteUser(this.token, userId);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -67,7 +68,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void createRoleShouldSucceed() {
         mockCreateRoleServer(this.server);
         Map<String, Object> createUserMap = mockCreateRoleMap();
-        CommonResponseDto responseDto = userManagementService.createRole(createUserMap);
+        CommonResponseDto responseDto = userManagementService.createRole(this.token, createUserMap);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -76,7 +77,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     @Test
     public void retrieveRoleShouldSucceed() {
         mockRetrieveRoleServer(this.server);
-        CommonResponseDto responseDto = userManagementService.retrieveRole();
+        CommonResponseDto responseDto = userManagementService.retrieveRole(this.token);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -85,7 +86,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void deleteRoleShouldSucceed() {
         mockDeleteRoleServer(this.server);
         Long roleId = 1L;
-        CommonResponseDto responseDto = userManagementService.deleteRole(roleId);
+        CommonResponseDto responseDto = userManagementService.deleteRole(this.token, roleId);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -94,7 +95,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void getRolesFromUserShouldSucceed() {
         mockGetRolesFromUserServer(this.server);
         String userName = "howe";
-        CommonResponseDto responseDto = userManagementService.getRolesByUserName(userName);
+        CommonResponseDto responseDto = userManagementService.getRolesByUserName(this.token, userName);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -103,7 +104,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     public void getUsersFromRoleShouldSucceed() {
         mockGetUsersFromRoleServer(this.server);
         Long roleId = 1L;
-        CommonResponseDto responseDto = userManagementService.getUsersByRoleId(roleId);
+        CommonResponseDto responseDto = userManagementService.getUsersByRoleId(this.token, roleId);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -113,7 +114,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
         mockGrantRoleToUsersServer(this.server);
         Long roleId = 2L;
         List<Object> userIdList = Collections.singletonList(2);
-        CommonResponseDto responseDto = userManagementService.grantRoleToUsers(roleId, userIdList);
+        CommonResponseDto responseDto = userManagementService.grantRoleToUsers(this.token, roleId, userIdList);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -124,7 +125,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
         mockRevokeRoleFromUsers(this.server);
         Long roleId = 2L;
         List<Object> userIdList = Collections.singletonList(2);
-        CommonResponseDto responseDto = userManagementService.revokeRoleFromUsers(roleId, userIdList);
+        CommonResponseDto responseDto = userManagementService.revokeRoleFromUsers(this.token, roleId, userIdList);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
         this.server.verify();
     }
@@ -149,6 +150,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
         String createUserJsonString = "{\"password\":\"howehowe\",\"userName\":\"howe\"}";
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", this.token))
                 .andExpect(content().json(createUserJsonString))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
@@ -171,6 +173,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private void mockRetrieveUserServer(MockRestServiceServer server) {
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header("Authorization", this.token))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
                         "  \"message\": \"success\",\n" +
@@ -194,6 +197,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private void mockDeleteUserServer(MockRestServiceServer server) {
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users/1", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.DELETE))
+                .andExpect(header("Authorization", this.token))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
                         "  \"message\": \"success\",\n" +
@@ -206,6 +210,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
         String createRoleJsonString = "{\"displayName\":\"fake administrator\",\"name\":\"fakeAdministrator\"}";
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", this.token))
                 .andExpect(content().json(createRoleJsonString))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
@@ -225,6 +230,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private void mockRetrieveRoleServer(MockRestServiceServer server) {
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header("Authorization", this.token))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
                         "  \"message\": \"success\",\n" +
@@ -246,6 +252,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private void mockDeleteRoleServer(MockRestServiceServer server) {
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/1", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.DELETE))
+                .andExpect(header("Authorization", this.token))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
                         "  \"message\": \"success\",\n" +
@@ -257,6 +264,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private void mockGetRolesFromUserServer(MockRestServiceServer server) {
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/users/howe/roles", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header("Authorization", this.token))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
                         "  \"message\": \"success\",\n" +
@@ -278,6 +286,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private void mockGetUsersFromRoleServer(MockRestServiceServer server) {
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/1/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
+                .andExpect(header("Authorization", this.token))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
                         "  \"message\": \"success\",\n" +
@@ -303,6 +312,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/2/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", this.token))
                 .andExpect(content().string(grantRoleToUserJsonString))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +
@@ -316,6 +326,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
         String revokeRoleFromUserJsonString = "[2]";
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/2/users", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.DELETE))
+                .andExpect(header("Authorization", this.token))
                 .andExpect(content().string(revokeRoleFromUserJsonString))
                 .andRespond(withSuccess("{\n" +
                         "  \"status\": \"OK\",\n" +

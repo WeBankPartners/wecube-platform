@@ -21,9 +21,10 @@ public class UserManagementController {
 
     @PostMapping("/users/create")
     @ResponseBody
-    public CommonResponseDto createUser(@RequestBody Map<String, Object> requestBody) {
+    public CommonResponseDto createUser(@RequestHeader(value = "Authorization") String token,
+                                        @RequestBody Map<String, Object> requestBody) {
         try {
-            return userManagementService.createUser(requestBody);
+            return userManagementService.createUser(token, requestBody);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -32,9 +33,9 @@ public class UserManagementController {
 
     @GetMapping("/users/retrieve")
     @ResponseBody
-    public CommonResponseDto retrieveUser() {
+    public CommonResponseDto retrieveUser(@RequestHeader(value = "Authorization") String token) {
         try {
-            return userManagementService.retrieveUser();
+            return userManagementService.retrieveUser(token);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -42,9 +43,10 @@ public class UserManagementController {
 
     @DeleteMapping("/users/{user-id}/delete")
     @ResponseBody
-    public CommonResponseDto deleteUser(@PathVariable("user-id") Long id) {
+    public CommonResponseDto deleteUser(@RequestHeader(value = "Authorization") String token,
+                                        @PathVariable("user-id") Long id) {
         try {
-            return userManagementService.deleteUser(id);
+            return userManagementService.deleteUser(token, id);
         } catch (WecubeCoreException e) {
             return CommonResponseDto.error(e.getMessage());
         }
@@ -52,9 +54,10 @@ public class UserManagementController {
 
     @PostMapping("/roles/create")
     @ResponseBody
-    public CommonResponseDto createRole(@RequestBody Map<String, Object> requestBody) {
+    public CommonResponseDto createRole(@RequestHeader(value = "Authorization") String token,
+                                        @RequestBody Map<String, Object> requestBody) {
         try {
-            return userManagementService.createRole(requestBody);
+            return userManagementService.createRole(token, requestBody);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -63,9 +66,9 @@ public class UserManagementController {
 
     @GetMapping("/roles/retrieve")
     @ResponseBody
-    public CommonResponseDto retrieveRole() {
+    public CommonResponseDto retrieveRole(@RequestHeader(value = "Authorization") String token) {
         try {
-            return userManagementService.retrieveRole();
+            return userManagementService.retrieveRole(token);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -73,9 +76,10 @@ public class UserManagementController {
 
     @DeleteMapping("/roles/{role-id}/delete")
     @ResponseBody
-    public CommonResponseDto deleteRole(@PathVariable("role-id") Long id) {
+    public CommonResponseDto deleteRole(@RequestHeader(value = "Authorization") String token,
+                                        @PathVariable("role-id") Long id) {
         try {
-            return userManagementService.deleteRole(id);
+            return userManagementService.deleteRole(token, id);
         } catch (WecubeCoreException e) {
             return CommonResponseDto.error(e.getMessage());
         }
@@ -83,9 +87,10 @@ public class UserManagementController {
 
     @GetMapping("/users/{user-name}/roles")
     @ResponseBody
-    public CommonResponseDto getRolesByUsername(@PathVariable(value = "user-name") String userName) {
+    public CommonResponseDto getRolesByUsername(@RequestHeader(value = "Authorization") String token,
+                                                @PathVariable(value = "user-name") String userName) {
         try {
-            return userManagementService.getRolesByUserName(userName);
+            return userManagementService.getRolesByUserName(token, userName);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -93,9 +98,10 @@ public class UserManagementController {
 
     @GetMapping("/roles/{role-id}/users")
     @ResponseBody
-    public CommonResponseDto getUsersByRoleId(@PathVariable(value = "role-id") Long roleId) {
+    public CommonResponseDto getUsersByRoleId(@RequestHeader(value = "Authorization") String token,
+                                              @PathVariable(value = "role-id") Long roleId) {
         try {
-            return userManagementService.getUsersByRoleId(roleId);
+            return userManagementService.getUsersByRoleId(token, roleId);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -104,10 +110,11 @@ public class UserManagementController {
 
     @PostMapping("/roles/{role-id}/users/grant")
     @ResponseBody
-    public CommonResponseDto grantRoleToUsers(@PathVariable(value = "role-id") Long roleId,
+    public CommonResponseDto grantRoleToUsers(@RequestHeader(value = "Authorization") String token,
+                                              @PathVariable(value = "role-id") Long roleId,
                                               @RequestBody List<Object> userIdList) {
         try {
-            return userManagementService.grantRoleToUsers(roleId, userIdList);
+            return userManagementService.grantRoleToUsers(token, roleId, userIdList);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -115,10 +122,11 @@ public class UserManagementController {
 
     @DeleteMapping("/roles/{role-id}/users/revoke")
     @ResponseBody
-    public CommonResponseDto revokeRoleFromUsers(@PathVariable(value = "role-id") Long roleId,
+    public CommonResponseDto revokeRoleFromUsers(@RequestHeader(value = "Authorization") String token,
+                                                 @PathVariable(value = "role-id") Long roleId,
                                                  @RequestBody List<Object> requestBody) {
         try {
-            return userManagementService.revokeRoleFromUsers(roleId, requestBody);
+            return userManagementService.revokeRoleFromUsers(token, roleId, requestBody);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
