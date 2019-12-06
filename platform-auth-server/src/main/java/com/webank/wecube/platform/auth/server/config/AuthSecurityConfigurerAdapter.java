@@ -1,5 +1,13 @@
 package com.webank.wecube.platform.auth.server.config;
 
+import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedAuthenticationFilter;
+import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedLoginFilter;
+import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedRefreshTokenFilter;
+import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextRepository;
+import com.webank.wecube.platform.auth.server.handler.Http401AuthenticationEntryPoint;
+import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler;
+import com.webank.wecube.platform.auth.server.handler.JwtSsoBasedAuthenticationFailureHandler;
+import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +23,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedAuthenticationFilter;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedLoginFilter;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedRefreshTokenFilter;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextRepository;
-import com.webank.wecube.platform.auth.server.handler.Http401AuthenticationEntryPoint;
-import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler;
-import com.webank.wecube.platform.auth.server.handler.JwtSsoBasedAuthenticationFailureHandler;
-import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
-
 /**
  * 
  * @author gavin
@@ -33,6 +32,8 @@ import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = { //
 //            "/v1/api/login", //
+            "/v1/users/**", // for dev only
+            "/v1/roles/**", // for dev only
             "/v1/api/ping", //
             "/v2/api-docs", //
             "/error", //
