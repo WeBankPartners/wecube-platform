@@ -222,16 +222,16 @@ public class PluginInstanceService {
             throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
         }
 
-        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository
-                .findBySchemaNameAndStatus(pluginPackage.getName(), PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE);
+        List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findByStatusAndPluginPackage_name(
+                PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, pluginPackage.getName());
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
             return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
                     mysqlInstance.getUsername(), mysqlInstance.getPassword(), mysqlInstance.getResourceItemId());
-        } else {
-            return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
         }
+
+        return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
     }
 
     private String handleCreateS3Bucket(Set<PluginPackageRuntimeResourcesS3> s3InfoSet, PluginPackage pluginPackage) {
@@ -411,7 +411,7 @@ public class PluginInstanceService {
                 EncryptionUtils.encryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
                         mysqlInfo.getSchemaName()),
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, mysqlInfo.getPluginPackage());
-        pluginMysqlInstanceRepository.saveAndFlush(mysqlInstance);
+        pluginMysqlInstanceRepository.save(mysqlInstance);
 
         logger.info("Mysql Database schema creation has done...");
         return mysqlInstance;
