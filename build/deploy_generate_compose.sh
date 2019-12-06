@@ -1,16 +1,17 @@
 #!/bin/bash
 
-if [ $# -ne 4 ]
+if [ $# -ne 2 ]
   then
-    echo "Usage: deploy_generate_compose.sh CONFIG PLIATFORM_CORE_IMAGE_VERSION PORTAL_IMAGE_VERSION GATEWAY_IMAGE_VERSION"
+    echo "Usage: deploy_generate_compose.sh CONFIG VERSION "
     exit 1
 fi
 
 source $1
 
 wecube_image_version=$2
-portal_image_version=$3
-gateway_image_version=$4
+portal_image_version=$2
+gateway_image_version=$2
+auth_server_image_version=$2
 
 build_path=$(dirname $0)
 
@@ -48,5 +49,12 @@ sed -i "s~{{STATIC_RESOURCE_SERVER_PORT}}~$static_resource_server_port~g" docker
 sed -i "s~{{STATIC_RESOURCE_SERVER_PATH}}~$static_resource_server_path~g" docker-compose.yml
 sed -i "s~{{GATEWAY_URL}}~$gateway_url~g" docker-compose.yml
 sed -i "s~{{GATEWAY_CUSTOM_PARAM}}~$gateway_custom_param~g" docker-compose.yml
-
+sed -i "s~{{AUTH_SERVER_IMAGE_NAME}}~$auth_server_image_name~g" docker-compose.yml
+sed -i "s~{{AUTH_SERVER_IMAGE_VERSION}}~$auth_server_image_version~g" docker-compose.yml
+sed -i "s~{{AUTH_SERVER_MYSQL_ADDR}}~$auth_server_mysql_addr~g" docker-compose.yml
+sed -i "s~{{AUTH_SERVER_MYSQL_PORT}}~$auth_server_mysql_port~g" docker-compose.yml
+sed -i "s~{{AUTH_SERVER_DATABASE_NAME}}~$auth_server_database_name~g" docker-compose.yml
+sed -i "s~{{AUTH_SERVER_MYSQL_USER_NAME}}~$auth_server_mysql_user_name~g" docker-compose.yml
+sed -i "s~{{AUTH_SERVER_MYSQL_USER_PASSWORD}}~$auth_server_mysql_user_password~g" docker-compose.yml
+sed -i "s~{{AUTH_SERVER_PORT}}~$auth_server_port~g" docker-compose.yml
 
