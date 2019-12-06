@@ -37,7 +37,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     private String gatewayUrl;
     private RestTemplate restTemplate;
-    private HttpHeaders httpHeaders = new HttpHeaders();
+
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -49,98 +49,118 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto createUser(Map<String, Object> requestJsonObject) {
+    public CommonResponseDto createUser(String token, Map<String, Object> requestJsonObject) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         String requestUrl = generateRequestUrl(AUTH_SERVER_USER_CREATE_URL, requestUrlMap);
+        logger.info(String.format("Sending POST request to: [%s] with body: [%s]", requestUrl, requestJsonObject));
         ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithObject(this.restTemplate, requestUrl, httpHeaders, requestJsonObject);
         return RestTemplateUtils.checkResponse(response);
     }
 
 
     @Override
-    public CommonResponseDto retrieveUser() {
+    public CommonResponseDto retrieveUser(String token) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         String requestUrl = generateRequestUrl(AUTH_SERVER_USER_RETRIEVE_URL, requestUrlMap);
+        logger.info(String.format("Sending GET request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public CommonResponseDto deleteUser(Long id) {
+    public CommonResponseDto deleteUser(String token, Long id) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         requestUrlMap.put(USER_ID_PLACE_HOLDER, String.valueOf(id));
         String requestUrl = generateRequestUrl(AUTH_SERVER_USER_DELETE_URL, requestUrlMap);
+        logger.info(String.format("Sending DELETE request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendDeleteWithoutBody(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public CommonResponseDto createRole(Map<String, Object> jsonObject) {
+    public CommonResponseDto createRole(String token, Map<String, Object> jsonObject) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_CREATE_URL, requestUrlMap);
+        logger.info(String.format("Sending POST request to: [%s] with body: [%s]", requestUrl, jsonObject));
         ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithObject(this.restTemplate, requestUrl, httpHeaders, jsonObject);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public CommonResponseDto retrieveRole() {
+    public CommonResponseDto retrieveRole(String token) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_RETRIEVE_URL, requestUrlMap);
+        logger.info(String.format("Sending GET request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public CommonResponseDto deleteRole(Long id) {
+    public CommonResponseDto deleteRole(String token, Long id) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         requestUrlMap.put(ROLE_ID_PLACE_HOLDER, String.valueOf(id));
         String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_DELETE_URL, requestUrlMap);
+        logger.info(String.format("Sending DELETE request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendDeleteWithoutBody(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public CommonResponseDto getRolesByUserName(String userName) {
+    public CommonResponseDto getRolesByUserName(String token, String userName) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         requestUrlMap.put(USER_NAME_PLACE_HOLDER, userName);
         String requestUrl = generateRequestUrl(AUTH_SERVER_USER2ROLE_URL, requestUrlMap);
+        logger.info(String.format("Sending GET request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public CommonResponseDto getUsersByRoleId(Long roleId) {
+    public CommonResponseDto getUsersByRoleId(String token, Long roleId) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         requestUrlMap.put(ROLE_ID_PLACE_HOLDER, String.valueOf(roleId));
         String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE2USER_URL, requestUrlMap);
+        logger.info(String.format("Sending GET request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public CommonResponseDto grantRoleToUsers(Long roleId, List<Object> userIdList) {
+    public CommonResponseDto grantRoleToUsers(String token, Long roleId, List<Object> userIdList) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         requestUrlMap.put(ROLE_ID_PLACE_HOLDER, String.valueOf(roleId));
         String requestUrl = generateRequestUrl(AUTH_SERVER_GRANT_URL, requestUrlMap);
+        logger.info(String.format("Sending POST request to: [%s] with body: [%s]", requestUrl, userIdList));
         ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithObject(this.restTemplate, requestUrl, httpHeaders, userIdList);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public CommonResponseDto revokeRoleFromUsers(Long roleId, List<Object> requestObject) {
+    public CommonResponseDto revokeRoleFromUsers(String token, Long roleId, List<Object> requestObject) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         requestUrlMap.put(ROLE_ID_PLACE_HOLDER, String.valueOf(roleId));
         String requestUrl = generateRequestUrl(AUTH_SERVER_REVOKE_URL, requestUrlMap);
+        logger.info(String.format("Sending DELETE request to: [%s] with body: [%s]", requestUrl, requestObject));
         ResponseEntity<String> response = RestTemplateUtils.sendDeleteWithBody(this.restTemplate, requestUrl, httpHeaders, requestObject);
         return RestTemplateUtils.checkResponse(response);
     }
@@ -153,5 +173,11 @@ public class UserManagementServiceImpl implements UserManagementService {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
         UriComponents uriComponents = uriComponentsBuilder.buildAndExpand(requestUrlParamMap);
         return uriComponents.toString();
+    }
+
+    private HttpHeaders createHeaderWithToken(String token) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Authorization", token);
+        return httpHeaders;
     }
 }
