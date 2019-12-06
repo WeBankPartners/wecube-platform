@@ -2,6 +2,8 @@ package com.webank.wecube.platform.core.service.user;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +57,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         String requestUrl = generateRequestUrl(AUTH_SERVER_USER_CREATE_URL, requestUrlMap);
         logger.info(String.format("Sending POST request to: [%s] with body: [%s]", requestUrl, requestJsonObject));
-        ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithObject(this.restTemplate, requestUrl, httpHeaders, requestJsonObject);
+        ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithBody(this.restTemplate, requestUrl, httpHeaders, requestJsonObject);
         return RestTemplateUtils.checkResponse(response);
     }
 
@@ -90,7 +92,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
         String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_CREATE_URL, requestUrlMap);
         logger.info(String.format("Sending POST request to: [%s] with body: [%s]", requestUrl, jsonObject));
-        ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithObject(this.restTemplate, requestUrl, httpHeaders, jsonObject);
+        ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithBody(this.restTemplate, requestUrl, httpHeaders, jsonObject);
         return RestTemplateUtils.checkResponse(response);
     }
 
@@ -149,7 +151,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         requestUrlMap.put(ROLE_ID_PLACE_HOLDER, String.valueOf(roleId));
         String requestUrl = generateRequestUrl(AUTH_SERVER_GRANT_URL, requestUrlMap);
         logger.info(String.format("Sending POST request to: [%s] with body: [%s]", requestUrl, userIdList));
-        ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithObject(this.restTemplate, requestUrl, httpHeaders, userIdList);
+        ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithBody(this.restTemplate, requestUrl, httpHeaders, userIdList);
         return RestTemplateUtils.checkResponse(response);
     }
 
@@ -164,6 +166,13 @@ public class UserManagementServiceImpl implements UserManagementService {
         ResponseEntity<String> response = RestTemplateUtils.sendDeleteWithBody(this.restTemplate, requestUrl, httpHeaders, requestObject);
         return RestTemplateUtils.checkResponse(response);
     }
+
+    @Override
+    public RoleDto createRole(RoleDto roleDto) {
+        String jsonString = JsonUtils.toJsonString(roleDto);
+        return null;
+    }
+
 
     private String generateRequestUrl(String requestUrl, Map<String, String> placeHolderToParamMap) {
         Map<String, String> requestUrlParamMap = new HashMap<>();
