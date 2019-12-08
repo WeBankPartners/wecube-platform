@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service.user;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -15,7 +16,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -97,6 +100,23 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
+    public RoleDto createRole(RoleDto roleDto) throws WecubeCoreException {
+        String token = "Bearer test_token";
+        Map<String, Object> createRoleMap = dtoToMap(roleDto);
+        CommonResponseDto createRoleResponse = createRole(token, createRoleMap);
+        String createRoleResponseDataJsonString = JsonUtils.toJsonString(createRoleResponse.getData());
+        RoleDto resultDto;
+        try {
+            resultDto = JsonUtils.toObject(createRoleResponseDataJsonString, RoleDto.class);
+        } catch (IOException ex) {
+            String msg = String.format("Cannot transfer response's data [%s] to RoleId dto", createRoleResponseDataJsonString);
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return resultDto;
+    }
+
+    @Override
     public CommonResponseDto retrieveRole(String token) {
         HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
@@ -105,6 +125,22 @@ public class UserManagementServiceImpl implements UserManagementService {
         logger.info(String.format("Sending GET request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
+    }
+
+    @Override
+    public List<RoleDto> retrieveRole() throws WecubeCoreException {
+        String token = "Bearer test_token";
+        CommonResponseDto commonResponseDto = retrieveRole(token);
+        String responseDataString = JsonUtils.toJsonString(commonResponseDto.getData());
+        List<RoleDto> resultDto;
+        try {
+            resultDto = JsonUtils.toList(responseDataString, RoleDto.class);
+        } catch (IOException ex) {
+            String msg = String.format("Cannot transfer response's data [%s] to RoleId dto", commonResponseDto.getData().toString());
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return resultDto;
     }
 
     @Override
@@ -117,6 +153,12 @@ public class UserManagementServiceImpl implements UserManagementService {
         logger.info(String.format("Sending DELETE request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendDeleteWithoutBody(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
+    }
+
+    @Override
+    public void deleteRole(Long id) {
+        String token = "Bearer test_token";
+        deleteRole(token, id);
     }
 
     @Override
@@ -167,10 +209,19 @@ public class UserManagementServiceImpl implements UserManagementService {
         return RestTemplateUtils.checkResponse(response);
     }
 
-    @Override
-    public RoleDto createRole(RoleDto roleDto) {
-        String jsonString = JsonUtils.toJsonString(roleDto);
-        return null;
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> dtoToMap(Object dtoObject) throws WecubeCoreException {
+        Map<String, Object> resultMap = new LinkedHashMap<>();
+        String dtoJsonString = JsonUtils.toJsonString(dtoObject);
+        try {
+            resultMap = JsonUtils.toObject(dtoJsonString, resultMap.getClass());
+        } catch (IOException ex) {
+            String msg = String.format("Cannot transfer response's data [%s] to RoleId dto", dtoObject.toString());
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return resultMap;
     }
 
 
