@@ -33,7 +33,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private ApplicationProperties applicationProperties;
     private String gatewayUrl;
     private MockRestServiceServer server;
-    String token = "Bearer test_token";
+    String token = "Bearer";
 
     @Before
     public void setup() {
