@@ -7,6 +7,7 @@ import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.jpa.*;
 import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator;
@@ -16,6 +17,7 @@ import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.ScpService;
+import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import org.apache.commons.io.FileUtils;
@@ -81,6 +83,9 @@ public class PluginPackageService {
 
     @Autowired
     private PluginConfigService pluginConfigService;
+
+    @Autowired
+    private UserManagementService userManagementService;
 
     @Transactional
     public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
@@ -229,11 +234,29 @@ public class PluginPackageService {
 
         ensureNoMoreThanTwoActivePackages(pluginPackage);
 
+        handlePluginRoleMenuForPackage(pluginPackage);
+
         deployPluginUiResourcesIfRequired(pluginPackage);
 
         pluginPackage.setStatus(REGISTERED);
 
         return pluginPackageRepository.save(pluginPackage);
+    }
+
+    private void handlePluginRoleMenuForPackage(PluginPackage pluginPackage) {
+        Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
+        if (null != pluginPackageAuthorities && pluginPackageAuthorities.size() > 0) {
+            List<RoleDto> roleDtos = userManagementService.retrieveRole();
+            Set<String> existingRoleNames = new HashSet<>();
+            if (null != roleDtos && roleDtos.size() > 0) {
+                existingRoleNames = roleDtos.stream().map(roleDto -> roleDto.getName()).collect(Collectors.toSet());
+            }
+            Set<String> roleNamesInPlugin = pluginPackageAuthorities.stream().map(authority -> authority.getRoleName()).collect(Collectors.toSet());
+            Set<String> roleNamesDefinedInPluginButNotExistInSystem = Sets.difference(roleNamesInPlugin, existingRoleNames);
+            if (!roleNamesDefinedInPluginButNotExistInSystem.isEmpty()) {
+                roleNamesDefinedInPluginButNotExistInSystem.forEach(it->userManagementService.createRole(new RoleDto(it, it)));
+            }
+        }
     }
 
     private void ensurePluginPackageIsAllowedToRegister(PluginPackage pluginPackage) {
