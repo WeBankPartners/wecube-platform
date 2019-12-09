@@ -8,7 +8,7 @@ server:
       key-store-type: PKCS12
 logging:
    config: classpath:logback-spring.xml
-   
+
 platform:
    gateway:
       route:
@@ -23,9 +23,15 @@ spring:
             ssl:
                useInsecureTrustManager: true
          routes:
-         -  id: platform-core
-            uri: http://10.0.2.10:19100
-            predicates:
-            - Path=/platform/**
-            filters:
-            - DynamicRoute=false
+            - id: platform-core
+              uri: http://10.0.2.10:19100
+              predicates:
+                 - Path=/platform/**
+              filters:
+                 - DynamicRoute=false
+            - id: platform-auth-server
+              uri: http://10.0.2.10:19120
+              predicates:
+                 - Path=/auth/**
+              filters:
+                 - DynamicRoute=false
