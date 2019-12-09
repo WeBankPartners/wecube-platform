@@ -2,7 +2,9 @@ package com.webank.wecube.platform.core.service.user;
 
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -30,7 +33,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     private ApplicationProperties applicationProperties;
     private String gatewayUrl;
     private MockRestServiceServer server;
-    String token = "Bearer test_token";
+    String token = "Bearer";
 
     @Before
     public void setup() {
@@ -73,6 +76,14 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
         this.server.verify();
     }
 
+    @Test
+    public void createRoleInternalShouldSucceed() {
+        mockCreateRoleServer(this.server);
+        RoleDto createRoleDto = new RoleDto("fake administrator", "fakeAdministrator");
+        userManagementService.createRole(createRoleDto);
+        this.server.verify();
+    }
+
 
     @Test
     public void retrieveRoleShouldSucceed() {
@@ -83,11 +94,33 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
+    public void retrieveRoleInternalShouldSucceed() {
+        Integer RETRIEVE_ROLE_SIZE = 1;
+        mockRetrieveRoleServer(this.server);
+        List<RoleDto> retrieveRoleResultList = userManagementService.retrieveRole();
+        assertThat(retrieveRoleResultList.size()).isEqualTo(RETRIEVE_ROLE_SIZE);
+        assertThat(retrieveRoleResultList.get(0).getId()).isEqualTo(1);
+        this.server.verify();
+    }
+
+    @Test
     public void deleteRoleShouldSucceed() {
         mockDeleteRoleServer(this.server);
         Long roleId = 1L;
         CommonResponseDto responseDto = userManagementService.deleteRole(this.token, roleId);
         assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+        this.server.verify();
+    }
+
+    @Test
+    public void deleteRoleInternalShouldSucceed() {
+        mockDeleteRoleServer(this.server);
+        Long roleId = 1L;
+        try {
+            userManagementService.deleteRole(roleId);
+        } catch (WecubeCoreException e) {
+            fail(e.getMessage());
+        }
         this.server.verify();
     }
 
