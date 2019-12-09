@@ -85,7 +85,7 @@ public class RestTemplateUtils {
      * @param headers      request headers
      * @return String
      */
-    public static ResponseEntity<String> sendPostRequestWithObject(RestTemplate restTemplate, String requestUri, HttpHeaders headers, Object requestBody) {
+    public static ResponseEntity<String> sendPostRequestWithBody(RestTemplate restTemplate, String requestUri, HttpHeaders headers, Object requestBody) {
 
         HttpMethod method = HttpMethod.POST;
         // set content type as form
