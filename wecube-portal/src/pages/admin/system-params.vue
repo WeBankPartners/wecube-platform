@@ -120,16 +120,6 @@ export default {
           placeholder: this.$t("table_scope_value")
         },
         {
-          title: this.$t("table_seq_no"),
-          key: "seqNo",
-          inputKey: "seqNo",
-          searchSeqNo: 7,
-          displaySeqNo: 7,
-          component: "Input",
-          inputType: "text",
-          placeholder: this.$t("table_seq_no")
-        },
-        {
           title: this.$t("table_status"),
           key: "status",
           inputKey: "status",
