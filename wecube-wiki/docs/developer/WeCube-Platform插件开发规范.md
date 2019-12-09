@@ -42,14 +42,19 @@ WeCube目前支持以下几种插件：
 必须命名为register.xml, [具体示例在此](https://github.com/WeBankPartners/wecube-platform/blob/dev/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)  
 
 ##### 后端API服务规范
-1. 提供镜像包，目前仅支持以容器方式启动插件服务程序  
-1.1 镜像包必须命名为image.tar，仅支持tar格式，并要求docker load出来的image要求：repository必须是插件包名，tag是版本号;  
-1.2 提供的所有API的URL必须以/plugin-name/version/开头，plugin-name是插件包名，使用纯小写字母，多于一个单词时使用“-”连接，version是插件包的版本号；例如,/cmdb/v1/xxx ,/service-mgmt/v2/xxx ；  
-~~1.3 必须为声明的模型提供两个数据查询API    
+###### 启动及打包方式规范 
+1.提供镜像包，目前仅支持以容器方式启动插件服务程序，  
+2.镜像包必须命名为image.tar，仅支持tar格式，并要求docker load出来的image要求：repository必须是插件包名，tag是版本号;  
+###### API的url规范
+提供的所有API的URL必须以/plugin-name/version/开头，plugin-name是插件包名，使用纯小写字母，多于一个单词时使用“-”连接，version是插件包的版本号；例如,/cmdb/v1/xxx ,/service-mgmt/v2/xxx ；  
+~~###### 数据模型查询API规范
+必须为声明的模型提供两个数据查询API    
     根据主键（接口参数命名为“id”）查询数据；  
     根据其他任意一个属性值（除主键外）查询数据；~~  
-1.4 必须提供日志查询API（url及参数待定）  
-1.5 在register.xml里resourceDependencies部分，必须声明docker标签，并描述以下属性：  
+~~###### 日志查询功能规范
+必须提供日志查询API（url及参数待定）~~  
+###### 容器启动参数的规范
+在register.xml里resourceDependencies部分，必须声明docker标签，并描述以下属性：  
 ```
 imageName  -- 镜像名，对应镜像包load出来的镜像，例如：service-mt:v0.6 、wecmdb:v0.1
 containerName  --  容器名，为了避免容器重名， 建议命名为镜像包+版本号，例如： service-mt-v0.6、 wecmdb-v0.1
@@ -57,7 +62,6 @@ portBindings  -- 端口映射参数，必须是“{{ALLOCATE_PORT}}:21000”格�
 volumeBindings  -- 卷绑定参数，必须是“{{BASE_MOUNT_PATH}}/service-mt/log:/log”格式， {{BASE_MOUNT_PATH}}是WeCube配置的默认绑定路径,可通过系统参数BASE_MOUNT_PATH配置
 envVariables  -- 容器环境变量， 容器启动所需参数，例如envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}},CORE_ADDR={{CORE_ADDR}}"
 ```
-
 现在WeCube已支持容器启动的参数变量替换有：  
 {{ALLOCATE_HOST}}  -  用户在页面选择的母机  
 {{ALLOCATE_PORT}}  -  WeCube分配的端口  
@@ -85,7 +89,8 @@ envVariables  -- 容器环境变量， 容器启动所需参数，例如envVaria
 5.创建插件实例时，会找到envVariables中两个大括号中的变量名，然后以system_variable的value替换（若value为空，则使用defaultValue）。然后将替换后的值以env变量的方式传入到容器中。
 ```
 
-1.6  如有对外提供服务的插件接口，需要在register.xml里plugins部分声明；  
+###### 插件服务及接口规范
+如有对外提供服务的插件接口，需要在register.xml里plugins部分声明；  
 plugins里面可以有多个plugin，一个plugin里面可以有多个interface，一个interface下面有inputParameters和outputParameter，inputParameters和outputParameters里面都可以有多个parameter。
  - plugin声明插件的name 和对应的entity（和dataModel种的entity对应）,若不声明entity，也可以在插件注册页面让用户手动选择；  
  - interface声明单个API的action、path、httpMethod、isAsyncProcessing、type；  
