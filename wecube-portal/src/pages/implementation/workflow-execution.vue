@@ -637,4 +637,7 @@ export default {
 body {
   color: #15a043;
 }
+.graph-container {
+  overflow: auto;
+}
 </style>
