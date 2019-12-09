@@ -101,7 +101,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public RoleDto createRole(RoleDto roleDto) throws WecubeCoreException {
-        String token = "Bearer test_token";
+        String token = "Bearer";
         Map<String, Object> createRoleMap = dtoToMap(roleDto);
         CommonResponseDto createRoleResponse = createRole(token, createRoleMap);
         String createRoleResponseDataJsonString = JsonUtils.toJsonString(createRoleResponse.getData());
@@ -129,7 +129,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public List<RoleDto> retrieveRole() throws WecubeCoreException {
-        String token = "Bearer test_token";
+        String token = "Bearer";
         CommonResponseDto commonResponseDto = retrieveRole(token);
         String responseDataString = JsonUtils.toJsonString(commonResponseDto.getData());
         List<RoleDto> resultDto;
@@ -157,7 +157,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public void deleteRole(Long id) {
-        String token = "Bearer test_token";
+        String token = "Bearer";
         deleteRole(token, id);
     }
 
