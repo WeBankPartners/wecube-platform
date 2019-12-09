@@ -96,51 +96,6 @@ httpMethod - http方法，支持标准的http方法取值，纯大写字母，�
 isAsyncProcessing - 是否异步接口，取值范围有'Y'(是)和'N'（否）,默认'N'
 type - 取值范围有'EXECUTION'（执行类）和'APPROVAL'（审批类）,不声明时默认'EXECUTION'
 ```
- 
-插件的interface的返回参数格式规范为：
-```json
-{
-	"result_code":"0",
-	"result_message":"success",
-	"results":{
-		"outputs":[
-		]
-	}
-}
-```
-其中result_code=“0”代表成功，“1”代表失败，当失败时result_message返回错误信息，results.outputs就是声明的输出参数的数组。
-
-例如interface声明如下：
-```
-<interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
-    <inputParameters>
-        <parameter datatype="string" mappingType='context' required='Y'>guid</parameter>
-    </inputParameters>
-    <outputParameters>
-        <parameter datatype="string">status</parameter>
-        <parameter datatype="string">message</parameter>
-        <parameter datatype="string">guid</parameter>
-        <parameter datatype="string">fixed_date</parameter>
-    </outputParameters>
-</interface>
-```
-那么这个interface返回的json是：
-```json
-{
-	"result_code":"0",
-	"result_message":"success",
-	"results":{
-		"outputs":[
-			{
-				"status":"OK",
-				"message":"xxxx",
-				"guid":"xxxxxxx",
-				"fixed_date":"xxxxx"
-			}
-		]
-	}
-}
-```
  - inputParameters声明接口的输入参数；  
  - outputParameters声明接口的输出参数；  
  - parameter声明每个参数的属性；  
@@ -151,7 +106,97 @@ required  --  是否必输
 mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候，该字段有效
 ```
 
+插件的interface对应的API的输入参数和输出参数规范如下：
+```json
+输入参数
+{
+    "requestId": "request-001",  //仅异步调用需要用到
+    "operator": "admin",  //操作人
+    "inputs": [  
+        {},
+        {},
+        {}
+    ]
+}
+```  
+```json
+输出参数
+{
+    "resultCode": "0",  //调用插件结果，"0"代表调用成功，"1"代表调用失败
+    "resultMessage": "success",  //调用结果信息，一般用于调用失败时返回失败信息
+    "results": {
+        "outputs": [
+            {},
+            {},
+            {}
+        ]
+    }
+}
+```  
 
+输入参数中input数组的一个元素是一个json对象，它的每个属性都需要定义在inputParameters标签的parameter中；
+输出参数中results.output数组的一个元素也是一个json对象，它的每个属性都需要定义在outputParameters标签的parameter中，并且固定包含以下两个属性
+ - errorCode  //String类型，"0"代表成功，"1"代表失败
+ - errorMessage  //String类型，当errorCode="1"时返回失败信息
+
+示例如下：
+下面是xml中的interface定义，
+```
+<interface action="create" path="/service-mgmt/v1/tasks" httpMethod='POST' isAsyncProcessing="Y" type="APPROVAL">
+    <inputParameters>
+        <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='CALLBACK_URL' required='Y'>
+            callbackUrl
+        </parameter>
+        <parameter datatype="string" mappingType='constant' required='Y'>taskName</parameter>
+        <parameter datatype="string" mappingType='constant' required='Y'>roleName</parameter>
+    </inputParameters>
+    <outputParameters>
+        <parameter datatype="string">errorCode</parameter>
+        <parameter datatype="string">errorMessage</parameter>
+        <parameter datatype="string">taskResult</parameter>
+    </outputParameters>
+</interface>
+```
+那么，这个interface请求的json是，  
+```json
+{
+    "requestId": "request-001",
+    "operator": "admin",
+    "inputs": [
+        {
+            "taskName": "task-001",
+            "roleName": "admin",
+            "callbackUrl": "/v1/process/instances/callback"
+        },
+        {
+            "taskName": "task-002",
+            "roleName": "admin",
+            "callbackUrl": "/v1/process/instances/callback"
+        }
+    ]
+}
+```
+这个interface返回的json是，  
+```
+{
+    "resultCode": "0",
+    "resultMessage": "success",
+    "results": {
+        "outputs": [
+            {
+                "errorCode": "0",
+                "errorMessage": "",
+                "taskResult": "Approve"
+            },
+            {
+                "errorCode": "1",
+                "errorMessage": "Reject this request",
+                "taskResult": "Reject"
+            }
+        ]
+    }
+}
+```
 
 ##### 前端UI页面规范  
 1.必须在register.xml的menus标签内声明菜单对应的访问页面相对路径； 
@@ -178,8 +223,6 @@ https://github.com/WeBankPartners/wecube-platform/blob/dev/wecube-wiki/docs/%E5%
 1. 需要在register.xml里resourceDependencies部分声明，schema是申请的数据库schema，initFileName是创建表的sql脚本，upgradeFileName是升级数据表结构的脚本。  
 2. 必须提供初始化数据表的init.sql；  
 ~~3. 如果已存在旧的插件版本，必须提供upgrade.sql，当进行版本升级时需要执行（当前仅支持连续版本升级，如1.1.1升到1.1.2， 或1.3升到1.4，不支持跨版本升级）;~~  
-
-
 
 ##### 插件包规范
  - 命名必须是全小写英文字母，单词之间使用“-”来连接；  
