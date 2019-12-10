@@ -32,6 +32,9 @@ http {
 	location /platform {
 		proxy_pass http://core;
 	}
+	location /auth {
+		proxy_pass http://core;
+	}
 	location /service-mgmt {
 		proxy_pass http://core;
 	}
