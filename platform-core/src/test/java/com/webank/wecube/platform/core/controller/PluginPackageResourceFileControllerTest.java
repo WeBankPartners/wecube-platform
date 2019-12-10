@@ -1,7 +1,10 @@
 package com.webank.wecube.platform.core.controller;
 
+import com.webank.wecube.platform.core.handler.GlobalExceptionHandler;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -14,6 +17,15 @@ public class PluginPackageResourceFileControllerTest extends AbstractControllerT
 
     @Autowired
     private PluginPackageResourceFileController pluginPackageResourceFileController;
+    @Autowired
+    private PluginPackageController pluginPackageController;
+    @Autowired
+    private GlobalExceptionHandler globalExceptionHandler;
+
+    @Before
+    public void setup() {
+        mvc = MockMvcBuilders.standaloneSetup(pluginPackageController, pluginPackageResourceFileController, globalExceptionHandler).build();
+    }
 
     @Test
     public void givenNoUiPackageWhenQueryResourceFileListThenReturnEmptyList() {
@@ -53,21 +65,21 @@ public class PluginPackageResourceFileControllerTest extends AbstractControllerT
 
     private void mockPluginPackagesOnly() {
 
-        executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  ('1', 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
-                " ,('2', 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
-                " ,('3', 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
-                " ,('4', 'cmdb', 'v2.0', 'UNREGISTERED')\n" +
-                " ,('5', 'cmdb', 'v2.1', 'REGISTERED');\n");
+        executeSql("insert into plugin_packages (id, name, version, status, ui_package_included, upload_timestamp) values\n" +
+                "  ('1', 'cmdb', 'v1.0', 'UNREGISTERED', 0, '2019-12-03 15:18:12')\n" +
+                " ,('2', 'cmdb', 'v1.1', 'UNREGISTERED', 0, '2019-12-03 15:28:12')\n" +
+                " ,('3', 'cmdb', 'v1.2', 'UNREGISTERED', 0, '2019-12-03 15:38:12')\n" +
+                " ,('4', 'cmdb', 'v2.0', 'UNREGISTERED', 0, '2019-12-03 15:48:12')\n" +
+                " ,('5', 'cmdb', 'v2.1', 'REGISTERED', 0, '2019-12-03 15:58:12');\n");
     }
 
     private void mockPluginPackageWithMultipleResourceFiles() {
-        executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  ('1', 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
-                " ,('2', 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
-                " ,('3', 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
-                " ,('4', 'cmdb', 'v2.0', 'UNREGISTERED')\n" +
-                " ,('5', 'cmdb', 'v2.1', 'REGISTERED');\n" +
+        executeSql("insert into plugin_packages (id, name, version, status, ui_package_included, upload_timestamp) values\n" +
+                "  ('1', 'cmdb', 'v1.0', 'UNREGISTERED', 1, '2019-12-03 15:18:12')\n" +
+                " ,('2', 'cmdb', 'v1.1', 'UNREGISTERED', 1, '2019-12-03 15:28:12')\n" +
+                " ,('3', 'cmdb', 'v1.2', 'UNREGISTERED', 1, '2019-12-03 15:38:12')\n" +
+                " ,('4', 'cmdb', 'v2.0', 'UNREGISTERED', 1, '2019-12-03 15:48:12')\n" +
+                " ,('5', 'cmdb', 'v2.1', 'REGISTERED', 1, '2019-12-03 15:58:12');\n" +
                 "\n" +
                 "INSERT INTO plugin_package_resource_files(id, plugin_package_id, package_name, package_version, source, related_path) VALUES\n" +
                 " ('1', '1', 'cmdb', 'v1.0', 'ui.zip', 'cmdb/v1.0/dist/css/chunk-vendors.76ee8001.css')\n" +
