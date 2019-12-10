@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
 
 import static org.hamcrest.Matchers.*;
@@ -28,11 +29,14 @@ public class DataServiceControllerTest extends AbstractControllerTest {
     private ApplicationProperties applicationProperties;
     private String gatewayUrl;
     private MockRestServiceServer server;
+    @Autowired
+    private DataServiceController controllerToTest;
 
     @Before
     public void setup() {
         this.server = MockRestServiceServer.bindTo(restTemplate).build();
         this.gatewayUrl = this.applicationProperties.getGatewayUrl();
+        mvc = MockMvcBuilders.standaloneSetup(controllerToTest).build();
     }
 
     @Test
