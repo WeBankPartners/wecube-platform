@@ -151,9 +151,7 @@ export const deleteEnumRecord = (catTypeId, catId, codeId) =>
   );
 export const addEnumRecord = (catTypeId, data) =>
   req.post(
-    `/platform/v1/cmdb/enum/category-types/${catTypeId}/categories/${
-      data.catId
-    }/codes/create`,
+    `/platform/v1/cmdb/enum/category-types/${catTypeId}/categories/${data.catId}/codes/create`,
     data
   );
 export const getEnumCatList = () =>
@@ -206,9 +204,7 @@ export const createPluginInstanceByPackageIdAndHostIp = (packageId, ip, port) =>
   );
 export const savePluginInstance = data =>
   req.post(
-    `/platform/v1/plugin/configs/${data.configId}/save?cmdbCiTypeId=${
-      data.cmdbCiTypeId
-    }&cmdbCiTypeName=${data.cmdbCiTypeName}`,
+    `/platform/v1/plugin/configs/${data.configId}/save?cmdbCiTypeId=${data.cmdbCiTypeId}&cmdbCiTypeName=${data.cmdbCiTypeName}`,
     data.pluginRegisteringModels
   );
 export const decommissionPluginConfig = configId =>
@@ -254,9 +250,7 @@ export const createEnumCategory = data =>
   );
 export const updateEnumCategory = data =>
   req.put(
-    `/platform/v1/cmdb/enum/category-types/${data.catTypeId}/categories/${
-      data.catId
-    }`,
+    `/platform/v1/cmdb/enum/category-types/${data.catTypeId}/categories/${data.catId}`,
     data
   );
 export const getAllCITypesByLayerWithAttr = data => {
@@ -376,9 +370,7 @@ export const getEffectiveStatus = () =>
   req.get(`/platform/v1/cmdb/static-data/effective-status`);
 export const createEnumCode = data => {
   return req.post(
-    `/platform/v1/cmdb/enum/category-types/0/categories/${
-      data.catId
-    }/codes/create`,
+    `/platform/v1/cmdb/enum/category-types/0/categories/${data.catId}/codes/create`,
     data
   );
 };
@@ -549,9 +541,7 @@ export const getDeployDesignTabs = () =>
 
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/platform/v1/cmdb/deploy-designs/tabs/ci-data?code-id=${
-      data.codeId
-    }&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
+    `/platform/v1/cmdb/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
     payload
   );
 
@@ -625,3 +615,17 @@ export const getRefByIdInfoByPackageNameAndEntityName = (pkgName, entityName) =>
   req.get(
     `/platform/v1/models/package/${pkgName}/entity/${entityName}/refById`
   );
+export const userCreate = data => req.post(`/platform/v1/users/create`, data);
+export const getUserList = () => req.get(`/platform/v1/users/retrieve`);
+export const deleteUser = id => req.delete(`/platform/v1/users/${id}/delete`);
+export const roleCreate = data => req.post(`/platform/v1/roles/create`, data);
+export const getRoleList = () => req.get(`/platform/v1/roles/retrieve`);
+export const deleteRole = id => req.delete(`/platform/v1/roles/${id}/delete`);
+export const getRolesByUserName = userName =>
+  req.get(`/platform/v1/users/${userName}/roles`);
+export const getUsersByRoleId = roleId =>
+  req.get(`/platform/v1/roles/${roleId}/users`);
+export const grantRolesForUser = (roleId, data) =>
+  req.post(`/platform/v1/roles/${roleId}/users/grant`, data);
+export const revokeRolesForUser = (roleId, data) =>
+  req.delete(`/platform/v1/roles/${roleId}/users/revoke`, data);
