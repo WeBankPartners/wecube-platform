@@ -295,14 +295,14 @@ export default {
         const label =
           _.refFlowNodeIds.toString().replace(/,/g, "/") +
           (isRecord ? "|" : "") +
-          _.packageName +
-          "_" +
-          _.entityName +
-          "_" +
-          _.dataId;
+          _.packageName.slice(0, 5) +
+          "..." +
+          _.entityName.slice(-4);
         return `${nodeId} [label="${
-          isRecord ? label : _.packageName + "_" + _.entityName + "_" + _.dataId
-        }" class="model" id="${nodeId}" color="${color}" shape="${shape}" width="5"]`;
+          isRecord
+            ? label
+            : _.packageName.slice(0, 5) + "..." + _.entityName.slice(-4)
+        }" class="model" id="${nodeId}" color="${color}" shape="${shape}"]`;
       });
       let genEdge = () => {
         let pathAry = [];
