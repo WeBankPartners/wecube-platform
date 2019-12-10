@@ -139,8 +139,8 @@ mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候�
 }
 ```  
 
-输入参数中input数组的一个元素是一个json对象，它的每个属性都需要定义在inputParameters标签的parameter中；
-输出参数中results.output数组的一个元素也是一个json对象，它的每个属性都需要定义在outputParameters标签的parameter中，并且固定包含以下两个属性
+输入参数中input数组的一个元素是一个json对象，它包含一个无需xml声明的属性（callbackParameter，类型String，同一个api请求中，input数组中的callbackParameter必须唯一，此字段会在返回参数中的results.output中返回，用于定位input数组中的每个元素的返回结果），其他的每个属性都需要定义在inputParameters标签的parameter中；
+输出参数中results.output数组的一个元素也是一个json对象，如上所述，它包含一个无需xml声明的属性（callbackParameter，类型String），其他的每个属性都需要定义在outputParameters标签的parameter中，并且固定包含以下两个属性
  - errorCode  //String类型，"0"代表成功，"1"代表失败
  - errorMessage  //String类型，当errorCode="1"时返回失败信息
 
@@ -169,11 +169,13 @@ mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候�
     "operator": "admin",
     "inputs": [
         {
+            "callbackParameter": "callback001",
             "taskName": "task-001",
             "roleName": "admin",
             "callbackUrl": "/v1/process/instances/callback"
         },
         {
+            "callbackParameter": "callback002",
             "taskName": "task-002",
             "roleName": "admin",
             "callbackUrl": "/v1/process/instances/callback"
@@ -189,11 +191,13 @@ mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候�
     "results": {
         "outputs": [
             {
+                "callbackParameter": "callback001",
                 "errorCode": "0",
                 "errorMessage": "",
                 "taskResult": "Approve"
             },
             {
+                "callbackParameter": "callback002",
                 "errorCode": "1",
                 "errorMessage": "Reject this request",
                 "taskResult": "Reject"
