@@ -47,6 +47,15 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
 
     @Column(name = "PROC_DEF_DATA_FMT")
     private String procDefDataFormat = PROC_DATA_FORMAT_XML;
+    
+    @Column(name = "OWNER")
+    private String owner;
+    
+    @Column(name = "OWNER_GRP")
+    private String ownerGroup;
+    
+    @Column(name = "IS_DELETED")
+    private boolean deleted = false;
 
     public String getId() {
         return id;
@@ -112,4 +121,27 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
         this.procDefDataFormat = procDefDataFormat;
     }
 
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public String getOwnerGroup() {
+        return ownerGroup;
+    }
+
+    public void setOwnerGroup(String ownerGroup) {
+        this.ownerGroup = ownerGroup;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
 }
