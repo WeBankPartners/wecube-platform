@@ -43,7 +43,14 @@ export default {
         session.setItem("token", JSON.stringify(data));
         this.$router.push("/homepage");
       }
+    },
+    clearSession() {
+      let session = window.sessionStorage;
+      session.removeItem("token");
     }
+  },
+  created() {
+    this.clearSession();
   }
 };
 </script>

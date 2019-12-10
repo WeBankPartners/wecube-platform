@@ -23,10 +23,10 @@
     </properties>
 
     <modules>
-        <module>platform-core</module>
         <module>platform-workflow</module>
-		<module>platform-auth-client</module>
-		<module>platform-auth-server</module>
-		<module>platform-gateway</module>
+	<module>platform-auth-client</module>
+	<module>platform-auth-server</module>
+	<module>platform-core</module>
+	<module>platform-gateway</module>
     </modules>
 </project>
