@@ -6,11 +6,14 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.handler.GlobalExceptionHandler;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.sql.Timestamp;
 import java.util.Optional;
@@ -42,6 +45,15 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     private PluginConfigRepository pluginConfigRepository;
     @Autowired
     private PluginPackageRepository packageRepository;
+    @Autowired
+    private PluginPackageController pluginPackageController;
+    @Autowired
+    private GlobalExceptionHandler globalExceptionHandler;
+
+    @Before
+    public void setup() {
+        mvc = MockMvcBuilders.standaloneSetup(pluginPackageController, pluginConfigController, globalExceptionHandler).build();
+    }
 
     @Test
     public void givenEntityIdNotExistWhenSaveThenReturnError() {
@@ -429,12 +441,12 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
     private void mockMultipleVersionPluginConfig() {
 
-        executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  ('1', 'servicemanagement', 'v1.0', 'UNREGISTERED')\n" +
-                " ,('2', 'servicemanagement', 'v1.1', 'UNREGISTERED')\n" +
-                " ,('3', 'servicemanagement', 'v1.2', 'UNREGISTERED')\n" +
-                " ,('4', 'servicemanagement', 'v2.0', 'UNREGISTERED')\n" +
-                " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED');\n" +
+        executeSql("insert into plugin_packages (id, name, version, status, ui_package_included) values\n" +
+                "  ('1', 'servicemanagement', 'v1.0', 'UNREGISTERED', 0)\n" +
+                " ,('2', 'servicemanagement', 'v1.1', 'UNREGISTERED', 0)\n" +
+                " ,('3', 'servicemanagement', 'v1.2', 'UNREGISTERED', 0)\n" +
+                " ,('4', 'servicemanagement', 'v2.0', 'UNREGISTERED', 0)\n" +
+                " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED', 0);\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
                 " ('11', '1', 'task', 1, 'ENABLED')\n" +
@@ -461,9 +473,9 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 ", ('6', '2', 'INPUT', 'result', 'string', 'context', null, null, 'Y') " +
                 ", ('7', '2', 'OUTPUT', 'status', 'string', '', null, null, '') " +
                 ", ('8', '2', 'OUTPUT', 'message', 'string', '', null, null, ''); " +
-                "INSERT INTO plugin_package_data_model(id, version, package_name) VALUES " +
-                "  ('1', 1, 'servicemanagement') " +
-                ", ('2', 2, 'servicemanagement') " +
+                "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic) VALUES " +
+                "  ('1', 1, 'servicemanagement', 0) " +
+                ", ('2', 2, 'servicemanagement', 0) " +
                 ";\n" +
                 "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
                 " ('1', '2', 2, 'servicemanagement', 'entity_1', 'entity_1', 'entity_1_description')\n" +
