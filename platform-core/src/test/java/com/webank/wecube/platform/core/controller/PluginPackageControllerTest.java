@@ -1,18 +1,17 @@
 package com.webank.wecube.platform.core.controller;
 
+import com.webank.wecube.platform.core.handler.GlobalExceptionHandler;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.support.FakeS3Client;
 import org.apache.commons.io.FileUtils;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +31,19 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     @Autowired
     private PluginPackageService pluginPackageService;
+
+    @Autowired
+    private PluginPackageController pluginPackageController;
+
+    @Autowired
+    private HomeController homeController;
+    @Autowired
+    private GlobalExceptionHandler globalExceptionHandler;
+
+    @Before
+    public void setup() {
+        mvc = MockMvcBuilders.standaloneSetup(pluginPackageController, homeController, globalExceptionHandler).build();
+    }
 
     @BeforeClass
     public static void setupJunitTemporaryFolderSoThatTheContentsInTheFolderWillBeRemovedAfterTests() {
@@ -256,20 +268,20 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     }
 
     private void mockMultipleVersionPluginPackage() {
-        executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  ('cmdb__v1.0', 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
-                " ,('cmdb__v1.1', 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
-                " ,('cmdb__v1.2', 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
-                " ,('cmdb__v1.3', 'cmdb', 'v1.3', 'RUNNING')\n" +
+        executeSql("insert into plugin_packages (id, name, version, status, ui_package_included) values\n" +
+                "  ('cmdb__v1.0', 'cmdb', 'v1.0', 'UNREGISTERED', 0)\n" +
+                " ,('cmdb__v1.1', 'cmdb', 'v1.1', 'UNREGISTERED', 0)\n" +
+                " ,('cmdb__v1.2', 'cmdb', 'v1.2', 'UNREGISTERED', 0)\n" +
+                " ,('cmdb__v1.3', 'cmdb', 'v1.3', 'RUNNING', 0)\n" +
                 ";");
     }
 
     private void mockMultipleVersionPluginPackageWithReference() {
-        executeSql("insert into plugin_packages (id, name, version, status) values\n" +
-                "  ('cmdb__v1.0', 'cmdb', 'v1.0', 'UNREGISTERED')\n" +
-                " ,('cmdb__v1.1', 'cmdb', 'v1.1', 'UNREGISTERED')\n" +
-                " ,('cmdb__v1.2', 'cmdb', 'v1.2', 'UNREGISTERED')\n" +
-                " ,('cmdb__v1.3', 'cmdb', 'v1.3', 'RUNNING')\n" +
+        executeSql("insert into plugin_packages (id, name, version, status, ui_package_included) values\n" +
+                "  ('cmdb__v1.0', 'cmdb', 'v1.0', 'UNREGISTERED', 0)\n" +
+                " ,('cmdb__v1.1', 'cmdb', 'v1.1', 'UNREGISTERED', 0)\n" +
+                " ,('cmdb__v1.2', 'cmdb', 'v1.2', 'UNREGISTERED', 0)\n" +
+                " ,('cmdb__v1.3', 'cmdb', 'v1.3', 'RUNNING', 0)\n" +
                 ";\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
                 " ('11', 'cmdb__v1.0', 'Vpc Management', 16, 'ENABLED')\n" +
