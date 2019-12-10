@@ -20,6 +20,7 @@ import java.util.Map;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -30,10 +31,18 @@ import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 public class SystemVariableControllerTest extends AbstractControllerTest {
     @Autowired
     PluginPackageRepository pluginPackageRepository;
+    @Autowired
+    private SystemVariableController systemVariableController;
+
+    @Before
+    public void setup() {
+        mvc = MockMvcBuilders.standaloneSetup(systemVariableController).build();
+    }
 
     @Test
     public void getGlobalSystemVariables() throws Exception {
