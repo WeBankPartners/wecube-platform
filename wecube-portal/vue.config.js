@@ -21,6 +21,9 @@ module.exports = {
       },
       "wecube-monitor": {
         target: "https://sandbox.webank.com"
+      },
+      "/auth": {
+        target: "http://111.230.161.237:19090"
       }
     }
   },
