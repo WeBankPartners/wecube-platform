@@ -28,13 +28,13 @@ public class UserService {
 
 	public SysUserEntity create(CreateUserDto createUserDto) throws Exception {
 
-		SysUserEntity existedUser = userRepository.findOneByUsername(createUserDto.getUserName());
+		SysUserEntity existedUser = userRepository.findOneByUsername(createUserDto.getUsername());
 
 		log.info("existUser = {}", existedUser);
 		if (!(null == existedUser))
-			throw new Exception(String.format("User [%s] already existed", createUserDto.getUserName()));
+			throw new Exception(String.format("User [%s] already existed", createUserDto.getUsername()));
 
-		SysUserEntity user = new SysUserEntity(createUserDto.getUserName(),
+		SysUserEntity user = new SysUserEntity(createUserDto.getUsername(),
 				passwordEncoder.encode(createUserDto.getPassword()), ACTIVE);
 		userRepository.saveAndFlush(user);
 
