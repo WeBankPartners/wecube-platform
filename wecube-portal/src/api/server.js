@@ -577,8 +577,7 @@ export const refreshProcessInstanceStatus = id =>
   req.get(`/platform/v1/process/instances/${id}/outline`);
 export const restartProcessInstance = data =>
   req.post("/platform/v1/process/instances/restart", data);
-export const login = data =>
-  req.post("/platform/v1/auth/platform/v1/login", data);
+export const login = data => req.post("/auth/v1/api/login", data);
 export const deletePluginPkg = id =>
   req.post(`/platform/v1/packages/decommission/${id}`);
 export const getPluginPkgDataModel = id =>
