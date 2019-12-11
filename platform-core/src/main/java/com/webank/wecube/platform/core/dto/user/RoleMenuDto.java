@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.dto.user;
 
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 
+import java.util.Collections;
 import java.util.List;
 
 public class RoleMenuDto {
@@ -22,6 +23,7 @@ public class RoleMenuDto {
     }
 
     public List<MenuItemDto> getMenuCodeList() {
+        menuCodeList.sort(MenuItemDto::compareTo);
         return menuCodeList;
     }
 
