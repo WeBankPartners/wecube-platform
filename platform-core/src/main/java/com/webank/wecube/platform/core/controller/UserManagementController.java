@@ -65,5 +65,16 @@ public class UserManagementController {
         }
     }
 
+    @GetMapping("/users/{user-name}/menus")
+    @ResponseBody
+    public CommonResponseDto getMenusByUsername(@RequestHeader(value = "Authorization") String token,
+                                                @PathVariable(value = "user-name") String userName) {
+        try {
+            return CommonResponseDto.okayWithData(this.userManagementService.getMenusByUserName(token, userName));
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
+        }
+    }
+
 
 }
