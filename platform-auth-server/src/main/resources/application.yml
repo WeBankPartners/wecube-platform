@@ -31,6 +31,6 @@ platform:
          jwt-token:
             user-refresh-token: 30
             user-access-token: 5
-            sub-system-refresh-token: 1440
-            sub-system-access-token: 1440
+            sub-system-refresh-token: 432000
+            sub-system-access-token: 432000
    
