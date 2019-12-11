@@ -16,6 +16,9 @@ module.exports = {
       "/platform": {
         target: baseURL
       },
+      "/wecmdb": {
+        target: baseURL
+      },
       "ui-resources": {
         target: "http://111.230.161.237:19090"
       },
