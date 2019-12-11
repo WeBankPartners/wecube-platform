@@ -22,8 +22,8 @@ req.interceptors.request.use(
       if (token) {
         const accessToken = token.find(t => t.tokenType === "accessToken");
         const expiration = accessToken.expiration * 1 - currentTime;
-        if (expiration < 9 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get("api/auth/v1/token", {
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get("auth/v1/token", {
             headers: {
               Authorization:
                 "Bearer " +
@@ -46,7 +46,7 @@ req.interceptors.request.use(
             }
           );
         }
-        if (expiration < 9 * 60 * 1000 && refreshRequest) {
+        if (expiration < 1 * 60 * 1000 && refreshRequest) {
           refreshRequest.then(
             res => {
               session.setItem("token", JSON.stringify(res.data.data));
@@ -63,7 +63,7 @@ req.interceptors.request.use(
             }
           );
         }
-        if (expiration > 9 * 60 * 1000) {
+        if (expiration > 1 * 60 * 1000) {
           config.headers.Authorization = "Bearer " + accessToken.token;
           resolve(config);
         }
@@ -100,6 +100,10 @@ req.interceptors.response.use(
   },
   res => {
     const { response } = res;
+    if (response.status === 401) {
+      window.location.href = window.location.origin + "/" + "#/login";
+      return response;
+    }
     Vue.prototype.$Notice.warning({
       title: "Error",
       desc:
