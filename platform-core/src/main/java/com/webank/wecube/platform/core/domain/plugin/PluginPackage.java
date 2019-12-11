@@ -87,6 +87,9 @@ public class PluginPackage {
     public PluginPackage() {
     }
 
+    public PluginPackage(String name, String version) {
+        this(null, name, name, Status.UNREGISTERED, new Timestamp(System.currentTimeMillis()), false);
+    }
     public PluginPackage(String id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded) {
         this.id = id;
         this.name = name;

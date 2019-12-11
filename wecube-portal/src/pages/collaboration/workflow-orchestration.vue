@@ -673,3 +673,41 @@ export default {
   }
 }
 </style>
+<style lang="scss">
+// hide toolbar
+.bpmn-icon-data-object,
+.bpmn-icon-data-store,
+.bpmn-icon-participant {
+  display: none;
+}
+
+// hide panal tab
+.bpp-properties-tabs-links .bpp-properties-tab-link {
+  display: none;
+}
+.bpp-properties-tabs-links .bpp-active {
+  display: inline-block;
+}
+
+// hide panal tab item
+[data-group="documentation"],
+[data-group="historyConfiguration"],
+[data-group="jobConfiguration"],
+[data-group="externalTaskConfiguration"],
+[data-group="candidateStarterConfiguration"],
+[data-group="tasklist"],
+[data-group="async"] {
+  display: none;
+}
+
+// hide node toolbar
+[data-id="replace-with-rule-task"],
+[data-id="replace-with-send-task"],
+[data-id="replace-with-receive-task"],
+[data-id="replace-with-manual-task"],
+[data-id="replace-with-script-task"],
+[data-id="replace-with-user-task"],
+[data-id="replace-with-transaction"] {
+  display: none;
+}
+</style>
