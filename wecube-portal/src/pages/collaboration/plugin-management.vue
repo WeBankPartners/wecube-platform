@@ -380,7 +380,6 @@ export default {
   },
   data() {
     return {
-      Authorization: "",
       isLoading: false,
       plugins: [],
       isShowConfigPanel: false,
@@ -820,10 +819,6 @@ export default {
           refreshRequest.then(
             res => {
               session.setItem("token", JSON.stringify(res.data.data));
-              this.Authorization =
-                "Bearer " +
-                res.data.data.find(t => t.tokenType === "accessToken").token;
-              refreshRequest = null;
               this.$refs.uploadButton.handleClick();
             },
             err => {
@@ -838,7 +833,6 @@ export default {
             }
           );
         } else {
-          this.Authorization = "Bearer " + accessToken.token;
           this.$refs.uploadButton.handleClick();
         }
       } else {
@@ -857,12 +851,11 @@ export default {
   },
   computed: {
     setUploadActionHeader() {
-      let uploadToken = document.cookie
-        .split(";")
-        .find(i => i.indexOf("XSRF-TOKEN") !== -1);
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
       return {
-        "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1],
-        Authorization: this.Authorization
+        Authorization:
+          "Bearer " + token.find(t => t.tokenType === "accessToken").token
       };
     }
   }
