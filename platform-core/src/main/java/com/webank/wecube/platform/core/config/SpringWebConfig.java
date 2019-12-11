@@ -2,10 +2,8 @@ package com.webank.wecube.platform.core.config;
 
 import javax.servlet.Filter;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -56,6 +54,8 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()//
                 .antMatchers("/v2/**").permitAll() //
                 .antMatchers("/webjars/**").permitAll() //
+                .antMatchers("/v1/route-items").permitAll() //
+                .antMatchers("/v1/route-items/**").permitAll() //
                 .anyRequest().authenticated() //
                 .and()//
                 .addFilter(jwtSsoBasedAuthenticationFilter())//
@@ -69,10 +69,5 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
         JwtSsoBasedAuthenticationFilter f = new JwtSsoBasedAuthenticationFilter(authenticationManager());
         return (Filter) f;
     }
-
-//    @Bean
-//    public AuthenticationManager authenticationManagerBean() throws Exception {
-//        return super.authenticationManagerBean();
-//    }
 
 }
