@@ -614,17 +614,11 @@ export const getRefByIdInfoByPackageNameAndEntityName = (pkgName, entityName) =>
   req.get(
     `/platform/v1/models/package/${pkgName}/entity/${entityName}/refById`
   );
-export const userCreate = data => req.post(`/platform/v1/users/create`, data);
-export const getUserList = () => req.get(`/platform/v1/users/retrieve`);
-export const deleteUser = id => req.delete(`/platform/v1/users/${id}/delete`);
-export const roleCreate = data => req.post(`/platform/v1/roles/create`, data);
-export const getRoleList = () => req.get(`/platform/v1/roles/retrieve`);
-export const deleteRole = id => req.delete(`/platform/v1/roles/${id}/delete`);
-export const getRolesByUserName = userName =>
-  req.get(`/platform/v1/users/${userName}/roles`);
-export const getUsersByRoleId = roleId =>
-  req.get(`/platform/v1/roles/${roleId}/users`);
-export const grantRolesForUser = (data, roleId) =>
-  req.post(`/platform/v1/roles/${roleId}/users/grant`, data);
-export const revokeRolesForUser = (data, roleId) =>
-  req.delete(`/platform/v1/roles/${roleId}/users/revoke`, { data });
+export const getModelNodeDetail = (entity, id) =>
+  req.get(`/wecmdb/entities/${entity}?filter=id,${id}&sortName=id`);
+export const getNodeBindings = id =>
+  req.get(`/platform/v1/process/instances/${id}/tasknode-bindings`);
+export const getNodeContext = (procId, nodeId) =>
+  req.get(
+    `/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context`
+  );
