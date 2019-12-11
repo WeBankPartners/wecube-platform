@@ -7,8 +7,6 @@ const req = axios.create({
   timeout: 50000
 });
 
-req.defaults.headers.common["Http-Client-Type"] = "Ajax";
-
 const throwError = res => new Error(res.message || "error");
 
 let refreshRequest = null;
