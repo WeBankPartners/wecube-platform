@@ -4,7 +4,12 @@
       <Row>
         <Card dis-hover>
           <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
+          <Button icon="ios-cloud-upload-outline" @click="getHeaders">
+            {{ $t("upload_plugin_btn") }}
+          </Button>
           <Upload
+            ref="uploadButton"
+            style="display:none"
             show-upload-list
             accept=".zip"
             name="zip-file"
@@ -362,6 +367,7 @@ import MenuInjection from "./components/menu-injection.vue";
 import SysParmas from "./components/system-params.vue";
 import RuntimesResources from "./components/runtime-resource.vue";
 import AuthSettings from "./components/auth-setting.vue";
+import axios from "axios";
 export default {
   components: {
     DataModel,
@@ -374,6 +380,7 @@ export default {
   },
   data() {
     return {
+      Authorization: "",
       isLoading: false,
       plugins: [],
       isShowConfigPanel: false,
@@ -793,6 +800,56 @@ export default {
           };
         });
       }
+    },
+    getHeaders() {
+      let refreshRequest = null;
+      const currentTime = new Date().getTime();
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      if (token) {
+        const accessToken = token.find(t => t.tokenType === "accessToken");
+        const expiration = accessToken.expiration * 1 - currentTime;
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get("/auth/v1/api/token", {
+            headers: {
+              Authorization:
+                "Bearer " +
+                token.find(t => t.tokenType === "refreshToken").token
+            }
+          });
+          refreshRequest.then(
+            res => {
+              session.setItem("token", JSON.stringify(res.data.data));
+              this.Authorization =
+                "Bearer " +
+                res.data.data.find(t => t.tokenType === "accessToken").token;
+              refreshRequest = null;
+              this.$refs.uploadButton.handleClick();
+            },
+            err => {
+              refreshRequest = null;
+              const fullPath = this.$router.currentRoute.fullPath;
+              this.$router.push({
+                path: "/login",
+                query: {
+                  redirect: fullPath
+                }
+              });
+            }
+          );
+        } else {
+          this.Authorization = "Bearer " + accessToken.token;
+          this.$refs.uploadButton.handleClick();
+        }
+      } else {
+        const fullPath = this.$router.currentRoute.fullPath;
+        this.$router.push({
+          path: "/login",
+          query: {
+            redirect: fullPath
+          }
+        });
+      }
     }
   },
   created() {
@@ -804,7 +861,8 @@ export default {
         .split(";")
         .find(i => i.indexOf("XSRF-TOKEN") !== -1);
       return {
-        "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
+        "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1],
+        Authorization: this.Authorization
       };
     }
   }
