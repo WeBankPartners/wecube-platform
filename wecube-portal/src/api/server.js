@@ -624,7 +624,7 @@ export const getRolesByUserName = userName =>
   req.get(`/platform/v1/users/${userName}/roles`);
 export const getUsersByRoleId = roleId =>
   req.get(`/platform/v1/roles/${roleId}/users`);
-export const grantRolesForUser = (roleId, data) =>
+export const grantRolesForUser = (data, roleId) =>
   req.post(`/platform/v1/roles/${roleId}/users/grant`, data);
-export const revokeRolesForUser = (roleId, data) =>
-  req.delete(`/platform/v1/roles/${roleId}/users/revoke`, data);
+export const revokeRolesForUser = (data, roleId) =>
+  req.delete(`/platform/v1/roles/${roleId}/users/revoke`, { data });
