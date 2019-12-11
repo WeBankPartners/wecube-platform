@@ -42,8 +42,6 @@ export default {
         let session = window.sessionStorage;
         session.setItem("token", JSON.stringify(data));
         session.setItem("username", this.username);
-
-        let hostName = this.$route.query.redirect;
         this.$router.push("/homepage");
       }
     },
