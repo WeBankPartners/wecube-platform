@@ -353,7 +353,7 @@ export default {
           isRecord
             ? label
             : _.packageName.slice(0, 5) + "..." + _.entityName.slice(-5)
-        }" class="model" id="${nodeId}" color="${color}" shape="${shape}"]`;
+        }" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`;
       });
       let genEdge = () => {
         let pathAry = [];
@@ -445,7 +445,7 @@ export default {
           "mouseleave",
           this.modelDetailLeaveHandler
         );
-      }, 300);
+      }, 500);
     },
     modelDetailEnterHandler(e) {
       let modelDetail = document.getElementById("model_graph_detail");
@@ -678,7 +678,6 @@ export default {
       this.flowDetailLeaveHandler();
     },
     flowGraphMouseenterHandler(e) {
-      console.log(111);
       clearTimeout(this.flowDetailTimer);
       this.flowDetailTimer = setTimeout(async () => {
         const found = this.flowData.flowNodes.find(
@@ -721,7 +720,7 @@ export default {
           "mouseleave",
           this.flowDetailLeaveHandler
         );
-      }, 300);
+      }, 500);
     },
     flowDetailEnterHandler(e) {
       let modelDetail = document.getElementById("flow_graph_detail");
