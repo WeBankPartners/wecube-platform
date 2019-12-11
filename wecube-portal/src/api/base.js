@@ -39,12 +39,7 @@ req.interceptors.request.use(
             },
             err => {
               refreshRequest = null;
-              Vue.$router.push({
-                path: "login",
-                query: {
-                  redirect: Vue.$router.currentRoute.fullPath
-                }
-              });
+              window.location.href = window.location.origin + "/#/login";
               session.removeItem("token");
             }
           );
@@ -61,12 +56,7 @@ req.interceptors.request.use(
             },
             err => {
               refreshRequest = null;
-              Vue.$router.push({
-                path: "login",
-                query: {
-                  redirect: Vue.$router.currentRoute.fullPath
-                }
-              });
+              window.location.href = window.location.origin + "/#/login";
               session.removeItem("token");
             }
           );
@@ -107,12 +97,7 @@ req.interceptors.response.use(
   res => {
     const { response } = res;
     if (response.status === 401) {
-      Vue.$router.push({
-        path: "login",
-        query: {
-          redirect: Vue.$router.currentRoute.fullPath
-        }
-      });
+      window.location.href = window.location.origin + "/#/login";
       return response;
     }
     Vue.prototype.$Notice.warning({
