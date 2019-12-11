@@ -823,13 +823,7 @@ export default {
             },
             err => {
               refreshRequest = null;
-              const fullPath = this.$router.currentRoute.fullPath;
-              this.$router.push({
-                path: "/login",
-                query: {
-                  redirect: fullPath
-                }
-              });
+              window.location.href = window.location.origin + "/#/login";
             }
           );
         } else {
@@ -837,12 +831,7 @@ export default {
         }
       } else {
         const fullPath = this.$router.currentRoute.fullPath;
-        this.$router.push({
-          path: "/login",
-          query: {
-            redirect: fullPath
-          }
-        });
+        window.location.href = window.location.origin + "/#/login";
       }
     }
   },
