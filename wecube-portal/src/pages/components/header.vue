@@ -33,7 +33,7 @@
           <Icon :size="18" type="ios-arrow-down" color="white" size="14"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/login">
-              <a href="/login" style="width: 100%; display: block">
+              <a @click="logout" style="width: 100%; display: block">
                 {{ $t("logout") }}
               </a>
             </DropdownItem>
@@ -84,6 +84,15 @@ export default {
     };
   },
   methods: {
+    logout() {
+      const fullPath = this.$router.currentRoute.fullPath;
+      this.$router.push({
+        path: "/login",
+        query: {
+          redirect: fullPath
+        }
+      });
+    },
     changeLanguage(lan) {
       Vue.config.lang = lan;
       this.currentLanguage = this.language[lan];
