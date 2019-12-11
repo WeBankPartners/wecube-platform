@@ -44,11 +44,7 @@ export default {
         session.setItem("username", this.username);
 
         let hostName = this.$route.query.redirect;
-        if (hostName) {
-          this.$router.go(-1);
-        } else {
-          this.$router.push("/homepage");
-        }
+        this.$router.push("/homepage");
       }
     },
     clearSession() {
