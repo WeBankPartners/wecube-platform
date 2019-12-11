@@ -23,7 +23,7 @@ req.interceptors.request.use(
         const accessToken = token.find(t => t.tokenType === "accessToken");
         const expiration = accessToken.expiration * 1 - currentTime;
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get("auth/v1/token", {
+          refreshRequest = axios.get("/auth/v1/api/token", {
             headers: {
               Authorization:
                 "Bearer " +
@@ -41,7 +41,12 @@ req.interceptors.request.use(
             },
             err => {
               refreshRequest = null;
-              window.location.href = window.location.origin + "/" + "#/login";
+              Vue.$router.push({
+                path: "login",
+                query: {
+                  redirect: Vue.$router.currentRoute.fullPath
+                }
+              });
               session.removeItem("token");
             }
           );
@@ -58,7 +63,12 @@ req.interceptors.request.use(
             },
             err => {
               refreshRequest = null;
-              window.location.href = window.location.origin + "/" + "#/login";
+              Vue.$router.push({
+                path: "login",
+                query: {
+                  redirect: Vue.$router.currentRoute.fullPath
+                }
+              });
               session.removeItem("token");
             }
           );
@@ -99,7 +109,12 @@ req.interceptors.response.use(
   res => {
     const { response } = res;
     if (response.status === 401) {
-      window.location.href = window.location.origin + "/" + "#/login";
+      Vue.$router.push({
+        path: "login",
+        query: {
+          redirect: Vue.$router.currentRoute.fullPath
+        }
+      });
       return response;
     }
     Vue.prototype.$Notice.warning({
