@@ -184,11 +184,52 @@ export default {
         });
       }
     },
-    async handleUserClick(checked, name) {},
-    async handleRoleClick(checked, id) {},
+    async handleUserClick(checked, name) {
+      this.currentRoleId = 0;
+      this.users.forEach(_ => {
+        _.checked = false;
+        if (name === _.username) {
+          _.checked = checked;
+        }
+      });
+      let { status, data, message } = await getRolesByUserName(name);
+      if (status === "OK") {
+        this.roles.forEach(_ => {
+          _.checked = false;
+          const found = data.find(item => item.id === _.id);
+          if (found) {
+            _.checked = checked;
+          }
+          // this.menus = this.menusResponseHandeler(this.allMenusOriginResponse);
+        });
+      }
+    },
+    async handleRoleClick(checked, id) {
+      this.currentRoleId = id;
+      // this.menus = this.menusResponseHandeler(
+      //   this.allMenusOriginResponse,
+      //   false
+      // );
+      this.roles.forEach(_ => {
+        _.checked = false;
+        if (id === _.id) {
+          _.checked = checked;
+        }
+      });
+      let { status, data, message } = await getUsersByRoleId(id);
+      if (status === "OK") {
+        this.users.forEach(_ => {
+          _.checked = false;
+          const found = data.find(item => item.username === _.username);
+          if (found) {
+            _.checked = checked;
+          }
+        });
+      }
+    },
     async handleUserTransferChange(newTargetKeys, direction, moveKeys) {
       if (direction === "right") {
-        let { status, data, message } = await addUsersToRole(
+        let { status, data, message } = await grantRolesForUser(
           moveKeys,
           this.selectedRole
         );
@@ -200,7 +241,7 @@ export default {
           this.usersKeyBySelectedRole = newTargetKeys;
         }
       } else {
-        let { status, data, message } = await romoveUsersFromRole(
+        let { status, data, message } = await revokeRolesForUser(
           moveKeys,
           this.selectedRole
         );
@@ -219,6 +260,20 @@ export default {
       }
     },
     async openUserManageModal(id) {
+      this.usersKeyBySelectedRole = [];
+      this.allUsersForTransfer = [];
+      this.selectedRole = id;
+      let { status, data, message } = await getUsersByRoleId(id);
+      if (status === "OK") {
+        this.usersKeyBySelectedRole = data.map(_ => _.id);
+      }
+      this.allUsersForTransfer = this.users.map(_ => {
+        return {
+          key: _.id,
+          username: _.username,
+          label: _.username || ""
+        };
+      });
       this.userManageModal = true;
     },
     async addUser() {
