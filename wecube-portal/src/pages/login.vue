@@ -41,6 +41,8 @@ export default {
       if (status === "OK") {
         let session = window.sessionStorage;
         session.setItem("token", JSON.stringify(data));
+        session.setItem("username", this.username);
+
         let hostName = this.$route.query.redirect;
         if (hostName) {
           this.$router.go(-1);
@@ -52,6 +54,7 @@ export default {
     clearSession() {
       let session = window.sessionStorage;
       session.removeItem("token");
+      session.removeItem("username");
     }
   },
   created() {
