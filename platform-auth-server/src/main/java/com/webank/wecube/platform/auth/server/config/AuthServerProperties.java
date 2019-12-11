@@ -47,6 +47,8 @@ public class AuthServerProperties {
         private int userAccessToken = 1440;
         private int subSystemRefreshToken = 5;
         private int subSystemAccessToken = 60;
+        
+        private String signingKey = "Platform+Auth+Server+Secret";
 
         public int getUserRefreshToken() {
             return userRefreshToken;
@@ -78,6 +80,14 @@ public class AuthServerProperties {
 
         public void setSubSystemAccessToken(int subSystemAccessToken) {
             this.subSystemAccessToken = subSystemAccessToken;
+        }
+        
+        public String getSigningKey() {
+            return signingKey;
+        }
+
+        public void setSigningKey(String signingKey) {
+            this.signingKey = signingKey;
         }
 
         @Override
