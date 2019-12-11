@@ -17,4 +17,7 @@ public interface ProcExecBindingRepository extends JpaRepository<ProcExecBinding
 
     @Query("select t from ProcExecBindingEntity t " + " where t.procInstId = :procInstId and t.bindType = 'process'")
     ProcExecBindingEntity findProcInstBindings(@Param("procInstId") Integer procInstId);
+    
+    @Query("select t from ProcExecBindingEntity t " + " where t.procInstId = :procInstId and t.bindType = 'taskNode'")
+    List<ProcExecBindingEntity> findAllTaskNodeBindingsByProcInstId(@Param("procInstId") Integer procInstId);
 }
