@@ -361,7 +361,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             TaskNodeDefInfoEntity nodeDef = findTaskNodeDefInfoEntityByNodeDefId(nodeDefEntities, n.getNodeDefId());
             TaskNodeInstDto nd = new TaskNodeInstDto();
             nd.setId(n.getId());
-            nd.setNodeDefId(n.getProcDefId());
+            nd.setNodeDefId(n.getNodeDefId());
             nd.setNodeId(n.getNodeId());
             nd.setNodeName(n.getNodeName());
             nd.setNodeType(n.getNodeType());
