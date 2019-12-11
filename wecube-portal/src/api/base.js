@@ -39,8 +39,7 @@ req.interceptors.request.use(
             },
             err => {
               refreshRequest = null;
-              window.location.href =
-                window.location.origin + "/#/login?redirect=wecube";
+              window.location.href = window.location.origin + "/#/login";
               session.removeItem("token");
             }
           );
@@ -57,8 +56,7 @@ req.interceptors.request.use(
             },
             err => {
               refreshRequest = null;
-              window.location.href =
-                window.location.origin + "/#/login?redirect=wecube";
+              window.location.href = window.location.origin + "/#/login";
               session.removeItem("token");
             }
           );
@@ -99,8 +97,7 @@ req.interceptors.response.use(
   res => {
     const { response } = res;
     if (response.status === 401) {
-      window.location.href =
-        window.location.origin + "/#/login?redirect=wecube";
+      window.location.href = window.location.origin + "/#/login";
       return response;
     }
     Vue.prototype.$Notice.warning({
