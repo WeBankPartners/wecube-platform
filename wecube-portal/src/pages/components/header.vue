@@ -29,7 +29,7 @@
     <div class="header-right_container">
       <div class="profile">
         <Dropdown style="cursor: pointer">
-          <span style="color: white">{{ user }}</span>
+          <span style="color: white">{{ username }}</span>
           <Icon :size="18" type="ios-arrow-down" color="white" size="14"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/login">
@@ -73,7 +73,7 @@ import { MENUS } from "../../const/menus.js";
 export default {
   data() {
     return {
-      user: "",
+      username: "",
       currentLanguage: "",
       language: {
         "zh-CN": "简体中文",
@@ -94,9 +94,8 @@ export default {
       this.currentLanguage = this.language[currentLangKey];
     },
     async getMyMenus() {
-      let { status, data, message, user } = await getMyMenus();
+      let { status, data, message } = await getMyMenus();
       if (status === "OK") {
-        this.user = user || "Tea"; // Tea will show when no user information provided
         data.forEach(_ => {
           if (!_.category) {
             let menuObj = MENUS.find(m => m.code === _.code);
@@ -221,6 +220,7 @@ export default {
   async created() {
     this.getLocalLang();
     this.getMyMenus();
+    this.username = window.sessionStorage.getItem("username");
   },
   watch: {
     $lang: function(lang) {
