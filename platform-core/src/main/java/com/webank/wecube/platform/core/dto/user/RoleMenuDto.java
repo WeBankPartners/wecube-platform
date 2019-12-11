@@ -1,12 +1,14 @@
 package com.webank.wecube.platform.core.dto.user;
 
+import com.webank.wecube.platform.core.dto.MenuItemDto;
+
 import java.util.List;
 
 public class RoleMenuDto {
     private Long roleId;
-    private List<String> menuCodeList;
+    private List<MenuItemDto> menuCodeList;
 
-    public RoleMenuDto(Long roleName, List<String> menuCodeList) {
+    public RoleMenuDto(Long roleName, List<MenuItemDto> menuCodeList) {
         this.roleId = roleName;
         this.menuCodeList = menuCodeList;
     }
@@ -19,11 +21,11 @@ public class RoleMenuDto {
         this.roleId = roleId;
     }
 
-    public List<String> getMenuCodeList() {
+    public List<MenuItemDto> getMenuCodeList() {
         return menuCodeList;
     }
 
-    public void setMenuCodeList(List<String> menuCodeList) {
+    public void setMenuCodeList(List<MenuItemDto> menuCodeList) {
         this.menuCodeList = menuCodeList;
     }
 }
