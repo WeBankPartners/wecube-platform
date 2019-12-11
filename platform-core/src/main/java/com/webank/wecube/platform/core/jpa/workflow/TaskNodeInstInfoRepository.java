@@ -11,5 +11,5 @@ public interface TaskNodeInstInfoRepository extends JpaRepository<TaskNodeInstIn
     List<TaskNodeInstInfoEntity> findAllByProcInstId(Integer procInstId);
     
     TaskNodeInstInfoEntity findOneByProcInstIdAndNodeId(Integer procInstId, String nodeId);
-
+    
 }
