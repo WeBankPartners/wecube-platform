@@ -234,7 +234,7 @@ public class PluginPackageService {
 
         ensureNoMoreThanTwoActivePackages(pluginPackage);
 
-        handlePluginRoleMenuForPackage(pluginPackage);
+        createRolesIfNotExistInSystem(pluginPackage);
 
         deployPluginUiResourcesIfRequired(pluginPackage);
 
@@ -243,7 +243,7 @@ public class PluginPackageService {
         return pluginPackageRepository.save(pluginPackage);
     }
 
-    private void handlePluginRoleMenuForPackage(PluginPackage pluginPackage) {
+    void createRolesIfNotExistInSystem(PluginPackage pluginPackage) {
         Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
         if (null != pluginPackageAuthorities && pluginPackageAuthorities.size() > 0) {
             List<RoleDto> roleDtos = userManagementService.retrieveRole();
