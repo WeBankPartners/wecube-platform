@@ -44,8 +44,8 @@ public class AuthServerProperties {
 
     public static class JwtTokenProperties {
         private int userRefreshToken = 30;
-        private int userAccessToken = 1440;
-        private int subSystemRefreshToken = 5;
+        private int userAccessToken = 5;
+        private int subSystemRefreshToken = 1440;
         private int subSystemAccessToken = 60;
         
         private String signingKey = "Platform+Auth+Server+Secret";
