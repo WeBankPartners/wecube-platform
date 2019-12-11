@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.domain;
 
+import com.webank.wecube.platform.core.utils.Constants;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -15,13 +16,12 @@ public class RoleMenu {
     @Column(name = "role_id")
     private Long roleId;
 
-    @ManyToOne
-    @JoinColumn(name = "menu_id")
-    private MenuItem menuItem;
+    @Column(name = "menu_code")
+    private String menuCode;
 
-    public RoleMenu(Long roleId, MenuItem menuItem) {
+    public RoleMenu(Long roleId, String menuCode) {
         this.roleId = roleId;
-        this.menuItem = menuItem;
+        this.menuCode = menuCode;
     }
 
     public RoleMenu() {
@@ -31,7 +31,8 @@ public class RoleMenu {
     public void initGuid() {
         if (this.id == null | "".equals(this.id)) {
             this.id = Objects.requireNonNull(this.roleId, "The [roleId] cannot be NULL while persisting [role_menu]").toString()
-                    + Objects.requireNonNull(this.menuItem, "The [menuItem] cannot be NULL while persisting [role_menu]").getCode();
+                    + Constants.KEY_COLUMN_DELIMITER
+                    + Objects.requireNonNull(this.menuCode, "The [menuItem] cannot be NULL while persisting [role_menu]");
         }
     }
 
@@ -51,11 +52,11 @@ public class RoleMenu {
         this.roleId = roleId;
     }
 
-    public MenuItem getMenuItem() {
-        return menuItem;
+    public String getMenuCode() {
+        return menuCode;
     }
 
-    public void setMenuItem(MenuItem menuItem) {
-        this.menuItem = menuItem;
+    public void setMenuCode(String menuCode) {
+        this.menuCode = menuCode;
     }
 }
