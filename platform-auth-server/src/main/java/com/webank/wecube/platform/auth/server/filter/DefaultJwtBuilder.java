@@ -4,6 +4,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -26,16 +27,20 @@ import io.jsonwebtoken.SignatureAlgorithm;
  *
  */
 public class DefaultJwtBuilder implements JwtBuilder {
-    
+
     private static final Logger log = LoggerFactory.getLogger(DefaultJwtBuilder.class);
 
     private static final String SIGNING_KEY = "Platform+Auth+Server+Secret";
-    
+
     private AuthServerProperties.JwtTokenProperties jwtTokenProperties;
-    
-    public DefaultJwtBuilder(AuthServerProperties.JwtTokenProperties jwtTokenProperties){
+
+    private final String sigingKey;
+
+    public DefaultJwtBuilder(AuthServerProperties.JwtTokenProperties jwtTokenProperties) {
         this.jwtTokenProperties = jwtTokenProperties;
-        
+        this.sigingKey = StringUtils.isBlank(jwtTokenProperties.getSigningKey()) ? SIGNING_KEY
+                : jwtTokenProperties.getSigningKey();
+
         log.info("jwtTokenSettings:{}", jwtTokenProperties);
     }
 
@@ -52,7 +57,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
                 .setIssuedAt(now) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType).setExpiration(expireTime) //
-                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(SIGNING_KEY)) //
+                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(sigingKey)) //
                 .compact(); //
 
         return new JwtToken(refreshToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH, expireTime.getTime());
@@ -75,27 +80,26 @@ public class DefaultJwtBuilder implements JwtBuilder {
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType) //
                 .setExpiration(expireTime) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_AUTHORITIES, sAuthorities) //
-                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(SIGNING_KEY)) //
+                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(sigingKey)) //
                 .compact(); //
         return new JwtToken(accessToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS, expireTime.getTime());
     }
-    
-    protected String formatAuthorities(Collection<? extends GrantedAuthority> authorities){
+
+    protected String formatAuthorities(Collection<? extends GrantedAuthority> authorities) {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
-        
+
         boolean isFirst = true;
-        
-        for(GrantedAuthority a : authorities){
-            if(!isFirst){
+
+        for (GrantedAuthority a : authorities) {
+            if (!isFirst) {
                 sb.append(",").append(a.getAuthority());
-            }else{
+            } else {
                 sb.append(a.getAuthority());
                 isFirst = false;
             }
         }
-        
-        
+
         sb.append("]");
         return sb.toString();
     }
@@ -134,7 +138,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
 
     @Override
     public Jws<Claims> parseJwt(String token) {
-        return Jwts.parser().setSigningKey(SIGNING_KEY).parseClaimsJws(token);
+        return Jwts.parser().setSigningKey(StringUtilsEx.decodeBase64(sigingKey)).parseClaimsJws(token);
     }
 
 }

@@ -24,6 +24,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -55,12 +56,17 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     private PluginPackageRepository pluginPackageRepository;
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private PluginPackageDataModelController dataModelController;
+    @Autowired
+    private PluginPackageController pluginPackageController;
 
     private MockRestServiceServer server;
 
     @Before
     public void setup() {
         server = MockRestServiceServer.bindTo(restTemplate).build();
+        mvc = MockMvcBuilders.standaloneSetup(pluginPackageController, dataModelController).build();
     }
 
     @Test

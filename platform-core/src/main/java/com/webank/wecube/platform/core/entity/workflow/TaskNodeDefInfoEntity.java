@@ -65,6 +65,9 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
     
     @Column(name="SUCCEED_NODE_IDS")
     private String succeedingNodeIds;
+    
+    @Column(name="TASK_CATEGORY")
+    private String taskCategory;
 
     public String getId() {
         return id;
@@ -202,4 +205,11 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
         this.succeedingNodeIds = succeedingNodeIds;
     }
 
+    public String getTaskCategory() {
+        return taskCategory;
+    }
+
+    public void setTaskCategory(String taskCategory) {
+        this.taskCategory = taskCategory;
+    }
 }
