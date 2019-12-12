@@ -30,7 +30,7 @@ public class HomeController {
         return "login.html";
     }
 
-    @GetMapping(value = {"/home"})
+    @GetMapping(value = { "/home" })
     public String home(Model model, Principal principal) {
         model.addAttribute("system_name", "Wecube Core");
         model.addAttribute("login_user", principal.getName());
@@ -39,13 +39,7 @@ public class HomeController {
 
     @GetMapping("/my-menus")
     @ResponseBody
-    public JsonResponse getMyMenuItems(Principal principal) {
-        return okay().withData(menuService.getAllMenus());
-    }
-
-    @GetMapping("/all-menus")
-    @ResponseBody
-    public JsonResponse getAllMenuItems(Principal principal) {
+    public JsonResponse getMenuItems(Principal principal) {
         return okay().withData(menuService.getAllMenus());
     }
 }
