@@ -323,5 +323,6 @@
   "is_model_attribute": "当前节点为实例的非引用属性",
   "password": "密码",
   "password_cannot_empty": "密码不能为空",
-  "display_name": "显示名"
+  "display_name": "显示名",
+  "menus": "菜单"
 }
