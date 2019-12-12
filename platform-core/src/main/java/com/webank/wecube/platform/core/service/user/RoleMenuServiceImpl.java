@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * @author howechen
  */
 @Service
-@Transactional
+@Transactional(rollbackFor = Exception.class)
 public class RoleMenuServiceImpl implements RoleMenuService {
 
     private RoleMenuRepository roleMenuRepository;
