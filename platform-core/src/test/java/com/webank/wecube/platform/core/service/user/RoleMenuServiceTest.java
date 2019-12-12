@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.service.user;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.RoleMenu;
@@ -48,15 +47,15 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
     @Test
     public void retrieveMenusByRoleIdShouldSucceed() {
         RoleMenuDto roleMenuDtoFromRoleOne = this.roleMenuService.retrieveMenusByRoleId(ROLE_ONE);
-        assertThat(roleMenuDtoFromRoleOne.getMenuCodeList().size()).isEqualTo(2);
-        assertThat(roleMenuDtoFromRoleOne.getMenuCodeList().get(0).getDisplayName()).isEqualTo("CI Integrated Enquiry");
-        assertThat(roleMenuDtoFromRoleOne.getMenuCodeList().get(1).getDisplayName()).isEqualTo("Enum Enquiry");
+        assertThat(roleMenuDtoFromRoleOne.getMenuList().size()).isEqualTo(2);
+        assertThat(roleMenuDtoFromRoleOne.getMenuList().get(0).getDisplayName()).isEqualTo("CI Integrated Enquiry");
+        assertThat(roleMenuDtoFromRoleOne.getMenuList().get(1).getDisplayName()).isEqualTo("Enum Enquiry");
 
 
         RoleMenuDto roleMenuDtoFromRoleTwo = this.roleMenuService.retrieveMenusByRoleId(ROLE_TWO);
-        assertThat(roleMenuDtoFromRoleTwo.getMenuCodeList().size()).isEqualTo(2);
-        assertThat(roleMenuDtoFromRoleTwo.getMenuCodeList().get(0).getDisplayName()).isEqualTo("TEST_MENU_ONE");
-        assertThat(roleMenuDtoFromRoleTwo.getMenuCodeList().get(1).getDisplayName()).isEqualTo("TEST_MENU_TWO");
+        assertThat(roleMenuDtoFromRoleTwo.getMenuList().size()).isEqualTo(2);
+        assertThat(roleMenuDtoFromRoleTwo.getMenuList().get(0).getDisplayName()).isEqualTo("TEST_MENU_ONE");
+        assertThat(roleMenuDtoFromRoleTwo.getMenuList().get(1).getDisplayName()).isEqualTo("TEST_MENU_TWO");
 
     }
 
@@ -70,10 +69,10 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
         ArrayList<String> menuDisplayNameList = Lists.newArrayList("CI Integrated Enquiry", "Enum Enquiry", "TEST_MENU_ONE", "TEST_MENU_TWO");
         this.roleMenuService.updateRoleToMenusByRoleId(ROLE_ONE, menuCodeList);
         RoleMenuDto roleMenuDtoFromRoleOne = this.roleMenuService.retrieveMenusByRoleId(ROLE_ONE);
-        assertThat(roleMenuDtoFromRoleOne.getMenuCodeList().size()).isEqualTo(menuCodeList.size());
+        assertThat(roleMenuDtoFromRoleOne.getMenuList().size()).isEqualTo(menuCodeList.size());
         for (int i = 0; i < menuCodeList.size(); i++) {
-            System.out.println(roleMenuDtoFromRoleOne.getMenuCodeList().get(i).getMenuOrder());
-            assertThat(roleMenuDtoFromRoleOne.getMenuCodeList().get(i).getDisplayName()).isEqualTo(menuDisplayNameList.get(i));
+            System.out.println(roleMenuDtoFromRoleOne.getMenuList().get(i).getMenuOrder());
+            assertThat(roleMenuDtoFromRoleOne.getMenuList().get(i).getDisplayName()).isEqualTo(menuDisplayNameList.get(i));
         }
 
     }
@@ -86,9 +85,9 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
         ArrayList<String> menuDisplayNameList = Lists.newArrayList("designing display", "operating display");
         this.roleMenuService.updateRoleToMenusByRoleId(ROLE_ONE, menuCodeList);
         RoleMenuDto roleMenuDtoFromRoleOne = this.roleMenuService.retrieveMenusByRoleId(ROLE_ONE);
-        assertThat(roleMenuDtoFromRoleOne.getMenuCodeList().size()).isEqualTo(menuCodeList.size());
+        assertThat(roleMenuDtoFromRoleOne.getMenuList().size()).isEqualTo(menuCodeList.size());
         for (int i = 0; i < menuCodeList.size(); i++) {
-            assertThat(roleMenuDtoFromRoleOne.getMenuCodeList().get(i).getDisplayName()).isEqualTo(menuDisplayNameList.get(i));
+            assertThat(roleMenuDtoFromRoleOne.getMenuList().get(i).getDisplayName()).isEqualTo(menuDisplayNameList.get(i));
         }
 
     }
@@ -102,9 +101,9 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
         ArrayList<String> menuDisplayNameList = Lists.newArrayList("designing display", "CI Integrated Enquiry", "TEST_MENU_ONE");
         this.roleMenuService.updateRoleToMenusByRoleId(ROLE_TWO, menuCodeList);
         RoleMenuDto roleMenuDtoFromRoleTwo = this.roleMenuService.retrieveMenusByRoleId(ROLE_TWO);
-        assertThat(roleMenuDtoFromRoleTwo.getMenuCodeList().size()).isEqualTo(menuCodeList.size());
+        assertThat(roleMenuDtoFromRoleTwo.getMenuList().size()).isEqualTo(menuCodeList.size());
         for (int i = 0; i < menuCodeList.size(); i++) {
-            assertThat(roleMenuDtoFromRoleTwo.getMenuCodeList().get(i).getDisplayName()).isEqualTo(menuDisplayNameList.get(i));
+            assertThat(roleMenuDtoFromRoleTwo.getMenuList().get(i).getDisplayName()).isEqualTo(menuDisplayNameList.get(i));
         }
     }
 

@@ -9,7 +9,6 @@
           </Button>
           <Upload
             ref="uploadButton"
-            style="display:none"
             show-upload-list
             accept=".zip"
             name="zip-file"
@@ -18,7 +17,7 @@
             action="platform/v1/packages"
             :headers="setUploadActionHeader"
           >
-            <Button icon="ios-cloud-upload-outline">
+            <Button style="display:none" icon="ios-cloud-upload-outline">
               {{ $t("upload_plugin_btn") }}
             </Button>
           </Upload>
