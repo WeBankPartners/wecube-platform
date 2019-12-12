@@ -320,8 +320,5 @@
   "reload_to_get_ui": "如果插件提供UI界面，重新加载可以获取插件页面",
   "reload_to_delete_ui": "如果插件提供UI界面，重新加载可以删除插件页面",
   "attribute_type": "属性类型",
-  "is_model_attribute": "当前节点为实例的非引用属性",
-  "password": "密码",
-  "password_cannot_empty": "密码不能为空",
-  "display_name": "显示名"
+  "is_model_attribute": "当前节点为实例的非引用属性"
 }
