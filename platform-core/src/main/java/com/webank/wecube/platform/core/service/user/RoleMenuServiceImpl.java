@@ -51,6 +51,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      */
     @Override
     public RoleMenuDto retrieveMenusByRoleId(Long roleId) {
+        logger.info(String.format("Fetching all menus by role ID: [%s]", roleId));
         List<RoleMenu> roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
         List<MenuItemDto> menuCodeList = new ArrayList<>();
         roleMenuList.forEach(roleMenu -> {
@@ -59,13 +60,15 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             MenuItem sysMenu = this.menuItemRepository.findByCode(menuCode);
             // use {if sysMenu is null} to judge if this is a sys menu or package menu
             if (null != sysMenu) {
+                logger.info(String.format("System menu was found. The menu code is: [%s]", menuCode));
                 menuCodeList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
             } else {
                 // package menu
                 Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository.findAllActivateMenuByCode(menuCode);
-                allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> pluginPackageMenus.forEach(pluginPackageMenu -> {
-                    menuCodeList.add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu));
-                }));
+                allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> {
+                    logger.info(String.format("Plugin package menu was found. The menu code is: [%s]", menuCode));
+                    pluginPackageMenus.forEach(pluginPackageMenu -> menuCodeList.add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu)));
+                });
             }
 
         });
@@ -89,6 +92,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             return !menuCodeList.contains(code);
         }).collect(Collectors.toList());
         if (!needToDeleteList.isEmpty()) {
+            logger.info(String.format("Deleting menus: [%s]", needToDeleteList));
             for (RoleMenu roleMenu : needToDeleteList) {
                 this.roleMenuRepository.deleteById(roleMenu.getId());
             }
@@ -100,6 +104,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         needToCreateList = menuCodeList.stream().filter(menuCode -> !currentMenuCodeList.contains(menuCode)).collect(Collectors.toList());
 
         if (!needToCreateList.isEmpty()) {
+            logger.info(String.format("Creating menus: [%s]", needToCreateList));
             List<RoleMenu> batchUpdateList = new ArrayList<>();
             needToCreateList.forEach(menuCode -> batchUpdateList.add(new RoleMenu(roleId, menuCode)));
             this.roleMenuRepository.saveAll(batchUpdateList);
