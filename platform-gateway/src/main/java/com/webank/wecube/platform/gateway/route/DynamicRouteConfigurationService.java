@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.gateway.route;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,22 +55,53 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     private Map<String, List<RouteItemInfoDto>> routeItems = new ConcurrentHashMap<>();
 
+    private volatile boolean isDynamicRouteLoaded = false;
+
     @PostConstruct
     public void afterPropertiesSet() {
         if (log.isInfoEnabled()) {
             log.info("{} applied", DynamicRouteConfigurationService.class.getSimpleName());
         }
 
+        init();
+    }
+
+    protected void init() {
+        log.info("try to load dynamic routes");
         try {
-            loadRoutes();
+            doLoadRoutes();
+            isDynamicRouteLoaded = true;
+        } catch (Exception e) {
+            log.warn("#########################################");
+            log.warn("failed to load default route items", e);
+            isDynamicRouteLoaded = false;
+        }
+
+        if (!isDynamicRouteLoaded) {
+            Flux.interval(Duration.ofSeconds(30)).subscribe(this::loadRoutes);
+        }
+    }
+
+    protected void loadRoutes(Long time) {
+        if (isDynamicRouteLoaded) {
+            return;
+        }
+
+        log.info("try to load dynamic routes --- {}", time);
+        try {
+            doLoadRoutes();
+
+            isDynamicRouteLoaded = true;
         } catch (Exception e) {
             log.warn("#########################################");
             log.warn("failed to load default route items", e);
 
+            isDynamicRouteLoaded = false;
+
         }
     }
 
-    protected void loadRoutes() {
+    protected void doLoadRoutes() {
         log.info("start to load routes...");
 
         List<RouteItemInfoDto> dtos = fetchAllRouteItems();
@@ -127,22 +159,22 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
         log.info("### route added:{} {} {}", dto.getName(), dto.getHost(), dto.getPort());
     }
-    
-    public List<RouteItemInfoDto> listAllRouteItems(){
-        Flux<RouteDefinition> flux =  routeDefinitionRepository.getRouteDefinitions();
+
+    public List<RouteItemInfoDto> listAllRouteItems() {
+        Flux<RouteDefinition> flux = routeDefinitionRepository.getRouteDefinitions();
         List<RouteItemInfoDto> items = new ArrayList<>();
-        
+
         flux.subscribe((rd) -> {
             RouteItemInfoDto r = new RouteItemInfoDto();
             r.setName(rd.getId());
             r.setHost(rd.getUri().toString());
             r.setPort("");
             r.setSchema("http");
-            
+
             items.add(r);
-            
+
         });
-        
+
         return items;
     }
 
@@ -197,7 +229,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
             log.error("route items already exist for name:{}", name);
             return;
         }
-        
+
         doPushRouteItem(name, routeItems);
 
     }
