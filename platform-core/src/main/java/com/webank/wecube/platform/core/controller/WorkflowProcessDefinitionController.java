@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
 import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
@@ -41,6 +42,7 @@ public class WorkflowProcessDefinitionController {
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
+
         ProcDefOutlineDto result = procDefService.deployProcessDefinition(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
@@ -59,7 +61,7 @@ public class WorkflowProcessDefinitionController {
     @GetMapping("/process/definitions")
     public CommonResponseDto getProcessDefinitions(
             @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft) {
-
+        log.info("currentUser:{}", AuthenticationContextHolder.getCurrentUsername());
         boolean includeDraftProcDef = (includeDraft == 1 ? true : false);
         List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef);
         return CommonResponseDto.okayWithData(result);
