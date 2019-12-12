@@ -4,6 +4,7 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class UserManagementServiceImpl implements UserManagementService {
@@ -42,15 +44,17 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     private String gatewayUrl;
     private RestTemplate restTemplate;
+    private RoleMenuServiceImpl roleMenuService;
 
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
     @Autowired
-    public UserManagementServiceImpl(RestTemplate restTemplate, ApplicationProperties applicationProperties) {
+    public UserManagementServiceImpl(RestTemplate restTemplate, ApplicationProperties applicationProperties, RoleMenuServiceImpl roleMenuService) {
         this.restTemplate = restTemplate;
         this.gatewayUrl = applicationProperties.getGatewayUrl();
+        this.roleMenuService = roleMenuService;
     }
 
     @Override
@@ -174,6 +178,13 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
+    public List<RoleMenuDto> getMenusByUserName(String token, String userName) {
+        CommonResponseDto rolesByUserName = getRolesByUserName(token, userName);
+        List<RoleDto> roleDtoList = extractRoleDtoListFromJsonResponse(rolesByUserName);
+        return roleDtoList.stream().map(roleDto -> this.roleMenuService.retrieveMenusByRoleId(roleDto.getId())).collect(Collectors.toList());
+    }
+
+    @Override
     public CommonResponseDto getUsersByRoleId(String token, Long roleId) {
         HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
@@ -239,5 +250,19 @@ public class UserManagementServiceImpl implements UserManagementService {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", token);
         return httpHeaders;
+    }
+
+    private List<RoleDto> extractRoleDtoListFromJsonResponse(CommonResponseDto requireRolesFromUserName) throws WecubeCoreException {
+        String dataJsonString = JsonUtils.toJsonString(requireRolesFromUserName.getData());
+        List<RoleDto> roleDtoList;
+        try {
+            roleDtoList = JsonUtils.toList(dataJsonString, RoleDto.class);
+        } catch (IOException e) {
+            String msg = "Cannot extract roles from the given json response";
+            this.logger.error(msg, dataJsonString);
+            throw new WecubeCoreException(msg);
+        }
+        return roleDtoList;
+
     }
 }
