@@ -50,9 +50,16 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      * @return role2MenuDto
      */
     @Override
-    public RoleMenuDto retrieveMenusByRoleId(Long roleId) {
+    public RoleMenuDto retrieveMenusByRoleId(Long roleId) throws WecubeCoreException {
         logger.info(String.format("Fetching all menus by role ID: [%s]", roleId));
-        List<RoleMenu> roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
+        List<RoleMenu> roleMenuList;
+        try {
+            roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            throw new WecubeCoreException(ex.getMessage());
+        }
+
         List<MenuItemDto> menuCodeList = new ArrayList<>();
         roleMenuList.forEach(roleMenu -> {
             String menuCode = roleMenu.getMenuCode();
@@ -80,10 +87,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      *
      * @param roleId       given roleId
      * @param menuCodeList given total amount of the menuCode list
-     * @return role2MenuDto
      */
     @Override
-    public RoleMenuDto updateRoleToMenusByRoleId(Long roleId, List<String> menuCodeList) {
+    public void updateRoleToMenusByRoleId(Long roleId, List<String> menuCodeList) throws WecubeCoreException {
         List<RoleMenu> roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
 
         // current menuCodeList - new menuCodeList = needToDeleteList
@@ -107,10 +113,13 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             logger.info(String.format("Creating menus: [%s]", needToCreateList));
             List<RoleMenu> batchUpdateList = new ArrayList<>();
             needToCreateList.forEach(menuCode -> batchUpdateList.add(new RoleMenu(roleId, menuCode)));
-            this.roleMenuRepository.saveAll(batchUpdateList);
+            try {
+                this.roleMenuRepository.saveAll(batchUpdateList);
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+                throw new WecubeCoreException(ex.getMessage());
+            }
         }
-
-        return retrieveMenusByRoleId(roleId);
     }
 
     private MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
