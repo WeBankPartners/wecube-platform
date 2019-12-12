@@ -66,6 +66,8 @@ req.interceptors.request.use(
           resolve(config);
         }
       } else {
+        config.headers.Authorization =
+          "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ1bWFkbWluIiwiaWF0IjoxNTc1ODc4MjU5LCJ0eXBlIjoiYWNjZXNzVG9rZW4iLCJjbGllbnRUeXBlIjoiVVNFUiIsImV4cCI6MTU3ODQ3MDI1OSwiYXV0aG9yaXR5IjoiW10ifQ.ZrARJAFPGu0DaGw1GoGhKHkBbftXwCThCUNntwOBVRf274ZXeJBoJnbS-U0xiMx3yqMT-V_Tad_TilHWgir-NQ";
         resolve(config);
       }
     });
