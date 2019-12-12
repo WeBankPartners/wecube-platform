@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.domain;
 
 import com.webank.wecube.platform.core.utils.Constants;
-import lombok.Data;
 
 import javax.persistence.*;
 import java.util.Objects;
