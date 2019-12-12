@@ -323,5 +323,6 @@
   "is_model_attribute": "Current end node is entity's non-ref attribute",
   "password": "Password",
   "password_cannot_empty": "Password Cannot Empty",
-  "display_name": "Display Name"
+  "display_name": "Display Name",
+  "menus": "Menu"
 }
