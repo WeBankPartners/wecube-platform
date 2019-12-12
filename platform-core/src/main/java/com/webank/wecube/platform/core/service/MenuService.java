@@ -54,24 +54,20 @@ public class MenuService {
         Optional<List<PluginPackageMenu>> optionalPluginPackageMenus = pluginPackageMenuRepository.findAndMergePluginMenus();
         if (optionalPluginPackageMenus.isPresent()) {
             optionalPluginPackageMenus.get().forEach(packageMenu -> {
-                MenuItemDto packageMenuDto = transferPackageMenuToMenuItemDto(packageMenu);
+                MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
+                if (null == menuItem) {
+                    String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                            packageMenu.getCategory());
+                    log.error(msg);
+                    throw new WecubeCoreException(msg);
+                }
+                MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
                 returnMenuDto.add(packageMenuDto);
             });
         }
         Collections.sort(returnMenuDto);
 
         return returnMenuDto;
-    }
-
-    public MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
-        MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
-        if (null == menuItem) {
-            String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
-                    packageMenu.getCategory());
-            log.error(msg);
-            throw new WecubeCoreException(msg);
-        }
-        return MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
     }
 
     public List<PluginPackageMenu> sortPluginPackageMenusById(Set<PluginPackageMenu> packageMenus) {
