@@ -67,22 +67,10 @@ public class PluginConfigService {
     }
     
     private void ensurePluginConfigIdNotExisted(PluginConfig pluginConfig) {
-        String id = String.join(KEY_COLUMN_DELIMITER,
-                null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getName() : null,
-                null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getVersion() : null,
-                StringUtils.isNoneBlank(pluginConfig.getEntityName())
-                        ? pluginConfig.getName() + KEY_COLUMN_DELIMITER + pluginConfig.getEntityName()
-                                + (StringUtils.isNoneBlank(pluginConfig.getRegisterName())
-                                        ? KEY_COLUMN_DELIMITER + pluginConfig.getRegisterName()
-                                        : "")
-                        : pluginConfig.getName());
-        id = id.replaceAll("\\s+", "_");
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(id);
-        if (pluginConfigOptional.isPresent()) {
-            if (pluginConfigOptional.get() != null) {
-                throw new WecubeCoreException(
-                        String.format("PluginConfig[%s] already exist", pluginConfigOptional.get().getId()));
-            }
+        pluginConfig.initId();
+        if (pluginConfigRepository.existsById(pluginConfig.getId())) {
+            throw new WecubeCoreException(
+                    String.format("PluginConfig[%s] already exist", pluginConfig.getId()));
         }
     }
 
@@ -231,7 +219,7 @@ public class PluginConfigService {
     }
 
     public void disableAllPluginsForPluginPackage(String pluginPackageId) {
-        Optional<List<PluginConfig>> pluginConfigsOptional = pluginConfigRepository.findByPluginPackage_id(pluginPackageId);
+        Optional<List<PluginConfig>> pluginConfigsOptional = pluginConfigRepository.findByPluginPackage_idOrderByName(pluginPackageId);
         if (pluginConfigsOptional.isPresent()) {
             List<PluginConfig> pluginConfigs = pluginConfigsOptional.get();
             pluginConfigs.forEach(pluginConfig -> pluginConfig.setStatus(DISABLED));
