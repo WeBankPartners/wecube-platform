@@ -320,5 +320,9 @@
   "reload_to_get_ui": "If UI provided by plugin, please reload to see new plugin's page",
   "reload_to_delete_ui": "If UI provided by plugin, please reload to delete plugin's page",
   "attribute_type": "Attribute Type",
-  "is_model_attribute": "Current end node is entity's non-ref attribute"
+  "is_model_attribute": "Current end node is entity's non-ref attribute",
+  "password": "Password",
+  "password_cannot_empty": "Password Cannot Empty",
+  "display_name": "Display Name",
+  "menus": "Menu"
 }
