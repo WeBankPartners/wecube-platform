@@ -92,7 +92,7 @@ public class MenuItem {
         }
     }
     @JsonIgnore
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RoleMenu> assignedRoles = new ArrayList<>();
 
     public MenuItem() {
