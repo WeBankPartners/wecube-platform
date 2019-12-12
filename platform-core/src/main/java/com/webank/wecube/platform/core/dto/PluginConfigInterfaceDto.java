@@ -117,10 +117,12 @@ public class PluginConfigInterfaceDto {
 
     public PluginConfigInterface toDomain(PluginConfig pluginConfig) {
         PluginConfigInterface pluginConfigInterface = new PluginConfigInterface();
-        pluginConfigInterface.setId(getId());
+        if (pluginConfig.getId() != null) {
+            pluginConfigInterface.setId(getId());
+        }
         pluginConfigInterface.setPluginConfig(pluginConfig);
         pluginConfigInterface.setAction(getAction());
-        pluginConfigInterface.setServiceName(getServiceName());
+        pluginConfigInterface.setServiceName( pluginConfigInterface.generateServiceName());
         pluginConfigInterface.setServiceDisplayName(getServiceDisplayName());
         pluginConfigInterface.setPath(getPath());
         pluginConfigInterface.setHttpMethod(getHttpMethod());
