@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.controller;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.Set;
@@ -23,6 +26,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 import static com.webank.wecube.platform.core.utils.JsonUtils.toJsonString;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.contains;
@@ -73,6 +77,86 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("$.message", is(String.format("PluginPackageEntity not found for id: [%s] for plugin config: Vpc Management", NON_EXIST_ENTITY_ID))))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+    
+    @Test
+    public void duplicatePluginConfigAndSaveThenReturnSuccess() {
+        mockMultipleVersionPluginConfig();
+
+        try {
+            String newPluginConfigDto ="{\r\n" + 
+                    "    \"pluginPackageId\": \"1\",\r\n" + 
+                    "    \"name\": \"task\",\r\n" + 
+                    "    \"entityId\": \"1\",\r\n" + 
+                    "    \"entityName\": \"task\",\r\n" + 
+                    "    \"registerName\": \"register999\",\r\n" + 
+                    "    \"status\": \"ENABLED\",\r\n" + 
+                    "    \"interfaces\": [\r\n" + 
+                    "        {\r\n" + 
+                    "            \"pluginConfigId\": \"11\",\r\n" + 
+                    "            \"action\": \"create\",\r\n" + 
+                    "            \"serviceName\": \"service-management/task/create\",\r\n" + 
+                    "            \"serviceDisplayName\": \"service-management/task/create\",\r\n" + 
+                    "            \"path\": \"/service-management/tasks\",\r\n" + 
+                    "            \"httpMethod\": \"POST\",\r\n" + 
+                    "            \"isAsyncProcessing\": null,\r\n" + 
+                    "            \"inputParameters\": [\r\n" + 
+                    "                {\r\n" + 
+                    "                    \"id\": \"1\",\r\n" + 
+                    "                    \"pluginConfigInterfaceId\": \"1\",\r\n" + 
+                    "                    \"type\": \"INPUT\",\r\n" + 
+                    "                    \"name\": \"operatorRoleId\",\r\n" + 
+                    "                    \"dataType\": \"string\",\r\n" + 
+                    "                    \"mappingType\": \"entity\",\r\n" + 
+                    "                    \"mappingEntityExpression\": \"name_xxx\",\r\n" + 
+                    "                    \"mappingSystemVariableId\": null,\r\n" + 
+                    "                    \"required\": \"Y\"\r\n" + 
+                    "                },\r\n" + 
+                    "                {\r\n" + 
+                    "                    \"id\": \"2\",\r\n" + 
+                    "                    \"pluginConfigInterfaceId\": \"1\",\r\n" + 
+                    "                    \"type\": \"INPUT\",\r\n" + 
+                    "                    \"name\": \"reporter\",\r\n" + 
+                    "                    \"dataType\": \"string\",\r\n" + 
+                    "                    \"mappingType\": \"context\",\r\n" + 
+                    "                    \"mappingEntityExpression\": null,\r\n" + 
+                    "                    \"mappingSystemVariableId\": null,\r\n" + 
+                    "                    \"required\": \"Y\"\r\n" + 
+                    "                }\r\n" + 
+                    "            ],\r\n" + 
+                    "            \"outputParameters\": [\r\n" + 
+                    "                {\r\n" + 
+                    "                    \"id\": \"4\",\r\n" + 
+                    "                    \"pluginConfigInterfaceId\": \"1\",\r\n" + 
+                    "                    \"type\": \"OUTPUT\",\r\n" + 
+                    "                    \"name\": \"message\",\r\n" + 
+                    "                    \"dataType\": \"string\",\r\n" + 
+                    "                    \"mappingType\": \"\",\r\n" + 
+                    "                    \"mappingEntityExpression\": null,\r\n" + 
+                    "                    \"mappingSystemVariableId\": null,\r\n" + 
+                    "                    \"required\": \"\"\r\n" + 
+                    "                },\r\n" + 
+                    "                {\r\n" + 
+                    "                    \"id\": \"3\",\r\n" + 
+                    "                    \"pluginConfigInterfaceId\": \"1\",\r\n" + 
+                    "                    \"type\": \"OUTPUT\",\r\n" + 
+                    "                    \"name\": \"status\",\r\n" + 
+                    "                    \"dataType\": \"string\",\r\n" + 
+                    "                    \"mappingType\": \"\",\r\n" + 
+                    "                    \"mappingEntityExpression\": null,\r\n" + 
+                    "                    \"mappingSystemVariableId\": null,\r\n" + 
+                    "                    \"required\": \"\"\r\n" + 
+                    "                }\r\n" + 
+                    "            ]\r\n" + 
+                    "        }\r\n" + 
+                    "    ]\r\n" + 
+                    "}";
+            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON)
+                    .content(newPluginConfigDto)).andDo(print())
+                    .andExpect(jsonPath("$.data.registerName", equalTo("register999")));
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -448,13 +532,13 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 " ,('4', 'servicemanagement', 'v2.0', 'UNREGISTERED', 0)\n" +
                 " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED', 0);\n" +
                 "\n" +
-                "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
-                " ('11', '1', 'task', 1, 'ENABLED')\n" +
-                ",('12', '5', 'service_request', 2, 'ENABLED')\n" +
-                ",('21', '2', 'Vpc Management', 17, 'DISABLED')\n" +
-                ",('31', '3', 'Vpc Management', 16, 'DISABLED')\n" +
-                ",('32', '4', 'Vpc Management', 16, 'DISABLED')\n" +
-                ",('33', '5', 'Vpc Management', 16, 'DISABLED');\n" +
+                "insert into plugin_configs (id, plugin_package_id, name, entity_id,entity_name,register_name, status) values\n" +
+                " ('11', '1', 'task', '1','task','register001', 'ENABLED')\n" +
+                ",('12', '5', 'service_request', '2','service_request','register002',  'ENABLED')\n" +
+                ",('21', '2', 'Vpc Management', '17','vpc','register003',  'DISABLED')\n" +
+                ",('31', '3', 'Vpc Management', '16','vpc','register004',  'DISABLED')\n" +
+                ",('32', '4', 'Vpc Management', '16','vpc','register005',  'DISABLED')\n" +
+                ",('33', '5', 'Vpc Management', '16','vpc','register006',  'DISABLED');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, status) values\n" +
                 " ('41', '3', 'Vpc Management', 'DISABLED')\n" +
