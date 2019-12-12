@@ -7,9 +7,9 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
-import com.webank.wecube.platform.core.interceptor.UsernameStorage;
 import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -110,14 +110,14 @@ public class ResourceItemDto {
         }
 
         if (resourceItem.getCreatedBy() == null) {
-            resourceItem.setCreatedBy(UsernameStorage.getIntance().get());
+            resourceItem.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         }
 
         if (resourceItem.getCreatedDate() == null) {
             resourceItem.setCreatedDate(new Timestamp(System.currentTimeMillis()));
         }
 
-        resourceItem.setUpdatedBy(UsernameStorage.getIntance().get());
+        resourceItem.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
         resourceItem.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
     }
 
