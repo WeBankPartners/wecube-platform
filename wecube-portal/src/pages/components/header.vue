@@ -85,13 +85,7 @@ export default {
   },
   methods: {
     logout() {
-      const fullPath = this.$router.currentRoute.fullPath;
-      this.$router.push({
-        path: "/login",
-        query: {
-          redirect: fullPath
-        }
-      });
+      window.location.href = window.location.origin + "/#/login";
     },
     changeLanguage(lan) {
       Vue.config.lang = lan;
