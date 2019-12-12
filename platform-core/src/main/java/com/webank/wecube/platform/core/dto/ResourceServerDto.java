@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceServer;
-import com.webank.wecube.platform.core.interceptor.UsernameStorage;
 import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
@@ -120,14 +120,14 @@ public class ResourceServerDto {
         }
 
         if (resourceServer.getCreatedBy() == null) {
-            resourceServer.setCreatedBy(UsernameStorage.getIntance().get());
+            resourceServer.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
         }
 
         if (resourceServer.getCreatedDate() == null) {
             resourceServer.setCreatedDate(new Timestamp(System.currentTimeMillis()));
         }
 
-        resourceServer.setUpdatedBy(UsernameStorage.getIntance().get());
+        resourceServer.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
         resourceServer.setUpdatedDate(new Timestamp(System.currentTimeMillis()));
     }
 
