@@ -68,7 +68,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     @Autowired
     protected TaskNodeExecRequestRepository taskNodeExecRequestRepository;
-    
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     public TaskNodeExecContextDto getTaskNodeContextInfo(Integer procInstId, Integer nodeInstId) {
@@ -95,20 +95,21 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
                 requestEntity.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
-        
+
         result.setRequestData(marshalRequestData(requestParamEntities));
-        
-        List<TaskNodeExecParamEntity> responseParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
-                requestEntity.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
-        
+
+        List<TaskNodeExecParamEntity> responseParamEntities = taskNodeExecParamRepository
+                .findAllByRequestIdAndParamType(requestEntity.getRequestId(),
+                        TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+
         result.setResponseData(marshalRequestData(responseParamEntities));
 
         return result;
     }
-    
-    private String marshalRequestData(List<TaskNodeExecParamEntity> paramEntities){
+
+    private String marshalRequestData(List<TaskNodeExecParamEntity> paramEntities) {
         List<TaskNodeExecParamDto> params = new ArrayList<>();
-        if(paramEntities != null){
+        if (paramEntities != null) {
             paramEntities.forEach(m -> {
                 TaskNodeExecParamDto d = new TaskNodeExecParamDto();
                 d.setEntityDataId(m.getEntityDataId());
@@ -117,13 +118,14 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 d.setObjectId(m.getObjectId());
                 d.setParamDataType(m.getParamDataType());
                 d.setParamDataValue(m.getParamDataValue());
-                d.setParamName(d.getParamName());
+                d.setParamName(m.getParamName());
                 d.setParamType(m.getParamType());
-                
+                d.setRequestId(m.getRequestId());
+
                 params.add(d);
             });
         }
-        
+
         String json;
         try {
             json = objectMapper.writeValueAsString(params);
@@ -151,12 +153,24 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             return result;
         }
 
+        List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
+                .findAllByProcInstId(procInstEntity.getId());
+
         bindEntities.forEach(n -> {
             TaskNodeDefObjectBindInfoDto d = new TaskNodeDefObjectBindInfoDto();
+
             d.setEntityDataId(n.getEntityDataId());
             d.setEntityTypeId(n.getEntityTypeId());
             d.setNodeDefId(n.getNodeDefId());
-            d.setOrderedNo("");
+
+            TaskNodeInstInfoEntity nodeInstEntity = findTaskNodeInstInfoEntityByTaskNodeDefId(nodeInstEntities,
+                    n.getNodeDefId());
+
+            if (nodeInstEntity != null) {
+                d.setOrderedNo(nodeInstEntity.getOrderedNo());
+            } else {
+                d.setOrderedNo("");
+            }
 
             result.add(d);
         });
@@ -348,7 +362,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             TaskNodeDefInfoEntity nodeDef = findTaskNodeDefInfoEntityByNodeDefId(nodeDefEntities, n.getNodeDefId());
             TaskNodeInstDto nd = new TaskNodeInstDto();
             nd.setId(n.getId());
-            nd.setNodeDefId(n.getProcDefId());
+            nd.setNodeDefId(n.getNodeDefId());
             nd.setNodeId(n.getNodeId());
             nd.setNodeName(n.getNodeName());
             nd.setNodeType(n.getNodeType());
@@ -542,7 +556,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 nd.setProcInstKey(nodeInstEntity.getProcInstKey());
                 nd.setStatus(nodeInstEntity.getStatus());
             }
-            nd.setNodeDefId(nodeDefEntity.getProcDefId());
+            nd.setNodeDefId(nodeDefEntity.getId());
             nd.setNodeId(nodeDefEntity.getNodeId());
             nd.setNodeName(nodeDefEntity.getNodeName());
             nd.setNodeType(nodeDefEntity.getNodeType());
