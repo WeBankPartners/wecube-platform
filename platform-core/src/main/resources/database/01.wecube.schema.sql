@@ -251,6 +251,12 @@ CREATE TABLE `plugin_mysql_instances` (
     CONSTRAINT `FKn5plb1x3qnwxla4mixdhawo2o` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
+DROP TABLE if EXISTS role_menu;
+CREATE TABLE `role_menu` (
+    `id`      VARCHAR(255) PRIMARY KEY,
+    `role_id` INT          NOT NULL,
+    `menu_code` VARCHAR(255) NOT NULL
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 
 SET FOREIGN_KEY_CHECKS = 1;
