@@ -614,3 +614,11 @@ export const getRefByIdInfoByPackageNameAndEntityName = (pkgName, entityName) =>
   req.get(
     `/platform/v1/models/package/${pkgName}/entity/${entityName}/refById`
   );
+export const getModelNodeDetail = (entity, id) =>
+  req.get(`/wecmdb/entities/${entity}?filter=id,${id}&sortName=id`);
+export const getNodeBindings = id =>
+  req.get(`/platform/v1/process/instances/${id}/tasknode-bindings`);
+export const getNodeContext = (procId, nodeId) =>
+  req.get(
+    `/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context`
+  );
