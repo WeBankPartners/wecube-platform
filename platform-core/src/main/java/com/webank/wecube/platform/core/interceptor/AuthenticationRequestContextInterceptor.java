@@ -14,15 +14,15 @@ import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.Authe
 @Component
 public class AuthenticationRequestContextInterceptor implements HandlerInterceptor {
     public static final String REQ_ATTR_KEY_CURRENT_USER = "REQ_ATTR_KEY_CURRENT_USER";
-    
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         Principal userPrincipal = request.getUserPrincipal();
         if (userPrincipal != null) {
-            
+
             AuthenticatedUser currentUser = new AuthenticatedUser(userPrincipal.getName());
             AuthenticationContextHolder.setAuthenticatedUser(currentUser);
-            
+
             request.setAttribute(REQ_ATTR_KEY_CURRENT_USER, currentUser);
         }
         return true;
