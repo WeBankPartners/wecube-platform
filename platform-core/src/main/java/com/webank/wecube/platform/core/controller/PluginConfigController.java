@@ -48,4 +48,11 @@ public class PluginConfigController {
         return okayWithData(pluginConfigService.disablePlugin(pluginConfigId));
     }
 
+    @GetMapping("/plugins/interfaces/{plugin-config-id:.+}")
+    @ResponseBody
+    public JsonResponse queryPluginConfigInterfaceByConfigId(
+            @PathVariable(value = "plugin-config-id") String pluginConfigId) {
+        return okayWithData(pluginConfigService.queryPluginConfigInterfaceByConfigId(pluginConfigId));
+    }
+
 }

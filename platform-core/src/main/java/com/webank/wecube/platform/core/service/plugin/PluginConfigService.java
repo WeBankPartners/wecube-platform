@@ -26,6 +26,7 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
 import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.entity;
 import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
+import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Service
 @Transactional
@@ -46,6 +47,46 @@ public class PluginConfigService {
     }
 
     public PluginConfigDto savePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
+        if (pluginConfigDto.getId() == null) {
+            return createPluginConfig(pluginConfigDto);
+        }
+        return updatePluginConfig(pluginConfigDto);
+    }
+    
+    public PluginConfigDto createPluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
+        String packageId = pluginConfigDto.getPluginPackageId();
+        PluginPackage pluginPackage = pluginPackageRepository.findById(packageId).get();
+
+        PluginConfig pluginConfig = pluginConfigDto.toDomain(pluginPackage);
+        ensurePluginConfigIdNotExisted(pluginConfig);
+
+        pluginConfig.setStatus(DISABLED);
+        PluginConfig savedPluginConfig = pluginConfigRepository.save(pluginConfig);
+
+        return PluginConfigDto.fromDomain(savedPluginConfig);
+    }
+    
+    private void ensurePluginConfigIdNotExisted(PluginConfig pluginConfig) {
+        String id = String.join(KEY_COLUMN_DELIMITER,
+                null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getName() : null,
+                null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getVersion() : null,
+                StringUtils.isNoneBlank(pluginConfig.getEntityName())
+                        ? pluginConfig.getName() + KEY_COLUMN_DELIMITER + pluginConfig.getEntityName()
+                                + (StringUtils.isNoneBlank(pluginConfig.getRegisterName())
+                                        ? KEY_COLUMN_DELIMITER + pluginConfig.getRegisterName()
+                                        : "")
+                        : pluginConfig.getName());
+        id = id.replaceAll("\\s+", "_");
+        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(id);
+        if (pluginConfigOptional.isPresent()) {
+            if (pluginConfigOptional.get() != null) {
+                throw new WecubeCoreException(
+                        String.format("PluginConfig[%s] already exist", pluginConfigOptional.get().getId()));
+            }
+        }
+    }
+
+    public PluginConfigDto updatePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
         ensurePluginConfigIsValid(pluginConfigDto);
         String packageId = pluginConfigDto.getPluginPackageId();
         PluginPackage pluginPackage = pluginPackageRepository.findById(packageId).get();
@@ -69,6 +110,7 @@ public class PluginConfigService {
         if (StringUtils.isBlank(pluginConfig.getId())) {
             throw new WecubeCoreException("Invalid pluginConfig with id: " + pluginConfig.getId());
         }
+        
         if (!pluginConfigRepository.existsById(pluginConfig.getId())) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfig.getId());
         }
@@ -195,5 +237,17 @@ public class PluginConfigService {
             pluginConfigs.forEach(pluginConfig -> pluginConfig.setStatus(DISABLED));
             pluginConfigRepository.saveAll(pluginConfigs);
         }
+    }
+
+    public List<PluginConfigInterfaceDto> queryPluginConfigInterfaceByConfigId(String configId) {
+        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigInterfaceRepository
+                .findAllByPluginConfig_Id(configId);
+        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
+        if (pluginConfigsOptional.isPresent()) {
+            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
+            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
+                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
+        }
+        return pluginConfigInterfaceDtos;
     }
 }

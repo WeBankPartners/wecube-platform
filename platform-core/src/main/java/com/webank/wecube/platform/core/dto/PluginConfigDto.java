@@ -17,6 +17,7 @@ public class PluginConfigDto {
     private String name;
     private String entityId;
     private String entityName;
+    private String registerName;
     private String status;
     private List<PluginConfigInterfaceDto> interfaces;
 
@@ -97,12 +98,15 @@ public class PluginConfigDto {
 
     public PluginConfig toDomain(PluginPackage pluginPackage) {
         PluginConfig pluginConfig = new PluginConfig();
-        pluginConfig.setId(getId());
+        if (getId() != null) {
+            pluginConfig.setId(getId());
+        }
         pluginConfig.setPluginPackage(pluginPackage);
 
         pluginConfig.setName(getName());
         pluginConfig.setEntityId(getEntityId());
         pluginConfig.setEntityName(getEntityName());
+        pluginConfig.setRegisterName(getRegisterName());
         Set<PluginConfigInterface> pluginConfigInterfaces = newLinkedHashSet();
         if (null != getInterfaces() && getInterfaces().size() > 0) {
             getInterfaces().forEach(interfaceDto->pluginConfigInterfaces.add(interfaceDto.toDomain(pluginConfig)));
@@ -118,6 +122,7 @@ public class PluginConfigDto {
         pluginConfigDto.setName(pluginConfig.getName());
         pluginConfigDto.setEntityId(pluginConfig.getEntityId());
         pluginConfigDto.setEntityName(pluginConfig.getEntityName());
+        pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
         pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
         pluginConfigDto.setStatus(pluginConfig.getStatus().name());
         List<PluginConfigInterfaceDto> interfaces = newArrayList();
@@ -126,5 +131,13 @@ public class PluginConfigDto {
         }
         pluginConfigDto.setInterfaces(interfaces);
         return pluginConfigDto;
+    }
+
+    public String getRegisterName() {
+        return registerName;
+    }
+
+    public void setRegisterName(String registerName) {
+        this.registerName = registerName;
     }
 }
