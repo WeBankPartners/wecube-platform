@@ -2,14 +2,10 @@ package com.webank.wecube.platform.core.service.user;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
-import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author howechen
- */
 public interface UserManagementService {
     CommonResponseDto createUser(String token, Map<String, Object> jsonObject);
 
@@ -37,5 +33,5 @@ public interface UserManagementService {
 
     List<RoleDto> retrieveRole();
 
-    List<RoleMenuDto> getMenusByUserName(String token, String userName);
+
 }
