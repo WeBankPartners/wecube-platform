@@ -120,6 +120,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 d.setParamDataValue(m.getParamDataValue());
                 d.setParamName(m.getParamName());
                 d.setParamType(m.getParamType());
+                d.setRequestId(m.getRequestId());
 
                 params.add(d);
             });
@@ -555,7 +556,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 nd.setProcInstKey(nodeInstEntity.getProcInstKey());
                 nd.setStatus(nodeInstEntity.getStatus());
             }
-            nd.setNodeDefId(nodeDefEntity.getProcDefId());
+            nd.setNodeDefId(nodeDefEntity.getId());
             nd.setNodeId(nodeDefEntity.getNodeId());
             nd.setNodeName(nodeDefEntity.getNodeName());
             nd.setNodeType(nodeDefEntity.getNodeType());
