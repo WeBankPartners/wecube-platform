@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row>
-      <Col span="11">
+      <Col span="7">
         <Card>
           <p slot="title">
             {{ $t("user") }}
@@ -29,7 +29,7 @@
           </Tag>
         </Card>
       </Col>
-      <Col span="12" offset="1">
+      <Col span="7" offset="1">
         <Card>
           <p slot="title">
             {{ $t("role") }}
@@ -60,6 +60,16 @@
               >{{ $t("user") }}</Button
             >
           </div>
+        </Card>
+      </Col>
+      <Col span="7" offset="1">
+        <Card>
+          <p slot="title">{{ $t("menus") }}</p>
+          <Tree
+            :data="menus"
+            show-checkbox
+            @on-check-change="handleMenuTreeCheck"
+          ></Tree>
         </Card>
       </Col>
     </Row>
@@ -137,8 +147,14 @@ import {
   getRolesByUserName,
   getUsersByRoleId,
   grantRolesForUser,
-  revokeRolesForUser
+  revokeRolesForUser,
+  getAllMenusList,
+  getMenusByUserName,
+  getMenusByRoleId,
+  updateRoleToMenusByRoleId
 } from "@/api/server";
+import { MENUS } from "@/const/menus.js";
+
 export default {
   data() {
     return {
@@ -153,10 +169,88 @@ export default {
       allUsersForTransfer: [],
       addUserModalVisible: false,
       addRoleModalVisible: false,
-      userManageModal: false
+      userManageModal: false,
+      originMenus: [],
+      menus: []
     };
   },
   methods: {
+    async handleMenuTreeCheck(allChecked, currentChecked) {
+      const menuCodes = allChecked.filter(i => i.category).map(_ => _.code);
+      const { status, message, data } = await updateRoleToMenusByRoleId(
+        this.currentRoleId,
+        menuCodes
+      );
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "success",
+          desc: message
+        });
+      }
+      this.handleRoleClick(true, this.currentRoleId);
+    },
+    async getAllMenus() {
+      const { status, message, data } = await getAllMenusList();
+      if (status === "OK") {
+        this.originMenus = data;
+      }
+      this.menus = this.menusResponseHandeler(this.originMenus);
+    },
+    menusPermissionSelected(allMenus, menusPermissions = []) {
+      allMenus.forEach(_ => {
+        _.children.forEach(m => {
+          const subMenu = menusPermissions.find(n => m.code === n.code);
+          m.checked = subMenu ? true : false;
+        });
+        _.indeterminate = false;
+        _.checked = false;
+      });
+    },
+    menusResponseHandeler(data, disabled = true) {
+      let menus = [];
+      data.forEach(_ => {
+        if (!_.category) {
+          let menuObj = MENUS.find(m => m.code === _.code);
+          menus.push({
+            ..._,
+            title:
+              _.source === "SYSTEM"
+                ? this.$lang === "zh-CN"
+                  ? menuObj.cnName
+                  : menuObj.enName
+                : _.displayName,
+            id: _.id,
+            expand: true,
+            checked: false,
+            children: [],
+            disabled
+          });
+        }
+      });
+      data.forEach(_ => {
+        if (_.category) {
+          let menuObj = MENUS.find(m => m.code === _.code);
+          menus.forEach(h => {
+            if (_.category === h.id) {
+              h.children.push({
+                ..._,
+                title:
+                  _.source === "SYSTEM"
+                    ? this.$lang === "zh-CN"
+                      ? menuObj.cnName
+                      : menuObj.enName
+                    : _.displayName,
+                id: _.id,
+                expand: true,
+                checked: false,
+                disabled
+              });
+            }
+          });
+        }
+      });
+      return menus;
+    },
     renderUserNameForTransfer(item) {
       return item.label;
     },
@@ -192,6 +286,11 @@ export default {
           _.checked = checked;
         }
       });
+      let permissions = await getMenusByUserName(name);
+      if (permissions.status === "OK") {
+        const userMenus = [].concat(...permissions.data.map(_ => _.menuList));
+        this.menusPermissionSelected(this.menus, userMenus);
+      }
       let { status, data, message } = await getRolesByUserName(name);
       if (status === "OK") {
         this.roles.forEach(_ => {
@@ -216,6 +315,11 @@ export default {
           _.checked = checked;
         }
       });
+      this.menus = this.menusResponseHandeler(this.originMenus, false);
+      let permissions = await getMenusByRoleId(id);
+      if (permissions.status === "OK") {
+        this.menusPermissionSelected(this.menus, permissions.data.menuList);
+      }
       let { status, data, message } = await getUsersByRoleId(id);
       if (status === "OK") {
         this.users.forEach(_ => {
@@ -329,6 +433,7 @@ export default {
   created() {
     this.getAllUsers();
     this.getAllRoles();
+    this.getAllMenus();
   }
 };
 </script>
