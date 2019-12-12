@@ -11,12 +11,6 @@ import java.util.stream.Collectors;
 public interface PluginPackageMenuRepository extends CrudRepository<PluginPackageMenu, String> {
     Optional<List<PluginPackageMenu>> findAllByPluginPackage_statusIn(Collection<PluginPackage.Status> statuses);
 
-    Optional<List<PluginPackageMenu>> findAllByCodeAndPluginPackage_StatusIn(String menuCode, Collection<PluginPackage.Status> statuses);
-
-    default Optional<List<PluginPackageMenu>> findAllActivateMenuByCode(String menuCode) {
-        return findAllByCodeAndPluginPackage_StatusIn(menuCode, PluginPackage.ACTIVE_STATUS);
-    }
-
     default Optional<List<PluginPackageMenu>> findAllForAllActivePackages() {
         return findAllByPluginPackage_statusIn(PluginPackage.ACTIVE_STATUS);
     }
@@ -37,7 +31,7 @@ public interface PluginPackageMenuRepository extends CrudRepository<PluginPackag
                     }
             );
 
-            return Optional.of(menuSetByMenuOrderMap.values().stream().map(it -> it.last()).collect(Collectors.toList()));
+            return Optional.of(menuSetByMenuOrderMap.values().stream().map(it->it.last()).collect(Collectors.toList()));
         }
 
         return Optional.empty();

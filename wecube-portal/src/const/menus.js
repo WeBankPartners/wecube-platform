@@ -69,11 +69,5 @@ export const MENUS = [
     cnName: "编排任务执行",
     enName: "Workflow Execution",
     link: "/implementation/workflow-execution"
-  },
-  {
-    code: "ADMIN_USER_ROLE_MANAGEMENT",
-    cnName: "权限管理",
-    enName: "Permission Management",
-    link: "/admin/user-role-management"
   }
 ];
