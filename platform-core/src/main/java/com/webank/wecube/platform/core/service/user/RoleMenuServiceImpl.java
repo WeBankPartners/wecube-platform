@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.user;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.RoleMenu;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
@@ -9,6 +10,9 @@ import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
 import com.webank.wecube.platform.core.service.MenuService;
+import com.webank.wecube.platform.core.service.datamodel.ExpressionServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,20 +29,18 @@ import java.util.stream.Collectors;
 @Transactional(rollbackFor = Exception.class)
 public class RoleMenuServiceImpl implements RoleMenuService {
 
+    private static final Logger logger = LoggerFactory.getLogger(RoleMenuServiceImpl.class);
     private RoleMenuRepository roleMenuRepository;
     private MenuItemRepository menuItemRepository;
     private PluginPackageMenuRepository pluginPackageMenuRepository;
-    private MenuService menuService;
 
     @Autowired
     public RoleMenuServiceImpl(RoleMenuRepository roleMenuRepository,
                                MenuItemRepository menuItemRepository,
-                               PluginPackageMenuRepository pluginPackageMenuRepository,
-                               MenuService menuService) {
+                               PluginPackageMenuRepository pluginPackageMenuRepository) {
         this.roleMenuRepository = roleMenuRepository;
         this.menuItemRepository = menuItemRepository;
         this.pluginPackageMenuRepository = pluginPackageMenuRepository;
-        this.menuService = menuService;
     }
 
     /**
@@ -60,9 +62,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 menuCodeList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
             } else {
                 // package menu
-                Optional<List<PluginPackageMenu>> allActivateMenuByCode = this.pluginPackageMenuRepository.findAllActivateMenuByCode(menuCode);
-                allActivateMenuByCode.ifPresent(pluginPackageMenus -> pluginPackageMenus.forEach(pluginPackageMenu -> {
-                    menuCodeList.add(this.menuService.transferPackageMenuToMenuItemDto(pluginPackageMenu));
+                Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository.findAllActivateMenuByCode(menuCode);
+                allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> pluginPackageMenus.forEach(pluginPackageMenu -> {
+                    menuCodeList.add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu));
                 }));
             }
 
@@ -104,5 +106,16 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         }
 
         return retrieveMenusByRoleId(roleId);
+    }
+
+    private MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
+        MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
+        if (null == menuItem) {
+            String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                    packageMenu.getCategory());
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
     }
 }
