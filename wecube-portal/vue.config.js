@@ -4,7 +4,7 @@ let isUsingLocalCore = false;
 
 const baseURL = isUsingLocalCore
   ? "http://localhost:8080"
-  : "http://111.230.161.237:19100";
+  : "http://111.230.161.237:19090";
 
 module.exports = {
   devServer: {
@@ -14,6 +14,9 @@ module.exports = {
     port: 3000,
     proxy: {
       "/platform": {
+        target: baseURL
+      },
+      "/wecmdb": {
         target: baseURL
       },
       "ui-resources": {

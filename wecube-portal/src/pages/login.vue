@@ -41,12 +41,14 @@ export default {
       if (status === "OK") {
         let session = window.sessionStorage;
         session.setItem("token", JSON.stringify(data));
+        session.setItem("username", this.username);
         this.$router.push("/homepage");
       }
     },
     clearSession() {
       let session = window.sessionStorage;
       session.removeItem("token");
+      session.removeItem("username");
     }
   },
   created() {

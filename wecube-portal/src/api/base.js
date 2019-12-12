@@ -7,8 +7,6 @@ const req = axios.create({
   timeout: 50000
 });
 
-req.defaults.headers.common["Http-Client-Type"] = "Ajax";
-
 const throwError = res => new Error(res.message || "error");
 
 let refreshRequest = null;
@@ -23,7 +21,7 @@ req.interceptors.request.use(
         const accessToken = token.find(t => t.tokenType === "accessToken");
         const expiration = accessToken.expiration * 1 - currentTime;
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get("auth/v1/token", {
+          refreshRequest = axios.get("/auth/v1/api/token", {
             headers: {
               Authorization:
                 "Bearer " +
@@ -41,7 +39,7 @@ req.interceptors.request.use(
             },
             err => {
               refreshRequest = null;
-              window.location.href = window.location.origin + "/" + "#/login";
+              window.location.href = window.location.origin + "/#/login";
               session.removeItem("token");
             }
           );
@@ -58,7 +56,7 @@ req.interceptors.request.use(
             },
             err => {
               refreshRequest = null;
-              window.location.href = window.location.origin + "/" + "#/login";
+              window.location.href = window.location.origin + "/#/login";
               session.removeItem("token");
             }
           );
@@ -99,7 +97,7 @@ req.interceptors.response.use(
   res => {
     const { response } = res;
     if (response.status === 401) {
-      window.location.href = window.location.origin + "/" + "#/login";
+      window.location.href = window.location.origin + "/#/login";
       return response;
     }
     Vue.prototype.$Notice.warning({
