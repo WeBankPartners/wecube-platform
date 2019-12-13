@@ -1,7 +1,5 @@
 package com.webank.wecube.platform.core.controller;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
@@ -17,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Optional;
 import java.util.Set;
@@ -26,7 +23,6 @@ import static com.google.common.collect.Sets.newHashSet;
 import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 import static com.webank.wecube.platform.core.utils.JsonUtils.toJsonString;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.contains;
@@ -56,7 +52,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
     @Before
     public void setup() {
-        mvc = MockMvcBuilders.standaloneSetup(pluginPackageController, pluginConfigController, globalExceptionHandler).build();
+        mvc = MockMvcBuilders.standaloneSetup(pluginPackageController, pluginConfigController, globalExceptionHandler)
+                .build();
     }
 
     @Test
@@ -71,92 +68,14 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(NON_EXIST_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(PluginConfigDto.fromDomain(pluginConfig))))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is(String.format("PluginPackageEntity not found for id: [%s] for plugin config: Vpc Management", NON_EXIST_ENTITY_ID))))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
-    }
-    
-    @Test
-    public void duplicatePluginConfigAndSaveThenReturnSuccess() {
-        mockMultipleVersionPluginConfig();
-
-        try {
-            String newPluginConfigDto ="{\r\n" + 
-                    "    \"pluginPackageId\": \"1\",\r\n" + 
-                    "    \"name\": \"task\",\r\n" + 
-                    "    \"entityId\": \"1\",\r\n" + 
-                    "    \"entityName\": \"task\",\r\n" + 
-                    "    \"registerName\": \"register999\",\r\n" + 
-                    "    \"status\": \"ENABLED\",\r\n" + 
-                    "    \"interfaces\": [\r\n" + 
-                    "        {\r\n" + 
-                    "            \"pluginConfigId\": \"11\",\r\n" + 
-                    "            \"action\": \"create\",\r\n" + 
-                    "            \"serviceName\": \"service-management/task/create\",\r\n" + 
-                    "            \"serviceDisplayName\": \"service-management/task/create\",\r\n" + 
-                    "            \"path\": \"/service-management/tasks\",\r\n" + 
-                    "            \"httpMethod\": \"POST\",\r\n" + 
-                    "            \"isAsyncProcessing\": null,\r\n" + 
-                    "            \"inputParameters\": [\r\n" + 
-                    "                {\r\n" + 
-                    "                    \"id\": \"1\",\r\n" + 
-                    "                    \"pluginConfigInterfaceId\": \"1\",\r\n" + 
-                    "                    \"type\": \"INPUT\",\r\n" + 
-                    "                    \"name\": \"operatorRoleId\",\r\n" + 
-                    "                    \"dataType\": \"string\",\r\n" + 
-                    "                    \"mappingType\": \"entity\",\r\n" + 
-                    "                    \"mappingEntityExpression\": \"name_xxx\",\r\n" + 
-                    "                    \"mappingSystemVariableId\": null,\r\n" + 
-                    "                    \"required\": \"Y\"\r\n" + 
-                    "                },\r\n" + 
-                    "                {\r\n" + 
-                    "                    \"id\": \"2\",\r\n" + 
-                    "                    \"pluginConfigInterfaceId\": \"1\",\r\n" + 
-                    "                    \"type\": \"INPUT\",\r\n" + 
-                    "                    \"name\": \"reporter\",\r\n" + 
-                    "                    \"dataType\": \"string\",\r\n" + 
-                    "                    \"mappingType\": \"context\",\r\n" + 
-                    "                    \"mappingEntityExpression\": null,\r\n" + 
-                    "                    \"mappingSystemVariableId\": null,\r\n" + 
-                    "                    \"required\": \"Y\"\r\n" + 
-                    "                }\r\n" + 
-                    "            ],\r\n" + 
-                    "            \"outputParameters\": [\r\n" + 
-                    "                {\r\n" + 
-                    "                    \"id\": \"4\",\r\n" + 
-                    "                    \"pluginConfigInterfaceId\": \"1\",\r\n" + 
-                    "                    \"type\": \"OUTPUT\",\r\n" + 
-                    "                    \"name\": \"message\",\r\n" + 
-                    "                    \"dataType\": \"string\",\r\n" + 
-                    "                    \"mappingType\": \"\",\r\n" + 
-                    "                    \"mappingEntityExpression\": null,\r\n" + 
-                    "                    \"mappingSystemVariableId\": null,\r\n" + 
-                    "                    \"required\": \"\"\r\n" + 
-                    "                },\r\n" + 
-                    "                {\r\n" + 
-                    "                    \"id\": \"3\",\r\n" + 
-                    "                    \"pluginConfigInterfaceId\": \"1\",\r\n" + 
-                    "                    \"type\": \"OUTPUT\",\r\n" + 
-                    "                    \"name\": \"status\",\r\n" + 
-                    "                    \"dataType\": \"string\",\r\n" + 
-                    "                    \"mappingType\": \"\",\r\n" + 
-                    "                    \"mappingEntityExpression\": null,\r\n" + 
-                    "                    \"mappingSystemVariableId\": null,\r\n" + 
-                    "                    \"required\": \"\"\r\n" + 
-                    "                }\r\n" + 
-                    "            ]\r\n" + 
-                    "        }\r\n" + 
-                    "    ]\r\n" + 
-                    "}";
             mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON)
-                    .content(newPluginConfigDto)).andDo(print())
-                    .andExpect(jsonPath("$.data.registerName", equalTo("register999")));
+                    .content(toJsonString(PluginConfigDto.fromDomain(pluginConfig)))).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("ERROR")))
+                    .andExpect(jsonPath("$.message",
+                            is(String.format(
+                                    "PluginPackageEntity not found for id: [%s] for plugin config: Vpc Management",
+                                    NON_EXIST_ENTITY_ID))))
+                    .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -174,13 +93,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         assertThat(pluginConfig.getEntityId()).isNull();
 
         try {
-            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(PluginConfigDto.fromDomain(pluginConfig))))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
-                    .andExpect(jsonPath("$.data.id", is(PLUGIN_CONFIG_ID_WITHOUT_ENTITY)))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON)
+                    .content(toJsonString(PluginConfigDto.fromDomain(pluginConfig)))).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data.id", is(PLUGIN_CONFIG_ID_WITHOUT_ENTITY))).andDo(print()).andReturn()
+                    .getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -201,15 +118,13 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(PluginConfigDto.fromDomain(pluginConfig))))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
+            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON)
+                    .content(toJsonString(PluginConfigDto.fromDomain(pluginConfig)))).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("Vpc Management")))
                     .andExpect(jsonPath("$.data.entityId", is(EXISTING_ENTITY_ID)))
-                    .andExpect(jsonPath("$.data.status", is("DISABLED")))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andExpect(jsonPath("$.data.status", is("DISABLED"))).andDo(print()).andReturn().getResponse()
+                    .getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -231,12 +146,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON).content(toJsonString(PluginConfigDto.fromDomain(pluginConfig))))
-                    .andExpect(status().isOk())
+            mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON)
+                    .content(toJsonString(PluginConfigDto.fromDomain(pluginConfig)))).andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Not allow to update plugin with status: ENABLED")))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -255,12 +169,10 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/plugins/enable/" + enabledPluginConfigId))
-                    .andExpect(status().isOk())
+            mvc.perform(post("/v1/plugins/enable/" + enabledPluginConfigId)).andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message", is("Not allow to enable pluginConfig with status: ENABLED")))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -279,12 +191,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/plugins/enable/"+existingPluginConfigId))
-                    .andExpect(status().isOk())
+            mvc.perform(post("/v1/plugins/enable/" + existingPluginConfigId)).andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.")))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andExpect(jsonPath("$.message", is(
+                            "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.")))
+                    .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -304,15 +215,12 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         pluginConfig.setEntityId(EXISTING_ENTITY_ID);
 
         try {
-            mvc.perform(post("/v1/plugins/enable/"+existingPluginConfigId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
+            mvc.perform(post("/v1/plugins/enable/" + existingPluginConfigId)).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("Vpc Management")))
                     .andExpect(jsonPath("$.data.entityId", is(EXISTING_ENTITY_ID)))
-                    .andExpect(jsonPath("$.data.status", is("ENABLED")))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andExpect(jsonPath("$.data.status", is("ENABLED"))).andDo(print()).andReturn().getResponse()
+                    .getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -327,12 +235,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginConfig();
 
         try {
-            mvc.perform(post("/v1/plugins/disable/" + NON_EXIST_PLUGIN_CONFIG_ID))
-                    .andExpect(status().isOk())
+            mvc.perform(post("/v1/plugins/disable/" + NON_EXIST_PLUGIN_CONFIG_ID)).andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("PluginConfig not found for id: " + NON_EXIST_PLUGIN_CONFIG_ID)))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andExpect(
+                            jsonPath("$.message", is("PluginConfig not found for id: " + NON_EXIST_PLUGIN_CONFIG_ID)))
+                    .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -345,12 +252,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         assertThat(pluginConfigRepository.existsById(NON_EXIST_PLUGIN_CONFIG_ID)).isFalse();
 
         try {
-            mvc.perform(post("/v1/plugins/disable/" + NON_EXIST_PLUGIN_CONFIG_ID))
-                    .andExpect(status().isOk())
+            mvc.perform(post("/v1/plugins/disable/" + NON_EXIST_PLUGIN_CONFIG_ID)).andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("PluginConfig not found for id: " + NON_EXIST_PLUGIN_CONFIG_ID)))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andExpect(
+                            jsonPath("$.message", is("PluginConfig not found for id: " + NON_EXIST_PLUGIN_CONFIG_ID)))
+                    .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -369,12 +275,9 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         assertThat(pluginConfig.getStatus()).isNotEqualTo(PluginConfig.Status.ENABLED);
 
         try {
-            mvc.perform(post("/v1/plugins/disable/" + existingPluginConfigId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            mvc.perform(post("/v1/plugins/disable/" + existingPluginConfigId)).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
+                    .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -390,17 +293,18 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginConfig();
 
         try {
-            mvc.perform(get("/v1/plugins/interfaces/enabled"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
-                    .andExpect(jsonPath("$.data.length()", is(1)))
-                    .andExpect(jsonPath("$.data[*].action", containsInAnyOrder("update")))
-                    .andExpect(jsonPath("$.data[*].serviceName", containsInAnyOrder("service-management/service_request/update")))
-                    .andExpect(jsonPath("$.data[*].path", containsInAnyOrder("/service-management/service-requests/{service-request-id}/done")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", containsInAnyOrder("PUT")))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            mvc.perform(get("/v1/plugins/interfaces/enabled")).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data.length()", is(2)))
+                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm")))
+                    .andExpect(jsonPath("$.data[*].serviceName",
+                            contains("service-management/service_request/update",
+                                    "service-management/service_request/confirmation")))
+                    .andExpect(jsonPath("$.data[*].path",
+                            contains("/service-management/service-requests/{service-request-id}/done",
+                                    "/service-management/service-requests/confirmation/done")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST"))).andDo(print()).andReturn()
+                    .getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -411,17 +315,36 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginConfig();
 
         try {
-            mvc.perform(get("/v1/plugins/interfaces/entity/1/enabled"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
+            mvc.perform(get("/v1/plugins/interfaces/entity/1/enabled")).andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.length()", is(1)))
                     .andExpect(jsonPath("$.data[*].action", contains("create")))
                     .andExpect(jsonPath("$.data[*].serviceName", contains("service-management/task/create")))
                     .andExpect(jsonPath("$.data[*].path", contains("/service-management/tasks")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", contains("POST")))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("POST"))).andDo(print()).andReturn()
+                    .getResponse().getContentAsString();
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void givenMultiplePluginConfigWhenQueryAllENABLEDInterfacesForPackageNameAndEntityThenShouldReturnCorrectResult() {
+        mockMultipleVersionPluginConfig();
+
+        try {
+            mvc.perform(get("/v1/plugins/interfaces/package/wecmdb/entity/resource_set/enabled"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.status", is("OK")))
+                    .andExpect(jsonPath("$.message", is("Success"))).andExpect(jsonPath("$.data.length()", is(2)))
+                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm")))
+                    .andExpect(jsonPath("$.data[*].serviceName",
+                            contains("service-management/service_request/update",
+                                    "service-management/service_request/confirmation")))
+                    .andExpect(jsonPath("$.data[*].path",
+                            contains("/service-management/service-requests/{service-request-id}/done",
+                                    "/service-management/service-requests/confirmation/done")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST"))).andDo(print()).andReturn()
+                    .getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -513,9 +436,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         assertThat(id).isNotNull();
 
         try {
-            mvc.perform(post("/v1/plugins/enable/" + id))
-                    .andDo(print())
-                    .andReturn().getResponse().getContentAsString();
+            mvc.perform(post("/v1/plugins/enable/" + id)).andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
             assertThat(e instanceof WecubeCoreException).isTrue();
             assertThat(e.getMessage()).isNotNull();
@@ -525,54 +446,56 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
     private void mockMultipleVersionPluginConfig() {
 
-        executeSql("insert into plugin_packages (id, name, version, status, ui_package_included) values\n" +
-                "  ('1', 'servicemanagement', 'v1.0', 'UNREGISTERED', 0)\n" +
-                " ,('2', 'servicemanagement', 'v1.1', 'UNREGISTERED', 0)\n" +
-                " ,('3', 'servicemanagement', 'v1.2', 'UNREGISTERED', 0)\n" +
-                " ,('4', 'servicemanagement', 'v2.0', 'UNREGISTERED', 0)\n" +
-                " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED', 0);\n" +
-                "\n" +
-                "insert into plugin_configs (id, plugin_package_id, name, entity_id,entity_name,register_name, status) values\n" +
-                " ('11', '1', 'task', '1','task','register001', 'ENABLED')\n" +
-                ",('12', '5', 'service_request', '2','service_request','register002',  'ENABLED')\n" +
-                ",('21', '2', 'Vpc Management', '17','vpc','register003',  'DISABLED')\n" +
-                ",('31', '3', 'Vpc Management', '16','vpc','register004',  'DISABLED')\n" +
-                ",('32', '4', 'Vpc Management', '16','vpc','register005',  'DISABLED')\n" +
-                ",('33', '5', 'Vpc Management', '16','vpc','register006',  'DISABLED');\n" +
-                "\n" +
-                "insert into plugin_configs (id, plugin_package_id, name, status) values\n" +
-                " ('41', '3', 'Vpc Management', 'DISABLED')\n" +
-                ",('99', '3', 'Vpc Management', 'DISABLED');\n" +
-                "\n" +
-                "insert into plugin_config_interfaces (id, plugin_config_id, action, service_name, service_display_name, path, http_method) values " +
-                " ('1', '11', 'create', 'service-management/task/create', 'service-management/task/create', '/service-management/tasks', 'POST')" +
-                ",('2', '12', 'update', 'service-management/service_request/update', 'service-management/service_request/update', '/service-management/service-requests/{service-request-id}/done', 'PUT');" +
-                "\n" +
-                "insert into plugin_config_interface_parameters(id, plugin_config_interface_id, type, name, data_type, mapping_type, mapping_entity_expression, mapping_system_variable_id, required) values " +
-                " ('1', '1', 'INPUT', 'operatorRoleId', 'string', 'entity', 'name_xxx', null, 'Y') " +
-                ", ('2', '1', 'INPUT', 'reporter', 'string', 'context', null, null, 'Y') " +
-                ", ('3', '1', 'OUTPUT', 'status', 'string', '', null, null, '') " +
-                ", ('4', '1', 'OUTPUT', 'message', 'string', '', null, null, '') " +
-                ", ('5', '2', 'INPUT', 'service-request-id', 'string', 'system_variable', null, 1, 'Y') " +
-                ", ('6', '2', 'INPUT', 'result', 'string', 'context', null, null, 'Y') " +
-                ", ('7', '2', 'OUTPUT', 'status', 'string', '', null, null, '') " +
-                ", ('8', '2', 'OUTPUT', 'message', 'string', '', null, null, ''); " +
-                "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic) VALUES " +
-                "  ('1', 1, 'servicemanagement', 0) " +
-                ", ('2', 2, 'servicemanagement', 0) " +
-                ";\n" +
-                "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
-                " ('1', '2', 2, 'servicemanagement', 'entity_1', 'entity_1', 'entity_1_description')\n" +
-                ",('2', '2', 2, 'servicemanagement', 'entity_2', 'entity_2', 'entity_2_description')\n" +
-                ",('3', '2', 2, 'servicemanagement', 'entity_3', 'entity_3', 'entity_3_description');\n" +
-                "\n" +
-                "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES\n" +
-                " ('1', '1', NULL, 'attribute_1', 'attribute_1_description', 'INT')\n" +
-                " ,('2', '1', NULL, 'attribute_2', 'attribute_2_description', 'INT')\n" +
-                " ,('3', '1', '1', 'attribute_3', 'attribute_3_description', 'INT')\n" +
-                " ,('4', '1', '1', 'attribute_4', 'attribute_4_description', 'REF')\n" +
-                " ,('5', '2', '2', 'attribute_5', 'attribute_5_description', 'REF')\n" +
-                " ,('6', '3', NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
-                ";");
+        executeSql("insert into plugin_packages (id, name, version, status, ui_package_included) values\n"
+                + "  ('1', 'servicemanagement', 'v1.0', 'UNREGISTERED', 0)\n"
+                + " ,('2', 'servicemanagement', 'v1.1', 'UNREGISTERED', 0)\n"
+                + " ,('3', 'servicemanagement', 'v1.2', 'UNREGISTERED', 0)\n"
+                + " ,('4', 'servicemanagement', 'v2.0', 'UNREGISTERED', 0)\n"
+                + " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED', 0)\n"
+                + " ,('6', 'servicemanagement', 'v2.2', 'REGISTERED', 0)\n"
+                + " ,('wecmdb__v1.3', 'wecmdb', 'v1.3', 'REGISTERED', 0)\n" + ";\n"
+                + "insert into plugin_configs (id, plugin_package_id, name, entity_id, entity_name, status) values\n"
+                + " ('11', '1', 'task', 1, 'entity_1', 'ENABLED')\n"
+                + ",('12', '5', 'service_request', 'wecmdb__1__resource_set', 'resource_set', 'ENABLED')\n"
+                + ",('21', '2', 'Vpc Management', 17, null, 'DISABLED')\n"
+                + ",('31', '3', 'Vpc Management', 16, null, 'DISABLED')\n"
+                + ",('32', '4', 'Vpc Management', 16, null, 'DISABLED')\n"
+                + ",('33', '5', 'Vpc Management', 16, null, 'DISABLED')\n" + ";\n"
+                + "insert into plugin_configs (id, plugin_package_id, name, status) values\n"
+                + " ('41', '3', 'Vpc Management', 'DISABLED')\n" + ",('99', '3', 'Vpc Management', 'DISABLED')\n"
+                + ";\n"
+                + "insert into plugin_config_interfaces (id, plugin_config_id, action, service_name, service_display_name, path, http_method) values "
+                + " ('1', '11', 'create', 'service-management/task/create', 'service-management/task/create', '/service-management/tasks', 'POST')"
+                + ",('2', '12', 'update', 'service-management/service_request/update', 'service-management/service_request/update', '/service-management/service-requests/{service-request-id}/done', 'PUT')"
+                + ",('3', '12', 'confirm', 'service-management/service_request/confirmation', 'service-management/service_request/confirmation', '/service-management/service-requests/confirmation/done', 'POST')"
+                + ";\n"
+                + "insert into plugin_config_interface_parameters(id, plugin_config_interface_id, type, name, data_type, mapping_type, mapping_entity_expression, mapping_system_variable_id, required) values "
+                + " ('1', '1', 'INPUT', 'operatorRoleId', 'string', 'entity', 'name_xxx', null, 'Y') "
+                + ", ('2', '1', 'INPUT', 'reporter', 'string', 'context', null, null, 'Y') "
+                + ", ('3', '1', 'OUTPUT', 'status', 'string', '', null, null, '') "
+                + ", ('4', '1', 'OUTPUT', 'message', 'string', '', null, null, '') "
+                + ", ('5', '2', 'INPUT', 'service-request-id', 'string', 'system_variable', null, 1, 'Y') "
+                + ", ('6', '2', 'INPUT', 'result', 'string', 'context', null, null, 'Y') "
+                + ", ('7', '2', 'OUTPUT', 'status', 'string', '', null, null, '') "
+                + ", ('8', '2', 'OUTPUT', 'message', 'string', '', null, null, ''); "
+                + "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic) VALUES "
+                + "  ('1', 1, 'servicemanagement', 0) " + ", ('2', 2, 'servicemanagement', 0) "
+                + ", ('wecmdb__1', 1, 'wecmdb', 0) " + ";\n"
+                + "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES "
+                + " ('1', '2', 2, 'servicemanagement', 'entity_1', 'entity_1', 'entity_1_description')\n"
+                + ",('2', '2', 2, 'servicemanagement', 'entity_2', 'entity_2', 'entity_2_description')\n"
+                + ",('3', '2', 2, 'servicemanagement', 'entity_3', 'entity_3', 'entity_3_description')\n"
+                + ",('wecmdb__1__resource_set', 'wecmdb__1', 1, 'wecmdb', 'resource_set', 'resource set', 'resource set')\n"
+                + ";\n"
+                + "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES\n"
+                + " ('1', '1', NULL, 'attribute_1', 'attribute_1_description', 'INT')\n"
+                + " ,('2', '1', NULL, 'attribute_2', 'attribute_2_description', 'INT')\n"
+                + " ,('3', '1', '1', 'attribute_3', 'attribute_3_description', 'INT')\n"
+                + " ,('4', '1', '1', 'attribute_4', 'attribute_4_description', 'REF')\n"
+                + " ,('5', '2', '2', 'attribute_5', 'attribute_5_description', 'REF')\n"
+                + " ,('6', '3', NULL, 'attribute_6', 'attribute_6_description', 'REF')"
+                + " ,('wecmdb__1__resource_set_id', 'wecmdb__1__resource_set', NULL, 'id', 'id', 'str')"
+                + " ,('wecmdb__1__resource_set_key_name', 'wecmdb__1__resource_set', NULL, 'key_name', 'key name', 'str')"
+                + " ,('wecmdb__1__resource_set_code', 'wecmdb__1__resource_set', NULL, 'code', 'code', 'str')" + ";");
     }
 }
