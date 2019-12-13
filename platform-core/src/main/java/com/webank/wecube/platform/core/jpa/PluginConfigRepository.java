@@ -44,6 +44,11 @@ public interface PluginConfigRepository extends CrudRepository<PluginConfig, Str
         return findAllByStatusAndPluginPackage_statusIn(Status.ENABLED, PluginPackage.ACTIVE_STATUS);
     }
 
+    Optional<List<PluginConfig>> findAllByStatusAndEntityName(Status status, String entityName);
+    default Optional<List<PluginConfig>> findAllEnabledByEntityName(String entityName) {
+        return findAllByStatusAndEntityName(ENABLED, entityName);
+    }
+
     default Optional<List<PluginConfigInterface>> findAllLatestEnabledForAllActivePackages() {
         Optional<List<PluginConfig>> allForAllActivePackagesOptional = findAllForAllActivePackages();
         if (allForAllActivePackagesOptional.isPresent()) {
