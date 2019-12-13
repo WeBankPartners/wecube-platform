@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TaskNodeExecContextDto {
     private String nodeName;
     private String nodeId;
@@ -7,8 +10,9 @@ public class TaskNodeExecContextDto {
     private Integer nodeInstId;
     private String nodeType;
 
-    private String requestData;
-    private String responseData;
+    private String requestId;
+
+    private List<RequestObjectDto> requestObjects = new ArrayList<>();
 
     public String getNodeName() {
         return nodeName;
@@ -34,22 +38,6 @@ public class TaskNodeExecContextDto {
         this.nodeDefId = nodeDefId;
     }
 
-    public String getRequestData() {
-        return requestData;
-    }
-
-    public void setRequestData(String requestData) {
-        this.requestData = requestData;
-    }
-
-    public String getResponseData() {
-        return responseData;
-    }
-
-    public void setResponseData(String responseData) {
-        this.responseData = responseData;
-    }
-
     public Integer getNodeInstId() {
         return nodeInstId;
     }
@@ -66,5 +54,28 @@ public class TaskNodeExecContextDto {
         this.nodeType = nodeType;
     }
 
-    
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public List<RequestObjectDto> getRequestObjects() {
+        return requestObjects;
+    }
+
+    public void setRequestObjects(List<RequestObjectDto> requestObjects) {
+        this.requestObjects = requestObjects;
+    }
+
+    public void addRequestObjects(RequestObjectDto... dtos) {
+        for (RequestObjectDto dto : dtos) {
+            if (dto != null) {
+                this.requestObjects.add(dto);
+            }
+        }
+    }
+
 }
