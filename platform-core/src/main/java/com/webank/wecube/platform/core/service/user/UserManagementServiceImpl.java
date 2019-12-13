@@ -9,6 +9,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.jpa.workflow.ProcRoleBindingRepository;
+import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     private String gatewayUrl;
     private RestTemplate restTemplate;
     private RoleMenuServiceImpl roleMenuService;
-    private ProcRoleBindingRepository procRoleBindingRepository;
+    private ProcessRoleServiceImpl processRoleService;
 
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -56,11 +57,11 @@ public class UserManagementServiceImpl implements UserManagementService {
     public UserManagementServiceImpl(RestTemplate restTemplate,
                                      ApplicationProperties applicationProperties,
                                      RoleMenuServiceImpl roleMenuService,
-                                     ProcRoleBindingRepository procRoleBindingRepository) {
+                                     ProcessRoleServiceImpl processRoleService) {
         this.restTemplate = restTemplate;
         this.gatewayUrl = applicationProperties.getGatewayUrl();
         this.roleMenuService = roleMenuService;
-        this.procRoleBindingRepository = procRoleBindingRepository;
+        this.processRoleService = processRoleService;
     }
 
     @Override
@@ -200,18 +201,9 @@ public class UserManagementServiceImpl implements UserManagementService {
             logger.error(msg);
             throw new WecubeCoreException(msg);
         }
+        List<Long> roleIdList = roleListByUserName.stream().map(RoleDto::getId).collect(Collectors.toList());
+        return this.processRoleService.retrieveProcessByRoleIdList(roleIdList, permissionEnum);
 
-        List<ProcRoleDto> result = new ArrayList<>();
-        for (RoleDto roleDto : roleListByUserName) {
-
-            Long roleId = roleDto.getId();
-            logger.info(String.format("Finding process to role binding infomation from roleId: [%s] and permission: [%s]", roleId, permissionEnum.toString()));
-            List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleIdAndPermission(roleId, permissionEnum);
-            for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
-                result.add(ProcRoleDto.fromDomain(procRoleBindingEntity));
-            }
-        }
-        return result;
     }
 
     @Override
