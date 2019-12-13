@@ -180,6 +180,10 @@ export default {
     this.getProcessInstances();
     this.getAllFlow();
   },
+  destroyed() {
+    clearInterval(this.timer);
+    this.timer = null;
+  },
   methods: {
     async getProcessInstances(
       isAfterCreate = false,
