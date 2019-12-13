@@ -76,5 +76,17 @@ public class UserManagementController {
         }
     }
 
+    @GetMapping("/users/{user-name}/process")
+    @ResponseBody
+    public CommonResponseDto getProcessByUsername(@RequestHeader(value = "Authorization") String token,
+                                                  @PathVariable(value = "user-name") String userName,
+                                                  @RequestParam(name = "permission") String permission) {
+        try {
+            return CommonResponseDto.okayWithData(this.userManagementService.getProcessByUserNameAndPermission(token, userName, permission));
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
+        }
+    }
+
 
 }
