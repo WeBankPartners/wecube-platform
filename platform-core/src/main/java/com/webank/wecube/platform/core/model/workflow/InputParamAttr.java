@@ -4,10 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InputParamAttr {
+    
+    public static final String DATA_TYPE_STRING = "string";
+    public static final String DATA_TYPE_NUMBER = "number";
+    
+    public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
+    public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
     private String name;
-    private String type;
-    private String mapType;
+    private String type; //string, number
+    private String mapType; //entity, context, constant
     private List<Object> values = new ArrayList<>();
 
     public String getName() {
@@ -64,7 +70,7 @@ public class InputParamAttr {
     
     public Object getExpectedValue(){
         if(values == null || values.isEmpty()){
-            return null;
+            return determineEmptyValue();
         }
         
         if(values.size() == 1){
@@ -72,6 +78,18 @@ public class InputParamAttr {
         }
         
         return values;
+    }
+    
+    private Object determineEmptyValue(){
+        if(DATA_TYPE_STRING.equalsIgnoreCase(type)){
+            return DEFAULT_VALUE_DATA_TYPE_STRING;
+        }
+        
+        if(DATA_TYPE_NUMBER.equalsIgnoreCase(type)){
+            return DEFAULT_VALUE_DATA_TYPE_NUMBER;
+        }
+        
+        return DEFAULT_VALUE_DATA_TYPE_STRING;
     }
     
     public String getValuesAsString(){

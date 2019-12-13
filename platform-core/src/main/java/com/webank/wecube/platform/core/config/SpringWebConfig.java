@@ -61,6 +61,8 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .antMatchers("/workflow/**").permitAll() //
                 .antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()//
                 .antMatchers("/webjars/**").permitAll() //
+                .antMatchers("/v2/api-docs").permitAll() //
+                .antMatchers("/csrf").permitAll() //
                 .antMatchers("/v1/route-items").permitAll() //
                 .antMatchers("/v1/route-items/**").permitAll() //
                 .anyRequest().authenticated() //

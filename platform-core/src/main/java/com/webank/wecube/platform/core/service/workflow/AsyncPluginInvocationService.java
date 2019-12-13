@@ -366,6 +366,19 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
 
+        String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
+        TaskNodeExecParamEntity callbackParameterInputEntity = null;
+        if (StringUtils.isNotBlank(callbackParameter)) {
+            callbackParameterInputEntity = taskNodeExecParamRepository.findOneByRequestIdAndParamTypeAndParamName(
+                    requestId, TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY);
+        }
+        
+        if(callbackParameterInputEntity != null){
+            objectId = callbackParameterInputEntity.getObjectId();
+            entityTypeId = callbackParameterInputEntity.getEntityTypeId();
+            entityDataId = callbackParameterInputEntity.getEntityDataId();
+        }
+
         Set<PluginConfigInterfaceParameter> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
 
         for (Map.Entry<String, Object> entry : outputParameterMap.entrySet()) {
