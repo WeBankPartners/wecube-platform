@@ -14,7 +14,6 @@ public class SystemVariableDto {
     private String defaultValue;
     private String scopeType;
     private String scopeValue;
-    private Integer seqNo;
     private String status;
 
     public SystemVariableDto() {
@@ -30,7 +29,6 @@ public class SystemVariableDto {
         systemVariableDto.setDefaultValue(domain.getDefaultValue());
         systemVariableDto.setScopeType(domain.getScopeType());
         systemVariableDto.setScopeValue(domain.getScopeValue());
-        systemVariableDto.setSeqNo(domain.getSeqNo());
         systemVariableDto.setStatus(domain.getStatus());
         return systemVariableDto;
     }
@@ -89,14 +87,6 @@ public class SystemVariableDto {
 
     public void setScopeValue(String scopeValue) {
         this.scopeValue = scopeValue;
-    }
-
-    public Integer getSeqNo() {
-        return seqNo;
-    }
-
-    public void setSeqNo(Integer seqNo) {
-        this.seqNo = seqNo;
     }
 
     public String getStatus() {
