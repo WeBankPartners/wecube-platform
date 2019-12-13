@@ -188,6 +188,21 @@ public class PluginConfigService {
         return pluginConfigInterfaceDtos;
     }
 
+    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityName(String packageName, String entityName) {
+        Optional<List<PluginConfig>> allEnabledPluginConfigByPackageNameAndEntityNameOptional = pluginConfigRepository.findAllEnabledByPackageNameAndEntityName(packageName, entityName);
+        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
+        if (allEnabledPluginConfigByPackageNameAndEntityNameOptional.isPresent()) {
+            allEnabledPluginConfigByPackageNameAndEntityNameOptional.get().forEach(pluginConfig -> {
+                if (pluginConfig.getInterfaces() != null && pluginConfig.getInterfaces().size() > 0) {
+                    pluginConfig.getInterfaces().forEach(pluginConfigInterface -> {
+                        pluginConfigInterfaceDtos.add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface));
+                    });
+                }
+            });
+        }
+        return pluginConfigInterfaceDtos;
+    }
+
     public void disableAllPluginsForPluginPackage(String pluginPackageId) {
         Optional<List<PluginConfig>> pluginConfigsOptional = pluginConfigRepository.findByPluginPackage_id(pluginPackageId);
         if (pluginConfigsOptional.isPresent()) {
