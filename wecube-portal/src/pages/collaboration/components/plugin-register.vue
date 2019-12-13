@@ -11,12 +11,12 @@
         >
           <MenuItem
             v-for="(plugin, index) in plugins"
-            :name="plugin.name"
+            :name="plugin.pluginConfigName"
             :key="index"
             style="padding: 10px 5px;"
           >
             <Icon type="md-flower" />
-            {{ plugin.name }}
+            {{ plugin.pluginConfigName }}
           </MenuItem>
         </Menu>
       </Col>
@@ -27,6 +27,7 @@
               <Select
                 v-model="model1"
                 style="margin-bottom:20px"
+                @on-change="registSourceChange"
                 :placeholder="$t('regist_source')"
               >
                 <Option value="add" key="add">
@@ -35,10 +36,10 @@
                   /></Button>
                 </Option>
                 <Option
-                  v-for="item in cityList"
-                  :value="item.value"
-                  :key="item.value"
-                  >{{ item.label }}</Option
+                  v-for="item in sourceList"
+                  :value="item.id"
+                  :key="item.id"
+                  >{{ item.id }}</Option
                 >
               </Select>
             </Col>
@@ -46,7 +47,7 @@
           <Row>
             <Col span="10" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
-                <Input v-model="registName" />
+                <Input v-model="registerName" />
               </FormItem>
             </Col>
             <Col span="10" offset="0">
@@ -153,7 +154,7 @@
                             v-for="item in allSystemVariables"
                             :value="item.id"
                             :key="item.id"
-                            >{{ item.name }}</Option
+                            >{{ item.id }}</Option
                           >
                         </Select>
                         <span
@@ -341,18 +342,10 @@ export default {
           }
         ]
       },
-      cityList: [
-        {
-          value: "New York",
-          label: "New York"
-        },
-        {
-          value: "London",
-          label: "London"
-        }
-      ],
+      currentPluginObj: {},
+      sourceList: [],
       model1: "",
-      registName: "",
+      registerName: "",
       allEntityType: [],
       selectedEntityType: "",
       form: {},
@@ -364,12 +357,6 @@ export default {
     PathExp
   },
   computed: {
-    currentPluginObj() {
-      const found = this.plugins.find(
-        plugin => plugin.name === this.currentPlugin
-      );
-      return found ? found : {};
-    },
     currentEntityAttr() {
       const allEntity = [].concat(
         ...this.allEntityType.map(_ => _.pluginPackageEntities)
@@ -404,6 +391,7 @@ export default {
       );
       const entityId = entitys.find(i => i.name === this.selectedEntityType).id;
       this.currentPluginObj.entityId = entityId;
+      this.currentPluginObj.registerName = this.registerName;
       const { data, status, message } = await savePluginConfig(
         this.currentPluginObj
       );
@@ -462,10 +450,21 @@ export default {
     },
     selectPlugin(val) {
       this.currentPlugin = val;
-      this.selectedEntityType = this.plugins.find(
-        plugin => plugin.name === val
-      ).entityId;
-      this.selectedEntityType = this.currentPluginObj.entityName;
+      let currentPluginData = this.plugins.find(
+        plugin => plugin.pluginConfigName === val
+      );
+      this.sourceList = currentPluginData.pluginConfigDtoList;
+    },
+    registSourceChange(v) {
+      if (!v) {
+        this.registerName = "";
+        this.selectedEntityType = "";
+        this.currentPluginObj = {};
+        return;
+      }
+      this.currentPluginObj = this.sourceList.find(source => source.id === v);
+      this.selectedEntityType = this.currentPluginObj.name;
+      this.registerName = this.currentPluginObj.registerName;
     },
     onSelectEntityType(val) {},
     async getAllDataModels() {
