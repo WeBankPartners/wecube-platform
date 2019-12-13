@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
+import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
 
 @RestController
 @RequestMapping("/v1")
@@ -53,6 +54,14 @@ public class PluginConfigController {
     public JsonResponse queryPluginConfigInterfaceByConfigId(
             @PathVariable(value = "plugin-config-id") String pluginConfigId) {
         return okayWithData(pluginConfigService.queryPluginConfigInterfaceByConfigId(pluginConfigId));
+    }
+
+    @DeleteMapping("/plugins/configs/{plugin-config-id:.+}")
+    @ResponseBody
+    public JsonResponse deletePluginConfigByConfigId(
+            @PathVariable(value = "plugin-config-id") String pluginConfigId) {
+        pluginConfigService.deletePluginConfigById(pluginConfigId);
+        return okay();
     }
 
 }
