@@ -8,6 +8,7 @@ import javax.persistence.*;
  * @author howechen
  */
 @Entity
+@Table(name = "CORE_RU_PROC_ROLE_BINDING")
 public class ProcRoleBindingEntity {
     @Id
     @Column(name = "id")
@@ -18,7 +19,7 @@ public class ProcRoleBindingEntity {
     @Enumerated(EnumType.STRING)
     private permissionEnum permission;
     @Column(name = "role_id")
-    private String roleId;
+    private Long roleId;
 
     @PrePersist
     public void initEntity() {
@@ -53,11 +54,11 @@ public class ProcRoleBindingEntity {
         this.permission = permission;
     }
 
-    public String getRoleId() {
+    public Long getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(String roleId) {
+    public void setRoleId(Long roleId) {
         this.roleId = roleId;
     }
 
