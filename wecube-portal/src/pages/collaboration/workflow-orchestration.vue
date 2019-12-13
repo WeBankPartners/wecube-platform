@@ -265,7 +265,7 @@ export default {
         paramInfos: [],
         procDefId: "",
         procDefKey: "",
-        routineExpression: "",
+        routineExpression: null,
         routineRaw: "",
         serviceId: "",
         serviceName: "",
@@ -362,6 +362,18 @@ export default {
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
       this.defaultPluginForm.routineExpression = v;
       this.pluginForm = this.defaultPluginForm;
+      this.resetNodePluginConfig();
+    },
+    resetNodePluginConfig() {
+      if (this.currentFlow) {
+        this.currentFlow.taskNodeInfos.forEach(_ => {
+          if (_.nodeId.indexOf("Task") > -1) {
+            Object.keys(_).forEach(key => {
+              _[key] = this.defaultPluginForm[key];
+            });
+          }
+        });
+      }
     },
     resetZoom() {
       var canvas = this.bpmnModeler.get("canvas");
