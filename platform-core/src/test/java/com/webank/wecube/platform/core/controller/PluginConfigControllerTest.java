@@ -310,11 +310,11 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
-                    .andExpect(jsonPath("$.data.length()", is(1)))
-                    .andExpect(jsonPath("$.data[*].action", containsInAnyOrder("update")))
-                    .andExpect(jsonPath("$.data[*].serviceName", containsInAnyOrder("service-management/service_request/update")))
-                    .andExpect(jsonPath("$.data[*].path", containsInAnyOrder("/service-management/service-requests/{service-request-id}/done")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", containsInAnyOrder("PUT")))
+                    .andExpect(jsonPath("$.data.length()", is(2)))
+                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm")))
+                    .andExpect(jsonPath("$.data[*].serviceName", contains("service-management/service_request/update", "service-management/service_request/confirmation")))
+                    .andExpect(jsonPath("$.data[*].path", contains("/service-management/service-requests/{service-request-id}/done", "/service-management/service-requests/confirmation/done")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -348,15 +348,15 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginConfig();
 
         try {
-            mvc.perform(get("/v1/plugins/interfaces/package/servicemanagement/entity/entity_1/enabled"))
+            mvc.perform(get("/v1/plugins/interfaces/package/wecmdb/entity/resource_set/enabled"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
-                    .andExpect(jsonPath("$.data.length()", is(1)))
-                    .andExpect(jsonPath("$.data[*].action", contains("create")))
-                    .andExpect(jsonPath("$.data[*].serviceName", contains("service-management/task/create")))
-                    .andExpect(jsonPath("$.data[*].path", contains("/service-management/tasks")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", contains("POST")))
+                    .andExpect(jsonPath("$.data.length()", is(2)))
+                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm")))
+                    .andExpect(jsonPath("$.data[*].serviceName", contains("service-management/service_request/update", "service-management/service_request/confirmation")))
+                    .andExpect(jsonPath("$.data[*].path", contains("/service-management/service-requests/{service-request-id}/done", "/service-management/service-requests/confirmation/done")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -467,24 +467,27 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 " ,('2', 'servicemanagement', 'v1.1', 'UNREGISTERED', 0)\n" +
                 " ,('3', 'servicemanagement', 'v1.2', 'UNREGISTERED', 0)\n" +
                 " ,('4', 'servicemanagement', 'v2.0', 'UNREGISTERED', 0)\n" +
-                " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED', 0);\n" +
-                "\n" +
+                " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED', 0)\n" +
+                " ,('6', 'servicemanagement', 'v2.2', 'REGISTERED', 0)\n" +
+                " ,('wecmdb__v1.3', 'wecmdb', 'v1.3', 'REGISTERED', 0)\n" +
+                ";\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, entity_id, entity_name, status) values\n" +
                 " ('11', '1', 'task', 1, 'entity_1', 'ENABLED')\n" +
-                ",('12', '5', 'service_request', 2, 'entity_2', 'ENABLED')\n" +
+                ",('12', '5', 'service_request', 'wecmdb__1__resource_set', 'resource_set', 'ENABLED')\n" +
                 ",('21', '2', 'Vpc Management', 17, null, 'DISABLED')\n" +
                 ",('31', '3', 'Vpc Management', 16, null, 'DISABLED')\n" +
                 ",('32', '4', 'Vpc Management', 16, null, 'DISABLED')\n" +
-                ",('33', '5', 'Vpc Management', 16, null, 'DISABLED');\n" +
-                "\n" +
+                ",('33', '5', 'Vpc Management', 16, null, 'DISABLED')\n" +
+                ";\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, status) values\n" +
                 " ('41', '3', 'Vpc Management', 'DISABLED')\n" +
-                ",('99', '3', 'Vpc Management', 'DISABLED');\n" +
-                "\n" +
+                ",('99', '3', 'Vpc Management', 'DISABLED')\n" +
+                ";\n" +
                 "insert into plugin_config_interfaces (id, plugin_config_id, action, service_name, service_display_name, path, http_method) values " +
                 " ('1', '11', 'create', 'service-management/task/create', 'service-management/task/create', '/service-management/tasks', 'POST')" +
-                ",('2', '12', 'update', 'service-management/service_request/update', 'service-management/service_request/update', '/service-management/service-requests/{service-request-id}/done', 'PUT');" +
-                "\n" +
+                ",('2', '12', 'update', 'service-management/service_request/update', 'service-management/service_request/update', '/service-management/service-requests/{service-request-id}/done', 'PUT')" +
+                ",('3', '12', 'confirm', 'service-management/service_request/confirmation', 'service-management/service_request/confirmation', '/service-management/service-requests/confirmation/done', 'POST')" +
+                ";\n" +
                 "insert into plugin_config_interface_parameters(id, plugin_config_interface_id, type, name, data_type, mapping_type, mapping_entity_expression, mapping_system_variable_id, required) values " +
                 " ('1', '1', 'INPUT', 'operatorRoleId', 'string', 'entity', 'name_xxx', null, 'Y') " +
                 ", ('2', '1', 'INPUT', 'reporter', 'string', 'context', null, null, 'Y') " +
@@ -497,12 +500,14 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic) VALUES " +
                 "  ('1', 1, 'servicemanagement', 0) " +
                 ", ('2', 2, 'servicemanagement', 0) " +
+                ", ('wecmdb__1', 1, 'wecmdb', 0) " +
                 ";\n" +
                 "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES " +
                 " ('1', '2', 2, 'servicemanagement', 'entity_1', 'entity_1', 'entity_1_description')\n" +
                 ",('2', '2', 2, 'servicemanagement', 'entity_2', 'entity_2', 'entity_2_description')\n" +
-                ",('3', '2', 2, 'servicemanagement', 'entity_3', 'entity_3', 'entity_3_description');\n" +
-                "\n" +
+                ",('3', '2', 2, 'servicemanagement', 'entity_3', 'entity_3', 'entity_3_description')\n" +
+                ",('wecmdb__1__resource_set', 'wecmdb__1', 1, 'wecmdb', 'resource_set', 'resource set', 'resource set')\n" +
+                ";\n" +
                 "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES\n" +
                 " ('1', '1', NULL, 'attribute_1', 'attribute_1_description', 'INT')\n" +
                 " ,('2', '1', NULL, 'attribute_2', 'attribute_2_description', 'INT')\n" +
@@ -510,6 +515,9 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 " ,('4', '1', '1', 'attribute_4', 'attribute_4_description', 'REF')\n" +
                 " ,('5', '2', '2', 'attribute_5', 'attribute_5_description', 'REF')\n" +
                 " ,('6', '3', NULL, 'attribute_6', 'attribute_6_description', 'REF')" +
+                " ,('wecmdb__1__resource_set_id', 'wecmdb__1__resource_set', NULL, 'id', 'id', 'str')" +
+                " ,('wecmdb__1__resource_set_key_name', 'wecmdb__1__resource_set', NULL, 'key_name', 'key name', 'str')" +
+                " ,('wecmdb__1__resource_set_code', 'wecmdb__1__resource_set', NULL, 'code', 'code', 'str')" +
                 ";");
     }
 }
