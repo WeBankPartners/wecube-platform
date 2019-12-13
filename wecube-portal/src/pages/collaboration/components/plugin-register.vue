@@ -20,7 +20,7 @@
           </MenuItem>
         </Menu>
       </Col>
-      <Col span="19" offset="0" style="padding-left: 10px">
+      <Col span="19" offset="0" style="padding-left: 10px" v-if="hidePanal">
         <Form v-if="currentPlugin.length > 0" :model="form">
           <Row>
             <Col span="20">
@@ -31,15 +31,15 @@
                 :placeholder="$t('regist_source')"
               >
                 <Option value="add" key="add">
-                  <Button @click="addRegistMsg" type="success" long
-                    ><Icon type="md-add"
-                  /></Button>
+                  <Button @click="addRegistMsg" type="success" long>
+                    <Icon type="md-add" />
+                  </Button>
                 </Option>
                 <Option
                   v-for="item in sourceList"
                   :value="item.id"
                   :key="item.id"
-                  >{{ item.id }}</Option
+                  >{{ item.name }}-({{ item.registerName }})</Option
                 >
               </Select>
             </Col>
@@ -269,7 +269,7 @@
               <Button
                 type="error"
                 v-if="currentPluginObj.status === 'DISABLED'"
-                @click="deletePlugin"
+                @click="deleteRegisterSource"
                 >{{ $t("delete") }}</Button
               >
               <Button
@@ -283,21 +283,21 @@
         </Form>
       </Col>
     </Row>
-    <Modal v-model="addRegistModal" :title="$t('create_regist_source')">
-      <Form
-        ref="formValidate"
-        :model="formValidate"
-        :rules="ruleValidate"
-        :label-width="120"
-      >
-        <FormItem :label="$t('regist_name')" prop="name">
-          <Input v-model="formValidate.name" placeholder=""></Input>
+    <Modal
+      v-model="addRegistModal"
+      :title="$t('create_regist_source')"
+      @on-ok="ok"
+      @on-cancel="cancel"
+    >
+      <Form ref="formValidate" :label-width="120">
+        <FormItem :label="$t('regist_name')">
+          <Input v-model="addRegisterName" placeholder=""></Input>
         </FormItem>
-        <FormItem :label="$t('copy_source')" prop="city">
-          <Select v-model="formValidate.city" placeholder="">
-            <Option value="beijing">New York</Option>
-            <Option value="shanghai">London</Option>
-            <Option value="shenzhen">Sydney</Option>
+        <FormItem :label="$t('copy_source')">
+          <Select v-model="model1" @on-change="registSourceChange">
+            <Option v-for="item in sourceList" :value="item.id" :key="item.id"
+              >{{ item.name }}({{ item.registerName }})</Option
+            >
           </Select>
         </FormItem>
       </Form>
@@ -311,6 +311,7 @@ import {
   getAllDataModels,
   registerPlugin,
   deletePlugin,
+  deleteRegisterSource,
   savePluginConfig,
   retrieveSystemVariables
 } from "@/api/server";
@@ -322,30 +323,13 @@ export default {
       currentPlugin: "",
       plugins: [],
       addRegistModal: false,
-      formValidate: {
-        name: "",
-        city: ""
-      },
-      ruleValidate: {
-        name: [
-          {
-            required: true,
-            message: "The name cannot be empty",
-            trigger: "blur"
-          }
-        ],
-        city: [
-          {
-            required: true,
-            message: "Please select the source",
-            trigger: "change"
-          }
-        ]
-      },
       currentPluginObj: {},
       sourceList: [],
       model1: "",
       registerName: "",
+      addRegisterName: "",
+      hasNewSource: false,
+      hidePanal: true,
       allEntityType: [],
       selectedEntityType: "",
       form: {},
@@ -392,6 +376,10 @@ export default {
       const entityId = entitys.find(i => i.name === this.selectedEntityType).id;
       this.currentPluginObj.entityId = entityId;
       this.currentPluginObj.registerName = this.registerName;
+      if (this.hasNewSource) {
+        delete this.currentPluginObj.id;
+      }
+      this.hidePanal = false;
       const { data, status, message } = await savePluginConfig(
         this.currentPluginObj
       );
@@ -400,6 +388,15 @@ export default {
           title: "Success",
           desc: message
         });
+        if (this.hasNewSource) {
+          const { data, status, message } = await getAllPluginByPkgId(
+            this.pkgId
+          );
+          if (status === "OK") {
+            this.plugins = data;
+          }
+          return;
+        }
         this.getAllPluginByPkgId();
       }
     },
@@ -423,9 +420,36 @@ export default {
         }
       }
     },
-    async deletePlugin() {},
+    async deleteRegisterSource() {
+      const { data, status, message } = await deleteRegisterSource(
+        this.currentPluginObj.id
+      );
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message
+        });
+        const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
+        if (status === "OK") {
+          this.plugins = data;
+        }
+        this.hidePanal = false;
+      }
+    },
     addRegistMsg() {
+      this.addRegisterName = "";
       this.addRegistModal = true;
+      this.hasNewSource = false;
+    },
+    ok() {
+      this.registerName = this.addRegisterName;
+      this.hasNewSource = true;
+    },
+    cancel() {
+      this.registerName = "";
+      this.selectedEntityType = "";
+      this.currentPluginObj = {};
+      this.currentPluginData = {};
     },
     async removePlugin() {
       const { data, status, message } = await deletePlugin(
@@ -449,6 +473,8 @@ export default {
       }
     },
     selectPlugin(val) {
+      this.hasNewSource = false;
+      this.hidePanal = true;
       this.currentPlugin = val;
       let currentPluginData = this.plugins.find(
         plugin => plugin.pluginConfigName === val
@@ -456,7 +482,7 @@ export default {
       this.sourceList = currentPluginData.pluginConfigDtoList;
     },
     registSourceChange(v) {
-      if (!v) {
+      if (!v || v === "add") {
         this.registerName = "";
         this.selectedEntityType = "";
         this.currentPluginObj = {};
@@ -465,6 +491,7 @@ export default {
       this.currentPluginObj = this.sourceList.find(source => source.id === v);
       this.selectedEntityType = this.currentPluginObj.name;
       this.registerName = this.currentPluginObj.registerName;
+      this.hasNewSource = false;
     },
     onSelectEntityType(val) {},
     async getAllDataModels() {
