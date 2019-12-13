@@ -111,6 +111,10 @@ public class SystemVariableService {
             systemVariable.setScopeType(dto.getScopeType());
         }
 
+        if (dto.getScopeValue() != null) {
+            systemVariable.setScopeValue(dto.getScopeValue());
+        }
+
         if (dto.getSeqNo() != null) {
             systemVariable.setSeqNo(dto.getSeqNo());
         }

@@ -29,6 +29,7 @@ public class SystemVariableDto {
         systemVariableDto.setValue(domain.getValue());
         systemVariableDto.setDefaultValue(domain.getDefaultValue());
         systemVariableDto.setScopeType(domain.getScopeType());
+        systemVariableDto.setScopeValue(domain.getScopeValue());
         systemVariableDto.setSeqNo(domain.getSeqNo());
         systemVariableDto.setStatus(domain.getStatus());
         return systemVariableDto;
