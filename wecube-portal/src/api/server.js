@@ -586,6 +586,8 @@ export const getPluginPkgDependcy = id =>
   req.get(`/platform/v1/packages/${id}/dependencies`);
 export const getAllPluginByPkgId = id =>
   req.get(`/platform/v1/packages/${id}/plugins`);
+export const deleteRegisterSource = id =>
+  req.delete(`/platform/v1/plugins/configs/${id}`);
 export const getMenuInjection = id =>
   req.get(`/platform/v1/packages/${id}/menus`);
 export const getSysParams = id =>
