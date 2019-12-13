@@ -20,7 +20,11 @@
       >
     </div>
     <div
-      v-if="!dataModel.dynamic && dataModel.pluginPackageEntities.length === 0"
+      v-if="
+        !dataModel.dynamic &&
+          dataModel.pluginPackageEntities &&
+          dataModel.pluginPackageEntities.length === 0
+      "
     >
       {{ $t("no_data_model_provided") }}
     </div>
