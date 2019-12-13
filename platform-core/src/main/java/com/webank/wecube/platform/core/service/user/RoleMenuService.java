@@ -7,5 +7,5 @@ import java.util.List;
 public interface RoleMenuService {
     RoleMenuDto retrieveMenusByRoleId(Long roleId);
 
-    RoleMenuDto updateRoleToMenusByRoleId(Long roleId, List<String> menuCodeList);
+    void updateRoleToMenusByRoleId(Long roleId, List<String> menuCodeList);
 }
