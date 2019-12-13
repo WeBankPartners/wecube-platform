@@ -62,6 +62,7 @@ public class MenuService {
                     throw new WecubeCoreException(msg);
                 }
                 MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
+
                 returnMenuDto.add(packageMenuDto);
             });
         }

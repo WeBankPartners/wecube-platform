@@ -1,14 +1,16 @@
 package com.webank.wecube.platform.core.controller;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_INPUT;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.TYPE_OUTPUT;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
 import static com.webank.wecube.platform.core.utils.JsonUtils.toJsonString;
 import static com.webank.wecube.platform.core.utils.JsonUtils.toObject;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -17,21 +19,25 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.Sets;
-import com.webank.wecube.platform.core.domain.plugin.*;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultHandler;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 public class SystemVariableControllerTest extends AbstractControllerTest {
     @Autowired
@@ -80,7 +86,8 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].name", contains("propC")))
-                .andExpect(jsonPath("$.data.contents[*].value", contains("valuez")));
+                .andExpect(jsonPath("$.data.contents[*].value", contains("valuez")))
+                .andExpect(jsonPath("$.data.contents[*].scopeValue", contains("qcloud")));
     }
 
     @Test
@@ -98,6 +105,24 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents.[*].name", contains("propA", "propC")))
                 .andExpect(jsonPath("$.data.contents.[*].value", contains("valueX", "valuez")));
+    }
+
+    @Test
+    public void getSystemVariableWithoutGivenPagingInfo() throws Exception {
+        mockSystemVariables();
+        mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(jsonPath("$.status", is("OK")))
+                .andExpect(jsonPath("$.data.pageInfo.totalRows", is(4)))
+                .andExpect(jsonPath("$.data.contents", hasSize(4)));
+    }
+
+    @Test
+    public void getSystemVariableWithGivenPagingInfo() throws Exception {
+        mockSystemVariables();
+        mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content("{\"filters\":[],\"pageable\":{\"pageSize\":1,\"startIndex\":0},\"paging\":true}"))
+                .andExpect(jsonPath("$.status", is("OK")))
+                .andExpect(jsonPath("$.data.pageInfo.totalRows", is(4)))
+                .andExpect(jsonPath("$.data.contents", hasSize(1)));
     }
 
     @Test
@@ -179,11 +204,11 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         pluginPackageRepository.save(pluginPackage);
         executeSql("INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
                 "  ('1', 'package1', '1.0', 'UNREGISTERED', 0); " +
-                "insert into system_variables (id, plugin_package_id, name, value, scope_type, scope_value, seq_no, status) values\n" +
-                " ('1', '1', 'propA', 'valueX', 'global', null,  1, 'active')\n" +
-                ",('2', '1', 'propB', 'valueY', 'global', null,  2, 'inactive')\n" +
-                ",('3', '1', 'propC', 'valueZ', 'plugin-package', 'qcloud', 3, 'inactive')\n" +
-                ",('4', '1', 'propC', 'valuez', 'plugin-package', 'qcloud', 4, 'active')\n" +
+                "insert into system_variables (id, plugin_package_id, name, value, scope_type, scope_value, status) values\n" +
+                " ('1', '1', 'propA', 'valueX', 'global', null, 'active')\n" +
+                ",('2', '1', 'propB', 'valueY', 'global', null, 'inactive')\n" +
+                ",('3', '1', 'propC', 'valueZ', 'plugin-package', 'qcloud', 'inactive')\n" +
+                ",('4', '1', 'propC', 'valuez', 'plugin-package', 'qcloud', 'active')\n" +
                 ";");
     }
 
