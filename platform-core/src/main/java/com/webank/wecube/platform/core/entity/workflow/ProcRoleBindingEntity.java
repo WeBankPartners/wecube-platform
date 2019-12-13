@@ -30,6 +30,16 @@ public class ProcRoleBindingEntity {
         }
     }
 
+    public ProcRoleBindingEntity() {
+    }
+
+    public ProcRoleBindingEntity(String procId, permissionEnum permission, Long roleId) {
+        this.procId = procId;
+        this.permission = permission;
+        this.roleId = roleId;
+    }
+
+
     public String getId() {
         return id;
     }
