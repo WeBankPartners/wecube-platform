@@ -77,7 +77,6 @@ create table system_variables (
   default_value varchar(2000) null,
   scope_type varchar(50) not null default 'global',
   scope_value varchar(500) null,
-  seq_no INTEGER null default 0,
   status varchar(50) null default 'active',
   index idx_prop_scope_val (plugin_package_id)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
@@ -251,6 +250,12 @@ CREATE TABLE `plugin_mysql_instances` (
     CONSTRAINT `FKn5plb1x3qnwxla4mixdhawo2o` FOREIGN KEY (`resource_item_id`) REFERENCES `resource_item` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
+DROP TABLE if EXISTS role_menu;
+CREATE TABLE `role_menu` (
+    `id`      VARCHAR(255) PRIMARY KEY,
+    `role_id` INT          NOT NULL,
+    `menu_code` VARCHAR(255) NOT NULL
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 
 SET FOREIGN_KEY_CHECKS = 1;
