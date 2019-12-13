@@ -344,6 +344,27 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void givenMultiplePluginConfigWhenQueryAllENABLEDInterfacesForPackageNameAndEntityThenShouldReturnCorrectResult() {
+        mockMultipleVersionPluginConfig();
+
+        try {
+            mvc.perform(get("/v1/plugins/interfaces/package/servicemanagement/entity/entity_1/enabled"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status", is("OK")))
+                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data.length()", is(1)))
+                    .andExpect(jsonPath("$.data[*].action", contains("create")))
+                    .andExpect(jsonPath("$.data[*].serviceName", contains("service-management/task/create")))
+                    .andExpect(jsonPath("$.data[*].path", contains("/service-management/tasks")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("POST")))
+                    .andDo(print())
+                    .andReturn().getResponse().getContentAsString();
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
     public void givenMandatoryAttributeIsMissingWhenRegisterThenThrowException() {
         PluginPackage pluginPackage = new PluginPackage();
         pluginPackage.setName("wecmdb");
@@ -448,13 +469,13 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 " ,('4', 'servicemanagement', 'v2.0', 'UNREGISTERED', 0)\n" +
                 " ,('5', 'servicemanagement', 'v2.1', 'REGISTERED', 0);\n" +
                 "\n" +
-                "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
-                " ('11', '1', 'task', 1, 'ENABLED')\n" +
-                ",('12', '5', 'service_request', 2, 'ENABLED')\n" +
-                ",('21', '2', 'Vpc Management', 17, 'DISABLED')\n" +
-                ",('31', '3', 'Vpc Management', 16, 'DISABLED')\n" +
-                ",('32', '4', 'Vpc Management', 16, 'DISABLED')\n" +
-                ",('33', '5', 'Vpc Management', 16, 'DISABLED');\n" +
+                "insert into plugin_configs (id, plugin_package_id, name, entity_id, entity_name, status) values\n" +
+                " ('11', '1', 'task', 1, 'entity_1', 'ENABLED')\n" +
+                ",('12', '5', 'service_request', 2, 'entity_2', 'ENABLED')\n" +
+                ",('21', '2', 'Vpc Management', 17, null, 'DISABLED')\n" +
+                ",('31', '3', 'Vpc Management', 16, null, 'DISABLED')\n" +
+                ",('32', '4', 'Vpc Management', 16, null, 'DISABLED')\n" +
+                ",('33', '5', 'Vpc Management', 16, null, 'DISABLED');\n" +
                 "\n" +
                 "insert into plugin_configs (id, plugin_package_id, name, status) values\n" +
                 " ('41', '3', 'Vpc Management', 'DISABLED')\n" +

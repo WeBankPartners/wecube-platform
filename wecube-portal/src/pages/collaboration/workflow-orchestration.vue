@@ -104,10 +104,13 @@
             filterable
             clearable
             v-model="pluginForm.serviceId"
-            @on-open-change="getPluginInterfaceList(false)"
+            @on-open-change="
+              getFilteredPluginInterfaceList(pluginForm.routineExpression)
+            "
+            @on-change="getPluginInterfaceList(false)"
           >
             <Option
-              v-for="(item, index) in allPlugins"
+              v-for="(item, index) in filteredPlugins"
               :value="item.serviceName"
               :key="index"
               >{{ item.serviceDisplayName }}</Option
@@ -209,7 +212,8 @@ import {
   getParamsInfosByFlowIdAndNodeId,
   getAllDataModels,
   getPluginInterfaceList,
-  removeProcessDefinition
+  removeProcessDefinition,
+  getFilteredPluginInterfaceList
 } from "@/api/server.js";
 
 function setCTM(node, m) {
@@ -265,7 +269,7 @@ export default {
         paramInfos: [],
         procDefId: "",
         procDefKey: "",
-        routineExpression: "",
+        routineExpression: null,
         routineRaw: "",
         serviceId: "",
         serviceName: "",
@@ -274,6 +278,7 @@ export default {
       },
       serviceTaskBindInfos: [],
       allPlugins: [],
+      filteredPlugins: [],
       timeSelection: ["5", "10", "20", "30", "60"],
       paramsTypes: [
         { value: "INPUT", label: "入参" },
@@ -305,6 +310,17 @@ export default {
       let { data, status, message } = await getAllDataModels();
       if (status === "OK") {
         this.allEntityType = data;
+      }
+    },
+    async getFilteredPluginInterfaceList(path) {
+      const pathList = path.split(/[~)>]/);
+      const last = pathList[pathList.length - 1].split(":");
+      const { status, message, data } = await getFilteredPluginInterfaceList(
+        last[0],
+        last[1]
+      );
+      if (status === "OK") {
+        this.filteredPlugins = data;
       }
     },
     async getPluginInterfaceList(isUseOriginParamsInfo = true) {
@@ -362,6 +378,18 @@ export default {
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
       this.defaultPluginForm.routineExpression = v;
       this.pluginForm = this.defaultPluginForm;
+      this.resetNodePluginConfig();
+    },
+    resetNodePluginConfig() {
+      if (this.currentFlow) {
+        this.currentFlow.taskNodeInfos.forEach(_ => {
+          if (_.nodeId.indexOf("Task") > -1) {
+            Object.keys(_).forEach(key => {
+              _[key] = this.defaultPluginForm[key];
+            });
+          }
+        });
+      }
     },
     resetZoom() {
       var canvas = this.bpmnModeler.get("canvas");
