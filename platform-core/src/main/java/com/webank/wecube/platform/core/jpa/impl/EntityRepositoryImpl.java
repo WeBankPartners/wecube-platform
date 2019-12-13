@@ -37,9 +37,10 @@ public class EntityRepositoryImpl implements EntityRepository {
     @Override
     public <T> QueryResponse query(Class<T> domainClzz, QueryRequest queryRequest) {
         List<Field> fieldList = getDomainAttrFields(domainClzz);
-        List<Object> resultObjs = doQuery(domainClzz, queryRequest, false, fieldList);
-        int totalRow = resultObjs.size();
+        List<Object> countResult = doQuery(domainClzz, queryRequest, true, fieldList);
+        int totalRow = convertResultToInteger(countResult);
 
+        List<Object> resultObjs = doQuery(domainClzz, queryRequest, false, fieldList);
         List<Object> domainObjs = new LinkedList<>();
 
         resultObjs.forEach(x -> domainObjs.add(x));
@@ -54,6 +55,11 @@ public class EntityRepositoryImpl implements EntityRepository {
         }
 
         return queryResp;
+    }
+
+    private int convertResultToInteger(List rawResults) {
+        String strVal = rawResults.get(0).toString();
+        return Integer.valueOf(strVal);
     }
 
     private <T> List<Object> doQuery(Class<T> domainClazz, QueryRequest ciRequest, boolean isSelRowCount, List<Field> fieldList) {

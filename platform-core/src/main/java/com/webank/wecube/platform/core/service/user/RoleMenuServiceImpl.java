@@ -50,8 +50,16 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      * @return role2MenuDto
      */
     @Override
-    public RoleMenuDto retrieveMenusByRoleId(Long roleId) {
-        List<RoleMenu> roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
+    public RoleMenuDto retrieveMenusByRoleId(Long roleId) throws WecubeCoreException {
+        logger.info(String.format("Fetching all menus by role ID: [%s]", roleId));
+        List<RoleMenu> roleMenuList;
+        try {
+            roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            throw new WecubeCoreException(ex.getMessage());
+        }
+
         List<MenuItemDto> menuCodeList = new ArrayList<>();
         roleMenuList.forEach(roleMenu -> {
             String menuCode = roleMenu.getMenuCode();
@@ -59,13 +67,15 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             MenuItem sysMenu = this.menuItemRepository.findByCode(menuCode);
             // use {if sysMenu is null} to judge if this is a sys menu or package menu
             if (null != sysMenu) {
+                logger.info(String.format("System menu was found. The menu code is: [%s]", menuCode));
                 menuCodeList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
             } else {
                 // package menu
                 Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository.findAllActivateMenuByCode(menuCode);
-                allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> pluginPackageMenus.forEach(pluginPackageMenu -> {
-                    menuCodeList.add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu));
-                }));
+                allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> {
+                    logger.info(String.format("Plugin package menu was found. The menu code is: [%s]", menuCode));
+                    pluginPackageMenus.forEach(pluginPackageMenu -> menuCodeList.add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu)));
+                });
             }
 
         });
@@ -77,10 +87,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      *
      * @param roleId       given roleId
      * @param menuCodeList given total amount of the menuCode list
-     * @return role2MenuDto
      */
     @Override
-    public RoleMenuDto updateRoleToMenusByRoleId(Long roleId, List<String> menuCodeList) {
+    public void updateRoleToMenusByRoleId(Long roleId, List<String> menuCodeList) throws WecubeCoreException {
         List<RoleMenu> roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
 
         // current menuCodeList - new menuCodeList = needToDeleteList
@@ -89,6 +98,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             return !menuCodeList.contains(code);
         }).collect(Collectors.toList());
         if (!needToDeleteList.isEmpty()) {
+            logger.info(String.format("Deleting menus: [%s]", needToDeleteList));
             for (RoleMenu roleMenu : needToDeleteList) {
                 this.roleMenuRepository.deleteById(roleMenu.getId());
             }
@@ -100,12 +110,16 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         needToCreateList = menuCodeList.stream().filter(menuCode -> !currentMenuCodeList.contains(menuCode)).collect(Collectors.toList());
 
         if (!needToCreateList.isEmpty()) {
+            logger.info(String.format("Creating menus: [%s]", needToCreateList));
             List<RoleMenu> batchUpdateList = new ArrayList<>();
             needToCreateList.forEach(menuCode -> batchUpdateList.add(new RoleMenu(roleId, menuCode)));
-            this.roleMenuRepository.saveAll(batchUpdateList);
+            try {
+                this.roleMenuRepository.saveAll(batchUpdateList);
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+                throw new WecubeCoreException(ex.getMessage());
+            }
         }
-
-        return retrieveMenusByRoleId(roleId);
     }
 
     private MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
