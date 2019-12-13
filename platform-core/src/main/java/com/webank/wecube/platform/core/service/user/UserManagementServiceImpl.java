@@ -5,6 +5,10 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
+import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
+import com.webank.wecube.platform.core.jpa.workflow.ProcRoleBindingRepository;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
@@ -18,10 +22,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,16 +46,21 @@ public class UserManagementServiceImpl implements UserManagementService {
     private String gatewayUrl;
     private RestTemplate restTemplate;
     private RoleMenuServiceImpl roleMenuService;
+    private ProcRoleBindingRepository procRoleBindingRepository;
 
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
     @Autowired
-    public UserManagementServiceImpl(RestTemplate restTemplate, ApplicationProperties applicationProperties, RoleMenuServiceImpl roleMenuService) {
+    public UserManagementServiceImpl(RestTemplate restTemplate,
+                                     ApplicationProperties applicationProperties,
+                                     RoleMenuServiceImpl roleMenuService,
+                                     ProcRoleBindingRepository procRoleBindingRepository) {
         this.restTemplate = restTemplate;
         this.gatewayUrl = applicationProperties.getGatewayUrl();
         this.roleMenuService = roleMenuService;
+        this.procRoleBindingRepository = procRoleBindingRepository;
     }
 
     @Override
@@ -166,11 +172,11 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto getRolesByUserName(String token, String userName) {
+    public CommonResponseDto getRolesByUserName(String token, String username) {
         HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
-        requestUrlMap.put(USER_NAME_PLACE_HOLDER, userName);
+        requestUrlMap.put(USER_NAME_PLACE_HOLDER, username);
         String requestUrl = generateRequestUrl(AUTH_SERVER_USER2ROLE_URL, requestUrlMap);
         logger.info(String.format("Sending GET request to: [%s]", requestUrl));
         ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
@@ -178,10 +184,34 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public List<RoleMenuDto> getMenusByUserName(String token, String userName) {
-        CommonResponseDto rolesByUserName = getRolesByUserName(token, userName);
-        List<RoleDto> roleDtoList = extractRoleDtoListFromJsonResponse(rolesByUserName);
+    public List<RoleMenuDto> getMenusByUserName(String token, String username) {
+        List<RoleDto> roleDtoList = getRoleListByUserName(token, username);
         return roleDtoList.stream().map(roleDto -> this.roleMenuService.retrieveMenusByRoleId(roleDto.getId())).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProcRoleDto> getProcessByUserNameAndPermission(String token, String username, String permission) throws WecubeCoreException {
+        List<RoleDto> roleListByUserName = this.getRoleListByUserName(token, username);
+        ProcRoleBindingEntity.permissionEnum permissionEnum;
+        try {
+            permissionEnum = ProcRoleBindingEntity.permissionEnum.valueOf(ProcRoleBindingEntity.permissionEnum.class, permission.toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            String msg = String.format("The given permission: [%s] doesn't match platform-core's match cases.", permission);
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+
+        List<ProcRoleDto> result = new ArrayList<>();
+        for (RoleDto roleDto : roleListByUserName) {
+
+            Long roleId = roleDto.getId();
+            logger.info(String.format("Finding process to role binding infomation from roleId: [%s] and permission: [%s]", roleId, permissionEnum.toString()));
+            List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleIdAndPermission(roleId, permissionEnum);
+            for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
+                result.add(ProcRoleDto.fromDomain(procRoleBindingEntity));
+            }
+        }
+        return result;
     }
 
     @Override
@@ -264,5 +294,10 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
         return roleDtoList;
 
+    }
+
+    private List<RoleDto> getRoleListByUserName(String token, String username) {
+        CommonResponseDto rolesByUserName = getRolesByUserName(token, username);
+        return extractRoleDtoListFromJsonResponse(rolesByUserName);
     }
 }
