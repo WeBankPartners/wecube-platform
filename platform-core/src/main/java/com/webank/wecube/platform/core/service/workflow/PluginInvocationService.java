@@ -55,9 +55,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     public static final String MAPPING_TYPE_ENTITY = "entity";
     public static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
     public static final String MAPPING_TYPE_CONSTANT = "constant";
-    
+
     private static final String FIELD_REQUIRED = "Y";
-    
+
     private static final String ASYNC_SERVICE_SYMBOL = "Y";
 
     @Autowired
@@ -202,7 +202,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         InputParamObject inputObj = new InputParamObject();
-        
+
+        inputObj.setEntityTypeId("TaskNode");
+        inputObj.setEntityDataId(String.format("%s-%s-%s-%s", taskNodeInstEntity.getProcDefId(),
+                taskNodeInstEntity.getNodeDefId(), taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId()));
+
         for (PluginConfigInterfaceParameter param : configInterfaceInputParams) {
             String paramName = param.getName();
             String paramType = param.getDataType();
@@ -250,14 +254,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                             curTaskNodeDefId);
                     throw new WecubeCoreException("Task node parameter entity does not exist.");
                 }
-                
+
                 Object val = null;
-                
-                if(MAPPING_TYPE_CONSTANT.equalsIgnoreCase(nodeParamEntity.getBindType())){
+
+                if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(nodeParamEntity.getBindType())) {
                     val = nodeParamEntity.getBindValue();
                 }
-                
-                if(val != null){
+
+                if (val != null) {
                     objectVals.add(val);
                 }
             }
@@ -283,7 +287,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -465,14 +469,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                                 curTaskNodeDefId);
                         throw new WecubeCoreException("Task node parameter entity does not exist.");
                     }
-                    
+
                     Object val = null;
-                    
-                    if(MAPPING_TYPE_CONSTANT.equalsIgnoreCase(nodeParamEntity.getBindType())){
+
+                    if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(nodeParamEntity.getBindType())) {
                         val = nodeParamEntity.getBindValue();
                     }
-                    
-                    if(val != null){
+
+                    if (val != null) {
                         objectVals.add(val);
                     }
                 }
@@ -660,7 +664,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             Map<String, Object> inputMap = new HashMap<String, Object>();
             inputMap.put(CALLBACK_PARAMETER_KEY, entityDataId);
-            //TODO
+            TaskNodeExecParamEntity p = new TaskNodeExecParamEntity();
+            p.setRequestId(requestId);
+            p.setParamName(CALLBACK_PARAMETER_KEY);
+            p.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+            p.setParamDataType(DATA_TYPE_STRING);
+            p.setObjectId(sObjectId);
+            p.setParamDataValue(entityDataId);
+            p.setEntityDataId(entityDataId);
+            p.setEntityTypeId(entityTypeId);
+
+            taskNodeExecParamRepository.save(p);
+            // TODO
             inputMap.put("operator", "umadmin");
 
             for (InputParamAttr attr : ipo.getAttrs()) {
@@ -831,6 +846,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         String entityDataId = null;
 
         String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
+        
+        String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
+        TaskNodeExecParamEntity callbackParameterInputEntity = null;
+        if (StringUtils.isNotBlank(callbackParameter)) {
+            callbackParameterInputEntity = taskNodeExecParamRepository.findOneByRequestIdAndParamTypeAndParamName(
+                    requestId, TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY);
+        }
+        
+        if(callbackParameterInputEntity != null){
+            objectId = callbackParameterInputEntity.getObjectId();
+            entityTypeId = callbackParameterInputEntity.getEntityTypeId();
+            entityDataId = callbackParameterInputEntity.getEntityDataId();
+        }
 
         Set<PluginConfigInterfaceParameter> outputParameters = ctx.getPluginConfigInterface().getOutputParameters();
 
