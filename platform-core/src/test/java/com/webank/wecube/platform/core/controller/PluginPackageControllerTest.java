@@ -452,11 +452,11 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/packages/%s/plugins", packageId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("servicemanagement__v0.1__service_request__service_request", "servicemanagement__v0.1__task__task")))
-                    .andExpect(jsonPath("$.data[*].entityId", containsInAnyOrder("servicemanagement__1__service_request", "servicemanagement__1__task")))
-                    .andExpect(jsonPath("$.data[*].name", containsInAnyOrder("task", "service_request")))
-                    .andExpect(jsonPath("$.data[*].status", containsInAnyOrder("DISABLED", "DISABLED")))
-                    .andExpect(jsonPath("$.data[*].pluginPackageId", contains("servicemanagement__v0.1", "servicemanagement__v0.1")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].id", containsInAnyOrder("servicemanagement__v0.1__service_request__service_request", "servicemanagement__v0.1__task__task")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].entityId", containsInAnyOrder("servicemanagement__1__service_request", "servicemanagement__1__task")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].name", containsInAnyOrder("task", "service_request")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].status", containsInAnyOrder("DISABLED", "DISABLED")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].pluginPackageId", contains("servicemanagement__v0.1", "servicemanagement__v0.1")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {

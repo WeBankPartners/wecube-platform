@@ -28,6 +28,7 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static com.webank.wecube.platform.core.utils.Constants.GLOBAL_SYSTEM_VARIABLES;
 import static org.apache.commons.lang3.StringUtils.trim;
+import static com.webank.wecube.platform.core.utils.Constants.*;
 
 public class PluginPackageXmlParser {
     private final static String SEPARATOR_OF_NAMES = "/";
@@ -414,8 +415,9 @@ public class PluginPackageXmlParser {
 
             pluginConfigInterface.setAction(
                     ensureNotNull(trim(xPathEvaluator.getString("./@action", interfaceNode)), "Plugin interface name"));
-            String serviceName = createServiceName(pluginConfig.getPluginPackage().getName(), pluginConfig.getName(),
-                    pluginConfigInterface.getAction());
+            String serviceName = pluginConfigInterface.generateServiceName();
+//                    createServiceName(pluginConfig.getPluginPackage().getName(), pluginConfig.getName(),
+//                    pluginConfig.getRegisterName(), pluginConfigInterface.getAction());
             pluginConfigInterface.setServiceName(serviceName);
             pluginConfigInterface.setServiceDisplayName(serviceName);
             pluginConfigInterface.setPath(getStringAttribute(interfaceNode, "./@path"));
@@ -495,7 +497,9 @@ public class PluginPackageXmlParser {
         return name;
     }
 
-    private String createServiceName(String packageName, String pluginName, String interfaceName) {
-        return packageName + SEPARATOR_OF_NAMES + pluginName + SEPARATOR_OF_NAMES + interfaceName;
+    public String createServiceName(String packageName, String pluginName, String registerName, String interfaceName) {
+        return packageName + SEPARATOR_OF_NAMES + pluginName
+                + (null != registerName ? LEFT_BRACKET_STRING + registerName + RIGHT_BRACKET_STRING : null)
+                + SEPARATOR_OF_NAMES + interfaceName;
     }
 }
