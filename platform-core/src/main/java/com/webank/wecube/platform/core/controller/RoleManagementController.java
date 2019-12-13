@@ -111,10 +111,11 @@ public class RoleManagementController {
     public CommonResponseDto updateRoleToMenusByRoleId(@PathVariable(value = "role-id") Long roleId,
                                                        @RequestBody List<String> menuCodeList) {
         try {
-            return CommonResponseDto.okayWithData(this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList));
+            this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
+        return CommonResponseDto.okay();
 
     }
 }
