@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.config;
 
 import javax.servlet.Filter;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -9,11 +10,13 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.webank.wecube.platform.auth.client.filter.Http401AuthenticationEntryPoint;
 import com.webank.wecube.platform.auth.client.filter.JwtSsoBasedAuthenticationFilter;
+import com.webank.wecube.platform.core.interceptor.AuthenticationRequestContextInterceptor;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -22,12 +25,11 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
-@ComponentScan({ "com.webank.wecube.platform.core.controller" })
+@ComponentScan({"com.webank.wecube.platform.core.controller"})
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
-    //
-    // @Autowired
-    // private WebUsernameInterceptor webUserInterceptor;
+    @Autowired
+    private AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -47,13 +49,20 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     }
 
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authenticationRequestContextInterceptor).addPathPatterns("/**");
+        WebMvcConfigurer.super.addInterceptors(registry);
+    }
+
     protected void configureLocalAuthentication(HttpSecurity http) throws Exception {
         http.authorizeRequests() //
                 .antMatchers("/", "/index.html").permitAll() //
                 .antMatchers("/workflow/**").permitAll() //
                 .antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()//
-                .antMatchers("/v2/**").permitAll() //
                 .antMatchers("/webjars/**").permitAll() //
+                .antMatchers("/v2/api-docs").permitAll() //
+                .antMatchers("/csrf").permitAll() //
                 .antMatchers("/v1/route-items").permitAll() //
                 .antMatchers("/v1/route-items/**").permitAll() //
                 .anyRequest().authenticated() //

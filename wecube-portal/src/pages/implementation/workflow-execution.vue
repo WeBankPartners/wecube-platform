@@ -24,12 +24,12 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">
-                {{ $t("query_orch") }}
-              </Button>
-              <Button type="success" @click="createHandler">
-                {{ $t("create_orch") }}
-              </Button>
+              <Button type="info" @click="queryHandler">{{
+                $t("query_orch")
+              }}</Button>
+              <Button type="success" @click="createHandler">{{
+                $t("create_orch")
+              }}</Button>
             </FormItem>
           </Form>
         </Col>
@@ -87,9 +87,9 @@
           >
             <div class="graph-container" id="flow"></div>
             <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">
-                {{ $t("execute") }}
-              </Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
+                $t("execute")
+              }}</Button>
             </div>
           </Col>
           <Col
@@ -112,9 +112,9 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
-        <Button type="info" @click="workFlowActionHandler('retry')">{{
-          $t("retry")
-        }}</Button>
+        <Button type="info" @click="workFlowActionHandler('retry')">
+          {{ $t("retry") }}
+        </Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
@@ -123,6 +123,12 @@
         >
       </div>
     </Modal>
+    <div id="model_graph_detail">
+      <highlight-code lang="json">{{ modelNodeDetail }}</highlight-code>
+    </div>
+    <div id="flow_graph_detail">
+      <highlight-code lang="json">{{ flowNodeDetail }}</highlight-code>
+    </div>
   </div>
 </template>
 <script>
@@ -134,7 +140,10 @@ import {
   createFlowInstance,
   getProcessInstances,
   getProcessInstance,
-  retryProcessInstance
+  retryProcessInstance,
+  getModelNodeDetail,
+  getNodeBindings,
+  getNodeContext
 } from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
@@ -159,7 +168,12 @@ export default {
       isEnqueryPage: false,
       workflowActionModalVisible: false,
       currentFailedNodeID: "",
-      timer: null
+      timer: null,
+      modelNodeDetail: {},
+      flowNodeDetail: {},
+      modelDetailTimer: null,
+      flowNodesBindings: [],
+      flowDetailTimer: null
     };
   },
   mounted() {
@@ -182,6 +196,12 @@ export default {
         }
       }
     },
+    async getNodeBindings(id) {
+      const { status, message, data } = await getNodeBindings(id);
+      if (status === "OK") {
+        this.flowNodesBindings = data;
+      }
+    },
     async getAllFlow() {
       let { status, data, message } = await getAllFlow(false);
       if (status === "OK") {
@@ -201,9 +221,16 @@ export default {
       }
     },
     async getTargetOptions() {
-      if (!(this.flowData && this.flowData.rootEntity)) return;
-      const pkgName = this.flowData.rootEntity.split(":")[0];
-      const entityName = this.flowData.rootEntity.split(":")[1];
+      if (!(this.flowData.rootEntity || this.flowData.entityTypeId)) return;
+      let pkgName = "";
+      let entityName = "";
+      if (this.flowData.rootEntity) {
+        pkgName = this.flowData.rootEntity.split(":")[0];
+        entityName = this.flowData.rootEntity.split(":")[1];
+      } else {
+        pkgName = this.flowData.entityTypeId.split(":")[0];
+        entityName = this.flowData.entityTypeId.split(":")[1];
+      }
       let { status, data, message } = await getTargetOptions(
         pkgName,
         entityName
@@ -218,10 +245,12 @@ export default {
       if (!this.selectedFlowInstance) return;
       this.isShowBody = true;
       this.isEnqueryPage = true;
+
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(
           _ => _.id === this.selectedFlowInstance
         );
+        this.getNodeBindings(found.id);
         let { status, data, message } = await getProcessInstance(
           found && found.id
         );
@@ -230,6 +259,8 @@ export default {
             ...data,
             flowNodes: data.taskNodeInstances
           };
+          this.getTargetOptions();
+
           this.initFlowGraph(true);
           removeEvent(".retry", "click", this.retryHandler);
           addEvent(".retry", "click", this.retryHandler);
@@ -239,7 +270,6 @@ export default {
         }
 
         this.selectedFlow = found.procDefId;
-        this.getTargetOptions();
         this.selectedTarget = found.entityDataId;
         this.getModelData();
       });
@@ -262,6 +292,24 @@ export default {
     onTargetSelectHandler() {
       this.getModelData();
     },
+    formatNodesBindings() {
+      let bindings = this.flowNodesBindings.map(_ => {
+        const found = this.flowData.flowNodes.find(
+          i => i.nodeDefId === _.nodeDefId
+        );
+        return {
+          ..._,
+          orderedNo: found ? found.orderedNo : ""
+        };
+      });
+      this.modelData.forEach(item => {
+        this.flowNodesBindings.forEach(d => {
+          if (d.entityTypeId + ":" + d.entityDataId === item.id) {
+            item.refFlowNodeIds.push(d.orderedNo);
+          }
+        });
+      });
+    },
     async getModelData() {
       if (!this.selectedFlow || !this.selectedTarget) return;
       let { status, data, message } = await getTreePreviewData(
@@ -275,6 +323,9 @@ export default {
             refFlowNodeIds: []
           };
         });
+        if (this.isEnqueryPage) {
+          this.formatNodesBindings();
+        }
         this.initModelGraph();
       }
     },
@@ -295,14 +346,14 @@ export default {
         const label =
           _.refFlowNodeIds.toString().replace(/,/g, "/") +
           (isRecord ? "|" : "") +
-          _.packageName +
-          "_" +
-          _.entityName +
-          "_" +
-          _.dataId;
+          _.packageName.slice(0, 5) +
+          "..." +
+          _.entityName.slice(-5);
         return `${nodeId} [label="${
-          isRecord ? label : _.packageName + "_" + _.entityName + "_" + _.dataId
-        }" class="model" id="${nodeId}" color="${color}" shape="${shape}" width="5"]`;
+          isRecord
+            ? label
+            : _.packageName.slice(0, 5) + "..." + _.entityName.slice(-5)
+        }" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`;
       });
       let genEdge = () => {
         let pathAry = [];
@@ -336,6 +387,77 @@ export default {
         genEdge() +
         "}";
       this.graph.graphviz.renderDot(nodesString);
+      removeEvent(
+        ".model text",
+        "mouseenter",
+        this.modelGraphMouseenterHandler
+      );
+      removeEvent(
+        ".model text",
+        "mouseleave",
+        this.modelGraphMouseleaveHandler
+      );
+      addEvent(".model text", "mouseenter", this.modelGraphMouseenterHandler);
+      addEvent(".model text", "mouseleave", this.modelGraphMouseleaveHandler);
+    },
+    modelGraphMouseenterHandler(e) {
+      clearTimeout(this.modelDetailTimer);
+      this.modelDetailTimer = setTimeout(async () => {
+        const found = this.modelData.find(
+          _ =>
+            _.packageName + "_" + _.entityName + "_" + _.dataId ===
+            e.target.parentNode.id
+        );
+        let modelDetail = document.getElementById("model_graph_detail");
+        let el = e || window.event;
+        let x = el.clientX;
+        let y = el.clientY;
+        const { status, message, data } = await getModelNodeDetail(
+          found.entityName,
+          found.dataId
+        );
+        if (status === "OK") {
+          this.modelNodeDetail = data;
+        }
+        let clientWidth = document.body.clientWidth;
+        const positionX =
+          clientWidth - x < 600 ? x - 600 + 5 + "px" : x + 5 + "px";
+        modelDetail.style.display = "block";
+        modelDetail.style.left = positionX;
+        modelDetail.style.top = y + "px";
+        removeEvent(
+          "#model_graph_detail",
+          "mouseenter",
+          this.modelDetailEnterHandler
+        );
+        removeEvent(
+          "#model_graph_detail",
+          "mouseleave",
+          this.modelDetailLeaveHandler
+        );
+        addEvent(
+          "#model_graph_detail",
+          "mouseenter",
+          this.modelDetailEnterHandler
+        );
+        addEvent(
+          "#model_graph_detail",
+          "mouseleave",
+          this.modelDetailLeaveHandler
+        );
+      }, 500);
+    },
+    modelDetailEnterHandler(e) {
+      let modelDetail = document.getElementById("model_graph_detail");
+      modelDetail.style.display = "block";
+    },
+    modelDetailLeaveHandler(e) {
+      let modelDetail = document.getElementById("model_graph_detail");
+      modelDetail.style.display = "none";
+    },
+    modelGraphMouseleaveHandler(e) {
+      clearTimeout(this.modelDetailTimer);
+      this.modelDetailLeaveHandler(e);
     },
     renderFlowGraph(excution) {
       const statusColor = {
@@ -540,7 +662,73 @@ export default {
         });
         removeEvent(".flow", "click", this.flowNodesClickHandler);
         addEvent(".flow", "click", this.flowNodesClickHandler);
+      } else {
+        removeEvent(
+          ".flow text",
+          "mouseenter",
+          this.flowGraphMouseenterHandler
+        );
+        removeEvent(".flow text", "mouseleave", this.flowGraphLeaveHandler);
+        addEvent(".flow text", "mouseenter", this.flowGraphMouseenterHandler);
+        addEvent(".flow text", "mouseleave", this.flowGraphLeaveHandler);
       }
+    },
+    flowGraphLeaveHandler(e) {
+      clearTimeout(this.flowDetailTimer);
+      this.flowDetailLeaveHandler();
+    },
+    flowGraphMouseenterHandler(e) {
+      clearTimeout(this.flowDetailTimer);
+      this.flowDetailTimer = setTimeout(async () => {
+        const found = this.flowData.flowNodes.find(
+          _ => _.nodeId === e.target.parentNode.id
+        );
+        let flowDetail = document.getElementById("flow_graph_detail");
+        let el = e || window.event;
+        let x = el.clientX;
+        let y = el.clientY;
+        const { status, message, data } = await getNodeContext(
+          found.procInstId,
+          found.id
+        );
+        if (status === "OK") {
+          this.flowNodeDetail = data;
+        }
+        let clientWidth = document.body.clientWidth;
+        const positionX =
+          clientWidth - x < 600 ? x - 600 + 5 + "px" : x + 5 + "px";
+        flowDetail.style.display = "block";
+        flowDetail.style.left = positionX;
+        flowDetail.style.top = y + "px";
+        removeEvent(
+          "#flow_graph_detail",
+          "mouseenter",
+          this.flowDetailEnterHandler
+        );
+        removeEvent(
+          "#flow_graph_detail",
+          "mouseleave",
+          this.flowDetailLeaveHandler
+        );
+        addEvent(
+          "#flow_graph_detail",
+          "mouseenter",
+          this.flowDetailEnterHandler
+        );
+        addEvent(
+          "#flow_graph_detail",
+          "mouseleave",
+          this.flowDetailLeaveHandler
+        );
+      }, 500);
+    },
+    flowDetailEnterHandler(e) {
+      let modelDetail = document.getElementById("flow_graph_detail");
+      modelDetail.style.display = "block";
+    },
+    flowDetailLeaveHandler(e) {
+      let modelDetail = document.getElementById("flow_graph_detail");
+      modelDetail.style.display = "none";
     },
     flowNodesClickHandler(e) {
       e.preventDefault();
@@ -638,6 +826,24 @@ body {
   color: #15a043;
 }
 .graph-container {
+  overflow: auto;
+}
+#model_graph_detail {
+  display: none;
+  width: 600px;
+  position: absolute;
+  background-color: white;
+  padding: 5px 5px;
+  box-shadow: 0 0 5px grey;
+  overflow: auto;
+}
+#flow_graph_detail {
+  display: none;
+  width: 600px;
+  position: absolute;
+  background-color: white;
+  padding: 5px 5px;
+  box-shadow: 0 0 5px grey;
   overflow: auto;
 }
 </style>

@@ -4,7 +4,11 @@
       <Row>
         <Card dis-hover>
           <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
+          <Button icon="ios-cloud-upload-outline" @click="getHeaders">
+            {{ $t("upload_plugin_btn") }}
+          </Button>
           <Upload
+            ref="uploadButton"
             show-upload-list
             accept=".zip"
             name="zip-file"
@@ -13,7 +17,7 @@
             action="platform/v1/packages"
             :headers="setUploadActionHeader"
           >
-            <Button icon="ios-cloud-upload-outline">
+            <Button style="display:none" icon="ios-cloud-upload-outline">
               {{ $t("upload_plugin_btn") }}
             </Button>
           </Upload>
@@ -362,6 +366,7 @@ import MenuInjection from "./components/menu-injection.vue";
 import SysParmas from "./components/system-params.vue";
 import RuntimesResources from "./components/runtime-resource.vue";
 import AuthSettings from "./components/auth-setting.vue";
+import axios from "axios";
 export default {
   components: {
     DataModel,
@@ -793,6 +798,40 @@ export default {
           };
         });
       }
+    },
+    getHeaders() {
+      let refreshRequest = null;
+      const currentTime = new Date().getTime();
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      if (token) {
+        const accessToken = token.find(t => t.tokenType === "accessToken");
+        const expiration = accessToken.expiration * 1 - currentTime;
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get("/auth/v1/api/token", {
+            headers: {
+              Authorization:
+                "Bearer " +
+                token.find(t => t.tokenType === "refreshToken").token
+            }
+          });
+          refreshRequest.then(
+            res => {
+              session.setItem("token", JSON.stringify(res.data.data));
+              this.$refs.uploadButton.handleClick();
+            },
+            err => {
+              refreshRequest = null;
+              window.location.href = window.location.origin + "/#/login";
+            }
+          );
+        } else {
+          this.$refs.uploadButton.handleClick();
+        }
+      } else {
+        const fullPath = this.$router.currentRoute.fullPath;
+        window.location.href = window.location.origin + "/#/login";
+      }
     }
   },
   created() {
@@ -800,11 +839,11 @@ export default {
   },
   computed: {
     setUploadActionHeader() {
-      let uploadToken = document.cookie
-        .split(";")
-        .find(i => i.indexOf("XSRF-TOKEN") !== -1);
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
       return {
-        "X-XSRF-TOKEN": uploadToken && uploadToken.split("=")[1]
+        Authorization:
+          "Bearer " + token.find(t => t.tokenType === "accessToken").token
       };
     }
   }

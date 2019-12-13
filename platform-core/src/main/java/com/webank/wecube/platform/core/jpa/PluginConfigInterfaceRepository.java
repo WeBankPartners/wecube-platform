@@ -12,5 +12,7 @@ public interface PluginConfigInterfaceRepository extends CrudRepository<PluginCo
     Optional<List<PluginConfigInterface>> findPluginConfigInterfaceByPluginConfig_Status(Status status);
 
     Optional<List<PluginConfigInterface>> findPluginConfigInterfaceByPluginConfig_EntityIdAndPluginConfig_Status(String entityId, Status status);
+    
+    Optional<List<PluginConfigInterface>> findAllByPluginConfig_Id(String pluginConfigId);
 
 }
