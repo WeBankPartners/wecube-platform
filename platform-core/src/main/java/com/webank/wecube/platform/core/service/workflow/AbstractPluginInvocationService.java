@@ -111,7 +111,7 @@ public abstract class AbstractPluginInvocationService {
                 isFirst = false;
             }
 
-            sb.append(dv);
+            sb.append(dv==null?"":dv);
         }
 
         sb.append("]");
