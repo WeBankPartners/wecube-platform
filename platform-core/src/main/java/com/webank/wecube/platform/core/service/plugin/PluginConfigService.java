@@ -5,10 +5,7 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
-import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
-import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.jpa.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.*;
@@ -40,6 +39,8 @@ public class PluginConfigService {
     private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
     @Autowired
     private PluginPackageEntityRepository pluginPackageEntityRepository;
+    @Autowired
+    private PluginPackageDataModelRepository dataModelRepository;
 
     public List<PluginConfigInterface> getPluginConfigInterfaces(String pluginConfigId) {
         return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
@@ -189,16 +190,27 @@ public class PluginConfigService {
     }
 
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityName(String packageName, String entityName) {
-        Optional<List<PluginConfig>> allEnabledPluginConfigByPackageNameAndEntityNameOptional = pluginConfigRepository.findAllEnabledByPackageNameAndEntityName(packageName, entityName);
+        Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository.findLatestDataModelByPackageName(packageName);
+        if (!dataModelOptional.isPresent()) {
+            log.info("No data model found for package [{}]", packageName);
+            return Collections.EMPTY_LIST;
+        }
+        Set<PluginPackageEntity> pluginPackageEntities = dataModelOptional.get().getPluginPackageEntities();
+        if (null != pluginPackageEntities && pluginPackageEntities.size() > 0) {
+            if (!pluginPackageEntities.stream().filter(entity -> entity.getName().equals(entityName)).findAny().isPresent()) {
+                log.info("No entity found with name [{}}] for package [{}}]", entityName, packageName);
+                return Collections.EMPTY_LIST;
+            }
+        }
+
         List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        if (allEnabledPluginConfigByPackageNameAndEntityNameOptional.isPresent()) {
-            allEnabledPluginConfigByPackageNameAndEntityNameOptional.get().forEach(pluginConfig -> {
-                if (pluginConfig.getInterfaces() != null && pluginConfig.getInterfaces().size() > 0) {
-                    pluginConfig.getInterfaces().forEach(pluginConfigInterface -> {
-                        pluginConfigInterfaceDtos.add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface));
-                    });
-                }
-            });
+        Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository.findPluginConfigInterfaceByPluginConfig_EntityNameAndPluginConfig_Status(entityName, ENABLED);
+        if (allEnabledInterfacesOptional.isPresent()) {
+            pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream().map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)).collect(Collectors.toList()));
+        }
+        Optional<List<PluginConfigInterface>> allEnabledWithEntityNameNullOptional = pluginConfigInterfaceRepository.findAllEnabledWithEntityNameNull();
+        if (allEnabledWithEntityNameNullOptional.isPresent()) {
+            pluginConfigInterfaceDtos.addAll(allEnabledWithEntityNameNullOptional.get().stream().map(pluginConfigInterface->PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)).collect(Collectors.toList()));
         }
         return pluginConfigInterfaceDtos;
     }
