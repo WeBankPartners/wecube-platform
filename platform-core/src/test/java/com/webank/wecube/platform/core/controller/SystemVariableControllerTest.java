@@ -204,11 +204,11 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         pluginPackageRepository.save(pluginPackage);
         executeSql("INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
                 "  ('1', 'package1', '1.0', 'UNREGISTERED', 0); " +
-                "insert into system_variables (id, plugin_package_id, name, value, scope_type, scope_value, seq_no, status) values\n" +
-                " ('1', '1', 'propA', 'valueX', 'global', null,  1, 'active')\n" +
-                ",('2', '1', 'propB', 'valueY', 'global', null,  2, 'inactive')\n" +
-                ",('3', '1', 'propC', 'valueZ', 'plugin-package', 'qcloud', 3, 'inactive')\n" +
-                ",('4', '1', 'propC', 'valuez', 'plugin-package', 'qcloud', 4, 'active')\n" +
+                "insert into system_variables (id, plugin_package_id, name, value, scope_type, scope_value, status) values\n" +
+                " ('1', '1', 'propA', 'valueX', 'global', null, 'active')\n" +
+                ",('2', '1', 'propB', 'valueY', 'global', null, 'inactive')\n" +
+                ",('3', '1', 'propC', 'valueZ', 'plugin-package', 'qcloud', 'inactive')\n" +
+                ",('4', '1', 'propC', 'valuez', 'plugin-package', 'qcloud', 'active')\n" +
                 ";");
     }
 
