@@ -8,4 +8,8 @@ import java.util.List;
 public interface ProcRoleBindingRepository extends CrudRepository<ProcRoleBindingEntity, String> {
 
     List<ProcRoleBindingEntity> findAllByRoleIdAndPermission(Long roleId, ProcRoleBindingEntity.permissionEnum permission);
+
+    List<ProcRoleBindingEntity> findAllByProcId(String procId);
+
+    void deleteByProcId(String procId);
 }
