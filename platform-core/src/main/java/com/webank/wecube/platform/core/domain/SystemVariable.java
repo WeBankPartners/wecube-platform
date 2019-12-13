@@ -40,9 +40,6 @@ public class SystemVariable {
 	private String scopeType;
 	@Column
 	private String scopeValue;
-
-	@Column
-	private Integer seqNo;
 	@Column
 	private String status;
 
@@ -113,14 +110,6 @@ public class SystemVariable {
         this.scopeValue = scopeValue;
     }
 
-    public Integer getSeqNo() {
-        return seqNo;
-    }
-
-    public void setSeqNo(Integer seqNo) {
-        this.seqNo = seqNo;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -154,7 +143,6 @@ public class SystemVariable {
         this.scopeType = scopeType;
         this.scopeValue = scopeValue;
         setPluginPackage(pluginPackage);
-        this.seqNo = seqNo;
         this.status = status;
     }
 
