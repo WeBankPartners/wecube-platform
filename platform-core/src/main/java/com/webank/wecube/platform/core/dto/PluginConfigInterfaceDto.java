@@ -122,8 +122,8 @@ public class PluginConfigInterfaceDto {
         }
         pluginConfigInterface.setPluginConfig(pluginConfig);
         pluginConfigInterface.setAction(getAction());
-        pluginConfigInterface.setServiceName( pluginConfigInterface.generateServiceName());
-        pluginConfigInterface.setServiceDisplayName(getServiceDisplayName());
+        pluginConfigInterface.setServiceName(pluginConfigInterface.generateServiceName());
+        pluginConfigInterface.setServiceDisplayName(pluginConfigInterface.generateServiceName());
         pluginConfigInterface.setPath(getPath());
         pluginConfigInterface.setHttpMethod(getHttpMethod());
         Set<PluginConfigInterfaceParameter> pluginConfigInterfaceInputParameters = newLinkedHashSet();
