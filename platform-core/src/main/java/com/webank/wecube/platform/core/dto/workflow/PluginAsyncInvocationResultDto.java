@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class PluginAsyncInvocationResultDto {
     public static final String RESULT_CODE_OK = "0";
 
-    @JsonProperty("result_code")
+    @JsonProperty("resultCode")
     private String resultCode;
-    @JsonProperty("result_message")
+    @JsonProperty("resultMessage")
     private String resultMessage;
     @JsonProperty("results")
     private ResultData resultData;
