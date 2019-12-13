@@ -28,6 +28,9 @@ public abstract class AbstractPluginInvocationService {
 
     protected static final String DATA_TYPE_STRING = "string";
     protected static final String DATA_TYPE_NUMBER = "number";
+    
+    protected static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
+    protected static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
