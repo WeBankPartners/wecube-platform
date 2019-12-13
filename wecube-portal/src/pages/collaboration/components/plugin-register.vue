@@ -1,252 +1,307 @@
 <template>
-  <Row>
-    <Col span="5">
-      <div v-if="plugins.length < 1">{{ $t("no_plugin") }}</div>
-      <Menu
-        theme="light"
-        :active-name="currentPlugin"
-        @on-select="selectPlugin"
-        style="width: 100%;z-index:10"
-      >
-        <MenuItem
-          v-for="(plugin, index) in plugins"
-          :name="plugin.name"
-          :key="index"
-          style="padding: 10px 5px;"
+  <div>
+    <Row>
+      <Col span="5">
+        <div v-if="plugins.length < 1">{{ $t("no_plugin") }}</div>
+        <Menu
+          theme="light"
+          :active-name="currentPlugin"
+          @on-select="selectPlugin"
+          style="width: 100%;z-index:10"
         >
-          <Icon type="md-flower" />
-          {{ plugin.name }}
-        </MenuItem>
-      </Menu>
-    </Col>
-    <Col span="19" offset="0" style="padding-left: 10px">
-      <Form v-if="currentPlugin.length > 0" :model="form">
-        <Row>
-          <Col span="10" offset="0">
-            <FormItem :label-width="100" :label="$t('target_type')">
+          <MenuItem
+            v-for="(plugin, index) in plugins"
+            :name="plugin.name"
+            :key="index"
+            style="padding: 10px 5px;"
+          >
+            <Icon type="md-flower" />
+            {{ plugin.name }}
+          </MenuItem>
+        </Menu>
+      </Col>
+      <Col span="19" offset="0" style="padding-left: 10px">
+        <Form v-if="currentPlugin.length > 0" :model="form">
+          <Row>
+            <Col span="20">
               <Select
-                @on-change="onSelectEntityType"
-                v-model="selectedEntityType"
-                :disabled="currentPluginObj.status === 'ENABLED'"
-                @on-open-change="getAllDataModels"
+                v-model="model1"
+                style="margin-bottom:20px"
+                :placeholder="$t('regist_source')"
               >
-                <OptionGroup
-                  :label="pluginPackage.packageName"
-                  v-for="(pluginPackage, index) in allEntityType"
-                  :key="index"
+                <Option value="add" key="add">
+                  <Button @click="addRegistMsg" type="success" long
+                    ><Icon type="md-add"
+                  /></Button>
+                </Option>
+                <Option
+                  v-for="item in cityList"
+                  :value="item.value"
+                  :key="item.value"
+                  >{{ item.label }}</Option
                 >
-                  <Option
-                    v-for="item in pluginPackage.pluginPackageEntities"
-                    :value="item.name"
-                    :key="item.name"
-                    :label="item.name"
-                  ></Option>
-                </OptionGroup>
               </Select>
-            </FormItem>
-          </Col>
-        </Row>
-        <hr />
-        <Row style="margin-bottom:10px;margin-top:10px">
-          <Col span="3">
-            <strong style="font-size:15px;">{{ $t("operation") }}</strong>
-          </Col>
-          <Col span="3">
-            <strong style="font-size:15px;">{{ $t("params_type") }}</strong>
-          </Col>
-          <Col span="3" offset="0">
-            <strong style="font-size:15px;">{{ $t("params_name") }}</strong>
-          </Col>
-          <Col span="6" offset="1">
-            <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
-          </Col>
-          <Col span="3" offset="4">
-            <strong style="font-size:15px;">{{ $t("attribute_type") }}</strong>
-          </Col>
-        </Row>
-        <Row
-          style="margin-top:20px; border-bottom: 1px solid #2c3e50"
-          v-for="(interfaces, index) in currentPluginObj.interfaces"
-          :key="index"
-        >
-          <Col span="3">
-            <FormItem :label-width="0">
-              <Tooltip :content="interfaces.action" style="width: 100%">
-                <span
-                  style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;width: 90%;"
-                  >{{ interfaces.action }}</span
+            </Col>
+          </Row>
+          <Row>
+            <Col span="10" offset="0">
+              <FormItem :label-width="100" :label="$t('regist_name')">
+                <Input v-model="registName" />
+              </FormItem>
+            </Col>
+            <Col span="10" offset="0">
+              <FormItem :label-width="100" :label="$t('target_type')">
+                <Select
+                  @on-change="onSelectEntityType"
+                  v-model="selectedEntityType"
+                  :disabled="currentPluginObj.status === 'ENABLED'"
+                  @on-open-change="getAllDataModels"
                 >
-              </Tooltip>
-            </FormItem>
-          </Col>
-          <Col span="21">
-            <Row>
-              <Col span="3">
-                <FormItem :label-width="0">
-                  <span>{{ $t("input_params") }}</span>
-                </FormItem>
-              </Col>
-              <Col span="21" offset="0">
-                <Row
-                  v-for="param in interfaces['inputParameters']"
-                  :key="param.id"
-                >
-                  <Col span="5">
-                    <FormItem :label-width="0">
-                      <Tooltip :content="param.name" style="width: 100%">
-                        <span v-if="param.required === 'Y'" style="color:red"
-                          >*</span
+                  <OptionGroup
+                    :label="pluginPackage.packageName"
+                    v-for="(pluginPackage, index) in allEntityType"
+                    :key="index"
+                  >
+                    <Option
+                      v-for="item in pluginPackage.pluginPackageEntities"
+                      :value="item.name"
+                      :key="item.name"
+                      :label="item.name"
+                    ></Option>
+                  </OptionGroup>
+                </Select>
+              </FormItem>
+            </Col>
+          </Row>
+          <hr />
+          <Row style="margin-bottom:10px;margin-top:10px">
+            <Col span="3">
+              <strong style="font-size:15px;">{{ $t("operation") }}</strong>
+            </Col>
+            <Col span="3">
+              <strong style="font-size:15px;">{{ $t("params_type") }}</strong>
+            </Col>
+            <Col span="3" offset="0">
+              <strong style="font-size:15px;">{{ $t("params_name") }}</strong>
+            </Col>
+            <Col span="6" offset="1">
+              <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
+            </Col>
+            <Col span="3" offset="4">
+              <strong style="font-size:15px;">{{
+                $t("attribute_type")
+              }}</strong>
+            </Col>
+          </Row>
+          <Row
+            style="margin-top:20px; border-bottom: 1px solid #2c3e50"
+            v-for="(interfaces, index) in currentPluginObj.interfaces"
+            :key="index"
+          >
+            <Col span="3">
+              <FormItem :label-width="0">
+                <Tooltip :content="interfaces.action" style="width: 100%">
+                  <span
+                    style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;width: 90%;"
+                    >{{ interfaces.action }}</span
+                  >
+                </Tooltip>
+              </FormItem>
+            </Col>
+            <Col span="21">
+              <Row>
+                <Col span="3">
+                  <FormItem :label-width="0">
+                    <span>{{ $t("input_params") }}</span>
+                  </FormItem>
+                </Col>
+                <Col span="21" offset="0">
+                  <Row
+                    v-for="param in interfaces['inputParameters']"
+                    :key="param.id"
+                  >
+                    <Col span="5">
+                      <FormItem :label-width="0">
+                        <Tooltip :content="param.name" style="width: 100%">
+                          <span v-if="param.required === 'Y'" style="color:red"
+                            >*</span
+                          >
+                          <span
+                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%;"
+                            >{{ param.name }}</span
+                          >
+                        </Tooltip>
+                      </FormItem>
+                    </Col>
+                    <Col span="13" offset="0">
+                      <FormItem :label-width="0">
+                        <PathExp
+                          v-if="param.mappingType === 'entity'"
+                          :rootPkg="pkgName"
+                          :rootEntity="selectedEntityType"
+                          :allDataModelsWithAttrs="allEntityType"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          v-model="param.mappingEntityExpression"
+                        ></PathExp>
+                        <Select
+                          v-if="param.mappingType === 'system_variable'"
+                          v-model="param.mappingSystemVariableId"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          @on-open-change="retrieveSystemVariables"
                         >
+                          <Option
+                            v-for="item in allSystemVariables"
+                            :value="item.id"
+                            :key="item.id"
+                            >{{ item.name }}</Option
+                          >
+                        </Select>
                         <span
-                          style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%;"
-                          >{{ param.name }}</span
+                          v-if="
+                            param.mappingType === 'context' ||
+                              param.mappingType === 'constant'
+                          "
+                          >N/A</span
                         >
-                      </Tooltip>
-                    </FormItem>
-                  </Col>
-                  <Col span="13" offset="0">
-                    <FormItem :label-width="0">
-                      <PathExp
-                        v-if="param.mappingType === 'entity'"
-                        :rootPkg="pkgName"
-                        :rootEntity="selectedEntityType"
-                        :allDataModelsWithAttrs="allEntityType"
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                        v-model="param.mappingEntityExpression"
-                      ></PathExp>
-                      <Select
-                        v-if="param.mappingType === 'system_variable'"
-                        v-model="param.mappingSystemVariableId"
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                        @on-open-change="retrieveSystemVariables"
-                      >
-                        <Option
-                          v-for="item in allSystemVariables"
-                          :value="item.id"
-                          :key="item.id"
-                          >{{ item.name }}</Option
+                      </FormItem>
+                    </Col>
+                    <Col span="4" offset="1">
+                      <FormItem :label-width="0">
+                        <Select
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          v-model="param.mappingType"
+                          @on-change="mappingTypeChange($event, param)"
                         >
-                      </Select>
-                      <span
-                        v-if="
-                          param.mappingType === 'context' ||
-                            param.mappingType === 'constant'
-                        "
-                        >N/A</span
-                      >
-                    </FormItem>
-                  </Col>
-                  <Col span="4" offset="1">
-                    <FormItem :label-width="0">
-                      <Select
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                        v-model="param.mappingType"
-                        @on-change="mappingTypeChange($event, param)"
-                      >
-                        <Option value="context" key="context">context</Option>
-                        <Option value="system_variable" key="system_variable"
-                          >system_variable</Option
+                          <Option value="context" key="context">context</Option>
+                          <Option value="system_variable" key="system_variable"
+                            >system_variable</Option
+                          >
+                          <Option value="entity" key="entity">entity</Option>
+                          <Option value="constant" key="constant"
+                            >constant</Option
+                          >
+                        </Select>
+                      </FormItem>
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+              <Row>
+                <Col span="3">
+                  <FormItem :label-width="0">
+                    <span>{{ $t("output_params") }}</span>
+                  </FormItem>
+                </Col>
+                <Col span="20" offset="0">
+                  <Row
+                    v-for="outPut in interfaces['outputParameters']"
+                    :key="outPut.id + 1000"
+                  >
+                    <Col span="4">
+                      <FormItem :label-width="0">
+                        <Tooltip :content="outPut.name">
+                          <span v-if="outPut.required === 'Y'" style="color:red"
+                            >*</span
+                          >
+                          <span
+                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            >{{ outPut.name }}</span
+                          >
+                        </Tooltip>
+                      </FormItem>
+                    </Col>
+                    <Col span="14" offset="1">
+                      <FormItem :label-width="0">
+                        <!-- <Select
+                          v-if="outPut.mappingType === 'entity'"
+                          v-model="outPut.mappingEntityExpression"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
                         >
-                        <Option value="entity" key="entity">entity</Option>
-                        <Option value="constant" key="constant"
-                          >constant</Option
+                          <Option
+                            v-for="attr in currentEntityAttr"
+                            :key="attr.name"
+                            :value="attr.name"
+                            :label="attr.name"
+                          ></Option>
+                        </Select> -->
+                        <PathExp
+                          v-if="outPut.mappingType === 'entity'"
+                          :rootPkg="pkgName"
+                          :rootEntity="selectedEntityType"
+                          :allDataModelsWithAttrs="allEntityType"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          v-model="outPut.mappingEntityExpression"
+                        ></PathExp>
+                        <span v-if="outPut.mappingType === 'context'">N/A</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="4" offset="1">
+                      <FormItem :label-width="0">
+                        <Select
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          v-model="outPut.mappingType"
                         >
-                      </Select>
-                    </FormItem>
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
-            <Row>
-              <Col span="3">
-                <FormItem :label-width="0">
-                  <span>{{ $t("output_params") }}</span>
-                </FormItem>
-              </Col>
-              <Col span="20" offset="0">
-                <Row
-                  v-for="outPut in interfaces['outputParameters']"
-                  :key="outPut.id + 1000"
-                >
-                  <Col span="4">
-                    <FormItem :label-width="0">
-                      <Tooltip :content="outPut.name">
-                        <span v-if="outPut.required === 'Y'" style="color:red"
-                          >*</span
-                        >
-                        <span
-                          style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                          >{{ outPut.name }}</span
-                        >
-                      </Tooltip>
-                    </FormItem>
-                  </Col>
-                  <Col span="14" offset="1">
-                    <FormItem :label-width="0">
-                      <!-- <Select
-                        v-if="outPut.mappingType === 'entity'"
-                        v-model="outPut.mappingEntityExpression"
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                      >
-                        <Option
-                          v-for="attr in currentEntityAttr"
-                          :key="attr.name"
-                          :value="attr.name"
-                          :label="attr.name"
-                        ></Option>
-                      </Select> -->
-                      <PathExp
-                        v-if="outPut.mappingType === 'entity'"
-                        :rootPkg="pkgName"
-                        :rootEntity="selectedEntityType"
-                        :allDataModelsWithAttrs="allEntityType"
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                        v-model="outPut.mappingEntityExpression"
-                      ></PathExp>
-                      <span v-if="outPut.mappingType === 'context'">N/A</span>
-                    </FormItem>
-                  </Col>
-                  <Col span="4" offset="1">
-                    <FormItem :label-width="0">
-                      <Select
-                        :disabled="currentPluginObj.status === 'ENABLED'"
-                        v-model="outPut.mappingType"
-                      >
-                        <Option value="context" key="context">context</Option>
-                        <Option value="entity" key="entity">entity</Option>
-                      </Select>
-                    </FormItem>
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-        <Row style="margin:20px auto">
-          <Col span="5" offset="10">
-            <Button
-              type="primary"
-              v-if="currentPluginObj.status === 'DISABLED'"
-              @click="pluginSave"
-              >{{ $t("save") }}</Button
-            >
-            <Button
-              type="primary"
-              v-if="currentPluginObj.status === 'DISABLED'"
-              @click="regist"
-              >{{ $t("regist") }}</Button
-            >
-            <Button
-              type="error"
-              v-if="currentPluginObj.status === 'ENABLED'"
-              @click="removePlugin"
-              >{{ $t("decommission") }}</Button
-            >
-          </Col>
-        </Row>
+                          <Option value="context" key="context">context</Option>
+                          <Option value="entity" key="entity">entity</Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                  </Row>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+          <Row style="margin:20px auto">
+            <Col span="9" offset="8">
+              <Button
+                type="primary"
+                v-if="currentPluginObj.status === 'DISABLED'"
+                @click="pluginSave"
+                >{{ $t("save") }}</Button
+              >
+              <Button
+                type="primary"
+                v-if="currentPluginObj.status === 'DISABLED'"
+                @click="regist"
+                >{{ $t("regist") }}</Button
+              >
+              <Button
+                type="error"
+                v-if="currentPluginObj.status === 'DISABLED'"
+                @click="deletePlugin"
+                >{{ $t("delete") }}</Button
+              >
+              <Button
+                type="error"
+                v-if="currentPluginObj.status === 'ENABLED'"
+                @click="removePlugin"
+                >{{ $t("decommission") }}</Button
+              >
+            </Col>
+          </Row>
+        </Form>
+      </Col>
+    </Row>
+    <Modal v-model="addRegistModal" :title="$t('create_regist_source')">
+      <Form
+        ref="formValidate"
+        :model="formValidate"
+        :rules="ruleValidate"
+        :label-width="120"
+      >
+        <FormItem :label="$t('regist_name')" prop="name">
+          <Input v-model="formValidate.name" placeholder=""></Input>
+        </FormItem>
+        <FormItem :label="$t('copy_source')" prop="city">
+          <Select v-model="formValidate.city" placeholder="">
+            <Option value="beijing">New York</Option>
+            <Option value="shanghai">London</Option>
+            <Option value="shenzhen">Sydney</Option>
+          </Select>
+        </FormItem>
       </Form>
-    </Col>
-  </Row>
+    </Modal>
+  </div>
 </template>
 <script>
 import PathExp from "../../components/path-exp.vue";
@@ -265,6 +320,39 @@ export default {
       allDataModelsWithAttrs: {},
       currentPlugin: "",
       plugins: [],
+      addRegistModal: false,
+      formValidate: {
+        name: "",
+        city: ""
+      },
+      ruleValidate: {
+        name: [
+          {
+            required: true,
+            message: "The name cannot be empty",
+            trigger: "blur"
+          }
+        ],
+        city: [
+          {
+            required: true,
+            message: "Please select the source",
+            trigger: "change"
+          }
+        ]
+      },
+      cityList: [
+        {
+          value: "New York",
+          label: "New York"
+        },
+        {
+          value: "London",
+          label: "London"
+        }
+      ],
+      model1: "",
+      registName: "",
       allEntityType: [],
       selectedEntityType: "",
       form: {},
@@ -346,6 +434,10 @@ export default {
           this.getAllPluginByPkgId();
         }
       }
+    },
+    async deletePlugin() {},
+    addRegistMsg() {
+      this.addRegistModal = true;
     },
     async removePlugin() {
       const { data, status, message } = await deletePlugin(
