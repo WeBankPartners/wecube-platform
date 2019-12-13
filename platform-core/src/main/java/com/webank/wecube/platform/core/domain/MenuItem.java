@@ -91,9 +91,9 @@ public class MenuItem {
             this.id = this.id.replaceAll("\\s+", "_");
         }
     }
-    @JsonIgnore
-    @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RoleMenu> assignedRoles = new ArrayList<>();
+//    @JsonIgnore
+//    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<RoleMenu> assignedRoles = new ArrayList<>();
 
     public MenuItem() {
         this(null);
@@ -110,7 +110,7 @@ public class MenuItem {
         this.source = source;
         this.description = description;
         this.menuOrder = menuOrder;
-        this.assignedRoles = assignedRoles;
+//        this.assignedRoles = assignedRoles;
     }
 
     public MenuItem(String id) {
@@ -165,13 +165,13 @@ public class MenuItem {
         this.menuOrder = menuOrder;
     }
 
-    public List<RoleMenu> getAssignedRoles() {
-        return assignedRoles;
-    }
-
-    public void setAssignedRoles(List<RoleMenu> assignedRoles) {
-        this.assignedRoles = assignedRoles;
-    }
+//    public List<RoleMenu> getAssignedRoles() {
+//        return assignedRoles;
+//    }
+//
+//    public void setAssignedRoles(List<RoleMenu> assignedRoles) {
+//        this.assignedRoles = assignedRoles;
+//    }
 
     @Override
     public boolean equals(Object o) {
