@@ -16,8 +16,8 @@ public interface MenuItemRepository extends CrudRepository<MenuItem, String> {
 
     Boolean existsByCode(String code);
 
-    @Query("SELECT DISTINCT menu FROM MenuItem menu JOIN menu.assignedRoles role WHERE role.roleId IN :roleIds")
-    List<MenuItem> findMenuItemsByRoles(Integer... roleIds);
+//    @Query("SELECT DISTINCT menu FROM MenuItem menu JOIN menu.assignedRoles role WHERE role.roleId IN :roleIds")
+//    List<MenuItem> findMenuItemsByRoles(Integer... roleIds);
 
 
 }

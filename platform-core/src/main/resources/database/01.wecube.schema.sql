@@ -77,7 +77,6 @@ create table system_variables (
   default_value varchar(2000) null,
   scope_type varchar(50) not null default 'global',
   scope_value varchar(500) null,
-  seq_no INTEGER null default 0,
   status varchar(50) null default 'active',
   index idx_prop_scope_val (plugin_package_id)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
