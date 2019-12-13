@@ -33,7 +33,8 @@ public class PluginConfigController {
 
     @GetMapping("/plugins/interfaces/entity/{entity-id}/enabled")
     @ResponseBody
-    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntity(@PathVariable(value = "entity-id") String entityId) {
+    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntity(
+            @PathVariable(value = "entity-id") String entityId) {
         return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(entityId));
     }
 
@@ -58,9 +59,13 @@ public class PluginConfigController {
 
     @DeleteMapping("/plugins/configs/{plugin-config-id:.+}")
     @ResponseBody
-    public JsonResponse deletePluginConfigByConfigId(
-            @PathVariable(value = "plugin-config-id") String pluginConfigId) {
-        pluginConfigService.deletePluginConfigById(pluginConfigId);
+    public JsonResponse deletePluginConfigByConfigId(@PathVariable(value = "plugin-config-id") String pluginConfigId) {
+        try {
+            pluginConfigService.deletePluginConfigById(pluginConfigId);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return JsonResponse.error(e.getMessage());
+        }
         return okay();
     }
 
