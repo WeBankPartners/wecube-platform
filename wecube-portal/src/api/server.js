@@ -642,3 +642,7 @@ export const getMenusByUserName = name =>
 export const getMenusByRoleId = id => req.get(`platform/v1/roles/${id}/menus`);
 export const updateRoleToMenusByRoleId = (roleId, data) =>
   req.post(`platform/v1/roles/${roleId}/menus`, data);
+export const getFilteredPluginInterfaceList = (packageName, entityName) =>
+  req.get(
+    `/platform/v1/plugins/interfaces/package/${packageName}/entity/${entityName}/enabled`
+  );
