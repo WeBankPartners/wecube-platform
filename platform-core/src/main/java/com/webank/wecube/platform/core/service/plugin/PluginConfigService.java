@@ -238,4 +238,12 @@ public class PluginConfigService {
         }
         return pluginConfigInterfaceDtos;
     }
+    
+    public void deletePluginConfigById(String configId) {
+        if (pluginConfigRepository.existsById(configId)) {
+            pluginConfigRepository.deleteById(configId);
+        } else {
+            throw new WecubeCoreException(String.format("Can not found PluginConfig[%s]", configId));
+        }
+    }
 }
