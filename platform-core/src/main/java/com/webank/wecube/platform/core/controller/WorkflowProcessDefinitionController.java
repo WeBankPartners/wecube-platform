@@ -1,7 +1,10 @@
 package com.webank.wecube.platform.core.controller;
 
 import java.util.List;
+import java.util.Map;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +34,12 @@ public class WorkflowProcessDefinitionController {
 
     @Autowired
     private WorkflowProcDefService procDefService;
-    
+
     @Autowired
     private WorkflowDataService workflowDataService;
+
+    @Autowired
+    private ProcessRoleServiceImpl processRoleService;
 
     @PostMapping("/process/definitions/deploy")
     public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
@@ -66,9 +72,9 @@ public class WorkflowProcessDefinitionController {
         List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef);
         return CommonResponseDto.okayWithData(result);
     }
-    
+
     @DeleteMapping("/process/definitions/{proc-def-id}")
-    public CommonResponseDto removeProcessDefinition(@PathVariable("proc-def-id")String procDefId){
+    public CommonResponseDto removeProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
         procDefService.removeProcessDefinition(procDefId);
         return CommonResponseDto.okay();
     }
@@ -94,15 +100,33 @@ public class WorkflowProcessDefinitionController {
 
     @GetMapping("/process/definitions/{proc-def-id}/tasknodes/{node-def-id}")
     public CommonResponseDto getTaskNodeParameters(@PathVariable("proc-def-id") String procDefId,
-            @PathVariable("node-def-id") String nodeDefId) {
-        List<InterfaceParameterDto> result = workflowDataService.getTaskNodeParameters(procDefId,nodeDefId);
+                                                   @PathVariable("node-def-id") String nodeDefId) {
+        List<InterfaceParameterDto> result = workflowDataService.getTaskNodeParameters(procDefId, nodeDefId);
         return CommonResponseDto.okayWithData(result);
     }
-    
+
     @GetMapping("/process/definitions/{proc-def-id}/preview/entities/{entity-data-id}")
-    public CommonResponseDto getProcessDataPreview(@PathVariable("proc-def-id") String procDefId, @PathVariable("entity-data-id") String dataId){
+    public CommonResponseDto getProcessDataPreview(@PathVariable("proc-def-id") String procDefId, @PathVariable("entity-data-id") String dataId) {
         List<GraphNodeDto> result = workflowDataService.getProcessDataPreview(procDefId, dataId);
         return CommonResponseDto.okayWithData(result);
+    }
+
+    @GetMapping("/process/{proc-id}/roles")
+    public CommonResponseDto retrieveProcRoleBinding(@PathVariable("proc-id") String procId) {
+        try {
+            return CommonResponseDto.okayWithData(processRoleService.retrieveRoleIdByProcId(procId));
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
+        }
+    }
+
+    @PostMapping("/process/{proc-id}/roles")
+    public CommonResponseDto updateProcRoleBinding(@PathVariable("proc-id") String procId, @RequestBody Map<String, List<Long>> permissionRoleMap) {
+        try {
+            return CommonResponseDto.okayWithData(processRoleService.updateProcRoleBinding(procId, permissionRoleMap));
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
+        }
     }
 
 }
