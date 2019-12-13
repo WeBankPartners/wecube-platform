@@ -9,7 +9,7 @@ public class ProcRoleDto {
     private String id;
     private String processId;
     private String permission;
-    private String roleId;
+    private Long roleId;
 
     public static ProcRoleDto fromDomain(ProcRoleBindingEntity procRoleBindingEntity) {
         ProcRoleDto result = new ProcRoleDto();
@@ -44,11 +44,11 @@ public class ProcRoleDto {
         this.permission = permission;
     }
 
-    public String getRoleId() {
+    public Long getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(String roleId) {
+    public void setRoleId(Long roleId) {
         this.roleId = roleId;
     }
 }
