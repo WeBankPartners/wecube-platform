@@ -2,7 +2,9 @@ package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,16 +14,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
+import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecParamDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
@@ -69,8 +69,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     @Autowired
     protected TaskNodeExecRequestRepository taskNodeExecRequestRepository;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-
     public TaskNodeExecContextDto getTaskNodeContextInfo(Integer procInstId, Integer nodeInstId) {
         Optional<TaskNodeInstInfoEntity> nodeEntityOpt = taskNodeInstInfoRepository.findById(nodeInstId);
         if (!nodeEntityOpt.isPresent()) {
@@ -93,48 +91,69 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             return result;
         }
 
+        result.setRequestId(requestEntity.getRequestId());
+
         List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
                 requestEntity.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
-
-        result.setRequestData(marshalRequestData(requestParamEntities));
 
         List<TaskNodeExecParamEntity> responseParamEntities = taskNodeExecParamRepository
                 .findAllByRequestIdAndParamType(requestEntity.getRequestId(),
                         TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
 
-        result.setResponseData(marshalRequestData(responseParamEntities));
+        List<RequestObjectDto> requestObjects = calculateRequestObjectDtos(requestParamEntities, responseParamEntities);
+
+        requestObjects.forEach(result::addRequestObjects);
 
         return result;
     }
 
-    private String marshalRequestData(List<TaskNodeExecParamEntity> paramEntities) {
-        List<TaskNodeExecParamDto> params = new ArrayList<>();
-        if (paramEntities != null) {
-            paramEntities.forEach(m -> {
-                TaskNodeExecParamDto d = new TaskNodeExecParamDto();
-                d.setEntityDataId(m.getEntityDataId());
-                d.setEntityTypeId(m.getEntityTypeId());
-                d.setId(m.getId());
-                d.setObjectId(m.getObjectId());
-                d.setParamDataType(m.getParamDataType());
-                d.setParamDataValue(m.getParamDataValue());
-                d.setParamName(m.getParamName());
-                d.setParamType(m.getParamType());
-                d.setRequestId(m.getRequestId());
-
-                params.add(d);
-            });
+    private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
+            List<TaskNodeExecParamEntity> responseParamEntities) {
+        List<RequestObjectDto> requestObjects = new ArrayList<>();
+        
+        if(requestParamEntities == null){
+            return requestObjects;
+        }
+        
+        Map<String, Map<String,String>> respParamsByObjectId = new HashMap<String,Map<String,String>>();
+        if(responseParamEntities != null){
+            for(TaskNodeExecParamEntity respParamEntity : responseParamEntities){
+                Map<String, String> respParamsMap = respParamsByObjectId.get(respParamEntity.getObjectId());
+                if(respParamsMap == null){
+                    respParamsMap = new HashMap<String,String>();
+                    respParamsByObjectId.put(respParamEntity.getObjectId(), respParamsMap);
+                }
+                
+                respParamsMap.put(respParamEntity.getParamName(), respParamEntity.getParamDataValue());
+            }
+        }
+        
+        Map<String,RequestObjectDto> objs = new HashMap<>();
+        for(TaskNodeExecParamEntity rp : requestParamEntities){
+            RequestObjectDto ro = objs.get(rp.getObjectId());
+            if(ro == null){
+                ro = new RequestObjectDto();
+                objs.put(rp.getObjectId(), ro);
+            }
+            
+            ro.addInput(rp.getParamName(), rp.getParamDataValue());
+        }
+        
+        for(String objectId : objs.keySet()){
+            RequestObjectDto obj = objs.get(objectId);
+            Map<String, String> respParamsMap = respParamsByObjectId.get(objectId);
+            if(respParamsMap != null){
+                respParamsMap.forEach((k,v) -> {
+                    obj.addOutput(k, v);
+                });
+            }
+            
+            requestObjects.add(obj);
         }
 
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(params);
-        } catch (JsonProcessingException e) {
-            log.error("errors while marshal", e);
-            json = "";
-        }
-        return json;
+        return requestObjects;
     }
+
 
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindings(Integer procInstId) {
         Optional<ProcInstInfoEntity> procInstEntityOpt = procInstInfoRepository.findById(procInstId);
