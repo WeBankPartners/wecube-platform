@@ -16,6 +16,5 @@ public interface ProcessRoleService {
 
     List<ProcRoleDto> retrieveProcessByRoleIdList(List<Long> roleIdList, ProcRoleBindingEntity.permissionEnum permissionEnum);
 
-    void deleteByProcId(String procId);
-
+    void deleteProcRoleBinding(String procId, Long roleId, String permission);
 }
