@@ -9,13 +9,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * @author howechen
+ */
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class ProcessRoleServiceImpl implements ProcessRoleService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private ProcRoleBindingRepository procRoleBindingRepository;
@@ -46,6 +49,32 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         return result;
     }
 
+    public static ProcRoleBindingEntity.permissionEnum transferPermissionStrToEnum(String permissionStr) throws WecubeCoreException {
+        ProcRoleBindingEntity.permissionEnum permissionEnum;
+        try {
+            permissionEnum = ProcRoleBindingEntity.permissionEnum.valueOf(ProcRoleBindingEntity.permissionEnum.class,
+                    Objects.requireNonNull(permissionStr, "Permission string cannot be NULL"));
+        } catch (IllegalArgumentException ex) {
+            String msg = String.format("The given permission string [%s] doesn't match platform-core's match cases.", permissionStr);
+            throw new WecubeCoreException(msg);
+        }
+        return permissionEnum;
+    }
+
+
+    @Override
+    public List<ProcRoleDto> retrieveProcessByRoleIdList(List<Long> roleIdList, ProcRoleBindingEntity.permissionEnum permissionEnum) {
+        List<ProcRoleDto> result = new ArrayList<>();
+        for (Long roleId : roleIdList) {
+            logger.info(String.format("Finding process to role binding infomation from roleId: [%s] and permission: [%s]", roleId, permissionEnum.toString()));
+            List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleIdAndPermission(roleId, permissionEnum);
+            for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
+                result.add(ProcRoleDto.fromDomain(procRoleBindingEntity));
+            }
+        }
+        return result;
+    }
+
     @Override
     public List<ProcRoleDto> updateProcRoleBinding(String procId, Map<String, List<Long>> permissionRoleMap) throws WecubeCoreException {
         List<ProcRoleBindingEntity> allByProcId = this.procRoleBindingRepository.findAllByProcId(procId);
@@ -69,13 +98,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         List<Long> mgmtRoleIdList = new ArrayList<>();
         List<Long> useRoleIdList = new ArrayList<>();
         permissionRoleMap.forEach((permissionStr, roleIdList) -> {
-            ProcRoleBindingEntity.permissionEnum permissionEnum;
-            try {
-                permissionEnum = ProcRoleBindingEntity.permissionEnum.valueOf(ProcRoleBindingEntity.permissionEnum.class, permissionStr);
-            } catch (IllegalArgumentException | NullPointerException ex) {
-                String msg = String.format("The given permission value [%s] doesn't match platform-core's match cases.", permissionStr);
-                throw new WecubeCoreException(msg);
-            }
+            ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
             switch (permissionEnum) {
                 case MGMT:
                     mgmtRoleIdList.addAll(roleIdList);
@@ -102,28 +125,34 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         return result;
     }
 
-
     @Override
-    public List<ProcRoleDto> retrieveProcessByRoleIdList(List<Long> roleIdList, ProcRoleBindingEntity.permissionEnum permissionEnum) {
-        List<ProcRoleDto> result = new ArrayList<>();
-        for (Long roleId : roleIdList) {
-            logger.info(String.format("Finding process to role binding infomation from roleId: [%s] and permission: [%s]", roleId, permissionEnum.toString()));
-            List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleIdAndPermission(roleId, permissionEnum);
-            for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
-                result.add(ProcRoleDto.fromDomain(procRoleBindingEntity));
-            }
+    public void deleteProcRoleBinding(String procId, Long roleId, String permission) throws WecubeCoreException {
+        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permission);
+
+        if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum)) {
+            Optional<List<ProcRoleBindingEntity>> foundMgmtData = this.procRoleBindingRepository.findByProcIdAndPermission(procId, permissionEnum);
+            foundMgmtData.ifPresent(procRoleBindingEntities -> {
+                if (procRoleBindingEntities.size() <= 1) {
+                    String msg = "The process's management permission should have at least one role.";
+                    logger.info(String.format("The DELETE management roles operation was blocked, the process id is [%s].", procId));
+                    throw new WecubeCoreException(msg);
+                }
+            });
         }
-        return result;
-    }
 
-    @Override
-    public void deleteByProcId(String procId) {
-        this.procRoleBindingRepository.deleteByProcId(procId);
+        Optional<ProcRoleBindingEntity> foundData = this.procRoleBindingRepository.findByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
+        foundData.ifPresent(procRoleBindingEntity -> this.procRoleBindingRepository.delete(procRoleBindingEntity));
     }
 
     private List<ProcRoleBindingEntity> updateData(List<ProcRoleBindingEntity> dataList, List<Long> roleIdList) {
         ProcRoleBindingEntity.permissionEnum permission = dataList.get(0).getPermission();
         String procId = dataList.get(0).getProcId();
+
+        if (permission.equals(ProcRoleBindingEntity.permissionEnum.MGMT) && roleIdList.isEmpty()) {
+            String msg = "The process's management permission should have at least one role.";
+            logger.info(String.format("The DELETE management roles operation was blocked, the process id is [%s].", procId));
+            throw new WecubeCoreException(msg);
+        }
 
         List<ProcRoleBindingEntity> result = new ArrayList<>();
         // current menuCodeList - new menuCodeList = needToDeleteList
