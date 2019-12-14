@@ -9,6 +9,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "CORE_RU_PROC_ROLE_BINDING")
+@EntityListeners(value = ProcRoleBindingEntityListener.class)
 public class ProcRoleBindingEntity {
     @Id
     @Column(name = "id")
@@ -21,14 +22,6 @@ public class ProcRoleBindingEntity {
     @Column(name = "role_id")
     private Long roleId;
 
-    @PrePersist
-    public void initEntity() {
-        if (null == this.id || "".equals(this.id.trim())) {
-            this.id = this.procId
-                    + Constants.KEY_COLUMN_DELIMITER
-                    + this.roleId;
-        }
-    }
 
     public ProcRoleBindingEntity() {
     }
@@ -84,5 +77,15 @@ public class ProcRoleBindingEntity {
          * Use a process only
          */
         USE
+    }
+
+}
+
+class ProcRoleBindingEntityListener {
+    @PrePersist
+    @PreUpdate
+    public void prePersistAndUpdate(ProcRoleBindingEntity entity) {
+        String id = entity.getProcId() + Constants.KEY_COLUMN_DELIMITER + entity.getRoleId();
+        entity.setId(id);
     }
 }
