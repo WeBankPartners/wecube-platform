@@ -129,4 +129,16 @@ public class WorkflowProcessDefinitionController {
         }
     }
 
+    @DeleteMapping("/process/{proc-id}/roles/{role-id}")
+    public CommonResponseDto deleteProcRoleBinding(@PathVariable("proc-id") String procId,
+                                                   @PathVariable("role-id") Long roleId,
+                                                   @RequestParam(value = "permission") String permission) {
+        try {
+            processRoleService.deleteProcRoleBinding(procId, roleId, permission);
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
+        }
+        return CommonResponseDto.okay();
+    }
+
 }
