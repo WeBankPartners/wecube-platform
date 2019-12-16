@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -56,13 +57,13 @@ import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepositor
 public class WorkflowEngineService {
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowEngineService.class);
-    
+
     public static final int SERVICE_TASK_EXECUTE_SUCC = 0;
     public static final int SERVICE_TASK_EXECUTE_ERR = 1;
-    
+
     public static final String PROCEED_ACT_RETRY = "retry";
     public static final String PROCEED_ACT_SKIP = "skip";
-    
+
     public static final String PREFIX_EXCEPT_SUB_USER_TASK = "exceptSubUT-";
 
     private static final String BPMN_SUFFIX = ".bpmn20.xml";
@@ -74,10 +75,10 @@ public class WorkflowEngineService {
 
     @Autowired
     protected RuntimeService runtimeService;
-    
+
     @Autowired
     protected HistoryService historyService;
-    
+
     @Autowired
     protected ManagementService managementService;
 
@@ -86,37 +87,41 @@ public class WorkflowEngineService {
 
     @Autowired
     protected ServiceNodeStatusRepository serviceNodeStatusRepository;
-    
+
     @Autowired
     protected TaskService taskService;
-    
-    public String getTaskNodeStatus(String procInstanceId, String nodeId){
+
+    private List<String> statelessNodeTypes = Arrays.asList("startEvent", "endEvent", "exclusiveGateway",
+            "parallelGateway");
+
+    public String getTaskNodeStatus(String procInstanceId, String nodeId) {
         ServiceNodeStatusEntity nodeStatusEntity = serviceNodeStatusRepository
                 .findOneByProcInstanceIdAndNodeId(procInstanceId, nodeId);
-        
-        if(nodeStatusEntity == null){
+
+        if (nodeStatusEntity == null) {
             return null;
         }
-        
-        if(nodeStatusEntity.getStatus() == null){
+
+        if (nodeStatusEntity.getStatus() == null) {
             return null;
         }
-        
+
         return nodeStatusEntity.getStatus().name();
     }
-    
-    public void proceedProcessInstance(String procInstanceId, String nodeId, String userAction){
+
+    public void proceedProcessInstance(String procInstanceId, String nodeId, String userAction) {
         String instanceId = procInstanceId;
-        String taskDefKey = PREFIX_EXCEPT_SUB_USER_TASK+nodeId;
-        
-        String act = StringUtils.isBlank(userAction)? PROCEED_ACT_RETRY : userAction;
-        
-        if( !(PROCEED_ACT_RETRY.equals(act) || PROCEED_ACT_SKIP.equals(act))){
-            log.error("invalid action met for {} {} {}", procInstanceId,  nodeId,  userAction);
+        String taskDefKey = PREFIX_EXCEPT_SUB_USER_TASK + nodeId;
+
+        String act = StringUtils.isBlank(userAction) ? PROCEED_ACT_RETRY : userAction;
+
+        if (!(PROCEED_ACT_RETRY.equals(act) || PROCEED_ACT_SKIP.equals(act))) {
+            log.error("invalid action met for {} {} {}", procInstanceId, nodeId, userAction);
             throw new IllegalArgumentException(String.format("action {%s} is invalid.", userAction));
         }
 
-        Task task = taskService.createTaskQuery().processInstanceId(instanceId).active().taskDefinitionKey(taskDefKey).singleResult();
+        Task task = taskService.createTaskQuery().processInstanceId(instanceId).active().taskDefinitionKey(taskDefKey)
+                .singleResult();
 
         if (task == null) {
             log.error("cannot find task with instanceId {} and taskId {}", instanceId, taskDefKey);
@@ -132,24 +137,23 @@ public class WorkflowEngineService {
             taskService.complete(task.getId(), variables);
         }
     }
-    
-    public void handleServiceInvocationResult(ServiceInvocationEvent event){
-        
+
+    public void handleServiceInvocationResult(ServiceInvocationEvent event) {
+
         String procInstId = event.getInstanceId();
         String procInstKey = event.getBusinessKey();
         String executionId = event.getExecutionId();
-        
+
         int resultCode = event.getResult();
-        
+
         boolean successful = (resultCode == 0);
-        
+
         ProcessInstance instance = null;
 
         int repeatTimes = 6;
 
         while (repeatTimes > 0) {
-            instance = runtimeService.createProcessInstanceQuery().processInstanceId(procInstId)
-                    .singleResult();
+            instance = runtimeService.createProcessInstanceQuery().processInstanceId(procInstId).singleResult();
             if (instance != null) {
                 break;
             }
@@ -204,7 +208,8 @@ public class WorkflowEngineService {
         Map<String, Object> boundVariables = new HashMap<String, Object>();
 
         boundVariables.put(WorkflowConstants.VAR_KEY_SERVICE_OK, successful);
-        log.info("delivered signal event for {} {} {}", eventName, signalEventSubscription.getExecutionId(), successful);
+        log.info("delivered signal event for {} {} {}", eventName, signalEventSubscription.getExecutionId(),
+                successful);
 
         runtimeService.createSignalEvent(eventName).executionId(signalEventSubscription.getExecutionId())
                 .setVariables(boundVariables).send();
@@ -217,8 +222,8 @@ public class WorkflowEngineService {
 
         ProcessInstanceStatusEntity procInstStatusEntity = processInstanceStatusRepository
                 .findOneByprocInstanceId(procInstId);
-        
-        if(procInstStatusEntity == null){
+
+        if (procInstStatusEntity == null) {
             log.error("cannot find such process instance record with procInstId={}", procInstId);
             throw new WecubeCoreException("Such process instance record does not exist.");
         }
@@ -273,29 +278,46 @@ public class WorkflowEngineService {
 
     protected void refreshFlowNodeStatus(ProcInstOutline outline) {
         for (ProcFlowNodeInst n : outline.getNodeInsts()) {
-            if (n.getStatus() != null) {
+            String nodeType = n.getNodeType();
+
+            if (!statelessNodeTypes.contains(nodeType)) {
                 continue;
             }
 
             String nodeStatus = null;
+            boolean isAllPreviousFlowNodesCompleted = true;
 
             for (ProcFlowNode child : n.getPreviousFlowNodes()) {
                 ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
                 if (!TraceStatus.Completed.name().equals(fi.getStatus())) {
-                    nodeStatus = TraceStatus.NotStarted.name();
+                    isAllPreviousFlowNodesCompleted = false;
                     break;
                 }
             }
 
-            for (ProcFlowNode child : n.getSucceedingFlowNodes()) {
-                ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
-                if (!TraceStatus.NotStarted.name().equals(fi.getStatus())) {
+            if (isAllPreviousFlowNodesCompleted) {
+                nodeStatus = TraceStatus.Completed.name();
+            } else {
+                nodeStatus = TraceStatus.NotStarted.name();
+            }
+
+            if (!TraceStatus.Completed.name().equals(nodeStatus)) {
+                boolean isOneSucceedingFlowNodeStarted = false;
+
+                for (ProcFlowNode child : n.getSucceedingFlowNodes()) {
+                    ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
+                    if (fi.getStatus() != null && !TraceStatus.NotStarted.name().equals(fi.getStatus())) {
+                        isOneSucceedingFlowNodeStarted = true;
+                        break;
+                    }
+                }
+                
+                if(isOneSucceedingFlowNodeStarted){
                     nodeStatus = TraceStatus.Completed.name();
-                    break;
                 }
             }
-            
-            if(nodeStatus == null){
+
+            if (nodeStatus == null) {
                 Collection<HistoricActivityInstance> activities = historyService.createHistoricActivityInstanceQuery()
                         .processDefinitionId(outline.getProcDefKernelId()).processInstanceId(outline.getId())
                         .activityId(n.getId()).finished().list();
@@ -309,8 +331,8 @@ public class WorkflowEngineService {
                     nodeStatus = TraceStatus.Completed.name();
                 }
             }
-            
-            if(nodeStatus != null){
+
+            if (nodeStatus != null) {
                 n.setStatus(nodeStatus);
             }
 
