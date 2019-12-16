@@ -114,7 +114,9 @@ public class PluginConfigInterfaceParameterDto {
         PluginConfigInterfaceParameter parameter = new PluginConfigInterfaceParameter();
         parameter.setPluginConfigInterface(pluginConfigInterface);
 
-        parameter.setId(getId());
+        if (pluginConfigInterface.getPluginConfig().getId() != null) {
+            parameter.setId(getId());
+        }
         parameter.setName(getName());
         parameter.setType(type);
         parameter.setDataType(getDataType());
