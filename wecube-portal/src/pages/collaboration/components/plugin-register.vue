@@ -376,12 +376,15 @@ export default {
       const entityId = entitys.find(i => i.name === this.selectedEntityType).id;
       this.currentPluginObj.entityId = entityId;
       this.currentPluginObj.registerName = this.registerName;
+      let currentPluginForSave = JSON.parse(
+        JSON.stringify(this.currentPluginObj)
+      );
       if (this.hasNewSource) {
-        delete this.currentPluginObj.id;
+        delete currentPluginForSave.id;
       }
       this.hidePanal = false;
       const { data, status, message } = await savePluginConfig(
-        this.currentPluginObj
+        currentPluginForSave
       );
       if (status === "OK") {
         this.$Notice.success({
