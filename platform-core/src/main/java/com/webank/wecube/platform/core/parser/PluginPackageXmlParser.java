@@ -496,10 +496,4 @@ public class PluginPackageXmlParser {
                     String.format("Illegal character[%s] detected in %s[%s]", SEPARATOR_OF_NAMES, description, name));
         return name;
     }
-
-    public String createServiceName(String packageName, String pluginName, String registerName, String interfaceName) {
-        return packageName + SEPARATOR_OF_NAMES + pluginName
-                + (null != registerName ? LEFT_BRACKET_STRING + registerName + RIGHT_BRACKET_STRING : null)
-                + SEPARATOR_OF_NAMES + interfaceName;
-    }
 }
