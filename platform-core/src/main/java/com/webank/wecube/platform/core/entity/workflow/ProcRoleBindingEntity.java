@@ -79,7 +79,9 @@ class ProcRoleBindingEntityListener {
     @PrePersist
     @PreUpdate
     public void prePersistAndUpdate(ProcRoleBindingEntity entity) {
-        String id = entity.getProcId() + Constants.KEY_COLUMN_DELIMITER + entity.getRoleId();
+        String id = entity.getProcId()
+                + Constants.KEY_COLUMN_DELIMITER + entity.getRoleId()
+                + Constants.KEY_COLUMN_DELIMITER + entity.getPermission().toString();
         entity.setId(id);
     }
 }
