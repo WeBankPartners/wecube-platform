@@ -15,12 +15,16 @@ public interface ProcDefInfoRepository extends JpaRepository<ProcDefInfoEntity, 
     List<ProcDefInfoEntity> findAllDeployedOrDraftProcDefs();
 
     @Query("select t from ProcDefInfoEntity t "
-            + " where t.active = true and t.id=:procId and(t.status = 'deployed' or t.status = 'draft')")
-    List<ProcDefInfoEntity> findAllDeployedOrDraftProcDefsById(@Param("procId") String procId);
+            + " where t.id=:procId and t.active = true and (t.status = 'deployed' or t.status = 'draft') and t.status <> 'deleted'")
+    ProcDefInfoEntity findAllDeployedOrDraftProcDefsByProcId(@Param("procId") String procId);
 
     @Query("select t from ProcDefInfoEntity t "
             + " where t.active = true and t.status = 'deployed' ")
     List<ProcDefInfoEntity> findAllDeployedProcDefs();
+
+    @Query("select t from ProcDefInfoEntity t "
+            + " where t.id=:procId and t.active = true and t.status = 'deployed' and t.status <> 'deleted' ")
+    ProcDefInfoEntity findAllDeployedProcDefsByProcId(@Param("procId") String procId);
 
 //    @Transactional
 //    @Modifying
