@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -20,6 +21,9 @@ import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.SystemUtils;
+
+import javassist.expr.NewArray;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -462,14 +466,37 @@ public class PluginPackageService {
         return (new PluginPackageRuntimeResouceDto(dockerSet, mysqlSet, s3Set));
     }
 
-    public Set<PluginConfig> getPluginsById(String packageId) {
-        PluginPackage packageFoundById = getPackageById(packageId);
-        Set<PluginConfig> pluginConfigs = packageFoundById.getPluginConfigs();
-        // TODO: need to optimize
-        return pluginConfigs
-                .stream()
-                .sorted(Comparator.comparing(PluginConfig::getName))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+    public List<PluginConfigGroupByNameDto> getPluginsById(String packageId) {
+        List<PluginConfigGroupByNameDto> pluginConfigGroupByNameDtos = new ArrayList<PluginConfigGroupByNameDto>();
+        List<PluginConfigDto> pluginConfigDtos = new ArrayList<PluginConfigDto>();
+        Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
+        if (!packageFoundById.isPresent()) {
+            return pluginConfigGroupByNameDtos;
+        }
+        Optional<List<PluginConfig>> configsOptional = pluginConfigRepository
+                .findByPluginPackage_idOrderByName(packageId);
+        if (!configsOptional.isPresent()) {
+            return pluginConfigGroupByNameDtos;
+        }
+        List<PluginConfig> configs = configsOptional.get();
+        if (null != configs && configs.size() > 0) {
+            configs.forEach(pluginConfig -> pluginConfigDtos.add(PluginConfigDto.fromDomain(pluginConfig)));
+        }
+
+        for (PluginConfigDto cfgDto : pluginConfigDtos) {
+            boolean continueFlag = false;
+            for (PluginConfigGroupByNameDto cfgGroupByName : pluginConfigGroupByNameDtos) {
+                if (cfgDto.getName().equals(cfgGroupByName.getPluginConfigName())) {
+                    cfgGroupByName.getPluginConfigDtoList().add(cfgDto);
+                    continueFlag = true;
+                }
+            }
+            if (continueFlag)
+                continue;
+            pluginConfigGroupByNameDtos
+                    .add(new PluginConfigGroupByNameDto(cfgDto.getName(), Lists.newArrayList(cfgDto)));
+        }
+        return pluginConfigGroupByNameDtos;
     }
 
     public List<MenuItemDto> getAllSysMenus() {
