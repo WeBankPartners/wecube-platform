@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
+import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
 
 @RestController
 @RequestMapping("/v1")
@@ -32,7 +33,8 @@ public class PluginConfigController {
 
     @GetMapping("/plugins/interfaces/entity/{entity-id}/enabled")
     @ResponseBody
-    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntity(@PathVariable(value = "entity-id") String entityId) {
+    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntity(
+            @PathVariable(value = "entity-id") String entityId) {
         return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(entityId));
     }
 
@@ -52,6 +54,25 @@ public class PluginConfigController {
     @ResponseBody
     public JsonResponse disablePlugin(@PathVariable(value = "plugin-config-id") String pluginConfigId) {
         return okayWithData(pluginConfigService.disablePlugin(pluginConfigId));
+    }
+
+    @GetMapping("/plugins/interfaces/{plugin-config-id:.+}")
+    @ResponseBody
+    public JsonResponse queryPluginConfigInterfaceByConfigId(
+            @PathVariable(value = "plugin-config-id") String pluginConfigId) {
+        return okayWithData(pluginConfigService.queryPluginConfigInterfaceByConfigId(pluginConfigId));
+    }
+
+    @DeleteMapping("/plugins/configs/{plugin-config-id:.+}")
+    @ResponseBody
+    public JsonResponse deletePluginConfigByConfigId(@PathVariable(value = "plugin-config-id") String pluginConfigId) {
+        try {
+            pluginConfigService.deletePluginConfigById(pluginConfigId);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return JsonResponse.error(e.getMessage());
+        }
+        return okay();
     }
 
 }
