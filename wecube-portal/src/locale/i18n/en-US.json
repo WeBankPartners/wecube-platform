@@ -328,5 +328,7 @@
   "password": "Password",
   "password_cannot_empty": "Password Cannot Empty",
   "display_name": "Display Name",
-  "menus": "Menu"
+  "menus": "Menu",
+  "input": "Input",
+  "output": "Output"
 }
