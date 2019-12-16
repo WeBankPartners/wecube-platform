@@ -8,7 +8,7 @@ import javax.persistence.*;
  * @author howechen
  */
 @Entity
-@Table(name = "CORE_RU_PROC_ROLE_BINDING")
+@Table(name = "core_ru_proc_role_binding")
 @EntityListeners(value = ProcRoleBindingEntityListener.class)
 public class ProcRoleBindingEntity {
     @Id
