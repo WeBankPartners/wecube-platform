@@ -155,4 +155,14 @@ public class PluginConfigXmlValidatorTest {
         }
     }
 
+    @Test
+    public void parseXmlWithRegisterNameShouldSuccess() {
+        try {
+            validator.validate("/plugin/register-with-register-name.xml");
+            assertTrue(true);
+        } catch (WecubeCoreException e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
 }
