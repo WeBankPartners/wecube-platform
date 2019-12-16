@@ -20,6 +20,15 @@ public class ProcRoleDto {
         return result;
     }
 
+    public static ProcRoleBindingEntity toDomain(String procId, Long roleId, ProcRoleBindingEntity.permissionEnum permissionEnum) {
+        ProcRoleBindingEntity result = new ProcRoleBindingEntity();
+        result.setProcId(procId);
+        result.setRoleId(roleId);
+        result.setPermission(permissionEnum);
+        return result;
+
+    }
+
     public String getId() {
         return id;
     }
