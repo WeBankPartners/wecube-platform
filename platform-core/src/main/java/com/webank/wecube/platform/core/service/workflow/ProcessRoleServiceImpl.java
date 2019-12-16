@@ -37,7 +37,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         ProcRoleBindingEntity.permissionEnum permissionEnum;
         try {
             permissionEnum = ProcRoleBindingEntity.permissionEnum.valueOf(ProcRoleBindingEntity.permissionEnum.class,
-                    Objects.requireNonNull(permissionStr, "Permission string cannot be NULL"));
+                    Objects.requireNonNull(permissionStr, "Permission string cannot be NULL").toUpperCase());
         } catch (IllegalArgumentException ex) {
             String msg = String.format("The given permission string [%s] doesn't match platform-core's match cases.", permissionStr);
             throw new WecubeCoreException(msg);
