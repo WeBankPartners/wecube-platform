@@ -163,9 +163,11 @@ html {
 .ivu-table-fixed-body {
   height: auto !important;
 }
-.ivu-notice-icon {
-  .ivu-icon {
-    font-size: 30px;
+.ivu-notice-notice-with-desc {
+  .ivu-notice-icon {
+    .ivu-icon {
+      font-size: 30px;
+    }
   }
 }
 </style>
