@@ -456,7 +456,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 + " ,('wecmdb__v1.3', 'wecmdb', 'v1.3', 'REGISTERED', 0)\n" + ";\n"
                 + "insert into plugin_configs (id, plugin_package_id, name, entity_id, entity_name, status) values\n"
                 + " ('11', '1', 'task', 1, 'entity_1', 'ENABLED')\n"
-                + ",('12', '5', 'service_request', 'wecmdb__1__resource_set', 'resource_set', 'ENABLED')\n"
+                + ",('12', '5', 'service_request', null, '', 'ENABLED')\n"
                 + ",('21', '2', 'Vpc Management', 17, null, 'DISABLED')\n"
                 + ",('31', '3', 'Vpc Management', 16, null, 'DISABLED')\n"
                 + ",('32', '4', 'Vpc Management', 16, null, 'DISABLED')\n"
