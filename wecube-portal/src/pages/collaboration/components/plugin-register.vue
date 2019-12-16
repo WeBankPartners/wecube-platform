@@ -57,7 +57,10 @@
           <Col span="3" offset="0">
             <strong style="font-size:15px;">{{ $t("params_name") }}</strong>
           </Col>
-          <Col span="6" offset="1">
+          <Col span="3" offset="0">
+            <strong style="font-size:15px;">{{ $t("data_type") }}</strong>
+          </Col>
+          <Col span="4" offset="0">
             <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
           </Col>
           <Col span="3" offset="4">
@@ -104,7 +107,12 @@
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="13" offset="0">
+                  <Col span="3">
+                    <FormItem :label-width="0">
+                      <span>{{ param.dataType }}</span>
+                    </FormItem>
+                  </Col>
+                  <Col span="10" offset="0">
                     <FormItem :label-width="0">
                       <PathExp
                         v-if="param.mappingType === 'entity'"
@@ -163,7 +171,7 @@
                   <span>{{ $t("output_params") }}</span>
                 </FormItem>
               </Col>
-              <Col span="20" offset="0">
+              <Col span="21" offset="0">
                 <Row
                   v-for="outPut in interfaces['outputParameters']"
                   :key="outPut.id + 1000"
@@ -181,7 +189,12 @@
                       </Tooltip>
                     </FormItem>
                   </Col>
-                  <Col span="14" offset="1">
+                  <Col span="3" offset="1">
+                    <FormItem :label-width="0">
+                      <span>{{ outPut.dataType }}</span>
+                    </FormItem>
+                  </Col>
+                  <Col span="10" offset="0">
                     <FormItem :label-width="0">
                       <!-- <Select
                         v-if="outPut.mappingType === 'entity'"
