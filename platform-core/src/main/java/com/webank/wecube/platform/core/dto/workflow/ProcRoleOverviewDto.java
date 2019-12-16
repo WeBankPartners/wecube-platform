@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author howechen
  */
-public class ProcRoleResponseDto {
+public class ProcRoleOverviewDto {
     @JsonProperty(value = "processId")
     private String processId;
     @JsonProperty(value = "mgmt")
@@ -17,13 +17,13 @@ public class ProcRoleResponseDto {
     @JsonProperty(value = "use")
     private List<Long> useRoleIdList;
 
-    public ProcRoleResponseDto(String processId, List<Long> mgmtRoleIdList, List<Long> useRoleIdList) {
+    public ProcRoleOverviewDto(String processId, List<Long> mgmtRoleIdList, List<Long> useRoleIdList) {
         this.processId = processId;
         this.mgmtRoleIdList = mgmtRoleIdList;
         this.useRoleIdList = useRoleIdList;
     }
 
-    public ProcRoleResponseDto() {
+    public ProcRoleOverviewDto() {
         this.mgmtRoleIdList = new ArrayList<>();
         this.useRoleIdList = new ArrayList<>();
     }
