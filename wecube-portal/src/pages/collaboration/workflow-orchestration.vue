@@ -23,22 +23,6 @@
                   item.createdTime +
                   (item.status === "draft" ? "*" : "")
             }}
-            <Button
-              v-if="index === 0"
-              @click="createNewDiagram()"
-              icon="md-add"
-              type="success"
-              size="small"
-              style="width: 100%;"
-            ></Button>
-            <span v-else style="float:right">
-              <Button
-                @click.stop.prevent="deleteFlow(item.procDefId)"
-                icon="ios-trash"
-                type="error"
-                size="small"
-              ></Button>
-            </span>
           </Option>
         </Select>
       </Col>
