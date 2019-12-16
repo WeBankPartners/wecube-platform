@@ -389,8 +389,14 @@ public class PluginPackageXmlParser {
             pluginConfig.setPluginPackage(pluginPackage);
             pluginConfig.setStatus(DISABLED);
             pluginConfig.setName(getNonNullStringAttribute(pluginConfigNode, "./@name", "Plugin name"));
-            pluginConfig.setEntityName(getNonNullStringAttribute(pluginConfigNode, "./@entity", "Entity name"));
-
+            String entityName = getNonNullStringAttribute(pluginConfigNode, "./@entity", "Entity name");
+            if (StringUtils.isNotBlank(entityName)) {
+                pluginConfig.setEntityName(entityName);
+            }
+            String registerName = getNonNullStringAttribute(pluginConfigNode, "./@registerName", "Register name");
+            if (StringUtils.isNotBlank(registerName)) {
+                pluginConfig.setRegisterName(registerName);
+            }
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
                 pluginConfig.setInterfaces(
