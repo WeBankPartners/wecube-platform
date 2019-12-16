@@ -85,7 +85,10 @@
             <Col span="3" offset="0">
               <strong style="font-size:15px;">{{ $t("params_name") }}</strong>
             </Col>
-            <Col span="6" offset="1">
+            <Col span="3" offset="0">
+              <strong style="font-size:15px;">{{ $t("data_type") }}</strong>
+            </Col>
+            <Col span="3" offset="1">
               <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
             </Col>
             <Col span="3" offset="4">
@@ -134,7 +137,12 @@
                         </Tooltip>
                       </FormItem>
                     </Col>
-                    <Col span="13" offset="0">
+                    <Col span="3">
+                      <FormItem :label-width="0">
+                        <span>{{ param.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="10" offset="0">
                       <FormItem :label-width="0">
                         <PathExp
                           v-if="param.mappingType === 'entity'"
@@ -193,7 +201,7 @@
                     <span>{{ $t("output_params") }}</span>
                   </FormItem>
                 </Col>
-                <Col span="20" offset="0">
+                <Col span="21" offset="0">
                   <Row
                     v-for="outPut in interfaces['outputParameters']"
                     :key="outPut.id + 1000"
@@ -211,7 +219,12 @@
                         </Tooltip>
                       </FormItem>
                     </Col>
-                    <Col span="14" offset="1">
+                    <Col span="3" offset="1">
+                      <FormItem :label-width="0">
+                        <span>{{ outPut.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="10" offset="0">
                       <FormItem :label-width="0">
                         <!-- <Select
                           v-if="outPut.mappingType === 'entity'"
@@ -376,12 +389,15 @@ export default {
       const entityId = entitys.find(i => i.name === this.selectedEntityType).id;
       this.currentPluginObj.entityId = entityId;
       this.currentPluginObj.registerName = this.registerName;
+      let currentPluginForSave = JSON.parse(
+        JSON.stringify(this.currentPluginObj)
+      );
       if (this.hasNewSource) {
-        delete this.currentPluginObj.id;
+        delete currentPluginForSave.id;
       }
       this.hidePanal = false;
       const { data, status, message } = await savePluginConfig(
-        this.currentPluginObj
+        currentPluginForSave
       );
       if (status === "OK") {
         this.$Notice.success({
@@ -479,7 +495,9 @@ export default {
       let currentPluginData = this.plugins.find(
         plugin => plugin.pluginConfigName === val
       );
-      this.sourceList = currentPluginData.pluginConfigDtoList;
+      this.sourceList = currentPluginData
+        ? currentPluginData.pluginConfigDtoList
+        : [];
     },
     registSourceChange(v) {
       if (!v || v === "add") {

@@ -17,6 +17,7 @@
         placeholder="password"
         v-model="password"
         name="password"
+        @keyup.enter="login"
       /><br />
       <input type="button" value="Login" @click="login" />
     </div>

@@ -91,7 +91,7 @@
         </Card>
       </Row>
     </Col>
-    <Col span="17" offset="1" v-if="isShowConfigPanel">
+    <Col span="18" style="padding-left: 20px" v-if="isShowConfigPanel">
       <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
         <TabPane name="dependency" :label="$t('dependencies_analysis')">
           <DependencyAnalysis
@@ -141,7 +141,7 @@
         </TabPane>
       </Tabs>
     </Col>
-    <Col span="17" offset="1" v-if="isShowServicePanel">
+    <Col span="18" style="padding-left: 20px" v-if="isShowServicePanel">
       <Card dis-hover>
         <PluginRegister
           v-if="isShowServicePanel"
@@ -150,7 +150,11 @@
         ></PluginRegister>
       </Card>
     </Col>
-    <Col span="17" offset="1" v-if="isShowRuntimeManagementPanel">
+    <Col
+      span="18"
+      style="padding-left: 20px"
+      v-if="isShowRuntimeManagementPanel"
+    >
       <Spin size="large" fix v-if="isLoading">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t("loading") }}</div>
