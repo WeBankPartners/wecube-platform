@@ -24,7 +24,7 @@ public interface PluginConfigRepository extends CrudRepository<PluginConfig, Str
 
     Optional<List<PluginConfig>> findByStatus(Status status);
 
-    Optional<List<PluginConfig>> findByPluginPackage_id(String pluginPackageId);
+    Optional<List<PluginConfig>> findByPluginPackage_idOrderByName(String pluginPackageId);
 
     default Optional<PluginConfigInterface> findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(String serviceName) {
         List<PluginConfigInterface> onlineInterfaces = findAllPluginConfigInterfaceByServiceNameAndStatusAndFetchParameters(serviceName, ENABLED);
