@@ -21,14 +21,14 @@ import com.webank.wecube.platform.core.interceptor.AuthenticationRequestContextI
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-@Profile({ "default", "smoke", "uat", "prod", "dev" })
+@Profile({ "local" })
 @Configuration
 @EnableWebMvc
 @EnableSwagger2
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
 @ComponentScan({ "com.webank.wecube.platform.core.controller" })
-public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
+public class LocalSpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     @Autowired
     private AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
@@ -59,15 +59,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     protected void configureLocalAuthentication(HttpSecurity http) throws Exception {
         http.authorizeRequests() //
-                .antMatchers("/", "/index.html").permitAll() //
-                .antMatchers("/workflow/**").permitAll() //
-                .antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()//
-                .antMatchers("/webjars/**").permitAll() //
-                .antMatchers("/v2/api-docs").permitAll() //
-                .antMatchers("/csrf").permitAll() //
-                .antMatchers("/v1/route-items").permitAll() //
-                .antMatchers("/v1/route-items/**").permitAll() //
-                .anyRequest().authenticated() //
+                .antMatchers("/**").permitAll() //
                 .and()//
                 .addFilter(jwtSsoBasedAuthenticationFilter())//
                 .csrf()//
