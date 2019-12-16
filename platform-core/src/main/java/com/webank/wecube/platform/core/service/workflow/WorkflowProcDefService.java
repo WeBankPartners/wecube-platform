@@ -270,13 +270,15 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
         if (includeDraftProcDef) {
             for (ProcRoleDto procRoleDto : procRoleDtoList) {
-                String procId = procRoleDto.getId();
-                procDefEntities.add(processDefInfoRepo.findAllDeployedOrDraftProcDefsByProcId(procId));
+                String procId = procRoleDto.getProcessId();
+                Optional<ProcDefInfoEntity> processFoundById = processDefInfoRepo.findAllDeployedOrDraftProcDefsByProcId(procId);
+                processFoundById.ifPresent(procDefEntities::add);
             }
         } else {
             for (ProcRoleDto procRoleDto : procRoleDtoList) {
-                String procId = procRoleDto.getId();
-                procDefEntities.add(processDefInfoRepo.findAllDeployedProcDefsByProcId(procId));
+                String procId = procRoleDto.getProcessId();
+                Optional<ProcDefInfoEntity> processFoundById = processDefInfoRepo.findAllDeployedProcDefsByProcId(procId);
+                processFoundById.ifPresent(procDefEntities::add);
             }
         }
 
