@@ -45,6 +45,9 @@ public class PluginConfig {
     @Column
     private String entityName;
 
+    @Column
+    private String registerName;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
@@ -69,11 +72,13 @@ public class PluginConfig {
     @PrePersist
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER,
-                    null != pluginPackage ? pluginPackage.getName() : null,
+            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginPackage ? pluginPackage.getName() : null,
                     null != pluginPackage ? pluginPackage.getVersion() : null,
-                    StringUtils.isNoneBlank(entityName) ? name + KEY_COLUMN_DELIMITER + entityName : name
-            );
+                    StringUtils.isNoneBlank(entityName)
+                            ? name + KEY_COLUMN_DELIMITER + entityName
+                                    + (StringUtils.isNoneBlank(registerName) ? KEY_COLUMN_DELIMITER + registerName
+                                            : "")
+                            : name);
             this.id = this.id.replaceAll("\\s+", "_");
         }
     }
@@ -124,9 +129,7 @@ public class PluginConfig {
 
     public Set<PluginConfigInterface> getInterfaces() {
         // TODO: need to optimize
-        return interfaces
-                .stream()
-                .sorted(Comparator.comparing(PluginConfigInterface::getAction))
+        return interfaces.stream().sorted(Comparator.comparing(PluginConfigInterface::getAction))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -137,7 +140,8 @@ public class PluginConfig {
     public PluginConfig() {
     }
 
-    public PluginConfig(String id, PluginPackage pluginPackage, String name, String entityId, String entityName, Status status, Set<PluginConfigInterface> interfaces) {
+    public PluginConfig(String id, PluginPackage pluginPackage, String name, String entityId, String entityName,
+            Status status, Set<PluginConfigInterface> interfaces) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.name = name;
@@ -149,7 +153,15 @@ public class PluginConfig {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
+        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
+    }
+
+    public String getRegisterName() {
+        return registerName;
+    }
+
+    public void setRegisterName(String registerName) {
+        this.registerName = registerName;
     }
 
 }
