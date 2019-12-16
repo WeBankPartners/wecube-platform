@@ -148,9 +148,9 @@ public class PluginInstanceService {
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
-        Optional<PluginPackage> pkg = pluginPackageRepository.findLatestVersionByName(pluginName);
+        Optional<PluginPackage> pkg = pluginPackageRepository.findLatestActiveVersionByName(pluginName);
         if (!pkg.isPresent()) {
-            throw new WecubeCoreException(String.format("Plugin pacakge [%s] not found.", pluginName));
+            throw new WecubeCoreException(String.format("Plugin package [%s] not found.", pluginName));
         }
 
         List<PluginInstance> instances = pluginInstanceRepository
