@@ -295,15 +295,17 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get("/v1/plugins/interfaces/enabled")).andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
-                    .andExpect(jsonPath("$.data.length()", is(2)))
-                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm")))
+                    .andExpect(jsonPath("$.data.length()", is(3)))
+                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm", "confirm")))
                     .andExpect(jsonPath("$.data[*].serviceName",
                             contains("service-management/service_request/update",
-                                    "service-management/service_request/confirmation")))
+                                    "service-management/service_request/confirmation",
+                                    "service-management/task/confirmation")))
                     .andExpect(jsonPath("$.data[*].path",
                             contains("/service-management/service-requests/{service-request-id}/done",
-                                    "/service-management/service-requests/confirmation/done")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST"))).andDo(print()).andReturn()
+                                    "/service-management/service-requests/confirmation/done",
+                                    "/service-management/task/confirmation/done")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST", "POST"))).andDo(print()).andReturn()
                     .getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
@@ -334,16 +336,19 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
         try {
             mvc.perform(get("/v1/plugins/interfaces/package/wecmdb/entity/resource_set/enabled"))
-                    .andExpect(status().isOk()).andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success"))).andExpect(jsonPath("$.data.length()", is(2)))
-                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm")))
+                    .andExpect(jsonPath("$.status", is("OK")))
+                    .andExpect(jsonPath("$.message", is("Success")))
+                    .andExpect(jsonPath("$.data.length()", is(3)))
+                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm", "confirm")))
                     .andExpect(jsonPath("$.data[*].serviceName",
                             contains("service-management/service_request/update",
-                                    "service-management/service_request/confirmation")))
+                                    "service-management/service_request/confirmation",
+                                    "service-management/task/confirmation")))
                     .andExpect(jsonPath("$.data[*].path",
                             contains("/service-management/service-requests/{service-request-id}/done",
-                                    "/service-management/service-requests/confirmation/done")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST"))).andDo(print()).andReturn()
+                                    "/service-management/service-requests/confirmation/done",
+                                    "/service-management/task/confirmation/done")))
+                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST", "POST"))).andDo(print()).andReturn()
                     .getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
@@ -456,7 +461,9 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 + " ,('wecmdb__v1.3', 'wecmdb', 'v1.3', 'REGISTERED', 0)\n" + ";\n"
                 + "insert into plugin_configs (id, plugin_package_id, name, entity_id, entity_name, status) values\n"
                 + " ('11', '1', 'task', 1, 'entity_1', 'ENABLED')\n"
-                + ",('12', '5', 'service_request', null, '', 'ENABLED')\n"
+                + ",('12', '5', 'service_request', 'wecmdb__1__resource_set', 'resource_set', 'ENABLED')\n"
+                + ",('13', '5', 'service_request', null, '', 'ENABLED')\n"
+                + ",('14', '5', 'task', null, null, 'ENABLED')\n"
                 + ",('21', '2', 'Vpc Management', 17, null, 'DISABLED')\n"
                 + ",('31', '3', 'Vpc Management', 16, null, 'DISABLED')\n"
                 + ",('32', '4', 'Vpc Management', 16, null, 'DISABLED')\n"
@@ -467,7 +474,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 + "insert into plugin_config_interfaces (id, plugin_config_id, action, service_name, service_display_name, path, http_method) values "
                 + " ('1', '11', 'create', 'service-management/task/create', 'service-management/task/create', '/service-management/tasks', 'POST')"
                 + ",('2', '12', 'update', 'service-management/service_request/update', 'service-management/service_request/update', '/service-management/service-requests/{service-request-id}/done', 'PUT')"
-                + ",('3', '12', 'confirm', 'service-management/service_request/confirmation', 'service-management/service_request/confirmation', '/service-management/service-requests/confirmation/done', 'POST')"
+                + ",('3', '13', 'confirm', 'service-management/service_request/confirmation', 'service-management/service_request/confirmation', '/service-management/service-requests/confirmation/done', 'POST')"
+                + ",('4', '14', 'confirm', 'service-management/task/confirmation', 'service-management/task/confirmation', '/service-management/task/confirmation/done', 'POST')"
                 + ";\n"
                 + "insert into plugin_config_interface_parameters(id, plugin_config_interface_id, type, name, data_type, mapping_type, mapping_entity_expression, mapping_system_variable_id, required) values "
                 + " ('1', '1', 'INPUT', 'operatorRoleId', 'string', 'entity', 'name_xxx', null, 'Y') "
