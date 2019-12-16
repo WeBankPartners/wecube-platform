@@ -50,6 +50,7 @@ export default {
       let session = window.sessionStorage;
       session.removeItem("token");
       session.removeItem("username");
+      window.needReLoad = true;
     }
   },
   created() {
