@@ -328,5 +328,7 @@
   "password": "密码",
   "password_cannot_empty": "密码不能为空",
   "display_name": "显示名",
-  "menus": "菜单"
+  "menus": "菜单",
+  "input": "入参",
+  "output": "出参"
 }
