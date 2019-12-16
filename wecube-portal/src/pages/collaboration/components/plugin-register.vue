@@ -11,12 +11,12 @@
         >
           <MenuItem
             v-for="(plugin, index) in plugins"
-            :name="plugin.name"
+            :name="plugin.pluginConfigName"
             :key="index"
             style="padding: 10px 5px;"
           >
             <Icon type="md-flower" />
-            {{ plugin.name }}
+            {{ plugin.pluginConfigName }}
           </MenuItem>
         </Menu>
       </Col>
