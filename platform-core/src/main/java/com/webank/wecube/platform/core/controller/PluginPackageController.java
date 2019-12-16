@@ -134,14 +134,7 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/plugins")
     @ResponseBody
     public JsonResponse getPluginsById(@PathVariable(value = "id") String packageId) {
-        Set<PluginConfigDto> pluginConfigDtos = newLinkedHashSet();
-
-        Set<PluginConfig> pluginConfigs = pluginPackageService.getPluginsById(packageId);
-        if (null != pluginConfigs && pluginConfigs.size() > 0) {
-            pluginConfigs.forEach(pluginConfig -> pluginConfigDtos.add(PluginConfigDto.fromDomain(pluginConfig)));
-        }
-
-        return okayWithData(pluginConfigDtos);
+        return okayWithData(pluginPackageService.getPluginsById(packageId));
     }
 
 }
