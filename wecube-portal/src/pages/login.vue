@@ -11,15 +11,13 @@
         placeholder="username"
         v-model="username"
         name="user"
-        @keyup.enter="usernameEnter"
       /><br />
       <input
-        ref="passwordInput"
         type="password"
         placeholder="password"
         v-model="password"
         name="password"
-        @keyup.enter="passwordEnter"
+        @keyup.enter="login"
       /><br />
       <input type="button" value="Login" @click="login" />
     </div>
@@ -53,12 +51,6 @@ export default {
       session.removeItem("token");
       session.removeItem("username");
       window.needReLoad = true;
-    },
-    usernameEnter() {
-      this.$refs.passwordInput.focus();
-    },
-    passwordEnter() {
-      this.login();
     }
   },
   created() {

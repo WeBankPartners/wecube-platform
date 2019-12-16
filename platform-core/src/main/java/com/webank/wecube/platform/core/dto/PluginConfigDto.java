@@ -4,6 +4,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -17,6 +18,7 @@ public class PluginConfigDto {
     private String name;
     private String entityId;
     private String entityName;
+    private String registerName;
     private String status;
     private List<PluginConfigInterfaceDto> interfaces;
 
@@ -97,12 +99,17 @@ public class PluginConfigDto {
 
     public PluginConfig toDomain(PluginPackage pluginPackage) {
         PluginConfig pluginConfig = new PluginConfig();
-        pluginConfig.setId(getId());
+        if (getId() != null) {
+            pluginConfig.setId(getId());
+        }
         pluginConfig.setPluginPackage(pluginPackage);
 
         pluginConfig.setName(getName());
         pluginConfig.setEntityId(getEntityId());
-        pluginConfig.setEntityName(getEntityName());
+        if (StringUtils.isNotBlank(getEntityName())) {
+            pluginConfig.setEntityName(getEntityName());
+        }
+        pluginConfig.setRegisterName(getRegisterName());
         Set<PluginConfigInterface> pluginConfigInterfaces = newLinkedHashSet();
         if (null != getInterfaces() && getInterfaces().size() > 0) {
             getInterfaces().forEach(interfaceDto->pluginConfigInterfaces.add(interfaceDto.toDomain(pluginConfig)));
@@ -118,6 +125,7 @@ public class PluginConfigDto {
         pluginConfigDto.setName(pluginConfig.getName());
         pluginConfigDto.setEntityId(pluginConfig.getEntityId());
         pluginConfigDto.setEntityName(pluginConfig.getEntityName());
+        pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
         pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
         pluginConfigDto.setStatus(pluginConfig.getStatus().name());
         List<PluginConfigInterfaceDto> interfaces = newArrayList();
@@ -126,5 +134,13 @@ public class PluginConfigDto {
         }
         pluginConfigDto.setInterfaces(interfaces);
         return pluginConfigDto;
+    }
+
+    public String getRegisterName() {
+        return registerName;
+    }
+
+    public void setRegisterName(String registerName) {
+        this.registerName = registerName;
     }
 }
