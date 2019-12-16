@@ -4,6 +4,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -105,7 +106,9 @@ public class PluginConfigDto {
 
         pluginConfig.setName(getName());
         pluginConfig.setEntityId(getEntityId());
-        pluginConfig.setEntityName(getEntityName());
+        if (StringUtils.isNotBlank(getEntityName())) {
+            pluginConfig.setEntityName(getEntityName());
+        }
         pluginConfig.setRegisterName(getRegisterName());
         Set<PluginConfigInterface> pluginConfigInterfaces = newLinkedHashSet();
         if (null != getInterfaces() && getInterfaces().size() > 0) {
