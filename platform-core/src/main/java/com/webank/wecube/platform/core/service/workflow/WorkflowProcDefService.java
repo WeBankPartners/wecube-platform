@@ -1,12 +1,14 @@
 package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.dto.workflow.*;
+import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
@@ -15,12 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
@@ -47,6 +43,12 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
     @Autowired
     private WorkflowEngineService workflowEngineService;
+
+    @Autowired
+    private UserManagementServiceImpl userManagementService;
+
+    @Autowired
+    private ProcessRoleServiceImpl processRoleService;
 
     public void removeProcessDefinition(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
@@ -253,17 +255,29 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         return pdto;
     }
 
-    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef) {
+    public List<ProcDefInfoDto> getProcessDefinitions(String token, boolean includeDraftProcDef, String permissionStr) {
+        List<Long> roleIdList = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
 
-        List<ProcDefInfoEntity> procDefEntities = null;
-        if (includeDraftProcDef) {
-            procDefEntities = processDefInfoRepo.findAllDeployedOrDraftProcDefs();
+        // check if there is permission specified
+        List<ProcRoleDto> procRoleDtoList;
+        if (!StringUtils.isEmpty(permissionStr)) {
+            procRoleDtoList = processRoleService.retrieveProcessByRoleIdListAndPermission(roleIdList, permissionStr);
         } else {
-            procDefEntities = processDefInfoRepo.findAllDeployedProcDefs();
+            procRoleDtoList = processRoleService.retrieveAllProcessByRoleIdList(roleIdList);
         }
 
-        if (procDefEntities == null) {
-            return Collections.emptyList();
+        // check if there is includeDraftProcDef specified
+        List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
+        if (includeDraftProcDef) {
+            for (ProcRoleDto procRoleDto : procRoleDtoList) {
+                String procId = procRoleDto.getId();
+                procDefEntities.add(processDefInfoRepo.findAllDeployedOrDraftProcDefsByProcId(procId));
+            }
+        } else {
+            for (ProcRoleDto procRoleDto : procRoleDtoList) {
+                String procId = procRoleDto.getId();
+                procDefEntities.add(processDefInfoRepo.findAllDeployedProcDefsByProcId(procId));
+            }
         }
 
         List<ProcDefInfoDto> procDefInfoDtos = new ArrayList<>();
@@ -500,7 +514,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     protected ProcDefOutlineDto postDeployProcessDefinition(ProcDefInfoEntity procDefEntity, ProcessDefinition procDef,
-            ProcDefOutline procDefOutline) {
+                                                            ProcDefOutline procDefOutline) {
         if (procDefEntity == null) {
             return null;
         }
