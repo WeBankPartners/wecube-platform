@@ -47,7 +47,6 @@ public class UserManagementServiceImpl implements UserManagementService {
     private String gatewayUrl;
     private RestTemplate restTemplate;
     private RoleMenuServiceImpl roleMenuService;
-    private ProcessRoleServiceImpl processRoleService;
 
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -56,12 +55,10 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Autowired
     public UserManagementServiceImpl(RestTemplate restTemplate,
                                      ApplicationProperties applicationProperties,
-                                     RoleMenuServiceImpl roleMenuService,
-                                     ProcessRoleServiceImpl processRoleService) {
+                                     RoleMenuServiceImpl roleMenuService) {
         this.restTemplate = restTemplate;
         this.gatewayUrl = applicationProperties.getGatewayUrl();
         this.roleMenuService = roleMenuService;
-        this.processRoleService = processRoleService;
     }
 
     @Override
@@ -191,19 +188,9 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public List<ProcRoleDto> getProcessByUserNameAndPermission(String token, String username, String permission) throws WecubeCoreException {
+    public List<Long> getRoleIdListByUsername(String token, String username) {
         List<RoleDto> roleListByUserName = this.getRoleListByUserName(token, username);
-        ProcRoleBindingEntity.permissionEnum permissionEnum;
-        try {
-            permissionEnum = ProcRoleBindingEntity.permissionEnum.valueOf(ProcRoleBindingEntity.permissionEnum.class, permission.toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException ex) {
-            String msg = String.format("The given permission: [%s] doesn't match platform-core's match cases.", permission);
-            logger.error(msg);
-            throw new WecubeCoreException(msg);
-        }
-        List<Long> roleIdList = roleListByUserName.stream().map(RoleDto::getId).collect(Collectors.toList());
-        return this.processRoleService.retrieveProcessByRoleIdList(roleIdList, permissionEnum);
-
+        return roleListByUserName.stream().map(RoleDto::getId).collect(Collectors.toList());
     }
 
     @Override
