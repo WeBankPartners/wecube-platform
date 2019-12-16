@@ -15,11 +15,6 @@ public class ProcessRoleServiceTest extends DatabaseBasedTest {
 
     @Test
     public void createProcRoleBindingShouldSucceed() {
-        ProcRoleBindingEntity procRoleBindingEntityOne = new ProcRoleBindingEntity("1", ProcRoleBindingEntity.permissionEnum.MGMT, 1L);
-        ProcRoleBindingEntity procRoleBindingEntityTwo = new ProcRoleBindingEntity("2", ProcRoleBindingEntity.permissionEnum.MGMT, 1L);
-        this.procRoleBindingRepository.saveAll(Lists.newArrayList(procRoleBindingEntityOne, procRoleBindingEntityTwo));
-        Iterable<ProcRoleBindingEntity> all = this.procRoleBindingRepository.findAll();
-        System.out.println(all);
     }
 
 
