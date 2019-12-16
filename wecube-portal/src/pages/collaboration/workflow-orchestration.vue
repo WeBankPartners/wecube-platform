@@ -265,8 +265,8 @@ export default {
       filteredPlugins: [],
       timeSelection: ["5", "10", "20", "30", "60"],
       paramsTypes: [
-        { value: "INPUT", label: "入参" },
-        { value: "OUTPUT", label: "出参" }
+        { value: "INPUT", label: this.$t("input") },
+        { value: "OUTPUT", label: this.$t("output") }
       ],
       currentflowsNodes: []
     };
