@@ -21,13 +21,13 @@ import com.webank.wecube.platform.core.interceptor.AuthenticationRequestContextI
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-@Profile({ "default", "smoke", "uat", "prod" })
+@Profile({ "default", "smoke", "uat", "prod", "dev" })
 @Configuration
 @EnableWebMvc
 @EnableSwagger2
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
-@ComponentScan({"com.webank.wecube.platform.core.controller"})
+@ComponentScan({ "com.webank.wecube.platform.core.controller" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     @Autowired
