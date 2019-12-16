@@ -11,7 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+import static com.webank.wecube.platform.core.utils.Constants.*;
 
 @Entity
 @Table(name = "plugin_config_interfaces")
@@ -71,7 +71,10 @@ public class PluginConfigInterface {
                                     : null)
                             : null,
                     null != pluginConfig ? pluginConfig.getName() : null,
-                    null != pluginConfig ? pluginConfig.getEntityName() : null, action);
+                    null != pluginConfig ? pluginConfig.getEntityName() + (null != pluginConfig.getRegisterName()
+                            ? KEY_COLUMN_DELIMITER + pluginConfig.getRegisterName()
+                            : "") : null,
+                    action);
             this.id = this.id.replaceAll("\\s+", "_");
         }
     }
@@ -98,6 +101,14 @@ public class PluginConfigInterface {
 
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
+    }
+
+    public String generateServiceName() {
+        return pluginConfig.getPluginPackage().getName() + SEPARATOR_OF_NAMES + pluginConfig.getName()
+                + (null != pluginConfig.getRegisterName()
+                        ? LEFT_BRACKET_STRING + pluginConfig.getRegisterName() + RIGHT_BRACKET_STRING
+                        : null)
+                + SEPARATOR_OF_NAMES + action;
     }
 
     public String getServiceDisplayName() {

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstOutlineDto;
@@ -256,6 +257,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
                 .findAllByProcInstId(procInstEntity.getId());
         String kernelProcInstId = procInstEntity.getProcInstKernelId();
+        Date currTime = new Date();
         for (TaskNodeInstInfoEntity nie : nodeInstEntities) {
             String nodeId = nie.getNodeId();
             String nodeStatus = workflowEngineService.getTaskNodeStatus(kernelProcInstId, nodeId);
@@ -265,7 +267,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
             if (!nodeStatus.equals(nie.getStatus())) {
                 nie.setStatus(nodeStatus);
-                nie.setUpdatedTime(new Date());
+                nie.setUpdatedTime(currTime);
                 taskNodeInstInfoRepository.save(nie);
             }
         }
@@ -474,12 +476,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             taskNodeInstInfoEntity.setNodeDefId(taskNodeDefInfoEntity.getId());
             taskNodeInstInfoEntity.setNodeId(taskNodeDefInfoEntity.getNodeId());
             taskNodeInstInfoEntity.setNodeName(taskNodeDefInfoEntity.getNodeName());
-            taskNodeInstInfoEntity.setOperator("admin");
+            taskNodeInstInfoEntity.setOperator(AuthenticationContextHolder.getCurrentUsername());
             taskNodeInstInfoEntity.setProcDefId(taskNodeDefInfoEntity.getProcDefId());
             taskNodeInstInfoEntity.setProcDefKey(taskNodeDefInfoEntity.getProcDefKey());
             taskNodeInstInfoEntity.setProcInstId(procInstInfoEntity.getId());
             taskNodeInstInfoEntity.setProcInstKey(procInstInfoEntity.getProcInstKey());
             taskNodeInstInfoEntity.setNodeType(taskNodeDefInfoEntity.getNodeType());
+            taskNodeInstInfoEntity.setOrderedNo(taskNodeDefInfoEntity.getOrderedNo());
 
             taskNodeInstInfoRepository.save(taskNodeInstInfoEntity);
 
@@ -554,7 +557,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         for (TaskNodeInstInfoEntity n : nodeInstEntities) {
             if ("startEvent".equals(n.getNodeType())) {
-                n.setUpdatedBy("sys");
+                n.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
                 n.setUpdatedTime(now);
                 n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
                 taskNodeInstInfoRepository.save(n);

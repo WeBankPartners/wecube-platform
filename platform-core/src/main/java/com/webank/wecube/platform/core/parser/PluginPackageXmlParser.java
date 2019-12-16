@@ -28,6 +28,7 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static com.webank.wecube.platform.core.utils.Constants.GLOBAL_SYSTEM_VARIABLES;
 import static org.apache.commons.lang3.StringUtils.trim;
+import static com.webank.wecube.platform.core.utils.Constants.*;
 
 public class PluginPackageXmlParser {
     private final static String SEPARATOR_OF_NAMES = "/";
@@ -388,7 +389,10 @@ public class PluginPackageXmlParser {
             pluginConfig.setPluginPackage(pluginPackage);
             pluginConfig.setStatus(DISABLED);
             pluginConfig.setName(getNonNullStringAttribute(pluginConfigNode, "./@name", "Plugin name"));
-            pluginConfig.setEntityName(getNonNullStringAttribute(pluginConfigNode, "./@entity", "Entity name"));
+            String entityName = getNonNullStringAttribute(pluginConfigNode, "./@entity", "Entity name");
+            if (StringUtils.isNotBlank(entityName)) {
+                pluginConfig.setEntityName(entityName);
+            }
 
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
@@ -414,8 +418,9 @@ public class PluginPackageXmlParser {
 
             pluginConfigInterface.setAction(
                     ensureNotNull(trim(xPathEvaluator.getString("./@action", interfaceNode)), "Plugin interface name"));
-            String serviceName = createServiceName(pluginConfig.getPluginPackage().getName(), pluginConfig.getName(),
-                    pluginConfigInterface.getAction());
+            String serviceName = pluginConfigInterface.generateServiceName();
+//                    createServiceName(pluginConfig.getPluginPackage().getName(), pluginConfig.getName(),
+//                    pluginConfig.getRegisterName(), pluginConfigInterface.getAction());
             pluginConfigInterface.setServiceName(serviceName);
             pluginConfigInterface.setServiceDisplayName(serviceName);
             pluginConfigInterface.setPath(getStringAttribute(interfaceNode, "./@path"));
@@ -493,9 +498,5 @@ public class PluginPackageXmlParser {
             throw new WecubeCoreException(
                     String.format("Illegal character[%s] detected in %s[%s]", SEPARATOR_OF_NAMES, description, name));
         return name;
-    }
-
-    private String createServiceName(String packageName, String pluginName, String interfaceName) {
-        return packageName + SEPARATOR_OF_NAMES + pluginName + SEPARATOR_OF_NAMES + interfaceName;
     }
 }
