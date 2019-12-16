@@ -41,5 +41,5 @@ public interface UserManagementService {
 
     List<RoleMenuDto> getMenusByUserName(String token, String username);
 
-    List<ProcRoleDto> getProcessByUserNameAndPermission(String token, String username, String permission);
+    List<Long> getRoleIdListByUsername(String token, String username);
 }
