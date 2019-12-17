@@ -4,6 +4,7 @@ import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.*;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
@@ -664,8 +665,17 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         processDefInfoRepo.deleteById(procEntity.getId());
     }
 
-    private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) {
+    private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
+        if (null == procDefInfoDto.getPermissionToRole()) {
+            throw new WecubeCoreException("There is no process to role with permission mapping found.");
+        }
+
         Map<String, List<Long>> permissionToRoleMapping = procDefInfoDto.getPermissionToRole();
+
+        if (permissionToRoleMapping.get(ProcRoleBindingEntity.permissionEnum.MGMT.toString()).isEmpty()) {
+            throw new WecubeCoreException("At least one role with MGMT role should be declared.");
+        }
+
         for (Map.Entry<String, List<Long>> permissionToRoleList : permissionToRoleMapping.entrySet()) {
             String permissionStr = permissionToRoleList.getKey();
             for (Long roleId : permissionToRoleList.getValue()) {
