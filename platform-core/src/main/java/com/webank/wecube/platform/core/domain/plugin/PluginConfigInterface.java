@@ -107,7 +107,7 @@ public class PluginConfigInterface {
         return pluginConfig.getPluginPackage().getName() + SEPARATOR_OF_NAMES + pluginConfig.getName()
                 + (null != pluginConfig.getRegisterName()
                         ? LEFT_BRACKET_STRING + pluginConfig.getRegisterName() + RIGHT_BRACKET_STRING
-                        : null)
+                        : "")
                 + SEPARATOR_OF_NAMES + action;
     }
 
