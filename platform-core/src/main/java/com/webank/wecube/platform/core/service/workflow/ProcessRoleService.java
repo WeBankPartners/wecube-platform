@@ -9,10 +9,18 @@ import java.util.List;
 import java.util.Map;
 
 public interface ProcessRoleService {
-
     ProcRoleOverviewDto retrieveRoleIdByProcId(String token, String procId);
 
     ProcRoleDto updateProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto);
+
+    /**
+     * Update ProcRoleBinding without permission check
+     *
+     * @param procId             process ID
+     * @param procRoleRequestDto contains permission string and role ID
+     * @return ProcRoleDto
+     */
+    ProcRoleDto updateProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto);
 
     List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<Long> roleIdList);
 
