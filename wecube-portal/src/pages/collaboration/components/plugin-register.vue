@@ -47,7 +47,10 @@
           <Row>
             <Col span="10" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
-                <Input v-model="registerName" />
+                <Input
+                  v-model="registerName"
+                  :disabled="currentPluginObj.status === 'ENABLED'"
+                />
               </FormItem>
             </Col>
             <Col span="10" offset="0">
@@ -395,7 +398,6 @@ export default {
       if (this.hasNewSource) {
         delete currentPluginForSave.id;
       }
-      this.hidePanal = false;
       const { data, status, message } = await savePluginConfig(
         currentPluginForSave
       );
@@ -409,6 +411,7 @@ export default {
             this.pkgId
           );
           if (status === "OK") {
+            this.hidePanal = false;
             this.plugins = data;
           }
           return;
@@ -433,6 +436,7 @@ export default {
             desc: message
           });
           this.getAllPluginByPkgId();
+          this.currentPluginObj.status = "ENABLED";
         }
       }
     },
@@ -477,6 +481,7 @@ export default {
           desc: message
         });
         this.getAllPluginByPkgId();
+        this.currentPluginObj.status = "DISABLED";
       }
     },
     async getAllPluginByPkgId() {
@@ -507,7 +512,7 @@ export default {
         return;
       }
       this.currentPluginObj = this.sourceList.find(source => source.id === v);
-      this.selectedEntityType = this.currentPluginObj.name;
+      this.selectedEntityType = this.currentPluginObj.entityName;
       this.registerName = this.currentPluginObj.registerName;
       this.hasNewSource = false;
     },
