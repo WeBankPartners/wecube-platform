@@ -16,7 +16,7 @@ public class PluginConfigDto {
     private String id;
     private String pluginPackageId;
     private String name;
-    private String entityId;
+    private String packageName;
     private String entityName;
     private String registerName;
     private String status;
@@ -47,12 +47,12 @@ public class PluginConfigDto {
         this.name = name;
     }
 
-    public String getEntityId() {
-        return entityId;
+    public String getPackageName() {
+        return packageName;
     }
 
-    public void setEntityId(String entityId) {
-        this.entityId = entityId;
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
 
     public String getEntityName() {
@@ -82,11 +82,11 @@ public class PluginConfigDto {
     public PluginConfigDto() {
     }
 
-    public PluginConfigDto(String id, String pluginPackageId, String name, String entityId, String entityName, String status, List<PluginConfigInterfaceDto> interfaces) {
+    public PluginConfigDto(String id, String pluginPackageId, String name, String packageName, String entityName, String status, List<PluginConfigInterfaceDto> interfaces) {
         this.id = id;
         this.pluginPackageId = pluginPackageId;
         this.name = name;
-        this.entityId = entityId;
+        this.packageName = packageName;
         this.entityName = entityName;
         this.status = status;
         this.interfaces = interfaces;
@@ -105,7 +105,7 @@ public class PluginConfigDto {
         pluginConfig.setPluginPackage(pluginPackage);
 
         pluginConfig.setName(getName());
-        pluginConfig.setEntityId(getEntityId());
+        pluginConfig.setPackageName(getPackageName());
         if (StringUtils.isNotBlank(getEntityName())) {
             pluginConfig.setEntityName(getEntityName());
         }
@@ -123,7 +123,7 @@ public class PluginConfigDto {
         PluginConfigDto pluginConfigDto = new PluginConfigDto();
         pluginConfigDto.setId(pluginConfig.getId());
         pluginConfigDto.setName(pluginConfig.getName());
-        pluginConfigDto.setEntityId(pluginConfig.getEntityId());
+        pluginConfigDto.setPackageName(pluginConfig.getPackageName());
         pluginConfigDto.setEntityName(pluginConfig.getEntityName());
         pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
         pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
