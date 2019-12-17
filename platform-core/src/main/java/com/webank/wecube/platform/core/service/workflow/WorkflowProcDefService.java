@@ -1,14 +1,19 @@
 package com.webank.wecube.platform.core.service.workflow;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.workflow.*;
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
+import com.webank.wecube.platform.workflow.model.ProcDefOutline;
+import com.webank.wecube.platform.workflow.model.ProcFlowNode;
+import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
@@ -16,17 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
-import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
-import com.webank.wecube.platform.workflow.model.ProcDefOutline;
-import com.webank.wecube.platform.workflow.model.ProcFlowNode;
-import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class WorkflowProcDefService extends AbstractWorkflowService {
@@ -319,7 +315,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         draftEntity.setRootEntity(procDefDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
 
-        processDefInfoRepo.save(draftEntity);
+        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
+        // Save ProcRoleBindingEntity
+        this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), procDefDto);
 
         ProcDefInfoDto procDefResult = new ProcDefInfoDto();
         procDefResult.setProcDefId(draftEntity.getId());
@@ -443,7 +441,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         procDefEntity.setStatus(ProcDefInfoEntity.PREDEPLOY_STATUS);
         procDefEntity.setUpdatedTime(currTime);
 
-        processDefInfoRepo.save(procDefEntity);
+        ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.save(procDefEntity);
+        // Save ProcRoleBindingEntity
+        this.saveProcRoleBinding(savedProcDefInfoEntity.getId(), procDefInfoDto);
 
         if (procDefInfoDto.getTaskNodeInfos() != null) {
             for (TaskNodeDefInfoDto nodeDto : procDefInfoDto.getTaskNodeInfos()) {
@@ -662,6 +662,16 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         }
 
         processDefInfoRepo.deleteById(procEntity.getId());
+    }
+
+    private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) {
+        Map<String, List<Long>> permissionToRoleMapping = procDefInfoDto.getPermissionToRole();
+        for (Map.Entry<String, List<Long>> permissionToRoleList : permissionToRoleMapping.entrySet()) {
+            String permissionStr = permissionToRoleList.getKey();
+            for (Long roleId : permissionToRoleList.getValue()) {
+                processRoleService.updateProcRoleBinding(procId, new ProcRoleRequestDto(permissionStr, roleId));
+            }
+        }
     }
 
 }
