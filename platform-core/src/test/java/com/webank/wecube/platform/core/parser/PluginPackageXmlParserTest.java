@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.parser;
 
 import com.google.common.io.Resources;
+import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
@@ -49,7 +50,7 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackageDataModelDto.getVersion()).isEqualTo(1);
         assertThat(pluginPackageDataModelDto.getPluginPackageEntities()).hasSize(5);
         
-        assertThat(pluginPackage.getSystemVariables().iterator().next().getStatus()).isEqualTo("active");
+        assertThat(pluginPackage.getSystemVariables().iterator().next().getStatus()).isEqualTo(SystemVariable.INACTIVE);
     }
 
 }

@@ -107,13 +107,14 @@ public class PluginConfigService {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfig.getId());
         }
 
-        String entityId = pluginConfig.getEntityId();
-        if (StringUtils.isNotBlank(entityId)) {
+        String packageName = pluginConfig.getPackageName();
+        String entityName = pluginConfig.getEntityName();
+        if (StringUtils.isNotBlank(packageName) && StringUtils.isNotBlank(entityName)) {
             Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository
-                    .findById(entityId);
+                    .findByPackageNameAndName(packageName, entityName);
             if (!pluginPackageEntityOptional.isPresent()) {
-                String errorMessage = String.format("PluginPackageEntity not found for id: [%s] for plugin config: %s",
-                        entityId, pluginConfig.getName());
+                String errorMessage = String.format("PluginPackageEntity not found for packageName:entityName [%s:%s] for plugin config: %s",
+                        packageName, entityName, pluginConfig.getName());
                 log.error(errorMessage);
                 throw new WecubeCoreException(errorMessage);
             }
@@ -133,7 +134,7 @@ public class PluginConfigService {
                     "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
-        String entityId = pluginConfig.getEntityId();
+        String entityId = pluginConfig.getPackageName();
         if (StringUtils.isNotBlank(entityId)) {
             if (DISABLED != pluginConfig.getStatus()) {
                 throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");

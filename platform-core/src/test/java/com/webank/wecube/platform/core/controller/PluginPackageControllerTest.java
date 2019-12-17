@@ -384,10 +384,10 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains("servicemanagement__v0.1__xxx__global", "servicemanagement__v0.1__xxx__servicemanagement")))
-                    .andExpect(jsonPath("$.data[*].name", contains("xxx", "xxx")))
+                    .andExpect(jsonPath("$.data[*].id", contains("servicemanagement__v0.1__global__globalVar", "servicemanagement__v0.1__servicemanagement__pluginVar")))
+                    .andExpect(jsonPath("$.data[*].name", contains("globalVar", "pluginVar")))
                     .andExpect(jsonPath("$.data[*].defaultValue", contains("xxxx", "xxxx")))
-                    .andExpect(jsonPath("$.data[*].scopeType", contains("global", "plugin-package")))
+                    .andExpect(jsonPath("$.data[*].scope", contains("global", "servicemanagement")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -427,12 +427,12 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/packages/%s/runtime-resources", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.docker[0].id", is("servicemanagement__v0.1__service_management")))
-                    .andExpect(jsonPath("$.data.mysql[0].id", is("servicemanagement__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.docker[0].id", is("Docker__servicemanagement__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.mysql[0].id", is("MySql__servicemanagement__v0.1__service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].schemaName", is("service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].initFileName", is("init.sql")))
                     .andExpect(jsonPath("$.data.mysql[0].upgradeFileName", is("upgrade.sql")))
-                    .andExpect(jsonPath("$.data.s3[0].id", is("servicemanagement__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.s3[0].id", is("S3__servicemanagement__v0.1__service_management")))
                     .andExpect(jsonPath("$.data.s3[0].bucketName", is("service_management")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -452,7 +452,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/packages/%s/plugins", packageId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].id", containsInAnyOrder("servicemanagement__v0.1__service_request__service_request", "servicemanagement__v0.1__task__task")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].id", containsInAnyOrder("servicemanagement__v0.1__service_request", "servicemanagement__v0.1__task")))
                     .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].entityId", containsInAnyOrder("servicemanagement__1__service_request", "servicemanagement__1__task")))
                     .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].name", containsInAnyOrder("task", "service_request")))
                     .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].status", containsInAnyOrder("DISABLED", "DISABLED")))
