@@ -106,13 +106,31 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         Long roleId = procRoleRequestDto.getRoleId();
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
 
-        // check if the current user has the role to manage such process
         List<Long> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
         boolean ifUserHasMgmtPermission = checkIfUserHasMgmtPermission(procId, roleIdListByUsername);
         if (!ifUserHasMgmtPermission) {
             String msg = String.format("The user doesn't has process: [%s]'s MGMT permission", procId);
             throw new WecubeCoreException(msg);
         }
+
+
+        // find current stored data
+        Optional<ProcRoleBindingEntity> byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository.findByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
+
+        if (byProcIdAndRoleIdAndPermission.isPresent()) {
+            logger.warn(String.format("Found stored data in DB, the given data is, procId: [%s], roleId: [%s], permission: [%s]", procId, roleId, permissionStr));
+            return ProcRoleDto.fromDomain(byProcIdAndRoleIdAndPermission.get());
+        }
+        // if no stored data found, then save new data in to the database
+        ProcRoleBindingEntity savedResult = this.procRoleBindingRepository.save(ProcRoleDto.toDomain(procId, roleId, permissionEnum));
+        return ProcRoleDto.fromDomain(savedResult);
+    }
+
+    @Override
+    public ProcRoleDto updateProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) {
+        String permissionStr = procRoleRequestDto.getPermission();
+        Long roleId = procRoleRequestDto.getRoleId();
+        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
 
         // find current stored data
         Optional<ProcRoleBindingEntity> byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository.findByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
