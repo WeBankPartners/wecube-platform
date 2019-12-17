@@ -1,9 +1,9 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import javax.persistence.*;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "plugin_instances")
@@ -59,6 +59,14 @@ public class PluginInstance {
         this.containerStatus = containerStatus;
     }
 
+    public PluginInstance(String id, PluginPackage pluginPackage, String instanceName, String containerName, String host, Integer port) {
+        this.id = id;
+        this.pluginPackage = pluginPackage;
+        this.instanceName = instanceName;
+        this.containerName = containerName;
+        this.host = host;
+        this.port = port;
+    }
 
     public String getId() {
         return id;
@@ -66,14 +74,7 @@ public class PluginInstance {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER,
-                    null != pluginPackage ? pluginPackage.getId() : null,
-                    containerName,
-                    host,
-                    String.valueOf(port));
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
     public void setId(String id) {
