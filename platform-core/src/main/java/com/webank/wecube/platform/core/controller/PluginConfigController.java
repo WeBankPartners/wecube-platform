@@ -31,17 +31,10 @@ public class PluginConfigController {
         return okayWithData(pluginConfigService.queryAllLatestEnabledPluginConfigInterface());
     }
 
-    @GetMapping("/plugins/interfaces/entity/{entity-id}/enabled")
-    @ResponseBody
-    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntity(
-            @PathVariable(value = "entity-id") String entityId) {
-        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(entityId));
-    }
-
     @GetMapping("/plugins/interfaces/package/{package-name}/entity/{entity-name}/enabled")
     @ResponseBody
     public JsonResponse queryAllEnabledPluginConfigInterfaceForEntityName(@PathVariable(value = "package-name") String packageName, @PathVariable(value = "entity-name") String entityName) {
-        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntityName(packageName, entityName));
+        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(packageName, entityName));
     }
 
     @PostMapping("/plugins/enable/{plugin-config-id:.+}")
