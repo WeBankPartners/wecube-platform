@@ -172,7 +172,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         foundData.ifPresent(procRoleBindingEntity -> this.procRoleBindingRepository.delete(procRoleBindingEntity));
     }
 
-    private boolean checkIfUserHasMgmtPermission(String procId, List<Long> userOwnedRoleIdList) {
+    public boolean checkIfUserHasMgmtPermission(String procId, List<Long> userOwnedRoleIdList) {
         Optional<List<ProcRoleBindingEntity>> byProcIdAndPermission = this.procRoleBindingRepository.findByProcIdAndPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
         List<Long> mgmtRoleIdList = new ArrayList<>();
         if (byProcIdAndPermission.isPresent()) {
@@ -187,7 +187,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         return false;
     }
 
-    private boolean checkIfUserHasUsePermission(String procId, List<Long> userOwnedRoleIdList) {
+    public boolean checkIfUserHasUsePermission(String procId, List<Long> userOwnedRoleIdList) {
         Optional<List<ProcRoleBindingEntity>> byProcIdAndPermission = this.procRoleBindingRepository.findByProcIdAndPermission(procId, ProcRoleBindingEntity.permissionEnum.USE);
         List<Long> mgmtRoleIdList = new ArrayList<>();
         if (byProcIdAndPermission.isPresent()) {
