@@ -107,13 +107,14 @@ public class PluginConfigService {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfig.getId());
         }
 
-        String entityId = pluginConfig.getEntityId();
-        if (StringUtils.isNotBlank(entityId)) {
+        String packageName = pluginConfig.getTargetPackage();
+        String entityName = pluginConfig.getTargetEntity();
+        if (StringUtils.isNotBlank(packageName) && StringUtils.isNotBlank(entityName)) {
             Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository
-                    .findById(entityId);
+                    .findByPackageNameAndName(packageName, entityName);
             if (!pluginPackageEntityOptional.isPresent()) {
-                String errorMessage = String.format("PluginPackageEntity not found for id: [%s] for plugin config: %s",
-                        entityId, pluginConfig.getName());
+                String errorMessage = String.format("PluginPackageEntity not found for packageName:entityName [%s:%s] for plugin config: %s",
+                        packageName, entityName, pluginConfig.getName());
                 log.error(errorMessage);
                 throw new WecubeCoreException(errorMessage);
             }
@@ -133,17 +134,14 @@ public class PluginConfigService {
                     "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
-        String entityId = pluginConfig.getEntityId();
-        if (StringUtils.isNotBlank(entityId)) {
+        if (StringUtils.isNotBlank(pluginConfig.getTargetPackage()) && StringUtils.isNotBlank(pluginConfig.getTargetEntity())) {
             if (DISABLED != pluginConfig.getStatus()) {
                 throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
             }
 
-            Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository
-                    .findById(entityId);
-            if (!pluginPackageEntityOptional.isPresent()) {
-                String errorMessage = String.format("PluginPackageEntity not found for id: [%s] for plugin config: %s",
-                        entityId, pluginConfig.getName());
+            if (!pluginPackageEntityRepository.existsByPackageNameAndName(pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity())) {
+                String errorMessage = String.format("PluginPackageEntity not found for packageName:entityName [%s:%s] for plugin config: %s",
+                        pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity(), pluginConfig.getName());
                 log.error(errorMessage);
                 throw new WecubeCoreException(errorMessage);
             }
@@ -164,7 +162,7 @@ public class PluginConfigService {
                     inputParameters.forEach(inputParameter -> {
                         if ("Y".equalsIgnoreCase(inputParameter.getRequired())) {
                             if (system_variable.name().equals(inputParameter.getMappingType())
-                                    && inputParameter.getMappingSystemVariableId() == null) {
+                                    && inputParameter.getMappingSystemVariableName() == null) {
                                 throw new WecubeCoreException(String.format(
                                         "System variable is required for parameter [%s]", inputParameter.getId()));
                             }
@@ -225,19 +223,7 @@ public class PluginConfigService {
         return pluginConfigInterfaceDtos;
     }
 
-    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String entityId) {
-        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigInterfaceRepository
-                .findPluginConfigInterfaceByPluginConfig_EntityIdAndPluginConfig_Status(entityId, ENABLED);
-        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        if (pluginConfigsOptional.isPresent()) {
-            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
-            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
-                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
-        }
-        return pluginConfigInterfaceDtos;
-    }
-
-    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityName(String packageName, String entityName) {
+    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName, String entityName) {
         Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository.findLatestDataModelByPackageName(packageName);
         if (!dataModelOptional.isPresent()) {
             log.info("No data model found for package [{}]", packageName);
@@ -252,7 +238,7 @@ public class PluginConfigService {
         }
 
         List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository.findPluginConfigInterfaceByPluginConfig_EntityNameAndPluginConfig_Status(entityName, ENABLED);
+        Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository.findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(packageName, entityName, ENABLED);
         if (allEnabledInterfacesOptional.isPresent()) {
             pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream().map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)).collect(Collectors.toList()));
         }

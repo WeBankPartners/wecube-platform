@@ -7,28 +7,26 @@ import com.webank.wecube.platform.core.domain.SystemVariable;
 @JsonInclude(Include.NON_NULL)
 public class SystemVariableDto {
     private String id;
-    private String pluginPackageId;
-    private String pluginPackageName;
+    private String packageName;
     private String name;
     private String value;
     private String defaultValue;
-    private String scopeType;
-    private String scopeValue;
+    private String scope;
+    private String source;
     private String status;
 
     public SystemVariableDto() {
-
     }
+
     public static SystemVariableDto fromDomain(SystemVariable domain) {
         SystemVariableDto systemVariableDto = new SystemVariableDto();
         systemVariableDto.setId(domain.getId());
-        systemVariableDto.setPluginPackageId(domain.getPluginPackage()!=null? domain.getPluginPackage().getId():null);
-        systemVariableDto.setPluginPackageName(domain.getPluginPackage()!=null? domain.getPluginPackage().getName():null);
+        systemVariableDto.setPackageName(domain.getPackageName());
         systemVariableDto.setName(domain.getName());
         systemVariableDto.setValue(domain.getValue());
         systemVariableDto.setDefaultValue(domain.getDefaultValue());
-        systemVariableDto.setScopeType(domain.getScopeType());
-        systemVariableDto.setScopeValue(domain.getScopeValue());
+        systemVariableDto.setScope(domain.getScope());
+        systemVariableDto.setSource(domain.getSource());
         systemVariableDto.setStatus(domain.getStatus());
         return systemVariableDto;
     }
@@ -41,12 +39,12 @@ public class SystemVariableDto {
         this.id = id;
     }
 
-    public String getPluginPackageId() {
-        return pluginPackageId;
+    public String getPackageName() {
+        return packageName;
     }
 
-    public void setPluginPackageId(String pluginPackageId) {
-        this.pluginPackageId = pluginPackageId;
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
 
     public String getName() {
@@ -73,20 +71,20 @@ public class SystemVariableDto {
         this.defaultValue = defaultValue;
     }
 
-    public String getScopeType() {
-        return scopeType;
+    public String getScope() {
+        return scope;
     }
 
-    public void setScopeType(String scopeType) {
-        this.scopeType = scopeType;
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 
-    public String getScopeValue() {
-        return scopeValue;
+    public String getSource() {
+        return source;
     }
 
-    public void setScopeValue(String scopeValue) {
-        this.scopeValue = scopeValue;
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public String getStatus() {
@@ -95,12 +93,6 @@ public class SystemVariableDto {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-    public String getPluginPackageName() {
-        return pluginPackageName;
-    }
-    public void setPluginPackageName(String pluginPackageName) {
-        this.pluginPackageName = pluginPackageName;
     }
 
 }

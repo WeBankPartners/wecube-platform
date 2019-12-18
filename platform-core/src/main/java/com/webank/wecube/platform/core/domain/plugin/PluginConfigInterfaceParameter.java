@@ -2,13 +2,12 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_config_interface_parameters")
@@ -41,7 +40,7 @@ public class PluginConfigInterfaceParameter {
     @Column
     private String mappingEntityExpression;
     @Column
-    private String mappingSystemVariableId;
+    private String mappingSystemVariableName;
     @Column
     private String required;
 
@@ -55,7 +54,7 @@ public class PluginConfigInterfaceParameter {
     public PluginConfigInterfaceParameter() {
     }
 
-    public PluginConfigInterfaceParameter(String id, PluginConfigInterface pluginConfigInterface, String type, String name, String dataType, String mappingType, String mappingEntityExpression, String mappingSystemVariableId, String required) {
+    public PluginConfigInterfaceParameter(String id, PluginConfigInterface pluginConfigInterface, String type, String name, String dataType, String mappingType, String mappingEntityExpression, String mappingSystemVariableName, String required) {
         this.id = id;
         this.pluginConfigInterface = pluginConfigInterface;
         this.type = type;
@@ -63,7 +62,7 @@ public class PluginConfigInterfaceParameter {
         this.dataType = dataType;
         this.mappingType = mappingType;
         this.mappingEntityExpression = mappingEntityExpression;
-        this.mappingSystemVariableId = mappingSystemVariableId;
+        this.mappingSystemVariableName = mappingSystemVariableName;
         this.required = required;
     }
 
@@ -74,14 +73,7 @@ public class PluginConfigInterfaceParameter {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER,
-                    null != pluginConfigInterface ? pluginConfigInterface.getId() : null,
-                    type,
-                    name,
-                    dataType);
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
     public void setId(String id) {
@@ -136,12 +128,12 @@ public class PluginConfigInterfaceParameter {
         this.mappingEntityExpression = mappingEntityExpression;
     }
 
-    public String getMappingSystemVariableId() {
-        return mappingSystemVariableId;
+    public String getMappingSystemVariableName() {
+        return mappingSystemVariableName;
     }
 
-    public void setMappingSystemVariableId(String mappingSystemVariableId) {
-        this.mappingSystemVariableId = mappingSystemVariableId;
+    public void setMappingSystemVariableName(String mappingSystemVariableName) {
+        this.mappingSystemVariableName = mappingSystemVariableName;
     }
 
     public String getRequired() {

@@ -15,6 +15,7 @@ import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcDefOutline;
 import com.webank.wecube.platform.workflow.model.ProcFlowNode;
 import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
@@ -678,19 +679,48 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
-        if (null == procDefInfoDto.getPermissionToRole()) {
+
+
+        Map<String, List<Long>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
+
+        if (null == permissionToRoleMap) {
             throw new WecubeCoreException("There is no process to role with permission mapping found.");
         }
 
-        Map<String, List<Long>> permissionToRoleMapping = procDefInfoDto.getPermissionToRole();
+        String errorMsg;
+        for (Map.Entry<String, List<Long>> permissionToRoleListEntry : permissionToRoleMap.entrySet()) {
+            String permissionStr = permissionToRoleListEntry.getKey();
 
-        if (permissionToRoleMapping.get(ProcRoleBindingEntity.permissionEnum.MGMT.toString()).isEmpty()) {
-            throw new WecubeCoreException("At least one role with MGMT role should be declared.");
-        }
+            // check if key is empty or NULL
+            if (StringUtils.isEmpty(permissionStr)) {
+                errorMsg = "The permission key should not be empty or NULL";
+                log.error(errorMsg);
+                throw new WecubeCoreException(errorMsg);
+            }
 
-        for (Map.Entry<String, List<Long>> permissionToRoleList : permissionToRoleMapping.entrySet()) {
-            String permissionStr = permissionToRoleList.getKey();
-            for (Long roleId : permissionToRoleList.getValue()) {
+            // check key is valid permission enum
+            if (!EnumUtils.isValidEnum(ProcRoleBindingEntity.permissionEnum.class, permissionStr)) {
+                errorMsg = "The request's key is not valid as a permission.";
+                log.error(errorMsg);
+                throw new WecubeCoreException(errorMsg);
+            }
+
+            List<Long> roleIdList = permissionToRoleListEntry.getValue();
+
+            // check if roleIdList is NULL
+            if (null == roleIdList) {
+                errorMsg = String.format("The value of permission: [%s] should not be NULL", permissionStr);
+                log.error(errorMsg);
+                throw new WecubeCoreException(errorMsg);
+            }
+
+            // when permission is MGMT and roleIdList is empty, then it is invalid
+            if (ProcRoleBindingEntity.permissionEnum.MGMT.toString().equals(permissionStr) && roleIdList.isEmpty()) {
+                errorMsg = "At least one role with MGMT role should be declared.";
+                log.error(errorMsg);
+                throw new WecubeCoreException(errorMsg);
+            }
+            for (Long roleId : roleIdList) {
                 processRoleService.updateProcRoleBinding(procId, new ProcRoleRequestDto(permissionStr, roleId));
             }
         }
