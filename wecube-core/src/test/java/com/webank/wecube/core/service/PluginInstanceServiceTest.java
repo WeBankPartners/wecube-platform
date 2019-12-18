@@ -1,5 +1,6 @@
 package com.webank.wecube.core.service;
 
+import com.webank.wecube.core.DatabaseBasedTest;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Slf4j
-public class PluginInstanceServiceTest {
+public class PluginInstanceServiceTest extends DatabaseBasedTest {
 
     @Autowired
     PluginInstanceService pluginInstanceService;
