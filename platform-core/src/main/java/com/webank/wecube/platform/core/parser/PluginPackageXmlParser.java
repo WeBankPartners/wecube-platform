@@ -393,9 +393,11 @@ public class PluginPackageXmlParser {
             String packageName = getStringAttribute(pluginConfigNode, "./@package");
             if (StringUtils.isNotBlank(packageName)) {
                 pluginConfig.setPackageName(packageName);
+            } else {
+                pluginConfig.setPackageName(pluginPackage.getName());
             }
 
-            String entityName = getNonNullStringAttribute(pluginConfigNode, "./@entity", "Entity name");
+            String entityName = getStringAttribute(pluginConfigNode, "./@entity");
             if (StringUtils.isNotBlank(entityName)) {
                 pluginConfig.setEntityName(entityName);
             }
