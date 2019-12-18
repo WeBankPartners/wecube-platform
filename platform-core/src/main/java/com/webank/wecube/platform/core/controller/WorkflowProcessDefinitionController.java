@@ -29,25 +29,25 @@ public class WorkflowProcessDefinitionController {
     private ProcessRoleServiceImpl processRoleService;
 
     @PostMapping("/process/definitions/deploy")
-    public CommonResponseDto deployProcessDefinition(@RequestHeader("Authorization") String token, @RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
 
-        ProcDefOutlineDto result = procDefService.deployProcessDefinition(token, requestDto);
+        ProcDefOutlineDto result = procDefService.deployProcessDefinition(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
     @PostMapping("/process/definitions/draft")
-    public CommonResponseDto draftProcessDefinition(@RequestHeader("Authorization") String token, @RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto draftProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("draft process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
-        ProcDefInfoDto result = procDefService.draftProcessDefinition(token, requestDto);
+        ProcDefInfoDto result = procDefService.draftProcessDefinition(requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
