@@ -11,7 +11,7 @@ export const saveFlowDraft = data =>
 export const getAllFlow = (isIncludeDraft = true) => {
   return isIncludeDraft
     ? req.get("/platform/v1/process/definitions?permission=MGMT")
-    : req.get("/platform/v1/process/definitions?includeDraft=0");
+    : req.get("/platform/v1/process/definitions?includeDraft=0&permission=USE");
 };
 export const getFlowDetailByID = id =>
   req.get(`/platform/v1/process/definitions/${id}/detail`);
