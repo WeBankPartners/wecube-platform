@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PluginPackageResourceFileRepositoryTest  extends DatabaseBasedTest {
 
-    public static final String SERVICE_MANAGEMENT = "servicemanagement";
+    public static final String SERVICE_MANAGEMENT = "service-management";
     public static final String CMDB = "cmdb";
     public static final String UI_ZIP = "ui.zip";
     @Autowired
