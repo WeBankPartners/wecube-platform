@@ -107,8 +107,8 @@ public class PluginConfigService {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfig.getId());
         }
 
-        String packageName = pluginConfig.getPackageName();
-        String entityName = pluginConfig.getEntityName();
+        String packageName = pluginConfig.getTargetPackage();
+        String entityName = pluginConfig.getTargetEntity();
         if (StringUtils.isNotBlank(packageName) && StringUtils.isNotBlank(entityName)) {
             Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository
                     .findByPackageNameAndName(packageName, entityName);
@@ -134,14 +134,14 @@ public class PluginConfigService {
                     "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
-        if (StringUtils.isNotBlank(pluginConfig.getPackageName()) && StringUtils.isNotBlank(pluginConfig.getEntityName())) {
+        if (StringUtils.isNotBlank(pluginConfig.getTargetPackage()) && StringUtils.isNotBlank(pluginConfig.getTargetEntity())) {
             if (DISABLED != pluginConfig.getStatus()) {
                 throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
             }
 
-            if (!pluginPackageEntityRepository.existsByPackageNameAndName(pluginConfig.getPackageName(), pluginConfig.getEntityName())) {
+            if (!pluginPackageEntityRepository.existsByPackageNameAndName(pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity())) {
                 String errorMessage = String.format("PluginPackageEntity not found for packageName:entityName [%s:%s] for plugin config: %s",
-                        pluginConfig.getPackageName(), pluginConfig.getEntityName(), pluginConfig.getName());
+                        pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity(), pluginConfig.getName());
                 log.error(errorMessage);
                 throw new WecubeCoreException(errorMessage);
             }
@@ -223,7 +223,7 @@ public class PluginConfigService {
         return pluginConfigInterfaceDtos;
     }
 
-    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityName(String packageName, String entityName) {
+    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName, String entityName) {
         Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository.findLatestDataModelByPackageName(packageName);
         if (!dataModelOptional.isPresent()) {
             log.info("No data model found for package [{}]", packageName);
@@ -238,7 +238,7 @@ public class PluginConfigService {
         }
 
         List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository.findPluginConfigInterfaceByPluginConfig_EntityNameAndPluginConfig_Status(entityName, ENABLED);
+        Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository.findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(packageName, entityName, ENABLED);
         if (allEnabledInterfacesOptional.isPresent()) {
             pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream().map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)).collect(Collectors.toList()));
         }
