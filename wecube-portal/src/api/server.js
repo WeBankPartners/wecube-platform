@@ -649,3 +649,9 @@ export const getFilteredPluginInterfaceList = (packageName, entityName) =>
     `/platform/v1/plugins/interfaces/package/${packageName}/entity/${entityName}/enabled`
   );
 export const getRolesByCurrentUser = () => req.get(`/platform/v1/users/roles`);
+export const getPermissionByProcessId = id =>
+  req.get(`/platform/v1/process/${id}/roles`);
+export const updateFlowPermission = (id, data) =>
+  req.post(`/platform/v1/process/${id}/roles`, data);
+export const deleteFlowPermission = (id, data) =>
+  req.delete(`/platform/v1/process/${id}/roles`, { data });

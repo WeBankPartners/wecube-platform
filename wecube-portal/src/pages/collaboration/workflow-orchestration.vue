@@ -37,6 +37,14 @@
                 size="small"
               ></Button>
             </span>
+            <span style="float:right;margin-right: 10px">
+              <Button
+                @click.stop.prevent="setFlowPermission(item.procDefId)"
+                icon="ios-build"
+                type="primary"
+                size="small"
+              ></Button>
+            </span>
           </Option>
         </Select>
       </Col>
@@ -245,7 +253,10 @@ import {
   removeProcessDefinition,
   getFilteredPluginInterfaceList,
   getRolesByCurrentUser,
-  getRoleList
+  getRoleList,
+  getPermissionByProcessId,
+  updateFlowPermission,
+  deleteFlowPermission
 } from "@/api/server.js";
 
 function setCTM(node, m) {
@@ -276,6 +287,7 @@ export default {
       useRolesKeyToFlow: [],
       currentUserRoles: [],
       allRolesBackUp: [],
+      currentSettingFlow: "",
       flowRoleManageModal: false,
       isAdd: false,
       transferTitles: [this.$t("unselected_role"), this.$t("selected_role")],
@@ -324,13 +336,20 @@ export default {
         { value: "INPUT", label: this.$t("input") },
         { value: "OUTPUT", label: this.$t("output") }
       ],
-      currentflowsNodes: []
+      currentflowsNodes: [],
+      currentFlow: {}
     };
   },
   watch: {
     selectedFlow: {
-      handler(val) {
-        val && val !== 100000 && this.getFlowXml(val);
+      handler(val, oldVal) {
+        if (val && val !== 100000) {
+          this.getFlowXml(val);
+          this.getPermissionByProcess(val);
+        }
+        if (!val) {
+          this.selectedFlow = oldVal;
+        }
       }
     }
   },
@@ -359,10 +378,64 @@ export default {
       return item.label;
     },
     handleMgmtRoleTransferChange(newTargetKeys, direction, moveKeys) {
-      this.mgmtRolesKeyToFlow = newTargetKeys;
+      if (this.isAdd) {
+        this.mgmtRolesKeyToFlow = newTargetKeys;
+      } else {
+        moveKeys.forEach(_ => {
+          if (direction === "right") {
+            this.updateFlowPermission(this.currentSettingFlow, _, "mgmt");
+          } else {
+            this.deleteFlowPermission(this.currentSettingFlow, _, "mgmt");
+          }
+        });
+        this.mgmtRolesKeyToFlow = newTargetKeys;
+      }
     },
     handleUseRoleTransferChange(newTargetKeys, direction, moveKeys) {
-      this.useRolesKeyToFlow = newTargetKeys;
+      if (this.isAdd) {
+        this.useRolesKeyToFlow = newTargetKeys;
+      } else {
+        moveKeys.forEach(_ => {
+          if (direction === "right") {
+            this.updateFlowPermission(this.currentSettingFlow, _, "use");
+          } else {
+            this.deleteFlowPermission(this.currentSettingFlow, _, "use");
+          }
+        });
+        this.useRolesKeyToFlow = newTargetKeys;
+      }
+    },
+    async updateFlowPermission(proId, roleId, type) {
+      const payload = {
+        permission: type,
+        roleId: roleId
+      };
+      const { status, message, data } = await updateFlowPermission(
+        proId,
+        payload
+      );
+    },
+    async deleteFlowPermission(proId, roleId, type) {
+      const payload = {
+        permission: type,
+        roleId: roleId
+      };
+      const { status, message, data } = await deleteFlowPermission(
+        proId,
+        payload
+      );
+    },
+    setFlowPermission(id) {
+      this.getPermissionByProcess(id);
+      this.flowRoleManageModal = true;
+      this.currentSettingFlow = id;
+    },
+    async getPermissionByProcess(id) {
+      const { status, message, data } = await getPermissionByProcessId(id);
+      if (status === "OK") {
+        this.mgmtRolesKeyToFlow = data.MGMT;
+        this.useRolesKeyToFlow = data.USE;
+      }
     },
     confirmRole() {
       this.flowRoleManageModal = false;
@@ -532,13 +605,11 @@ export default {
         const processName = document.getElementById("camunda-name").innerText;
         const payload = {
           permissionToRole: {
-            mgmt: _this.mgmtRolesKeyToFlow,
+            MGMT: _this.mgmtRolesKeyToFlow,
             USE: _this.useRolesKeyToFlow
           },
           procDefData: xmlString,
-          procDefId: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefId) || ""
-            : "",
+          procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || "",
           procDefKey: isDraft
             ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
             : _this.newFlowID,
