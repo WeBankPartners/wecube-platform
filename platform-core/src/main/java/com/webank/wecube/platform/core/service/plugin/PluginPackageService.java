@@ -14,15 +14,10 @@ import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
-import com.webank.wecube.platform.core.service.CommandService;
-import com.webank.wecube.platform.core.service.PluginInstanceService;
-import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
-import com.webank.wecube.platform.core.service.ScpService;
+import com.webank.wecube.platform.core.service.*;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.SystemUtils;
-
-import javassist.expr.NewArray;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -90,6 +85,9 @@ public class PluginPackageService {
 
     @Autowired
     private UserManagementService userManagementService;
+
+    @Autowired
+    private SystemVariableRepository systemVariableRepository;
 
     @Transactional
     public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
@@ -187,24 +185,12 @@ public class PluginPackageService {
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
 
-        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService
-                .register(pluginPackageDto.getPluginPackageDataModelDto());
-        Set<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelDto.getPluginPackageEntities();
-
-        if (null != pluginPackageEntityDtos && pluginPackageEntityDtos.size() > 0 ) {
-            Set<PluginConfig> pluginConfigs = newLinkedHashSet();
-            for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
-                for (PluginPackageEntityDto pluginPackageEntityDto : pluginPackageEntityDtos) {
-                    String entityNameFromPluginConfig = pluginConfig.getEntityName();
-                    String nameFromDto = pluginPackageEntityDto.getName();
-                    if (entityNameFromPluginConfig.equals(nameFromDto)) {
-                        pluginConfig.setEntityId(pluginPackageEntityDto.getId());
-                    }
-                }
-                pluginConfigs.add(pluginConfig);
-            }
-            pluginConfigRepository.saveAll(pluginConfigs);
+        if (null != pluginPackage.getSystemVariables() && pluginPackage.getSystemVariables().size() > 0) {
+            pluginPackage.getSystemVariables().stream().forEach(systemVariable -> systemVariable.setSource(savedPluginPackage.getId()));
+            systemVariableRepository.saveAll(pluginPackage.getSystemVariables());
         }
+
+        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService.register(pluginPackageDto.getPluginPackageDataModelDto());
 
         savedPluginPackage.setPluginPackageDataModel(PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto));
         if (pluginPackageResourceFilesOptional.isPresent()) {
@@ -229,6 +215,7 @@ public class PluginPackageService {
         return allDistinctPackageNameListOpt.orElseGet(ArrayList::new);
     }
 
+    @Transactional
     public PluginPackage registerPluginPackage(String pluginPackageId) {
         ensurePluginPackageExists(pluginPackageId);
 
@@ -240,11 +227,24 @@ public class PluginPackageService {
 
         createRolesIfNotExistInSystem(pluginPackage);
 
+        updateSystemVariableStatus(pluginPackage);
+
         deployPluginUiResourcesIfRequired(pluginPackage);
 
         pluginPackage.setStatus(REGISTERED);
 
         return pluginPackageRepository.save(pluginPackage);
+    }
+
+    private void updateSystemVariableStatus(PluginPackage pluginPackage) {
+        List<SystemVariable> systemVariables = systemVariableRepository.findAllByScope(pluginPackage.getName());
+        systemVariables.stream()
+                .filter(systemVariable -> SystemVariable.ACTIVE.equals(systemVariable.getStatus()) && !pluginPackage.getId().equals(systemVariable.getSource()))
+                .map(systemVariable -> systemVariable.deactivate());
+        systemVariables.stream()
+                .filter(systemVariable -> SystemVariable.INACTIVE.equals(systemVariable.getStatus()) && pluginPackage.getId().equals(systemVariable.getSource()))
+                .map(systemVariable -> systemVariable.activate());
+        systemVariableRepository.saveAll(systemVariables);
     }
 
     void createRolesIfNotExistInSystem(PluginPackage pluginPackage) {
@@ -289,11 +289,32 @@ public class PluginPackageService {
 
         ensureNoPluginInstanceIsRunningForPluginPackage(pluginPackageId);
 
-        PluginPackage pluginPackage = decommissionPluginPackageAndDisableAllItsPlugins(pluginPackageId);
+        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+
+        pluginConfigService.disableAllPluginsForPluginPackage(pluginPackageId);
+
+        deactivateSystemVariables(pluginPackage);
+
+        decommissionPluginPackageAndDisableAllItsPlugins(pluginPackage);
 
         removeLocalDockerImageFiles(pluginPackage);
 
         removePluginUiResourcesIfRequired(pluginPackage);
+    }
+
+    private void deactivateSystemVariables(PluginPackage pluginPackage) {
+        Optional<List<SystemVariable>> systemVariablesOptional = systemVariableRepository.findBySource(pluginPackage.getId());
+        if (systemVariablesOptional.isPresent()) {
+            List<SystemVariable> systemVariablesFromDb = systemVariablesOptional.get();
+            if (systemVariablesFromDb.size() > 0) {
+                Set<SystemVariable> systemVariables = systemVariablesFromDb
+                        .stream()
+                        .filter(systemVariable -> SystemVariable.ACTIVE.equals(systemVariable.getStatus()) && pluginPackage.getId().equals(systemVariable.getSource()) && pluginPackage.getName().equals(systemVariable.getScope()))
+                        .map(systemVariable -> systemVariable.deactivate())
+                        .collect(Collectors.toSet());
+                systemVariableRepository.saveAll(systemVariables);
+            }
+        }
     }
 
     private void removeLocalDockerImageFiles(PluginPackage pluginPackage) {
@@ -310,14 +331,12 @@ public class PluginPackageService {
         }
     }
 
-    private PluginPackage decommissionPluginPackageAndDisableAllItsPlugins(String pluginPackageId) {
-        PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
+    private PluginPackage decommissionPluginPackageAndDisableAllItsPlugins(PluginPackage pluginPackage) {
 
         pluginPackage.setStatus(DECOMMISSIONED);
 
         pluginPackageRepository.save(pluginPackage);
 
-        pluginConfigService.disableAllPluginsForPluginPackage(pluginPackageId);
         return pluginPackage;
     }
 
@@ -448,9 +467,12 @@ public class PluginPackageService {
         return returnMenuDto;
     }
 
-    public Set<SystemVariable> getSystemVarsById(String packageId) {
-        PluginPackage packageFoundById = getPackageById(packageId);
-        return packageFoundById.getSystemVariables();
+    public List<SystemVariable> getSystemVarsById(String packageId) {
+        Optional<List<SystemVariable>> optionalSystemVariables = systemVariableRepository.findBySource(packageId);
+        if (optionalSystemVariables.isPresent()) {
+            return optionalSystemVariables.get();
+        }
+        return Collections.EMPTY_LIST;
     }
 
     public Set<PluginPackageAuthority> getAuthoritiesById(String packageId) {
