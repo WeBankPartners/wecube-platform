@@ -34,7 +34,7 @@ public class PluginConfigController {
     @GetMapping("/plugins/interfaces/package/{package-name}/entity/{entity-name}/enabled")
     @ResponseBody
     public JsonResponse queryAllEnabledPluginConfigInterfaceForEntityName(@PathVariable(value = "package-name") String packageName, @PathVariable(value = "entity-name") String entityName) {
-        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntityName(packageName, entityName));
+        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(packageName, entityName));
     }
 
     @PostMapping("/plugins/enable/{plugin-config-id:.+}")

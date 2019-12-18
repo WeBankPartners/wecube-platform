@@ -38,10 +38,10 @@ public class PluginConfig {
     private String name;
 
     @Column
-    private String packageName;
+    private String targetPackage;
 
     @Column
-    private String entityName;
+    private String targetEntity;
 
     @Column
     private String registerName;
@@ -92,20 +92,20 @@ public class PluginConfig {
         this.name = name;
     }
 
-    public String getPackageName() {
-        return packageName;
+    public String getTargetPackage() {
+        return targetPackage;
     }
 
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
+    public void setTargetPackage(String targetPackage) {
+        this.targetPackage = targetPackage;
     }
 
-    public String getEntityName() {
-        return entityName;
+    public String getTargetEntity() {
+        return targetEntity;
     }
 
-    public void setEntityName(String entityName) {
-        this.entityName = entityName;
+    public void setTargetEntity(String targetEntity) {
+        this.targetEntity = targetEntity;
     }
 
     public Status getStatus() {
@@ -129,13 +129,13 @@ public class PluginConfig {
     public PluginConfig() {
     }
 
-    public PluginConfig(String id, PluginPackage pluginPackage, String name, String packageName, String entityName,
+    public PluginConfig(String id, PluginPackage pluginPackage, String name, String targetPackage, String targetEntity,
                         Status status, Set<PluginConfigInterface> interfaces) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.name = name;
-        this.packageName = packageName;
-        this.entityName = entityName;
+        this.targetPackage = targetPackage;
+        this.targetEntity = targetEntity;
         this.status = status;
         this.interfaces = interfaces;
     }
