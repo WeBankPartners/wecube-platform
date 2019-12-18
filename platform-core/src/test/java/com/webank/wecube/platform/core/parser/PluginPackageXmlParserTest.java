@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.parser;
 
 import com.google.common.io.Resources;
+import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
@@ -23,7 +24,7 @@ public class PluginPackageXmlParserTest {
         InputSource inputSource = new InputSource(Resources.getResource("register-for-parser-test.xml").openStream());
         PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
-        assertThat(pluginPackageDto.getName()).isEqualTo("servicemanagement");
+        assertThat(pluginPackageDto.getName()).isEqualTo("service-management");
         assertThat(pluginPackageDto.getVersion()).isEqualTo("v0.1");
 
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
@@ -49,7 +50,7 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackageDataModelDto.getVersion()).isEqualTo(1);
         assertThat(pluginPackageDataModelDto.getPluginPackageEntities()).hasSize(5);
         
-        assertThat(pluginPackage.getSystemVariables().iterator().next().getStatus()).isEqualTo("active");
+        assertThat(pluginPackage.getSystemVariables().iterator().next().getStatus()).isEqualTo(SystemVariable.INACTIVE);
     }
 
 }
