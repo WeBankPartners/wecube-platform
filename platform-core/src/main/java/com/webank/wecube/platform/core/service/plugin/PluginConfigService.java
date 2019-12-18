@@ -162,7 +162,7 @@ public class PluginConfigService {
                     inputParameters.forEach(inputParameter -> {
                         if ("Y".equalsIgnoreCase(inputParameter.getRequired())) {
                             if (system_variable.name().equals(inputParameter.getMappingType())
-                                    && inputParameter.getMappingSystemVariableId() == null) {
+                                    && inputParameter.getMappingSystemVariableName() == null) {
                                 throw new WecubeCoreException(String.format(
                                         "System variable is required for parameter [%s]", inputParameter.getId()));
                             }
