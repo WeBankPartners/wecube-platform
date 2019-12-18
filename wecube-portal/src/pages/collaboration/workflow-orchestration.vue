@@ -337,7 +337,7 @@ export default {
         { value: "OUTPUT", label: this.$t("output") }
       ],
       currentflowsNodes: [],
-      currentFlow: {}
+      currentFlow: null
     };
   },
   watch: {
