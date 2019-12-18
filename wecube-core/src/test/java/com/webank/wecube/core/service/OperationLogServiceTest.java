@@ -1,5 +1,6 @@
 package com.webank.wecube.core.service;
 
+import com.webank.wecube.core.DatabaseBasedTest;
 import com.webank.wecube.core.domain.OperationLog;
 import com.webank.wecube.core.dto.OperationLogDto;
 import com.webank.wecube.core.dto.QueryRequest;
@@ -18,7 +19,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class OperationLogServiceTest {
+public class OperationLogServiceTest extends DatabaseBasedTest {
 
     @Autowired
     private OperationLogService operationLogService;
