@@ -76,6 +76,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
             // set NOT DRAFT_STATUS process to DELETED_STATUS, without deleting the nodes and params
             log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId, ProcDefInfoEntity.DELETED_STATUS));
             procDef.setStatus(ProcDefInfoEntity.DELETED_STATUS);
+            processDefInfoRepo.save(procDef);
             return;
         }
         // delete DRAFT_STATUS process with all nodes and params deleted as well
@@ -275,10 +276,12 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         } else {
             procRoleDtoList = processRoleService.retrieveAllProcessByRoleIdList(roleIdList);
         }
+        Set<ProcRoleDto> procRoleDtoSet = new HashSet<>(procRoleDtoList);
+
 
         // check if there is includeDraftProcDef specified
         List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
-        for (ProcRoleDto procRoleDto : procRoleDtoList) {
+        for (ProcRoleDto procRoleDto : procRoleDtoSet) {
             String procId = procRoleDto.getProcessId();
             Optional<ProcDefInfoEntity> processFoundById;
             if (includeDraftProcDef) {
