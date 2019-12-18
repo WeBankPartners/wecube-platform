@@ -185,9 +185,9 @@ public class PluginPackageService {
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
 
-        if (null != savedPluginPackage.getSystemVariables() && savedPluginPackage.getSystemVariables().size() > 0) {
-            savedPluginPackage.getSystemVariables().stream().forEach(systemVariable -> systemVariable.setSource(savedPluginPackage.getId()));
-            systemVariableRepository.saveAll(savedPluginPackage.getSystemVariables());
+        if (null != pluginPackage.getSystemVariables() && pluginPackage.getSystemVariables().size() > 0) {
+            pluginPackage.getSystemVariables().stream().forEach(systemVariable -> systemVariable.setSource(savedPluginPackage.getId()));
+            systemVariableRepository.saveAll(pluginPackage.getSystemVariables());
         }
 
         PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService.register(pluginPackageDto.getPluginPackageDataModelDto());
@@ -303,13 +303,17 @@ public class PluginPackageService {
     }
 
     private void deactivateSystemVariables(PluginPackage pluginPackage) {
-        if (null != pluginPackage.getSystemVariables() && pluginPackage.getSystemVariables().size() > 0) {
-            Set<SystemVariable> systemVariables = pluginPackage.getSystemVariables()
-                    .stream()
-                    .filter(systemVariable -> SystemVariable.ACTIVE.equals(systemVariable.getStatus()) && pluginPackage.getId().equals(systemVariable.getSource()) && pluginPackage.getName().equals(systemVariable.getScope()))
-                    .map(systemVariable -> systemVariable.deactivate())
-                    .collect(Collectors.toSet());
-            systemVariableRepository.saveAll(systemVariables);
+        Optional<List<SystemVariable>> systemVariablesOptional = systemVariableRepository.findBySource(pluginPackage.getId());
+        if (systemVariablesOptional.isPresent()) {
+            List<SystemVariable> systemVariablesFromDb = systemVariablesOptional.get();
+            if (systemVariablesFromDb.size() > 0) {
+                Set<SystemVariable> systemVariables = systemVariablesFromDb
+                        .stream()
+                        .filter(systemVariable -> SystemVariable.ACTIVE.equals(systemVariable.getStatus()) && pluginPackage.getId().equals(systemVariable.getSource()) && pluginPackage.getName().equals(systemVariable.getScope()))
+                        .map(systemVariable -> systemVariable.deactivate())
+                        .collect(Collectors.toSet());
+                systemVariableRepository.saveAll(systemVariables);
+            }
         }
     }
 
@@ -463,9 +467,12 @@ public class PluginPackageService {
         return returnMenuDto;
     }
 
-    public Set<SystemVariable> getSystemVarsById(String packageId) {
-        PluginPackage packageFoundById = getPackageById(packageId);
-        return packageFoundById.getSystemVariables();
+    public List<SystemVariable> getSystemVarsById(String packageId) {
+        Optional<List<SystemVariable>> optionalSystemVariables = systemVariableRepository.findBySource(packageId);
+        if (optionalSystemVariables.isPresent()) {
+            return optionalSystemVariables.get();
+        }
+        return Collections.EMPTY_LIST;
     }
 
     public Set<PluginPackageAuthority> getAuthoritiesById(String packageId) {
