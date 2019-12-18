@@ -1,15 +1,20 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
+
 public class ProcRoleRequestDto {
     String permission;
-    Long roleId;
+    @JsonProperty(value = "roleId")
+    List<Long> roleIdList;
 
     public ProcRoleRequestDto() {
     }
 
-    public ProcRoleRequestDto(String permission, Long roleId) {
+    public ProcRoleRequestDto(String permission, List<Long> roleIdList) {
         this.permission = permission;
-        this.roleId = roleId;
+        this.roleIdList = roleIdList;
     }
 
     public String getPermission() {
@@ -20,11 +25,11 @@ public class ProcRoleRequestDto {
         this.permission = permission;
     }
 
-    public Long getRoleId() {
-        return roleId;
+    public List<Long> getRoleIdList() {
+        return roleIdList;
     }
 
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
+    public void setRoleIdList(List<Long> roleIdList) {
+        this.roleIdList = roleIdList;
     }
 }
