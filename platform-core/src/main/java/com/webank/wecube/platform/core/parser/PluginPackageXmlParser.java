@@ -390,18 +390,19 @@ public class PluginPackageXmlParser {
             pluginConfig.setPluginPackage(pluginPackage);
             pluginConfig.setStatus(DISABLED);
             pluginConfig.setName(getNonNullStringAttribute(pluginConfigNode, "./@name", "Plugin name"));
-            String packageName = getStringAttribute(pluginConfigNode, "./@package");
-            if (StringUtils.isNotBlank(packageName)) {
-                pluginConfig.setPackageName(packageName);
+            String targetPackage = getStringAttribute(pluginConfigNode, "./@targetPackage");
+            if (StringUtils.isNotBlank(targetPackage)) {
+                pluginConfig.setTargetPackage(targetPackage);
             } else {
-                pluginConfig.setPackageName(pluginPackage.getName());
+                pluginConfig.setTargetPackage(pluginPackage.getName());
             }
 
-            String entityName = getStringAttribute(pluginConfigNode, "./@entity");
-            if (StringUtils.isNotBlank(entityName)) {
-                pluginConfig.setEntityName(entityName);
+            String targetEntity = getStringAttribute(pluginConfigNode, "./@targetEntity");
+            if (StringUtils.isNotBlank(targetEntity)) {
+                pluginConfig.setTargetEntity(targetEntity);
             }
-            String registerName = getNonNullStringAttribute(pluginConfigNode, "./@registerName", "Register name");
+
+            String registerName = getStringAttribute(pluginConfigNode, "./@registerName");
             if (StringUtils.isNotBlank(registerName)) {
                 pluginConfig.setRegisterName(registerName);
             }
