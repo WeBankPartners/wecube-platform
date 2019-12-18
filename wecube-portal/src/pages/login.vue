@@ -89,15 +89,16 @@ export default {
   top: calc(50% - 75px);
   left: calc(50% - 50px);
   height: 150px;
-  width: 350px;
+  width: 230px;
   padding: 10px;
   z-index: 2;
+  text-align: center;
 }
 
 .login-form input[type="text"],
 input[type="password"],
 input[type="button"] {
-  width: 250px;
+  width: 100%;
   height: 35px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -113,9 +114,10 @@ input[type="button"] {
   background: #fff;
   border: 1px solid #fff;
   cursor: pointer;
-  border-radius: 2px;
-  color: #a18d6c;
+  border-radius: 20px;
+  color: black;
   font-size: 16px;
+  width: 45%;
 }
 
 .login-form input[type="button"]:hover {
