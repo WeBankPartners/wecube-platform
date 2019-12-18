@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Where;
 
@@ -62,21 +63,7 @@ public class PluginConfigInterface {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginConfig
-                    ? (null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getName() : null)
-                    : null,
-                    null != pluginConfig
-                            ? (null != pluginConfig.getPluginPackage() ? pluginConfig.getPluginPackage().getVersion()
-                                    : null)
-                            : null,
-                    null != pluginConfig ? pluginConfig.getName() : null,
-                    null != pluginConfig ? pluginConfig.getEntityName() + (null != pluginConfig.getRegisterName()
-                            ? KEY_COLUMN_DELIMITER + pluginConfig.getRegisterName()
-                            : "") : null,
-                    action);
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
     public PluginConfig getPluginConfig() {

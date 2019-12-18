@@ -15,7 +15,7 @@ insert into menu_items (id,parent_code,code,source,menu_order,description) value
 ,('ADMIN__ADMIN_RESOURCES_MANAGEMENT','ADMIN','ADMIN_RESOURCES_MANAGEMENT','SYSTEM', 13, '');
 
 
-INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `status`) VALUES ('global__CORE_ADDR', NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', NULL, 'active');
-INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `status`) VALUES ('global__BASE_MOUNT_PATH', NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', NULL, 'active');
-INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `status`) VALUES ('global__CMDB_URL', NULL, 'CMDB_URL', NULL, 'http://127.0.0.1:19090', 'global', NULL, 'active');
-INSERT INTO `system_variables` (`id`,`plugin_package_id`, `name`, `value`, `default_value`, `scope_type`, `scope_value`, `status`) VALUES ('global__CALLBACK_URL', NULL, 'CALLBACK_URL', NULL, '/v1/process/instances/callback', 'global', NULL, 'active');
+INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('global__CORE_ADDR', NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', 'system', 'active');
+INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('global__BASE_MOUNT_PATH', NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', 'system', 'active');
+INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('global__CMDB_URL', NULL, 'CMDB_URL', NULL, 'http://127.0.0.1:19090', 'global', 'system', 'active');
+INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('global__CALLBACK_URL', NULL, 'CALLBACK_URL', NULL, '/v1/process/instances/callback', 'global', 'system', 'active');

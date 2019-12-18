@@ -208,8 +208,8 @@ public class PluginInstanceService {
         return systemVariableService.variableReplacement(null, baseMountPathString);
     }
 
-    private String replaceSystemVariablesForEnvVariables(String packageId, String str) {
-        return systemVariableService.variableReplacement(packageId, str);
+    private String replaceSystemVariablesForEnvVariables(String packageName, String str) {
+        return systemVariableService.variableReplacement(packageName, str);
     }
 
     private DatabaseInfo handleCreateDatabase(Set<PluginPackageRuntimeResourcesMysql> mysqlInfoSet,
@@ -295,7 +295,7 @@ public class PluginInstanceService {
                     .replace("{{DB_USER}}", dbInfo.getUser()).replace("{{DB_PWD}}", EncryptionUtils.decryptWithAes(
                             dbInfo.getPassword(), resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema()));
         }
-        envVariablesString = replaceSystemVariablesForEnvVariables(packageId, envVariablesString);
+        envVariablesString = replaceSystemVariablesForEnvVariables(pluginPackage.getName(), envVariablesString);
 
         createContainerParameters.setEnvVariableParameters(envVariablesString.isEmpty() ? "" : envVariablesString);
 
