@@ -12,9 +12,9 @@ import java.util.List;
 public class ProcRoleOverviewDto {
     @JsonProperty(value = "processId")
     private String processId;
-    @JsonProperty(value = "mgmt")
+    @JsonProperty(value = "MGMT")
     private List<Long> mgmtRoleIdList;
-    @JsonProperty(value = "use")
+    @JsonProperty(value = "USE")
     private List<Long> useRoleIdList;
 
     public ProcRoleOverviewDto(String processId, List<Long> mgmtRoleIdList, List<Long> useRoleIdList) {
