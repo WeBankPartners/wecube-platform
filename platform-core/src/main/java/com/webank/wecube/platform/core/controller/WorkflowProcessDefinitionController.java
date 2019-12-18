@@ -29,7 +29,7 @@ public class WorkflowProcessDefinitionController {
     private ProcessRoleServiceImpl processRoleService;
 
     @PostMapping("/process/definitions/deploy")
-    public CommonResponseDto deployProcessDefinition(@RequestHeader String token, @RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto deployProcessDefinition(@RequestHeader("Authorization") String token, @RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
@@ -41,7 +41,7 @@ public class WorkflowProcessDefinitionController {
     }
 
     @PostMapping("/process/definitions/draft")
-    public CommonResponseDto draftProcessDefinition(@RequestHeader String token, @RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto draftProcessDefinition(@RequestHeader("Authorization") String token, @RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("draft process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
