@@ -2,17 +2,15 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.webank.wecube.platform.core.domain.ResourceItem;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 
 import javax.persistence.*;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_mysql_instances")
@@ -66,11 +64,11 @@ public class PluginMysqlInstance {
     @PrePersist
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER,
+            this.id = DomainIdBuilder.buildDomainId(
                     null != pluginPackage ? pluginPackage.getId() : null,
                     schemaName,
-                    username);
-            this.id = this.id.replaceAll("\\s+", "_");
+                    username
+            );
         }
     }
 

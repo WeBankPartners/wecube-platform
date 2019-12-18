@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.controller;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
@@ -51,6 +52,16 @@ public class UserManagementController {
             return userManagementService.deleteUser(token, id);
         } catch (WecubeCoreException e) {
             return CommonResponseDto.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/users/roles")
+    @ResponseBody
+    public CommonResponseDto getRolesByCurrentUserName(@RequestHeader(value = "Authorization") String token) {
+        try {
+            return userManagementService.getRolesByUserName(token, AuthenticationContextHolder.getCurrentUsername());
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
         }
     }
 

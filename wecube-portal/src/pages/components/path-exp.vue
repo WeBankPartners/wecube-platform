@@ -6,7 +6,7 @@
           ref="textarea"
           :rows="3"
           @input="inputHandler"
-          :value="inputVal"
+          :value="inputValueWithNoSpace"
           :disabled="disabled"
         ></textarea>
         <!-- <span v-if="!isEndWithCIType" class="wecube-error-message">{{
@@ -91,6 +91,9 @@ export default {
     }
   },
   computed: {
+    inputValueWithNoSpace() {
+      return this.inputVal.replace(/\s/g, "");
+    },
     allEntity() {
       let entity = [];
       this.allDataModelsWithAttrs.forEach(_ => {

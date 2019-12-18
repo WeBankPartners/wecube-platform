@@ -2,13 +2,12 @@ package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.webank.wecube.platform.core.domain.MenuItem;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_package_menus")
@@ -51,14 +50,7 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER,
-                    null != pluginPackage ? pluginPackage.getId() : null,
-                    category,
-                    code
-            );
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
     public PluginPackage getPluginPackage() {

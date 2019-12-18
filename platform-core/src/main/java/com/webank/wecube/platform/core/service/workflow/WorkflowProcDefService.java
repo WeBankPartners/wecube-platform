@@ -1,12 +1,21 @@
 package com.webank.wecube.platform.core.service.workflow;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.workflow.*;
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
+import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
+import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
+import com.webank.wecube.platform.workflow.model.ProcDefOutline;
+import com.webank.wecube.platform.workflow.model.ProcFlowNode;
+import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
@@ -14,23 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefParamDto;
-import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
-import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
-import com.webank.wecube.platform.workflow.model.ProcDefOutline;
-import com.webank.wecube.platform.workflow.model.ProcFlowNode;
-import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class WorkflowProcDefService extends AbstractWorkflowService {
@@ -47,6 +41,12 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
     @Autowired
     private WorkflowEngineService workflowEngineService;
+
+    @Autowired
+    private UserManagementServiceImpl userManagementService;
+
+    @Autowired
+    private ProcessRoleServiceImpl processRoleService;
 
     public void removeProcessDefinition(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
@@ -253,17 +253,28 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         return pdto;
     }
 
-    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef) {
+    public List<ProcDefInfoDto> getProcessDefinitions(String token, boolean includeDraftProcDef, String permissionStr) {
+        List<Long> roleIdList = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
 
-        List<ProcDefInfoEntity> procDefEntities = null;
-        if (includeDraftProcDef) {
-            procDefEntities = processDefInfoRepo.findAllDeployedOrDraftProcDefs();
+        // check if there is permission specified
+        List<ProcRoleDto> procRoleDtoList;
+        if (!StringUtils.isEmpty(permissionStr)) {
+            procRoleDtoList = processRoleService.retrieveProcessByRoleIdListAndPermission(roleIdList, permissionStr);
         } else {
-            procDefEntities = processDefInfoRepo.findAllDeployedProcDefs();
+            procRoleDtoList = processRoleService.retrieveAllProcessByRoleIdList(roleIdList);
         }
 
-        if (procDefEntities == null) {
-            return Collections.emptyList();
+        // check if there is includeDraftProcDef specified
+        List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
+        for (ProcRoleDto procRoleDto : procRoleDtoList) {
+            String procId = procRoleDto.getProcessId();
+            Optional<ProcDefInfoEntity> processFoundById;
+            if (includeDraftProcDef) {
+                processFoundById = processDefInfoRepo.findAllDeployedOrDraftProcDefsByProcId(procId);
+            } else {
+                processFoundById = processDefInfoRepo.findAllDeployedProcDefsByProcId(procId);
+            }
+            processFoundById.ifPresent(procDefEntities::add);
         }
 
         List<ProcDefInfoDto> procDefInfoDtos = new ArrayList<>();
@@ -306,7 +317,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         draftEntity.setRootEntity(procDefDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
 
-        processDefInfoRepo.save(draftEntity);
+        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
+        // Save ProcRoleBindingEntity
+        this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), procDefDto);
 
         ProcDefInfoDto procDefResult = new ProcDefInfoDto();
         procDefResult.setProcDefId(draftEntity.getId());
@@ -430,7 +443,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         procDefEntity.setStatus(ProcDefInfoEntity.PREDEPLOY_STATUS);
         procDefEntity.setUpdatedTime(currTime);
 
-        processDefInfoRepo.save(procDefEntity);
+        ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.save(procDefEntity);
+        // Save ProcRoleBindingEntity
+        this.saveProcRoleBinding(savedProcDefInfoEntity.getId(), procDefInfoDto);
 
         if (procDefInfoDto.getTaskNodeInfos() != null) {
             for (TaskNodeDefInfoDto nodeDto : procDefInfoDto.getTaskNodeInfos()) {
@@ -500,7 +515,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     protected ProcDefOutlineDto postDeployProcessDefinition(ProcDefInfoEntity procDefEntity, ProcessDefinition procDef,
-            ProcDefOutline procDefOutline) {
+                                                            ProcDefOutline procDefOutline) {
         if (procDefEntity == null) {
             return null;
         }
@@ -649,6 +664,54 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         }
 
         processDefInfoRepo.deleteById(procEntity.getId());
+    }
+
+    private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
+
+
+        Map<String, List<Long>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
+
+        if (null == permissionToRoleMap) {
+            throw new WecubeCoreException("There is no process to role with permission mapping found.");
+        }
+
+        String errorMsg;
+        for (Map.Entry<String, List<Long>> permissionToRoleListEntry : permissionToRoleMap.entrySet()) {
+            String permissionStr = permissionToRoleListEntry.getKey();
+
+            // check if key is empty or NULL
+            if (StringUtils.isEmpty(permissionStr)) {
+                errorMsg = "The permission key should not be empty or NULL";
+                log.error(errorMsg);
+                throw new WecubeCoreException(errorMsg);
+            }
+
+            // check key is valid permission enum
+            if (!EnumUtils.isValidEnum(ProcRoleBindingEntity.permissionEnum.class, permissionStr)) {
+                errorMsg = "The request's key is not valid as a permission.";
+                log.error(errorMsg);
+                throw new WecubeCoreException(errorMsg);
+            }
+
+            List<Long> roleIdList = permissionToRoleListEntry.getValue();
+
+            // check if roleIdList is NULL
+            if (null == roleIdList) {
+                errorMsg = String.format("The value of permission: [%s] should not be NULL", permissionStr);
+                log.error(errorMsg);
+                throw new WecubeCoreException(errorMsg);
+            }
+
+            // when permission is MGMT and roleIdList is empty, then it is invalid
+            if (ProcRoleBindingEntity.permissionEnum.MGMT.toString().equals(permissionStr) && roleIdList.isEmpty()) {
+                errorMsg = "At least one role with MGMT role should be declared.";
+                log.error(errorMsg);
+                throw new WecubeCoreException(errorMsg);
+            }
+            for (Long roleId : roleIdList) {
+                processRoleService.updateProcRoleBinding(procId, new ProcRoleRequestDto(permissionStr, roleId));
+            }
+        }
     }
 
 }
