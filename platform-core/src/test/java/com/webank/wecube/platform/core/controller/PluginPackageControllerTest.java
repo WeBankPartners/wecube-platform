@@ -125,7 +125,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     public void givenPluginPackageNormalAndFakeS3ClientWhenUploadThenReturnSuccess() {
         pluginPackageService.setS3Client(new FakeS3Client());
 
-        File testPackage = new File("src/test/resources/testpackage/servicemanagement-v0.1.zip");
+        File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
         MockMultipartFile mockPluginPackageFile = null;
         try {
             mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
@@ -139,7 +139,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("status", is("OK")))
                     .andExpect(jsonPath("message", is("Success")))
-                    .andExpect(jsonPath("$.data.name", is("servicemanagement")))
+                    .andExpect(jsonPath("$.data.name", is("service-management")))
                     .andExpect(jsonPath("$.data.version", is("v0.1")))
                     .andExpect(jsonPath("$.data.uiPackageIncluded", is(true)))
                     .andDo(print())
@@ -283,7 +283,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                 " ,('cmdb__v1.2', 'cmdb', 'v1.2', 'UNREGISTERED', 0)\n" +
                 " ,('cmdb__v1.3', 'cmdb', 'v1.3', 'RUNNING', 0)\n" +
                 ";\n" +
-                "insert into plugin_configs (id, plugin_package_id, name, entity_name, status) values\n" +
+                "insert into plugin_configs (id, plugin_package_id, name, target_entity, status) values\n" +
                 " ('11', 'cmdb__v1.0', 'Vpc Management', 'entity_1', 'ENABLED')\n" +
                 ",('21', 'cmdb__v1.1', 'Vpc Management', 'entity_2', 'ENABLED')\n" +
                 ",('31', 'cmdb__v1.2', 'Vpc Management', 'entity_3', 'DISABLED')\n" +
@@ -299,12 +299,12 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String packageName = "servicemanagement__v0.1";
+        String packageName = "service-management__v0.1";
 
         try {
             mvc.perform(get(String.format("/v1/packages/%s/dependencies", packageName)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.packageName", is("servicemanagement")))
+                    .andExpect(jsonPath("$.data.packageName", is("service-management")))
                     .andExpect(jsonPath("$.data.dependencies[*].packageName", contains("xxx", "xxx233")))
                     .andExpect(jsonPath("$.data.dependencies[*].version", contains("1.0", "1.5")))
                     .andDo(print())
@@ -339,7 +339,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "servicemanagement__v0.1";
+        String correctQueryId = "service-management__v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/menus", correctQueryId)))
                     .andExpect(status().isOk())
@@ -380,14 +380,14 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "servicemanagement__v0.1";
+        String correctQueryId = "service-management__v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains("servicemanagement__v0.1__global__globalVar", "servicemanagement__v0.1__servicemanagement__pluginVar")))
+                    .andExpect(jsonPath("$.data[*].id", contains("service-management__v0.1__global__globalVar", "service-management__v0.1__service-management__pluginVar")))
                     .andExpect(jsonPath("$.data[*].name", contains("globalVar", "pluginVar")))
                     .andExpect(jsonPath("$.data[*].defaultValue", contains("xxxx", "xxxx")))
-                    .andExpect(jsonPath("$.data[*].scope", contains("global", "servicemanagement")))
+                    .andExpect(jsonPath("$.data[*].scope", contains("global", "service-management")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -402,11 +402,11 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "servicemanagement__v0.1";
+        String correctQueryId = "service-management__v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/authorities", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("servicemanagement__v0.1__admin__JOBS_SERVICE_CATALOG_MANAGEMENT", "servicemanagement__v0.1__admin__JOBS_TASK_MANAGEMENT", "servicemanagement__v0.1__wecube_operator__JOBS_TASK_MANAGEMENT")))
+                    .andExpect(jsonPath("$.data[*].id", containsInAnyOrder("service-management__v0.1__admin__JOBS_SERVICE_CATALOG_MANAGEMENT", "service-management__v0.1__admin__JOBS_TASK_MANAGEMENT", "service-management__v0.1__wecube_operator__JOBS_TASK_MANAGEMENT")))
                     .andExpect(jsonPath("$.data[*].roleName", contains("admin", "admin", "wecube_operator")))
                     .andExpect(jsonPath("$.data[*].menuCode", contains("JOBS_SERVICE_CATALOG_MANAGEMENT", "JOBS_TASK_MANAGEMENT", "JOBS_TASK_MANAGEMENT")))
                     .andDo(print())
@@ -423,16 +423,16 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String correctQueryId = "servicemanagement__v0.1";
+        String correctQueryId = "service-management__v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/runtime-resources", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.docker[0].id", is("Docker__servicemanagement__v0.1__service_management")))
-                    .andExpect(jsonPath("$.data.mysql[0].id", is("MySql__servicemanagement__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.docker[0].id", is("Docker__service-management__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.mysql[0].id", is("MySql__service-management__v0.1__service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].schemaName", is("service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].initFileName", is("init.sql")))
                     .andExpect(jsonPath("$.data.mysql[0].upgradeFileName", is("upgrade.sql")))
-                    .andExpect(jsonPath("$.data.s3[0].id", is("S3__servicemanagement__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.s3[0].id", is("S3__service-management__v0.1__service_management")))
                     .andExpect(jsonPath("$.data.s3[0].bucketName", is("service_management")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -448,16 +448,16 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         } catch (Exception ex) {
             fail();
         }
-        String packageId = "servicemanagement__v0.1";
+        String packageId = "service-management__v0.1";
         try {
             mvc.perform(get(String.format("/v1/packages/%s/plugins", packageId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].id", containsInAnyOrder("servicemanagement__v0.1__service_request", "servicemanagement__v0.1__task")))
-                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].packageName", containsInAnyOrder("servicemanagement", "servicemanagement")))
-                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].entityName", containsInAnyOrder("service_request", "task")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].id", containsInAnyOrder("service-management__v0.1__service_request", "service-management__v0.1__task")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].targetPackage", containsInAnyOrder("service-management", "service-management")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].targetEntity", containsInAnyOrder("service_request", "task")))
                     .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].name", containsInAnyOrder("task", "service_request")))
                     .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].status", containsInAnyOrder("DISABLED", "DISABLED")))
-                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].pluginPackageId", contains("servicemanagement__v0.1", "servicemanagement__v0.1")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].pluginPackageId", contains("service-management__v0.1", "service-management__v0.1")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -467,7 +467,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
 
     private void uploadCorrectPackage() throws Exception {
         pluginPackageService.setS3Client(new FakeS3Client());
-        File testPackage = new File("src/test/resources/testpackage/servicemanagement-v0.1.zip");
+        File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
         MockMultipartFile mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
         mvc.perform(MockMvcRequestBuilders.multipart("/v1/packages").file(mockPluginPackageFile));
     }
