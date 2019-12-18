@@ -48,7 +48,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     @Autowired
     private ProcessRoleServiceImpl processRoleService;
 
-    public void removeProcessDefinition(String procDefId) {
+    public void removeProcessDefinition(String token, String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
             throw new WecubeCoreException("Process definition id is blank.");
         }
@@ -62,11 +62,23 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         ProcDefInfoEntity procDef = procDefOpt.get();
 
-        if (!ProcDefInfoEntity.DRAFT_STATUS.equals(procDef.getStatus())) {
-            throw new WecubeCoreException(
-                    String.format("Such process definition under {%s} and cannot delete.", procDef.getStatus()));
+        String username = AuthenticationContextHolder.getCurrentUsername();
+        boolean isAvailableToManageThisProcess = this.processRoleService.checkIfUserHasMgmtPermission(
+                procDef.getId(),
+                this.userManagementService.getRoleIdListByUsername(token, username));
+        if (!isAvailableToManageThisProcess) {
+            String msg = String.format("The user: [%s] doesn't have permission to manage this process: [%s]", username, procDef.getId());
+            log.error(msg);
+            throw new WecubeCoreException(msg);
         }
 
+        if (!ProcDefInfoEntity.DRAFT_STATUS.equals(procDef.getStatus())) {
+            // set NOT DRAFT_STATUS process to DELETED_STATUS, without deleting the nodes and params
+            log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId, ProcDefInfoEntity.DELETED_STATUS));
+            procDef.setStatus(ProcDefInfoEntity.DELETED_STATUS);
+            return;
+        }
+        // delete DRAFT_STATUS process with all nodes and params deleted as well
         List<TaskNodeParamEntity> nodeParams = taskNodeParamRepo.findAllByProcDefId(procDef.getId());
 
         if (nodeParams != null) {
