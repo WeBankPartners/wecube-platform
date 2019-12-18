@@ -4,18 +4,16 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.*;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @JsonIgnoreType
 @Entity
@@ -40,7 +38,7 @@ public class PluginConfig {
     private String name;
 
     @Column
-    private String entityId;
+    private String packageName;
 
     @Column
     private String entityName;
@@ -71,16 +69,7 @@ public class PluginConfig {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginPackage ? pluginPackage.getName() : null,
-                    null != pluginPackage ? pluginPackage.getVersion() : null,
-                    StringUtils.isNoneBlank(entityName)
-                            ? name + KEY_COLUMN_DELIMITER + entityName
-                                    + (StringUtils.isNoneBlank(registerName) ? KEY_COLUMN_DELIMITER + registerName
-                                            : "")
-                            : name);
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
     public void setId(String id) {
@@ -103,12 +92,12 @@ public class PluginConfig {
         this.name = name;
     }
 
-    public String getEntityId() {
-        return entityId;
+    public String getPackageName() {
+        return packageName;
     }
 
-    public void setEntityId(String entityId) {
-        this.entityId = entityId;
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
 
     public String getEntityName() {
@@ -140,12 +129,12 @@ public class PluginConfig {
     public PluginConfig() {
     }
 
-    public PluginConfig(String id, PluginPackage pluginPackage, String name, String entityId, String entityName,
-            Status status, Set<PluginConfigInterface> interfaces) {
+    public PluginConfig(String id, PluginPackage pluginPackage, String name, String packageName, String entityName,
+                        Status status, Set<PluginConfigInterface> interfaces) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.name = name;
-        this.entityId = entityId;
+        this.packageName = packageName;
         this.entityName = entityName;
         this.status = status;
         this.interfaces = interfaces;
