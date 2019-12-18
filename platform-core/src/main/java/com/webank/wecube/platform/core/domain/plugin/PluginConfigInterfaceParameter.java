@@ -40,7 +40,7 @@ public class PluginConfigInterfaceParameter {
     @Column
     private String mappingEntityExpression;
     @Column
-    private String mappingSystemVariableId;
+    private String mappingSystemVariableName;
     @Column
     private String required;
 
@@ -54,7 +54,7 @@ public class PluginConfigInterfaceParameter {
     public PluginConfigInterfaceParameter() {
     }
 
-    public PluginConfigInterfaceParameter(String id, PluginConfigInterface pluginConfigInterface, String type, String name, String dataType, String mappingType, String mappingEntityExpression, String mappingSystemVariableId, String required) {
+    public PluginConfigInterfaceParameter(String id, PluginConfigInterface pluginConfigInterface, String type, String name, String dataType, String mappingType, String mappingEntityExpression, String mappingSystemVariableName, String required) {
         this.id = id;
         this.pluginConfigInterface = pluginConfigInterface;
         this.type = type;
@@ -62,7 +62,7 @@ public class PluginConfigInterfaceParameter {
         this.dataType = dataType;
         this.mappingType = mappingType;
         this.mappingEntityExpression = mappingEntityExpression;
-        this.mappingSystemVariableId = mappingSystemVariableId;
+        this.mappingSystemVariableName = mappingSystemVariableName;
         this.required = required;
     }
 
@@ -128,12 +128,12 @@ public class PluginConfigInterfaceParameter {
         this.mappingEntityExpression = mappingEntityExpression;
     }
 
-    public String getMappingSystemVariableId() {
-        return mappingSystemVariableId;
+    public String getMappingSystemVariableName() {
+        return mappingSystemVariableName;
     }
 
-    public void setMappingSystemVariableId(String mappingSystemVariableId) {
-        this.mappingSystemVariableId = mappingSystemVariableId;
+    public void setMappingSystemVariableName(String mappingSystemVariableName) {
+        this.mappingSystemVariableName = mappingSystemVariableName;
     }
 
     public String getRequired() {

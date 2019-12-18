@@ -482,9 +482,9 @@ public class PluginPackageXmlParser {
             pluginConfigInterfaceParameter.setName(trim(parameterNode.getTextContent()));
             pluginConfigInterfaceParameter.setDataType(getStringAttribute(parameterNode, "./@datatype"));
             pluginConfigInterfaceParameter.setMappingType(getStringAttribute(parameterNode, "./@mappingType"));
-            String mappingSystemVariableIdString = getStringAttribute(parameterNode, "./@mappingSystemVariableId");
-            if (StringUtils.isNotEmpty(mappingSystemVariableIdString)) {
-                pluginConfigInterfaceParameter.setMappingSystemVariableId(mappingSystemVariableIdString);
+            String mappingSystemVariableNameString = getStringAttribute(parameterNode, "./@mappingSystemVariableName");
+            if (StringUtils.isNotEmpty(mappingSystemVariableNameString)) {
+                pluginConfigInterfaceParameter.setMappingSystemVariableName(mappingSystemVariableNameString);
             }
             String mappingEntityExpression = getStringAttribute(parameterNode, "./@mappingEntityExpression");
             if (StringUtils.isNotEmpty(mappingEntityExpression)) {
