@@ -337,7 +337,7 @@ export default {
         { value: "OUTPUT", label: this.$t("output") }
       ],
       currentflowsNodes: [],
-      currentFlow: {}
+      currentFlow: null
     };
   },
   watch: {
@@ -381,13 +381,11 @@ export default {
       if (this.isAdd) {
         this.mgmtRolesKeyToFlow = newTargetKeys;
       } else {
-        moveKeys.forEach(_ => {
-          if (direction === "right") {
-            this.updateFlowPermission(this.currentSettingFlow, _, "mgmt");
-          } else {
-            this.deleteFlowPermission(this.currentSettingFlow, _, "mgmt");
-          }
-        });
+        if (direction === "right") {
+          this.updateFlowPermission(this.currentSettingFlow, moveKeys, "mgmt");
+        } else {
+          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, "mgmt");
+        }
         this.mgmtRolesKeyToFlow = newTargetKeys;
       }
     },
@@ -395,13 +393,11 @@ export default {
       if (this.isAdd) {
         this.useRolesKeyToFlow = newTargetKeys;
       } else {
-        moveKeys.forEach(_ => {
-          if (direction === "right") {
-            this.updateFlowPermission(this.currentSettingFlow, _, "use");
-          } else {
-            this.deleteFlowPermission(this.currentSettingFlow, _, "use");
-          }
-        });
+        if (direction === "right") {
+          this.updateFlowPermission(this.currentSettingFlow, moveKeys, "use");
+        } else {
+          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, "use");
+        }
         this.useRolesKeyToFlow = newTargetKeys;
       }
     },
