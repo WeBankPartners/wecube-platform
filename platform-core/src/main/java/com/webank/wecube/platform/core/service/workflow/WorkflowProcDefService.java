@@ -76,6 +76,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
             // set NOT DRAFT_STATUS process to DELETED_STATUS, without deleting the nodes and params
             log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId, ProcDefInfoEntity.DELETED_STATUS));
             procDef.setStatus(ProcDefInfoEntity.DELETED_STATUS);
+            processDefInfoRepo.save(procDef);
             return;
         }
         // delete DRAFT_STATUS process with all nodes and params deleted as well
@@ -275,10 +276,12 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         } else {
             procRoleDtoList = processRoleService.retrieveAllProcessByRoleIdList(roleIdList);
         }
+        Set<ProcRoleDto> procRoleDtoSet = new HashSet<>(procRoleDtoList);
+
 
         // check if there is includeDraftProcDef specified
         List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
-        for (ProcRoleDto procRoleDto : procRoleDtoList) {
+        for (ProcRoleDto procRoleDto : procRoleDtoSet) {
             String procId = procRoleDto.getProcessId();
             Optional<ProcDefInfoEntity> processFoundById;
             if (includeDraftProcDef) {
@@ -298,7 +301,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         return procDefInfoDtos;
     }
 
-    public ProcDefInfoDto draftProcessDefinition(ProcDefInfoDto procDefDto) {
+    public ProcDefInfoDto draftProcessDefinition(String token, ProcDefInfoDto procDefDto) {
         String originalId = procDefDto.getProcDefId();
 
         Date currTime = new Date();
@@ -331,7 +334,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
         // Save ProcRoleBindingEntity
-        this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), procDefDto);
+        this.saveProcRoleBinding(token, savedProcDefInfoDraftEntity.getId(), procDefDto);
 
         ProcDefInfoDto procDefResult = new ProcDefInfoDto();
         procDefResult.setProcDefId(draftEntity.getId());
@@ -430,7 +433,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         return procDefResult;
     }
 
-    public ProcDefOutlineDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto) {
+    public ProcDefOutlineDto deployProcessDefinition(String token, ProcDefInfoDto procDefInfoDto) {
 
         String originalId = procDefInfoDto.getProcDefId();
 
@@ -457,7 +460,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.save(procDefEntity);
         // Save ProcRoleBindingEntity
-        this.saveProcRoleBinding(savedProcDefInfoEntity.getId(), procDefInfoDto);
+        this.saveProcRoleBinding(token, savedProcDefInfoEntity.getId(), procDefInfoDto);
 
         if (procDefInfoDto.getTaskNodeInfos() != null) {
             for (TaskNodeDefInfoDto nodeDto : procDefInfoDto.getTaskNodeInfos()) {
@@ -678,7 +681,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         processDefInfoRepo.deleteById(procEntity.getId());
     }
 
-    private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
+    private void saveProcRoleBinding(String token, String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
 
 
         Map<String, List<Long>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
@@ -721,7 +724,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 throw new WecubeCoreException(errorMsg);
             }
             for (Long roleId : roleIdList) {
-                processRoleService.updateProcRoleBinding(procId, new ProcRoleRequestDto(permissionStr, roleId));
+                processRoleService.updateProcRoleBinding(token, procId, new ProcRoleRequestDto(permissionStr, Collections.singletonList(roleId)));
             }
         }
     }
