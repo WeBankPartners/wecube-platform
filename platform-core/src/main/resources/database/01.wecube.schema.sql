@@ -257,5 +257,13 @@ CREATE TABLE `role_menu` (
     `menu_code` VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
+DROP TABLE if EXISTS core_ru_proc_role_binding;
+CREATE TABLE `core_ru_proc_role_binding` (
+    `id`      VARCHAR(255) PRIMARY KEY,
+    `proc_id`      VARCHAR(255) NOT NULL,
+    `role_id` INT          NOT NULL,
+    `permission` VARCHAR(255) NOT NULL
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
 
 SET FOREIGN_KEY_CHECKS = 1;
