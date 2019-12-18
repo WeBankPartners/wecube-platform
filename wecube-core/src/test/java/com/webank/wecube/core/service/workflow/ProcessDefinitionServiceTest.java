@@ -1,6 +1,8 @@
 package com.webank.wecube.core.service.workflow;
 
 import com.google.common.collect.Lists;
+import com.webank.wecube.core.DatabaseBasedTest;
+import com.webank.wecube.core.controller.AbstractControllerTest;
 import com.webank.wecube.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.core.domain.workflow.ServiceTaskVO;
@@ -31,7 +33,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ProcessDefinitionServiceTest {
+public class ProcessDefinitionServiceTest extends DatabaseBasedTest {
 
     @InjectMocks
     ProcessDefinitionService processDefinitionService;
