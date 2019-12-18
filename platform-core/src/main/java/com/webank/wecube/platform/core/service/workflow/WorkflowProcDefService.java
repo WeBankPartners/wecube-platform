@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 public class WorkflowProcDefService extends AbstractWorkflowService {
@@ -670,14 +671,21 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
             throw new WecubeCoreException("There is no process to role with permission mapping found.");
         }
 
-        Map<String, List<Long>> permissionToRoleMapping = procDefInfoDto.getPermissionToRole();
+        Map<String, List<Long>> capitalKeyToValueMap = procDefInfoDto.getPermissionToRole()
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(stringListEntry -> stringListEntry.getKey().toUpperCase(), Map.Entry::getValue));
 
-        if (permissionToRoleMapping.get(ProcRoleBindingEntity.permissionEnum.MGMT.toString()).isEmpty()) {
+        if (capitalKeyToValueMap.get(ProcRoleBindingEntity.permissionEnum.MGMT.toString()).isEmpty()) {
             throw new WecubeCoreException("At least one role with MGMT role should be declared.");
         }
 
-        for (Map.Entry<String, List<Long>> permissionToRoleList : permissionToRoleMapping.entrySet()) {
+        for (Map.Entry<String, List<Long>> permissionToRoleList : capitalKeyToValueMap.entrySet()) {
             String permissionStr = permissionToRoleList.getKey();
+
+            if (null == permissionToRoleList.getValue()) {
+                throw new WecubeCoreException(String.format("The value of permission: [%s] should not be NULL", permissionStr));
+            }
             for (Long roleId : permissionToRoleList.getValue()) {
                 processRoleService.updateProcRoleBinding(procId, new ProcRoleRequestDto(permissionStr, roleId));
             }
