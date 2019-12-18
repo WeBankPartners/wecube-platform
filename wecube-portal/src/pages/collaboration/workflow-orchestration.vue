@@ -193,7 +193,7 @@
       @on-cancel="confirmRole"
     >
       <div>
-        <div class="role-transfer-title">属主角色</div>
+        <div class="role-transfer-title">{{ $t("mgmt_role") }}</div>
         <Transfer
           :titles="transferTitles"
           :list-style="transferStyle"
@@ -205,7 +205,7 @@
         ></Transfer>
       </div>
       <div style="margin-top: 30px">
-        <div class="role-transfer-title">使用角色</div>
+        <div class="role-transfer-title">{{ $t("use_role") }}</div>
         <Transfer
           :titles="transferTitles"
           :list-style="transferStyle"
