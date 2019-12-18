@@ -63,8 +63,9 @@ public class WorkflowProcessDefinitionController {
     }
 
     @DeleteMapping("/process/definitions/{proc-def-id}")
-    public CommonResponseDto removeProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
-        procDefService.removeProcessDefinition(procDefId);
+    public CommonResponseDto removeProcessDefinition(@RequestHeader("Authorization") String token,
+                                                     @PathVariable("proc-def-id") String procDefId) {
+        procDefService.removeProcessDefinition(token, procDefId);
         return CommonResponseDto.okay();
     }
 
