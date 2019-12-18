@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 //@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_COLLABORATION_PLUGIN_MANAGEMENT})
 public class PluginPackageDataModelControllerTest extends AbstractControllerTest {
 
-    public static final String PACKAGE_NAME_BY_UPLOAD = "servicemanagement";
+    public static final String PACKAGE_NAME_BY_UPLOAD = "service-management";
     @Autowired
     private PluginPackageService pluginPackageService;
     @Autowired
@@ -224,7 +224,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
                 .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
                 .andExpect(jsonPath("$.data.packageName", is(packageName)))
-                .andExpect(jsonPath("$.data.id", is("package1__2")))
+                .andExpect(jsonPath("$.data.id", is("DataModel__package1__2")))
                 .andExpect(jsonPath("$.data.version", is(2)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].packageName", containsInAnyOrder(packageName)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].name", containsInAnyOrder("entity_1")))
@@ -306,7 +306,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
 
     private void uploadCorrectPackage() throws Exception {
         pluginPackageService.setS3Client(new FakeS3Client());
-        File testPackage = new File("src/test/resources/testpackage/servicemanagement-v0.1.zip");
+        File testPackage = new File("src/test/resources/testpackage/service-management-v0.1.zip");
         MockMultipartFile mockPluginPackageFile = new MockMultipartFile("zip-file", FileUtils.readFileToByteArray(testPackage));
         mvc.perform(MockMvcRequestBuilders.multipart("/v1/packages").file(mockPluginPackageFile));
     }
