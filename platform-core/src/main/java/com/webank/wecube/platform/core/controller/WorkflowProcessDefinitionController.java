@@ -29,25 +29,25 @@ public class WorkflowProcessDefinitionController {
     private ProcessRoleServiceImpl processRoleService;
 
     @PostMapping("/process/definitions/deploy")
-    public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto deployProcessDefinition(@RequestHeader("Authorization") String token, @RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
 
-        ProcDefOutlineDto result = procDefService.deployProcessDefinition(requestDto);
+        ProcDefOutlineDto result = procDefService.deployProcessDefinition(token, requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
     @PostMapping("/process/definitions/draft")
-    public CommonResponseDto draftProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto draftProcessDefinition(@RequestHeader("Authorization") String token, @RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("draft process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
-        ProcDefInfoDto result = procDefService.draftProcessDefinition(requestDto);
+        ProcDefInfoDto result = procDefService.draftProcessDefinition(token, requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
@@ -63,8 +63,9 @@ public class WorkflowProcessDefinitionController {
     }
 
     @DeleteMapping("/process/definitions/{proc-def-id}")
-    public CommonResponseDto removeProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
-        procDefService.removeProcessDefinition(procDefId);
+    public CommonResponseDto removeProcessDefinition(@RequestHeader("Authorization") String token,
+                                                     @PathVariable("proc-def-id") String procDefId) {
+        procDefService.removeProcessDefinition(token, procDefId);
         return CommonResponseDto.okay();
     }
 
@@ -115,10 +116,11 @@ public class WorkflowProcessDefinitionController {
                                                    @PathVariable("proc-id") String procId,
                                                    @RequestBody ProcRoleRequestDto procRoleRequestDto) {
         try {
-            return CommonResponseDto.okayWithData(processRoleService.updateProcRoleBinding(token, procId, procRoleRequestDto));
+            processRoleService.updateProcRoleBinding(token, procId, procRoleRequestDto);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
+        return CommonResponseDto.okay();
     }
 
     @DeleteMapping("/process/{proc-id}/roles")
