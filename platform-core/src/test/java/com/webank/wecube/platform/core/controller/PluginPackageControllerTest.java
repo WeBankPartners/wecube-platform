@@ -283,10 +283,10 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                 " ,('cmdb__v1.2', 'cmdb', 'v1.2', 'UNREGISTERED', 0)\n" +
                 " ,('cmdb__v1.3', 'cmdb', 'v1.3', 'RUNNING', 0)\n" +
                 ";\n" +
-                "insert into plugin_configs (id, plugin_package_id, name, entity_id, status) values\n" +
-                " ('11', 'cmdb__v1.0', 'Vpc Management', 16, 'ENABLED')\n" +
-                ",('21', 'cmdb__v1.1', 'Vpc Management', 17, 'ENABLED')\n" +
-                ",('31', 'cmdb__v1.2', 'Vpc Management', 16, 'DISABLED')\n" +
+                "insert into plugin_configs (id, plugin_package_id, name, entity_name, status) values\n" +
+                " ('11', 'cmdb__v1.0', 'Vpc Management', 'entity_1', 'ENABLED')\n" +
+                ",('21', 'cmdb__v1.1', 'Vpc Management', 'entity_2', 'ENABLED')\n" +
+                ",('31', 'cmdb__v1.2', 'Vpc Management', 'entity_3', 'DISABLED')\n" +
                 ";" +
                 "INSERT INTO plugin_instances (id, host, container_name, port, container_status, package_id, docker_instance_resource_id, instance_name, plugin_mysql_instance_resource_id, s3bucket_resource_id) VALUES\n" +
                 " ('cmdb__v1.3__cmdb__10.0.2.12__20003', '10.0.2.12', 'cmdb', 20003, 'RUNNING', 'cmdb__v1.3', NULL, 'wecmdb', NULL, NULL);\n");
@@ -384,10 +384,10 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/packages/%s/system-parameters", correctQueryId)).contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].id", contains("servicemanagement__v0.1__xxx__global", "servicemanagement__v0.1__xxx__servicemanagement")))
-                    .andExpect(jsonPath("$.data[*].name", contains("xxx", "xxx")))
+                    .andExpect(jsonPath("$.data[*].id", contains("servicemanagement__v0.1__global__globalVar", "servicemanagement__v0.1__servicemanagement__pluginVar")))
+                    .andExpect(jsonPath("$.data[*].name", contains("globalVar", "pluginVar")))
                     .andExpect(jsonPath("$.data[*].defaultValue", contains("xxxx", "xxxx")))
-                    .andExpect(jsonPath("$.data[*].scopeType", contains("global", "plugin-package")))
+                    .andExpect(jsonPath("$.data[*].scope", contains("global", "servicemanagement")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -427,12 +427,12 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/packages/%s/runtime-resources", correctQueryId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.docker[0].id", is("servicemanagement__v0.1__service_management")))
-                    .andExpect(jsonPath("$.data.mysql[0].id", is("servicemanagement__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.docker[0].id", is("Docker__servicemanagement__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.mysql[0].id", is("MySql__servicemanagement__v0.1__service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].schemaName", is("service_management")))
                     .andExpect(jsonPath("$.data.mysql[0].initFileName", is("init.sql")))
                     .andExpect(jsonPath("$.data.mysql[0].upgradeFileName", is("upgrade.sql")))
-                    .andExpect(jsonPath("$.data.s3[0].id", is("servicemanagement__v0.1__service_management")))
+                    .andExpect(jsonPath("$.data.s3[0].id", is("S3__servicemanagement__v0.1__service_management")))
                     .andExpect(jsonPath("$.data.s3[0].bucketName", is("service_management")))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
@@ -452,8 +452,9 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         try {
             mvc.perform(get(String.format("/v1/packages/%s/plugins", packageId)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].id", containsInAnyOrder("servicemanagement__v0.1__service_request__service_request", "servicemanagement__v0.1__task__task")))
-                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].entityId", containsInAnyOrder("servicemanagement__1__service_request", "servicemanagement__1__task")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].id", containsInAnyOrder("servicemanagement__v0.1__service_request", "servicemanagement__v0.1__task")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].packageName", containsInAnyOrder("servicemanagement", "servicemanagement")))
+                    .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].entityName", containsInAnyOrder("service_request", "task")))
                     .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].name", containsInAnyOrder("task", "service_request")))
                     .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].status", containsInAnyOrder("DISABLED", "DISABLED")))
                     .andExpect(jsonPath("$.data[*].pluginConfigDtoList[*].pluginPackageId", contains("servicemanagement__v0.1", "servicemanagement__v0.1")))
