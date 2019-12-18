@@ -91,7 +91,7 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
-        <plugin name="task" entity="task">
+        <plugin name="task" targetEntity="task">
             <interface action="create" path="/service-mgmt/v1/tasks" httpMethod='POST' isAsyncProcessing="Y" type="APPROVAL">
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='CALLBACK_URL' required='Y'>
@@ -107,7 +107,7 @@
                 </outputParameters>
             </interface>
         </plugin>
-        <plugin name="service_request" entity="service_request">
+        <plugin name="service_request" targetEntity="service_request">
             <interface action="update" path="/service-mgmt/v1/service-requests/done"
                        httpMethod='PUT'>
                 <inputParameters>
