@@ -330,5 +330,10 @@
   "display_name": "Display Name",
   "menus": "Menu",
   "input": "Input",
-  "output": "Output"
+  "output": "Output",
+  "selected_role": "Selected Role",
+  "unselected_rolw": "Unselected Role",
+  "edit_role": "Select Orchestrations Host Roles",
+  "mgmt_role": "Owner Role",
+  "use_role": "Executor Role"
 }
