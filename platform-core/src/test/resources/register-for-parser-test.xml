@@ -102,7 +102,7 @@
         <plugin name="task" package="service-management" entity="task">
             <interface action="create" path="/service-management/tasks" httpMethod='POST'>
                 <inputParameters>
-                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>
+                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='1' required='Y'>
                         callbackUrl
                     </parameter>
                     <parameter datatype="string" mappingType='context' required='N'>description</parameter>
@@ -125,7 +125,7 @@
             <interface action="update" path="/service-management/service-requests/{service-request-id}/done"
                        httpMethod='PUT'>
                 <inputParameters>
-                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableId='1' required='Y'>
+                    <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='1' required='Y'>
                         service-request-id
                     </parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>result</parameter>
