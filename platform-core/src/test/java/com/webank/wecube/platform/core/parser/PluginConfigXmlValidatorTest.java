@@ -155,4 +155,24 @@ public class PluginConfigXmlValidatorTest {
         }
     }
 
+    @Test
+    public void parseXmlWithRegisterNameShouldSuccess() {
+        try {
+            validator.validate("/plugin/register-with-register-name.xml");
+            assertTrue(true);
+        } catch (WecubeCoreException e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void parseXmlWithTargetPackageAndTargetEntityShouldSucceed() {
+        try {
+            validator.validate("/plugin/sample-plugin-config-v2-with-target-package-and-target-entity.xml");
+            assertTrue(true);
+        } catch (WecubeCoreException e) {
+            fail("Validator should succeed here but got error message: " + e.getMessage());
+        }
+    }
+
 }
