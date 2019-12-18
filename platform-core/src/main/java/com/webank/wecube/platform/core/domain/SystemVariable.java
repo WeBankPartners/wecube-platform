@@ -2,14 +2,8 @@ package com.webank.wecube.platform.core.domain;
 
 import javax.persistence.*;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "system_variables")
@@ -17,18 +11,17 @@ public class SystemVariable {
     public static final String ACTIVE = "active";
     public static final String INACTIVE = "inactive";
 
-    public static final String SCOPE_TYPE_GLOBAL = "global";
-    public static final String SCOPE_TYPE_PLUGIN_PACKAGE = "plugin-package";
+    public static final String SCOPE_GLOBAL = "global";
+    public static final String SOURCE_SYSTEM = "system";
 
     @Id
     private String id;
 
-    @JsonBackReference
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinColumn(name = "plugin_package_id")
-    private PluginPackage pluginPackage;
+    @Column
+    private String scope;
+
+    @Column
+    private String packageName;
 
 	@Column
 	private String name;
@@ -36,10 +29,10 @@ public class SystemVariable {
 	private String value;
 	@Column
 	private String defaultValue;
+
 	@Column
-	private String scopeType;
-	@Column
-	private String scopeValue;
+    private String source;
+
 	@Column
 	private String status;
 
@@ -53,22 +46,25 @@ public class SystemVariable {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER, null != pluginPackage ? pluginPackage.getName() : null,
-                    null != pluginPackage ? pluginPackage.getVersion() : null, name,
-                    SCOPE_TYPE_GLOBAL.equals(scopeType) ? SCOPE_TYPE_GLOBAL : scopeValue);
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
-    public PluginPackage getPluginPackage() {
-        return pluginPackage;
+    public String getPackageName() {
+        return packageName;
     }
 
-    public void setPluginPackage(PluginPackage pluginPackage) {
-        if (null != pluginPackage) {
-            this.pluginPackage = pluginPackage;
-        }
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
     }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
 
     public String getName() {
         return name;
@@ -94,22 +90,6 @@ public class SystemVariable {
         this.defaultValue = defaultValue;
     }
 
-    public String getScopeType() {
-        return scopeType;
-    }
-
-    public void setScopeType(String scopeType) {
-        this.scopeType = scopeType;
-    }
-
-    public String getScopeValue() {
-        return scopeValue;
-    }
-
-    public void setScopeValue(String scopeValue) {
-        this.scopeValue = scopeValue;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -118,31 +98,23 @@ public class SystemVariable {
         this.status = status;
     }
 
-    public static String getActive() {
-        return ACTIVE;
+    public String getSource() {
+        return source;
     }
 
-    public static String getInactive() {
-        return INACTIVE;
+    public void setSource(String source) {
+        this.source = source;
     }
 
-    public static String getScopeTypeGlobal() {
-        return SCOPE_TYPE_GLOBAL;
-    }
-
-    public static String getScopeTypePluginPackage() {
-        return SCOPE_TYPE_PLUGIN_PACKAGE;
-    }
-
-    public SystemVariable(String id, String name, String value, String defaultValue, String scopeType,
-            String scopeValue, PluginPackage pluginPackage, Integer seqNo, String status) {
+    public SystemVariable(String id, String name, String value, String defaultValue, String scope,
+                          String source, String packageName, String status) {
         this.id = id;
         this.name = name;
         this.value = value;
         this.defaultValue = defaultValue;
-        this.scopeType = scopeType;
-        this.scopeValue = scopeValue;
-        setPluginPackage(pluginPackage);
+        this.scope = scope;
+        this.source = source;
+        this.packageName = packageName;
         this.status = status;
     }
 
@@ -150,9 +122,19 @@ public class SystemVariable {
         super();
     }
 
+    public SystemVariable activate() {
+	    this.status = SystemVariable.ACTIVE;
+	    return this;
+    }
+
+    public SystemVariable deactivate() {
+	    this.status = SystemVariable.INACTIVE;
+	    return this;
+    }
+
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
+        return ReflectionToStringBuilder.toString(this);
     }
 
 }
