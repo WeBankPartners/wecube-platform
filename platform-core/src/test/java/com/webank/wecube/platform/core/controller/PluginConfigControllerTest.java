@@ -386,7 +386,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         inputParameter.setDataType("string");
         inputParameter.setRequired("Y");
         inputParameter.setMappingType(system_variable.name());
-        inputParameter.setMappingSystemVariableId(null);
+        inputParameter.setMappingSystemVariableName(null);
         inputParameter.setMappingEntityExpression(null);
 
         PluginConfigInterfaceParameter outputStatus = new PluginConfigInterfaceParameter();
@@ -473,7 +473,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 + ",('3', '13', 'confirm', 'service-management/service_request/confirmation', 'service-management/service_request/confirmation', '/service-management/service-requests/confirmation/done', 'POST')"
                 + ",('4', '14', 'confirm', 'service-management/task/confirmation', 'service-management/task/confirmation', '/service-management/task/confirmation/done', 'POST')"
                 + ";\n"
-                + "insert into plugin_config_interface_parameters(id, plugin_config_interface_id, type, name, data_type, mapping_type, mapping_entity_expression, mapping_system_variable_id, required) values "
+                + "insert into plugin_config_interface_parameters(id, plugin_config_interface_id, type, name, data_type, mapping_type, mapping_entity_expression, mapping_system_variable_name, required) values "
                 + " ('1', '1', 'INPUT', 'operatorRoleId', 'string', 'entity', 'name_xxx', null, 'Y') "
                 + ", ('2', '1', 'INPUT', 'reporter', 'string', 'context', null, null, 'Y') "
                 + ", ('3', '1', 'OUTPUT', 'status', 'string', '', null, null, '') "
