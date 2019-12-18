@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
+import java.util.List;
+import java.util.Map;
+
 public abstract class BaseProcDefDto {
     private String procDefId;
     private String procDefKey;
@@ -11,6 +14,8 @@ public abstract class BaseProcDefDto {
     private String rootEntity;
 
     private String createdTime;
+
+    private Map<String, List<Long>> permissionToRole;
 
     public String getProcDefId() {
         return procDefId;
@@ -76,4 +81,11 @@ public abstract class BaseProcDefDto {
         this.createdTime = createdTime;
     }
 
+    public Map<String, List<Long>> getPermissionToRole() {
+        return permissionToRole;
+    }
+
+    public void setPermissionToRole(Map<String, List<Long>> permissionToRole) {
+        this.permissionToRole = permissionToRole;
+    }
 }

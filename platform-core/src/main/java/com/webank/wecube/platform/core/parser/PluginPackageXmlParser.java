@@ -401,6 +401,10 @@ public class PluginPackageXmlParser {
             if (StringUtils.isNotBlank(entityName)) {
                 pluginConfig.setEntityName(entityName);
             }
+            String registerName = getNonNullStringAttribute(pluginConfigNode, "./@registerName", "Register name");
+            if (StringUtils.isNotBlank(registerName)) {
+                pluginConfig.setRegisterName(registerName);
+            }
 
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
