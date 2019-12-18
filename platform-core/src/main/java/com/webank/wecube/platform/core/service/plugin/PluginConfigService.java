@@ -134,17 +134,14 @@ public class PluginConfigService {
                     "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
-        String entityId = pluginConfig.getPackageName();
-        if (StringUtils.isNotBlank(entityId)) {
+        if (StringUtils.isNotBlank(pluginConfig.getPackageName()) && StringUtils.isNotBlank(pluginConfig.getEntityName())) {
             if (DISABLED != pluginConfig.getStatus()) {
                 throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
             }
 
-            Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository
-                    .findById(entityId);
-            if (!pluginPackageEntityOptional.isPresent()) {
-                String errorMessage = String.format("PluginPackageEntity not found for id: [%s] for plugin config: %s",
-                        entityId, pluginConfig.getName());
+            if (!pluginPackageEntityRepository.existsByPackageNameAndName(pluginConfig.getPackageName(), pluginConfig.getEntityName())) {
+                String errorMessage = String.format("PluginPackageEntity not found for packageName:entityName [%s:%s] for plugin config: %s",
+                        pluginConfig.getPackageName(), pluginConfig.getEntityName(), pluginConfig.getName());
                 log.error(errorMessage);
                 throw new WecubeCoreException(errorMessage);
             }
@@ -217,18 +214,6 @@ public class PluginConfigService {
     public List<PluginConfigInterfaceDto> queryAllLatestEnabledPluginConfigInterface() {
         Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigRepository
                 .findAllLatestEnabledForAllActivePackages();
-        List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        if (pluginConfigsOptional.isPresent()) {
-            List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();
-            pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
-                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
-        }
-        return pluginConfigInterfaceDtos;
-    }
-
-    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String entityId) {
-        Optional<List<PluginConfigInterface>> pluginConfigsOptional = pluginConfigInterfaceRepository
-                .findPluginConfigInterfaceByPluginConfig_EntityIdAndPluginConfig_Status(entityId, ENABLED);
         List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
         if (pluginConfigsOptional.isPresent()) {
             List<PluginConfigInterface> pluginConfigInterfaces = pluginConfigsOptional.get();

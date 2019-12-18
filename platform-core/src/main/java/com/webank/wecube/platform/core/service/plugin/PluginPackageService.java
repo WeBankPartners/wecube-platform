@@ -190,24 +190,7 @@ public class PluginPackageService {
             systemVariableRepository.saveAll(savedPluginPackage.getSystemVariables());
         }
 
-        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService
-                .register(pluginPackageDto.getPluginPackageDataModelDto());
-        Set<PluginPackageEntityDto> pluginPackageEntityDtos = pluginPackageDataModelDto.getPluginPackageEntities();
-
-        if (null != pluginPackageEntityDtos && pluginPackageEntityDtos.size() > 0 ) {
-            Set<PluginConfig> pluginConfigs = newLinkedHashSet();
-            for (PluginConfig pluginConfig : savedPluginPackage.getPluginConfigs()) {
-                for (PluginPackageEntityDto pluginPackageEntityDto : pluginPackageEntityDtos) {
-                    String entityNameFromPluginConfig = pluginConfig.getEntityName();
-                    String nameFromDto = pluginPackageEntityDto.getName();
-                    if (entityNameFromPluginConfig.equals(nameFromDto)) {
-                        pluginConfig.setPackageName(pluginPackageEntityDto.getId());
-                    }
-                }
-                pluginConfigs.add(pluginConfig);
-            }
-            pluginConfigRepository.saveAll(pluginConfigs);
-        }
+        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService.register(pluginPackageDto.getPluginPackageDataModelDto());
 
         savedPluginPackage.setPluginPackageDataModel(PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto));
         if (pluginPackageResourceFilesOptional.isPresent()) {

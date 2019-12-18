@@ -105,7 +105,11 @@ public class PluginConfigDto {
         pluginConfig.setPluginPackage(pluginPackage);
 
         pluginConfig.setName(getName());
-        pluginConfig.setPackageName(getPackageName());
+        if (StringUtils.isNotBlank(getPackageName())) {
+            pluginConfig.setPackageName(getPackageName());
+        } else {
+            pluginConfig.setPackageName(pluginPackage.getName());
+        }
         if (StringUtils.isNotBlank(getEntityName())) {
             pluginConfig.setEntityName(getEntityName());
         }

@@ -39,6 +39,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     public static final String EXISTING_ENTITY_ID = "1";
     public static final String NON_EXIST_PLUGIN_CONFIG_ID = "999";
     public static final String PLUGIN_CONFIG_ID_WITHOUT_ENTITY = "99";
+    private static final String EXISTING_PACKAGE_NAME = "servicemanagement";
+    private static final String EXISTING_ENTITY_NAME = "entity_1";
     @Autowired
     private PluginConfigController pluginConfigController;
     @Autowired
@@ -57,7 +59,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void givenEntityIdNotExistWhenSaveThenReturnError() {
+    public void givenEntityNotExistWhenSaveThenReturnError() {
         mockMultipleVersionPluginConfig();
 
         Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById("31");
@@ -65,7 +67,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
         PluginConfig pluginConfig = pluginConfigOptional.get();
 
-        pluginConfig.setPackageName(NON_EXIST_ENTITY_ID);
+        pluginConfig.setPackageName(EXISTING_PACKAGE_NAME);
+        pluginConfig.setEntityName("entity_not_exists_at_all_blabla");
 
         try {
             mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON)
@@ -73,7 +76,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message",
                             is(String.format(
-                                    "PluginPackageEntity not found for id: [%s] for plugin config: Vpc Management",
+                                    "PluginPackageEntity not found for packageName:entityName [servicemanagement:entity_not_exists_at_all_blabla] for plugin config: Vpc Management",
                                     NON_EXIST_ENTITY_ID))))
                     .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -115,14 +118,16 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
         assertThat(pluginConfig.getPackageName()).isNull();
 
-        pluginConfig.setPackageName(EXISTING_ENTITY_ID);
+        pluginConfig.setPackageName(EXISTING_PACKAGE_NAME);
+        pluginConfig.setEntityName(EXISTING_ENTITY_NAME);
 
         try {
             mvc.perform(post("/v1/plugins").contentType(MediaType.APPLICATION_JSON)
                     .content(toJsonString(PluginConfigDto.fromDomain(pluginConfig)))).andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("Vpc Management")))
-                    .andExpect(jsonPath("$.data.entityId", is(EXISTING_ENTITY_ID)))
+                    .andExpect(jsonPath("$.data.entityName", is(EXISTING_ENTITY_NAME)))
+                    .andExpect(jsonPath("$.data.packageName", is(EXISTING_PACKAGE_NAME)))
                     .andExpect(jsonPath("$.data.status", is("DISABLED"))).andDo(print()).andReturn().getResponse()
                     .getContentAsString();
         } catch (Exception e) {
@@ -131,7 +136,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
         Optional<PluginConfig> savedPluginConfigOptional = pluginConfigRepository.findById(existingPluginConfigId);
         PluginConfig savedPluginConfig = savedPluginConfigOptional.get();
-        assertThat(savedPluginConfig.getPackageName()).isEqualTo(EXISTING_ENTITY_ID);
+        assertThat(savedPluginConfig.getPackageName()).isEqualTo(EXISTING_PACKAGE_NAME);
+        assertThat(savedPluginConfig.getEntityName()).isEqualTo(EXISTING_ENTITY_NAME);
     }
 
     @Test
@@ -167,7 +173,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
         PluginConfig pluginConfig = pluginConfigOptional.get();
 
-        pluginConfig.setPackageName(EXISTING_ENTITY_ID);
+        pluginConfig.setPackageName(EXISTING_PACKAGE_NAME);
+        pluginConfig.setEntityName(EXISTING_ENTITY_NAME);
 
         try {
             mvc.perform(post("/v1/plugins/enable/" + enabledPluginConfigId)).andExpect(status().isOk())
@@ -189,7 +196,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
         PluginConfig pluginConfig = pluginConfigOptional.get();
 
-        pluginConfig.setPackageName(EXISTING_ENTITY_ID);
+        pluginConfig.setPackageName(EXISTING_PACKAGE_NAME);
+        pluginConfig.setEntityName(EXISTING_ENTITY_NAME);
 
         try {
             mvc.perform(post("/v1/plugins/enable/" + existingPluginConfigId)).andExpect(status().isOk())
@@ -213,13 +221,15 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
         PluginConfig pluginConfig = pluginConfigOptional.get();
 
-        pluginConfig.setPackageName(EXISTING_ENTITY_ID);
+        pluginConfig.setPackageName(EXISTING_PACKAGE_NAME);
+        pluginConfig.setEntityName(EXISTING_ENTITY_NAME);
 
         try {
             mvc.perform(post("/v1/plugins/enable/" + existingPluginConfigId)).andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.name", is("Vpc Management")))
-                    .andExpect(jsonPath("$.data.entityId", is(EXISTING_ENTITY_ID)))
+                    .andExpect(jsonPath("$.data.entityName", is(EXISTING_ENTITY_NAME)))
+                    .andExpect(jsonPath("$.data.packageName", is(EXISTING_PACKAGE_NAME)))
                     .andExpect(jsonPath("$.data.status", is("ENABLED"))).andDo(print()).andReturn().getResponse()
                     .getContentAsString();
         } catch (Exception e) {
@@ -228,7 +238,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
 
         Optional<PluginConfig> savedPluginConfigOptional = pluginConfigRepository.findById(existingPluginConfigId);
         PluginConfig savedPluginConfig = savedPluginConfigOptional.get();
-        assertThat(savedPluginConfig.getPackageName()).isEqualTo(EXISTING_ENTITY_ID);
+        assertThat(savedPluginConfig.getPackageName()).isEqualTo(EXISTING_PACKAGE_NAME);
+        assertThat(savedPluginConfig.getEntityName()).isEqualTo(EXISTING_ENTITY_NAME);
     }
 
     @Test
@@ -314,29 +325,12 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void givenMultiplePluginConfigWhenQueryAllENABLEDOnesForEntityIdThenShouldReturnCorrectResult() {
-        mockMultipleVersionPluginConfig();
-
-        try {
-            mvc.perform(get("/v1/plugins/interfaces/entity/1/enabled")).andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK"))).andExpect(jsonPath("$.message", is("Success")))
-                    .andExpect(jsonPath("$.data.length()", is(1)))
-                    .andExpect(jsonPath("$.data[*].action", contains("create")))
-                    .andExpect(jsonPath("$.data[*].serviceName", contains("service-management/task/create")))
-                    .andExpect(jsonPath("$.data[*].path", contains("/service-management/tasks")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", contains("POST"))).andDo(print()).andReturn()
-                    .getResponse().getContentAsString();
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
-    }
-
-    @Test
     public void givenMultiplePluginConfigWhenQueryAllENABLEDInterfacesForPackageNameAndEntityThenShouldReturnCorrectResult() {
         mockMultipleVersionPluginConfig();
 
         try {
             mvc.perform(get("/v1/plugins/interfaces/package/wecmdb/entity/resource_set/enabled"))
+                    .andDo(print())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.length()", is(3)))
@@ -464,13 +458,14 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 + " ('11', '1', 'task', 'servicemanagement', 'entity_1', 'ENABLED')\n"
                 + ",('12', '5', 'service_request', 'wecmdb', 'resource_set', 'ENABLED')\n"
                 + ",('13', '5', 'service_request', 'servicemanagement', '', 'ENABLED')\n"
-                + ",('14', '5', 'task', null, 'servicemanagement', 'ENABLED')\n"
+                + ",('14', '5', 'task', 'servicemanagement', '', 'ENABLED')\n"
                 + ",('21', '2', 'Vpc Management', 'servicemanagement', null, 'DISABLED')\n"
                 + ",('31', '3', 'Vpc Management', 'servicemanagement', null, 'DISABLED')\n"
                 + ",('32', '4', 'Vpc Management', 'servicemanagement', null, 'DISABLED')\n"
                 + ",('33', '5', 'Vpc Management', 'servicemanagement', null, 'DISABLED')\n" + ";\n"
                 + "insert into plugin_configs (id, plugin_package_id, name, status) values\n"
-                + " ('41', '3', 'Vpc Management', 'DISABLED')\n" + ",('99', '3', 'Vpc Management', 'DISABLED')\n"
+                + " ('41', '3', 'Vpc Management', 'DISABLED')\n"
+                + ",('99', '3', 'Vpc Management', 'DISABLED')\n"
                 + ";\n"
                 + "insert into plugin_config_interfaces (id, plugin_config_id, action, service_name, service_display_name, path, http_method) values "
                 + " ('1', '11', 'create', 'service-management/task/create', 'service-management/task/create', '/service-management/tasks', 'POST')"

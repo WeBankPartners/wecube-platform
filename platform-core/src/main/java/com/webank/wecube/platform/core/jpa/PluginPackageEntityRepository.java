@@ -9,4 +9,6 @@ public interface PluginPackageEntityRepository extends CrudRepository<PluginPack
 
     Optional<PluginPackageEntity> findByPackageNameAndName(String packageName, String name);
 
+    boolean existsByPackageNameAndName(String packageName, String name);
+
 }
