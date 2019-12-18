@@ -162,7 +162,7 @@ public class DomainIdBuilder {
                 null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getName() : null,
                 null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getRegisterName() : null,
                 pluginConfigInterface.getAction(),
-                null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getEntityName() : null
+                null != pluginConfigInterface.getPluginConfig() ? pluginConfigInterface.getPluginConfig().getTargetEntity() : null
         );
     }
 
