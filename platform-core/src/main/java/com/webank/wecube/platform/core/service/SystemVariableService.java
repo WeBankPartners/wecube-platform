@@ -141,7 +141,19 @@ public class SystemVariableService {
         }
     }
 
-    public List<SystemVariable> getPluginSystemVariableByPackageIdAndName(String packageName, String varName) {
+    public SystemVariable getSystemVariableByPackageNameAndName(String packageName, String varName) {
+        List<SystemVariable> pluginSystemVariables = getPluginSystemVariableByPackageNameAndName(packageName, varName);
+        if (null != pluginSystemVariables && pluginSystemVariables.size() > 0) {
+            return pluginSystemVariables.get(0);
+        }
+        pluginSystemVariables = getGlobalSystemVariableByName(varName);
+        if (null != pluginSystemVariables && pluginSystemVariables.size() > 0) {
+            return pluginSystemVariables.get(0);
+        }
+        return null;
+    }
+
+    public List<SystemVariable> getPluginSystemVariableByPackageNameAndName(String packageName, String varName) {
         return systemVariableRepository.findByNameAndScopeAndStatus(varName, packageName, SystemVariable.ACTIVE);
     }
 
@@ -154,7 +166,7 @@ public class SystemVariableService {
         for (int i = 0; i < varList.size(); i++) {
             String varString = varList.get(i);
             String varName = varString.substring(2, varString.length() - 2);
-            List<SystemVariable> varObjects = getPluginSystemVariableByPackageIdAndName(packageName, varName);
+            List<SystemVariable> varObjects = getPluginSystemVariableByPackageNameAndName(packageName, varName);
             if (varObjects.size() == 0) {
                 varObjects = getGlobalSystemVariableByName(varName);
                 if (varObjects.size() == 0) {
