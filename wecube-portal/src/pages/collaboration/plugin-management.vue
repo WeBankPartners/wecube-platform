@@ -15,7 +15,7 @@
             :on-success="onSuccess"
             :on-error="onError"
             action="platform/v1/packages"
-            :headers="setUploadActionHeader"
+            :headers="headers"
           >
             <Button style="display:none" icon="ios-cloud-upload-outline">
               {{ $t("upload_plugin_btn") }}
@@ -91,7 +91,7 @@
         </Card>
       </Row>
     </Col>
-    <Col span="17" offset="1" v-if="isShowConfigPanel">
+    <Col span="18" style="padding-left: 20px" v-if="isShowConfigPanel">
       <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
         <TabPane name="dependency" :label="$t('dependencies_analysis')">
           <DependencyAnalysis
@@ -109,7 +109,6 @@
           <DataModel
             v-if="currentTab === 'models'"
             :pkgId="currentPlugin.name"
-            @reGetPkgStatus="resetPkgStatus"
           ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" :label="$t('system_params')">
@@ -141,7 +140,7 @@
         </TabPane>
       </Tabs>
     </Col>
-    <Col span="17" offset="1" v-if="isShowServicePanel">
+    <Col span="18" style="padding-left: 20px" v-if="isShowServicePanel">
       <Card dis-hover>
         <PluginRegister
           v-if="isShowServicePanel"
@@ -150,7 +149,11 @@
         ></PluginRegister>
       </Card>
     </Col>
-    <Col span="17" offset="1" v-if="isShowRuntimeManagementPanel">
+    <Col
+      span="18"
+      style="padding-left: 20px"
+      v-if="isShowRuntimeManagementPanel"
+    >
       <Spin size="large" fix v-if="isLoading">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t("loading") }}</div>
@@ -379,6 +382,7 @@ export default {
   },
   data() {
     return {
+      headers: {},
       isLoading: false,
       plugins: [],
       isShowConfigPanel: false,
@@ -561,9 +565,6 @@ export default {
         onCancel: () => {}
       });
       document.querySelector(".ivu-modal-mask").click();
-    },
-    resetPkgStatus() {
-      this.$set(this.currentPlugin, "status", "UNREGISTERED");
     },
     configPlugin(packageId) {
       this.swapPanel("pluginConfigPanel");
@@ -818,6 +819,7 @@ export default {
           refreshRequest.then(
             res => {
               session.setItem("token", JSON.stringify(res.data.data));
+              this.setUploadActionHeader();
               this.$refs.uploadButton.handleClick();
             },
             err => {
@@ -829,24 +831,22 @@ export default {
           this.$refs.uploadButton.handleClick();
         }
       } else {
-        const fullPath = this.$router.currentRoute.fullPath;
         window.location.href = window.location.origin + "/#/login";
       }
+    },
+    setUploadActionHeader() {
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      this.headers = {
+        Authorization:
+          "Bearer " + token.find(t => t.tokenType === "accessToken").token
+      };
     }
   },
   created() {
     this.getAllPluginPkgs();
   },
-  computed: {
-    setUploadActionHeader() {
-      let session = window.sessionStorage;
-      const token = JSON.parse(session.getItem("token"));
-      return {
-        Authorization:
-          "Bearer " + token.find(t => t.tokenType === "accessToken").token
-      };
-    }
-  }
+  computed: {}
 };
 </script>
 <style lang="scss">
