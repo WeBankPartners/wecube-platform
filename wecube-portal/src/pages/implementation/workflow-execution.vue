@@ -1,72 +1,108 @@
 <template>
   <div>
-    <Tabs
-      type="card"
-      :value="currentTab"
-      closable
-      @on-tab-remove="handleTabRemove"
-      @on-click="handleTabClick"
-    >
-      <TabPane :closable="false" name="CMDB" label="CMDB模型">
-        <div class="graph-container" id="graph"></div>
-      </TabPane>
-      <TabPane
-        v-for="ci in tabList"
-        :key="ci.id"
-        :name="ci.id"
-        :label="ci.name"
+    <Card dis-hover>
+      <Row>
+        <Col span="20">
+          <Form label-position="left">
+            <FormItem :label-width="150" :label="$t('orchs')">
+              <Select
+                v-model="selectedFlowInstance"
+                style="width:70%"
+                filterable
+              >
+                <Option
+                  v-for="item in allFlowInstances"
+                  :value="item.id"
+                  :key="item.id"
+                >
+                  {{
+                    item.procInstName +
+                      " " +
+                      (item.createdTime || "createdTime") +
+                      " " +
+                      (item.operator || "operator")
+                  }}
+                </Option>
+              </Select>
+              <Button type="info" @click="queryHandler">{{
+                $t("query_orch")
+              }}</Button>
+              <Button type="success" @click="createHandler">{{
+                $t("create_orch")
+              }}</Button>
+            </FormItem>
+          </Form>
+        </Col>
+      </Row>
+      <Row
+        v-show="isShowBody"
+        style="border:1px solid #ebe7e7;border-radius:3px; padding:20px"
       >
-        <WeTable
-          :tableData="ci.tableData"
-          :tableOuterActions="ci.outerActions"
-          :tableInnerActions="ci.innerActions"
-          :tableColumns="ci.tableColumns"
-          :pagination="ci.pagination"
-          :ascOptions="ci.ascOptions"
-          :showCheckbox="false"
-          @actionFun="actionFun"
-          @handleSubmit="handleSubmit"
-          @pageChange="pageChange"
-          @pageSizeChange="pageSizeChange"
-          tableHeight="650"
-          :ref="'table' + ci.id"
-        ></WeTable>
-      </TabPane>
-    </Tabs>
+        <Row>
+          <Form>
+            <Col span="6">
+              <FormItem :label-width="100" :label="$t('select_orch')">
+                <Select
+                  label
+                  v-model="selectedFlow"
+                  :disabled="isEnqueryPage"
+                  @on-change="orchestrationSelectHandler"
+                  @on-open-change="getAllFlow"
+                  filterable
+                >
+                  <Option
+                    v-for="item in allFlows"
+                    :value="item.procDefId"
+                    :key="item.procDefId"
+                    >{{ item.procDefName + " " + item.createdTime }}</Option
+                  >
+                </Select>
+              </FormItem>
+            </Col>
+            <Col span="8">
+              <FormItem :label-width="100" :label="$t('target_object')">
+                <Select
+                  label
+                  v-model="selectedTarget"
+                  :disabled="isEnqueryPage"
+                  @on-change="onTargetSelectHandler"
+                  @on-open-change="getTargetOptions"
+                  filterable
+                >
+                  <Option
+                    v-for="item in allTarget"
+                    :value="item.id"
+                    :key="item.id"
+                    >{{ item.key_name }}</Option
+                  >
+                </Select>
+              </FormItem>
+            </Col>
+          </Form>
+        </Row>
+        <Row style="border:1px solid #d3cece;border-radius:3px; padding:20px">
+          <Col
+            span="6"
+            style="border-right:1px solid #d3cece; text-align: center"
+          >
+            <div class="graph-container" id="flow"></div>
+            <div style="text-align: center;margin-top: 60px;">
+              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
+                $t("execute")
+              }}</Button>
+            </div>
+          </Col>
+          <Col
+            span="18"
+            style="text-align: center;margin-top: 60px;text-align: center"
+          >
+            <div class="graph-container" id="graph"></div>
+          </Col>
+        </Row>
+      </Row>
+    </Card>
     <Modal
-      :title="previewDefinitionName"
-      v-model="previewVisibleSwap"
-      :footer-hide="true"
-      :mask-closable="false"
-      @on-visible-change="hidePreModal"
-      :scrollable="true"
-    >
-      <div
-        class="graph-container"
-        id="graph_preview"
-        style="text-align: center;margin-top: 20px;"
-      ></div>
-      <div style="text-align: right;margin-top: 20px;">
-        <Button type="info" @click="startProcessHandler">执行</Button>
-      </div>
-    </Modal>
-    <Modal
-      :title="refreshDefinitionName"
-      v-model="refreshVisibleSwap"
-      :footer-hide="true"
-      :mask-closable="false"
-      @on-visible-change="hideRefreshModal"
-      :scrollable="true"
-    >
-      <div
-        class="graph-container"
-        id="graph_refresh"
-        style="text-align: center;margin-top: 20px;"
-      ></div>
-    </Modal>
-
-    <Modal
-      title="请选择操作"
+      :title="$t('select_an_operation')"
       v-model="workflowActionModalVisible"
       :footer-hide="true"
       :mask-closable="false"
@@ -76,777 +112,742 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
-        <p v-if="currentNodeStsatus === 'Completed'" style="margin: 25px 0px;">
-          此任务节点已成功执行，重复执行可能带来不确定结果，是否仍需重复执行？
-        </p>
-
-        <Button type="info" @click="workFlowActionHandler('retry')"
-          >重试</Button
-        >
+        <Button type="info" @click="workFlowActionHandler('retry')">
+          {{ $t("retry") }}
+        </Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
           style="margin-left: 20px"
-          >跳过</Button
+          >{{ $t("skip") }}</Button
         >
       </div>
     </Modal>
+    <div id="model_graph_detail">
+      <highlight-code lang="json">{{ modelNodeDetail }}</highlight-code>
+    </div>
+    <div id="flow_graph_detail">
+      <highlight-code lang="json">{{ flowNodeDetail }}</highlight-code>
+    </div>
   </div>
 </template>
 <script>
+import {
+  getAllFlow,
+  getFlowOutlineByID,
+  getTargetOptions,
+  getTreePreviewData,
+  createFlowInstance,
+  getProcessInstances,
+  getProcessInstance,
+  retryProcessInstance,
+  getModelNodeDetail,
+  getNodeBindings,
+  getNodeContext
+} from "@/api/server";
 import * as d3 from "d3-selection";
 import * as d3Graphviz from "d3-graphviz";
-import { addEvent } from "../util/event.js";
-import {
-  getAllCITypesByLayerWithAttr,
-  getAllLayers,
-  queryCiData,
-  getCiTypeAttributes,
-  deleteCiDatas,
-  createCiDatas,
-  updateCiDatas,
-  getEnumCodesByCategoryId,
-  operateCiState,
-  previewProcessDefinition,
-  startProcessInstanceWithCiData,
-  refreshProcessInstanceStatus,
-  restartProcessInstance
-} from "@/api/server";
-import { setHeaders } from "@/api/base.js";
-import { pagination, components } from "@/const/actions.js";
-import { formatData } from "../util/format.js";
-const defaultCiTypePNG = require("@/assets/ci-type-default.png");
-const endEvent = require("../images/endEvent.png");
-const errEndEvent = require("../images/errEndEvent.png");
-const eventBasedGateway = require("../images/eventBasedGateway.png");
-const exclusiveGateway = require("../images/exclusiveGateway.png");
-const intermediateCatchEvent = require("../images/intermediateCatchEvent.png");
-const startEvent = require("../images/startEvent.png");
-const serviceTask = require("../images/serviceTask.png");
-
-const innerActions = [
-  {
-    label: "执行预览",
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "exePreview",
-    visible: {
-      key: "biz_key",
-      value: false
-    }
-  },
-  {
-    label: "执行查询",
-    props: {
-      type: "info",
-      size: "small"
-    },
-    actionType: "exeQuery",
-    visible: {
-      key: "biz_key",
-      value: true
-    }
-  }
-];
-
+import { addEvent, removeEvent } from "../util/event.js";
 export default {
   data() {
     return {
-      graphsTimer: null,
-      previewDefinitionName: "",
-      previewVisibleSwap: false,
-      graph_preview: [],
-      refreshDefinitionName: "",
-      refreshVisibleSwap: false,
-      graph_refresh: [],
-      tabList: [],
-      currentTab: "CMDB",
-      currentExeData: {},
-      payload: {
-        filters: [],
-        pageable: {
-          pageSize: 10,
-          startIndex: 0
-        },
-        paging: true,
-        sorting: {}
-      },
-      source: {},
-      layers: [],
       graph: {},
-      graphs: {
-        graph_preview: {},
-        graph_refresh: {}
-      },
-      g: {},
-      currentNodeID: "",
+      flowGraph: {},
+      modelData: [],
+      flowData: {},
+      allFlowInstances: [],
+      allFlows: [],
+      allTarget: [],
+      currentFlowNodeId: "",
+      foundRefAry: [],
+      selectedFlowInstance: "",
+      selectedFlow: "",
+      selectedTarget: "",
+      showExcution: true,
+      isShowBody: false,
+      isEnqueryPage: false,
       workflowActionModalVisible: false,
-      currentNodeStsatus: ""
+      currentFailedNodeID: "",
+      timer: null,
+      modelNodeDetail: {},
+      flowNodeDetail: {},
+      modelDetailTimer: null,
+      flowNodesBindings: [],
+      flowDetailTimer: null
     };
   },
-  computed: {
-    tableRef() {
-      return "table" + this.currentTab;
-    }
+  mounted() {
+    this.getProcessInstances();
+    this.getAllFlow();
+  },
+  destroyed() {
+    clearInterval(this.timer);
+    this.timer = null;
   },
   methods: {
-    async initGraph(filters = ["created", "dirty"]) {
-      var origin;
-      var edges = {};
-      var levels = {};
-      let graph;
-      let graphviz;
-
-      const initEvent = () => {
-        graph = d3.select("#graph");
-        graph
-          .on("dblclick.zoom", null)
-          .on("wheel.zoom", null)
-          .on("mousewheel.zoom", null);
-
-        this.graph.graphviz = graph
-          .graphviz()
-          .zoom(true)
-          .scale(0.8)
-          .width(window.innerWidth * 0.96)
-          .attributer(function(d) {
-            if (d.attributes.class === "edge") {
-              var keys = d.key.split("->");
-              var from = keys[0].trim();
-              var to = keys[1].trim();
-              d.attributes.from = from;
-              d.attributes.to = to;
-            }
-
-            if (d.tag === "text") {
-              var key = d.children[0].text;
-              d3.select(this).attr("text-key", key);
-            }
-          });
-      };
-
-      let layerResponse = await getAllLayers();
-      if (layerResponse.status === "OK") {
-        let tempLayer = layerResponse.data
-          .filter(i => i.status === "active")
-          .map(_ => {
-            return { name: _.value, layerId: _.codeId, ..._ };
-          });
-        this.layers = tempLayer.sort((a, b) => {
-          return a.seqNo - b.seqNo;
-        });
-        let ciResponse = await getAllCITypesByLayerWithAttr(filters);
-        if (ciResponse.status === "OK") {
-          this.source = ciResponse.data;
-          this.source.forEach(_ => {
-            _.ciTypes &&
-              _.ciTypes.forEach(async i => {
-                let imgFileSource =
-                  i.imageFileId === 0 || i.imageFileId === undefined
-                    ? defaultCiTypePNG.substring(0, defaultCiTypePNG.length - 4)
-                    : `/cmdb/files/${i.imageFileId}`;
-                this.$set(i, "form", {
-                  ...i,
-                  imgSource: imgFileSource,
-                  imgUploadURL: `/cmdb/ci-types/${i.ciTypeId}/icon`
-                });
-                i.attributes &&
-                  i.attributes.forEach(j => {
-                    this.$set(j, "form", {
-                      ...j,
-                      isAccessControlled: j.isAccessControlled ? "yes" : "no",
-                      isNullable: j.isNullable ? "yes" : "no",
-                      isSystem: j.isSystem ? "yes" : "no"
-                    });
-                  });
-              });
-          });
-          let uploadToken = document.cookie
-            .split(";")
-            .find(i => i.indexOf("XSRF-TOKEN") !== -1);
-          setHeaders({
-            "X-XSRF-TOKEN": (uploadToken && uploadToken.split("=")[1]) || ""
-          });
-          initEvent();
-          this.renderGraph(ciResponse.data);
-        }
-      }
-    },
-    genDOT(data) {
-      let nodes = [];
-      data.forEach(_ => {
-        if (_.ciTypes) nodes = nodes.concat(_.ciTypes);
-      });
-      var dots = [
-        "digraph  {",
-        'bgcolor="transparent";',
-        'Node [fontname=Arial,shape="ellipse", fixedsize="true", width="1.1", height="1.1", color="transparent" ,fontsize=11];',
-        'Edge [fontname=Arial,minlen="1", color="#7f8fa6", fontsize=10];',
-        'ranksep = 1.1; size = "11,11";rankdir=TB'
-      ];
-      let layerTag = `node [];`;
-
-      // generate group
-      let tempClusterObjForGraph = {};
-      let tempClusterAryForGraph = [];
-      this.layers.map((_, index) => {
-        if (index !== this.layers.length - 1) {
-          layerTag += '"' + _.name + '"' + "->";
-        } else {
-          layerTag += '"' + _.name + '"';
-        }
-
-        tempClusterObjForGraph[index] = [`{ rank=same; "${_.name}";`];
-        nodes.forEach((node, nodeIndex) => {
-          if (node.layerId === _.layerId) {
-            tempClusterObjForGraph[index].push(
-              '"' +
-                node.name +
-                '"[id=' +
-                node.ciTypeId +
-                ',image="' +
-                node.form.imgSource +
-                ".png" +
-                '", labelloc="b"];'
-            );
-          }
-          if (nodeIndex === nodes.length - 1) {
-            tempClusterObjForGraph[index].push("} ");
-          }
-        });
-        if (nodes.length === 0) {
-          tempClusterObjForGraph[index].push("} ");
-        }
-        tempClusterAryForGraph.push(tempClusterObjForGraph[index].join(""));
-      });
-
-      dots.push(tempClusterAryForGraph.join(""));
-      dots.push("{" + layerTag + "[style=invis]}");
-
-      //generate edges
-      nodes.forEach(node => {
-        node.attributes &&
-          node.attributes.forEach(attr => {
-            if (attr.inputType === "ref" || attr.inputType === "multiRef") {
-              var target = nodes.find(_ => _.ciTypeId === attr.referenceId);
-              if (target) {
-                dots.push(this.genEdge(nodes, node, attr));
-              }
-            }
-          });
-      });
-      dots.push("}");
-      return dots.join("");
-    },
-    genEdge(nodes, from, to) {
-      const target = nodes.find(_ => _.ciTypeId === to.referenceId);
-      let labels = to.referenceName ? to.referenceName.trim() : "";
-      return (
-        '"' +
-        from.name +
-        '"->' +
-        '"' +
-        target.name.trim() +
-        '"[label="' +
-        labels +
-        '"];'
-      );
-    },
-
-    loadImage(nodesString) {
-      (nodesString.match(/image=[^,]*(files\/\d*|png)/g) || [])
-        .filter((value, index, self) => {
-          return self.indexOf(value) === index;
-        })
-        .map(keyvaluepaire => keyvaluepaire.substr(7))
-        .forEach(image => {
-          this.graph.graphviz.addImage(image, "48px", "48px");
-        });
-    },
-    shadeAll() {
-      d3.selectAll("g path")
-        .attr("stroke", "#7f8fa6")
-        .attr("stroke-opacity", ".2");
-      d3.selectAll("g polygon")
-        .attr("stroke", "#7f8fa6")
-        .attr("stroke-opacity", ".2")
-        .attr("fill", "#7f8fa6")
-        .attr("fill-opacity", ".2");
-      // d3.selectAll("text").attr("fill", "#000");
-      d3.selectAll(".edge text").attr("fill", "#7f8fa6");
-    },
-    colorNode(nodeName) {
-      d3.selectAll('g[from="' + nodeName + '"] path')
-        .attr("stroke", "red")
-        .attr("stroke-opacity", "1");
-      d3.selectAll('g[from="' + nodeName + '"] text').attr("fill", "red");
-      d3.selectAll('g[from="' + nodeName + '"] polygon')
-        .attr("stroke", "red")
-        .attr("fill", "red")
-        .attr("fill-opacity", "1")
-        .attr("stroke-opacity", "1");
-      d3.selectAll('g[to="' + nodeName + '"] path')
-        .attr("stroke", "green")
-        .attr("stroke-opacity", "1");
-      d3.selectAll('g[to="' + nodeName + '"] text').attr("fill", "green");
-      d3.selectAll('g[to="' + nodeName + '"] polygon')
-        .attr("stroke", "green")
-        .attr("fill", "green")
-        .attr("fill-opacity", "1")
-        .attr("stroke-opacity", "1");
-    },
-    renderGraph(data) {
-      let nodesString = this.genDOT(data);
-      this.loadImage(nodesString);
-      this.graph.graphviz.renderDot(nodesString);
-      this.shadeAll();
-      addEvent(".node", "mouseover", async e => {
-        d3.selectAll("g").attr("cursor", "pointer");
-        e.preventDefault();
-        e.stopPropagation();
-        this.g = e.currentTarget;
-        var nodeName = this.g.children[0].innerHTML.trim();
-        this.shadeAll();
-        this.colorNode(nodeName);
-      });
-
-      addEvent("svg", "mouseover", e => {
-        this.shadeAll();
-        e.preventDefault();
-        e.stopPropagation();
-      });
-
-      addEvent(".node", "click", async e => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.g = e.currentTarget;
-        var nodeName = this.g.children[0].innerHTML.trim();
-        this.queryCiAttrs(this.g.id, nodeName);
-      });
-    },
-    handleTabRemove(name) {
-      this.tabList.forEach((_, index) => {
-        if (_.id === name) {
-          this.tabList.splice(index, 1);
-        }
-      });
-      this.currentTab = "CMDB";
-    },
-    handleTabClick(name) {
-      this.payload.filters = [];
-      this.currentTab = name;
-    },
-    handleSubmit(data) {
-      this.payload.filters = data;
-      this.queryCiData();
-    },
-    async queryCiAttrs(id, nodeName) {
-      const found = this.tabList.find(_ => _.id === id);
-      if (!found) {
-        const ci = {
-          name: nodeName,
-          id: id,
-          tableData: [],
-          outerActions: JSON.parse(
-            JSON.stringify([
-              {
-                label: "Export",
-                props: {
-                  type: "primary",
-                  icon: "ios-download-outline"
-                },
-                actionType: "export"
-              }
-            ])
-          ),
-          innerActions: JSON.parse(JSON.stringify(innerActions)),
-          tableColumns: [],
-          pagination: JSON.parse(JSON.stringify(pagination)),
-          ascOptions: {}
-        };
-
-        //   this.queryCiAttrs(g.id);
-        const { status, message, data } = await getCiTypeAttributes(id);
-        let columns = [];
-        const disabledCol = [
-          "created_date",
-          "updated_date",
-          "created_by",
-          "updated_by",
-          "key_name",
-          "guid"
-        ];
-        if (status === "OK") {
-          let columns = [];
-          let isOrchestration = false;
-          data.forEach(_ => {
-            const disEditor = disabledCol.find(i => i === _.propertyName);
-            let renderKey = _.propertyName;
-            if (_.propertyName === "orchestration") {
-              isOrchestration = true;
-            }
-            if (
-              _.status !== "decommissioned" &&
-              _.status !== "notCreated" &&
-              _.isDisplayed &&
-              _.isDisplayed !== 0
-            ) {
-              columns.push({
-                ..._,
-                title: _.name,
-                key: renderKey,
-                inputKey: _.propertyName,
-                inputType: _.inputType,
-                referenceId: _.referenceId,
-                disEditor: !_.isEditable,
-                disAdded: !_.isEditable,
-                placeholder: _.name,
-                component: "Input",
-                ciType: { id: _.referenceId, name: _.name },
-                type: "text",
-                isMultiple: _.inputType === "multiSelect",
-                ...components[_.inputType]
-              });
-            }
-          });
-          if (isOrchestration) {
-            this.tabList.push(ci);
-            this.currentTab = id;
-            this.queryCiData();
-            this.tabList.forEach(ci => {
-              if (ci.id === this.currentTab) {
-                ci.tableColumns = this.getSelectOptions(columns);
-              }
-            });
-          } else {
-            this.$Notice.warning({
-              title: "Warning",
-              desc: "该CI没有编排属性"
-            });
-          }
-        }
-        //   this.queryCiData();
-      } else {
-        this.currentTab = this.g.id;
-      }
-    },
-    getSelectOptions(columns) {
-      columns.forEach(async _ => {
-        if (_.inputType === "select" || _.inputType === "multiSelect") {
-          const { status, message, data } = await getEnumCodesByCategoryId(
-            0,
-            _.referenceId
-          );
-          _["options"] = data
-            .filter(j => j.status === "active")
-            .map(i => {
-              return {
-                label: i.value,
-                value: i.codeId
-              };
-            });
-        }
-      });
-      return columns;
-    },
-    async queryCiData() {
-      this.payload.pageable.pageSize = 10;
-      this.payload.pageable.startIndex = 0;
-      this.tabList.forEach(ci => {
-        if (ci.id === this.currentTab) {
-          this.payload.pageable.pageSize = ci.pagination.pageSize;
-          this.payload.pageable.startIndex =
-            (ci.pagination.currentPage - 1) * ci.pagination.pageSize;
-        }
-      });
-      const query = {
-        id: this.currentTab,
-        queryObject: this.payload
-      };
-      const { status, message, data } = await queryCiData(query);
+    async getProcessInstances(
+      isAfterCreate = false,
+      createResponse = undefined
+    ) {
+      let { status, data, message } = await getProcessInstances();
       if (status === "OK") {
-        this.tabList.forEach(ci => {
-          if (ci.id === this.currentTab) {
-            ci.tableData = data.contents.map(_ => {
-              return {
-                ..._.data,
-                nextOperations: _.meta.nextOperations || [],
-                citypeId: this.currentTab
-              };
-            });
-            ci.pagination.total = data.pageInfo.totalRows;
-          }
+        this.allFlowInstances = data.sort((a, b) => {
+          return b.id - a.id;
+        });
+        if (isAfterCreate) {
+          this.selectedFlowInstance = createResponse.id;
+          this.processInstance();
+        }
+      }
+    },
+    async getNodeBindings(id) {
+      const { status, message, data } = await getNodeBindings(id);
+      if (status === "OK") {
+        this.flowNodesBindings = data;
+      }
+    },
+    async getAllFlow() {
+      let { status, data, message } = await getAllFlow(false);
+      if (status === "OK") {
+        this.allFlows = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase();
+          let t = b.createdTime.toLowerCase();
+          if (s > t) return -1;
+          if (s < t) return 1;
         });
       }
     },
-    loadFlowImage(index, nodesString) {
-      (nodesString.match(/image=[^,]*(img\/\d*|png)/g) || [])
-        .filter((value, index, self) => {
-          return self.indexOf(value) === index;
-        })
-        .map(keyvaluepaire => keyvaluepaire.substr(7))
-        .forEach(image => {
-          this.graphs[index].graphviz.addImage(image, "48px", "48px");
-        });
+
+    orchestrationSelectHandler() {
+      this.getFlowOutlineData(this.selectedFlow);
+      if (this.selectedFlow && this.isEnqueryPage === false) {
+        this.showExcution = true;
+      }
     },
-    genFlowDOT(raw) {
-      const shapes = {
-        startEvent,
-        errEndEvent,
-        eventBasedGateway,
-        intermediateCatchEvent,
-        exclusiveGateway,
-        endEvent,
-        serviceTask
+    async getTargetOptions() {
+      if (!(this.flowData.rootEntity || this.flowData.entityTypeId)) return;
+      let pkgName = "";
+      let entityName = "";
+      if (this.flowData.rootEntity) {
+        pkgName = this.flowData.rootEntity.split(":")[0];
+        entityName = this.flowData.rootEntity.split(":")[1];
+      } else {
+        pkgName = this.flowData.entityTypeId.split(":")[0];
+        entityName = this.flowData.entityTypeId.split(":")[1];
+      }
+      let { status, data, message } = await getTargetOptions(
+        pkgName,
+        entityName
+      );
+      if (status === "OK") {
+        this.allTarget = data;
+      }
+    },
+    queryHandler() {
+      clearInterval(this.timer);
+      this.timer = null;
+      if (!this.selectedFlowInstance) return;
+      this.isShowBody = true;
+      this.isEnqueryPage = true;
+
+      this.$nextTick(async () => {
+        const found = this.allFlowInstances.find(
+          _ => _.id === this.selectedFlowInstance
+        );
+        this.getNodeBindings(found.id);
+        let { status, data, message } = await getProcessInstance(
+          found && found.id
+        );
+        if (status === "OK") {
+          this.flowData = {
+            ...data,
+            flowNodes: data.taskNodeInstances
+          };
+          this.getTargetOptions();
+
+          this.initFlowGraph(true);
+          removeEvent(".retry", "click", this.retryHandler);
+          addEvent(".retry", "click", this.retryHandler);
+          d3.selectAll(".retry").attr("cursor", "pointer");
+
+          this.showExcution = false;
+        }
+
+        this.selectedFlow = found.procDefId;
+        this.selectedTarget = found.entityDataId;
+        this.getModelData();
+      });
+    },
+    createHandler() {
+      clearInterval(this.timer);
+      this.timer = null;
+      this.isShowBody = true;
+      this.isEnqueryPage = false;
+      this.selectedFlowInstance = "";
+      this.selectedTarget = "";
+      this.selectedFlow = "";
+      this.modelData = [];
+      this.flowData = {};
+      this.showExcution = false;
+      this.$nextTick(() => {
+        this.initModelGraph();
+      });
+    },
+    onTargetSelectHandler() {
+      this.getModelData();
+    },
+    formatNodesBindings() {
+      let bindings = this.flowNodesBindings.map(_ => {
+        const found = this.flowData.flowNodes.find(
+          i => i.nodeDefId === _.nodeDefId
+        );
+        return {
+          ..._,
+          orderedNo: found ? found.orderedNo : ""
+        };
+      });
+      this.modelData.forEach(item => {
+        this.flowNodesBindings.forEach(d => {
+          if (d.entityTypeId + ":" + d.entityDataId === item.id) {
+            item.refFlowNodeIds.push(d.orderedNo);
+          }
+        });
+      });
+    },
+    async getModelData() {
+      if (!this.selectedFlow || !this.selectedTarget) return;
+      let { status, data, message } = await getTreePreviewData(
+        this.selectedFlow,
+        this.selectedTarget
+      );
+      if (status === "OK") {
+        this.modelData = data.map(_ => {
+          return {
+            ..._,
+            refFlowNodeIds: []
+          };
+        });
+        if (this.isEnqueryPage) {
+          this.formatNodesBindings();
+        }
+        this.initModelGraph();
+      }
+    },
+    async getFlowOutlineData(id) {
+      let { status, data, message } = await getFlowOutlineByID(id);
+      if (status === "OK") {
+        this.flowData = data;
+        this.initFlowGraph();
+        this.getTargetOptions();
+      }
+    },
+    renderModelGraph() {
+      let nodes = this.modelData.map((_, index) => {
+        const nodeId = _.packageName + "_" + _.entityName + "_" + _.dataId;
+        let color = _.isHighlight ? "#5DB400" : "black";
+        const isRecord = _.refFlowNodeIds.length > 0;
+        const shape = isRecord ? "Mrecord" : "ellipse";
+        const label =
+          _.refFlowNodeIds.toString().replace(/,/g, "/") +
+          (isRecord ? "|" : "") +
+          _.packageName.slice(0, 5) +
+          "..." +
+          _.entityName.slice(-5);
+        return `${nodeId} [label="${
+          isRecord
+            ? label
+            : _.packageName.slice(0, 5) + "..." + _.entityName.slice(-5)
+        }" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`;
+      });
+      let genEdge = () => {
+        let pathAry = [];
+
+        this.modelData.forEach(_ => {
+          if (_.succeedingIds.length > 0) {
+            const nodeId = _.packageName + "_" + _.entityName + "_" + _.dataId;
+            let current = [];
+            current = _.succeedingIds.map(to => {
+              return nodeId + " -> " + to.replace(/:/g, "_");
+            });
+            pathAry.push(current);
+          }
+        });
+        return pathAry
+          .flat()
+          .toString()
+          .replace(/,/g, ";");
       };
+      let nodesToString =
+        Array.isArray(nodes) && nodes.length > 0
+          ? nodes.toString().replace(/,/g, ";") + ";"
+          : "";
+
+      let nodesString =
+        "digraph G { " +
+        'bgcolor="transparent";' +
+        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8",fontsize=12];' +
+        'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' +
+        nodesToString +
+        genEdge() +
+        "}";
+      this.graph.graphviz.renderDot(nodesString);
+      removeEvent(
+        ".model text",
+        "mouseenter",
+        this.modelGraphMouseenterHandler
+      );
+      removeEvent(
+        ".model text",
+        "mouseleave",
+        this.modelGraphMouseleaveHandler
+      );
+      addEvent(".model text", "mouseenter", this.modelGraphMouseenterHandler);
+      addEvent(".model text", "mouseleave", this.modelGraphMouseleaveHandler);
+    },
+    modelGraphMouseenterHandler(e) {
+      clearTimeout(this.modelDetailTimer);
+      this.modelDetailTimer = setTimeout(async () => {
+        const found = this.modelData.find(
+          _ =>
+            _.packageName + "_" + _.entityName + "_" + _.dataId ===
+            e.target.parentNode.id
+        );
+        let modelDetail = document.getElementById("model_graph_detail");
+        let el = e || window.event;
+        let x = el.clientX;
+        let y = el.clientY;
+        const { status, message, data } = await getModelNodeDetail(
+          found.entityName,
+          found.dataId
+        );
+        if (status === "OK") {
+          this.modelNodeDetail = data;
+        }
+        let clientWidth = document.body.clientWidth;
+        const positionX =
+          clientWidth - x < 600 ? x - 600 + 5 + "px" : x + 5 + "px";
+        modelDetail.style.display = "block";
+        modelDetail.style.left = positionX;
+        modelDetail.style.top = y + "px";
+        removeEvent(
+          "#model_graph_detail",
+          "mouseenter",
+          this.modelDetailEnterHandler
+        );
+        removeEvent(
+          "#model_graph_detail",
+          "mouseleave",
+          this.modelDetailLeaveHandler
+        );
+        addEvent(
+          "#model_graph_detail",
+          "mouseenter",
+          this.modelDetailEnterHandler
+        );
+        addEvent(
+          "#model_graph_detail",
+          "mouseleave",
+          this.modelDetailLeaveHandler
+        );
+      }, 500);
+    },
+    modelDetailEnterHandler(e) {
+      let modelDetail = document.getElementById("model_graph_detail");
+      modelDetail.style.display = "block";
+    },
+    modelDetailLeaveHandler(e) {
+      let modelDetail = document.getElementById("model_graph_detail");
+      modelDetail.style.display = "none";
+    },
+    modelGraphMouseleaveHandler(e) {
+      clearTimeout(this.modelDetailTimer);
+      this.modelDetailLeaveHandler(e);
+    },
+    renderFlowGraph(excution) {
       const statusColor = {
         Completed: "#5DB400",
-        NotStarted: "#7F8A96",
+        deployed: "#7F8A96",
         InProgress: "#3C83F8",
         Faulted: "#FF6262",
-        Timeouted: "#F7B500"
+        Timeouted: "#F7B500",
+        NotStarted: "#7F8A96"
       };
-      var dots = [
-        "digraph  {",
-        'bgcolor="transparent";',
-        'Node [fontname=Arial,shape="none",width="0.8", height="0.8", color="#273c75" ,fontsize=10];',
-        'Edge [fontname=Arial, minlen="1", color="#000", fontsize=10];'
-      ];
-      let drawConnection = (from, to) => {
-        return `"${from.id}" -> "${to.id}"[edgetooltip="${to.name}" color="${
-          statusColor[from.status]
-        }"];`;
-      };
-      let addNodeAttr = node => {
-        const color = "#273c75";
-        let path = `${shapes[node.nodeTypeName] || shapes.startEvent}`;
-        return `"${node.id}" [image="${path}" id="${node.id}" class="${
-          node.nodeTypeName
-        }" label="${node.name}" labelloc="b", shape="box" color="${
-          statusColor[node.status]
-        }" fontcolor="${color}"];`;
-      };
-      const nodeMap = new Map();
-      raw.forEach(node => {
-        dots.push(addNodeAttr(node));
-        if (node.toNodeIds.length) {
-          node.toNodeIds.forEach(toId => {
-            let found = raw.find(_ => toId === _.id);
-            if (found) {
-              const dot = drawConnection(node, found);
-              if (!nodeMap.has(dot)) {
-                dots.push(dot);
-                nodeMap.set(dot, true);
-              }
+      let nodes =
+        this.flowData &&
+        this.flowData.flowNodes &&
+        this.flowData.flowNodes
+          .filter(i => i.status != "predeploy")
+          .map((_, index) => {
+            if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
+              return `${_.nodeId} [label="${_.nodeName ||
+                "Null"}", fontsize="10", class="flow",style="${
+                excution ? "filled" : "none"
+              }" color="${
+                excution ? statusColor[_.status] : "#7F8A96"
+              }" shape="circle", id="${_.nodeId}"]`;
+            } else {
+              const className =
+                _.status === "Faulted" || _.status === "Timeouted"
+                  ? "retry"
+                  : "";
+              return `${_.nodeId} [fixedsize=false label="${_.orderedNo +
+                "、" +
+                _.nodeName}" class="flow ${className}" style="${
+                excution ? "filled" : "none"
+              }" color="${
+                excution
+                  ? statusColor[_.status]
+                  : _.nodeId === this.currentFlowNodeId
+                  ? "#5DB400"
+                  : "#7F8A96"
+              }"  shape="box" id="${_.nodeId}" ]`;
             }
           });
-        }
-
-        if (node.fromNodeIds.length) {
-          node.fromNodeIds.forEach(fromId => {
-            let found = raw.find(_ => fromId === _.id);
-            if (found) {
-              const dot = drawConnection(found, node);
-              if (!nodeMap.has(dot)) {
-                dots.push(dot);
-                nodeMap.set(dot, true);
-              }
+      let genEdge = () => {
+        let pathAry = [];
+        this.flowData &&
+          this.flowData.flowNodes &&
+          this.flowData.flowNodes.forEach(_ => {
+            if (_.succeedingNodeIds.length > 0) {
+              let current = [];
+              current = _.succeedingNodeIds.map(to => {
+                return (
+                  _.nodeId +
+                  " -> " +
+                  `${to} [color="${
+                    excution ? statusColor[_.status] : "black"
+                  }"]`
+                );
+              });
+              pathAry.push(current);
             }
           });
-        }
-      });
+        return pathAry
+          .flat()
+          .toString()
+          .replace(/,/g, ";");
+      };
+      let nodesToString = Array.isArray(nodes)
+        ? nodes.toString().replace(/,/g, ";") + ";"
+        : "";
+      let nodesString =
+        "digraph G {" +
+        'bgcolor="transparent";' +
+        'Node [fontname=Arial, height=".3", fontsize=12];' +
+        'Edge [fontname=Arial, color="#7f8fa6", fontsize=10];' +
+        nodesToString +
+        genEdge() +
+        "}";
 
-      dots.push("}");
-      return dots.join("");
+      this.flowGraph.graphviz.renderDot(nodesString);
+      this.bindFlowEvent();
     },
-    renderFlowGraph(data, name) {
-      let nodesString = this.genFlowDOT(data.flowNodes || []);
-      this.loadFlowImage(name, nodesString);
-      this.graphs[name].graphviz.renderDot(nodesString);
-    },
-    initFlowGraph(name) {
-      const initEvent = () => {
-        let graphs;
-        graphs = d3.select(`#${name}`);
-        graphs.on("dblclick.zoom", null);
-        this.graphs[name].graphviz = graphs.graphviz().zoom(false);
-      };
-
-      initEvent();
-      const nodeData =
-        name === "graph_refresh" ? this.graph_refresh : this.graph_preview;
-      this.renderFlowGraph(nodeData, name);
-    },
-    async exportHandler() {
-      const { status, message, data } = await queryCiData({
-        id: this.currentTab,
-        queryObject: this.payload
-      });
-      if (status === "OK") {
-        this.$refs[this.tableRef][0].export({
-          filename: "Ci Data",
-          data: formatData(data.contents.map(_ => _.data))
-        });
-      }
-    },
-    hidePreModal(status) {
-      if (status) return;
-      this.previewVisibleSwap = false;
-    },
-    hideRefreshModal(status) {
-      if (status) return;
-      this.refreshVisibleSwap = false;
-      clearInterval(this.graphsTimer);
-    },
-    async startProcessHandler() {
-      const payload = {
-        ciDataId: this.currentExeData.guid,
-        ciTypeId: this.currentTab,
-        processDefinitionKey: this.currentExeData.orchestration
-      };
-      const { status, data, message } = await startProcessInstanceWithCiData(
-        payload
-      );
-      if (status === "OK") {
-        this.$Notice.success({
-          title: "success",
-          desc: "success"
-        });
-      }
-    },
-    async exePreviewHandler(d) {
-      this.currentExeData = d;
-      const payload = {
-        ciGuid: d.guid,
-        ciTypeId: this.currentTab,
-        definitionKey: d.orchestration
-      };
-      const { status, data, message } = await previewProcessDefinition(payload);
-      if (status === "OK") {
-        this.graph_preview = data;
-        this.initFlowGraph("graph_preview");
-        this.previewVisibleSwap = true;
-      }
-    },
-    async getExeQuery(d) {
-      const { status, data, message } = await refreshProcessInstanceStatus(
-        d.biz_key
-      );
-      if (status === "OK") {
-        this.graph_refresh = data;
-        this.initFlowGraph("graph_refresh");
-        this.refreshVisibleSwap = true;
-        this.$nextTick(() => {
-          this.bindClick();
-        });
+    async excutionFlow() {
+      // 区分已存在的flowInstance执行 和 新建的执行
+      if (this.isEnqueryPage) {
+        this.processInstance();
+        this.showExcution = false;
       } else {
-        clearInterval(this.graphsTimer);
+        const currentTarget = this.allTarget.find(
+          _ => _.id === this.selectedTarget
+        );
+        let taskNodeBinds = [];
+        this.modelData.forEach(_ => {
+          let temp = [];
+          _.refFlowNodeIds.forEach(i => {
+            temp.push({
+              ..._,
+              flowOrderNo: i
+            });
+          });
+          taskNodeBinds = taskNodeBinds.concat(temp);
+        });
+
+        let payload = {
+          entityDataId: currentTarget.id,
+          entityTypeId: this.flowData.rootEntity,
+          procDefId: this.flowData.procDefId,
+          taskNodeBinds: taskNodeBinds.map(_ => {
+            const node = this.flowData.flowNodes.find(
+              node => node.orderedNo === _.flowOrderNo
+            );
+            return {
+              entityDataId: _.dataId,
+              entityTypeId: this.flowData.rootEntity,
+              nodeDefId: (node && node.nodeDefId) || "",
+              orderedNo: _.flowOrderNo
+            };
+          })
+        };
+        let { status, data, message } = await createFlowInstance(payload);
+        if (status === "OK") {
+          this.getProcessInstances(true, data);
+          this.showExcution = false;
+          this.isEnqueryPage = true;
+        }
       }
+    },
+    start() {
+      if (this.timer === null) {
+        this.getStatus();
+      }
+      if (this.timer != null) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+      this.timer = setInterval(() => {
+        this.getStatus();
+      }, 5000);
+    },
+    stop() {
+      clearInterval(this.timer);
+      this.timer = null;
+    },
+    async getStatus() {
+      const found = this.allFlowInstances.find(
+        _ => _.id === this.selectedFlowInstance
+      );
+      let { status, data, message } = await getProcessInstance(
+        found && found.id
+      );
+      if (status === "OK") {
+        this.flowData = {
+          ...data,
+          flowNodes: data.taskNodeInstances
+        };
+        this.initFlowGraph(true);
+        removeEvent(".retry", "click", this.retryHandler);
+        addEvent(".retry", "click", this.retryHandler);
+        d3.selectAll(".retry").attr("cursor", "pointer");
+        if (data.status === "Completed") {
+          this.stop();
+        }
+      }
+    },
+    processInstance() {
+      this.timer = null;
+      this.start();
+    },
+    retryHandler(e) {
+      debugger;
+      this.currentFailedNodeID = e.target.parentNode.getAttribute("id");
+      this.workflowActionModalVisible = true;
     },
     async workFlowActionHandler(type) {
-      const found = this.graph_refresh.flowNodes.find(
-        _ => _.id === this.currentNodeID
+      const found = this.flowData.flowNodes.find(
+        _ => _.nodeId === this.currentFailedNodeID
       );
       if (!found) {
         return;
       }
       const payload = {
         act: type,
-        activityId: found.id,
-        processInstanceId: found.processInstanceId
+        nodeInstId: found.id,
+        procInstId: found.procInstId
       };
-      const { data, message, status } = await restartProcessInstance(payload);
+      const { data, message, status } = await retryProcessInstance(payload);
       if (status === "OK") {
         this.$Notice.success({
           title: "Success",
-          desc: "Success"
+          desc:
+            (type === "retry" ? "Retry" : "Skip") +
+            " action is proceed successfully"
         });
         this.workflowActionModalVisible = false;
+        this.processInstance();
       }
     },
-    bindClick() {
-      const _this = this;
-      //add event to serviceTask
-      addEvent("#graph_refresh .serviceTask image", "click", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.currentNodeID = e.target.parentNode.getAttribute("id");
-        this.currentNodeStsatus = _this.graph_refresh.flowNodes.find(
-          _ => _.id === this.currentNodeID
-        ).status;
-        this.workflowActionModalVisible = true;
-      });
-      addEvent("#graph_refresh .serviceTask image", "mouseover", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        d3.selectAll("#graph_refresh .serviceTask image").attr(
-          "cursor",
-          "pointer"
+    bindFlowEvent() {
+      if (this.isEnqueryPage !== true) {
+        addEvent(".flow", "mouseover", e => {
+          e.preventDefault();
+          e.stopPropagation();
+          d3.selectAll("g").attr("cursor", "pointer");
+        });
+        removeEvent(".flow", "click", this.flowNodesClickHandler);
+        addEvent(".flow", "click", this.flowNodesClickHandler);
+      } else {
+        removeEvent(
+          ".flow text",
+          "mouseenter",
+          this.flowGraphMouseenterHandler
         );
-      });
-      //add event to sub process
-      addEvent("#graph_refresh .subProcess image", "click", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.currentNodeID = e.target.parentNode.getAttribute("id");
-        this.currentNodeStsatus = _this.graph_refresh.flowNodes.find(
-          _ => _.id === this.currentNodeID
-        ).status;
+        removeEvent(".flow text", "mouseleave", this.flowGraphLeaveHandler);
+        addEvent(".flow text", "mouseenter", this.flowGraphMouseenterHandler);
+        addEvent(".flow text", "mouseleave", this.flowGraphLeaveHandler);
+      }
+    },
+    flowGraphLeaveHandler(e) {
+      clearTimeout(this.flowDetailTimer);
+      this.flowDetailLeaveHandler();
+    },
+    flowGraphMouseenterHandler(e) {
+      clearTimeout(this.flowDetailTimer);
+      this.flowDetailTimer = setTimeout(async () => {
+        const found = this.flowData.flowNodes.find(
+          _ => _.nodeId === e.target.parentNode.id
+        );
+        let flowDetail = document.getElementById("flow_graph_detail");
+        let el = e || window.event;
+        let x = el.clientX;
+        let y = el.clientY;
+        const { status, message, data } = await getNodeContext(
+          found.procInstId,
+          found.id
+        );
+        if (status === "OK") {
+          this.flowNodeDetail = data;
+        }
+        let clientWidth = document.body.clientWidth;
+        const positionX =
+          clientWidth - x < 600 ? x - 600 + 5 + "px" : x + 5 + "px";
+        flowDetail.style.display = "block";
+        flowDetail.style.left = positionX;
+        flowDetail.style.top = y + "px";
+        removeEvent(
+          "#flow_graph_detail",
+          "mouseenter",
+          this.flowDetailEnterHandler
+        );
+        removeEvent(
+          "#flow_graph_detail",
+          "mouseleave",
+          this.flowDetailLeaveHandler
+        );
+        addEvent(
+          "#flow_graph_detail",
+          "mouseenter",
+          this.flowDetailEnterHandler
+        );
+        addEvent(
+          "#flow_graph_detail",
+          "mouseleave",
+          this.flowDetailLeaveHandler
+        );
+      }, 500);
+    },
+    flowDetailEnterHandler(e) {
+      let modelDetail = document.getElementById("flow_graph_detail");
+      modelDetail.style.display = "block";
+    },
+    flowDetailLeaveHandler(e) {
+      let modelDetail = document.getElementById("flow_graph_detail");
+      modelDetail.style.display = "none";
+    },
+    flowNodesClickHandler(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      let g = e.currentTarget;
+      this.highlightModel(g.id);
+      this.currentFlowNodeId = g.id;
+      this.renderFlowGraph();
+    },
+    highlightModel(nodeId) {
+      let temp = [];
 
-        this.workflowActionModalVisible = true;
+      this.foundRefAry = this.flowData.flowNodes
+        .find(item => item.nodeId == nodeId)
+        .routineExpression.split(/[~.>()]/)
+        .filter(i => i.length > 0);
+      this.modelData.forEach(item => {
+        item["isHighlight"] = this.foundRefAry[
+          this.foundRefAry.length - 1
+        ].includes(item.entityName);
+        this.foundRefAry.forEach(i => {
+          if (item.id.includes(i)) {
+            temp.push(
+              item.packageName + "_" + item.entityName + "_" + item.dataId
+            );
+          }
+        });
       });
-      addEvent("#graph_refresh .subProcess image", "mouseover", e => {
-        e.preventDefault();
-        e.stopPropagation();
-        d3.selectAll("#graph_refresh .subProcess image").attr(
-          "cursor",
-          "pointer"
-        );
+      this.initModelGraph();
+      removeEvent(".model", "click", this.modelClickHandler);
+      temp.forEach(_ => {
+        // replace ':' by _'
+        addEvent(`#${_}`, "click", this.modelClickHandler);
       });
     },
-    exeQueryHandler(d) {
-      this.getExeQuery(d);
-      this.graphsTimer = setInterval(() => {
-        this.getExeQuery(d);
-      }, 30000);
-    },
-    actionFun(type, data) {
-      switch (type) {
-        case "export":
-          this.exportHandler();
-          break;
-        case "exePreview":
-          this.exePreviewHandler(data);
-          break;
-        case "exeQuery":
-          this.exeQueryHandler(data);
-          break;
-        default:
-          break;
+    modelClickHandler(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      let g = e.currentTarget;
+      let temp = [];
+      let foundModelNode = this.modelData.find(
+        _ => _.packageName + "_" + _.entityName + "_" + _.dataId === g.id
+      );
+      const currentFlow = this.flowData.flowNodes.find(
+        i => i.nodeId === this.currentFlowNodeId
+      );
+      this.modelData.forEach(item => {
+        this.foundRefAry.forEach(i => {
+          if (item.id.includes(i)) {
+            temp.push(
+              item.packageName + "_" + item.entityName + "_" + item.dataId
+            );
+          }
+        });
+      });
+      const flowNodeIndex = foundModelNode.refFlowNodeIds.indexOf(
+        currentFlow.orderedNo
+      );
+      if (flowNodeIndex > -1) {
+        foundModelNode.refFlowNodeIds.splice(flowNodeIndex, 1);
+      } else {
+        foundModelNode.refFlowNodeIds.push(currentFlow.orderedNo);
       }
-    },
-    pageChange(current) {
-      this.tabList.forEach(ci => {
-        if (ci.id === this.currentTab) {
-          ci.pagination.currentPage = current;
-        }
+      document.getElementById("graph").innerHTML = "";
+      this.initModelGraph();
+      temp.forEach(_ => {
+        addEvent(`#${_}`, "click", this.modelClickHandler);
       });
-      this.queryCiData();
     },
-    pageSizeChange(size) {
-      this.tabList.forEach(ci => {
-        if (ci.id === this.currentTab) {
-          ci.pagination.pageSize = size;
-        }
-      });
-      this.queryCiData();
+    initModelGraph() {
+      const initEvent = () => {
+        let graph;
+        graph = d3.select(`#graph`);
+        graph.on("dblclick.zoom", null);
+        this.graph.graphviz = graph.graphviz().zoom(false);
+      };
+      initEvent();
+      this.renderModelGraph();
+    },
+    initFlowGraph(excution = false) {
+      const initEvent = () => {
+        let graph;
+        graph = d3.select(`#flow`);
+        graph.on("dblclick.zoom", null);
+        this.flowGraph.graphviz = graph.graphviz().zoom(false);
+      };
+      initEvent();
+      this.renderFlowGraph(excution);
     }
-  },
-  mounted() {
-    this.initGraph();
   }
 };
 </script>
-<style lang="scss"></style>
+<style lang="scss" scoped>
+body {
+  color: #15a043;
+}
+.graph-container {
+  overflow: auto;
+}
+#model_graph_detail {
+  display: none;
+  width: 600px;
+  position: absolute;
+  background-color: white;
+  padding: 5px 5px;
+  box-shadow: 0 0 5px grey;
+  overflow: auto;
+}
+#flow_graph_detail {
+  display: none;
+  width: 600px;
+  position: absolute;
+  background-color: white;
+  padding: 5px 5px;
+  box-shadow: 0 0 5px grey;
+  overflow: auto;
+}
+</style>
