@@ -17,16 +17,16 @@ module.exports = {
         target: baseURL
       },
       "/wecmdb": {
-        target: baseURL
+        target: "http://111.230.161.237:19110"
       },
       "ui-resources": {
-        target: "http://111.230.161.237:19090"
+        target: "http://111.230.161.237:19110"
       },
       "wecube-monitor": {
         target: "https://sandbox.webank.com"
       },
       "/auth": {
-        target: "http://111.230.161.237:19090"
+        target: "http://111.230.161.237:19110"
       }
     }
   },
