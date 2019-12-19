@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.jpa;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 
@@ -10,17 +11,12 @@ public interface SystemVariableRepository extends CrudRepository<SystemVariable,
     
     List<SystemVariable> findAllByStatus(String status);
 
-    List<SystemVariable> findAllByScopeType(String scopeType);
+    List<SystemVariable> findAllByScope(String scope);
 
-    List<SystemVariable> findAllByPluginPackage_IdAndNameAndScopeTypeAndStatus(String pluginPackageId, String name,
-                                                                               String scopeType, String status);
+    List<SystemVariable> findByNameAndScopeAndStatus(String name, String scope, String status);
 
-    List<SystemVariable> findByNameAndScopeTypeAndStatus(String name, String scopeType, String status);
+    Optional<List<SystemVariable>> findBySource(String source);
 
-    List<SystemVariable> findAllByScopeTypeAndStatus(String scopeType, String status);
-
-    List<SystemVariable> findAllByScopeTypeAndScopeValue(String scopeType, String scopeValue);
-
-    List<SystemVariable> findAllByScopeTypeAndScopeValueAndStatus(String scopeType, String scopeValue, String status);
+    List<SystemVariable> findAllByScopeAndStatus(String scope, String status);
 
 }
