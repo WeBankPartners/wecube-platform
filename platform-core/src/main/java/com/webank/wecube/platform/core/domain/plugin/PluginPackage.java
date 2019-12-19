@@ -5,13 +5,12 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.*;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_packages")
@@ -53,8 +52,8 @@ public class PluginPackage {
     private PluginPackageDataModel pluginPackageDataModel;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
-    private Set<SystemVariable> systemVariables = new LinkedHashSet<>();
+    @Transient
+    private Set<SystemVariable> systemVariables;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginPackage", cascade = CascadeType.PERSIST, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -88,7 +87,7 @@ public class PluginPackage {
     }
 
     public PluginPackage(String name, String version) {
-        this(null, name, name, Status.UNREGISTERED, new Timestamp(System.currentTimeMillis()), false);
+        this(null, name, version, Status.UNREGISTERED, new Timestamp(System.currentTimeMillis()), false);
     }
     public PluginPackage(String id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded) {
         this.id = id;
@@ -107,6 +106,17 @@ public class PluginPackage {
         this.uploadTimestamp = uploadTimestamp;
         this.uiPackageIncluded = uiPackageIncluded;
         this.pluginPackageDataModel = pluginPackageDataModel;
+    }
+
+    public PluginPackage(String id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, PluginPackageDataModel pluginPackageDataModel, Set<SystemVariable> systemVariables) {
+        this.id = id;
+        this.name = name;
+        this.version = version;
+        this.status = status;
+        this.uploadTimestamp = uploadTimestamp;
+        this.uiPackageIncluded = uiPackageIncluded;
+        this.pluginPackageDataModel = pluginPackageDataModel;
+        this.systemVariables = systemVariables;
     }
 
     public PluginPackage(String id, String name, String version, Status status, Timestamp uploadTimestamp, boolean uiPackageIncluded, Set<PluginPackageDependency> pluginPackageDependencies, Set<PluginPackageMenu> pluginPackageMenus, PluginPackageDataModel pluginPackageDataModel, Set<SystemVariable> systemVariables, Set<PluginPackageAuthority> pluginPackageAuthorities, Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker, Set<PluginPackageRuntimeResourcesMysql> pluginPackageRuntimeResourcesMysql, Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3, Set<PluginConfig> pluginConfigs, Set<PluginPackageResourceFile> pluginPackageResourceFiles) {
@@ -134,10 +144,7 @@ public class PluginPackage {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER, name, version);
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
     public void setId(String id) {
