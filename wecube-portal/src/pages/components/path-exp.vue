@@ -296,6 +296,7 @@ export default {
     word-break: break-all;
     width: 100%;
     border-radius: 5px;
+    border-color: #dcdee2;
   }
   .wecube-error-message {
     display: none;
