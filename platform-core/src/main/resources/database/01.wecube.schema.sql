@@ -14,7 +14,7 @@ drop table if exists plugin_package_dependencies;
 create table plugin_package_dependencies (
   id VARCHAR(255) PRIMARY KEY,
   plugin_package_id VARCHAR(255) not null,
-  dependency_package_name VARCHAR(50) not null,
+  dependency_package_name VARCHAR(63) not null,
   dependency_package_version varchar(20) not null
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
@@ -71,14 +71,13 @@ CREATE TABLE plugin_package_attributes
 drop table if exists system_variables;
 create table system_variables (
   id VARCHAR(255) PRIMARY KEY,
-  plugin_package_id VARCHAR(255) ,
+  package_name VARCHAR(63) ,
   name varchar(255) not null,
   value varchar(2000),
   default_value varchar(2000) null,
-  scope_type varchar(50) not null default 'global',
-  scope_value varchar(500) null,
-  status varchar(50) null default 'active',
-  index idx_prop_scope_val (plugin_package_id)
+  scope varchar(50) not null default 'global',
+  source varchar(500) null default 'system',
+  status varchar(50) null default 'active'
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_authorities;
@@ -123,8 +122,8 @@ CREATE TABLE `plugin_configs` (
   id VARCHAR(255) PRIMARY KEY,
   `plugin_package_id` VARCHAR(255) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
-  `entity_id` VARCHAR(255) NULL DEFAULT NULL,
-  `entity_name` VARCHAR(100) NOT NULL,
+  `target_package` VARCHAR(63) NULL DEFAULT NULL,
+  `target_entity` VARCHAR(100) NULL,
   `register_name` VARCHAR(100) NULL DEFAULT NULL,
   `status` VARCHAR(20) NOT NULL default 'DISABLED'
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
@@ -151,7 +150,7 @@ CREATE TABLE `plugin_config_interface_parameters` (
     `data_type` VARCHAR(50) NOT NULL,
     `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
     `mapping_entity_expression` varchar(1024) NULL DEFAULT NULL,
-    `mapping_system_variable_id` VARCHAR(500) NULL DEFAULT NULL,
+    `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
     `required` varchar(5)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
@@ -174,7 +173,7 @@ create table plugin_package_resource_files
 (
   id VARCHAR(255) PRIMARY KEY,
   plugin_package_id VARCHAR(255) not null,
-  package_name varchar(50) not null,
+  package_name varchar(63) not null,
   package_version varchar(20) not null,
   source varchar(64) not null,
   related_path varchar(1024) not null
@@ -256,6 +255,14 @@ CREATE TABLE `role_menu` (
     `id`      VARCHAR(255) PRIMARY KEY,
     `role_id` INT          NOT NULL,
     `menu_code` VARCHAR(255) NOT NULL
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+DROP TABLE if EXISTS core_ru_proc_role_binding;
+CREATE TABLE `core_ru_proc_role_binding` (
+    `id`      VARCHAR(255) PRIMARY KEY,
+    `proc_id`      VARCHAR(255) NOT NULL,
+    `role_id` INT          NOT NULL,
+    `permission` VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 
