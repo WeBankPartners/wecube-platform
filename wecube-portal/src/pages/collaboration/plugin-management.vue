@@ -15,7 +15,7 @@
             :on-success="onSuccess"
             :on-error="onError"
             action="platform/v1/packages"
-            :headers="setUploadActionHeader"
+            :headers="headers"
           >
             <Button style="display:none" icon="ios-cloud-upload-outline">
               {{ $t("upload_plugin_btn") }}
@@ -383,6 +383,7 @@ export default {
   },
   data() {
     return {
+      headers: {},
       isLoading: false,
       plugins: [],
       isShowConfigPanel: false,
@@ -822,6 +823,7 @@ export default {
           refreshRequest.then(
             res => {
               session.setItem("token", JSON.stringify(res.data.data));
+              this.setUploadActionHeader();
               this.$refs.uploadButton.handleClick();
             },
             err => {
@@ -833,24 +835,22 @@ export default {
           this.$refs.uploadButton.handleClick();
         }
       } else {
-        const fullPath = this.$router.currentRoute.fullPath;
         window.location.href = window.location.origin + "/#/login";
       }
+    },
+    setUploadActionHeader() {
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      this.headers = {
+        Authorization:
+          "Bearer " + token.find(t => t.tokenType === "accessToken").token
+      };
     }
   },
   created() {
     this.getAllPluginPkgs();
   },
-  computed: {
-    setUploadActionHeader() {
-      let session = window.sessionStorage;
-      const token = JSON.parse(session.getItem("token"));
-      return {
-        Authorization:
-          "Bearer " + token.find(t => t.tokenType === "accessToken").token
-      };
-    }
-  }
+  computed: {}
 };
 </script>
 <style lang="scss">
