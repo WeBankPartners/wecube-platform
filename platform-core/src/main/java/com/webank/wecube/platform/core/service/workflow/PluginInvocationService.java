@@ -100,9 +100,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
                 .findAllByProcInstId(procInstEntity.getId());
+        List<TaskNodeDefInfoEntity> nodeDefEntities = taskNodeDefInfoRepository
+                .findAllByProcDefId(procInstEntity.getProcDefId());
 
         for (TaskNodeInstInfoEntity n : nodeInstEntities) {
-            if ("endEvent".equals(n.getNodeType())) {
+            if ("endEvent".equals(n.getNodeType()) && n.getNodeId().equals(cmd.getNodeId())) {
+                TaskNodeDefInfoEntity currNodeDefInfo = findExactTaskNodeDefInfoEntityWithNodeId(nodeDefEntities,
+                        n.getNodeId());
+                refreshStatusOfPreviousNodes(nodeInstEntities, currNodeDefInfo);
                 n.setUpdatedTime(currTime);
                 n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
 
@@ -112,6 +117,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
         }
 
+    }
+
+    private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities, TaskNodeDefInfoEntity currNodeDefInfo){
+        List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPreviousNodeIds());
+        for(String prevNodeId: previousNodeIds){
+            TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities, prevNodeId);
+            if(prevNodeInst != null){
+                if(statelessNodeTypes.contains(prevNodeInst.getNodeType()) && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())){
+                    prevNodeInst.setUpdatedTime(new Date());
+                    prevNodeInst.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+                    
+                    taskNodeInstInfoRepository.save(prevNodeInst);
+                }
+            }
+        }
     }
 
     /**
@@ -846,15 +866,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         String entityDataId = null;
 
         String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
-        
+
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
         TaskNodeExecParamEntity callbackParameterInputEntity = null;
         if (StringUtils.isNotBlank(callbackParameter)) {
             callbackParameterInputEntity = taskNodeExecParamRepository.findOneByRequestIdAndParamTypeAndParamName(
                     requestId, TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY);
         }
-        
-        if(callbackParameterInputEntity != null){
+
+        if (callbackParameterInputEntity != null) {
             objectId = callbackParameterInputEntity.getObjectId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
