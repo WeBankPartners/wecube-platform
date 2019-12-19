@@ -4,7 +4,7 @@ let isUsingLocalCore = false;
 
 const baseURL = isUsingLocalCore
   ? "http://localhost:8080"
-  : "http://129.204.99.160:9098";
+  : "http://111.230.161.237:19090";
 
 module.exports = {
   devServer: {
@@ -13,26 +13,20 @@ module.exports = {
     open: true,
     port: 3000,
     proxy: {
-      "/process": {
+      "/platform": {
         target: baseURL
       },
-      "/admin": {
+      "/wecmdb": {
         target: baseURL
       },
-      "/cmdb": {
-        target: baseURL
+      "ui-resources": {
+        target: "http://111.230.161.237:19090"
       },
-      "/logout": {
-        target: baseURL
+      "wecube-monitor": {
+        target: "https://sandbox.webank.com"
       },
-      "/plugin": {
-        target: baseURL
-      },
-      "/artifact": {
-        target: baseURL
-      },
-      "/batch-job": {
-        target: baseURL
+      "/auth": {
+        target: "http://111.230.161.237:19090"
       }
     }
   },
