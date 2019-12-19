@@ -74,15 +74,15 @@ public class PluginConfigServiceTest extends DatabaseBasedTest {
 
         List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = configService.queryAllLatestEnabledPluginConfigInterface();
         assertThat(pluginConfigInterfaceDtos).hasSize(9);
-        assertThat(pluginConfigInterfaceDtos.get(0).getId()).isEqualTo("qcloud__v1.1__vm__null__create");
-        assertThat(pluginConfigInterfaceDtos.get(1).getId()).isEqualTo("qcloud__v1.1__vm__null__restart");
-        assertThat(pluginConfigInterfaceDtos.get(2).getId()).isEqualTo("qcloud__v1.1__vm__null__terminate");
-        assertThat(pluginConfigInterfaceDtos.get(3).getId()).isEqualTo("qcloud__v1.2__subnet__null__create");
-        assertThat(pluginConfigInterfaceDtos.get(4).getId()).isEqualTo("qcloud__v1.2__subnet__null__create-with-routetable");
-        assertThat(pluginConfigInterfaceDtos.get(5).getId()).isEqualTo("qcloud__v1.2__subnet__null__terminate");
-        assertThat(pluginConfigInterfaceDtos.get(6).getId()).isEqualTo("qcloud__v1.2__vpc__null__create");
-        assertThat(pluginConfigInterfaceDtos.get(7).getId()).isEqualTo("qcloud__v1.2__vpc__null__restart");
-        assertThat(pluginConfigInterfaceDtos.get(8).getId()).isEqualTo("qcloud__v1.2__vpc__null__terminate");
+        assertThat(pluginConfigInterfaceDtos.get(0).getId()).isEqualTo("qcloud__v1.1__vm__create");
+        assertThat(pluginConfigInterfaceDtos.get(1).getId()).isEqualTo("qcloud__v1.1__vm__restart");
+        assertThat(pluginConfigInterfaceDtos.get(2).getId()).isEqualTo("qcloud__v1.1__vm__terminate");
+        assertThat(pluginConfigInterfaceDtos.get(3).getId()).isEqualTo("qcloud__v1.2__subnet__create");
+        assertThat(pluginConfigInterfaceDtos.get(4).getId()).isEqualTo("qcloud__v1.2__subnet__create-with-routetable");
+        assertThat(pluginConfigInterfaceDtos.get(5).getId()).isEqualTo("qcloud__v1.2__subnet__terminate");
+        assertThat(pluginConfigInterfaceDtos.get(6).getId()).isEqualTo("qcloud__v1.2__vpc__create");
+        assertThat(pluginConfigInterfaceDtos.get(7).getId()).isEqualTo("qcloud__v1.2__vpc__restart");
+        assertThat(pluginConfigInterfaceDtos.get(8).getId()).isEqualTo("qcloud__v1.2__vpc__terminate");
 
     }
 }
