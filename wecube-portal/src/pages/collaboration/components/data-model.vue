@@ -95,7 +95,6 @@ export default {
       let { status, data, message } = await applyNewDataModel(this.dataModel);
       if (status === "OK") {
         if (this.dataModel.dynamic) {
-          this.$emit("reGetPkgStatus");
           this.isApplyBtnDisabled = true;
         }
         this.$Notice.success({
