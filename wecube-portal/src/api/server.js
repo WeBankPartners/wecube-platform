@@ -10,8 +10,8 @@ export const saveFlowDraft = data =>
   req.post("/platform/v1/process/definitions/draft", data);
 export const getAllFlow = (isIncludeDraft = true) => {
   return isIncludeDraft
-    ? req.get("/platform/v1/process/definitions")
-    : req.get("/platform/v1/process/definitions?includeDraft=0");
+    ? req.get("/platform/v1/process/definitions?permission=MGMT")
+    : req.get("/platform/v1/process/definitions?includeDraft=0&permission=USE");
 };
 export const getFlowDetailByID = id =>
   req.get(`/platform/v1/process/definitions/${id}/detail`);
@@ -648,7 +648,7 @@ export const grantRolesForUser = (data, roleId) =>
   req.post(`/platform/v1/roles/${roleId}/users/grant`, data);
 export const revokeRolesForUser = (data, roleId) =>
   req.delete(`/platform/v1/roles/${roleId}/users/revoke`, { data });
-export const getAllMenusList = () => req.get("/platform/v1/my-menus");
+export const getAllMenusList = () => req.get("/platform/v1/all-menus");
 export const getMenusByUserName = name =>
   req.get(`platform/v1//users/${name}/menus`);
 export const getMenusByRoleId = id => req.get(`platform/v1/roles/${id}/menus`);
@@ -658,3 +658,10 @@ export const getFilteredPluginInterfaceList = (packageName, entityName) =>
   req.get(
     `/platform/v1/plugins/interfaces/package/${packageName}/entity/${entityName}/enabled`
   );
+export const getRolesByCurrentUser = () => req.get(`/platform/v1/users/roles`);
+export const getPermissionByProcessId = id =>
+  req.get(`/platform/v1/process/${id}/roles`);
+export const updateFlowPermission = (id, data) =>
+  req.post(`/platform/v1/process/${id}/roles`, data);
+export const deleteFlowPermission = (id, data) =>
+  req.delete(`/platform/v1/process/${id}/roles`, { data });
