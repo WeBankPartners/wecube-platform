@@ -243,8 +243,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             inputAttr.setMapType(mappingType);
 
             if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
-                String svId = param.getMappingSystemVariableId();
-                SystemVariable sVariable = systemVariableService.getSystemVariableById(svId);
+                String systemVariableName = param.getMappingSystemVariableName();
+                SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(param.getPluginConfigInterface().getPluginConfig().getTargetPackage(), systemVariableName);
 
                 if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
                     log.error("variable is null but is mandatory for {}", paramName);
@@ -458,8 +458,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 }
 
                 if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
-                    String svId = param.getMappingSystemVariableId();
-                    SystemVariable sVariable = systemVariableService.getSystemVariableById(svId);
+                    String systemVariableName = param.getMappingSystemVariableName();
+                    SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(param.getPluginConfigInterface().getPluginConfig().getTargetPackage(), systemVariableName);
 
                     if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
                         log.error("variable is null but is mandatory for {}", paramName);

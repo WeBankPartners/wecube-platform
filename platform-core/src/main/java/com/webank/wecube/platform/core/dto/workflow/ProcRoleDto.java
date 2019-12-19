@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * @author howechen
@@ -59,5 +61,29 @@ public class ProcRoleDto {
 
     public void setRoleId(Long roleId) {
         this.roleId = roleId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ProcRoleDto that = (ProcRoleDto) o;
+
+        return new EqualsBuilder()
+                .append(getProcessId(), that.getProcessId())
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(getProcessId())
+                .toHashCode();
     }
 }

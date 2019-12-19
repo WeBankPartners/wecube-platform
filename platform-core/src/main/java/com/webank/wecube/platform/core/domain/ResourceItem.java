@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.persistence.*;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -59,14 +60,7 @@ public class ResourceItem {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER,
-                    null != resourceServer ? resourceServer.getId() : null,
-                    name,
-                    type
-            );
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
     public Map<String, String> getAdditionalPropertiesMap() {

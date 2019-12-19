@@ -37,7 +37,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         ProcRoleBindingEntity.permissionEnum permissionEnum;
         try {
             permissionEnum = ProcRoleBindingEntity.permissionEnum.valueOf(ProcRoleBindingEntity.permissionEnum.class,
-                    Objects.requireNonNull(permissionStr, "Permission string cannot be NULL"));
+                    Objects.requireNonNull(permissionStr, "Permission string cannot be NULL").toUpperCase());
         } catch (IllegalArgumentException ex) {
             String msg = String.format("The given permission string [%s] doesn't match platform-core's match cases.", permissionStr);
             throw new WecubeCoreException(msg);
@@ -51,7 +51,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         List<Long> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
         boolean ifUserHasMgmtPermission = checkIfUserHasMgmtPermission(procId, roleIdListByUsername);
         if (!ifUserHasMgmtPermission) {
-            String msg = String.format("The user doesn't has process: [%s]'s MGMT permission", procId);
+            String msg = String.format("The user doesn't have process: [%s]'s MGMT permission", procId);
             throw new WecubeCoreException(msg);
         }
 
@@ -101,29 +101,29 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     }
 
     @Override
-    public ProcRoleDto updateProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
+    public void createProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
         String permissionStr = procRoleRequestDto.getPermission();
-        Long roleId = procRoleRequestDto.getRoleId();
+        List<Long> roleIdList = procRoleRequestDto.getRoleIdList();
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
 
-        // check if the current user has the role to manage such process
+        batchSaveData(procId, permissionStr, roleIdList, permissionEnum);
+    }
+
+    @Override
+    public void updateProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
+        String permissionStr = procRoleRequestDto.getPermission();
+        List<Long> roleIdList = procRoleRequestDto.getRoleIdList();
+        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
+
+        // check if user's roles has permission to manage this process
         List<Long> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
         boolean ifUserHasMgmtPermission = checkIfUserHasMgmtPermission(procId, roleIdListByUsername);
         if (!ifUserHasMgmtPermission) {
-            String msg = String.format("The user doesn't has process: [%s]'s MGMT permission", procId);
+            String msg = String.format("The user doesn't have process: [%s]'s MGMT permission", procId);
             throw new WecubeCoreException(msg);
         }
 
-        // find current stored data
-        Optional<ProcRoleBindingEntity> byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository.findByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
-
-        if (byProcIdAndRoleIdAndPermission.isPresent()) {
-            logger.warn(String.format("Found stored data in DB, the given data is, procId: [%s], roleId: [%s], permission: [%s]", procId, roleId, permissionStr));
-            return ProcRoleDto.fromDomain(byProcIdAndRoleIdAndPermission.get());
-        }
-        // if no stored data found, then save new data in to the database
-        ProcRoleBindingEntity savedResult = this.procRoleBindingRepository.save(ProcRoleDto.toDomain(procId, roleId, permissionEnum));
-        return ProcRoleDto.fromDomain(savedResult);
+        batchSaveData(procId, permissionStr, roleIdList, permissionEnum);
     }
 
     @Override
@@ -134,7 +134,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         List<Long> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
         boolean ifUserHasMgmtPermission = checkIfUserHasMgmtPermission(procId, roleIdListByUsername);
         if (!ifUserHasMgmtPermission) {
-            String msg = String.format("The user doesn't has process: [%s]'s MGMT permission", procId);
+            String msg = String.format("The user doesn't have process: [%s]'s MGMT permission", procId);
             throw new WecubeCoreException(msg);
         }
 
@@ -142,7 +142,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum)) {
             Optional<List<ProcRoleBindingEntity>> foundMgmtData = this.procRoleBindingRepository.findByProcIdAndPermission(procId, permissionEnum);
             foundMgmtData.ifPresent(procRoleBindingEntities -> {
-                if (procRoleBindingEntities.size() <= 1) {
+                if (procRoleBindingEntities.size() <= procRoleRequestDto.getRoleIdList().size()) {
                     String msg = "The process's management permission should have at least one role.";
                     logger.info(String.format("The DELETE management roles operation was blocked, the process id is [%s].", procId));
                     throw new WecubeCoreException(msg);
@@ -150,11 +150,12 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
             });
         }
 
-        Optional<ProcRoleBindingEntity> foundData = this.procRoleBindingRepository.findByProcIdAndRoleIdAndPermission(procId, procRoleRequestDto.getRoleId(), permissionEnum);
-        foundData.ifPresent(procRoleBindingEntity -> this.procRoleBindingRepository.delete(procRoleBindingEntity));
+        for (Long roleId : procRoleRequestDto.getRoleIdList()) {
+            this.procRoleBindingRepository.deleteByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
+        }
     }
 
-    private boolean checkIfUserHasMgmtPermission(String procId, List<Long> userOwnedRoleIdList) {
+    public boolean checkIfUserHasMgmtPermission(String procId, List<Long> userOwnedRoleIdList) {
         Optional<List<ProcRoleBindingEntity>> byProcIdAndPermission = this.procRoleBindingRepository.findByProcIdAndPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
         List<Long> mgmtRoleIdList = new ArrayList<>();
         if (byProcIdAndPermission.isPresent()) {
@@ -169,7 +170,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         return false;
     }
 
-    private boolean checkIfUserHasUsePermission(String procId, List<Long> userOwnedRoleIdList) {
+    public boolean checkIfUserHasUsePermission(String procId, List<Long> userOwnedRoleIdList) {
         Optional<List<ProcRoleBindingEntity>> byProcIdAndPermission = this.procRoleBindingRepository.findByProcIdAndPermission(procId, ProcRoleBindingEntity.permissionEnum.USE);
         List<Long> mgmtRoleIdList = new ArrayList<>();
         if (byProcIdAndPermission.isPresent()) {
@@ -181,5 +182,19 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
             }
         }
         return false;
+    }
+
+    private void batchSaveData(String procId, String permissionStr, List<Long> roleIdList, ProcRoleBindingEntity.permissionEnum permissionEnum) {
+        for (Long roleId : roleIdList) {
+            // find current stored data
+            Optional<ProcRoleBindingEntity> byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository.findByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
+
+            if (byProcIdAndRoleIdAndPermission.isPresent()) {
+                logger.warn(String.format("Found stored data in DB, the given data is, procId: [%s], roleId: [%s], permission: [%s]", procId, roleId, permissionStr));
+                return;
+            }
+            // if no stored data found, then save new data in to the database
+            this.procRoleBindingRepository.save(ProcRoleDto.toDomain(procId, roleId, permissionEnum));
+        }
     }
 }

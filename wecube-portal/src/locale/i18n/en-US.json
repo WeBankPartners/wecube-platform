@@ -332,5 +332,10 @@
   "input": "Input",
   "output": "Output",
   "export_flow": "Export Flow",
-  "import_flow": "Import Flow"
+  "import_flow": "Import Flow",
+  "selected_role": "Selected Role",
+  "unselected_rolw": "Unselected Role",
+  "edit_role": "Select Orchestrations Host Roles",
+  "mgmt_role": "Owner Role",
+  "use_role": "Executor Role"
 }

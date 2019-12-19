@@ -4,25 +4,47 @@
       <Col span="6">
         <span style="margin-right: 10px">{{ $t("flow_name") }}</span>
         <Select
-          filterable
           clearable
           v-model="selectedFlow"
           style="width: 70%"
           @on-open-change="getAllFlows"
         >
+          <Option :value="100000">
+            <Button
+              @click="createNewDiagram()"
+              icon="md-add"
+              type="success"
+              size="small"
+              style="width: 100%;"
+            ></Button>
+          </Option>
           <Option
             v-for="(item, index) in allFlows"
             :value="item.procDefId"
             :key="item.procDefId"
           >
             {{
-              index === 0
-                ? ""
-                : (item.procDefName || "Null") +
-                  " " +
-                  item.createdTime +
-                  (item.status === "draft" ? "*" : "")
+              (item.procDefName || "Null") +
+                " " +
+                item.createdTime +
+                (item.status === "draft" ? "*" : "")
             }}
+            <span style="float:right">
+              <Button
+                @click.stop.prevent="deleteFlow(item.procDefId)"
+                icon="ios-trash"
+                type="error"
+                size="small"
+              ></Button>
+            </span>
+            <span style="float:right;margin-right: 10px">
+              <Button
+                @click.stop.prevent="setFlowPermission(item.procDefId)"
+                icon="ios-build"
+                type="primary"
+                size="small"
+              ></Button>
+            </span>
           </Option>
         </Select>
       </Col>
@@ -47,6 +69,7 @@
           </OptionGroup>
         </Select>
       </Col>
+      <<<<<<< HEAD
       <Button type="info" @click="saveDiagram(false)">
         {{ $t("save_flow") }}
       </Button>
@@ -83,13 +106,18 @@
       >
         <Button type="info">Import Ex</Button>
       </Upload>
+      =======
+      <Button type="info" @click="saveDiagram(false)">{{
+        $t("save_flow")
+      }}</Button>
+      >>>>>>> dev
     </Row>
-    <div class="containers" ref="content">
+    <div v-show="showBpmn" class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">{{
-          $t("config_plugin")
-        }}</a>
+        <a href="javascript:void(0);" @click="openPluginModal">
+          {{ $t("config_plugin") }}
+        </a>
         <br />
       </div>
 
@@ -171,9 +199,9 @@
             style="width:30%"
             @on-change="onParamsNodeChange(index)"
           >
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
-              {{ i.label }}
-            </Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
+              i.label
+            }}</Option>
           </Select>
           <Select
             v-if="item.bindType === 'context'"
@@ -191,9 +219,41 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
-          {{ $t("confirm") }}
-        </Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
+          $t("confirm")
+        }}</Button>
+      </div>
+    </Modal>
+    <Modal
+      v-model="flowRoleManageModal"
+      width="700"
+      :title="$t('edit_role')"
+      @on-ok="confirmRole"
+      @on-cancel="confirmRole"
+    >
+      <div>
+        <div class="role-transfer-title">{{ $t("mgmt_role") }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRoles"
+          :target-keys="mgmtRolesKeyToFlow"
+          :render-format="renderRoleNameForTransfer"
+          @on-change="handleMgmtRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div style="margin-top: 30px">
+        <div class="role-transfer-title">{{ $t("use_role") }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRoles"
+          :target-keys="useRolesKeyToFlow"
+          :render-format="renderRoleNameForTransfer"
+          @on-change="handleUseRoleTransferChange"
+          filterable
+        ></Transfer>
       </div>
     </Modal>
   </div>
@@ -233,7 +293,12 @@ import {
   removeProcessDefinition,
   getFilteredPluginInterfaceList,
   exportProcessDefinitionWithId,
-  importProcessDefinitionFile
+  importProcessDefinitionFile,
+  getRolesByCurrentUser,
+  getRoleList,
+  getPermissionByProcessId,
+  updateFlowPermission,
+  deleteFlowPermission
 } from "@/api/server.js";
 
 function setCTM(node, m) {
@@ -260,6 +325,15 @@ export default {
   },
   data() {
     return {
+      mgmtRolesKeyToFlow: [],
+      useRolesKeyToFlow: [],
+      currentUserRoles: [],
+      allRolesBackUp: [],
+      currentSettingFlow: "",
+      flowRoleManageModal: false,
+      isAdd: false,
+      transferTitles: [this.$t("unselected_role"), this.$t("selected_role")],
+      transferStyle: { width: "300px" },
       newFlowID: "",
       bpmnModeler: null,
       container: null,
@@ -272,12 +346,12 @@ export default {
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
       allFlows: [],
       allEntityType: [],
-      selectedFlow: "",
+      selectedFlow: null,
       currentSelectedEntity: "",
       rootPkg: "",
       rootEntity: "",
       pluginModalVisible: false,
-
+      currentUserRoles: [],
       pluginForm: {},
       defaultPluginForm: {
         description: "",
@@ -304,23 +378,131 @@ export default {
         { value: "INPUT", label: this.$t("input") },
         { value: "OUTPUT", label: this.$t("output") }
       ],
-      currentflowsNodes: []
+      currentflowsNodes: [],
+      currentFlow: null
     };
   },
   watch: {
     selectedFlow: {
-      handler(val) {
-        val && val !== 100000 && this.getFlowXml(val);
+      handler(val, oldVal) {
+        if (val && val !== 100000) {
+          this.getFlowXml(val);
+          this.getPermissionByProcess(val);
+        }
+        if (!val) {
+          this.selectedFlow = oldVal;
+        }
+      }
+    }
+  },
+  computed: {
+    allRoles() {
+      return this.isAdd ? this.currentUserRoles : this.allRolesBackUp;
+    },
+    showBpmn() {
+      if (this.selectedFlow || this.isAdd) {
+        return true;
+      } else {
+        return false;
       }
     }
   },
   created() {
     this.init();
+    this.getRoleList();
+    this.getRolesByCurrentUser();
   },
   mounted() {
     this.initFlow();
   },
   methods: {
+    renderRoleNameForTransfer(item) {
+      return item.label;
+    },
+    handleMgmtRoleTransferChange(newTargetKeys, direction, moveKeys) {
+      if (this.isAdd) {
+        this.mgmtRolesKeyToFlow = newTargetKeys;
+      } else {
+        if (direction === "right") {
+          this.updateFlowPermission(this.currentSettingFlow, moveKeys, "mgmt");
+        } else {
+          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, "mgmt");
+        }
+        this.mgmtRolesKeyToFlow = newTargetKeys;
+      }
+    },
+    handleUseRoleTransferChange(newTargetKeys, direction, moveKeys) {
+      if (this.isAdd) {
+        this.useRolesKeyToFlow = newTargetKeys;
+      } else {
+        if (direction === "right") {
+          this.updateFlowPermission(this.currentSettingFlow, moveKeys, "use");
+        } else {
+          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, "use");
+        }
+        this.useRolesKeyToFlow = newTargetKeys;
+      }
+    },
+    async updateFlowPermission(proId, roleId, type) {
+      const payload = {
+        permission: type,
+        roleId: roleId
+      };
+      const { status, message, data } = await updateFlowPermission(
+        proId,
+        payload
+      );
+    },
+    async deleteFlowPermission(proId, roleId, type) {
+      const payload = {
+        permission: type,
+        roleId: roleId
+      };
+      const { status, message, data } = await deleteFlowPermission(
+        proId,
+        payload
+      );
+    },
+    setFlowPermission(id) {
+      this.getPermissionByProcess(id);
+      this.flowRoleManageModal = true;
+      this.currentSettingFlow = id;
+    },
+    async getPermissionByProcess(id) {
+      const { status, message, data } = await getPermissionByProcessId(id);
+      if (status === "OK") {
+        this.mgmtRolesKeyToFlow = data.MGMT;
+        this.useRolesKeyToFlow = data.USE;
+      }
+    },
+    confirmRole() {
+      this.flowRoleManageModal = false;
+      this.isAdd = false;
+    },
+    async getRoleList() {
+      const { status, message, data } = await getRoleList();
+      if (status === "OK") {
+        this.allRolesBackUp = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          };
+        });
+      }
+    },
+    async getRolesByCurrentUser() {
+      const { status, message, data } = await getRolesByCurrentUser();
+      if (status === "OK") {
+        this.currentUserRoles = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          };
+        });
+      }
+    },
     init() {
       this.getAllDataModels();
       this.getAllFlows();
@@ -376,8 +558,7 @@ export default {
           if (s > t) return -1;
           if (s < t) return 1;
         });
-        let new_val = [{ procDefId: 100000, name: "add_new" }];
-        this.allFlows = new_val.concat(sortedResult);
+        this.allFlows = sortedResult;
       }
     },
     async deleteFlow(id) {
@@ -425,6 +606,10 @@ export default {
       });
     },
     createNewDiagram() {
+      this.isAdd = true;
+      this.flowRoleManageModal = true;
+      this.mgmtRolesKeyToFlow = [];
+      this.useRolesKeyToFlow = [];
       this.newFlowID = "wecube" + Date.now();
       const bpmnXmlStr =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
@@ -456,12 +641,13 @@ export default {
         if (!xml) return;
         const xmlString = xml.replace(/[\r\n]/g, "");
         const processName = document.getElementById("camunda-name").innerText;
-
         const payload = {
+          permissionToRole: {
+            MGMT: _this.mgmtRolesKeyToFlow,
+            USE: _this.useRolesKeyToFlow
+          },
           procDefData: xmlString,
-          procDefId: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefId) || ""
-            : "",
+          procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || "",
           procDefKey: isDraft
             ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
             : _this.newFlowID,
@@ -879,5 +1065,16 @@ export default {
 [data-id="replace-with-user-task"],
 [data-id="replace-with-transaction"] {
   display: none;
+}
+
+.ivu-transfer-list-body {
+  margin-top: 10px;
+}
+.role-transfer-title {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background-color: rgb(226, 222, 222);
+  margin-bottom: 5px;
 }
 </style>

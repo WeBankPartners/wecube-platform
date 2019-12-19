@@ -81,8 +81,9 @@ public class WorkflowProcessDefinitionController {
     }
 
     @DeleteMapping("/process/definitions/{proc-def-id}")
-    public CommonResponseDto removeProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
-        procDefService.removeProcessDefinition(procDefId);
+    public CommonResponseDto removeProcessDefinition(@RequestHeader("Authorization") String token,
+                                                     @PathVariable("proc-def-id") String procDefId) {
+        procDefService.removeProcessDefinition(token, procDefId);
         return CommonResponseDto.okay();
     }
 
@@ -133,11 +134,11 @@ public class WorkflowProcessDefinitionController {
     public CommonResponseDto updateProcRoleBinding(@RequestHeader(value = "Authorization") String token,
             @PathVariable("proc-id") String procId, @RequestBody ProcRoleRequestDto procRoleRequestDto) {
         try {
-            return CommonResponseDto
-                    .okayWithData(processRoleService.updateProcRoleBinding(token, procId, procRoleRequestDto));
+            processRoleService.updateProcRoleBinding(token, procId, procRoleRequestDto);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
+        return CommonResponseDto.okay();
     }
 
     @DeleteMapping("/process/{proc-id}/roles")

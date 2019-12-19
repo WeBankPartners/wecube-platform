@@ -98,7 +98,7 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/system-parameters")
     @ResponseBody
     public JsonResponse getSystemParamsById(@PathVariable(value = "id") String packageId) {
-        Set<SystemVariable> systemVariableSet;
+        List<SystemVariable> systemVariableSet;
         try {
             systemVariableSet = pluginPackageService.getSystemVarsById(packageId);
         } catch (WecubeCoreException ex) {
