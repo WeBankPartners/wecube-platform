@@ -7,18 +7,84 @@ const req = axios.create({
   timeout: 50000
 });
 
-req.defaults.headers.common["Http-Client-Type"] = "Ajax";
+const throwError = res => {
+  Vue.prototype.$Notice.warning({
+    title: "Error",
+    desc:
+      (res.data &&
+        "status:" + res.data.status + "<br/> message:" + res.data.message) ||
+      "error"
+  });
+};
 
-const throwError = res => new Error(res.message || "error");
+let refreshRequest = null;
+
+req.interceptors.request.use(
+  config => {
+    return new Promise((resolve, reject) => {
+      const currentTime = new Date().getTime();
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      if (token) {
+        const accessToken = token.find(t => t.tokenType === "accessToken");
+        const expiration = accessToken.expiration * 1 - currentTime;
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get("/auth/v1/api/token", {
+            headers: {
+              Authorization:
+                "Bearer " +
+                token.find(t => t.tokenType === "refreshToken").token
+            }
+          });
+          refreshRequest.then(
+            res => {
+              session.setItem("token", JSON.stringify(res.data.data));
+              config.headers.Authorization =
+                "Bearer " +
+                res.data.data.find(t => t.tokenType === "accessToken").token;
+              refreshRequest = null;
+              resolve(config);
+            },
+            err => {
+              refreshRequest = null;
+              window.location.href = window.location.origin + "/#/login";
+              session.removeItem("token");
+            }
+          );
+        }
+        if (expiration < 1 * 60 * 1000 && refreshRequest) {
+          refreshRequest.then(
+            res => {
+              session.setItem("token", JSON.stringify(res.data.data));
+              config.headers.Authorization =
+                "Bearer " +
+                res.data.data.find(t => t.tokenType === "accessToken").token;
+              refreshRequest = null;
+              resolve(config);
+            },
+            err => {
+              refreshRequest = null;
+              window.location.href = window.location.origin + "/#/login";
+              session.removeItem("token");
+            }
+          );
+        }
+        if (expiration > 1 * 60 * 1000) {
+          config.headers.Authorization = "Bearer " + accessToken.token;
+          resolve(config);
+        }
+      } else {
+        resolve(config);
+      }
+    });
+  },
+  error => {
+    return Promise.reject(error);
+  }
+);
 req.interceptors.response.use(
   res => {
     if (res.status === 200) {
-      if (res.headers["cas-redirect-flag"] === "true") {
-        const currentUrl = window.location.href;
-        if (currentUrl.indexOf("ticket=") !== -1) return;
-        window.location.href =
-          res.headers.location.split("?")[0] + "?service=" + currentUrl;
-      }
       if (res.data.status === "ERROR") {
         const errorMes = Array.isArray(res.data.data)
           ? res.data.data.map(_ => _.errorMessage).join("<br/>")
@@ -29,10 +95,7 @@ req.interceptors.response.use(
           duration: 0
         });
       }
-      return {
-        ...res.data,
-        user: res.headers["current_user"] || " - "
-      };
+      return res.data instanceof Array ? res.data : { ...res.data };
     } else {
       return {
         data: throwError(res)
@@ -41,18 +104,12 @@ req.interceptors.response.use(
   },
   res => {
     const { response } = res;
-    Vue.prototype.$Notice.warning({
-      title: "Error",
-      desc:
-        (response.data &&
-          "status:" +
-            response.data.status +
-            "<br/> error:" +
-            response.data.error +
-            "<br/> message:" +
-            response.data.message) ||
-        "error"
-    });
+    if (response.status === 401) {
+      window.location.href = window.location.origin + "/#/login";
+      throwError(response);
+      return response;
+    }
+
     return new Promise((resolve, reject) => {
       resolve({
         data: throwError(res)

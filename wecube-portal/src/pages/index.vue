@@ -5,7 +5,9 @@
     </div>
     <div class="content-container">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum">
-        <BreadcrumbItem><a href="/">Home</a></BreadcrumbItem>
+        <BreadcrumbItem
+          ><a href="/">{{ $t("home") }}</a></BreadcrumbItem
+        >
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
       </Breadcrumb>
@@ -43,7 +45,11 @@ export default {
         return;
       }
       let currentLangKey = localStorage.getItem("lang") || navigator.language;
-      const menuObj = MENUS.find(m => m.link === this.$route.path);
+      const menuObj = window.myMenus
+        ? []
+            .concat(...window.myMenus.map(_ => _.submenus))
+            .find(m => m.link === this.$route.path)
+        : MENUS.find(m => m.link === this.$route.path);
       if (menuObj) {
         this.allMenusAry.forEach(_ => {
           _.submenus.forEach(sub => {
@@ -53,8 +59,7 @@ export default {
             }
           });
         });
-        this.childBreadcrumb =
-          currentLangKey === "zh-CN" ? menuObj.cnName : menuObj.enName;
+        this.childBreadcrumb = menuObj.title;
       } else {
         this.parentBreadcrumb = "-";
         this.childBreadcrumb = this.$route.path.substr(1);
@@ -66,16 +71,15 @@ export default {
   },
   mounted() {
     // TODO: get plugins url by axios.
-    let pluginURLs = [
-      {
-        path: "/plugin1/home",
-        name: "plugin1",
-        component: () => import("@/pages/container"),
-        props: { src: "dsadsadsad" }
-      }
-    ];
-
-    this.$router.addRoutes(pluginURLs);
+    // let pluginURLs = [
+    //   {
+    //     path: "/plugin1/home",
+    //     name: "plugin1",
+    //     component: () => import("@/pages/container"),
+    //     props: { src: "dsadsadsad" }
+    //   }
+    // ];
+    // this.$router.addRoutes(pluginURLs);
   },
   watch: {
     allMenusAry: {
@@ -158,5 +162,12 @@ html {
 // to show table x direction scroll bar
 .ivu-table-fixed-body {
   height: auto !important;
+}
+.ivu-notice-notice-with-desc {
+  .ivu-notice-icon {
+    .ivu-icon {
+      font-size: 30px;
+    }
+  }
 }
 </style>

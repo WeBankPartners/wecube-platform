@@ -2,52 +2,83 @@
   <div>
     <Row style="margin-bottom: 10px">
       <Col span="6">
-        <span style="margin-right: 10px">编排名称</span>
+        <span style="margin-right: 10px">{{ $t("flow_name") }}</span>
         <Select
-          filterable
           clearable
-          @on-clear="createNewDiagram"
-          @on-change="onFlowSelect"
-          label-in-value
+          v-model="selectedFlow"
           style="width: 70%"
+          @on-open-change="getAllFlows"
         >
+          <Option :value="100000">
+            <Button
+              @click="createNewDiagram()"
+              icon="md-add"
+              type="success"
+              size="small"
+              style="width: 100%;"
+            ></Button>
+          </Option>
           <Option
-            v-for="item in allFlows"
-            :value="item.definitionId"
-            :key="item.definitionId"
-            >{{ item.processName || "-" }}</Option
+            v-for="(item, index) in allFlows"
+            :value="item.procDefId"
+            :key="item.procDefId"
           >
+            {{
+              (item.procDefName || "Null") +
+                " " +
+                item.createdTime +
+                (item.status === "draft" ? "*" : "")
+            }}
+            <span style="float:right">
+              <Button
+                @click.stop.prevent="deleteFlow(item.procDefId)"
+                icon="ios-trash"
+                type="error"
+                size="small"
+              ></Button>
+            </span>
+            <span style="float:right;margin-right: 10px">
+              <Button
+                @click.stop.prevent="setFlowPermission(item.procDefId)"
+                icon="ios-build"
+                type="primary"
+                size="small"
+              ></Button>
+            </span>
+          </Option>
         </Select>
       </Col>
-      <Col span="6" ofset="1">
-        <span style="margin-right: 10px">选择CI类型</span>
+      <Col span="8" ofset="1">
+        <span style="margin-right: 10px">{{ $t("instance_type") }}</span>
         <Select
-          @on-change="onCISelect"
-          label-in-value
-          v-model="selectedCI.value"
+          @on-change="onEntitySelect"
+          v-model="currentSelectedEntity"
           style="width: 70%"
         >
           <OptionGroup
-            v-for="group in allCITypes"
-            :label="group.value || '-'"
-            :key="group.code"
+            :label="pluginPackage.packageName"
+            v-for="(pluginPackage, index) in allEntityType"
+            :key="index"
           >
             <Option
-              v-for="item in group.ciTypes"
-              :value="item.ciTypeId || ''"
-              :key="item.ciTypeId"
-              >{{ item.name || "-" }}</Option
+              v-for="item in pluginPackage.pluginPackageEntities"
+              :value="pluginPackage.packageName + ':' + item.name"
+              :key="item.name"
+              >{{ item.name }}</Option
             >
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram">保存编排</Button>
-      <Button type="success" @click="calcFlow">表单计算</Button>
+      <Button type="info" @click="saveDiagram(false)">{{
+        $t("save_flow")
+      }}</Button>
     </Row>
-    <div class="containers" ref="content">
+    <div v-show="showBpmn" class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">配置插件</a>
+        <a href="javascript:void(0);" @click="openPluginModal">
+          {{ $t("config_plugin") }}
+        </a>
         <br />
       </div>
 
@@ -58,82 +89,133 @@
         </li>
       </ul>
     </div>
-    <Modal v-model="pluginModalVisible" title="插件配置" width="40">
+    <Modal v-model="pluginModalVisible" :title="$t('config_plugin')" width="40">
       <Form
         ref="pluginConfigForm"
         :model="pluginForm"
-        label-position="left"
-        :label-width="100"
+        label-position="right"
+        :label-width="150"
       >
-        <FormItem label="节点类型" prop="nodeType" style="display: none">
-          <Select filterable clearable v-model="pluginForm.nodeType">
-            <Option
-              v-for="item in allNodeTypes"
-              :value="item.value"
-              :key="item.value"
-              >{{ item.label }}</Option
-            >
-          </Select>
+        <FormItem :label="$t('locate_rules')" prop="routineExpression">
+          <PathExp
+            v-if="pluginModalVisible"
+            :rootPkg="rootPkg"
+            :rootEntity="rootEntity"
+            :allDataModelsWithAttrs="allEntityType"
+            v-model="pluginForm.routineExpression"
+          ></PathExp>
         </FormItem>
-        <FormItem label="定位规则" prop="rules">
-          <div style="width: 100%">
-            <AttrInput
-              :allCiTypes="allCITypes"
-              :cmdbColumnSource="pluginForm.ciRoutineRaw"
-              :rootCiType="selectedCI.value"
-              v-model="pluginForm.rules"
-              :ciTypesObj="this.ciTypesObj"
-              :ciTypeAttributeObj="this.ciTypeAttributeObj"
-              @change="setRootFilterRule"
-              :isEndWithCIType="true"
-            />
-          </div>
-        </FormItem>
-        <FormItem label="插件选择" prop="serviceName">
-          <Select filterable clearable v-model="pluginForm.serviceId">
+        <FormItem :label="$t('plugin')" prop="serviceName">
+          <Select
+            filterable
+            clearable
+            v-model="pluginForm.serviceId"
+            @on-open-change="
+              getFilteredPluginInterfaceList(pluginForm.routineExpression)
+            "
+            @on-change="getPluginInterfaceList(false)"
+          >
             <Option
-              v-for="item in allPlugins"
+              v-for="(item, index) in filteredPlugins"
               :value="item.serviceName"
-              :key="item.serviceName"
+              :key="index"
               >{{ item.serviceDisplayName }}</Option
             >
           </Select>
         </FormItem>
-        <FormItem label="超时时间" prop="timeoutExpression">
+        <FormItem :label="$t('timeout')" prop="timeoutExpression">
           <Select clearable v-model="pluginForm.timeoutExpression">
             <Option v-for="item in timeSelection" :value="item" :key="item"
-              >{{ item }}分钟</Option
+              >{{ item }} {{ $t("mins") }}</Option
             >
           </Select>
         </FormItem>
-        <FormItem label="描述说明" prop="description">
+        <FormItem :label="$t('description')" prop="description">
           <Input v-model="pluginForm.description" />
+        </FormItem>
+        <hr style="margin-bottom: 20px" />
+        <FormItem
+          :label="item.paramName"
+          :prop="item.paramName"
+          v-for="(item, index) in pluginForm.paramInfos"
+          :key="index"
+        >
+          <Select
+            v-model="item.bindNodeId"
+            style="width:30%"
+            v-if="item.bindType === 'context'"
+            @on-change="onParamsNodeChange(index)"
+            @on-open-change="getFlowsNodes"
+          >
+            <Option
+              v-for="i in currentflowsNodes"
+              :value="i.nodeId"
+              :key="i.nodeId"
+              >{{ i.nodeName }}</Option
+            >
+          </Select>
+          <Select
+            v-model="item.bindParamType"
+            v-if="item.bindType === 'context'"
+            style="width:30%"
+            @on-change="onParamsNodeChange(index)"
+          >
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
+              i.label
+            }}</Option>
+          </Select>
+          <Select
+            v-if="item.bindType === 'context'"
+            v-model="item.bindParamName"
+            style="width:30%"
+          >
+            <Option
+              v-for="i in item.currentParamNames"
+              :value="i.name"
+              :key="i.name"
+              >{{ i.name }}</Option
+            >
+          </Select>
+          <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')"
-          >Submit</Button
-        >
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
+          $t("confirm")
+        }}</Button>
       </div>
     </Modal>
     <Modal
-      v-model="calcFlowModalVisible"
-      width="60"
-      title="预览"
-      @on-ok="resetFlowCalcResult"
-      @on-cancel="resetFlowCalcResult"
+      v-model="flowRoleManageModal"
+      width="700"
+      :title="$t('edit_role')"
+      @on-ok="confirmRole"
+      @on-cancel="confirmRole"
     >
-      <Row class="attrs" v-for="item in calcFlowResult" :key="item.name">
-        <h4>{{ item.name }}</h4>
-        <Tag
-          v-if="attr.isDisplayed"
-          v-for="attr in item.attrs"
-          type="dot"
-          :color="attr.isHighlight ? 'success' : ''"
-          :key="attr.ciTypeAttrId"
-          >{{ attr.name }}</Tag
-        >
-      </Row>
+      <div>
+        <div class="role-transfer-title">{{ $t("mgmt_role") }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRoles"
+          :target-keys="mgmtRolesKeyToFlow"
+          :render-format="renderRoleNameForTransfer"
+          @on-change="handleMgmtRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div style="margin-top: 30px">
+        <div class="role-transfer-title">{{ $t("use_role") }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRoles"
+          :target-keys="useRolesKeyToFlow"
+          :render-format="renderRoleNameForTransfer"
+          @on-change="handleUseRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
     </Modal>
   </div>
 </template>
@@ -156,16 +238,26 @@ import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 /* Right side toobar style */
 import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
+import PathExp from "../components/path-exp.vue";
+
 import {
-  getAllCITypesByLayerWithAttr,
   getAllFlow,
   saveFlow,
+  saveFlowDraft,
   getFlowDetailByID,
   getLatestOnlinePluginInterfaces,
-  getFlowPreview
+  getFlowNodes,
+  getParamsInfosByFlowIdAndNodeId,
+  getAllDataModels,
+  getPluginInterfaceList,
+  removeProcessDefinition,
+  getFilteredPluginInterfaceList,
+  getRolesByCurrentUser,
+  getRoleList,
+  getPermissionByProcessId,
+  updateFlowPermission,
+  deleteFlowPermission
 } from "@/api/server.js";
-
-import AttrInput from "../components/attr-input";
 
 function setCTM(node, m) {
   var mstr =
@@ -187,127 +279,276 @@ function setCTM(node, m) {
 
 export default {
   components: {
-    AttrInput
+    PathExp
   },
   data() {
     return {
-      ciTypesObj: {},
-      ciTypeAttributeObj: {},
+      mgmtRolesKeyToFlow: [],
+      useRolesKeyToFlow: [],
+      currentUserRoles: [],
+      allRolesBackUp: [],
+      currentSettingFlow: "",
+      flowRoleManageModal: false,
+      isAdd: false,
+      transferTitles: [this.$t("unselected_role"), this.$t("selected_role")],
+      transferStyle: { width: "300px" },
+      newFlowID: "",
       bpmnModeler: null,
       container: null,
       canvas: null,
       processName: "",
+      currentNode: {
+        id: "",
+        name: ""
+      },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
-      rootFilterRule: {},
       allFlows: [],
-      allCITypes: [],
-      selectedFlow: {
-        value: "",
-        label: ""
-      },
-      selectedCI: {
-        value: "",
-        label: ""
-      },
-      selectNodeId: "",
-      selectedNodeName: "",
+      allEntityType: [],
+      selectedFlow: null,
+      currentSelectedEntity: "",
+      rootPkg: "",
+      rootEntity: "",
       pluginModalVisible: false,
-      pluginForm: {
-        rules: {},
-        timeoutExpression: "30" // 默认超时时间30分钟
+      currentUserRoles: [],
+      pluginForm: {},
+      defaultPluginForm: {
+        description: "",
+        nodeDefId: "",
+        nodeId: "",
+        nodeName: "",
+        nodeType: "",
+        orderedNo: "",
+        paramInfos: [],
+        procDefId: "",
+        procDefKey: "",
+        routineExpression: null,
+        routineRaw: "",
+        serviceId: "",
+        serviceName: "",
+        status: "",
+        timeoutExpression: "30"
       },
       serviceTaskBindInfos: [],
-      allNodeTypes: [
-        { value: 1, label: "人工处理类" },
-        { value: 2, label: "审批类" },
-        { value: 3, label: "执行类" }
-      ],
       allPlugins: [],
-      calcFlowModalVisible: false,
-      calcFlowResult: [],
-      timeSelection: ["5", "10", "20", "30", "60"]
+      filteredPlugins: [],
+      timeSelection: ["5", "10", "20", "30", "60"],
+      paramsTypes: [
+        { value: "INPUT", label: this.$t("input") },
+        { value: "OUTPUT", label: this.$t("output") }
+      ],
+      currentflowsNodes: [],
+      currentFlow: null
     };
   },
-  watch: {},
+  watch: {
+    selectedFlow: {
+      handler(val, oldVal) {
+        if (val && val !== 100000) {
+          this.getFlowXml(val);
+          this.getPermissionByProcess(val);
+        }
+        if (!val) {
+          this.selectedFlow = oldVal;
+        }
+      }
+    }
+  },
+  computed: {
+    allRoles() {
+      return this.isAdd ? this.currentUserRoles : this.allRolesBackUp;
+    },
+    showBpmn() {
+      if (this.selectedFlow || this.isAdd) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  },
   created() {
     this.init();
+    this.getRoleList();
+    this.getRolesByCurrentUser();
   },
   mounted() {
     this.initFlow();
   },
   methods: {
-    init() {
-      this.getAllCITypesByLayerWithAttr();
-      this.getAllFlows();
-      this.getAllPlugins();
+    renderRoleNameForTransfer(item) {
+      return item.label;
     },
-    setRootFilterRule(v) {
-      this.rootFilterRule = v;
-      this.getAllPlugins();
-    },
-    async getAllCITypesByLayerWithAttr() {
-      let { status, data, message } = await getAllCITypesByLayerWithAttr([
-        "notCreated",
-        "created",
-        "dirty",
-        "decommissioned"
-      ]);
-      if (status === "OK") {
-        let ciTypes = {};
-        let ciTypeAttrs = {};
-
-        let tempCITypes = JSON.parse(JSON.stringify(data));
-        tempCITypes.forEach(_ => {
-          _.ciTypes && _.ciTypes.filter(i => i.status !== "decommissioned");
-        });
-        this.allCITypes = tempCITypes;
-
-        data.forEach(layer => {
-          if (layer.ciTypes instanceof Array) {
-            layer.ciTypes.forEach(citype => {
-              ciTypes[citype.ciTypeId] = citype;
-              if (citype.attributes instanceof Array) {
-                citype.attributes.forEach(citypeAttr => {
-                  ciTypeAttrs[citypeAttr.ciTypeAttrId] = citypeAttr;
-                });
-              }
-            });
-          }
-        });
-        this.ciTypesObj = ciTypes;
-        this.ciTypeAttributeObj = ciTypeAttrs;
+    handleMgmtRoleTransferChange(newTargetKeys, direction, moveKeys) {
+      if (this.isAdd) {
+        this.mgmtRolesKeyToFlow = newTargetKeys;
+      } else {
+        if (direction === "right") {
+          this.updateFlowPermission(this.currentSettingFlow, moveKeys, "mgmt");
+        } else {
+          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, "mgmt");
+        }
+        this.mgmtRolesKeyToFlow = newTargetKeys;
       }
     },
-    async getAllPlugins() {
-      let routine =
-        this.pluginForm.rules.cmdbColumnCriteria &&
-        this.pluginForm.rules.cmdbColumnCriteria.routine;
-      let ciTypeId = routine && routine[routine.length - 1].ciTypeId;
-      const { data, status, message } = !!routine
-        ? await getLatestOnlinePluginInterfaces(ciTypeId)
-        : await getLatestOnlinePluginInterfaces();
+    handleUseRoleTransferChange(newTargetKeys, direction, moveKeys) {
+      if (this.isAdd) {
+        this.useRolesKeyToFlow = newTargetKeys;
+      } else {
+        if (direction === "right") {
+          this.updateFlowPermission(this.currentSettingFlow, moveKeys, "use");
+        } else {
+          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, "use");
+        }
+        this.useRolesKeyToFlow = newTargetKeys;
+      }
+    },
+    async updateFlowPermission(proId, roleId, type) {
+      const payload = {
+        permission: type,
+        roleId: roleId
+      };
+      const { status, message, data } = await updateFlowPermission(
+        proId,
+        payload
+      );
+    },
+    async deleteFlowPermission(proId, roleId, type) {
+      const payload = {
+        permission: type,
+        roleId: roleId
+      };
+      const { status, message, data } = await deleteFlowPermission(
+        proId,
+        payload
+      );
+    },
+    setFlowPermission(id) {
+      this.getPermissionByProcess(id);
+      this.flowRoleManageModal = true;
+      this.currentSettingFlow = id;
+    },
+    async getPermissionByProcess(id) {
+      const { status, message, data } = await getPermissionByProcessId(id);
+      if (status === "OK") {
+        this.mgmtRolesKeyToFlow = data.MGMT;
+        this.useRolesKeyToFlow = data.USE;
+      }
+    },
+    confirmRole() {
+      this.flowRoleManageModal = false;
+      this.isAdd = false;
+    },
+    async getRoleList() {
+      const { status, message, data } = await getRoleList();
+      if (status === "OK") {
+        this.allRolesBackUp = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          };
+        });
+      }
+    },
+    async getRolesByCurrentUser() {
+      const { status, message, data } = await getRolesByCurrentUser();
+      if (status === "OK") {
+        this.currentUserRoles = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          };
+        });
+      }
+    },
+    init() {
+      this.getAllDataModels();
+      this.getAllFlows();
+      this.getPluginInterfaceList();
+    },
+    async getAllDataModels() {
+      let { data, status, message } = await getAllDataModels();
+      if (status === "OK") {
+        this.allEntityType = data;
+      }
+    },
+    async getFilteredPluginInterfaceList(path) {
+      const pathList = path.split(/[~)>]/);
+      const last = pathList[pathList.length - 1].split(":");
+      const { status, message, data } = await getFilteredPluginInterfaceList(
+        last[0],
+        last[1]
+      );
+      if (status === "OK") {
+        this.filteredPlugins = data;
+      }
+    },
+    async getPluginInterfaceList(isUseOriginParamsInfo = true) {
+      let { status, data, message } = await getPluginInterfaceList();
       if (status === "OK") {
         this.allPlugins = data;
+
+        let found = data.find(_ => _.serviceName === this.pluginForm.serviceId);
+        if (found) {
+          let needParams = found.inputParameters.filter(
+            _ => _.mappingType === "context" || _.mappingType === "constant"
+          );
+          if (isUseOriginParamsInfo) return;
+          this.pluginForm.paramInfos = needParams.map(_ => {
+            return {
+              paramName: _.name,
+              bindNodeId: "",
+              bindParamType: "INPUT",
+              bindParamName: "",
+              bindType: _.mappingType,
+              bindValue: ""
+            };
+          });
+        }
       }
     },
     async getAllFlows() {
       const { data, message, status } = await getAllFlow();
       if (status === "OK") {
-        this.allFlows = data || [];
+        let sortedResult = data.sort((a, b) => {
+          let s = a.createdTime.toLowerCase();
+          let t = b.createdTime.toLowerCase();
+          if (s > t) return -1;
+          if (s < t) return 1;
+        });
+        this.allFlows = sortedResult;
       }
     },
-    onFlowSelect(v) {
-      this.selectedFlow = v;
-      v && this.getFlowXml(v.value);
+    async deleteFlow(id) {
+      let { status, data, message } = await removeProcessDefinition(id);
+      if (status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: message
+        });
+        this.getAllFlows();
+      }
     },
+    onEntitySelect(v) {
+      this.currentSelectedEntity = v;
+      this.rootPkg = this.currentSelectedEntity.split(":")[0];
+      this.rootEntity = this.currentSelectedEntity.split(":")[1];
 
-    onCISelect(v) {
-      this.selectedCI = v;
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
-      this.pluginForm = {
-        rules: {},
-        timeoutExpression: "30"
-      };
+      this.defaultPluginForm.routineExpression = v;
+      this.pluginForm = this.defaultPluginForm;
+      this.resetNodePluginConfig();
+    },
+    resetNodePluginConfig() {
+      if (this.currentFlow) {
+        this.currentFlow.taskNodeInfos.forEach(_ => {
+          if (_.nodeId.indexOf("Task") > -1) {
+            Object.keys(_).forEach(key => {
+              _[key] = this.defaultPluginForm[key];
+            });
+          }
+        });
+      }
     },
     resetZoom() {
       var canvas = this.bpmnModeler.get("canvas");
@@ -323,17 +564,21 @@ export default {
       });
     },
     createNewDiagram() {
-      const newFlowID = "wecube" + Date.now();
+      this.isAdd = true;
+      this.flowRoleManageModal = true;
+      this.mgmtRolesKeyToFlow = [];
+      this.useRolesKeyToFlow = [];
+      this.newFlowID = "wecube" + Date.now();
       const bpmnXmlStr =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">\n' +
         '  <bpmn2:process id="' +
-        newFlowID +
+        this.newFlowID +
         '" isExecutable="true">\n' +
         "  </bpmn2:process>\n" +
         '  <bpmndi:BPMNDiagram id="BPMNDiagram_1">\n' +
         '    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="' +
-        newFlowID +
+        this.newFlowID +
         '">\n' +
         "    </bpmndi:BPMNPlane>\n" +
         "  </bpmndi:BPMNDiagram>\n" +
@@ -344,72 +589,60 @@ export default {
         }
       });
     },
-    saveDiagram() {
+    saveDiagram(isDraft) {
       let _this = this;
+      const okHandler = data => {
+        this.getAllFlows();
+        this.selectedFlow = data.data.procDefId;
+      };
       this.bpmnModeler.saveXML({ format: true }, function(err, xml) {
         if (!xml) return;
         const xmlString = xml.replace(/[\r\n]/g, "");
         const processName = document.getElementById("camunda-name").innerText;
         const payload = {
-          processData: xmlString,
-          processName: processName,
-          rootCiTypeId: _this.selectedCI.value,
-          serviceTaskBindInfos: _this.serviceTaskBindInfos
+          permissionToRole: {
+            MGMT: _this.mgmtRolesKeyToFlow,
+            USE: _this.useRolesKeyToFlow
+          },
+          procDefData: xmlString,
+          procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || "",
+          procDefKey: isDraft
+            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
+            : _this.newFlowID,
+          procDefName: processName,
+          rootEntity: _this.currentSelectedEntity,
+          status: isDraft
+            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
+            : "",
+          taskNodeInfos: _this.serviceTaskBindInfos
         };
-        saveFlow(payload).then(data => {
-          if (data && data.status === "OK") {
-            _this.$Notice.success({
-              title: "Success",
-              desc: data.message
+
+        isDraft
+          ? saveFlowDraft(payload).then(data => {
+              if (data && data.status === "OK") {
+                _this.$Notice.success({
+                  title: "Success",
+                  desc: data.message
+                });
+                okHandler(data);
+              }
+            })
+          : saveFlow(payload).then(data => {
+              if (data && data.status === "OK") {
+                _this.$Notice.success({
+                  title: "Success",
+                  desc: data.message
+                });
+
+                okHandler(data);
+              }
             });
-            _this.getAllFlows();
-          }
-        });
       });
-    },
-    resetFlowCalcResult() {
-      this.calcFlowModalVisible = false;
-      this.calcFlowResult = [];
-    },
-    async calcFlow() {
-      if (this.serviceTaskBindInfos.length < 1) {
-        this.$Notice.warning({
-          title: "Warning",
-          desc: "无法预览"
-        });
-      } else {
-        this.serviceTaskBindInfos.forEach(_ => {
-          delete _.rules;
-          /* ********START COMMENT ********/
-          // TODO: Back end do not support nodeType for now 20190620
-          delete _.nodeType;
-          /* ********END COMMENT *********/
-        });
-        const { data, status, message } = await getFlowPreview(
-          this.serviceTaskBindInfos
-        );
-        if (status === "OK") {
-          this.calcFlowResult = data["ci-types"].map(_ => {
-            return {
-              name: _.name,
-              attrs: _.attributes.map(i => {
-                return {
-                  ...i,
-                  isHighlight: data["required-input-parameters"].includes(
-                    i.ciTypeAttrId
-                  )
-                };
-              })
-            };
-          });
-          this.calcFlowModalVisible = true;
-        }
-      }
     },
     savePluginConfig(ref) {
       let index = -1;
       this.serviceTaskBindInfos.forEach((_, i) => {
-        if (this.selectNodeId === _.nodeId) {
+        if (this.currentNode.id === _.nodeId) {
           index = i;
         }
       });
@@ -423,40 +656,67 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm));
       this.serviceTaskBindInfos.push({
-        version: 0,
         ...pluginFormCopy,
-        nodeId: this.selectNodeId,
-        nodeName: this.selectedNodeName,
-        ciRoutineExp: JSON.stringify(
-          pluginFormCopy.rules.cmdbColumnCriteria.routine
-        ),
-        ciRoutineRaw: JSON.stringify(pluginFormCopy.rules.cmdbColumnSource),
-        serviceName: (found && found.serviceName) || ""
-      });
-      this.serviceTaskBindInfos.forEach(_ => {
-        delete _.rules;
-        /* ********START COMMENT ********/
-        // TODO: Back end do not support nodeType for now 20190620
-        delete _.nodeType;
-        /* ********END COMMENT *********/
+        nodeId: this.currentNode.id,
+        nodeName: this.currentNode.name,
+        serviceName: (found && found.serviceName) || "",
+        routineRaw: pluginFormCopy.routineExpression
       });
       this.pluginModalVisible = false;
+      this.saveDiagram(true);
     },
-    openPluginModal() {
-      if (!this.selectedCI.value) {
+    async openPluginModal() {
+      if (!this.currentSelectedEntity) {
         this.$Notice.warning({
           title: "Warning",
-          desc: "请先选择CI类型"
+          desc: this.$t("select_entity_first")
         });
       } else {
+        this.getPluginInterfaceList();
         this.pluginModalVisible = true;
-        this.pluginForm = this.serviceTaskBindInfos.find(
-          _ => _.nodeId === this.selectNodeId
-        ) || { rules: this.rootFilterRule, timeoutExpression: "30" };
-        this.$nextTick(() => {
-          document.querySelector(".attr-ul").style.width =
-            document.querySelector(".input_in textarea").clientWidth + "px";
+        this.pluginForm =
+          (this.currentFlow &&
+            this.currentFlow.taskNodeInfos.find(
+              _ => _.nodeId === this.currentNode.id
+            )) ||
+          this.defaultPluginForm;
+        // get flow's params infos - nodes -
+        this.getFlowsNodes();
+      }
+    },
+    onParamsNodeChange(index) {
+      this.getParamsOptionsByNode(index);
+    },
+    async getFlowsNodes() {
+      if (!this.currentFlow) return;
+      let { status, data, message } = await getFlowNodes(
+        this.currentFlow.procDefId
+      );
+      if (status === "OK") {
+        this.currentflowsNodes = data.filter(
+          _ => _.nodeId !== this.currentNode.id
+        );
+        console.log("this.currentflowsNodes", this.currentflowsNodes);
+        this.pluginForm.paramInfos.forEach((_, index) => {
+          this.onParamsNodeChange(index);
         });
+      }
+    },
+    async getParamsOptionsByNode(index) {
+      const found = this.currentflowsNodes.find(
+        _ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId
+      );
+      if (!this.currentFlow) return;
+      let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
+        this.currentFlow.procDefId,
+        found.nodeDefId
+      );
+      if (status === "OK") {
+        let res = data.filter(
+          _ => _.type === this.pluginForm.paramInfos[index].bindParamType
+        );
+        console.log("res", res);
+        this.$set(this.pluginForm.paramInfos[index], "currentParamNames", res);
       }
     },
     bindRightClick() {
@@ -471,10 +731,10 @@ export default {
           menu.style.display = "block";
           menu.style.left = x - 25 + "px";
           menu.style.top = y - 130 + "px";
-          _this.selectNodeId = e.target.parentNode.getAttribute(
+          _this.currentNode.id = e.target.parentNode.getAttribute(
             "data-element-id"
           );
-          _this.selectedNodeName =
+          _this.currentNode.name =
             (e.target.previousSibling &&
               e.target.previousSibling.children[1] &&
               e.target.previousSibling.children[1].children[0] &&
@@ -497,14 +757,17 @@ export default {
     async getFlowXml(id) {
       const { status, message, data } = await getFlowDetailByID(id);
       if (status === "OK") {
+        this.currentFlow = data;
         const _this = this;
-        this.bpmnModeler.importXML(data.definitionText, function(err) {
+        this.bpmnModeler.importXML(data.procDefData, function(err) {
           if (err) {
             console.error(err);
           }
           _this.bindRightClick();
-          _this.serviceTaskBindInfos = data.serviceTaskBindInfos;
-          _this.selectedCI.value = data.rootCiTypeId || "";
+          _this.serviceTaskBindInfos = data.taskNodeInfos;
+          _this.currentSelectedEntity = data.rootEntity || "";
+          _this.rootPkg = data.rootEntity.split(":")[0] || "";
+          _this.rootEntity = data.rootEntity.split(":")[1] || "";
         });
       }
     },
@@ -537,7 +800,6 @@ export default {
           camunda: camundaModdleDescriptor
         }
       });
-      this.createNewDiagram();
     }
   }
 };
@@ -600,5 +862,54 @@ export default {
       }
     }
   }
+}
+</style>
+<style lang="scss">
+// hide toolbar
+.bpmn-icon-data-object,
+.bpmn-icon-data-store,
+.bpmn-icon-participant {
+  display: none;
+}
+
+// hide panal tab
+.bpp-properties-tabs-links .bpp-properties-tab-link {
+  display: none;
+}
+.bpp-properties-tabs-links .bpp-active {
+  display: inline-block;
+}
+
+// hide panal tab item
+[data-group="documentation"],
+[data-group="historyConfiguration"],
+[data-group="jobConfiguration"],
+[data-group="externalTaskConfiguration"],
+[data-group="candidateStarterConfiguration"],
+[data-group="tasklist"],
+[data-group="async"] {
+  display: none;
+}
+
+// hide node toolbar
+[data-id="replace-with-rule-task"],
+[data-id="replace-with-send-task"],
+[data-id="replace-with-receive-task"],
+[data-id="replace-with-manual-task"],
+[data-id="replace-with-script-task"],
+[data-id="replace-with-user-task"],
+[data-id="replace-with-transaction"] {
+  display: none;
+}
+
+.ivu-transfer-list-body {
+  margin-top: 10px;
+}
+.role-transfer-title {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background-color: rgb(226, 222, 222);
+  margin-bottom: 5px;
 }
 </style>

@@ -8,10 +8,6 @@
 */node/
 bin/
 
-# Ignore the generated front-end resource
-**/resources/static/
-# Ignore the generated index.html
-**/resources/templates/index.html
 
 **/resources/application-dev.yml
 
@@ -41,4 +37,4 @@ bin/
 *dist.zip
 
 .DS_Store
-
+**/a.json
