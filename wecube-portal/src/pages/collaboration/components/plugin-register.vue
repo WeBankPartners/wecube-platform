@@ -58,6 +58,7 @@
                 <Select
                   @on-change="onSelectEntityType"
                   v-model="selectedEntityType"
+                  label-in-value
                   :disabled="currentPluginObj.status === 'ENABLED'"
                   @on-open-change="getAllDataModels"
                 >
@@ -70,8 +71,11 @@
                       v-for="item in pluginPackage.pluginPackageEntities"
                       :value="item.name"
                       :key="item.name"
-                      :label="item.name"
-                    ></Option>
+                      >{{ item.name
+                      }}<span style="display:none"
+                        >**{{ pluginPackage.packageName }}</span
+                      >
+                    </Option>
                   </OptionGroup>
                 </Select>
               </FormItem>
@@ -348,6 +352,7 @@ export default {
       hidePanal: true,
       allEntityType: [],
       selectedEntityType: "",
+      targetPackage: "",
       form: {},
       allSystemVariables: []
       // pluginInterfaces:[]
@@ -389,12 +394,21 @@ export default {
       const entitys = [].concat(
         ...this.allEntityType.map(_ => _.pluginPackageEntities)
       );
-      const entityId = entitys.find(i => i.name === this.selectedEntityType).id;
-      this.currentPluginObj.entityId = entityId;
+      if (this.selectedEntityType) {
+        const entityId = entitys.find(i => i.name === this.selectedEntityType)
+          .id;
+        this.currentPluginObj.entityId = entityId;
+        this.currentPluginObj.targetEntity = this.selectedEntityType;
+        this.currentPluginObj.targetPackage = this.targetPackage;
+      } else {
+        this.currentPluginObj.targetPackage = null;
+      }
+
       this.currentPluginObj.registerName = this.registerName;
       let currentPluginForSave = JSON.parse(
         JSON.stringify(this.currentPluginObj)
       );
+      console.log(currentPluginForSave);
       if (this.hasNewSource) {
         delete currentPluginForSave.id;
       }
@@ -514,9 +528,13 @@ export default {
       this.currentPluginObj = this.sourceList.find(source => source.id === v);
       this.selectedEntityType = this.currentPluginObj.entityName;
       this.registerName = this.currentPluginObj.registerName;
+      this.selectedEntityType = this.currentPluginObj.targetEntity;
+      this.targetPackage = this.currentPluginObj.targetPackage;
       this.hasNewSource = false;
     },
-    onSelectEntityType(val) {},
+    onSelectEntityType(val) {
+      this.targetPackage = val ? val.label.split("**")[1] : "";
+    },
     async getAllDataModels() {
       const { data, status, message } = await getAllDataModels();
       if (status === "OK") {
