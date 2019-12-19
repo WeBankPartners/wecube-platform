@@ -23,29 +23,30 @@
       <Col span="19" offset="0" style="padding-left: 10px" v-if="hidePanal">
         <Form v-if="currentPlugin.length > 0" :model="form">
           <Row>
-            <Col span="20">
-              <Select
-                v-model="model1"
-                style="margin-bottom:20px"
-                @on-change="registSourceChange"
-                :placeholder="$t('regist_source')"
-              >
-                <Option value="add" key="add">
-                  <Button @click="addRegistMsg" type="success" long>
-                    <Icon type="md-add" />
-                  </Button>
-                </Option>
-                <Option
-                  v-for="item in sourceList"
-                  :value="item.id"
-                  :key="item.id"
-                  >{{ item.name }}-({{ item.registerName }})</Option
+            <Col style="border-bottom: 2px solid #bbb7b7;">
+              <FormItem :label-width="100" :label="$t('regist_source')">
+                <Select
+                  v-model="model1"
+                  @on-change="registSourceChange"
+                  :placeholder="$t('regist_source_placeholder')"
                 >
-              </Select>
+                  <Option value="add" key="add">
+                    <Button @click="addRegistMsg" type="success" long>
+                      <Icon type="md-add" />
+                    </Button>
+                  </Option>
+                  <Option
+                    v-for="item in sourceList"
+                    :value="item.id"
+                    :key="item.id"
+                    >{{ item.name }}-({{ item.registerName }})</Option
+                  >
+                </Select>
+              </FormItem>
             </Col>
           </Row>
-          <Row>
-            <Col span="10" offset="0">
+          <Row style="margin-top: 20px;">
+            <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
                 <Input
                   v-model="registerName"
@@ -53,7 +54,7 @@
                 />
               </FormItem>
             </Col>
-            <Col span="10" offset="0">
+            <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('target_type')">
                 <Select
                   @on-change="onSelectEntityType"
@@ -161,15 +162,15 @@
                         ></PathExp>
                         <Select
                           v-if="param.mappingType === 'system_variable'"
-                          v-model="param.mappingSystemVariableId"
+                          v-model="param.mappingSystemVariableName"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                           @on-open-change="retrieveSystemVariables"
                         >
                           <Option
                             v-for="item in allSystemVariables"
-                            :value="item.id"
-                            :key="item.id"
-                            >{{ item.id }}</Option
+                            :value="item.name"
+                            :key="item.name"
+                            >{{ item.name }}</Option
                           >
                         </Select>
                         <span
@@ -408,7 +409,6 @@ export default {
       let currentPluginForSave = JSON.parse(
         JSON.stringify(this.currentPluginObj)
       );
-      console.log(currentPluginForSave);
       if (this.hasNewSource) {
         delete currentPluginForSave.id;
       }
