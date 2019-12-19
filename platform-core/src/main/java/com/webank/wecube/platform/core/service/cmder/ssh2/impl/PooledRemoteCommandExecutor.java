@@ -114,7 +114,8 @@ public class PooledRemoteCommandExecutor implements PoolableRemoteCommandExecuto
         @Override
         public String call() throws Exception {
             try {
-                getSession().execCommand(cmd.getCommand());
+                String shellCmd = "sh -l -c '" + cmd.getCommand() + "'";
+                getSession().execCommand(shellCmd);
                 getSession().waitForCondition(ChannelCondition.TIMEOUT, 1000L * 60 * 5);
             } catch (Exception e) {
                 LOGGER.error("errors while exec command", e);

@@ -172,9 +172,11 @@
     <xs:sequence>
       <xs:element type="interfaceType" name="interface" maxOccurs="unbounded"/>
     </xs:sequence>
-        <xs:attribute type="xs:string" name="id"/>
+    <xs:attribute type="xs:string" name="id"/>
     <xs:attribute type="xs:string" name="name" use="required"/>
-        <xs:attribute type="xs:string" name="entity"/>
+    <xs:attribute type="xs:string" name="targetPackage"/>
+    <xs:attribute type="xs:string" name="targetEntity"/>
+    <xs:attribute type="xs:string" name="registerName"/>
   </xs:complexType>
   <xs:complexType name="pluginsType">
     <xs:sequence minOccurs="0">

@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
@@ -86,10 +87,7 @@ public class MenuItem {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = ((null != parentCode && !parentCode.trim().equals("")) ? parentCode + KEY_COLUMN_DELIMITER : "") + code;
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 //    @JsonIgnore
 //    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, orphanRemoval = true)

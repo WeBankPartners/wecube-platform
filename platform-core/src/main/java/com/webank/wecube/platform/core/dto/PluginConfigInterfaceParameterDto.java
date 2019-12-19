@@ -15,13 +15,13 @@ public class PluginConfigInterfaceParameterDto {
     private String dataType;
     private String mappingType;
     private String mappingEntityExpression;
-    private String mappingSystemVariableId;
+    private String mappingSystemVariableName;
     private String required;
 
     public PluginConfigInterfaceParameterDto() {
     }
 
-    public PluginConfigInterfaceParameterDto(String id, String pluginConfigInterfaceId, String type, String name, String dataType, String mappingType, String mappingEntityExpression, String mappingSystemVariableId, String required) {
+    public PluginConfigInterfaceParameterDto(String id, String pluginConfigInterfaceId, String type, String name, String dataType, String mappingType, String mappingEntityExpression, String mappingSystemVariableName, String required) {
         this.id = id;
         this.pluginConfigInterfaceId = pluginConfigInterfaceId;
         this.type = type;
@@ -29,7 +29,7 @@ public class PluginConfigInterfaceParameterDto {
         this.dataType = dataType;
         this.mappingType = mappingType;
         this.mappingEntityExpression = mappingEntityExpression;
-        this.mappingSystemVariableId = mappingSystemVariableId;
+        this.mappingSystemVariableName = mappingSystemVariableName;
         this.required = required;
     }
 
@@ -89,12 +89,12 @@ public class PluginConfigInterfaceParameterDto {
         this.mappingEntityExpression = mappingEntityExpression;
     }
 
-    public String getMappingSystemVariableId() {
-        return mappingSystemVariableId;
+    public String getMappingSystemVariableName() {
+        return mappingSystemVariableName;
     }
 
-    public void setMappingSystemVariableId(String mappingSystemVariableId) {
-        this.mappingSystemVariableId = mappingSystemVariableId;
+    public void setMappingSystemVariableName(String mappingSystemVariableName) {
+        this.mappingSystemVariableName = mappingSystemVariableName;
     }
 
     public String getRequired() {
@@ -122,7 +122,7 @@ public class PluginConfigInterfaceParameterDto {
         parameter.setDataType(getDataType());
         parameter.setMappingType(getMappingType());
         parameter.setMappingEntityExpression(getMappingEntityExpression());
-        parameter.setMappingSystemVariableId(getMappingSystemVariableId());
+        parameter.setMappingSystemVariableName(getMappingSystemVariableName());
         parameter.setRequired(getRequired());
 
         return parameter;
@@ -137,7 +137,7 @@ public class PluginConfigInterfaceParameterDto {
         pluginConfigInterfaceParameterDto.setDataType(pluginConfigInterfaceParameter.getDataType());
         pluginConfigInterfaceParameterDto.setMappingType(pluginConfigInterfaceParameter.getMappingType());
         pluginConfigInterfaceParameterDto.setMappingEntityExpression(pluginConfigInterfaceParameter.getMappingEntityExpression());
-        pluginConfigInterfaceParameterDto.setMappingSystemVariableId(pluginConfigInterfaceParameter.getMappingSystemVariableId());
+        pluginConfigInterfaceParameterDto.setMappingSystemVariableName(pluginConfigInterfaceParameter.getMappingSystemVariableName());
         pluginConfigInterfaceParameterDto.setRequired(pluginConfigInterfaceParameter.getRequired());
         return pluginConfigInterfaceParameterDto;
     }

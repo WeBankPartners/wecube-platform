@@ -53,14 +53,14 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     @Test
     public void getGlobalSystemVariables() throws Exception {
         mockSystemVariables();
-        String reqJson = toJsonString(QueryRequest.defaultQueryObject().addEqualsFilter("scopeType", SystemVariable.SCOPE_TYPE_GLOBAL));
+        String reqJson = toJsonString(QueryRequest.defaultQueryObject().addEqualsFilter("scope", SystemVariable.SCOPE_GLOBAL));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].name", contains("propA", "propB")))
                 .andExpect(jsonPath("$.data.contents[*].value", contains("valueX", "valueY")));
 
         reqJson = toJsonString(QueryRequest.defaultQueryObject()
-                .addEqualsFilter("scopeType", SystemVariable.SCOPE_TYPE_GLOBAL)
+                .addEqualsFilter("scope", SystemVariable.SCOPE_GLOBAL)
                 .addEqualsFilter("status", SystemVariable.ACTIVE));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
@@ -72,22 +72,22 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     public void getSystemVariables() throws Exception {
         mockSystemVariables();
         String reqJson = toJsonString(QueryRequest.defaultQueryObject()
-                .addEqualsFilter("scopeType", SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE)
-                .addEqualsFilter("scopeValue", "qcloud"));
+                .addEqualsFilter("scope", "qcloud")
+                .addEqualsFilter("source", "qcloud:v1"));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].name", contains("propC", "propC")))
                 .andExpect(jsonPath("$.data.contents[*].value", contains("valueZ", "valuez")));
 
         reqJson = toJsonString(QueryRequest.defaultQueryObject()
-                .addEqualsFilter("scopeType", SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE)
-                .addEqualsFilter("scopeValue", "qcloud")
+                .addEqualsFilter("scope", "qcloud")
+                .addEqualsFilter("source", "qcloud:v1")
                 .addEqualsFilter("status", SystemVariable.ACTIVE));
         mvc.perform(post("/v1/system-variables/retrieve").contentType(MediaType.APPLICATION_JSON).content(reqJson))
                 .andExpect(jsonPath("$.status", is("OK")))
                 .andExpect(jsonPath("$.data.contents[*].name", contains("propC")))
                 .andExpect(jsonPath("$.data.contents[*].value", contains("valuez")))
-                .andExpect(jsonPath("$.data.contents[*].scopeValue", contains("qcloud")));
+                .andExpect(jsonPath("$.data.contents[*].scope", contains("qcloud")));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
         SystemVariable variable = new SystemVariable();
         variable.setName("mockVariable");
         variable.setValue("mockVariableValue");
-        variable.setScopeType("global");
+        variable.setScope("global");
 
         mvc.perform(post("/v1/system-variables/create").contentType(MediaType.APPLICATION_JSON).content(toJsonString(newArrayList(variable))))
                 .andExpect(jsonPath("$.status", is("OK")))
@@ -200,15 +200,15 @@ public class SystemVariableControllerTest extends AbstractControllerTest {
     }
 
     private void mockSystemVariables() {
-        PluginPackage pluginPackage = mockPluginPackage("mockPluginPackage", "v1");
+        PluginPackage pluginPackage = mockPluginPackage("qcloud", "v1");
         pluginPackageRepository.save(pluginPackage);
         executeSql("INSERT INTO plugin_packages (id, name, version, status, ui_package_included) VALUES " +
-                "  ('1', 'package1', '1.0', 'UNREGISTERED', 0); " +
-                "insert into system_variables (id, plugin_package_id, name, value, scope_type, scope_value, status) values\n" +
-                " ('1', '1', 'propA', 'valueX', 'global', null, 'active')\n" +
-                ",('2', '1', 'propB', 'valueY', 'global', null, 'inactive')\n" +
-                ",('3', '1', 'propC', 'valueZ', 'plugin-package', 'qcloud', 'inactive')\n" +
-                ",('4', '1', 'propC', 'valuez', 'plugin-package', 'qcloud', 'active')\n" +
+                "  ('1', 'package1', '1.0', 'REGISTERED', 0); " +
+                "insert into system_variables (id, package_name, name, value, scope, source, status) values\n" +
+                " ('1', 'qcloud', 'propA', 'valueX', 'global', 'qcloud:v1', 'active')\n" +
+                ",('2', 'qcloud', 'propB', 'valueY', 'global', 'qcloud:v1', 'inactive')\n" +
+                ",('3', 'qcloud', 'propC', 'valueZ', 'qcloud', 'qcloud:v1', 'inactive')\n" +
+                ",('4', 'qcloud', 'propC', 'valuez', 'qcloud', 'qcloud:v1', 'active')\n" +
                 ";");
     }
 

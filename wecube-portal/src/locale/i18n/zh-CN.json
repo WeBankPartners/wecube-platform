@@ -289,7 +289,8 @@
   "create_job": "构建任务",
   "no_plugin": "暂无插件",
   "target_type": "目标对象类型",
-  "regist_source": "请选择注册源",
+  "regist_source": "注册列表",
+  "regist_source_placeholder": "请选择注册源",
   "regist_name": "注册名称",
   "create_regist_source": "新增注册源",
   "copy_source": "复制源",
@@ -328,5 +329,12 @@
   "password": "密码",
   "password_cannot_empty": "密码不能为空",
   "display_name": "显示名",
-  "menus": "菜单"
+  "menus": "菜单",
+  "input": "入参",
+  "output": "出参",
+  "selected_role": "选中角色",
+  "unselected_role": "未选中角色",
+  "edit_role": "选择该编排的属主角色",
+  "mgmt_role": "属主角色",
+  "use_role": "使用角色"
 }

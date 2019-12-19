@@ -289,7 +289,8 @@
   "create_job": "Create Orchestrations Job",
   "no_plugin": "No Services",
   "target_type": "Target Type",
-  "regist_source": "Please select regist source",
+  "regist_source": "Regist List",
+  "regist_source_placeholder": "Please select regist source",
   "regist_name": "Regist Name",
   "create_regist_source": "Create Regist Source",
   "copy_source": "Copy Source",
@@ -328,5 +329,12 @@
   "password": "Password",
   "password_cannot_empty": "Password Cannot Empty",
   "display_name": "Display Name",
-  "menus": "Menu"
+  "menus": "Menu",
+  "input": "Input",
+  "output": "Output",
+  "selected_role": "Selected Role",
+  "unselected_rolw": "Unselected Role",
+  "edit_role": "Select Orchestrations Host Roles",
+  "mgmt_role": "Owner Role",
+  "use_role": "Executor Role"
 }
