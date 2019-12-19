@@ -44,11 +44,6 @@ public interface PluginConfigRepository extends CrudRepository<PluginConfig, Str
         return findAllByStatusAndPluginPackage_statusIn(Status.ENABLED, PluginPackage.ACTIVE_STATUS);
     }
 
-    Optional<List<PluginConfig>> findAllByStatusAndEntityName(Status status, String entityName);
-    default Optional<List<PluginConfig>> findAllEnabledByEntityName(String entityName) {
-        return findAllByStatusAndEntityName(ENABLED, entityName);
-    }
-
     default Optional<List<PluginConfigInterface>> findAllLatestEnabledForAllActivePackages() {
         Optional<List<PluginConfig>> allForAllActivePackagesOptional = findAllForAllActivePackages();
         if (allForAllActivePackagesOptional.isPresent()) {
@@ -81,7 +76,7 @@ public interface PluginConfigRepository extends CrudRepository<PluginConfig, Str
 
     default String buildPackageConfigInterfaceMapKey(PluginConfigInterface pluginConfigInterface) {
         PluginConfig pluginConfig = pluginConfigInterface.getPluginConfig();
-        return String.join(":", pluginConfig.getPluginPackage().getName(), pluginConfig.getName(), pluginConfig.getEntityName(), pluginConfigInterface.getAction());
+        return String.join(":", pluginConfig.getPluginPackage().getName(), pluginConfig.getName(), pluginConfig.getTargetEntity(), pluginConfigInterface.getAction());
     }
 
     class PluginConfigInterfaceComparator implements Comparator<PluginConfigInterface> {
