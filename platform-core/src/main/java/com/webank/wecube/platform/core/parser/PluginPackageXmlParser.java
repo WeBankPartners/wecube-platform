@@ -28,7 +28,6 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
 import static com.webank.wecube.platform.core.utils.Constants.GLOBAL_SYSTEM_VARIABLES;
 import static org.apache.commons.lang3.StringUtils.trim;
-import static com.webank.wecube.platform.core.utils.Constants.*;
 
 public class PluginPackageXmlParser {
     private final static String SEPARATOR_OF_NAMES = "/";
@@ -201,7 +200,7 @@ public class PluginPackageXmlParser {
 
             SystemVariable systemVariable = new SystemVariable();
 
-            systemVariable.setStatus(SystemVariable.ACTIVE);
+            systemVariable.setStatus(SystemVariable.INACTIVE);
 
             String systemVariableName = getNonNullStringAttribute(systemVariableNode, "./@name",
                     "System variable name");
@@ -212,11 +211,13 @@ public class PluginPackageXmlParser {
             systemVariable.setName(systemVariableName);
             systemVariable.setDefaultValue(getStringAttribute(systemVariableNode, "./@defaultValue"));
             String scopeType = getStringAttribute(systemVariableNode, "./@scopeType");
-            systemVariable.setScopeType(scopeType);
-            if (SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE.equals(scopeType)) {
-                systemVariable.setScopeValue(pluginPackage.getName());
+            if (SystemVariable.SCOPE_GLOBAL.equalsIgnoreCase(scopeType)) {
+                systemVariable.setScope(SystemVariable.SCOPE_GLOBAL);
+            } else {
+                systemVariable.setScope(pluginPackage.getName());
             }
-            systemVariable.setPluginPackage(pluginPackage);
+            systemVariable.setSource(pluginPackage.getId());
+            systemVariable.setPackageName(pluginPackage.getName());
 
             systemVariables.add(systemVariable);
         }
@@ -389,9 +390,21 @@ public class PluginPackageXmlParser {
             pluginConfig.setPluginPackage(pluginPackage);
             pluginConfig.setStatus(DISABLED);
             pluginConfig.setName(getNonNullStringAttribute(pluginConfigNode, "./@name", "Plugin name"));
-            String entityName = getNonNullStringAttribute(pluginConfigNode, "./@entity", "Entity name");
-            if (StringUtils.isNotBlank(entityName)) {
-                pluginConfig.setEntityName(entityName);
+            String targetPackage = getStringAttribute(pluginConfigNode, "./@targetPackage");
+            if (StringUtils.isNotBlank(targetPackage)) {
+                pluginConfig.setTargetPackage(targetPackage);
+            } else {
+                pluginConfig.setTargetPackage(pluginPackage.getName());
+            }
+
+            String targetEntity = getStringAttribute(pluginConfigNode, "./@targetEntity");
+            if (StringUtils.isNotBlank(targetEntity)) {
+                pluginConfig.setTargetEntity(targetEntity);
+            }
+
+            String registerName = getStringAttribute(pluginConfigNode, "./@registerName");
+            if (StringUtils.isNotBlank(registerName)) {
+                pluginConfig.setRegisterName(registerName);
             }
 
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
@@ -470,9 +483,9 @@ public class PluginPackageXmlParser {
             pluginConfigInterfaceParameter.setName(trim(parameterNode.getTextContent()));
             pluginConfigInterfaceParameter.setDataType(getStringAttribute(parameterNode, "./@datatype"));
             pluginConfigInterfaceParameter.setMappingType(getStringAttribute(parameterNode, "./@mappingType"));
-            String mappingSystemVariableIdString = getStringAttribute(parameterNode, "./@mappingSystemVariableId");
-            if (StringUtils.isNotEmpty(mappingSystemVariableIdString)) {
-                pluginConfigInterfaceParameter.setMappingSystemVariableId(mappingSystemVariableIdString);
+            String mappingSystemVariableNameString = getStringAttribute(parameterNode, "./@mappingSystemVariableName");
+            if (StringUtils.isNotEmpty(mappingSystemVariableNameString)) {
+                pluginConfigInterfaceParameter.setMappingSystemVariableName(mappingSystemVariableNameString);
             }
             String mappingEntityExpression = getStringAttribute(parameterNode, "./@mappingEntityExpression");
             if (StringUtils.isNotEmpty(mappingEntityExpression)) {
