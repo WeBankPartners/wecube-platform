@@ -23,38 +23,43 @@
       <Col span="19" offset="0" style="padding-left: 10px" v-if="hidePanal">
         <Form v-if="currentPlugin.length > 0" :model="form">
           <Row>
-            <Col span="20">
-              <Select
-                v-model="model1"
-                style="margin-bottom:20px"
-                @on-change="registSourceChange"
-                :placeholder="$t('regist_source')"
-              >
-                <Option value="add" key="add">
-                  <Button @click="addRegistMsg" type="success" long>
-                    <Icon type="md-add" />
-                  </Button>
-                </Option>
-                <Option
-                  v-for="item in sourceList"
-                  :value="item.id"
-                  :key="item.id"
-                  >{{ item.name }}-({{ item.registerName }})</Option
+            <Col style="border-bottom: 2px solid #bbb7b7;">
+              <FormItem :label-width="100" :label="$t('regist_source')">
+                <Select
+                  v-model="model1"
+                  @on-change="registSourceChange"
+                  :placeholder="$t('regist_source_placeholder')"
                 >
-              </Select>
-            </Col>
-          </Row>
-          <Row>
-            <Col span="10" offset="0">
-              <FormItem :label-width="100" :label="$t('regist_name')">
-                <Input v-model="registerName" />
+                  <Option value="add" key="add">
+                    <Button @click="addRegistMsg" type="success" long>
+                      <Icon type="md-add" />
+                    </Button>
+                  </Option>
+                  <Option
+                    v-for="item in sourceList"
+                    :value="item.id"
+                    :key="item.id"
+                    >{{ item.name }}-({{ item.registerName }})</Option
+                  >
+                </Select>
               </FormItem>
             </Col>
-            <Col span="10" offset="0">
+          </Row>
+          <Row style="margin-top: 20px;">
+            <Col span="12" offset="0">
+              <FormItem :label-width="100" :label="$t('regist_name')">
+                <Input
+                  v-model="registerName"
+                  :disabled="currentPluginObj.status === 'ENABLED'"
+                />
+              </FormItem>
+            </Col>
+            <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('target_type')">
                 <Select
                   @on-change="onSelectEntityType"
                   v-model="selectedEntityType"
+                  label-in-value
                   :disabled="currentPluginObj.status === 'ENABLED'"
                   @on-open-change="getAllDataModels"
                 >
@@ -67,8 +72,11 @@
                       v-for="item in pluginPackage.pluginPackageEntities"
                       :value="item.name"
                       :key="item.name"
-                      :label="item.name"
-                    ></Option>
+                      >{{ item.name
+                      }}<span style="display:none"
+                        >**{{ pluginPackage.packageName }}</span
+                      >
+                    </Option>
                   </OptionGroup>
                 </Select>
               </FormItem>
@@ -85,7 +93,10 @@
             <Col span="3" offset="0">
               <strong style="font-size:15px;">{{ $t("params_name") }}</strong>
             </Col>
-            <Col span="6" offset="1">
+            <Col span="3" offset="0">
+              <strong style="font-size:15px;">{{ $t("data_type") }}</strong>
+            </Col>
+            <Col span="3" offset="1">
               <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
             </Col>
             <Col span="3" offset="4">
@@ -134,7 +145,12 @@
                         </Tooltip>
                       </FormItem>
                     </Col>
-                    <Col span="13" offset="0">
+                    <Col span="3">
+                      <FormItem :label-width="0">
+                        <span>{{ param.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="10" offset="0">
                       <FormItem :label-width="0">
                         <PathExp
                           v-if="param.mappingType === 'entity'"
@@ -146,15 +162,15 @@
                         ></PathExp>
                         <Select
                           v-if="param.mappingType === 'system_variable'"
-                          v-model="param.mappingSystemVariableId"
+                          v-model="param.mappingSystemVariableName"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                           @on-open-change="retrieveSystemVariables"
                         >
                           <Option
                             v-for="item in allSystemVariables"
-                            :value="item.id"
-                            :key="item.id"
-                            >{{ item.id }}</Option
+                            :value="item.name"
+                            :key="item.name"
+                            >{{ item.name }}</Option
                           >
                         </Select>
                         <span
@@ -193,7 +209,7 @@
                     <span>{{ $t("output_params") }}</span>
                   </FormItem>
                 </Col>
-                <Col span="20" offset="0">
+                <Col span="21" offset="0">
                   <Row
                     v-for="outPut in interfaces['outputParameters']"
                     :key="outPut.id + 1000"
@@ -211,7 +227,12 @@
                         </Tooltip>
                       </FormItem>
                     </Col>
-                    <Col span="14" offset="1">
+                    <Col span="3" offset="1">
+                      <FormItem :label-width="0">
+                        <span>{{ outPut.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="10" offset="0">
                       <FormItem :label-width="0">
                         <!-- <Select
                           v-if="outPut.mappingType === 'entity'"
@@ -332,6 +353,7 @@ export default {
       hidePanal: true,
       allEntityType: [],
       selectedEntityType: "",
+      targetPackage: "",
       form: {},
       allSystemVariables: []
       // pluginInterfaces:[]
@@ -373,8 +395,16 @@ export default {
       const entitys = [].concat(
         ...this.allEntityType.map(_ => _.pluginPackageEntities)
       );
-      const entityId = entitys.find(i => i.name === this.selectedEntityType).id;
-      this.currentPluginObj.entityId = entityId;
+      if (this.selectedEntityType) {
+        const entityId = entitys.find(i => i.name === this.selectedEntityType)
+          .id;
+        this.currentPluginObj.entityId = entityId;
+        this.currentPluginObj.targetEntity = this.selectedEntityType;
+        this.currentPluginObj.targetPackage = this.targetPackage;
+      } else {
+        this.currentPluginObj.targetPackage = null;
+      }
+
       this.currentPluginObj.registerName = this.registerName;
       let currentPluginForSave = JSON.parse(
         JSON.stringify(this.currentPluginObj)
@@ -382,7 +412,6 @@ export default {
       if (this.hasNewSource) {
         delete currentPluginForSave.id;
       }
-      this.hidePanal = false;
       const { data, status, message } = await savePluginConfig(
         currentPluginForSave
       );
@@ -396,6 +425,7 @@ export default {
             this.pkgId
           );
           if (status === "OK") {
+            this.hidePanal = false;
             this.plugins = data;
           }
           return;
@@ -420,6 +450,7 @@ export default {
             desc: message
           });
           this.getAllPluginByPkgId();
+          this.currentPluginObj.status = "ENABLED";
         }
       }
     },
@@ -464,6 +495,7 @@ export default {
           desc: message
         });
         this.getAllPluginByPkgId();
+        this.currentPluginObj.status = "DISABLED";
       }
     },
     async getAllPluginByPkgId() {
@@ -482,7 +514,9 @@ export default {
       let currentPluginData = this.plugins.find(
         plugin => plugin.pluginConfigName === val
       );
-      this.sourceList = currentPluginData.pluginConfigDtoList;
+      this.sourceList = currentPluginData
+        ? currentPluginData.pluginConfigDtoList
+        : [];
     },
     registSourceChange(v) {
       if (!v || v === "add") {
@@ -492,11 +526,15 @@ export default {
         return;
       }
       this.currentPluginObj = this.sourceList.find(source => source.id === v);
-      this.selectedEntityType = this.currentPluginObj.name;
+      this.selectedEntityType = this.currentPluginObj.entityName;
       this.registerName = this.currentPluginObj.registerName;
+      this.selectedEntityType = this.currentPluginObj.targetEntity;
+      this.targetPackage = this.currentPluginObj.targetPackage;
       this.hasNewSource = false;
     },
-    onSelectEntityType(val) {},
+    onSelectEntityType(val) {
+      this.targetPackage = val ? val.label.split("**")[1] : "";
+    },
     async getAllDataModels() {
       const { data, status, message } = await getAllDataModels();
       if (status === "OK") {
