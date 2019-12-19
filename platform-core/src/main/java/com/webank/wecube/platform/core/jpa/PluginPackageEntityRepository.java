@@ -7,8 +7,6 @@ import java.util.Optional;
 
 public interface PluginPackageEntityRepository extends CrudRepository<PluginPackageEntity, String> {
 
-    Optional<PluginPackageEntity> findByPackageNameAndName(String packageName, String name);
-
-    boolean existsByPackageNameAndName(String packageName, String name);
+    boolean existsByPackageNameAndNameAndDataModelVersion(String packageName, String name, int dataModelVersion);
 
 }

@@ -7,7 +7,15 @@ const req = axios.create({
   timeout: 50000
 });
 
-const throwError = res => new Error(res.message || "error");
+const throwError = res => {
+  Vue.prototype.$Notice.warning({
+    title: "Error",
+    desc:
+      (res.data &&
+        "status:" + res.data.status + "<br/> message:" + res.data.message) ||
+      "error"
+  });
+};
 
 let refreshRequest = null;
 
@@ -122,20 +130,10 @@ req.interceptors.response.use(
     const { response } = res;
     if (response.status === 401) {
       window.location.href = window.location.origin + "/#/login";
+      throwError(response);
       return response;
     }
-    Vue.prototype.$Notice.warning({
-      title: "Error",
-      desc:
-        (response.data &&
-          "status:" +
-            response.data.status +
-            "<br/> error:" +
-            response.data.error +
-            "<br/> message:" +
-            response.data.message) ||
-        "error"
-    });
+
     return new Promise((resolve, reject) => {
       resolve({
         data: throwError(res)
