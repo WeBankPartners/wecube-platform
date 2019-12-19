@@ -9,6 +9,4 @@ public interface PluginPackageEntityRepository extends CrudRepository<PluginPack
 
     boolean existsByPackageNameAndNameAndDataModelVersion(String packageName, String name, int dataModelVersion);
 
-    boolean existsByPackageNameAndName(String packageName, String name);
-
 }
