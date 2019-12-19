@@ -162,15 +162,15 @@
                         ></PathExp>
                         <Select
                           v-if="param.mappingType === 'system_variable'"
-                          v-model="param.mappingSystemVariableId"
+                          v-model="param.mappingSystemVariableName"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                           @on-open-change="retrieveSystemVariables"
                         >
                           <Option
                             v-for="item in allSystemVariables"
-                            :value="item.id"
-                            :key="item.id"
-                            >{{ item.id }}</Option
+                            :value="item.name"
+                            :key="item.name"
+                            >{{ item.name }}</Option
                           >
                         </Select>
                         <span
