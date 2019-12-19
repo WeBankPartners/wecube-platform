@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,8 +28,9 @@ public class SystemVariableService {
 
     @Autowired
     private SystemVariableRepository systemVariableRepository;
+
     @Autowired
-    PluginPackageRepository pluginPackageRepository;
+    private PluginPackageRepository pluginPackageRepository;
 
     public QueryResponse<SystemVariableDto> retrieveSystemVariables(QueryRequest queryRequest) {
         QueryResponse<SystemVariable> queryResponse = entityRepository.query(SystemVariable.class, queryRequest);
@@ -68,14 +70,14 @@ public class SystemVariableService {
     private List<SystemVariable> convertVariableDtoToDomain(List<SystemVariableDto> systemVariableDtos) {
         List<SystemVariable> domains = new ArrayList<>();
         systemVariableDtos.forEach(dto -> {
-            SystemVariable existedServer = null;
+            SystemVariable existingSystemVariable = null;
             if (dto.getId() != null) {
-                Optional<SystemVariable> existedSystemVariableOpt = systemVariableRepository.findById(dto.getId());
-                if (existedSystemVariableOpt.isPresent()) {
-                    existedServer = existedSystemVariableOpt.get();
+                Optional<SystemVariable> existingSystemVariableOpt = systemVariableRepository.findById(dto.getId());
+                if (existingSystemVariableOpt.isPresent()) {
+                    existingSystemVariable = existingSystemVariableOpt.get();
                 }
             }
-            SystemVariable domain = toDomain(dto, existedServer);
+            SystemVariable domain = toDomain(dto, existingSystemVariable);
             domains.add(domain);
         });
         return domains;
@@ -91,8 +93,8 @@ public class SystemVariableService {
             systemVariable.setId(dto.getId());
         }
 
-        if (dto.getPluginPackageId() != null) {
-            systemVariable.setPluginPackage(pluginPackageRepository.findById(dto.getPluginPackageId()).get());
+        if (dto.getPackageName() != null) {
+            systemVariable.setPackageName(dto.getPackageName());
         }
 
         if (dto.getName() != null) {
@@ -107,12 +109,12 @@ public class SystemVariableService {
             systemVariable.setDefaultValue(dto.getDefaultValue());
         }
 
-        if (dto.getScopeType() != null) {
-            systemVariable.setScopeType(dto.getScopeType());
+        if (dto.getScope() != null) {
+            systemVariable.setScope(dto.getScope());
         }
 
-        if (dto.getScopeValue() != null) {
-            systemVariable.setScopeValue(dto.getScopeValue());
+        if (dto.getSource() != null) {
+            systemVariable.setSource(dto.getSource());
         }
 
         if (dto.getStatus() != null) {
@@ -139,22 +141,32 @@ public class SystemVariableService {
         }
     }
 
-    public List<SystemVariable> getPluginSystemVariableByPackageIdAndName(String packageId, String varName) {
-        return systemVariableRepository.findAllByPluginPackage_IdAndNameAndScopeTypeAndStatus(packageId, varName,
-                SystemVariable.SCOPE_TYPE_PLUGIN_PACKAGE, SystemVariable.ACTIVE);
+    public SystemVariable getSystemVariableByPackageNameAndName(String packageName, String varName) {
+        List<SystemVariable> pluginSystemVariables = getPluginSystemVariableByPackageNameAndName(packageName, varName);
+        if (null != pluginSystemVariables && pluginSystemVariables.size() > 0) {
+            return pluginSystemVariables.get(0);
+        }
+        pluginSystemVariables = getGlobalSystemVariableByName(varName);
+        if (null != pluginSystemVariables && pluginSystemVariables.size() > 0) {
+            return pluginSystemVariables.get(0);
+        }
+        return null;
+    }
+
+    public List<SystemVariable> getPluginSystemVariableByPackageNameAndName(String packageName, String varName) {
+        return systemVariableRepository.findByNameAndScopeAndStatus(varName, packageName, SystemVariable.ACTIVE);
     }
 
     public List<SystemVariable> getGlobalSystemVariableByName(String varName) {
-        return systemVariableRepository.findByNameAndScopeTypeAndStatus(varName, SystemVariable.SCOPE_TYPE_GLOBAL,
-                SystemVariable.ACTIVE);
+        return systemVariableRepository.findByNameAndScopeAndStatus(varName, SystemVariable.SCOPE_GLOBAL, SystemVariable.ACTIVE);
     }
 
-    public String variableReplacement(String packageId, String originalString) {
+    public String variableReplacement(String packageName, String originalString) {
         List<String> varList = StringUtils.findSystemVariableString(originalString);
         for (int i = 0; i < varList.size(); i++) {
             String varString = varList.get(i);
             String varName = varString.substring(2, varString.length() - 2);
-            List<SystemVariable> varObjects = getPluginSystemVariableByPackageIdAndName(packageId, varName);
+            List<SystemVariable> varObjects = getPluginSystemVariableByPackageNameAndName(packageName, varName);
             if (varObjects.size() == 0) {
                 varObjects = getGlobalSystemVariableByName(varName);
                 if (varObjects.size() == 0) {
@@ -173,4 +185,14 @@ public class SystemVariableService {
     public Iterable<SystemVariable> getAllSystemVariable() {
         return systemVariableRepository.findAll();
     }
+
+
+    public List<SystemVariable> getPluginSystemVariableByPackageId(String packageId) {
+        Optional<List<SystemVariable>> systemVariablesOptional = systemVariableRepository.findBySource(packageId);
+        if (systemVariablesOptional.isPresent()) {
+            return systemVariablesOptional.get();
+        }
+        return Collections.EMPTY_LIST;
+    }
+
 }
