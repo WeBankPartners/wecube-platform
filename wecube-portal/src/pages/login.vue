@@ -6,20 +6,31 @@
     </div>
     <br />
     <div class="login-form">
-      <input
+      <Input
         type="text"
         placeholder="username"
         v-model="username"
         name="user"
-      /><br />
-      <input
+        @on-enter="login"
+      /><
+      <Input
         type="password"
+        password
         placeholder="password"
         v-model="password"
         name="password"
-        @keyup.enter="login"
-      /><br />
-      <input type="button" value="Login" @click="login" />
+        @on-enter="login"
+      />
+      <Button
+        type="primary"
+        long
+        @click="login"
+        :loading="loading"
+        style="margin-top: 20px"
+      >
+        Login
+      </Button>
+      <!-- <Button type="success" long>SUBMIT</Button> -->
     </div>
   </div>
 </template>
@@ -29,11 +40,14 @@ export default {
   data() {
     return {
       username: "",
-      password: ""
+      password: "",
+      loading: false
     };
   },
   methods: {
     async login() {
+      if (!this.username || !this.password) return;
+      this.loading = true;
       const payload = {
         username: this.username,
         password: this.password
@@ -45,6 +59,7 @@ export default {
         session.setItem("username", this.username);
         this.$router.push("/homepage");
       }
+      this.loading = false;
     },
     clearSession() {
       let session = window.sessionStorage;
@@ -93,60 +108,5 @@ export default {
   padding: 10px;
   z-index: 2;
   text-align: center;
-}
-
-.login-form input[type="text"],
-input[type="password"],
-input[type="button"] {
-  width: 100%;
-  height: 35px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 2px;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 400;
-  padding: 4px;
-  margin-top: 10px;
-}
-
-.login-form input[type="button"] {
-  background: #fff;
-  border: 1px solid #fff;
-  cursor: pointer;
-  border-radius: 20px;
-  color: black;
-  font-size: 16px;
-  width: 45%;
-}
-
-.login-form input[type="button"]:hover {
-  opacity: 0.8;
-}
-
-.login-form input[type="button"]:active {
-  opacity: 0.6;
-}
-
-.login-form input[type="text"]:focus {
-  outline: none;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-}
-
-.login-form input[type="password"]:focus {
-  outline: none;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-}
-
-.login-form input[type="button"]:focus {
-  outline: none;
-}
-
-::-webkit-input-placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-::-moz-input-placeholder {
-  color: rgba(255, 255, 255, 0.6);
 }
 </style>
