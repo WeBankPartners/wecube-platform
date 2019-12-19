@@ -330,5 +330,7 @@
   "display_name": "显示名",
   "menus": "菜单",
   "input": "入参",
-  "output": "出参"
+  "output": "出参",
+  "export_flow": "导出",
+  "import_flow": "导入"
 }
