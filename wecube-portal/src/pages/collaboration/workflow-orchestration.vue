@@ -69,7 +69,6 @@
           </OptionGroup>
         </Select>
       </Col>
-      <<<<<<< HEAD
       <Button type="info" @click="saveDiagram(false)">
         {{ $t("save_flow") }}
       </Button>
@@ -106,11 +105,6 @@
       >
         <Button type="info">Import Ex</Button>
       </Upload>
-      =======
-      <Button type="info" @click="saveDiagram(false)">{{
-        $t("save_flow")
-      }}</Button>
-      >>>>>>> dev
     </Row>
     <div v-show="showBpmn" class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
@@ -385,6 +379,9 @@ export default {
   watch: {
     selectedFlow: {
       handler(val, oldVal) {
+        console.log("selected flow===");
+        console.log(val);
+        console.log(oldVal);
         if (val && val !== 100000) {
           this.getFlowXml(val);
           this.getPermissionByProcess(val);
