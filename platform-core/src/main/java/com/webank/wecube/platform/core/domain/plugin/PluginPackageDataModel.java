@@ -1,14 +1,13 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.persistence.*;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "plugin_package_data_model", uniqueConstraints = {
@@ -68,13 +67,7 @@ public class PluginPackageDataModel {
 
     @PrePersist
     public void initId() {
-        if (null == this.id || this.id.trim().equals("")) {
-            this.id = String.join(KEY_COLUMN_DELIMITER,
-                    packageName,
-                    String.valueOf(version)
-            );
-            this.id = this.id.replaceAll("\\s+", "_");
-        }
+        this.id = DomainIdBuilder.buildDomainId(this);
     }
 
     public Integer getVersion() {
