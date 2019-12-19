@@ -4,6 +4,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Set;
@@ -15,8 +16,8 @@ public class PluginConfigDto {
     private String id;
     private String pluginPackageId;
     private String name;
-    private String entityId;
-    private String entityName;
+    private String targetPackage;
+    private String targetEntity;
     private String registerName;
     private String status;
     private List<PluginConfigInterfaceDto> interfaces;
@@ -46,20 +47,20 @@ public class PluginConfigDto {
         this.name = name;
     }
 
-    public String getEntityId() {
-        return entityId;
+    public String getTargetPackage() {
+        return targetPackage;
     }
 
-    public void setEntityId(String entityId) {
-        this.entityId = entityId;
+    public void setTargetPackage(String targetPackage) {
+        this.targetPackage = targetPackage;
     }
 
-    public String getEntityName() {
-        return entityName;
+    public String getTargetEntity() {
+        return targetEntity;
     }
 
-    public void setEntityName(String entityName) {
-        this.entityName = entityName;
+    public void setTargetEntity(String targetEntity) {
+        this.targetEntity = targetEntity;
     }
 
     public String getStatus() {
@@ -81,12 +82,12 @@ public class PluginConfigDto {
     public PluginConfigDto() {
     }
 
-    public PluginConfigDto(String id, String pluginPackageId, String name, String entityId, String entityName, String status, List<PluginConfigInterfaceDto> interfaces) {
+    public PluginConfigDto(String id, String pluginPackageId, String name, String targetPackage, String targetEntity, String status, List<PluginConfigInterfaceDto> interfaces) {
         this.id = id;
         this.pluginPackageId = pluginPackageId;
         this.name = name;
-        this.entityId = entityId;
-        this.entityName = entityName;
+        this.targetPackage = targetPackage;
+        this.targetEntity = targetEntity;
         this.status = status;
         this.interfaces = interfaces;
     }
@@ -104,8 +105,14 @@ public class PluginConfigDto {
         pluginConfig.setPluginPackage(pluginPackage);
 
         pluginConfig.setName(getName());
-        pluginConfig.setEntityId(getEntityId());
-        pluginConfig.setEntityName(getEntityName());
+        if (StringUtils.isNotBlank(getTargetPackage())) {
+            pluginConfig.setTargetPackage(getTargetPackage());
+        } else {
+            pluginConfig.setTargetPackage(pluginPackage.getName());
+        }
+        if (StringUtils.isNotBlank(getTargetEntity())) {
+            pluginConfig.setTargetEntity(getTargetEntity());
+        }
         pluginConfig.setRegisterName(getRegisterName());
         Set<PluginConfigInterface> pluginConfigInterfaces = newLinkedHashSet();
         if (null != getInterfaces() && getInterfaces().size() > 0) {
@@ -120,8 +127,8 @@ public class PluginConfigDto {
         PluginConfigDto pluginConfigDto = new PluginConfigDto();
         pluginConfigDto.setId(pluginConfig.getId());
         pluginConfigDto.setName(pluginConfig.getName());
-        pluginConfigDto.setEntityId(pluginConfig.getEntityId());
-        pluginConfigDto.setEntityName(pluginConfig.getEntityName());
+        pluginConfigDto.setTargetPackage(pluginConfig.getTargetPackage());
+        pluginConfigDto.setTargetEntity(pluginConfig.getTargetEntity());
         pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
         pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
         pluginConfigDto.setStatus(pluginConfig.getStatus().name());
