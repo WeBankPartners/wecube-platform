@@ -30,8 +30,12 @@ spring:
            filters:
               - DynamicRoute=false
          - id: platform-auth-server
-           uri: http://10.0.2.10:19120
+           uri: http://localhost:18080
            predicates:
               - Path=/auth/**
            filters:
               - DynamicRoute=false
+         - id: wecmdb-server
+           uri: http://111.230.161.237:19110
+           predicates:
+              - Path=/wecmdb/**

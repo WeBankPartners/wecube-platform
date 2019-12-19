@@ -50,6 +50,39 @@
       <Button type="info" @click="saveDiagram(false)">
         {{ $t("save_flow") }}
       </Button>
+      <Button type="info" @click="exportProcessDefinition(false)">
+        {{ $t("export_flow") }}
+      </Button>
+      <Button type="info" @click="getHeaders">
+        {{ $t("import_flow") }}
+      </Button>
+      <Upload
+        ref="uploadButton"
+        show-upload-list
+        accept=".pcd"
+        name="pcd-file"
+        :on-success="onSuccess"
+        :on-error="onError"
+        action="platform/v1/process/definitions/import"
+        :headers="setUploadActionHeader"
+      >
+        <Button style="display:none">
+          {{ $t("import_flow") }}
+        </Button>
+      </Upload>
+      <Upload
+        ref="uploadButton1"
+        :before-upload="handleUpload"
+        show-upload-list
+        accept=".pcd"
+        name="pcd-file"
+        :on-success="onSuccess"
+        :on-error="onError"
+        action
+        :format="['pcd']"
+      >
+        <Button type="info">Import Ex</Button>
+      </Upload>
     </Row>
     <div class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
@@ -185,6 +218,7 @@ import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
 import PathExp from "../components/path-exp.vue";
+import axios from "axios";
 
 import {
   getAllFlow,
@@ -197,7 +231,9 @@ import {
   getAllDataModels,
   getPluginInterfaceList,
   removeProcessDefinition,
-  getFilteredPluginInterfaceList
+  getFilteredPluginInterfaceList,
+  exportProcessDefinitionWithId,
+  importProcessDefinitionFile
 } from "@/api/server.js";
 
 function setCTM(node, m) {
@@ -621,6 +657,128 @@ export default {
         }
       });
       this.createNewDiagram();
+    },
+    getHeaders() {
+      let refreshRequest = null;
+      const currentTime = new Date().getTime();
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      if (token) {
+        const accessToken = token.find(t => t.tokenType === "accessToken");
+        const expiration = accessToken.expiration * 1 - currentTime;
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get("/auth/v1/api/token", {
+            headers: {
+              Authorization:
+                "Bearer " +
+                token.find(t => t.tokenType === "refreshToken").token
+            }
+          });
+          refreshRequest.then(
+            res => {
+              session.setItem("token", JSON.stringify(res.data.data));
+              this.$refs.uploadButton.handleClick();
+            },
+            err => {
+              refreshRequest = null;
+              window.location.href = window.location.origin + "/#/login";
+            }
+          );
+        } else {
+          this.$refs.uploadButton.handleClick();
+        }
+      } else {
+        const fullPath = this.$router.currentRoute.fullPath;
+        window.location.href = window.location.origin + "/#/login";
+      }
+    },
+    exportProcessDefinition(isDraft) {
+      let _this = this;
+      const okHandler = data => {
+        this.getAllFlows();
+        this.selectedFlow = data.data.procDefId;
+      };
+      this.bpmnModeler.saveXML({ format: true }, function(err, xml) {
+        if (!xml) return;
+        const xmlString = xml.replace(/[\r\n]/g, "");
+        const processName = document.getElementById("camunda-name").innerText;
+
+        const payload = {
+          procDefData: xmlString,
+          procDefId: isDraft
+            ? (_this.currentFlow && _this.currentFlow.procDefId) || ""
+            : "",
+          procDefKey: isDraft
+            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
+            : _this.newFlowID,
+          procDefName: processName,
+          rootEntity: _this.currentSelectedEntity,
+          status: isDraft
+            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
+            : "",
+          taskNodeInfos: _this.serviceTaskBindInfos
+        };
+
+        console.log("start to export");
+        exportProcessDefinitionWithId();
+        // window.location.href = 'platform/v1/process/definitions/export'
+        console.log("finished export");
+      });
+    },
+    async onSuccess(response, file, filelist) {
+      if (response.status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: response.message || ""
+        });
+        // this.getAllPluginPkgs();
+      } else {
+        this.$Notice.warning({
+          title: "Warning",
+          desc: response.message || ""
+        });
+      }
+    },
+    onError(error, file, filelist) {
+      this.$Notice.error({
+        title: "Error",
+        desc: file.message || ""
+      });
+    },
+    handleUpload(file) {
+      console.log("handle upload");
+      console.log(file);
+
+      if (!file) {
+        return false;
+      }
+
+      let formData = new FormData();
+      formData.append("pcd-file", file);
+
+      importProcessDefinitionFile(formData).then(data => {
+        console.log("succeed");
+        if (data && data.status === "OK") {
+          this.$Notice.success({
+            title: "Success",
+            desc: data.message
+          });
+          console.log(data);
+          // okHandler(data);
+        }
+      });
+
+      return false;
+    }
+  },
+  computed: {
+    setUploadActionHeader() {
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      return {
+        Authorization:
+          "Bearer " + token.find(t => t.tokenType === "accessToken").token
+      };
     }
   }
 };

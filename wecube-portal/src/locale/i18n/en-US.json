@@ -330,5 +330,7 @@
   "display_name": "Display Name",
   "menus": "Menu",
   "input": "Input",
-  "output": "Output"
+  "output": "Output",
+  "export_flow": "Export Flow",
+  "import_flow": "Import Flow"
 }
