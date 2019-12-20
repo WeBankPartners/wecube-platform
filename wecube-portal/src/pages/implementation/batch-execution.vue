@@ -8,7 +8,10 @@
               <a @click="setSearchConditions">定义查询...</a>
             </FormItem>
             <FormItem label="查询路径：">
-              <span>(无)</span>
+              <span v-if="dataModelExpression != ':'">{{
+                dataModelExpression
+              }}</span>
+              <span v-else>(无)</span>
             </FormItem>
             <FormItem label="查询条件：">
               <span>(无)</span>
@@ -76,13 +79,17 @@
       </Timeline>
     </section>
     <Modal
-      :width="600"
+      :width="904"
       v-model="isShowSearchConditions"
       title="定义操作对象的查询方式"
     >
       <Form :label-width="110">
         <FormItem label="路径起点：">
-          <Select v-model="selectedEntityType">
+          <Select
+            v-model="selectedEntityType"
+            filterable
+            @on-change="changeEntityType"
+          >
             <OptionGroup
               :label="pluginPackage.packageName"
               v-for="(pluginPackage, index) in allEntityType"
@@ -101,26 +108,35 @@
           <PathExp
             :rootEntity="selectedEntityType"
             :allDataModelsWithAttrs="allEntityType"
-            v-model="mappingEntityExpression"
+            v-model="dataModelExpression"
           ></PathExp>
         </FormItem>
         <FormItem label="目标类型：">
-          <span>(无)</span>
+          <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
         </FormItem>
         <FormItem label="业务主键：">
-          <Select v-model="model1">
+          <Select v-model="currentEntityAttr">
             <Option
-              v-for="item in cityList"
-              :value="item.value"
-              :key="item.value"
-              >{{ item.label }}</Option
+              v-for="entityAttr in currentEntityAttrList"
+              :value="entityAttr.id"
+              :key="entityAttr.id"
+              >{{ entityAttr.name }}</Option
             >
           </Select>
         </FormItem>
-        <FormItem label="查询条件：">
-          <Transfer :data="[]" :target-keys="[]"> </Transfer>
+        <FormItem label="查询条件：" class="xxx">
+          <Transfer
+            :data="allEntityAttr"
+            :target-keys="targetEntityAttr"
+            :render-format="renderFormat"
+            @on-change="handleChange"
+          >
+          </Transfer>
         </FormItem>
       </Form>
+      <div slot="footer">
+        <Button type="primary" @click="saveSearchCondition">Delete</Button>
+      </div>
     </Modal>
     <Modal v-model="DelConfig.isDisplay" width="360">
       <p slot="header" style="color:#f60;text-align:center">
@@ -143,7 +159,11 @@
 <script>
 import PathExp from "@/pages/components/path-exp.vue";
 import { innerActions } from "@/const/actions.js";
-import { getAllDataModels, retrieveSystemVariables } from "@/api/server.js";
+import {
+  getAllDataModels,
+  retrieveSystemVariables,
+  dmeAllEntities
+} from "@/api/server.js";
 import { formatData } from "../util/format.js";
 
 export default {
@@ -166,19 +186,15 @@ export default {
       selectedEntityName: "",
       selectedEntityType: "",
       allEntityType: [],
-      mappingEntityExpression: "",
+
+      dataModelExpression: "",
+      currentEntityName: "",
+      currentPackageName: "",
+      currentEntityAttr: "",
+      currentEntityAttrList: [],
+      allEntityAttr: [],
+      targetEntityAttr: [],
       input: "",
-      cityList: [
-        {
-          value: "New York",
-          label: "New York"
-        },
-        {
-          value: "London",
-          label: "London"
-        }
-      ],
-      model1: "",
 
       payload: {
         filters: [],
@@ -217,13 +233,44 @@ export default {
   mounted() {
     this.queryData();
   },
+  watch: {
+    dataModelExpression: async function(val) {
+      if (val === ":") {
+        return;
+      }
+      const params = {
+        dataModelExpression: val
+      };
+      const { data, status, message } = await dmeAllEntities(params);
+      if (status === "OK") {
+        this.currentEntityName = data.slice(-1)[0].entityName;
+        this.currentPackageName = data.slice(-1)[0].packageName;
+        this.currentEntityAttrList = data.slice(-1)[0].attributes;
+
+        this.allEntityAttr = data
+          .map(single => {
+            return single.attributes.map(attr => {
+              attr.key = attr.id;
+              attr.label = attr.name;
+              attr.entityName = single.entityName;
+              attr.packageName = single.packageName;
+              return attr;
+            });
+          })
+          .flat(2);
+      }
+    }
+  },
   methods: {
     setSearchConditions() {
       this.getAllDataModels();
       this.isShowSearchConditions = true;
       if (document.querySelector(".wecube_attr-ul")) {
-        document.querySelector(".wecube_attr-ul").style.width = "430px";
+        document.querySelector(".wecube_attr-ul").style.width = "730px";
       }
+    },
+    changeEntityType() {
+      this.targetEntityAttr = [];
     },
     async getAllDataModels() {
       const { data, status, message } = await getAllDataModels();
@@ -242,6 +289,23 @@ export default {
         });
         console.log(this.allEntityType);
       }
+    },
+    handleChange(newTargetKeys) {
+      this.targetEntityAttr = newTargetKeys;
+    },
+    renderFormat(item) {
+      return `(${item.packageName}:${item.entityName})-${item.label}`;
+    },
+    saveSearchCondition() {
+      if (!this.currentEntityAttr) {
+        this.$Message.warning("业务主键不能为空！");
+        return;
+      }
+      if (this.targetEntityAttr == false) {
+        this.$Message.warning("查询条件不能为空！");
+        return;
+      }
+      this.isShowSearchConditions = false;
     },
 
     excuteSearch() {
@@ -322,8 +386,11 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scope>
+.xxx /deep/ .ivu-transfer-list {
+  width: 350px;
+}
 .ivu-form-item {
-  margin-bottom: 0;
+  margin-bottom: 0 !important;
 }
 </style>
