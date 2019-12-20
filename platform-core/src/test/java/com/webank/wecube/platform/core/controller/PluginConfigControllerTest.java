@@ -36,7 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class PluginConfigControllerTest extends AbstractControllerTest {
 
     public static final String NON_EXIST_ENTITY_ID = "999";
-    public static final String EXISTING_ENTITY_ID = "1";
     public static final String NON_EXIST_PLUGIN_CONFIG_ID = "999";
     public static final String PLUGIN_CONFIG_ID_WITHOUT_ENTITY = "99";
     private static final String EXISTING_PACKAGE_NAME = "service-management";
@@ -76,7 +75,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message",
                             is(String.format(
-                                    "PluginPackageEntity not found for packageName:entityName [service-management:entity_not_exists_at_all_blabla] for plugin config: Vpc Management",
+                                    "PluginPackageEntity not found for packageName:dataModelVersion:entityName [service-management:2:entity_not_exists_at_all_blabla] for plugin config: Vpc Management",
                                     NON_EXIST_ENTITY_ID))))
                     .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -483,12 +482,16 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 + ", ('7', '2', 'OUTPUT', 'status', 'string', '', null, null, '') "
                 + ", ('8', '2', 'OUTPUT', 'message', 'string', '', null, null, ''); "
                 + "INSERT INTO plugin_package_data_model(id, version, package_name, is_dynamic) VALUES "
-                + "  ('1', 1, 'service-management', 0) " + ", ('2', 2, 'service-management', 0) "
+                + "  ('1', 1, 'service-management', 0) "
+                + ", ('2', 2, 'service-management', 0) "
                 + ", ('wecmdb__1', 1, 'wecmdb', 0) " + ";\n"
                 + "INSERT INTO plugin_package_entities(id, data_model_id, data_model_version, package_name, name, display_name, description) VALUES "
-                + " ('1', '2', 2, 'service-management', 'entity_1', 'entity_1', 'entity_1_description')\n"
-                + ",('2', '2', 2, 'service-management', 'entity_2', 'entity_2', 'entity_2_description')\n"
-                + ",('3', '2', 2, 'service-management', 'entity_3', 'entity_3', 'entity_3_description')\n"
+                + " ('1', '1', 1, 'service-management', 'entity_1', 'entity_1', 'entity_1_description')\n"
+                + ",('2', '1', 1, 'service-management', 'entity_2', 'entity_2', 'entity_2_description')\n"
+                + ",('3', '1', 1, 'service-management', 'entity_3', 'entity_3', 'entity_3_description')\n"
+                + ",('4', '2', 2, 'service-management', 'entity_1', 'entity_1', 'entity_1_description')\n"
+                + ",('5', '2', 2, 'service-management', 'entity_2', 'entity_2', 'entity_2_description')\n"
+                + ",('6', '2', 2, 'service-management', 'entity_3', 'entity_3', 'entity_3_description')\n"
                 + ",('wecmdb__1__resource_set', 'wecmdb__1', 1, 'wecmdb', 'resource_set', 'resource set', 'resource set')\n"
                 + ";\n"
                 + "INSERT INTO plugin_package_attributes(id, entity_id, reference_id, name, description, data_type) VALUES\n"
