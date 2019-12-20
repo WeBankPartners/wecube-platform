@@ -443,23 +443,29 @@ public class ExpressionServiceImpl implements ExpressionService {
         }
 
         Iterable<String> split = Splitter.onPattern("([>~])").split(dataModelExpression);
-        String[] firstSection = split.iterator().next().split(":");
-        if (firstSection.length < 2) {
+        Iterable<String> firstSection = Splitter.onPattern("([:.])").splitToList((split.iterator().next()));
+        List<String> firstSectionStrings = new ArrayList<String>();
+        Iterator<String> firstSectionStringIterator = firstSection.iterator();
+        while (firstSectionStringIterator.hasNext()) {
+            firstSectionStrings.add(firstSectionStringIterator.next());
+        }
+        if (firstSectionStrings.size() < 2) {
             throw new WecubeCoreException(String.format("Illegal data model expression[%s]", dataModelExpression));
         }
 
-        List<EntityDto> entityDtos = Lists.newArrayList(new EntityDto(firstSection[0], firstSection[1]));
         Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser()
                 .parseAll(dataModelExpression);
 
-        boolean isStart = true;
-        while (expressionDtoQueue.size() > 1) {
+        List<EntityDto> entityDtos =new ArrayList<EntityDto>();
+        DataModelExpressionDto dataModelExpressionDtoFirst = expressionDtoQueue.poll();
+            entityDtos= resolveFirstLinkReturnEntities(dataModelExpressionDtoFirst);
+        
+        for (int i = expressionDtoQueue.size(); i > 1; i--) {
             DataModelExpressionDto dataModelExpressionDto = expressionDtoQueue.poll();
-            EntityDto entityDto = resolveLinkReturnEntity(dataModelExpressionDto, isStart);
+            EntityDto entityDto = resolveLinkReturnEntity(dataModelExpressionDto);
             if (null != entityDto) {
                 entityDtos.add(entityDto);
             }
-            isStart = false;
         }
 
         entityDtos.forEach(entity -> {
@@ -478,34 +484,58 @@ public class ExpressionServiceImpl implements ExpressionService {
         return entityDtos;
     }
 
-    private EntityDto buildEntityDtoForEntityFetch(DataModelExpressionDto expressionDto) {
+    private EntityDto buildEntityForEntityFetch(DataModelExpressionDto expressionDto) {
         DataModelParser.EntityContext entity = expressionDto.getEntity();
         return new EntityDto(entity.pkg().getText(), entity.ety().getText());
     }
 
-    private EntityDto buildEntityDtoForRefBy(DataModelExpressionDto expressionDto) {
-        DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
-        return new EntityDto(bwdNode.entity().pkg().getText(), bwdNode.entity().ety().getText());
-    }
-
-    private EntityDto resolveLinkReturnEntity(DataModelExpressionDto expressionDto, boolean isStart) {
+    private EntityDto resolveLinkReturnEntity(DataModelExpressionDto expressionDto) {
         switch (expressionDto.getDataModelExpressionOpType()) {
-        case ENTITY_FETCH:
-            return buildEntityDtoForEntityFetch(expressionDto);
         case REF_TO:
-            if (isStart) {
-                return new EntityDto(expressionDto.getFwdNode().entity().pkg().getText(),
-                        expressionDto.getFwdNode().entity().ety().getText());
-            } else {
-                return new EntityDto(expressionDto.getEntity().pkg().getText(),
-                        expressionDto.getEntity().ety().getText());
-            }
+            return new EntityDto(expressionDto.getEntity().pkg().getText(), expressionDto.getEntity().ety().getText());
         case REF_BY:
-            return buildEntityDtoForRefBy(expressionDto);
+            DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
+            return new EntityDto(bwdNode.entity().pkg().getText(), bwdNode.entity().ety().getText());
         default:
             break;
         }
         return null;
     }
 
+    private List<EntityDto> resolveFirstLinkReturnEntities(DataModelExpressionDto expressionDto) {
+        switch (expressionDto.getDataModelExpressionOpType()) {
+        case ENTITY_FETCH:
+            EntityDto entityDto = buildEntityForEntityFetch(expressionDto);
+            return Lists.newArrayList(entityDto);
+        case REF_TO:
+            EntityDto firstEntityDtoInRefToCase = buildForwardNodeEntityForRefTo(expressionDto);
+            EntityDto secondEntityDtoInRefToCase = buildEntityForRefTo(expressionDto);
+            return Lists.newArrayList(firstEntityDtoInRefToCase, secondEntityDtoInRefToCase);
+        case REF_BY:
+            EntityDto firstEntityDtoInRefByCase = buildEntityForRefBy(expressionDto);
+            EntityDto secondEntityDtoInRefByCase = buildBackwardNodeEntityForRefBy(expressionDto);
+            return Lists.newArrayList(firstEntityDtoInRefByCase, secondEntityDtoInRefByCase);
+        default:
+            break;
+        }
+        return null;
+    }
+
+    private EntityDto buildForwardNodeEntityForRefTo(DataModelExpressionDto expressionDto) {
+        return new EntityDto(expressionDto.getFwdNode().entity().pkg().getText(),
+                expressionDto.getFwdNode().entity().ety().getText());
+    }
+
+    private EntityDto buildEntityForRefTo(DataModelExpressionDto expressionDto) {
+        return new EntityDto(expressionDto.getEntity().pkg().getText(), expressionDto.getEntity().ety().getText());
+    }
+
+    private EntityDto buildBackwardNodeEntityForRefBy(DataModelExpressionDto expressionDto) {
+        return new EntityDto(expressionDto.getBwdNode().entity().pkg().getText(),
+                expressionDto.getBwdNode().entity().ety().getText());
+    }
+
+    private EntityDto buildEntityForRefBy(DataModelExpressionDto expressionDto) {
+        return new EntityDto(expressionDto.getEntity().pkg().getText(), expressionDto.getEntity().ety().getText());
+    }
 }
