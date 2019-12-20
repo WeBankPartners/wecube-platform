@@ -107,14 +107,20 @@ public class PluginConfigService {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfig.getId());
         }
 
-        String packageName = pluginConfig.getTargetPackage();
-        String entityName = pluginConfig.getTargetEntity();
-        if (StringUtils.isNotBlank(packageName) && StringUtils.isNotBlank(entityName)) {
-            Optional<PluginPackageEntity> pluginPackageEntityOptional = pluginPackageEntityRepository
-                    .findByPackageNameAndName(packageName, entityName);
-            if (!pluginPackageEntityOptional.isPresent()) {
-                String errorMessage = String.format("PluginPackageEntity not found for packageName:entityName [%s:%s] for plugin config: %s",
-                        packageName, entityName, pluginConfig.getName());
+        ensureEntityIsValid(pluginConfig.getName(), pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity());
+    }
+
+    private void ensureEntityIsValid(String pluginConfigName, String targetPackage, String targetEntity) {
+        if (StringUtils.isNotBlank(targetPackage) && StringUtils.isNotBlank(targetEntity)) {
+            Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository.findLatestDataModelByPackageName(targetPackage);
+            if (!dataModelOptional.isPresent()){
+                throw new WecubeCoreException("Data model not exists for package name [%s]");
+            }
+
+            Integer dataModelVersion = dataModelOptional.get().getVersion();
+            if (!pluginPackageEntityRepository.existsByPackageNameAndNameAndDataModelVersion(targetPackage, targetEntity, dataModelVersion)) {
+                String errorMessage = String.format("PluginPackageEntity not found for packageName:dataModelVersion:entityName [%s:%s:%s] for plugin config: %s",
+                        targetPackage, dataModelVersion, targetEntity, pluginConfigName);
                 log.error(errorMessage);
                 throw new WecubeCoreException(errorMessage);
             }
@@ -134,18 +140,11 @@ public class PluginConfigService {
                     "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
-        if (StringUtils.isNotBlank(pluginConfig.getTargetPackage()) && StringUtils.isNotBlank(pluginConfig.getTargetEntity())) {
-            if (DISABLED != pluginConfig.getStatus()) {
-                throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
-            }
-
-            if (!pluginPackageEntityRepository.existsByPackageNameAndName(pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity())) {
-                String errorMessage = String.format("PluginPackageEntity not found for packageName:entityName [%s:%s] for plugin config: %s",
-                        pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity(), pluginConfig.getName());
-                log.error(errorMessage);
-                throw new WecubeCoreException(errorMessage);
-            }
+        if (ENABLED == pluginConfig.getStatus()) {
+            throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
         }
+
+        ensureEntityIsValid(pluginConfig.getName(), pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity());
 
         checkMandatoryParameters(pluginConfig);
 
