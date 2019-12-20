@@ -402,7 +402,7 @@ public class PluginPackageXmlParser {
                 pluginConfig.setTargetEntity(targetEntity);
             }
 
-            String registerName = getNonNullStringAttribute(pluginConfigNode, "./@registerName", "Register name");
+            String registerName = getStringAttribute(pluginConfigNode, "./@registerName");
             if (StringUtils.isNotBlank(registerName)) {
                 pluginConfig.setRegisterName(registerName);
             }
