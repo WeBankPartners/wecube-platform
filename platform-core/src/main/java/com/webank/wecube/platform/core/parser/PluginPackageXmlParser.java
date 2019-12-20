@@ -406,7 +406,6 @@ public class PluginPackageXmlParser {
             if (StringUtils.isNotBlank(registerName)) {
                 pluginConfig.setRegisterName(registerName);
             }
-
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
                 pluginConfig.setInterfaces(
