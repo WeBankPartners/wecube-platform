@@ -109,7 +109,6 @@
           <DataModel
             v-if="currentTab === 'models'"
             :pkgId="currentPlugin.name"
-            @reGetPkgStatus="resetPkgStatus"
           ></DataModel>
         </TabPane>
         <TabPane name="systemParameters" :label="$t('system_params')">
@@ -566,9 +565,6 @@ export default {
         onCancel: () => {}
       });
       document.querySelector(".ivu-modal-mask").click();
-    },
-    resetPkgStatus() {
-      this.$set(this.currentPlugin, "status", "UNREGISTERED");
     },
     configPlugin(packageId) {
       this.swapPanel("pluginConfigPanel");
