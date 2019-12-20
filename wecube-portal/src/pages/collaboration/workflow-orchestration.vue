@@ -209,7 +209,7 @@
         <Transfer
           :titles="transferTitles"
           :list-style="transferStyle"
-          :data="allRoles"
+          :data="allRolesBackUp"
           :target-keys="useRolesKeyToFlow"
           :render-format="renderRoleNameForTransfer"
           @on-change="handleUseRoleTransferChange"
