@@ -9,4 +9,7 @@ public interface PluginPackageEntityRepository extends CrudRepository<PluginPack
 
     boolean existsByPackageNameAndNameAndDataModelVersion(String packageName, String name, int dataModelVersion);
 
+    Optional<PluginPackageEntity> findByPackageNameAndNameAndDataModelVersion(String packageName, String name,
+            int dataModelVersion);
+
 }
