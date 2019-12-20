@@ -40,4 +40,37 @@ public class DataModelControllerTest extends AbstractControllerTest {
                 .andReturn().getResponse();
     }
 
+    @Test
+    public void getAllEntityByDmeShouldSucceed1() throws Exception {
+        DmeDto requestDmeDto = new DmeDto("wecmdb:subsys");
+        mvc.perform(post("/v1/data-model/dme/all-entities").contentType(MediaType.APPLICATION_JSON)
+                .content(toJsonString(requestDmeDto))).andExpect(status().isOk()).andDo(print())
+                .andExpect(jsonPath("$.status", is("OK")))
+                .andExpect(jsonPath("$.data.[*].packageName", hasItem("wecmdb")))
+                .andExpect(jsonPath("$.data.[*].entityName", contains("subsys"))).andReturn().getResponse();
+    }
+
+    @Test
+    public void getAllEntityByDmeShouldSucceed2() throws Exception {
+        DmeDto requestDmeDto = new DmeDto("wecmdb:unit.unit_design>wecmdb:unit_design");
+        mvc.perform(post("/v1/data-model/dme/all-entities").contentType(MediaType.APPLICATION_JSON)
+                .content(toJsonString(requestDmeDto))).andExpect(status().isOk()).andDo(print())
+                .andExpect(jsonPath("$.status", is("OK")))
+                .andExpect(jsonPath("$.data.[*].packageName", hasItem("wecmdb")))
+                .andExpect(jsonPath("$.data.[*].entityName", contains("unit", "unit_design"))).andReturn()
+                .getResponse();
+    }
+
+    @Test
+    public void getAllEntityByDmeShouldSucceed3() throws Exception {
+        DmeDto requestDmeDto = new DmeDto(
+                "wecmdb:subsys~(subsys)wecmdb:unit.unit_design>wecmdb:unit_design.subsys_design");
+        mvc.perform(post("/v1/data-model/dme/all-entities").contentType(MediaType.APPLICATION_JSON)
+                .content(toJsonString(requestDmeDto))).andExpect(status().isOk()).andDo(print())
+                .andExpect(jsonPath("$.status", is("OK")))
+                .andExpect(jsonPath("$.data.[*].packageName", hasItem("wecmdb")))
+                .andExpect(jsonPath("$.data.[*].entityName", contains("subsys", "unit", "unit_design"))).andReturn()
+                .getResponse();
+    }
+
 }
