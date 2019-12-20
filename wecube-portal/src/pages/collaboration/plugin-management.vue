@@ -4,7 +4,12 @@
       <Row>
         <Card dis-hover>
           <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
-          <Button icon="ios-cloud-upload-outline" @click="getHeaders">
+          <Button
+            type="info"
+            ghost
+            icon="ios-cloud-upload-outline"
+            @click="getHeaders"
+          >
             {{ $t("upload_plugin_btn") }}
           </Button>
           <Upload
@@ -62,6 +67,8 @@
                     v-if="plugin.status !== 'DECOMMISSIONED'"
                     @click.stop.prevent="deletePlugin(plugin.id)"
                     size="small"
+                    type="error"
+                    ghost
                     icon="ios-trash"
                   ></Button>
                 </span>
@@ -69,18 +76,24 @@
                   <Button
                     @click="configPlugin(plugin.id)"
                     size="small"
+                    type="info"
+                    ghost
                     icon="ios-checkmark-circle"
                     >{{ $t("plugin_config_check") }}</Button
                   >
                   <Button
                     @click="manageService(plugin.id)"
                     size="small"
+                    type="info"
+                    ghost
                     icon="ios-construct"
                     >{{ $t("service_regist") }}</Button
                   >
                   <Button
                     @click="manageRuntimePlugin(plugin.id)"
                     size="small"
+                    type="info"
+                    ghost
                     icon="ios-settings"
                     >{{ $t("runtime_manage") }}</Button
                   >
