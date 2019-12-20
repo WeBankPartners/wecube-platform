@@ -152,6 +152,16 @@ export default {
           type: "datetimerange",
           inputType: "date",
           placeholder: this.$t("table_updated_date")
+        },
+        {
+          title: this.$t("table_port"),
+          key: "port",
+          inputKey: "port",
+          searchSeqNo: 10,
+          displaySeqNo: 10,
+          component: "Input",
+          inputType: "text",
+          placeholder: this.$t("table_port")
         }
       ]
     };
@@ -178,6 +188,8 @@ export default {
           _.isAllocated = _.isAllocated ? "true" : "false";
           _.createdDate = moment(_.createdDate).format("YYYY-MM-DD hh:mm:ss");
           _.updatedDate = moment(_.updatedDate).format("YYYY-MM-DD hh:mm:ss");
+          _.port =
+            _.additionalPropertiesMap && _.additionalPropertiesMap.portBindings;
           return _;
         });
         this.pagination.total = data.pageInfo.totalRows;
