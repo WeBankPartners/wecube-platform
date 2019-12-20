@@ -38,7 +38,7 @@ public class PluginPackageEntity {
     private String description;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "pluginPackageEntity", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "pluginPackageEntity", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<PluginPackageAttribute> pluginPackageAttributeList;
 
     public PluginPackageEntity() {
