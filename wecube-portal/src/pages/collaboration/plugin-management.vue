@@ -600,6 +600,7 @@ export default {
         this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
       this.dbQueryData = [];
+      this.dbQueryColumns = [];
       this.getAvailableContainerHosts();
       this.resetLogTable();
     },
