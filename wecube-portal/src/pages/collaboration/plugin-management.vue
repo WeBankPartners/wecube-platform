@@ -248,13 +248,14 @@
                                 {{ item.displayLabel }}
                               </div>
                             </Col>
-
-                            <Button
-                              size="small"
-                              type="error"
-                              @click="removePluginInstance(item.id)"
-                              >{{ $t("ternmiante") }}</Button
-                            >
+                            <Col span="4" offset="1">
+                              <Button
+                                size="small"
+                                type="error"
+                                @click="removePluginInstance(item.id)"
+                                >{{ $t("ternmiante") }}</Button
+                              >
+                            </Col>
                           </div>
                         </div>
                       </div>
@@ -314,10 +315,12 @@
                   </Row>
                   <Row style="margin-top: 20px">
                     {{ $t("search_result") + ":" }}
-                    <Table
-                      :columns="dbQueryColumns"
-                      :data="dbQueryData"
-                    ></Table>
+                    <div style="width: 100%;overflow: auto">
+                      <Table
+                        :columns="dbQueryColumns"
+                        :data="dbQueryData"
+                      ></Table>
+                    </div>
                     <Page
                       :total="dbTablePagination.total"
                       :current="dbTablePagination.currentPage"
@@ -481,7 +484,7 @@ export default {
           key: "path"
         },
         {
-          title: "hash",
+          title: "Hash",
           key: "hash"
         },
         {
@@ -644,7 +647,8 @@ export default {
         this.dbQueryColumns = data.headers.map(_ => {
           return {
             key: _,
-            title: _
+            title: _,
+            minWidth: 170
           };
         });
         this.dbQueryData = data.contents.map(_ => {
