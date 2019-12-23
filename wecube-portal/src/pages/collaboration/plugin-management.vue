@@ -599,6 +599,7 @@ export default {
         this.availiableHostsWithPort = [];
         this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
+      this.dbQueryData = [];
       this.getAvailableContainerHosts();
       this.resetLogTable();
     },
