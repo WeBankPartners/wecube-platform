@@ -14,14 +14,27 @@
               <span v-else>(无)</span>
             </FormItem>
             <FormItem label="查询条件：">
-              <span>(无)</span>
+              <div v-if="searchParameters.length">
+                <Row>
+                  <Col
+                    span="6"
+                    v-for="(sp, spIndex) in searchParameters"
+                    :key="spIndex"
+                    style="padding:0 8px"
+                  >
+                    <label for="">{{ sp.description }}:</label>
+                    <Input v-model="sp.value" />
+                  </Col>
+                </Row>
+              </div>
+              <span v-else>(无)</span>
             </FormItem>
           </Form>
         </div>
         <div class="search-btn">
           <Button type="primary" @click="excuteSearch">执行查询</Button>
-          <Button>清空条件</Button>
-          <Button>重置查询</Button>
+          <Button @click="clearParametes">清空条件</Button>
+          <Button @click="resetParametes">重置查询</Button>
         </div>
       </Card>
       <a v-else @click="reExcute('displaySearchZone')"
@@ -124,7 +137,7 @@
             >
           </Select>
         </FormItem>
-        <FormItem label="查询条件：" class="xxx">
+        <FormItem label="查询条件：" class="transfer-style">
           <Transfer
             :data="allEntityAttr"
             :target-keys="targetEntityAttr"
@@ -135,7 +148,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="saveSearchCondition">Delete</Button>
+        <Button type="primary" @click="saveSearchCondition">{{
+          $t("save")
+        }}</Button>
       </div>
     </Modal>
     <Modal v-model="DelConfig.isDisplay" width="360">
@@ -187,14 +202,34 @@ export default {
       selectedEntityType: "",
       allEntityType: [],
 
-      dataModelExpression: "",
+      dataModelExpression: "a.b.c",
       currentEntityName: "",
       currentPackageName: "",
       currentEntityAttr: "",
       currentEntityAttrList: [],
       allEntityAttr: [],
       targetEntityAttr: [],
-      input: "",
+
+      searchParameters: [
+        {
+          packageName: "wecmdb",
+          entityName: "subsys",
+          description: "业务区域",
+          name: "business_zone2",
+          dataType: "ref",
+          si: "0",
+          ai: "0"
+        },
+        {
+          packageName: "wecmdb",
+          entityName: "subsys",
+          description: "编码",
+          name: "business_zone2",
+          dataType: "str",
+          si: "0",
+          ai: "1"
+        }
+      ],
 
       payload: {
         filters: [],
@@ -248,9 +283,9 @@ export default {
         this.currentEntityAttrList = data.slice(-1)[0].attributes;
 
         this.allEntityAttr = data
-          .map(single => {
-            return single.attributes.map(attr => {
-              attr.key = attr.id;
+          .map((single, si) => {
+            return single.attributes.map((attr, ai) => {
+              attr.key = `${single.packageName}&${single.entityName}&${attr.description}&${attr.name}&${attr.dataType}&${si}&${ai}`;
               attr.label = attr.name;
               attr.entityName = single.entityName;
               attr.packageName = single.packageName;
@@ -268,6 +303,16 @@ export default {
       if (document.querySelector(".wecube_attr-ul")) {
         document.querySelector(".wecube_attr-ul").style.width = "730px";
       }
+
+      this.selectedEntityType = "";
+      this.allEntityType = [];
+      this.dataModelExpression = ":";
+      this.currentEntityAttr = "";
+      this.currentEntityAttrList = [];
+      this.currentPackageName = "";
+      this.currentEntityName = "";
+      this.allEntityAttr = [];
+      this.targetEntityAttr = [];
     },
     changeEntityType() {
       this.targetEntityAttr = [];
@@ -287,7 +332,6 @@ export default {
             })
           };
         });
-        console.log(this.allEntityType);
       }
     },
     handleChange(newTargetKeys) {
@@ -306,11 +350,45 @@ export default {
         return;
       }
       this.isShowSearchConditions = false;
+      this.searchParameters = this.targetEntityAttr.map(teAttr => {
+        const [
+          packageName,
+          entityName,
+          description,
+          name,
+          dataType,
+          si,
+          ai,
+          value
+        ] = teAttr.split("&");
+        return {
+          packageName,
+          entityName,
+          description,
+          name,
+          dataType,
+          si,
+          ai,
+          value: null
+        };
+      });
+      console.log(this.searchParameters);
     },
 
     excuteSearch() {
-      this.displaySearchZone = false;
-      this.displayResultTableZone = true;
+      console.log(this.dataModelExpression);
+      console.log(this.searchParameters);
+      // this.displaySearchZone = false;
+      // this.displayResultTableZone = true;
+    },
+    clearParametes() {
+      this.searchParameters.forEach(item => {
+        item.value = "";
+      });
+    },
+    resetParametes() {
+      this.dataModelExpression = ":";
+      this.searchParameters = [];
     },
     reExcute(key) {
       this.DelConfig.isDisplay = true;
@@ -387,10 +465,14 @@ export default {
 </script>
 
 <style lang="scss" scope>
-.xxx /deep/ .ivu-transfer-list {
+.transfer-style /deep/ .ivu-transfer-list {
   width: 350px;
 }
 .ivu-form-item {
   margin-bottom: 0 !important;
+}
+
+.search-btn {
+  margin-top: 16px;
 }
 </style>
