@@ -168,6 +168,7 @@
                         >
                           <Option
                             v-for="item in allSystemVariables"
+                            v-if="item.status === 'active'"
                             :value="item.name"
                             :key="item.name"
                             >{{ item.name }}</Option
