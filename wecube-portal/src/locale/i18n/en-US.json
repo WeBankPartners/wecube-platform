@@ -269,7 +269,7 @@
   "runtime_resource": "Runtime Resource",
   "plugin_regist": "Plugin Regist",
   "no_plugin_packages": "No Plugin Packages",
-  "path": "path",
+  "path": "Path",
   "runtime_container": "Runtime Container",
   "database": "DataBase",
   "only_select": "Only select operation allowed",
