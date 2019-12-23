@@ -66,7 +66,9 @@ export default {
       }
     },
     value: {
-      handler(val) {},
+      handler(val) {
+        this.restorePathExp();
+      },
       immediate: true
     },
     allDataModelsWithAttrs: {
@@ -74,6 +76,9 @@ export default {
     },
     rootEntity: {
       handler(val) {
+        if (!val) {
+          return;
+        }
         const found = this.allEntity.find(_ => _.name === val);
         this.currentPkg = found.packageName;
         this.currentEntity = val;
