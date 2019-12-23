@@ -248,13 +248,14 @@
                                 {{ item.displayLabel }}
                               </div>
                             </Col>
-
-                            <Button
-                              size="small"
-                              type="error"
-                              @click="removePluginInstance(item.id)"
-                              >{{ $t("ternmiante") }}</Button
-                            >
+                            <Col span="4" offset="1">
+                              <Button
+                                size="small"
+                                type="error"
+                                @click="removePluginInstance(item.id)"
+                                >{{ $t("ternmiante") }}</Button
+                              >
+                            </Col>
                           </div>
                         </div>
                       </div>
@@ -483,7 +484,7 @@ export default {
           key: "path"
         },
         {
-          title: "hash",
+          title: "Hash",
           key: "hash"
         },
         {
