@@ -841,6 +841,7 @@ export default {
             }
           );
         } else {
+          this.setUploadActionHeader();
           this.$refs.uploadButton.handleClick();
         }
       } else {
