@@ -493,6 +493,7 @@ export default {
           let needParams = found.inputParameters.filter(
             _ => _.mappingType === "context" || _.mappingType === "constant"
           );
+          this.pluginForm.paramInfos = [];
           if (isUseOriginParamsInfo) return;
           this.pluginForm.paramInfos = needParams.map(_ => {
             return {
