@@ -161,10 +161,9 @@
             <version>4.1.0</version>
         </dependency>
         <dependency>
-            <groupId>cn.bestwu</groupId>
+            <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2-unwrap</version>
-            <scope>test</scope>
+            <version>1.2.62</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
