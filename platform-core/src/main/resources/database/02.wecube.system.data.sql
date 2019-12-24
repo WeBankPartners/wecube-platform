@@ -1,5 +1,5 @@
 delete from menu_items;
-insert into menu_items (id,parent_code,code,source,menu_order,description,cn_display_name) values
+insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('JOBS',null,'JOBS','SYSTEM', 1, '', '任务')
 ,('DESIGNING',null,'DESIGNING','SYSTEM', 2, '', '设计')
 ,('IMPLEMENTATION',null,'IMPLEMENTATION','SYSTEM', 3, '', '执行')
