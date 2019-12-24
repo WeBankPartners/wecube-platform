@@ -121,8 +121,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities, TaskNodeDefInfoEntity currNodeDefInfo){
         List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPreviousNodeIds());
+        log.info("previousNodeIds:{}", previousNodeIds);
         for(String prevNodeId: previousNodeIds){
             TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities, prevNodeId);
+            log.info("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
             if(prevNodeInst != null){
                 if(statelessNodeTypes.contains(prevNodeInst.getNodeType()) && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())){
                     prevNodeInst.setUpdatedTime(new Date());
