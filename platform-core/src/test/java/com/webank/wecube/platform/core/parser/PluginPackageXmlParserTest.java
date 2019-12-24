@@ -31,7 +31,7 @@ public class PluginPackageXmlParserTest {
 
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
         assertThat(pluginPackage.getPluginPackageDependencies()).hasSize(2);
-        assertThat(pluginPackage.getPluginPackageMenus()).hasSize(2);
+        assertThat(pluginPackage.getPluginPackageMenus()).hasSize(3);
         assertThat(pluginPackage.getSystemVariables()).hasSize(2);
         assertThat(pluginPackage.getPluginPackageAuthorities()).hasSize(3);
         Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker = pluginPackage.getPluginPackageRuntimeResourcesDocker();
@@ -43,9 +43,10 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackage.getPluginConfigs()).hasSize(2);
 
         List<String> cnDisplayNames = pluginPackage.getPluginPackageMenus().stream().map(menu -> menu.getCnDisplayName()).sorted().collect(Collectors.toList());
-        assertThat(cnDisplayNames).hasSize(2);
-        assertThat(cnDisplayNames.get(0)).isEqualTo("任务管理");
-        assertThat(cnDisplayNames.get(1)).isEqualTo("服务类型管理");
+        assertThat(cnDisplayNames).hasSize(3);
+        assertThat(cnDisplayNames.get(0)).isEqualTo("Menu without Chinese Name");
+        assertThat(cnDisplayNames.get(1)).isEqualTo("任务管理");
+        assertThat(cnDisplayNames.get(2)).isEqualTo("服务类型管理");
 
         PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDto.getPluginPackageDataModelDto();
         assertThat(pluginPackageDataModelDto.isDynamic()).isTrue();
