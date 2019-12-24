@@ -11,15 +11,17 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     private String source;
     private Integer menuOrder;
     private String displayName;
+    private String cnDisplayName;
     private String path;
 
-    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String path) {
+    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String cnDisplayName, String path) {
         this.id = id;
         this.category = category;
         this.code = code;
         this.source = source;
         this.menuOrder = menuOrder;
         this.displayName = displayName;
+        this.cnDisplayName = cnDisplayName;
         this.path = path;
     }
 
@@ -37,6 +39,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         pluginPackageMenuDto.setSource(systemMenu.getSource());
         pluginPackageMenuDto.setMenuOrder(systemMenu.getMenuOrder());
         pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
+        pluginPackageMenuDto.setCnDisplayName(systemMenu.getCnDisplayName());
         pluginPackageMenuDto.setPath(null);
         return pluginPackageMenuDto;
     }
@@ -49,6 +52,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         pluginPackageMenuDto.setSource(packageMenu.getSource());
         pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
         pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
+        pluginPackageMenuDto.setCnDisplayName(packageMenu.getCnDisplayName());
         pluginPackageMenuDto.setPath(packageMenu.getPath());
         return pluginPackageMenuDto;
     }
@@ -99,6 +103,14 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getCnDisplayName() {
+        return cnDisplayName;
+    }
+
+    public void setCnDisplayName(String cnDisplayName) {
+        this.cnDisplayName = cnDisplayName;
     }
 
     public String getPath() {
