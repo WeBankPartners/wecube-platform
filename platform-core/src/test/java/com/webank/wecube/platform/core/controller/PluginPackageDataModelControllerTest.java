@@ -191,7 +191,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     }
 
     @Test
-    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeUNREGISTERED() throws Exception {
+    public void givenDynamicDataModelConfirmedWhenRegisterThenNewDataModelShouldBeApplied() throws Exception {
         mockSimpleDataModel();
 
         String packageName = "package1";
