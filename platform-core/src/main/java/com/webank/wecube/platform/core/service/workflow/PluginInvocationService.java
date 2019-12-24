@@ -42,6 +42,7 @@ import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcesso
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
+import static com.webank.wecube.platform.core.utils.Constants.*;
 
 /**
  * 
@@ -50,16 +51,6 @@ import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
  */
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
-
-    public static final String MAPPING_TYPE_CONTEXT = "context";
-    public static final String MAPPING_TYPE_ENTITY = "entity";
-    public static final String MAPPING_TYPE_SYSTEM_VARIABLE = "system_variable";
-    public static final String MAPPING_TYPE_CONSTANT = "constant";
-
-    private static final String FIELD_REQUIRED = "Y";
-
-    private static final String ASYNC_SERVICE_SYMBOL = "Y";
-
     @Autowired
     private PluginServiceStub pluginServiceStub;
 
