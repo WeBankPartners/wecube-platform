@@ -265,5 +265,41 @@ CREATE TABLE `core_ru_proc_role_binding` (
     `permission` VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
+drop table if exists batch_execution_jobs;
+CREATE TABLE `batch_execution_jobs` (
+    `id`                    VARCHAR(255) PRIMARY KEY,
+    `create_timestamp`      timestamp default current_timestamp,
+    `complete_timestamp`      timestamp
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+
+drop table if exists execution_jobs;
+CREATE TABLE `execution_jobs` (
+    `id`                      VARCHAR(255) PRIMARY KEY,
+    `batch_execution_job_id`  VARCHAR(255) NOT NULL,
+    `package_name`            VARCHAR(63) NOT NULL,
+    `entity_name`             VARCHAR(100) NOT NULL,
+    `business_key`            VARCHAR(255) NOT NULL,
+    `root_entity_id`          VARCHAR(255) NOT NULL,
+    `execute_time`            timestamp default current_timestamp,
+    `complete_time`           timestamp default null,
+    `error_code`              VARCHAR(1) NULL,
+    `error_message`           TEXT NULL,
+    `return_json`             LONGTEXT NULL,
+    UNIQUE INDEX `job_id_and_root_entity_id` (`batch_execution_job_id`, `root_entity_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+
+drop table if exists batch_execution_job_parameters;
+CREATE TABLE `batch_execution_job_parameters` (
+    `id` VARCHAR(255) PRIMARY KEY,
+    `execution_job_id` VARCHAR(255) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `data_type` VARCHAR(50) NOT NULL,
+    `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
+    `mapping_entity_expression` varchar(1024) NULL DEFAULT NULL,
+    `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
+    `required` varchar(5),
+    `constant_value` VARCHAR(255) NULL,
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+
 
 SET FOREIGN_KEY_CHECKS = 1;

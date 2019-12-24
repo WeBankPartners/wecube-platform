@@ -147,6 +147,14 @@ public class PluginInstanceService {
                 packageId);
     }
 
+    public PluginInstance getRunningPluginInstance(String pluginName) {
+        List<PluginInstance> instances = getRunningPluginInstances(pluginName);
+        if (instances.size() > 0) {
+            return instances.get(0);
+        }
+        return null;
+    }
+
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
         Optional<PluginPackage> pkg = pluginPackageRepository.findLatestActiveVersionByName(pluginName);
         if (!pkg.isPresent()) {
