@@ -10,10 +10,10 @@
 
     <!-- 2.菜单注入 - 描述运行本插件包需要注入的菜单 -->
     <menus>
-        <menu code='JOBS_SERVICE_CATALOG_MANAGEMENT' cat='JOBS' displayName="Servive Catalog Management" cnDisplayName="服务类型管理">
+        <menu code='JOBS_SERVICE_CATALOG_MANAGEMENT' cat='JOBS' displayName="Servive Catalog Management" localDisplayName="服务类型管理">
             /service-catalog
         </menu>
-        <menu code='JOBS_TASK_MANAGEMENT' cat='JOBS' displayName="Task Management" cnDisplayName="任务管理">/task-management</menu>
+        <menu code='JOBS_TASK_MANAGEMENT' cat='JOBS' displayName="Task Management" localDisplayName="任务管理">/task-management</menu>
         <menu code='MENU_WITHOUT_CHINESE_NAME' cat='JOBS' displayName="Menu without Chinese Name">/menu-without-chinese-name</menu>
     </menus>
 

@@ -34,7 +34,7 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     private String displayName;
 
     @Column
-    private String cnDisplayName;
+    private String localDisplayName;
 
     @Generated(GenerationTime.INSERT)
     @Column(name = "menu_order", nullable = false, updatable = false, columnDefinition = "integer auto_increment")
@@ -96,12 +96,12 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this.displayName = displayName;
     }
 
-    public String getCnDisplayName() {
-        return cnDisplayName;
+    public String getLocalDisplayName() {
+        return localDisplayName;
     }
 
-    public void setCnDisplayName(String cnDisplayName) {
-        this.cnDisplayName = cnDisplayName;
+    public void setLocalDisplayName(String localDisplayName) {
+        this.localDisplayName = localDisplayName;
     }
 
     public Integer getMenuOrder() {
@@ -132,14 +132,14 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this(null, pluginPackage, code, category, MenuItem.Source.PLUGIN.name(), displayName, displayName,null, path);
     }
 
-    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, String cnDisplayName, Integer menuOrder, String path) {
+    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, String localDisplayName, Integer menuOrder, String path) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.code = code;
         this.category = category;
         this.source = source;
         this.displayName = displayName;
-        this.cnDisplayName = cnDisplayName;
+        this.localDisplayName = localDisplayName;
         this.menuOrder = menuOrder;
         this.path = path;
     }

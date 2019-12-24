@@ -334,11 +334,11 @@ public class PluginPackageXmlParser {
             String menuDisplayName = getNonNullStringAttribute(pluginPackageMenuNode, "./@displayName",
                     "Plugin package menu display name");
             pluginPackageMenu.setDisplayName(menuDisplayName);
-            String cnDisplayName = getStringAttribute(pluginPackageMenuNode, "./@cnDisplayName");
-            if (StringUtils.isNotBlank(cnDisplayName)) {
-                pluginPackageMenu.setCnDisplayName(cnDisplayName);
+            String localDisplayName = getStringAttribute(pluginPackageMenuNode, "./@localDisplayName");
+            if (StringUtils.isNotBlank(localDisplayName)) {
+                pluginPackageMenu.setLocalDisplayName(localDisplayName);
             } else {
-                pluginPackageMenu.setCnDisplayName(menuDisplayName);
+                pluginPackageMenu.setLocalDisplayName(menuDisplayName);
             }
             pluginPackageMenu.setPath(pluginPackageMenuNode.getTextContent());
             pluginPackageMenu.setSource(MenuItem.Source.PLUGIN.name());
