@@ -97,10 +97,18 @@ public class BatchExecutionService {
         List<ExecutionJobParameter> executionJobParameters = new ArrayList<ExecutionJobParameter>();
         inputParameterDefinitions.forEach(inputParameterDefinition -> {
             PluginConfigInterfaceParameter interfaceParameter = inputParameterDefinition.getInputParameter();
-            executionJobParameters.add(new ExecutionJobParameter(interfaceParameter.getName(),
-                    interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
-                    interfaceParameter.getMappingEntityExpression(), interfaceParameter.getMappingSystemVariableName(),
-                    interfaceParameter.getRequired(), inputParameterDefinition.getInputParameterValue().toString()));
+            if (null != inputParameterDefinition.getInputParameterValue()) {
+                executionJobParameters
+                        .add(new ExecutionJobParameter(interfaceParameter.getName(), interfaceParameter.getDataType(),
+                                interfaceParameter.getMappingType(), interfaceParameter.getMappingEntityExpression(),
+                                interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(),
+                                inputParameterDefinition.getInputParameterValue().toString()));
+            } else {
+                executionJobParameters.add(new ExecutionJobParameter(interfaceParameter.getName(),
+                        interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
+                        interfaceParameter.getMappingEntityExpression(),
+                        interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(), null));
+            }
         });
         return executionJobParameters;
     }

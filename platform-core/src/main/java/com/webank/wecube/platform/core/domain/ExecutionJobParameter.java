@@ -146,7 +146,7 @@ public class ExecutionJobParameter {
     }
 
     public ExecutionJobParameter(String name, String dataType, String mappingType, String mappingEntityExpression,
-            String mappingSystemVariableName, String required, String constantValue) {
+            String mappingSystemVariableName, String required, String value) {
         super();
         this.name = name;
         this.dataType = dataType;
@@ -154,6 +154,6 @@ public class ExecutionJobParameter {
         this.mappingEntityExpression = mappingEntityExpression;
         this.mappingSystemVariableName = mappingSystemVariableName;
         this.required = required;
-        this.value = constantValue;
+        this.value = value;
     }
 }

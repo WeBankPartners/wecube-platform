@@ -28,7 +28,7 @@ public class BatchExecutionJob {
     private Timestamp createTimestamp;
 
     @Column
-    private Timestamp creator;
+    private String creator;
 
     @Column
     private Timestamp completeTimestamp;
@@ -70,11 +70,11 @@ public class BatchExecutionJob {
         this.jobs = jobs;
     }
 
-    public Timestamp getCreator() {
+    public String getCreator() {
         return creator;
     }
 
-    public void setCreator(Timestamp creator) {
+    public void setCreator(String creator) {
         this.creator = creator;
     }
 

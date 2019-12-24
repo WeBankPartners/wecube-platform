@@ -11,30 +11,8 @@ public class BatchExecutionRequestDto {
     private String packageName;
     private String entityName;
     private List<InputParameterDefinition> inputParameterDefinitions;
-//    private List<String> rootEntityIds;
-    private PluginPackageAttribute businessKeyAttribute;
-    private List<ResourceData> resourceDatas;
-
-    public class ResourceData {
-        private Object businessKeyValue;
-        private String id;
-
-        public Object getBusinessKeyValue() {
-            return businessKeyValue;
-        }
-
-        public void setBusinessKeyValue(Object businessKeyValue) {
-            this.businessKeyValue = businessKeyValue;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-    }
+    private BusinessKeyAttributeDto businessKeyAttribute;
+    private List<ResourceDataDto> resourceDatas;
 
     public BatchExecutionRequestDto() {
     }
@@ -71,19 +49,19 @@ public class BatchExecutionRequestDto {
         this.inputParameterDefinitions = inputParameterDefinitions;
     }
 
-    public PluginPackageAttribute getBusinessKeyAttribute() {
+    public BusinessKeyAttributeDto getBusinessKeyAttribute() {
         return businessKeyAttribute;
     }
 
-    public void setBusinessKeyAttribute(PluginPackageAttribute businessKeyAttribute) {
+    public void setBusinessKeyAttribute(BusinessKeyAttributeDto businessKeyAttribute) {
         this.businessKeyAttribute = businessKeyAttribute;
     }
 
-    public List<ResourceData> getResourceDatas() {
+    public List<ResourceDataDto> getResourceDatas() {
         return resourceDatas;
     }
 
-    public void setResourceDatas(List<ResourceData> resourceDatas) {
+    public void setResourceDatas(List<ResourceDataDto> resourceDatas) {
         this.resourceDatas = resourceDatas;
     }
 
