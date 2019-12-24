@@ -83,22 +83,15 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             newDataModelVersion = existingDataModelDomain.getVersion() + 1;
         }
         pluginPackageDataModelDto.setVersion(newDataModelVersion);
-        PluginPackageDataModel transferredPluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
+        PluginPackageDataModel pluginPackageDataModel = PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto);
 
         if (null != pluginPackageDataModelDto.getPluginPackageEntities() && pluginPackageDataModelDto.getPluginPackageEntities().size() > 0) {
             Map<String, String> attributeReferenceNameMap = buildAttributeReferenceNameMap(pluginPackageDataModelDto);
-            Map<String, PluginPackageAttribute> referenceAttributeMap = buildReferenceAttributeMap(transferredPluginPackageDataModel);
-            updateAttributeReference(transferredPluginPackageDataModel, attributeReferenceNameMap, referenceAttributeMap);
+            Map<String, PluginPackageAttribute> referenceAttributeMap = buildReferenceAttributeMap(pluginPackageDataModel);
+            updateAttributeReference(pluginPackageDataModel, attributeReferenceNameMap, referenceAttributeMap);
         }
 
-        PluginPackageDataModel savedPluginPackageDataModel = dataModelRepository.save(transferredPluginPackageDataModel);
-        if (fromDynamicUpdate) {
-            PluginPackage pluginPackage = pluginPackageRepository.findLatestVersionByName(pluginPackageDataModelDto.getPackageName()).get();
-            pluginPackage.setStatus(PluginPackage.Status.UNREGISTERED);
-            pluginPackageRepository.save(pluginPackage);
-        }
-
-        return convertDataModelDomainToDto(savedPluginPackageDataModel);
+        return convertDataModelDomainToDto(dataModelRepository.save(pluginPackageDataModel));
     }
 
     private Map<String, PluginPackageAttribute> buildReferenceAttributeMap(PluginPackageDataModel transferredPluginPackageDataModel) {
