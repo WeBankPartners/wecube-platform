@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.dto;
 
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.Field;
 
 public class Filter {
     @NotNull
@@ -41,5 +42,14 @@ public class Filter {
 
     public void setValue(Object value) {
         this.value = value;
+    }
+
+    public boolean checkNull() throws IllegalAccessException {
+        for (Field f : getClass().getDeclaredFields()) {
+            if (f.get(this) != null) {
+                return false;
+            }
+        }
+        return true;
     }
 }
