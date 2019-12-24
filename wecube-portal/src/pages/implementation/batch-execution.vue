@@ -92,7 +92,7 @@
       </Timeline>
     </section>
     <Modal
-      :width="904"
+      :width="700"
       v-model="isShowSearchConditions"
       title="定义操作对象的查询方式"
     >
@@ -137,14 +137,32 @@
             >
           </Select>
         </FormItem>
-        <FormItem label="查询条件：" class="transfer-style">
-          <Transfer
-            :data="allEntityAttr"
-            :target-keys="targetEntityAttr"
-            :render-format="renderFormat"
-            @on-change="handleChange"
-          >
-          </Transfer>
+        <FormItem label="查询条件：" class="tree-style">
+          <Row>
+            <Col span="12">
+              <Tree
+                :data="allEntityAttr"
+                @on-check-change="checkChange"
+                show-checkbox
+                multiple
+              >
+              </Tree>
+            </Col>
+            <Col span="12" class="tree-checked">
+              <span>
+                已选数据：
+              </span>
+              <ul>
+                <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
+                  <span
+                    >{{ tea.packageName }}-{{ tea.entityName }}:{{
+                      tea.name
+                    }}</span
+                  >
+                </li>
+              </ul>
+            </Col>
+          </Row>
         </FormItem>
       </Form>
       <div slot="footer">
@@ -286,17 +304,21 @@ export default {
         this.currentPackageName = data.slice(-1)[0].packageName;
         this.currentEntityAttrList = data.slice(-1)[0].attributes;
 
-        this.allEntityAttr = data
-          .map((single, index) => {
-            return single.attributes.map((attr, ai) => {
-              attr.key = `${single.packageName}&${single.entityName}&${attr.description}&${attr.name}&${attr.dataType}&${index}&${ai}`;
-              attr.label = attr.name;
-              attr.entityName = single.entityName;
-              attr.packageName = single.packageName;
-              return attr;
-            });
-          })
-          .flat(2);
+        this.allEntityAttr = [];
+        data.forEach((single, index) => {
+          const childNode = single.attributes.map(attr => {
+            attr.key = single.packageName + single.entityName + index;
+            attr.index = index;
+            attr.title = attr.name;
+            attr.entityName = single.entityName;
+            attr.packageName = single.packageName;
+            return attr;
+          });
+          this.allEntityAttr.push({
+            title: `${single.packageName}-${single.entityName}`,
+            children: childNode
+          });
+        });
       }
     }
   },
@@ -338,11 +360,8 @@ export default {
         });
       }
     },
-    handleChange(newTargetKeys) {
-      this.targetEntityAttr = newTargetKeys;
-    },
-    renderFormat(item) {
-      return `(${item.packageName}:${item.entityName})-${item.label}`;
+    checkChange(totalChecked) {
+      this.targetEntityAttr = totalChecked;
     },
     saveSearchCondition() {
       if (!this.currentEntityAttr) {
@@ -354,29 +373,7 @@ export default {
         return;
       }
       this.isShowSearchConditions = false;
-      this.searchParameters = this.targetEntityAttr.map(teAttr => {
-        const [
-          packageName,
-          entityName,
-          description,
-          name,
-          dataType,
-          index,
-          ai,
-          value
-        ] = teAttr.split("&");
-        return {
-          id: packageName + entityName + index,
-          packageName,
-          entityName,
-          description,
-          name,
-          dataType,
-          index,
-          ai,
-          value: null
-        };
-      });
+      this.searchParameters = this.targetEntityAttr;
     },
 
     excuteSearch() {
@@ -386,7 +383,7 @@ export default {
       };
       let keySet = [];
       this.searchParameters.forEach(sParameter => {
-        const index = keySet.indexOf(sParameter.id);
+        const index = keySet.indexOf(sParameter.key);
         if (index > -1) {
           const { name, value } = sParameter;
           requestParameter.filters[index].attributeFilters.push({
@@ -395,7 +392,7 @@ export default {
             operator: "eq"
           });
         } else {
-          keySet.push(sParameter.id);
+          keySet.push(sParameter.key);
           const { index, packageName, entityName, name, value } = sParameter;
           requestParameter.filters.push({
             index,
@@ -499,13 +496,19 @@ export default {
 </script>
 
 <style lang="scss" scope>
-.transfer-style /deep/ .ivu-transfer-list {
-  width: 350px;
+.ivu-tree-children li {
+  margin: 0 !important;
+  .ivu-checkbox-wrapper {
+    margin: 0 !important;
+  }
 }
 .ivu-form-item {
-  margin-bottom: 8px !important;
+  margin-bottom: 0 !important;
 }
-
+.tree-checked {
+  border-left: 2px solid gray;
+  padding-left: 8px;
+}
 .search-btn {
   margin-top: 16px;
 }
