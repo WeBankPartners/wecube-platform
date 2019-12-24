@@ -280,7 +280,7 @@
   "plugin_config_check": "Configuration",
   "service_regist": "Regist",
   "confirm_to_regist_plugin": "Confirm Regist Plugin Package",
-  "is_show_decomissioned_pkg": "Show Decommissioned Packages",
+  "is_show_decomissioned_pkg": "Show Decommissioned",
   "orchs": "Orchestrations Jobs",
   "query_orch": "Enquery",
   "create_orch": "Create",
