@@ -1,16 +1,12 @@
 package com.webank.wecube.platform.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity @Table(name = "menu_items")
 public class MenuItem {
@@ -81,6 +77,9 @@ public class MenuItem {
     @Column
     private String description;
 
+    @Column
+    private String cnDisplayName;
+
     @Generated(GenerationTime.INSERT)
     @Column(name = "menu_order", nullable = false, updatable = false, columnDefinition = "integer auto_increment")
     private Integer menuOrder;
@@ -98,17 +97,21 @@ public class MenuItem {
     }
 
     public MenuItem(String code, String parentCode, String description) {
-        this(null, code, parentCode, Source.SYSTEM.name(), description, null, null);
+        this(null, code, parentCode, Source.SYSTEM.name(), description, null);
     }
 
-    public MenuItem(String id, String code, String parentCode, String source, String description, Integer menuOrder, List<RoleMenu> assignedRoles) {
+    public MenuItem(String id, String code, String parentCode, String source, String description, Integer menuOrder) {
+        this(null, code, parentCode, Source.SYSTEM.name(), description, description, null);
+    }
+
+    public MenuItem(String id, String code, String parentCode, String source, String description, String cnDisplayName, Integer menuOrder) {
         this.id = id;
         this.code = code;
         this.parentCode = parentCode;
         this.source = source;
         this.description = description;
+        this.cnDisplayName = cnDisplayName;
         this.menuOrder = menuOrder;
-//        this.assignedRoles = assignedRoles;
     }
 
     public MenuItem(String id) {
@@ -155,6 +158,14 @@ public class MenuItem {
         this.description = description;
     }
 
+    public String getCnDisplayName() {
+        return cnDisplayName;
+    }
+
+    public void setCnDisplayName(String cnDisplayName) {
+        this.cnDisplayName = cnDisplayName;
+    }
+
     public Integer getMenuOrder() {
         return menuOrder;
     }
@@ -162,14 +173,6 @@ public class MenuItem {
     public void setMenuOrder(Integer menuOrder) {
         this.menuOrder = menuOrder;
     }
-
-//    public List<RoleMenu> getAssignedRoles() {
-//        return assignedRoles;
-//    }
-//
-//    public void setAssignedRoles(List<RoleMenu> assignedRoles) {
-//        this.assignedRoles = assignedRoles;
-//    }
 
     @Override
     public boolean equals(Object o) {
