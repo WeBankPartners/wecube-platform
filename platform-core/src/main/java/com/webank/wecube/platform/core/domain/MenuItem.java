@@ -5,7 +5,6 @@ import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
-import java.util.List;
 import java.util.Objects;
 
 @Entity @Table(name = "menu_items")
@@ -78,7 +77,7 @@ public class MenuItem {
     private String description;
 
     @Column
-    private String cnDisplayName;
+    private String localDisplayName;
 
     @Generated(GenerationTime.INSERT)
     @Column(name = "menu_order", nullable = false, updatable = false, columnDefinition = "integer auto_increment")
@@ -104,13 +103,13 @@ public class MenuItem {
         this(null, code, parentCode, Source.SYSTEM.name(), description, description, null);
     }
 
-    public MenuItem(String id, String code, String parentCode, String source, String description, String cnDisplayName, Integer menuOrder) {
+    public MenuItem(String id, String code, String parentCode, String source, String description, String localDisplayName, Integer menuOrder) {
         this.id = id;
         this.code = code;
         this.parentCode = parentCode;
         this.source = source;
         this.description = description;
-        this.cnDisplayName = cnDisplayName;
+        this.localDisplayName = localDisplayName;
         this.menuOrder = menuOrder;
     }
 
@@ -158,12 +157,12 @@ public class MenuItem {
         this.description = description;
     }
 
-    public String getCnDisplayName() {
-        return cnDisplayName;
+    public String getLocalDisplayName() {
+        return localDisplayName;
     }
 
-    public void setCnDisplayName(String cnDisplayName) {
-        this.cnDisplayName = cnDisplayName;
+    public void setLocalDisplayName(String localDisplayName) {
+        this.localDisplayName = localDisplayName;
     }
 
     public Integer getMenuOrder() {
