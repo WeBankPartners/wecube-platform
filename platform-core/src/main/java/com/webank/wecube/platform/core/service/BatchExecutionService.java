@@ -8,29 +8,19 @@ import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
-import com.webank.wecube.platform.core.dto.PluginInvocationRequestDto;
 import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
-import com.webank.wecube.platform.core.jpa.ExecutionJobParameterRepository;
-import com.webank.wecube.platform.core.jpa.ExecutionJobRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.dto.InputParameterDefinition;
-import com.webank.wecube.platform.core.model.batchexecution.CalculateInputParameterResult;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
-import com.webank.wecube.platform.core.service.workflow.AbstractPluginInvocationService;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.StationaryPluginResponse;
 
-import net.bytebuddy.description.ModifierReviewable.OfAbstraction;
-
-import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseResultData;
-import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseResultData.StationaryResultData;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.camunda.bpm.engine.impl.cmd.SaveAttachmentCmd;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
