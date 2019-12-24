@@ -333,6 +333,10 @@ public class PluginPackageXmlParser {
                     getNonNullStringAttribute(pluginPackageMenuNode, "./@cat", "Plugin package menu category"));
             pluginPackageMenu.setDisplayName(getNonNullStringAttribute(pluginPackageMenuNode, "./@displayName",
                     "Plugin package menu display name"));
+            String cnDisplayName = getStringAttribute(pluginPackageMenuNode, "./@cnDisplayName");
+            if (StringUtils.isNotBlank(cnDisplayName)) {
+                pluginPackageMenu.setCnDisplayName(cnDisplayName);
+            }
             pluginPackageMenu.setPath(pluginPackageMenuNode.getTextContent());
             pluginPackageMenu.setSource(MenuItem.Source.PLUGIN.name());
 
