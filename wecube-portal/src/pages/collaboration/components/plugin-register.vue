@@ -316,7 +316,7 @@
           <Input v-model="addRegisterName" placeholder=""></Input>
         </FormItem>
         <FormItem :label="$t('copy_source')">
-          <Select v-model="model1" @on-change="registSourceChange">
+          <Select v-model="model1" @on-change="copyRegistSource">
             <Option v-for="item in sourceList" :value="item.id" :key="item.id"
               >{{ item.name }}({{ item.registerName }})</Option
             >
@@ -526,12 +526,19 @@ export default {
         this.currentPluginObj = {};
         return;
       }
-      this.currentPluginObj = this.sourceList.find(source => source.id === v);
+
+      this.currentPluginObj = JSON.parse(
+        JSON.stringify(this.sourceList.find(source => source.id === v))
+      );
       this.selectedEntityType = this.currentPluginObj.entityName;
       this.registerName = this.currentPluginObj.registerName;
       this.selectedEntityType = this.currentPluginObj.targetEntity;
       this.targetPackage = this.currentPluginObj.targetPackage;
       this.hasNewSource = false;
+    },
+    copyRegistSource(v) {
+      this.registSourceChange(v);
+      this.currentPluginObj.status = "DISABLED";
     },
     onSelectEntityType(val) {
       this.targetPackage = val ? val.label.split("**")[1] : "";
