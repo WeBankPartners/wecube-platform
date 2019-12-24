@@ -11,17 +11,17 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     private String source;
     private Integer menuOrder;
     private String displayName;
-    private String cnDisplayName;
+    private String localDisplayName;
     private String path;
 
-    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String cnDisplayName, String path) {
+    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String localDisplayName, String path) {
         this.id = id;
         this.category = category;
         this.code = code;
         this.source = source;
         this.menuOrder = menuOrder;
         this.displayName = displayName;
-        this.cnDisplayName = cnDisplayName;
+        this.localDisplayName = localDisplayName;
         this.path = path;
     }
 
@@ -39,7 +39,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         pluginPackageMenuDto.setSource(systemMenu.getSource());
         pluginPackageMenuDto.setMenuOrder(systemMenu.getMenuOrder());
         pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
-        pluginPackageMenuDto.setCnDisplayName(systemMenu.getCnDisplayName());
+        pluginPackageMenuDto.setLocalDisplayName(systemMenu.getLocalDisplayName());
         pluginPackageMenuDto.setPath(null);
         return pluginPackageMenuDto;
     }
@@ -52,7 +52,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         pluginPackageMenuDto.setSource(packageMenu.getSource());
         pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
         pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
-        pluginPackageMenuDto.setCnDisplayName(packageMenu.getCnDisplayName());
+        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
         pluginPackageMenuDto.setPath(packageMenu.getPath());
         return pluginPackageMenuDto;
     }
@@ -105,12 +105,12 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         this.displayName = displayName;
     }
 
-    public String getCnDisplayName() {
-        return cnDisplayName;
+    public String getLocalDisplayName() {
+        return localDisplayName;
     }
 
-    public void setCnDisplayName(String cnDisplayName) {
-        this.cnDisplayName = cnDisplayName;
+    public void setLocalDisplayName(String localDisplayName) {
+        this.localDisplayName = localDisplayName;
     }
 
     public String getPath() {
