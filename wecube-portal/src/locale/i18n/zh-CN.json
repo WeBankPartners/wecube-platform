@@ -317,8 +317,8 @@
   "table_login_password": "登录密码",
   "table_port": "端口",
   "table_default_value": "默认值",
-  "table_scope_type": "范围类型",
-  "table_scope_value": "范围",
+  "table_scope": "范围",
+  "table_source": "来源",
   "table_seq_no": "显示顺序",
   "no_auth_provided": "本插件暂无权限设定",
   "no_data_model_provided": "本插件暂无数据模型",
@@ -338,5 +338,6 @@
   "unselected_role": "未选中角色",
   "edit_role": "选择该编排的属主角色",
   "mgmt_role": "属主角色",
-  "use_role": "使用角色"
+  "use_role": "使用角色",
+  "source": "归属"
 }

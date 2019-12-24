@@ -88,14 +88,14 @@ export default {
           placeholder: this.$t("table_default_value")
         },
         {
-          title: this.$t("table_scope_type"),
-          key: "scopeType",
-          inputKey: "scopeType",
+          title: this.$t("table_scope"),
+          key: "scope",
+          inputKey: "scope",
           searchSeqNo: 5,
           displaySeqNo: 5,
           component: "WeSelect",
           inputType: "select",
-          placeholder: this.$t("table_scope_type"),
+          placeholder: this.$t("table_scope"),
           options: [
             {
               label: "global",
@@ -110,14 +110,14 @@ export default {
           ]
         },
         {
-          title: this.$t("table_scope_value"),
-          key: "scopeValue",
-          inputKey: "scopeValue",
+          title: this.$t("table_source"),
+          key: "source",
+          inputKey: "source",
           searchSeqNo: 6,
           displaySeqNo: 6,
           component: "Input",
           inputType: "text",
-          placeholder: this.$t("table_scope_value")
+          placeholder: this.$t("table_source")
         },
         {
           title: this.$t("table_status"),
@@ -276,8 +276,8 @@ export default {
           value: addObj.value,
           pluginPackageId: addObj.pluginPackageId,
           pluginPackageName: addObj.pluginPackageName,
-          scopeType: addObj.scopeType,
-          scopeValue: addObj.scopeValue,
+          scope: addObj.scope,
+          source: addObj.source,
           seqNo: addObj.seqNo,
           status: addObj.status
         };
@@ -302,8 +302,8 @@ export default {
             value: _.value,
             pluginPackageId: _.pluginPackageId,
             pluginPackageName: _.pluginPackageName,
-            scopeType: _.scopeType,
-            scopeValue: _.scopeValue,
+            scope: _.scope,
+            source: _.source,
             seqNo: _.seqNo,
             status: _.status
           };

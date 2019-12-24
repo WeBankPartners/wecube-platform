@@ -4,7 +4,12 @@
       <Row>
         <Card dis-hover>
           <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
-          <Button icon="ios-cloud-upload-outline" @click="getHeaders">
+          <Button
+            type="info"
+            ghost
+            icon="ios-cloud-upload-outline"
+            @click="getHeaders"
+          >
             {{ $t("upload_plugin_btn") }}
           </Button>
           <Upload
@@ -62,6 +67,8 @@
                     v-if="plugin.status !== 'DECOMMISSIONED'"
                     @click.stop.prevent="deletePlugin(plugin.id)"
                     size="small"
+                    type="error"
+                    ghost
                     icon="ios-trash"
                   ></Button>
                 </span>
@@ -69,18 +76,24 @@
                   <Button
                     @click="configPlugin(plugin.id)"
                     size="small"
+                    type="info"
+                    ghost
                     icon="ios-checkmark-circle"
                     >{{ $t("plugin_config_check") }}</Button
                   >
                   <Button
                     @click="manageService(plugin.id)"
                     size="small"
+                    type="info"
+                    ghost
                     icon="ios-construct"
                     >{{ $t("service_regist") }}</Button
                   >
                   <Button
                     @click="manageRuntimePlugin(plugin.id)"
                     size="small"
+                    type="info"
+                    ghost
                     icon="ios-settings"
                     >{{ $t("runtime_manage") }}</Button
                   >
@@ -235,13 +248,14 @@
                                 {{ item.displayLabel }}
                               </div>
                             </Col>
-
-                            <Button
-                              size="small"
-                              type="error"
-                              @click="removePluginInstance(item.id)"
-                              >{{ $t("ternmiante") }}</Button
-                            >
+                            <Col span="4" offset="1">
+                              <Button
+                                size="small"
+                                type="error"
+                                @click="removePluginInstance(item.id)"
+                                >{{ $t("ternmiante") }}</Button
+                              >
+                            </Col>
                           </div>
                         </div>
                       </div>
@@ -301,10 +315,12 @@
                   </Row>
                   <Row style="margin-top: 20px">
                     {{ $t("search_result") + ":" }}
-                    <Table
-                      :columns="dbQueryColumns"
-                      :data="dbQueryData"
-                    ></Table>
+                    <div style="width: 100%;overflow: auto">
+                      <Table
+                        :columns="dbQueryColumns"
+                        :data="dbQueryData"
+                      ></Table>
+                    </div>
                     <Page
                       :total="dbTablePagination.total"
                       :current="dbTablePagination.currentPage"
@@ -468,7 +484,7 @@ export default {
           key: "path"
         },
         {
-          title: "hash",
+          title: "Hash",
           key: "hash"
         },
         {
@@ -586,6 +602,8 @@ export default {
         this.availiableHostsWithPort = [];
         this.getAvailableInstancesByPackageId(this.currentPlugin.id);
       }
+      this.dbQueryData = [];
+      this.dbQueryColumns = [];
       this.getAvailableContainerHosts();
       this.resetLogTable();
     },
@@ -629,7 +647,8 @@ export default {
         this.dbQueryColumns = data.headers.map(_ => {
           return {
             key: _,
-            title: _
+            title: _,
+            minWidth: 170
           };
         });
         this.dbQueryData = data.contents.map(_ => {
@@ -828,6 +847,7 @@ export default {
             }
           );
         } else {
+          this.setUploadActionHeader();
           this.$refs.uploadButton.handleClick();
         }
       } else {
