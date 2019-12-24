@@ -3,46 +3,7 @@
     <Card dis-hover>
       <Row>
         <Col span="20">
-          <div v-if="!isEnqueryPage">{{ $t("create_new_workflow_job") }}</div>
-          <Form v-if="isEnqueryPage" label-position="left">
-            <FormItem :label-width="150" :label="$t('orchs')">
-              <Select
-                v-model="selectedFlowInstance"
-                style="width:70%"
-                filterable
-              >
-                <Option
-                  v-for="item in allFlowInstances"
-                  :value="item.id"
-                  :key="item.id"
-                >
-                  {{
-                    item.procInstName +
-                      " " +
-                      (item.createdTime || "createdTime") +
-                      " " +
-                      (item.operator || "operator")
-                  }}
-                </Option>
-              </Select>
-              <Button type="info" @click="queryHandler">
-                {{ $t("query_orch") }}
-              </Button>
-            </FormItem>
-          </Form>
-        </Col>
-        <Col span="4" style="text-align: right;">
-          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">
-            {{ $t("enquery_new_workflow_job") }}
-          </Button>
-          <Button type="success" v-if="isEnqueryPage" @click="createHandler">
-            {{ $t("create_new_workflow_job") }}
-          </Button>
-        </Col>
-      </Row>
-      <Row v-show="isShowBody" style="padding:20px">
-        <Row>
-          <Form>
+          <Form v-if="!isEnqueryPage">
             <Col span="6">
               <FormItem :label-width="100" :label="$t('select_orch')">
                 <Select
@@ -82,9 +43,45 @@
               </FormItem>
             </Col>
           </Form>
-        </Row>
+          <Form v-if="isEnqueryPage" label-position="left">
+            <FormItem :label-width="150" :label="$t('orchs')">
+              <Select
+                v-model="selectedFlowInstance"
+                style="width:70%"
+                filterable
+              >
+                <Option
+                  v-for="item in allFlowInstances"
+                  :value="item.id"
+                  :key="item.id"
+                >
+                  {{
+                    item.procInstName +
+                      " " +
+                      (item.createdTime || "createdTime") +
+                      " " +
+                      (item.operator || "operator")
+                  }}
+                </Option>
+              </Select>
+              <Button type="info" @click="queryHandler">
+                {{ $t("query_orch") }}
+              </Button>
+            </FormItem>
+          </Form>
+        </Col>
+        <Col span="4" style="text-align: right;">
+          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">
+            {{ $t("enquery_new_workflow_job") }}
+          </Button>
+          <Button type="success" v-if="isEnqueryPage" @click="createHandler">
+            {{ $t("create_new_workflow_job") }}
+          </Button>
+        </Col>
+      </Row>
+      <Row v-show="isShowBody">
         <Row
-          style="border:1px solid #d3cece;border-radius:3px; padding:20px;height:600px"
+          style="border:1px solid #d3cece;border-radius:3px; padding:5px;height:600px"
         >
           <Col
             span="6"
