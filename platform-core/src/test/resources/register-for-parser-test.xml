@@ -14,6 +14,7 @@
             /service-catalog
         </menu>
         <menu code='JOBS_TASK_MANAGEMENT' cat='JOBS' displayName="Task Management" cnDisplayName="任务管理">/task-management</menu>
+        <menu code='MENU_WITHOUT_CHINESE_NAME' cat='JOBS' displayName="Menu without Chinese Name">/menu-without-chinese-name</menu>
     </menus>
 
     <!-- 3.数据模型 - 描述本插件包的数据模型,并且描述和Framework数据模型的关系 -->
