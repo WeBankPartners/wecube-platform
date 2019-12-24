@@ -232,18 +232,18 @@ public class DomainIdBuilder {
 
     public static String buildDomainId(BatchExecutionJob batchExecutionJob) throws ParseException {
         return StringUtils.isNotBlank(batchExecutionJob.getId()) ? batchExecutionJob.getId()
-                : buildDomainId(Long.toString((new SimpleDateFormat("dd/MM/yyyy HH:mm:ss")
-                        .parse(batchExecutionJob.getCreateTimestamp().toString()).getTime())));
+                : buildDomainId(Long.toString(System.currentTimeMillis()));
     }
 
     public static String buildDomainId(ExecutionJob executionJob) {
         return StringUtils.isNotBlank(executionJob.getId()) ? executionJob.getId()
-                : buildDomainId(executionJob.getBatchExecutionJob().getId(), executionJob.getRootEntityId());
+                : buildDomainId(executionJob.getPackageName(), executionJob.getEntityName(),
+                        executionJob.getRootEntityId(), Long.toString(System.currentTimeMillis()));
     }
 
     public static String buildDomainId(ExecutionJobParameter executionJobParameter) {
         return StringUtils.isNotBlank(executionJobParameter.getId()) ? executionJobParameter.getId()
-                : buildDomainId(executionJobParameter.getExecutionJob().getId(), executionJobParameter.getName());
+                : buildDomainId(executionJobParameter.getName(), Long.toString(System.currentTimeMillis()));
     }
 
 }

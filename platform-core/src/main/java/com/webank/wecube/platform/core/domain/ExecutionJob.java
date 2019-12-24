@@ -133,7 +133,7 @@ public class ExecutionJob {
         this.businessKey = businessKey;
     }
 
-    public ExecutionJob(String id, String pluginConfigInterfaceId, String packageName, String entityName,
+    public ExecutionJob(String rootEntityid, String pluginConfigInterfaceId, String packageName, String entityName,
             String businessKey, List<ExecutionJobParameter> parameters) {
         super();
         this.pluginConfigInterfaceId = pluginConfigInterfaceId;
@@ -141,7 +141,7 @@ public class ExecutionJob {
         this.entityName = entityName;
         this.businessKey = businessKey;
         this.parameters = parameters;
-        this.id = id;
+        this.rootEntityId = rootEntityid;
     }
 
     public String getErrorCode() {
