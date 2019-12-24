@@ -3,7 +3,8 @@
     <Card dis-hover>
       <Row>
         <Col span="20">
-          <Form label-position="left">
+          <div v-if="!isEnqueryPage">{{ $t("create_new_workflow_job") }}</div>
+          <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
               <Select
                 v-model="selectedFlowInstance"
@@ -24,20 +25,22 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">{{
-                $t("query_orch")
-              }}</Button>
-              <Button type="success" @click="createHandler">{{
-                $t("create_orch")
-              }}</Button>
+              <Button type="info" @click="queryHandler">
+                {{ $t("query_orch") }}
+              </Button>
             </FormItem>
           </Form>
         </Col>
+        <Col span="4" style="text-align: right;">
+          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">
+            {{ $t("enquery_new_workflow_job") }}
+          </Button>
+          <Button type="success" v-if="isEnqueryPage" @click="createHandler">
+            {{ $t("create_new_workflow_job") }}
+          </Button>
+        </Col>
       </Row>
-      <Row
-        v-show="isShowBody"
-        style="border:1px solid #ebe7e7;border-radius:3px; padding:20px"
-      >
+      <Row v-show="isShowBody" style="padding:20px">
         <Row>
           <Form>
             <Col span="6">
@@ -80,23 +83,44 @@
             </Col>
           </Form>
         </Row>
-        <Row style="border:1px solid #d3cece;border-radius:3px; padding:20px">
+        <Row
+          style="border:1px solid #d3cece;border-radius:3px; padding:20px;height:600px"
+        >
           <Col
             span="6"
-            style="border-right:1px solid #d3cece; text-align: center"
+            style="border-right:1px solid #d3cece; text-align: center;height:100%"
           >
-            <div class="graph-container" id="flow"></div>
-            <div style="text-align: center;margin-top: 60px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
-                $t("execute")
-              }}</Button>
+            <div class="graph-container" id="flow" style="height:90%"></div>
+            <div style="text-align: center;margin-top: 5px;">
+              <Button v-if="showExcution" type="info" @click="excutionFlow">
+                {{ $t("execute") }}
+              </Button>
             </div>
           </Col>
           <Col
             span="18"
-            style="text-align: center;margin-top: 60px;text-align: center"
+            style="text-align: center;margin-top: 5px;text-align: center;height:100%"
           >
-            <div class="graph-container" id="graph"></div>
+            <div
+              v-if="!isEnqueryPage && selectedTarget"
+              style="text-align: left;padding-left: 20px"
+            >
+              <Button
+                type="info"
+                size="small"
+                @click="selectAllModelNodes(true)"
+              >
+                {{ $t("select_all") }}
+              </Button>
+              <Button
+                type="info"
+                size="small"
+                @click="selectAllModelNodes(false)"
+              >
+                {{ $t("cancel_select") }}
+              </Button>
+            </div>
+            <div class="graph-container" id="graph" style="height:100%"></div>
           </Col>
         </Row>
       </Row>
@@ -112,9 +136,9 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
-        <Button type="info" @click="workFlowActionHandler('retry')">
-          {{ $t("retry") }}
-        </Button>
+        <Button type="info" @click="workFlowActionHandler('retry')">{{
+          $t("retry")
+        }}</Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
@@ -179,6 +203,7 @@ export default {
   mounted() {
     this.getProcessInstances();
     this.getAllFlow();
+    this.createHandler();
   },
   destroyed() {
     clearInterval(this.timer);
@@ -278,6 +303,10 @@ export default {
         this.getModelData();
       });
     },
+    queryHistory() {
+      this.isEnqueryPage = true;
+      this.isShowBody = false;
+    },
     createHandler() {
       clearInterval(this.timer);
       this.timer = null;
@@ -291,6 +320,7 @@ export default {
       this.showExcution = false;
       this.$nextTick(() => {
         this.initModelGraph();
+        this.initFlowGraph();
       });
     },
     onTargetSelectHandler() {
@@ -480,7 +510,7 @@ export default {
           .map((_, index) => {
             if (_.nodeType === "startEvent" || _.nodeType === "endEvent") {
               return `${_.nodeId} [label="${_.nodeName ||
-                "Null"}", fontsize="10", class="flow",style="${
+                _.nodeType}", fontsize="10", class="flow",style="${
                 excution ? "filled" : "none"
               }" color="${
                 excution ? statusColor[_.status] : "#7F8A96"
@@ -490,9 +520,9 @@ export default {
                 _.status === "Faulted" || _.status === "Timeouted"
                   ? "retry"
                   : "";
-              return `${_.nodeId} [fixedsize=false label="${_.orderedNo +
-                "、" +
-                _.nodeName}" class="flow ${className}" style="${
+              return `${_.nodeId} [fixedsize=false label="${(_.orderedNo
+                ? _.orderedNo + "、"
+                : "") + _.nodeName}" class="flow ${className}" style="${
                 excution ? "filled" : "none"
               }" color="${
                 excution
@@ -768,6 +798,37 @@ export default {
         addEvent(`#${_}`, "click", this.modelClickHandler);
       });
     },
+    selectAllModelNodes(isSelect) {
+      const currentFlow = this.flowData.flowNodes.find(
+        i => i.nodeId === this.currentFlowNodeId
+      );
+      let temp = [];
+      this.modelData.forEach(item => {
+        if (item.isHighlight) {
+          const flowNodeIndex = item.refFlowNodeIds.indexOf(
+            currentFlow.orderedNo
+          );
+          if (flowNodeIndex < 0 && isSelect) {
+            item.refFlowNodeIds.push(currentFlow.orderedNo);
+          }
+          if (flowNodeIndex > -1 && !isSelect) {
+            item.refFlowNodeIds.splice(flowNodeIndex, 1);
+          }
+        }
+        this.foundRefAry.forEach(i => {
+          if (item.id.includes(i)) {
+            temp.push(
+              item.packageName + "_" + item.entityName + "_" + item.dataId
+            );
+          }
+        });
+      });
+      document.getElementById("graph").innerHTML = "";
+      this.initModelGraph();
+      temp.forEach(_ => {
+        addEvent(`#${_}`, "click", this.modelClickHandler);
+      });
+    },
     modelClickHandler(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -803,16 +864,21 @@ export default {
       });
     },
     initModelGraph() {
+      const graphEl = document.getElementById("graph");
       const initEvent = () => {
         let graph;
         graph = d3.select(`#graph`);
-        graph.on("dblclick.zoom", null);
+        graph
+          .on("dblclick.zoom", null)
+          .on("wheel.zoom", null)
+          .on("mousewheel.zoom", null);
         this.graph.graphviz = graph.graphviz().zoom(false);
       };
       initEvent();
       this.renderModelGraph();
     },
     initFlowGraph(excution = false) {
+      const graphEl = document.getElementById("flow");
       const initEvent = () => {
         let graph;
         graph = d3.select(`#flow`);
