@@ -53,6 +53,8 @@
         <Select
           @on-change="onEntitySelect"
           v-model="currentSelectedEntity"
+          filterable
+          clearable
           style="width: 70%"
         >
           <OptionGroup
@@ -493,6 +495,7 @@ export default {
           let needParams = found.inputParameters.filter(
             _ => _.mappingType === "context" || _.mappingType === "constant"
           );
+          this.pluginForm.paramInfos = [];
           if (isUseOriginParamsInfo) return;
           this.pluginForm.paramInfos = needParams.map(_ => {
             return {
@@ -530,7 +533,7 @@ export default {
       }
     },
     onEntitySelect(v) {
-      this.currentSelectedEntity = v;
+      this.currentSelectedEntity = v || "";
       this.rootPkg = this.currentSelectedEntity.split(":")[0];
       this.rootEntity = this.currentSelectedEntity.split(":")[1];
 

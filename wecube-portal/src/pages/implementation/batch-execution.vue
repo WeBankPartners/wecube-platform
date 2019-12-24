@@ -202,7 +202,7 @@ export default {
       selectedEntityType: "",
       allEntityType: [],
 
-      dataModelExpression: "a.b.c",
+      dataModelExpression: "wecmdb:subsys",
       currentEntityName: "",
       currentPackageName: "",
       currentEntityAttr: "",
@@ -212,22 +212,26 @@ export default {
 
       searchParameters: [
         {
+          id: "wecmdbsubsys0",
           packageName: "wecmdb",
           entityName: "subsys",
           description: "业务区域",
-          name: "business_zone2",
+          name: "business_zone",
           dataType: "ref",
-          si: "0",
-          ai: "0"
+          index: "0",
+          ai: "0",
+          value: null
         },
         {
+          id: "wecmdbsubsys0",
           packageName: "wecmdb",
           entityName: "subsys",
           description: "编码",
-          name: "business_zone2",
+          name: "code",
           dataType: "str",
-          si: "0",
-          ai: "1"
+          index: "0",
+          ai: "1",
+          value: null
         }
       ],
 
@@ -283,9 +287,9 @@ export default {
         this.currentEntityAttrList = data.slice(-1)[0].attributes;
 
         this.allEntityAttr = data
-          .map((single, si) => {
+          .map((single, index) => {
             return single.attributes.map((attr, ai) => {
-              attr.key = `${single.packageName}&${single.entityName}&${attr.description}&${attr.name}&${attr.dataType}&${si}&${ai}`;
+              attr.key = `${single.packageName}&${single.entityName}&${attr.description}&${attr.name}&${attr.dataType}&${index}&${ai}`;
               attr.label = attr.name;
               attr.entityName = single.entityName;
               attr.packageName = single.packageName;
@@ -357,27 +361,57 @@ export default {
           description,
           name,
           dataType,
-          si,
+          index,
           ai,
           value
         ] = teAttr.split("&");
         return {
+          id: packageName + entityName + index,
           packageName,
           entityName,
           description,
           name,
           dataType,
-          si,
+          index,
           ai,
           value: null
         };
       });
-      console.log(this.searchParameters);
     },
 
     excuteSearch() {
-      console.log(this.dataModelExpression);
-      console.log(this.searchParameters);
+      const requestParameter = {
+        dataModelExpression: this.dataModelExpression,
+        filters: []
+      };
+      let keySet = [];
+      this.searchParameters.forEach(sParameter => {
+        const index = keySet.indexOf(sParameter.id);
+        if (index > -1) {
+          const { name, value } = sParameter;
+          requestParameter.filters[index].attributeFilters.push({
+            name,
+            value,
+            operator: "eq"
+          });
+        } else {
+          keySet.push(sParameter.id);
+          const { index, packageName, entityName, name, value } = sParameter;
+          requestParameter.filters.push({
+            index,
+            packageName,
+            entityName,
+            attributeFilters: [
+              {
+                name,
+                value,
+                operator: "eq"
+              }
+            ]
+          });
+        }
+      });
+      console.log(requestParameter);
       // this.displaySearchZone = false;
       // this.displayResultTableZone = true;
     },
@@ -469,7 +503,7 @@ export default {
   width: 350px;
 }
 .ivu-form-item {
-  margin-bottom: 0 !important;
+  margin-bottom: 8px !important;
 }
 
 .search-btn {
