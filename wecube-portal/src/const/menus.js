@@ -71,6 +71,12 @@ export const MENUS = [
     link: "/implementation/workflow-execution"
   },
   {
+    code: "IMPLEMENTATION_BATCH_EXECUTION",
+    cnName: "批量执行",
+    enName: "Batch Execution"
+    // link: "/implementation/workflow-execution"
+  },
+  {
     code: "ADMIN_USER_ROLE_MANAGEMENT",
     cnName: "权限管理",
     enName: "Permission Management",
