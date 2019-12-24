@@ -119,17 +119,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     }
 
-    private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities, TaskNodeDefInfoEntity currNodeDefInfo){
+    private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities,
+            TaskNodeDefInfoEntity currNodeDefInfo) {
         List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPreviousNodeIds());
         log.info("previousNodeIds:{}", previousNodeIds);
-        for(String prevNodeId: previousNodeIds){
-            TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities, prevNodeId);
+        for (String prevNodeId : previousNodeIds) {
+            TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities,
+                    prevNodeId);
             log.info("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
-            if(prevNodeInst != null){
-                if(statelessNodeTypes.contains(prevNodeInst.getNodeType()) && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())){
+            if (prevNodeInst != null) {
+                if (statelessNodeTypes.contains(prevNodeInst.getNodeType())
+                        && !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())) {
                     prevNodeInst.setUpdatedTime(new Date());
                     prevNodeInst.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-                    
+
                     taskNodeInstInfoRepository.save(prevNodeInst);
                 }
             }
@@ -246,7 +249,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
                 String systemVariableName = param.getMappingSystemVariableName();
-                SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(param.getPluginConfigInterface().getPluginConfig().getTargetPackage(), systemVariableName);
+                SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
+                        param.getPluginConfigInterface().getPluginConfig().getTargetPackage(), systemVariableName);
 
                 if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
                     log.error("variable is null but is mandatory for {}", paramName);
@@ -407,6 +411,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                         attrValsPerExpr = new ArrayList<>();
                     }
 
+                    if (log.isDebugEnabled()) {
+                        log.debug("retrieved objects with expression,size={},values={}", attrValsPerExpr.size(),
+                                attrValsPerExpr);
+                    }
+
                     objectVals.addAll(attrValsPerExpr);
 
                 }
@@ -461,7 +470,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
                 if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
                     String systemVariableName = param.getMappingSystemVariableName();
-                    SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(param.getPluginConfigInterface().getPluginConfig().getTargetPackage(), systemVariableName);
+                    SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
+                            param.getPluginConfigInterface().getPluginConfig().getTargetPackage(), systemVariableName);
 
                     if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
                         log.error("variable is null but is mandatory for {}", paramName);

@@ -1,8 +1,12 @@
 package com.webank.wecube.platform.core.controller;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,7 +163,6 @@ public class WorkflowProcessDefinitionController {
 
     @GetMapping(value = "/process/definitions/{proc-def-id}/export", produces = { MediaType.ALL_VALUE })
     public ResponseEntity<byte[]> exportProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
-        log.info("=== export ===");
 
         ProcDefInfoExportImportDto result = procDefService.exportProcessDefinition(procDefId);
         String filename = assembleProcessExportFilename(result);
@@ -167,26 +170,56 @@ public class WorkflowProcessDefinitionController {
         String filedata = convertResult(result);
         byte[] filedataBytes = StringUtilsEx.encodeBase64String(filedata.getBytes(Charset.forName("utf-8")))
                 .getBytes(Charset.forName("utf-8"));
-        log.info("filedata:{}", filedata);
-        log.info("string len:{}", filedata.length());
-        log.info("byte len:{}", filedataBytes.length);
         // ByteArrayResource resource = new ByteArrayResource(filedataBytes);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.add("Content-Disposition", String.format("attachment;filename=%s", filename));
+        
+        if(log.isInfoEnabled()){
+            log.info("finished export process definition,size={},filename={}",filedataBytes.length, filename);
+        }
         return ResponseEntity.ok().headers(headers).contentLength(filedataBytes.length)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).body(filedataBytes);
     }
 
     @PostMapping(value = "/process/definitions/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public CommonResponseDto importProcessDefinition(@RequestParam("uploadFile") MultipartFile file,
-            @RequestParam(value = "filename", required = false) String filename) {
-        log.info("=== import === {}", filename);
-        if (file != null) {
-            log.info("file size:{}", file.getSize());
-            log.info("filename:{}", file.getName());
+            HttpServletRequest request) {
+        if (file == null || file.getSize() <= 0) {
+            log.error("invalid file content uploaded");
+            throw new WecubeCoreException("Invalid file content uploaded.");
         }
-        return CommonResponseDto.okay();
+
+        if (log.isInfoEnabled()) {
+            log.info("About to import process definition,filename={},size={}", file.getOriginalFilename(),
+                    file.getSize());
+        }
+
+        try {
+            String filedata = IOUtils.toString(file.getInputStream(), Charset.forName("utf-8"));
+            String jsonData = new String(StringUtilsEx.decodeBase64(filedata), Charset.forName("utf-8"));
+            ProcDefInfoExportImportDto importDto = convertImportData(jsonData);
+            
+            String token = request.getHeader("Authorization");
+
+            ProcDefInfoExportImportDto result = procDefService.importProcessDefinition(importDto, token);
+            return CommonResponseDto.okayWithData(result);
+        } catch (IOException e) {
+            log.error("errors while reading upload file", e);
+            throw new WecubeCoreException("Failed to import process definition.");
+        }
+
+    }
+
+    private ProcDefInfoExportImportDto convertImportData(String jsonData) {
+        ProcDefInfoExportImportDto dto = null;
+        try {
+            dto = objectMapper.readValue(jsonData, ProcDefInfoExportImportDto.class);
+            return dto;
+        } catch (IOException e) {
+            log.error("errors while convert json data", e);
+            return null;
+        }
     }
 
     private String convertResult(ProcDefInfoExportImportDto result) {

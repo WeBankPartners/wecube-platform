@@ -83,10 +83,10 @@
         show-upload-list
         accept=".pds"
         name="uploadFile"
-        :on-success="onSuccess"
-        :on-error="onError"
+        :on-success="onImportProcessDefinitionSuccess"
+        :on-error="onImportProcessDefinitionError"
         action="platform/v1/process/definitions/import"
-        :headers="setUploadActionHeader"
+        :headers="headers"
       >
         <Button style="display:none">{{ $t("import_flow") }}</Button>
       </Upload>
@@ -303,6 +303,7 @@ export default {
   },
   data() {
     return {
+      headers: {},
       mgmtRolesKeyToFlow: [],
       useRolesKeyToFlow: [],
       currentUserRoles: [],
@@ -383,17 +384,6 @@ export default {
       } else {
         return false;
       }
-    },
-    setUploadActionHeader() {
-      console.log("set upload action handler");
-      let session = window.sessionStorage;
-      const token = JSON.parse(session.getItem("token"));
-      const currTime = new Date().getTime();
-      console.log(currTime);
-      return {
-        Authorization:
-          "Bearer " + token.find(t => t.tokenType === "accessToken").token
-      };
     }
   },
   created() {
@@ -835,7 +825,6 @@ export default {
       this.createNewDiagram();
     },
     getHeaders() {
-      console.log("get headers");
       let refreshRequest = null;
       const currentTime = new Date().getTime();
       let session = window.sessionStorage;
@@ -854,6 +843,7 @@ export default {
           refreshRequest.then(
             res => {
               session.setItem("token", JSON.stringify(res.data.data));
+              this.setUploadActionHeader();
               this.$refs.uploadButton.handleClick();
             },
             err => {
@@ -862,12 +852,20 @@ export default {
             }
           );
         } else {
+          this.setUploadActionHeader();
           this.$refs.uploadButton.handleClick();
         }
       } else {
-        const fullPath = this.$router.currentRoute.fullPath;
         window.location.href = window.location.origin + "/#/login";
       }
+    },
+    setUploadActionHeader() {
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      this.headers = {
+        Authorization:
+          "Bearer " + token.find(t => t.tokenType === "accessToken").token
+      };
     },
     exportProcessDefinition(isDraft) {
       let _this = this;
@@ -885,13 +883,15 @@ export default {
 
       exportProcessDefinitionWithId(procDefId);
     },
-    async onSuccess(response, file, filelist) {
+    async onImportProcessDefinitionSuccess(response, file, filelist) {
       if (response.status === "OK") {
         this.$Notice.success({
           title: "Success",
           desc: response.message || ""
         });
-        // this.getAllPluginPkgs();
+
+        this.getAllFlows();
+        this.selectedFlow = response.data.procDefId;
       } else {
         this.$Notice.warning({
           title: "Warning",
@@ -899,7 +899,7 @@ export default {
         });
       }
     },
-    onError(error, file, filelist) {
+    async onImportProcessDefinitionError(error, file, filelist) {
       this.$Notice.error({
         title: "Error",
         desc: file.message || ""
