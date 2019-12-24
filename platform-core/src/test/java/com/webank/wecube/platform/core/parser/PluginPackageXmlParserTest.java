@@ -13,7 +13,9 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +31,7 @@ public class PluginPackageXmlParserTest {
 
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
         assertThat(pluginPackage.getPluginPackageDependencies()).hasSize(2);
-        assertThat(pluginPackage.getPluginPackageMenus()).hasSize(2);
+        assertThat(pluginPackage.getPluginPackageMenus()).hasSize(3);
         assertThat(pluginPackage.getSystemVariables()).hasSize(2);
         assertThat(pluginPackage.getPluginPackageAuthorities()).hasSize(3);
         Set<PluginPackageRuntimeResourcesDocker> pluginPackageRuntimeResourcesDocker = pluginPackage.getPluginPackageRuntimeResourcesDocker();
@@ -40,6 +42,12 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackage.getPluginPackageRuntimeResourcesS3()).hasSize(1);
         assertThat(pluginPackage.getPluginConfigs()).hasSize(2);
 
+        List<String> localDisplayNames = pluginPackage.getPluginPackageMenus().stream().map(menu -> menu.getLocalDisplayName()).sorted().collect(Collectors.toList());
+        assertThat(localDisplayNames).hasSize(3);
+        assertThat(localDisplayNames.get(0)).isEqualTo("Menu without Chinese Name");
+        assertThat(localDisplayNames.get(1)).isEqualTo("任务管理");
+        assertThat(localDisplayNames.get(2)).isEqualTo("服务类型管理");
+
         PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDto.getPluginPackageDataModelDto();
         assertThat(pluginPackageDataModelDto.isDynamic()).isTrue();
         assertThat(pluginPackageDataModelDto.getUpdatePath()).isEqualTo("/data-model");
@@ -49,7 +57,7 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackageDataModelDto.getPackageName()).isEqualTo(pluginPackageDto.getName());
         assertThat(pluginPackageDataModelDto.getVersion()).isEqualTo(1);
         assertThat(pluginPackageDataModelDto.getPluginPackageEntities()).hasSize(5);
-        
+
         assertThat(pluginPackage.getSystemVariables().iterator().next().getStatus()).isEqualTo(SystemVariable.INACTIVE);
     }
 
