@@ -13,7 +13,9 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,6 +42,11 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackage.getPluginPackageRuntimeResourcesS3()).hasSize(1);
         assertThat(pluginPackage.getPluginConfigs()).hasSize(2);
 
+        List<String> cnDisplayNames = pluginPackage.getPluginPackageMenus().stream().map(menu -> menu.getCnDisplayName()).sorted().collect(Collectors.toList());
+        assertThat(cnDisplayNames).hasSize(2);
+        assertThat(cnDisplayNames.get(0)).isEqualTo("任务管理");
+        assertThat(cnDisplayNames.get(1)).isEqualTo("服务类型管理");
+
         PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDto.getPluginPackageDataModelDto();
         assertThat(pluginPackageDataModelDto.isDynamic()).isTrue();
         assertThat(pluginPackageDataModelDto.getUpdatePath()).isEqualTo("/data-model");
@@ -49,7 +56,7 @@ public class PluginPackageXmlParserTest {
         assertThat(pluginPackageDataModelDto.getPackageName()).isEqualTo(pluginPackageDto.getName());
         assertThat(pluginPackageDataModelDto.getVersion()).isEqualTo(1);
         assertThat(pluginPackageDataModelDto.getPluginPackageEntities()).hasSize(5);
-        
+
         assertThat(pluginPackage.getSystemVariables().iterator().next().getStatus()).isEqualTo(SystemVariable.INACTIVE);
     }
 

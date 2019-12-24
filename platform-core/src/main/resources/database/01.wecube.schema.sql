@@ -26,6 +26,7 @@ create table plugin_package_menus (
   category varchar(64) not null,
   source VARCHAR(16) NOT NULL DEFAULT 'PLUGIN',
   display_name VARCHAR(256) not null,
+  cn_display_name VARCHAR(256) not null,
   menu_order INTEGER NOT NULL AUTO_INCREMENT,
   path VARCHAR(256) not null,
   KEY `plugin_package_menu_order` (`menu_order`)
@@ -163,6 +164,7 @@ create table menu_items
     code        VARCHAR(64) NOT NULL,
     source      VARCHAR(16) NOT NULL,
     description VARCHAR(200),
+    cn_display_name VARCHAR(200),
     menu_order INTEGER NOT NULL AUTO_INCREMENT,
     UNIQUE KEY uk_code (code),
     KEY `menu_item_order` (`menu_order`)
