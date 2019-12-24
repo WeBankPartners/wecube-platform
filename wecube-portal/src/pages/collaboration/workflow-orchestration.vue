@@ -69,49 +69,32 @@
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram(false)">
-        {{ $t("save_flow") }}
-      </Button>
-      <Button type="info" @click="exportProcessDefinition(false)">
-        {{ $t("export_flow") }}
-      </Button>
-      <Button type="info" @click="getHeaders">
-        {{ $t("import_flow") }}
-      </Button>
+      <Button type="info" @click="saveDiagram(false)">{{
+        $t("save_flow")
+      }}</Button>
+      <Button type="info" @click="exportProcessDefinition(false)">{{
+        $t("export_flow")
+      }}</Button>
+      <Button type="info" @click="getHeaders">{{ $t("import_flow") }}</Button>
       <Upload
         ref="uploadButton"
         show-upload-list
-        accept=".pcd"
-        name="pcd-file"
+        accept=".pds"
+        name="uploadFile"
         :on-success="onSuccess"
         :on-error="onError"
         action="platform/v1/process/definitions/import"
         :headers="setUploadActionHeader"
       >
-        <Button style="display:none">
-          {{ $t("import_flow") }}
-        </Button>
-      </Upload>
-      <Upload
-        ref="uploadButton1"
-        :before-upload="handleUpload"
-        show-upload-list
-        accept=".pcd"
-        name="pcd-file"
-        :on-success="onSuccess"
-        :on-error="onError"
-        action
-        :format="['pcd']"
-      >
-        <Button type="info">Import Ex</Button>
+        <Button style="display:none">{{ $t("import_flow") }}</Button>
       </Upload>
     </Row>
     <div v-show="showBpmn" class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">
-          {{ $t("config_plugin") }}
-        </a>
+        <a href="javascript:void(0);" @click="openPluginModal">{{
+          $t("config_plugin")
+        }}</a>
         <br />
       </div>
 
@@ -193,9 +176,9 @@
             style="width:30%"
             @on-change="onParamsNodeChange(index)"
           >
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
-              i.label
-            }}</Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
+              {{ i.label }}
+            </Option>
           </Select>
           <Select
             v-if="item.bindType === 'context'"
@@ -213,9 +196,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
-          $t("confirm")
-        }}</Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
+          {{ $t("confirm") }}
+        </Button>
       </div>
     </Modal>
     <Modal
@@ -287,7 +270,6 @@ import {
   removeProcessDefinition,
   getFilteredPluginInterfaceList,
   exportProcessDefinitionWithId,
-  importProcessDefinitionFile,
   getRolesByCurrentUser,
   getRoleList,
   getPermissionByProcessId,
@@ -379,9 +361,6 @@ export default {
   watch: {
     selectedFlow: {
       handler(val, oldVal) {
-        console.log("selected flow===");
-        console.log(val);
-        console.log(oldVal);
         if (val && val !== 100000) {
           this.getFlowXml(val);
           this.getPermissionByProcess(val);
@@ -402,6 +381,17 @@ export default {
       } else {
         return false;
       }
+    },
+    setUploadActionHeader() {
+      console.log("set upload action handler");
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      const currTime = new Date().getTime();
+      console.log(currTime);
+      return {
+        Authorization:
+          "Bearer " + token.find(t => t.tokenType === "accessToken").token
+      };
     }
   },
   created() {
@@ -842,6 +832,7 @@ export default {
       this.createNewDiagram();
     },
     getHeaders() {
+      console.log("get headers");
       let refreshRequest = null;
       const currentTime = new Date().getTime();
       let session = window.sessionStorage;
@@ -877,36 +868,19 @@ export default {
     },
     exportProcessDefinition(isDraft) {
       let _this = this;
-      const okHandler = data => {
-        this.getAllFlows();
-        this.selectedFlow = data.data.procDefId;
-      };
-      this.bpmnModeler.saveXML({ format: true }, function(err, xml) {
-        if (!xml) return;
-        const xmlString = xml.replace(/[\r\n]/g, "");
-        const processName = document.getElementById("camunda-name").innerText;
 
-        const payload = {
-          procDefData: xmlString,
-          procDefId: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefId) || ""
-            : "",
-          procDefKey: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
-            : _this.newFlowID,
-          procDefName: processName,
-          rootEntity: _this.currentSelectedEntity,
-          status: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
-            : "",
-          taskNodeInfos: _this.serviceTaskBindInfos
-        };
+      let procDefId = this.selectedFlow;
+      debugger;
 
-        console.log("start to export");
-        exportProcessDefinitionWithId();
-        // window.location.href = 'platform/v1/process/definitions/export'
-        console.log("finished export");
-      });
+      if (procDefId == null || procDefId === "undefined" || procDefId === "") {
+        this.$Notice.error({
+          title: "Error",
+          desc: "Must select a process to export."
+        });
+        return false;
+      }
+
+      exportProcessDefinitionWithId(procDefId);
     },
     async onSuccess(response, file, filelist) {
       if (response.status === "OK") {
@@ -927,41 +901,6 @@ export default {
         title: "Error",
         desc: file.message || ""
       });
-    },
-    handleUpload(file) {
-      console.log("handle upload");
-      console.log(file);
-
-      if (!file) {
-        return false;
-      }
-
-      let formData = new FormData();
-      formData.append("pcd-file", file);
-
-      importProcessDefinitionFile(formData).then(data => {
-        console.log("succeed");
-        if (data && data.status === "OK") {
-          this.$Notice.success({
-            title: "Success",
-            desc: data.message
-          });
-          console.log(data);
-          // okHandler(data);
-        }
-      });
-
-      return false;
-    }
-  },
-  computed: {
-    setUploadActionHeader() {
-      let session = window.sessionStorage;
-      const token = JSON.parse(session.getItem("token"));
-      return {
-        Authorization:
-          "Bearer " + token.find(t => t.tokenType === "accessToken").token
-      };
     }
   }
 };

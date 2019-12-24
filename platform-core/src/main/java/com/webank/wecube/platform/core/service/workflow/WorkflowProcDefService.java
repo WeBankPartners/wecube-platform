@@ -48,6 +48,37 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     @Autowired
     private ProcessRoleServiceImpl processRoleService;
 
+    public ProcDefInfoExportImportDto exportProcessDefinition(String procDefId) {
+        if (StringUtils.isBlank(procDefId)) {
+            throw new WecubeCoreException("Process definition id is blank.");
+        }
+
+        Optional<ProcDefInfoEntity> procDefOpt = processDefInfoRepo.findById(procDefId);
+
+        if (!procDefOpt.isPresent()) {
+            log.error("such process definition does not exist:{}", procDefId);
+            throw new WecubeCoreException("Such process defintion does not exist.");
+        }
+
+        ProcDefInfoEntity procDef = procDefOpt.get();
+
+        if (!ProcDefInfoEntity.DEPLOYED_STATUS.equalsIgnoreCase(procDef.getStatus())) {
+            log.error("unexpected process definition status,expected {} but {} for {}",
+                    ProcDefInfoEntity.DEPLOYED_STATUS, procDef.getStatus(), procDef.getId());
+
+            throw new WecubeCoreException("Unexpected process status.");
+        }
+        
+        ProcDefInfoExportImportDto result = new ProcDefInfoExportImportDto();
+        result.setProcDefData(procDef.getProcDefData());
+        result.setProcDefDataFmt(procDef.getProcDefDataFormat());
+        result.setProcDefKey(procDef.getProcDefKey());
+        result.setProcDefName(procDef.getProcDefName());
+        result.setProcDefVersion(String.valueOf(procDef.getProcDefVersion()));
+        
+        return result;
+    }
+
     public void removeProcessDefinition(String token, String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
             throw new WecubeCoreException("Process definition id is blank.");
@@ -63,18 +94,20 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         ProcDefInfoEntity procDef = procDefOpt.get();
 
         String username = AuthenticationContextHolder.getCurrentUsername();
-        boolean isAvailableToManageThisProcess = this.processRoleService.checkIfUserHasMgmtPermission(
-                procDef.getId(),
+        boolean isAvailableToManageThisProcess = this.processRoleService.checkIfUserHasMgmtPermission(procDef.getId(),
                 this.userManagementService.getRoleIdListByUsername(token, username));
         if (!isAvailableToManageThisProcess) {
-            String msg = String.format("The user: [%s] doesn't have permission to manage this process: [%s]", username, procDef.getId());
+            String msg = String.format("The user: [%s] doesn't have permission to manage this process: [%s]", username,
+                    procDef.getId());
             log.error(msg);
             throw new WecubeCoreException(msg);
         }
 
         if (!ProcDefInfoEntity.DRAFT_STATUS.equals(procDef.getStatus())) {
-            // set NOT DRAFT_STATUS process to DELETED_STATUS, without deleting the nodes and params
-            log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId, ProcDefInfoEntity.DELETED_STATUS));
+            // set NOT DRAFT_STATUS process to DELETED_STATUS, without deleting
+            // the nodes and params
+            log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId,
+                    ProcDefInfoEntity.DELETED_STATUS));
             procDef.setStatus(ProcDefInfoEntity.DELETED_STATUS);
             processDefInfoRepo.save(procDef);
             return;
@@ -267,7 +300,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     public List<ProcDefInfoDto> getProcessDefinitions(String token, boolean includeDraftProcDef, String permissionStr) {
-        List<Long> roleIdList = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
+        List<Long> roleIdList = this.userManagementService.getRoleIdListByUsername(token,
+                AuthenticationContextHolder.getCurrentUsername());
 
         // check if there is permission specified
         List<ProcRoleDto> procRoleDtoList;
@@ -277,7 +311,6 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
             procRoleDtoList = processRoleService.retrieveAllProcessByRoleIdList(roleIdList);
         }
         Set<ProcRoleDto> procRoleDtoSet = new HashSet<>(procRoleDtoList);
-
 
         // check if there is includeDraftProcDef specified
         List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
@@ -530,7 +563,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     protected ProcDefOutlineDto postDeployProcessDefinition(ProcDefInfoEntity procDefEntity, ProcessDefinition procDef,
-                                                            ProcDefOutline procDefOutline) {
+            ProcDefOutline procDefOutline) {
         if (procDefEntity == null) {
             return null;
         }
@@ -683,7 +716,6 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
     private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
 
-
         Map<String, List<Long>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
 
         if (null == permissionToRoleMap) {
@@ -717,14 +749,16 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 throw new WecubeCoreException(errorMsg);
             }
 
-            // when permission is MGMT and roleIdList is empty, then it is invalid
+            // when permission is MGMT and roleIdList is empty, then it is
+            // invalid
             if (ProcRoleBindingEntity.permissionEnum.MGMT.toString().equals(permissionStr) && roleIdList.isEmpty()) {
                 errorMsg = "At least one role with MGMT role should be declared.";
                 log.error(errorMsg);
                 throw new WecubeCoreException(errorMsg);
             }
             for (Long roleId : roleIdList) {
-                processRoleService.createProcRoleBinding(procId, new ProcRoleRequestDto(permissionStr, Collections.singletonList(roleId)));
+                processRoleService.createProcRoleBinding(procId,
+                        new ProcRoleRequestDto(permissionStr, Collections.singletonList(roleId)));
             }
         }
     }

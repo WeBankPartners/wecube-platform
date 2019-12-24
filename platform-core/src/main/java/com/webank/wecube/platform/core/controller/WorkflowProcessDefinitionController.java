@@ -1,12 +1,11 @@
 package com.webank.wecube.platform.core.controller;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,12 +20,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webank.wecube.platform.auth.client.encryption.StringUtilsEx;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
 import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoExportImportDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
@@ -47,6 +50,8 @@ public class WorkflowProcessDefinitionController {
 
     @Autowired
     private ProcessRoleServiceImpl processRoleService;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/process/definitions/deploy")
     public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
@@ -82,7 +87,7 @@ public class WorkflowProcessDefinitionController {
 
     @DeleteMapping("/process/definitions/{proc-def-id}")
     public CommonResponseDto removeProcessDefinition(@RequestHeader("Authorization") String token,
-                                                     @PathVariable("proc-def-id") String procDefId) {
+            @PathVariable("proc-def-id") String procDefId) {
         procDefService.removeProcessDefinition(token, procDefId);
         return CommonResponseDto.okay();
     }
@@ -152,28 +157,53 @@ public class WorkflowProcessDefinitionController {
         return CommonResponseDto.okay();
     }
 
-    @GetMapping(value = "/process/definitions/export", produces = { MediaType.APPLICATION_OCTET_STREAM_VALUE })
-    public ResponseEntity<Resource> exportProcessDefinition() {
+    @GetMapping(value = "/process/definitions/{proc-def-id}/export", produces = { MediaType.ALL_VALUE })
+    public ResponseEntity<byte[]> exportProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
         log.info("=== export ===");
-        byte[] contents = "CONTENTS".getBytes();
-        ByteArrayResource resource = new ByteArrayResource(contents);
+
+        ProcDefInfoExportImportDto result = procDefService.exportProcessDefinition(procDefId);
+        String filename = assembleProcessExportFilename(result);
+
+        String filedata = convertResult(result);
+        byte[] filedataBytes = StringUtilsEx.encodeBase64String(filedata.getBytes(Charset.forName("utf-8")))
+                .getBytes(Charset.forName("utf-8"));
+        log.info("filedata:{}", filedata);
+        log.info("string len:{}", filedata.length());
+        log.info("byte len:{}", filedataBytes.length);
+        // ByteArrayResource resource = new ByteArrayResource(filedataBytes);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.add("Content-Disposition", "attachment;filename=111.pcd");
-        return ResponseEntity.ok().headers(headers)
-                // .contentLength(file.length())
-                // .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .body(resource);
+        headers.add("Content-Disposition", String.format("attachment;filename=%s", filename));
+        return ResponseEntity.ok().headers(headers).contentLength(filedataBytes.length)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(filedataBytes);
     }
 
-    @PostMapping(value = "/process/definitions/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE, "application/zip" })
-    public CommonResponseDto importProcessDefinition(@RequestParam("pcd-file") MultipartFile file, @RequestParam(value="filename", required=false) String filename) {
-        log.info("=== import === {}" , filename);
+    @PostMapping(value = "/process/definitions/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public CommonResponseDto importProcessDefinition(@RequestParam("uploadFile") MultipartFile file,
+            @RequestParam(value = "filename", required = false) String filename) {
+        log.info("=== import === {}", filename);
         if (file != null) {
             log.info("file size:{}", file.getSize());
             log.info("filename:{}", file.getName());
         }
         return CommonResponseDto.okay();
+    }
+
+    private String convertResult(ProcDefInfoExportImportDto result) {
+        String content = "";
+        try {
+            content = objectMapper.writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            log.error("errors while converting result", e);
+            throw new WecubeCoreException("Failed to convert result.");
+        }
+
+        return content;
+
+    }
+
+    private String assembleProcessExportFilename(ProcDefInfoExportImportDto result) {
+        return String.format("proc-%s-%s.pds", result.getProcDefName(), result.getProcDefKey());
     }
 
 }

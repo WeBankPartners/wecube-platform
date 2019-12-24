@@ -47,16 +47,9 @@ export const getAllDataModels = () => req.get(`platform/v1/models`);
 export const getPluginInterfaceList = () =>
   req.get(`platform/v1/plugins/interfaces/enabled`);
 
-export const exportProcessDefinitionWithId = () => {
-  setHeaders({
-    Accept: "application/octet-stream",
-    "Access-Control-Expose-Headers": "Content-Disposition"
-  });
-  req.get(`platform/v1/process/definitions/export`);
+export const exportProcessDefinitionWithId = procDefId => {
+  req.get(`platform/v1/process/definitions/${procDefId}/export`);
 };
-
-export const importProcessDefinitionFile = data =>
-  req.post("/platform/v1/process/definitions/import", data);
 
 // admin
 

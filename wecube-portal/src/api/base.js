@@ -97,12 +97,16 @@ req.interceptors.response.use(
       }
 
       if (res.headers["content-type"] === "application/octet-stream") {
-        let filename = res.headers["content-disposition"]
-          .split(";")
-          .find(x => ~x.indexOf("filename"))
-          .split("=")[1];
+        let contentDispositionHeader = res.headers["content-disposition"];
+        let filename = "file";
+        if (contentDispositionHeader) {
+          filename = contentDispositionHeader
+            .split(";")
+            .find(x => ~x.indexOf("filename"))
+            .split("=")[1];
+        }
         if (filename === null || filename === undefined || filename === "") {
-          filename = "file.export";
+          filename = "file";
         }
         let url = window.URL.createObjectURL(new Blob([res.data]));
         let link = document.createElement("a");
