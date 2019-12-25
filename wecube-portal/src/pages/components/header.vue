@@ -228,9 +228,20 @@ export default {
     }
   },
   async created() {
-    this.getLocalLang();
-    this.getMyMenus();
-    this.username = window.sessionStorage.getItem("username");
+    let session = window.sessionStorage;
+    const currentTime = new Date().getTime();
+    const token = JSON.parse(session.getItem("token"));
+    const refreshToken = token
+      ? token.find(t => t.tokenType === "refreshToken")
+      : { expiration: 0 };
+    const expiration = refreshToken.expiration * 1 - currentTime;
+    if (!token || expiration < 0) {
+      this.$router.push("/login");
+    } else {
+      this.getLocalLang();
+      this.getMyMenus();
+      this.username = window.sessionStorage.getItem("username");
+    }
   },
   watch: {
     $lang: function(lang) {
@@ -239,9 +250,18 @@ export default {
   },
   mounted() {
     if (window.needReLoad) {
-      // setTimeout(()=>{this.getAllPluginPackageResourceFiles()},5000)
-      this.getAllPluginPackageResourceFiles();
-      window.needReLoad = false;
+      let session = window.sessionStorage;
+      const currentTime = new Date().getTime();
+      const token = JSON.parse(session.getItem("token"));
+      const refreshToken = token
+        ? token.find(t => t.tokenType === "refreshToken")
+        : { expiration: 0 };
+      const expiration = refreshToken.expiration * 1 - currentTime;
+      if (token || expiration > 0) {
+        // setTimeout(()=>{this.getAllPluginPackageResourceFiles()},5000)
+        this.getAllPluginPackageResourceFiles();
+        window.needReLoad = false;
+      }
     }
   }
 };
