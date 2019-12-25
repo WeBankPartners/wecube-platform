@@ -871,7 +871,8 @@ export default {
           .on("mousewheel.zoom", null);
         this.graph.graphviz = graph
           .graphviz()
-          .zoom(true)
+          .fit(true)
+          .zoom(false)
           .height(graphEl.offsetHeight - 10)
           .width(graphEl.offsetWidth - 10);
       };
@@ -886,7 +887,8 @@ export default {
         graph.on("dblclick.zoom", null);
         this.flowGraph.graphviz = graph
           .graphviz()
-          .zoom(true)
+          .fit(true)
+          .zoom(false)
           .height(graphEl.offsetHeight - 10)
           .width(graphEl.offsetWidth - 10);
       };
