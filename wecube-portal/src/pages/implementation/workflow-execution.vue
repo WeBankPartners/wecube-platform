@@ -241,7 +241,7 @@ export default {
     },
 
     orchestrationSelectHandler() {
-      this.getFlowOutlineData(this.selectedFlow);
+      (this.currentFlowNodeId = ""), this.getFlowOutlineData(this.selectedFlow);
       if (this.selectedFlow && this.isEnqueryPage === false) {
         this.showExcution = true;
       }
