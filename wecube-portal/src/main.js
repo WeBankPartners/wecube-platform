@@ -68,6 +68,7 @@ class WatchRouters {
 }
 let WatchRouter = new WatchRouters();
 WatchRouter.on("change", path => {
+  if (window.needReLoad) return;
   window.location.href = window.location.origin + "/#" + path;
 });
 
@@ -144,9 +145,9 @@ router.beforeEach((to, from, next) => {
       let isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), childRouters)
         .find(_ => _.link === to.path);
-      console.log(isHasPermission);
+      console.log(111, isHasPermission);
       if (
-        isHasPermission ||
+        (isHasPermission && isHasPermission.active) ||
         to.path === "/404" ||
         to.path === "/login" ||
         to.path === "/homepage"
