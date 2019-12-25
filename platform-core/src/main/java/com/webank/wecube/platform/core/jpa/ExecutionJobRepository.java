@@ -4,6 +4,6 @@ import org.springframework.data.repository.CrudRepository;
 
 import com.webank.wecube.platform.core.domain.ExecutionJob;
 
-public interface ExecutionJobRepository extends CrudRepository<ExecutionJob, String> {
+public interface ExecutionJobRepository extends CrudRepository<ExecutionJob, Integer> {
 
 }
