@@ -40,8 +40,8 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
     @Column(name = "ROOT_ENTITY")
     private String rootEntity;
     
-    @Column(name = "ROOT_ENTITY_NAME")
-    private String rootEntityName;
+//    @Column(name = "ROOT_ENTITY_NAME")
+//    private String rootEntityName;
 
     @Lob
     @Basic(fetch=FetchType.EAGER)
@@ -148,11 +148,11 @@ public class ProcDefInfoEntity extends BaseStatusFeaturedEntity {
         this.deleted = deleted;
     }
 
-    public String getRootEntityName() {
-        return rootEntityName;
-    }
-
-    public void setRootEntityName(String rootEntityName) {
-        this.rootEntityName = rootEntityName;
-    }
+//    public String getRootEntityName() {
+//        return rootEntityName;
+//    }
+//
+//    public void setRootEntityName(String rootEntityName) {
+//        this.rootEntityName = rootEntityName;
+//    }
 }
