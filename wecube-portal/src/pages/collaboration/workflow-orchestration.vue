@@ -822,7 +822,6 @@ export default {
           camunda: camundaModdleDescriptor
         }
       });
-      this.createNewDiagram();
     },
     getHeaders() {
       let refreshRequest = null;
