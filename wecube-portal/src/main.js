@@ -145,7 +145,6 @@ router.beforeEach((to, from, next) => {
       let isHasPermission = []
         .concat(...window.myMenus.map(_ => _.submenus), childRouters)
         .find(_ => _.link === to.path);
-      console.log(111, isHasPermission);
       if (
         (isHasPermission && isHasPermission.active) ||
         to.path === "/404" ||
