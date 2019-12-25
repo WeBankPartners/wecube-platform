@@ -59,7 +59,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     protected void configureLocalAuthentication(HttpSecurity http) throws Exception {
         http.authorizeRequests() //
-                .antMatchers("/", "/index.html").permitAll() //
+                .antMatchers("/index.html").permitAll() //
                 .antMatchers("/workflow/**").permitAll() //
                 .antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()//
                 .antMatchers("/webjars/**").permitAll() //
