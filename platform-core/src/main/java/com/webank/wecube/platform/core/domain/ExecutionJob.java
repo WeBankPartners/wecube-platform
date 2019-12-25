@@ -130,13 +130,12 @@ public class ExecutionJob {
     }
 
     public ExecutionJob(String rootEntityid, String pluginConfigInterfaceId, String packageName, String entityName,
-            String businessKey, List<ExecutionJobParameter> parameters) {
+            String businessKey) {
         super();
         this.pluginConfigInterfaceId = pluginConfigInterfaceId;
         this.packageName = packageName;
         this.entityName = entityName;
         this.businessKey = businessKey;
-        this.parameters = parameters;
         this.rootEntityId = rootEntityid;
     }
 
