@@ -15,7 +15,7 @@ public class SysRoleEntity extends AbstractTraceableEntity {
 	@Column(name = "ID")
 	private Long id;
 
-	@Column(name = "NAME")
+	@Column(name = "NAME", unique=true)
 	private String name;
 
 	@Column(name = "DISPLAY_NAME")
