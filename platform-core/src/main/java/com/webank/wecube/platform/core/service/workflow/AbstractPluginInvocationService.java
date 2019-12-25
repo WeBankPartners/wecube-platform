@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
@@ -19,7 +21,7 @@ import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 
-public abstract class AbstractPluginInvocationService {
+public abstract class AbstractPluginInvocationService extends AbstractWorkflowService{
 
     protected static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
 
@@ -54,6 +56,27 @@ public abstract class AbstractPluginInvocationService {
 
     @Autowired
     protected ExpressionService expressionService;
+    
+    
+    protected TaskNodeInstInfoEntity findExactTaskNodeInstInfoEntityWithNodeId(List<TaskNodeInstInfoEntity> nodeInstEntities, String nodeId){
+        for(TaskNodeInstInfoEntity nodeInst: nodeInstEntities){
+            if(nodeId.equalsIgnoreCase(nodeInst.getNodeId())){
+                return nodeInst;
+            }
+        }
+        
+        return null;
+    }
+    
+    protected TaskNodeDefInfoEntity findExactTaskNodeDefInfoEntityWithNodeId(List<TaskNodeDefInfoEntity> nodeDefEntities, String nodeId){
+        for(TaskNodeDefInfoEntity nodeDef : nodeDefEntities){
+            if(nodeId.equalsIgnoreCase(nodeDef.getNodeId())){
+                return nodeDef;
+            }
+        }
+        
+        return null;
+    }
 
     protected String trimWithMaxLength(String s) {
         if (s == null) {
