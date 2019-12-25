@@ -704,6 +704,10 @@ export default {
           this.defaultPluginForm;
         // get flow's params infos - nodes -
         this.getFlowsNodes();
+        this.pluginForm.routineExpression &&
+          this.getFilteredPluginInterfaceList(
+            this.pluginForm.routineExpression
+          );
       }
     },
     onParamsNodeChange(index) {
