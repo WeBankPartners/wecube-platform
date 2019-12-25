@@ -29,7 +29,7 @@ create table plugin_package_menus (
   local_display_name VARCHAR(256) not null,
   menu_order INTEGER NOT NULL AUTO_INCREMENT,
   path VARCHAR(256) not null,
-  status VARCHAR(10) default 'INACTIVE',
+  active BIT default 0,
   KEY `plugin_package_menu_order` (`menu_order`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 

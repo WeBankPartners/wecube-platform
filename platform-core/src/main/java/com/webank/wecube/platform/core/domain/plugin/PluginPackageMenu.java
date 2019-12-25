@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Generated;
@@ -12,9 +11,6 @@ import javax.persistence.*;
 @Entity
 @Table(name = "plugin_package_menus")
 public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
-    public enum Status {
-        ACTIVE, INACTIVE
-    }
 
     @Id
     private String id;
@@ -47,7 +43,7 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     private String path;
 
     @Column
-    private Status status = Status.INACTIVE;
+    private boolean active = false;
 
     public String getId() {
         return id;
@@ -126,12 +122,12 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this.path = path;
     }
 
-    public Status getStatus() {
-        return status;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public PluginPackageMenu() {
@@ -147,10 +143,10 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     }
 
     public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, String localDisplayName, Integer menuOrder, String path) {
-        this(id, pluginPackage, code, category, source, displayName, localDisplayName, menuOrder, path, Status.INACTIVE);
+        this(id, pluginPackage, code, category, source, displayName, localDisplayName, menuOrder, path, false);
     }
 
-    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, String localDisplayName, Integer menuOrder, String path, Status status) {
+    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, String localDisplayName, Integer menuOrder, String path, boolean status) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.code = code;
@@ -160,7 +156,7 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this.localDisplayName = localDisplayName;
         this.menuOrder = menuOrder;
         this.path = path;
-        this.status = status;
+        this.active = status;
     }
 
     @Override
