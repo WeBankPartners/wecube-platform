@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
-import static com.webank.wecube.platform.core.domain.MenuItem.Source.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PluginPackageMenuRepositoryTest extends DatabaseBasedTest {
@@ -51,7 +50,7 @@ public class PluginPackageMenuRepositoryTest extends DatabaseBasedTest {
         Iterable<PluginPackageMenu> menuIterable = menuRepository.findAll();
         assertThat(menuIterable).hasSize(5);
 
-        Optional<List<PluginPackageMenu>> allMenusForAllActivePackages = menuRepository.findAllForAllActivePackages();
+        Optional<List<PluginPackageMenu>> allMenusForAllActivePackages = menuRepository.findAllPluginPackageMenusForAllActivePackages();
         assertThat(allMenusForAllActivePackages.isPresent()).isTrue();
         List<PluginPackageMenu> pluginPackageMenus = allMenusForAllActivePackages.get();
         assertThat(pluginPackageMenus).hasSize(3);
@@ -89,7 +88,7 @@ public class PluginPackageMenuRepositoryTest extends DatabaseBasedTest {
         Iterable<PluginPackageMenu> menuIterable = menuRepository.findAll();
         assertThat(menuIterable).hasSize(6);
 
-        Optional<List<PluginPackageMenu>> allMenusForAllActivePackages = menuRepository.findAllForAllActivePackages();
+        Optional<List<PluginPackageMenu>> allMenusForAllActivePackages = menuRepository.findAllPluginPackageMenusForAllActivePackages();
         assertThat(allMenusForAllActivePackages.isPresent()).isTrue();
         List<PluginPackageMenu> pluginPackageMenus = allMenusForAllActivePackages.get();
         assertThat(pluginPackageMenus).hasSize(4);
