@@ -82,4 +82,7 @@ public class BatchExecutionJob {
         super();
         this.jobs = jobs;
     }
+
+    public BatchExecutionJob() {
+    }
 }
