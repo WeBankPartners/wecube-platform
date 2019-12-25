@@ -1,9 +1,9 @@
 const CompressionPlugin = require("compression-webpack-plugin");
 
-let isUsingLocalCore = false;
+let isUsingLocalCore = true;
 
 const baseURL = isUsingLocalCore
-  ? "http://localhost:8080"
+  ? "http://127.0.0.1:8080"
   : "http://111.230.161.237:19090";
 
 module.exports = {
@@ -17,7 +17,7 @@ module.exports = {
         target: baseURL
       },
       "/wecmdb": {
-        target: baseURL
+        target: "http://111.230.161.237:19090"
       },
       "ui-resources": {
         target: "http://111.230.161.237:19090"
