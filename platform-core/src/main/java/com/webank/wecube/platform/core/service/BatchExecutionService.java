@@ -223,7 +223,7 @@ public class BatchExecutionService {
 
             if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
                 SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
-                        pluginConfigInterfaceOptional.get().getPluginConfig().getTargetPackage(),
+                        pluginConfigInterfaceOptional.get().getPluginConfig().getPluginPackage().getName(),
                         parameter.getMappingSystemVariableName());
 
                 if (sVariable == null && FIELD_REQUIRED.equals(parameter.getRequired())) {
