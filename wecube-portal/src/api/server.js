@@ -1,4 +1,4 @@
-import req from "./base";
+import req, { setHeaders } from "./base";
 
 export const getMyMenus = () => req.get("/platform/v1/my-menus");
 // init page
@@ -46,6 +46,10 @@ export const getAllDataModels = () => req.get(`platform/v1/models`);
 
 export const getPluginInterfaceList = () =>
   req.get(`platform/v1/plugins/interfaces/enabled`);
+
+export const exportProcessDefinitionWithId = procDefId => {
+  req.get(`platform/v1/process/definitions/${procDefId}/export`);
+};
 
 // admin
 
