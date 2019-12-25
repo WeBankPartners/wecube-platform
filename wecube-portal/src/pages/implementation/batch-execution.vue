@@ -66,31 +66,34 @@
     </section>
     <section
       v-if="!displaySearchZone && !displayResultTableZone"
-      class="excute-result"
       style="margin-top:60px;"
     >
-      <Timeline>
-        <TimelineItem>
-          <p class="time">1976年</p>
-          <p class="content">Apple I 问世</p>
-        </TimelineItem>
-        <TimelineItem>
-          <p class="time">1984年</p>
-          <p class="content">发布 Macintosh</p>
-        </TimelineItem>
-        <TimelineItem>
-          <p class="time">2007年</p>
-          <p class="content">发布 iPhone</p>
-        </TimelineItem>
-        <TimelineItem>
-          <p class="time">2010年</p>
-          <p class="content">发布 iPad</p>
-        </TimelineItem>
-        <TimelineItem>
-          <p class="time">2011年10月5日</p>
-          <p class="content">史蒂夫·乔布斯去世</p>
-        </TimelineItem>
-      </Timeline>
+      <Card>
+        <Row>
+          <Col span="6" class="excute-result excute-result-search">
+            <Input v-model="businessKey" style="width:180px;" />
+            <Button type="primary">搜索</Button>
+            <ul style="margin: 8px 0">
+              <li
+                @click="activeResultKey = key"
+                :class="[
+                  activeResultKey === key ? 'active-key' : '',
+                  'business-key'
+                ]"
+                v-for="(key, keyIndex) in filterBusinessKeySet"
+              >
+                <span>{{ key }}</span>
+              </li>
+            </ul>
+          </Col>
+          <Col span="17" class="excute-result excute-result-json">
+            <Input v-model="resultFilterKey" style="width:300px;" />
+            <div>
+              <pre>{{ JSON.stringify(businessKeyContent, null, 2) }}</pre>
+            </div>
+          </Col>
+        </Row>
+      </Card>
     </section>
     <Modal
       :width="700"
@@ -236,7 +239,7 @@ export default {
   name: "",
   data() {
     return {
-      displaySearchZone: true,
+      displaySearchZone: false,
       displayResultTableZone: false,
       displayExcuteResultZone: false,
 
@@ -318,11 +321,40 @@ export default {
       pluginForm: {},
       selectedPluginParams: [],
       allPlugins: [],
-      filteredPlugins: []
+      filteredPlugins: [],
+
+      excuteResult: {
+        key1: {
+          a1: 112,
+          b1: 2324,
+          c1: 3234
+        },
+        key2: {
+          a2: 1234,
+          b2: 2234,
+          c2: 32567
+        },
+        key3: {
+          a3: 1234,
+          b3: 2234,
+          c3: 32567
+        }
+      },
+      excuteBusinessKeySet: ["key1", "key2", "key3"],
+      filterBusinessKeySet: this.excuteBusinessKeySet,
+      activeResultKey: "",
+      businessKey: "",
+      resultFilterKey: ""
     };
   },
   mounted() {
     this.queryData();
+  },
+  computed: {
+    businessKeyContent: function() {
+      console.log(this.excuteResult[this.activeResultKey]);
+      return this.excuteResult[this.activeResultKey];
+    }
   },
   watch: {
     dataModelExpression: async function(val) {
@@ -366,6 +398,14 @@ export default {
         return _;
       });
       console.log(this.selectedPluginParams);
+    },
+    businessKey: function(val) {
+      this.filterBusinessKeySet = [];
+      for (const key in this.excuteResult) {
+        if (key.indexOf(this.businessKey) > -1) {
+          this.filterBusinessKeySet.push(key);
+        }
+      }
     }
   },
   methods: {
@@ -620,5 +660,24 @@ export default {
 }
 .search-btn {
   margin-top: 16px;
+}
+.excute-result {
+  padding: 8px;
+  min-height: 300px;
+}
+.excute-result-search {
+  margin-right: 16px;
+  border-right: 1px solid #e8eaec;
+}
+.excute-result-json {
+  border: 1px solid #e8eaec;
+}
+.business-key {
+  padding: 0 4px;
+  cursor: pointer;
+  color: #2d8cf0;
+}
+.active-key {
+  color: red;
 }
 </style>
