@@ -67,7 +67,6 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .antMatchers("/csrf").permitAll() //
                 .antMatchers("/v1/route-items").permitAll() //
                 .antMatchers("/v1/route-items/**").permitAll() //
-                .antMatchers("/**").permitAll() //
                 .anyRequest().authenticated() //
                 .and()//
                 .addFilter(jwtSsoBasedAuthenticationFilter())//

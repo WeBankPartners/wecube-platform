@@ -56,11 +56,6 @@ public class ExecutionJob {
     @Column
     private String returnJson;
 
-    @PrePersist
-    public void initId() {
-        this.id = DomainIdBuilder.buildDomainId(this);
-    }
-
     public String getId() {
         return id;
     }
@@ -136,6 +131,8 @@ public class ExecutionJob {
     public ExecutionJob(String rootEntityid, String pluginConfigInterfaceId, String packageName, String entityName,
             String businessKey, List<ExecutionJobParameter> parameters) {
         super();
+        this.id = DomainIdBuilder.buildDomainId(packageName, entityName, rootEntityid,
+                Long.toString(System.currentTimeMillis()));
         this.pluginConfigInterfaceId = pluginConfigInterfaceId;
         this.packageName = packageName;
         this.entityName = entityName;
