@@ -6,6 +6,9 @@ public class DmeFilterDto {
     String dataModelExpression;
     List<DmeLinkFilterDto> filters;
 
+    public DmeFilterDto() {
+    }
+
     public DmeFilterDto(String dataModelExpression, List<DmeLinkFilterDto> filters) {
         this.dataModelExpression = dataModelExpression;
         this.filters = filters;
