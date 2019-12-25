@@ -13,8 +13,9 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     private String displayName;
     private String localDisplayName;
     private String path;
+    private boolean active;
 
-    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String localDisplayName, String path) {
+    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String localDisplayName, String path, boolean active) {
         this.id = id;
         this.category = category;
         this.code = code;
@@ -23,6 +24,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         this.displayName = displayName;
         this.localDisplayName = localDisplayName;
         this.path = path;
+        this.active = active;
     }
 
     public MenuItemDto() {
@@ -41,6 +43,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
         pluginPackageMenuDto.setLocalDisplayName(systemMenu.getLocalDisplayName());
         pluginPackageMenuDto.setPath(null);
+        pluginPackageMenuDto.setActive(true);
         return pluginPackageMenuDto;
     }
 
@@ -54,6 +57,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
         pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
         pluginPackageMenuDto.setPath(packageMenu.getPath());
+        pluginPackageMenuDto.setActive(packageMenu.isActive());
         return pluginPackageMenuDto;
     }
 
@@ -121,6 +125,13 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         this.path = path;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 
     @Override
     public int compareTo(MenuItemDto o) {
