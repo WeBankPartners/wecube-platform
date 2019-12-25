@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu.Status;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu.Status.ACTIVE;
-import static com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu.Status.INACTIVE;
 
 public class PluginPackageMenuStatusListener implements ApplicationContextAware {
     private PluginPackageMenuRepository packageMenuRepository;
@@ -26,20 +23,20 @@ public class PluginPackageMenuStatusListener implements ApplicationContextAware 
 
     @PrePersist
     public void prePersist(PluginInstance pluginInstance){
-        updatePluginPackageMenuStatusForPluginPackage(pluginInstance, INACTIVE, ACTIVE);
+        updatePluginPackageMenuStatusForPluginPackage(pluginInstance, false, true);
     }
 
     @PreRemove
     public void preRemove(PluginInstance pluginInstance) {
-        updatePluginPackageMenuStatusForPluginPackage(pluginInstance, ACTIVE, INACTIVE);
+        updatePluginPackageMenuStatusForPluginPackage(pluginInstance, true, false);
     }
 
     @PostLoad
     public void postLoad(PluginInstance pluginInstance) {
-        updatePluginPackageMenuStatusForPluginPackage(pluginInstance, INACTIVE, ACTIVE);
+        updatePluginPackageMenuStatusForPluginPackage(pluginInstance, false, true);
     }
 
-    private void updatePluginPackageMenuStatusForPluginPackage(PluginInstance pluginInstance, Status fromStatus, Status toStatus) {
+    private void updatePluginPackageMenuStatusForPluginPackage(PluginInstance pluginInstance, boolean fromStatus, boolean toStatus) {
         if (null == packageMenuRepository) {
             this.packageMenuRepository = applicationContext.getBean(PluginPackageMenuRepository.class);
         }
@@ -52,7 +49,7 @@ public class PluginPackageMenuStatusListener implements ApplicationContextAware 
                 pluginPackageMenus.forEach(
                         pluginPackageMenu -> {
                             logger.info("Updating PluginPackageMenu[{}] to {}", pluginPackageMenu.getId(), toStatus);
-                            pluginPackageMenu.setStatus(toStatus);
+                            pluginPackageMenu.setActive(toStatus);
                             updatePluginPackageMenus.add(pluginPackageMenu);
                         }
                 );
