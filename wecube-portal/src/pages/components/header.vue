@@ -124,6 +124,7 @@ export default {
           if (_.category) {
             let menuObj = MENUS.find(m => m.code === _.code);
             if (menuObj) {
+              //Platform Menus
               this.menus.forEach(h => {
                 if (_.category === "" + h.id) {
                   h.submenus.push({
@@ -136,10 +137,14 @@ export default {
                 }
               });
             } else {
+              //Plugins Menus
               this.menus.forEach(h => {
                 if (_.category === "" + h.id) {
                   h.submenus.push({
-                    title: _.displayName,
+                    title:
+                      this.$lang === "zh-CN"
+                        ? _.localDisplayName
+                        : _.displayName,
                     id: _.id,
                     link: _.path,
                     ..._
