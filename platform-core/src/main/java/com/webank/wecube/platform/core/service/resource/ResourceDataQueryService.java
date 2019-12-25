@@ -191,7 +191,7 @@ public class ResourceDataQueryService {
     }
 
     public List<List<String>> queryS3Files(String packageId) {
-        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByPackageId(packageId);
+        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByPluginPackage_Id(packageId);
         if(pluginInstances == null || pluginInstances.size()==0) {
             logger.info(String.format("Can not find out plugin instance for packageId:%d", packageId));
             return Lists.newArrayList();

@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InputParamAttr {
-    
+
     public static final String DATA_TYPE_STRING = "string";
     public static final String DATA_TYPE_NUMBER = "number";
-    
+
     public static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
 
     private String name;
-    private String type; //string, number
-    private String mapType; //entity, context, constant
+    private String type; // string, number
+    private String mapType; // entity, context, constant
     private List<Object> values = new ArrayList<>();
 
     public String getName() {
@@ -39,7 +39,7 @@ public class InputParamAttr {
     public void setValues(List<Object> values) {
         this.values = values;
     }
-    
+
     public String getMapType() {
         return mapType;
     }
@@ -50,63 +50,83 @@ public class InputParamAttr {
 
     public void addValues(Object... values) {
         for (Object v : values) {
-            if (v != null) {
-                this.values.add(v);
-            }
+            this.values.add(v);
         }
     }
-    
-    public void addValues(List<Object> values){
-        if(values == null || values.isEmpty()){
+
+    public void addValues(List<Object> values) {
+        if (values == null || values.isEmpty()) {
             return;
         }
-        
-        for(Object v : values){
-            if(v != null){
-                this.values.add(v);
-            }
+
+        for (Object v : values) {
+            this.values.add(v);
         }
     }
-    
-    public Object getExpectedValue(){
-        if(values == null || values.isEmpty()){
+
+    public Object getExpectedValue() {
+        if (values == null || values.isEmpty()) {
             return determineEmptyValue();
         }
-        
-        if(values.size() == 1){
+
+        if (values.size() == 1) {
             return values.get(0);
         }
-        
+
+        if (DATA_TYPE_STRING.equalsIgnoreCase(type)) {
+            return assembleValueList(values);
+        }
+
         return values;
     }
-    
-    private Object determineEmptyValue(){
-        if(DATA_TYPE_STRING.equalsIgnoreCase(type)){
+
+    protected String assembleValueList(List<Object> retDataValues) {
+        StringBuilder sb = new StringBuilder();
+        boolean isFirst = true;
+        sb.append("[");
+
+        for (Object dv : retDataValues) {
+            if (!isFirst) {
+                sb.append(",");
+            } else {
+                isFirst = false;
+            }
+
+            sb.append(dv == null ? "" : dv);
+        }
+
+        sb.append("]");
+
+        return sb.toString();
+    }
+
+    private Object determineEmptyValue() {
+        if (DATA_TYPE_STRING.equalsIgnoreCase(type)) {
             return DEFAULT_VALUE_DATA_TYPE_STRING;
         }
-        
-        if(DATA_TYPE_NUMBER.equalsIgnoreCase(type)){
+
+        if (DATA_TYPE_NUMBER.equalsIgnoreCase(type)) {
             return DEFAULT_VALUE_DATA_TYPE_NUMBER;
         }
-        
+
         return DEFAULT_VALUE_DATA_TYPE_STRING;
     }
-    
-    public String getValuesAsString(){
-        if(values == null || values.isEmpty()){
+
+    public String getValuesAsString() {
+        if (values == null || values.isEmpty()) {
             return null;
         }
-        
-        if(values.size() == 1){
+
+        if (values.size() == 1) {
             Object v = values.get(0);
             return v.toString();
         }
-        
+
         StringBuilder sb = new StringBuilder();
-        for(Object v : values){
+        for (Object v : values) {
             sb.append(v.toString()).append(",");
         }
-        
+
         return sb.toString();
     }
 
