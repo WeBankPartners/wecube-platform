@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
+import java.util.Random;
+
 import javax.persistence.*;
 
 @Entity
@@ -20,7 +22,8 @@ public class ExecutionJobParameter {
     public static final String MAPPING_TYPE_CMDB_CI_TYPE = "CMDB_CI_TYPE";
 
     @Id
-    private String id;
+    @GeneratedValue
+    private Integer id;
 
     @JsonBackReference
     @EqualsAndHashCode.Exclude
@@ -47,16 +50,11 @@ public class ExecutionJobParameter {
     public ExecutionJobParameter() {
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    @PrePersist
-    public void initId() {
-        this.id = DomainIdBuilder.buildDomainId(this);
-    }
-
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
