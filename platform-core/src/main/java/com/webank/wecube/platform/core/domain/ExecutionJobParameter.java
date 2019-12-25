@@ -51,11 +51,6 @@ public class ExecutionJobParameter {
         return id;
     }
 
-    @PrePersist
-    public void initId() {
-        this.id = DomainIdBuilder.buildDomainId(this);
-    }
-
     public void setId(String id) {
         this.id = id;
     }
@@ -148,6 +143,7 @@ public class ExecutionJobParameter {
     public ExecutionJobParameter(String name, String dataType, String mappingType, String mappingEntityExpression,
             String mappingSystemVariableName, String required, String value) {
         super();
+        this.id = DomainIdBuilder.buildDomainId(name, Long.toString(System.currentTimeMillis()));
         this.name = name;
         this.dataType = dataType;
         this.mappingType = mappingType;
