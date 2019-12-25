@@ -46,6 +46,7 @@
       class="search-result-table"
       style="margin-top:60px;"
     >
+      <Button type="primary" @click="batchAction">批量操作</Button>
       <WeTable
         v-if="displayResultTableZone"
         :tableData="tableData"
@@ -171,6 +172,35 @@
         }}</Button>
       </div>
     </Modal>
+
+    <Modal v-model="batchActionModalVisible" title="批量操作" width="40">
+      <Form label-position="right" :label-width="150">
+        <FormItem :label="$t('plugin')">
+          <Select filterable clearable v-model="pluginForm.serviceId">
+            <Option
+              v-for="(item, index) in filteredPlugins"
+              :value="item.serviceName"
+              :key="index"
+              >{{ item.serviceDisplayName }}</Option
+            >
+          </Select>
+        </FormItem>
+        <template
+          v-for="(item, index) in selectedPluginParams"
+          v-if="item.mappingType === 'constant'"
+        >
+          <FormItem :label="item.name" :key="index">
+            <Input v-model="item.bindValue" />
+          </FormItem>
+        </template>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" @click="excuteBatchAction">{{
+          $t("confirm")
+        }}</Button>
+      </div>
+    </Modal>
+
     <Modal v-model="DelConfig.isDisplay" width="360">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="ios-information-circle"></Icon>
@@ -195,7 +225,10 @@ import { innerActions } from "@/const/actions.js";
 import {
   getAllDataModels,
   retrieveSystemVariables,
-  dmeAllEntities
+  dmeAllEntities,
+  dmeIntegratedQuery,
+  getFilteredPluginInterfaceList,
+  batchExecution
 } from "@/api/server.js";
 import { formatData } from "../util/format.js";
 
@@ -277,14 +310,15 @@ export default {
         {
           title: this.$t("table_name"),
           key: "name",
-          inputKey: "name",
-          searchSeqNo: 2,
-          displaySeqNo: 2,
-          component: "Input",
-          inputType: "text",
-          placeholder: this.$t("table_name")
+          displaySeqNo: 2
         }
-      ]
+      ],
+
+      batchActionModalVisible: false,
+      pluginForm: {},
+      selectedPluginParams: [],
+      allPlugins: [],
+      filteredPlugins: []
     };
   },
   mounted() {
@@ -320,6 +354,18 @@ export default {
           });
         });
       }
+    },
+    "pluginForm.serviceId": function(val) {
+      this.filteredPlugins.forEach(plugin => {
+        if (plugin.serviceDisplayName === val) {
+          this.selectedPluginParams = plugin.inputParameters;
+        }
+      });
+      this.selectedPluginParams = this.selectedPluginParams.map(_ => {
+        _.bindValue = "";
+        return _;
+      });
+      console.log(this.selectedPluginParams);
     }
   },
   methods: {
@@ -376,7 +422,7 @@ export default {
       this.searchParameters = this.targetEntityAttr;
     },
 
-    excuteSearch() {
+    async excuteSearch() {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
@@ -409,8 +455,12 @@ export default {
         }
       });
       console.log(requestParameter);
-      // this.displaySearchZone = false;
-      // this.displayResultTableZone = true;
+      let { status, data, message } = await dmeIntegratedQuery(
+        requestParameter
+      );
+      console.log(data);
+      this.displaySearchZone = false;
+      this.displayResultTableZone = true;
     },
     clearParametes() {
       this.searchParameters.forEach(item => {
@@ -487,6 +537,65 @@ export default {
       } else {
       }
       this.seletedRows = rows;
+      console.log(this.seletedRows);
+    },
+    batchAction() {
+      this.getFilteredPluginInterfaceList();
+      this.batchActionModalVisible = true;
+    },
+    async getFilteredPluginInterfaceList() {
+      console.log(this.searchParameters.slice(-1));
+      const { status, message, data } = await getFilteredPluginInterfaceList(
+        // this.searchParameters.slice(-1).packageName,
+        // this.searchParameters.slice(-1).entityName
+        "wecmdb",
+        "resource_instance"
+      );
+      if (status === "OK") {
+        this.filteredPlugins = data;
+      }
+    },
+    async excuteBatchAction() {
+      const plugin = this.filteredPlugins.find(_ => {
+        return _.serviceName === this.pluginForm.serviceId;
+      });
+      console.log(this.pluginForm.serviceId);
+      console.log(this.searchParameters);
+      const inputParameterDefinitions = plugin.inputParameters.map(p => {
+        const inputParameterValue =
+          p.mappingType === "constant"
+            ? p.dataType === "number"
+              ? Number(p.bindValue)
+              : p.bindValue
+            : null;
+        return {
+          inputParameter: p,
+          inputParameterValue: inputParameterValue
+        };
+      });
+      console.log(inputParameterDefinitions);
+      let currentEntity = this.currentEntityAttrList.find(_ => {
+        return _.id === this.currentEntityAttr;
+      });
+      let requestBody = {
+        packageName: this.currentPackageName,
+        entityName: this.currentEntityName,
+        pluginConfigInterface: plugin,
+        inputParameterDefinitions,
+        businessKeyAttribute: currentEntity,
+        resourceDatas: [
+          {
+            businessKeyValue: "GZP3_GZP_MGMT_MT_APP_10.128.200.10",
+            id: "0015_0000000009"
+          },
+          {
+            businessKeyValue: "GZP3_GZP_SF_BZa_APP_10.128.32.10",
+            id: "0015_0000000008"
+          }
+        ]
+      };
+      const { code, data, message } = await batchExecution(requestBody);
+      console.log(data);
     }
   },
   components: {
