@@ -9,8 +9,6 @@ import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
-import com.webank.wecube.platform.core.service.MenuService;
-import com.webank.wecube.platform.core.service.datamodel.ExpressionServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +69,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 menuCodeList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
             } else {
                 // package menu
-                Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository.findAllActivateMenuByCode(menuCode);
+                Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository.findAllActiveMenuByCode(menuCode);
                 allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> {
                     logger.info(String.format("Plugin package menu was found. The menu code is: [%s]", menuCode));
                     pluginPackageMenus.forEach(pluginPackageMenu -> menuCodeList.add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu)));
