@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.annotations.Generated;
@@ -42,6 +41,9 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
 
     @Column
     private String path;
+
+    @Column
+    private boolean active = false;
 
     public String getId() {
         return id;
@@ -120,19 +122,31 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this.path = path;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     public PluginPackageMenu() {
         super();
     }
 
     public PluginPackageMenu(PluginPackage pluginPackage, String code, String category, String displayName, String path) {
-        this(null, pluginPackage, code, category, MenuItem.Source.PLUGIN.name(), displayName, null, path);
+        this(null, pluginPackage, code, category, pluginPackage.getId(), displayName, null, path);
     }
 
     public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, Integer menuOrder, String path) {
-        this(null, pluginPackage, code, category, MenuItem.Source.PLUGIN.name(), displayName, displayName,null, path);
+        this(null, pluginPackage, code, category, source, displayName, displayName,menuOrder, path);
     }
 
     public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, String localDisplayName, Integer menuOrder, String path) {
+        this(id, pluginPackage, code, category, source, displayName, localDisplayName, menuOrder, path, false);
+    }
+
+    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, String localDisplayName, Integer menuOrder, String path, boolean status) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.code = code;
@@ -142,6 +156,7 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this.localDisplayName = localDisplayName;
         this.menuOrder = menuOrder;
         this.path = path;
+        this.active = status;
     }
 
     @Override
