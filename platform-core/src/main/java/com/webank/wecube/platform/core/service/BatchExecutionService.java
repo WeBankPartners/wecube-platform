@@ -160,8 +160,9 @@ public class BatchExecutionService {
                 String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort()),
                 pluginConfigInterface.getPath(), Lists.newArrayList(callInterfaceParameterMap),
                 "RequestId-" + Long.toString(System.currentTimeMillis()));
-
+        log.info("returnJsonString= " + responseData.toString());
         String returnJsonString = JsonUtils.toJsonString(responseData);
+        log.info("returnJsonString= " + returnJsonString);
         StationaryPluginResponse stationaryResultData = JsonUtils.toObject(returnJsonString,
                 StationaryPluginResponse.class);
         if (stationaryResultData.getOutputs().size() == 0) {
