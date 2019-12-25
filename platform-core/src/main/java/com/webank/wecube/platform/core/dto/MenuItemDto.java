@@ -13,8 +13,9 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     private String displayName;
     private String localDisplayName;
     private String path;
+    private String status;
 
-    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String localDisplayName, String path) {
+    public MenuItemDto(String id, String category, String code, String source, Integer menuOrder, String displayName, String localDisplayName, String path, String status) {
         this.id = id;
         this.category = category;
         this.code = code;
@@ -41,6 +42,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         pluginPackageMenuDto.setDisplayName(systemMenu.getDescription());
         pluginPackageMenuDto.setLocalDisplayName(systemMenu.getLocalDisplayName());
         pluginPackageMenuDto.setPath(null);
+        pluginPackageMenuDto.setStatus(PluginPackageMenu.Status.ACTIVE.name());
         return pluginPackageMenuDto;
     }
 
@@ -54,6 +56,7 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
         pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
         pluginPackageMenuDto.setPath(packageMenu.getPath());
+        pluginPackageMenuDto.setStatus(packageMenu.getStatus().name());
         return pluginPackageMenuDto;
     }
 
@@ -121,6 +124,13 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
         this.path = path;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     @Override
     public int compareTo(MenuItemDto o) {
