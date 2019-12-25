@@ -95,6 +95,34 @@ req.interceptors.response.use(
           duration: 0
         });
       }
+
+      if (res.headers["content-type"] === "application/octet-stream") {
+        let contentDispositionHeader = res.headers["content-disposition"];
+        let filename = "file";
+        if (contentDispositionHeader) {
+          filename = contentDispositionHeader
+            .split(";")
+            .find(x => ~x.indexOf("filename"))
+            .split("=")[1];
+        }
+        if (filename === null || filename === undefined || filename === "") {
+          filename = "file";
+        }
+        let url = window.URL.createObjectURL(new Blob([res.data]));
+        let link = document.createElement("a");
+        link.style.display = "none";
+        link.href = url;
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        Vue.prototype.$Notice.info({
+          title: "Success",
+          desc: "",
+          duration: 0
+        });
+
+        return;
+      }
       return res.data instanceof Array ? res.data : { ...res.data };
     } else {
       return {

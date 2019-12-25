@@ -69,6 +69,8 @@ public class ProcessInstanceEndListener implements ExecutionListener {
         event.setBusinessKey(execution.getProcessBusinessKey());
         event.setDefinitionId(execution.getProcessDefinitionId());
         event.setInstanceId(execution.getProcessInstanceId());
+        event.setEventSourceId(execution.getCurrentActivityId());
+        event.setEventSourceName(execution.getCurrentActivityName());
 
         event.setEventType(ServiceInvocationEvent.EventType.PROCESS_END_NOTIFICATION);
 
