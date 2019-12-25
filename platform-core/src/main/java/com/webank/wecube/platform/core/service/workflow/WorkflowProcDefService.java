@@ -92,7 +92,6 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         List<Long> roleIds = userManagementService.getRoleIdListByUsername(token, currentUsername);
         Map<String,List<Long>> roleBinds = new HashMap<String,List<Long>>();
         roleBinds.put(ProcRoleBindingEntity.permissionEnum.MGMT.name(), roleIds);
-        roleBinds.put(ProcRoleBindingEntity.permissionEnum.USE.name(), roleIds);
         
         ProcDefInfoDto tmpProcDefInfoDto = new ProcDefInfoDto();
         tmpProcDefInfoDto.setPermissionToRole(roleBinds);
@@ -605,6 +604,17 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     public ProcDefOutlineDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto) {
+        
+        String procDefName = procDefInfoDto.getProcDefName();
+        if(StringUtils.isBlank(procDefName)){
+            throw new WecubeCoreException("Process definition name cannot be empty.");
+        }
+        
+        List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo.findAllDeployedProcDefsByProcDefName(procDefName);
+        if(existingProcDefs != null && !existingProcDefs.isEmpty()){
+            log.error("such process definition name already exists,procDefName={}", procDefName);
+            throw new WecubeCoreException("Process definition name should NOT duplicated.");
+        }
 
         String originalId = procDefInfoDto.getProcDefId();
 
