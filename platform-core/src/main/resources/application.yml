@@ -55,7 +55,7 @@ wecube:
       cas-redirect-app-addr: localhost:8080
       httpclient:
          max-total-connections: 200
-      gateway-url: 127.0.0.1:9999
+      gateway-url: 111.230.161.237:19110
       plugin:
          plugin-deploy-path: /opt
          plugin-package-bucket-name: wecube-plugin-package-bucket
