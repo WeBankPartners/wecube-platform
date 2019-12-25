@@ -34,7 +34,7 @@ public class PluginInstanceRepositoryTest extends DatabaseBasedTest {
         assertThat(savedPluginPackageMenu).isNotNull();
         assertThat(savedPluginPackageMenu.getId()).isNotNull();
         String menuId = savedPluginPackageMenu.getId();
-        assertThat(savedPluginPackageMenu.getStatus()).isEqualTo(PluginPackageMenu.Status.INACTIVE);
+        assertThat(savedPluginPackageMenu.isActive()).isFalse();
 
         PluginInstance pluginInstance = new PluginInstance(null, registeredPluginPackage, "wecmdb", "wecmdb-v0.2", "10.0.2.12", 20002);
         instanceRepository.save(pluginInstance);
@@ -42,7 +42,7 @@ public class PluginInstanceRepositoryTest extends DatabaseBasedTest {
         Optional<PluginPackageMenu> optionalLatestPluginPackageMenu = menuRepository.findById(menuId);
         assertThat(optionalLatestPluginPackageMenu.isPresent()).isTrue();
 
-        assertThat(optionalLatestPluginPackageMenu.get().getStatus()).isEqualTo(PluginPackageMenu.Status.ACTIVE);
+        assertThat(optionalLatestPluginPackageMenu.get().isActive()).isTrue();
     }
 
     @Test
@@ -68,7 +68,7 @@ public class PluginInstanceRepositoryTest extends DatabaseBasedTest {
         assertThat(updatedPluginPackageMenu).isNotNull();
         assertThat(updatedPluginPackageMenu.getId()).isNotNull();
 
-        assertThat(updatedPluginPackageMenu.getStatus()).isEqualTo(PluginPackageMenu.Status.ACTIVE);
+        assertThat(updatedPluginPackageMenu.isActive()).isTrue();
 
 
         instanceRepository.deleteById(instanceId);
@@ -78,6 +78,6 @@ public class PluginInstanceRepositoryTest extends DatabaseBasedTest {
         Optional<PluginPackageMenu> optionalLatestPluginPackageMenu = menuRepository.findById(menuId);
         assertThat(optionalLatestPluginPackageMenu.isPresent()).isTrue();
 
-        assertThat(optionalLatestPluginPackageMenu.get().getStatus()).isEqualTo(PluginPackageMenu.Status.INACTIVE);
+        assertThat(optionalLatestPluginPackageMenu.get().isActive()).isFalse();
     }
 }
