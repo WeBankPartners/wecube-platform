@@ -75,16 +75,19 @@ public class BatchExecutionService {
     }
 
     private BatchExecutionJob saveToDb(BatchExecutionRequestDto batchExecutionRequest) {
+        BatchExecutionJob batchExecutionJob = new BatchExecutionJob();
         List<ExecutionJob> executionJobs = new ArrayList<ExecutionJob>();
-
+        batchExecutionJob.setJobs(executionJobs);
         batchExecutionRequest.getResourceDatas().forEach(resourceData -> {
-            executionJobs.add(new ExecutionJob(resourceData.getId(),
+            ExecutionJob executionJob = new ExecutionJob(resourceData.getId(),
                     batchExecutionRequest.getPluginConfigInterface().getId(), batchExecutionRequest.getPackageName(),
-                    batchExecutionRequest.getEntityName(), resourceData.getBusinessKeyValue().toString(),
-                    transFromInputParameterDefinitionToExecutionJobParameter(
-                            batchExecutionRequest.getInputParameterDefinitions())));
+                    batchExecutionRequest.getEntityName(), resourceData.getBusinessKeyValue().toString());
+            executionJob.setParameters(transFromInputParameterDefinitionToExecutionJobParameter(
+                    batchExecutionRequest.getInputParameterDefinitions(), executionJob));
+            executionJob.setBatchExecutionJob(batchExecutionJob);
+            executionJobs.add(executionJob);
         });
-        return batchExecutionJobRepository.save(new BatchExecutionJob(executionJobs));
+        return batchExecutionJobRepository.save(batchExecutionJob);
     }
 
     private void completeBatchExecutionJob(BatchExecutionJob batchExecutionJob) {
@@ -93,21 +96,26 @@ public class BatchExecutionService {
     }
 
     private List<ExecutionJobParameter> transFromInputParameterDefinitionToExecutionJobParameter(
-            List<InputParameterDefinition> inputParameterDefinitions) {
+            List<InputParameterDefinition> inputParameterDefinitions, ExecutionJob executionJob) {
         List<ExecutionJobParameter> executionJobParameters = new ArrayList<ExecutionJobParameter>();
         inputParameterDefinitions.forEach(inputParameterDefinition -> {
             PluginConfigInterfaceParameter interfaceParameter = inputParameterDefinition.getInputParameter();
+
             if (null != inputParameterDefinition.getInputParameterValue()) {
-                executionJobParameters
-                        .add(new ExecutionJobParameter(interfaceParameter.getName(), interfaceParameter.getDataType(),
-                                interfaceParameter.getMappingType(), interfaceParameter.getMappingEntityExpression(),
-                                interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(),
-                                inputParameterDefinition.getInputParameterValue().toString()));
-            } else {
-                executionJobParameters.add(new ExecutionJobParameter(interfaceParameter.getName(),
+                ExecutionJobParameter executionJobParameter = new ExecutionJobParameter(interfaceParameter.getName(),
                         interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
                         interfaceParameter.getMappingEntityExpression(),
-                        interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(), null));
+                        interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(),
+                        inputParameterDefinition.getInputParameterValue().toString());
+                executionJobParameter.setExecutionJob(executionJob);
+                executionJobParameters.add(executionJobParameter);
+            } else {
+                ExecutionJobParameter executionJobParameter = new ExecutionJobParameter(interfaceParameter.getName(),
+                        interfaceParameter.getDataType(), interfaceParameter.getMappingType(),
+                        interfaceParameter.getMappingEntityExpression(),
+                        interfaceParameter.getMappingSystemVariableName(), interfaceParameter.getRequired(), null);
+                executionJobParameter.setExecutionJob(executionJob);
+                executionJobParameters.add(executionJobParameter);
             }
         });
         return executionJobParameters;
