@@ -19,7 +19,8 @@ public class ExecutionJob {
     public static final String ERROR_CODE_FAILED = "1";
 
     @Id
-    private String id;
+    @GeneratedValue
+    private Integer id;
 
     @JsonBackReference
     @ManyToOne
@@ -56,16 +57,11 @@ public class ExecutionJob {
     @Column
     private String returnJson;
 
-    @PrePersist
-    public void initId() {
-        this.id = DomainIdBuilder.buildDomainId(this);
-    }
-
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -134,13 +130,12 @@ public class ExecutionJob {
     }
 
     public ExecutionJob(String rootEntityid, String pluginConfigInterfaceId, String packageName, String entityName,
-            String businessKey, List<ExecutionJobParameter> parameters) {
+            String businessKey) {
         super();
         this.pluginConfigInterfaceId = pluginConfigInterfaceId;
         this.packageName = packageName;
         this.entityName = entityName;
         this.businessKey = businessKey;
-        this.parameters = parameters;
         this.rootEntityId = rootEntityid;
     }
 
