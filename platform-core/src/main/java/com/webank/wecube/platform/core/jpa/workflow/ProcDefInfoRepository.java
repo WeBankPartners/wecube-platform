@@ -19,16 +19,18 @@ public interface ProcDefInfoRepository extends JpaRepository<ProcDefInfoEntity, 
             + " where t.id=:procId and t.active = true and (t.status = 'deployed' or t.status = 'draft')")
     Optional<ProcDefInfoEntity> findAllDeployedOrDraftProcDefsByProcId(@Param("procId") String procId);
 
-    @Query("select t from ProcDefInfoEntity t "
-            + " where t.active = true and t.status = 'deployed' ")
+    @Query("select t from ProcDefInfoEntity t " + " where t.active = true and t.status = 'deployed' ")
     List<ProcDefInfoEntity> findAllDeployedProcDefs();
 
-    @Query("select t from ProcDefInfoEntity t "
-            + " where t.id=:procId and t.active = true and t.status = 'deployed'")
+    @Query("select t from ProcDefInfoEntity t " + " where t.id=:procId and t.active = true and t.status = 'deployed'")
     Optional<ProcDefInfoEntity> findAllDeployedProcDefsByProcId(@Param("procId") String procId);
 
-//    @Transactional
-//    @Modifying
-//    @Query("delete from ProcessDefInfoEntity t where t.id = :id")
-//    void deleteByEntityId(@Param("id") String id);
+    @Query("select t from ProcDefInfoEntity t " + " where t.procDefName = :procDefName and t.active = true "
+            + " and t.status = 'deployed' and t.deleted = false ")
+    List<ProcDefInfoEntity> findAllDeployedProcDefsByProcDefName(@Param("procDefName") String procDefName);
+
+    // @Transactional
+    // @Modifying
+    // @Query("delete from ProcessDefInfoEntity t where t.id = :id")
+    // void deleteByEntityId(@Param("id") String id);
 }
