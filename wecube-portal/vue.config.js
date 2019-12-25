@@ -1,6 +1,6 @@
 const CompressionPlugin = require("compression-webpack-plugin");
 
-let isUsingLocalCore = true;
+let isUsingLocalCore = false;
 
 const baseURL = isUsingLocalCore
   ? "http://127.0.0.1:8080"
@@ -17,16 +17,16 @@ module.exports = {
         target: baseURL
       },
       "/wecmdb": {
-        target: "http://111.230.161.237:19090"
+        target: baseURL
       },
       "ui-resources": {
-        target: "http://111.230.161.237:19090"
+        target: baseURL
       },
       "wecube-monitor": {
         target: "https://sandbox.webank.com"
       },
       "/auth": {
-        target: "http://111.230.161.237:19090"
+        target: baseURL
       }
     }
   },
