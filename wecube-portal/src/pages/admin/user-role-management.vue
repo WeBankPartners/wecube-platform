@@ -239,6 +239,8 @@ export default {
                     ? this.$lang === "zh-CN"
                       ? menuObj.cnName
                       : menuObj.enName
+                    : this.$lang === "zh-CN"
+                    ? _.localDisplayName
                     : _.displayName,
                 id: _.id,
                 expand: true,
