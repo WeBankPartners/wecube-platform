@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class PluginPackageAttribute {
     @Id
     private String id;
-
+    
     @JsonBackReference
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "entity_id")

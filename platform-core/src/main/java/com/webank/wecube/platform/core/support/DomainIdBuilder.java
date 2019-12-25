@@ -1,6 +1,9 @@
 package com.webank.wecube.platform.core.support;
 
 import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.domain.BatchExecutionJob;
+import com.webank.wecube.platform.core.domain.ExecutionJob;
+import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
@@ -9,6 +12,8 @@ import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.utils.Constants;
 import org.apache.commons.lang3.StringUtils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -225,6 +230,20 @@ public class DomainIdBuilder {
         );
     }
 
+    public static String buildDomainId(BatchExecutionJob batchExecutionJob) throws ParseException {
+        return StringUtils.isNotBlank(batchExecutionJob.getId()) ? batchExecutionJob.getId()
+                : buildDomainId(Long.toString(System.currentTimeMillis()));
+    }
 
+    public static String buildDomainId(ExecutionJob executionJob) {
+        return StringUtils.isNotBlank(executionJob.getId()) ? executionJob.getId()
+                : buildDomainId(executionJob.getPackageName(), executionJob.getEntityName(),
+                        executionJob.getRootEntityId(), Long.toString(System.currentTimeMillis()));
+    }
+
+    public static String buildDomainId(ExecutionJobParameter executionJobParameter) {
+        return StringUtils.isNotBlank(executionJobParameter.getId()) ? executionJobParameter.getId()
+                : buildDomainId(executionJobParameter.getName(), Long.toString(System.currentTimeMillis()));
+    }
 
 }
