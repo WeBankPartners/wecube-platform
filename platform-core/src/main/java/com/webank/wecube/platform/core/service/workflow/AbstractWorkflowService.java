@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.service.workflow;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -17,6 +18,9 @@ public abstract class AbstractWorkflowService {
     public static final String NODE_IDS_DELIMITER = ",";
     
     public static final String PROC_DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    
+    protected static List<String> statelessNodeTypes = Arrays.asList("startEvent", "endEvent", "exclusiveGateway",
+            "parallelGateway");
     
     protected List<String> unmarshalNodeIds(String nodeIdsAsString) {
         List<String> nodeIds = new ArrayList<>();
