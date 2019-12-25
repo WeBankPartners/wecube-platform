@@ -290,8 +290,8 @@ CREATE TABLE `execution_jobs` (
     UNIQUE INDEX `job_id_and_root_entity_id` (`batch_execution_job_id`, `root_entity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
-drop table if exists batch_execution_job_parameters;
-CREATE TABLE `batch_execution_job_parameters` (
+drop table if exists execution_job_parameters;
+CREATE TABLE `execution_job_parameters` (
     `id` VARCHAR(255) PRIMARY KEY,
     `execution_job_id` VARCHAR(255) NOT NULL,
     `name` VARCHAR(255) NOT NULL,

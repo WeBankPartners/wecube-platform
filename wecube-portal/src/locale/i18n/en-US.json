@@ -203,7 +203,7 @@
   "for_example": "e.g.:",
   "flow_name": "Flow Name",
   "ci_type": "CI Type",
-  "save_flow": "Save Flow",
+  "save_flow": "Save",
   "calc_form": "Calculate Flow",
   "config_plugin": "Config Plugin",
   "node_type": "Node Type",
@@ -332,10 +332,16 @@
   "menus": "Menu",
   "input": "Input",
   "output": "Output",
+  "export_flow": "Export",
+  "import_flow": "Import",
   "selected_role": "Selected Role",
   "unselected_rolw": "Unselected Role",
   "edit_role": "Select Orchestrations Host Roles",
   "mgmt_role": "Owner Role",
   "use_role": "Executor Role",
-  "source": "Source"
+  "source": "Source",
+  "select_all": "Select All",
+  "cancel_select": "Unselect All",
+  "create_new_workflow_job": "Create Workflow Job",
+  "enquery_new_workflow_job": "Enquery Workflow Job"
 }
