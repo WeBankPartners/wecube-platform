@@ -189,14 +189,6 @@ public class BatchExecutionService {
 
     private void prepareInputParameterValues(ExecutionJob executionJob) {
         String errorMessage;
-        Optional<PluginConfigInterface> pluginConfigInterfaceOptional = pluginConfigInterfaceRepository
-                .findById(executionJob.getPluginConfigInterfaceId());
-        if (!pluginConfigInterfaceOptional.isPresent()) {
-            errorMessage = String.format("Can not found plugin config interface[%s]",
-                    executionJob.getPluginConfigInterfaceId());
-            log.error(errorMessage);
-            executionJob.setErrorWithMessage(errorMessage);
-        }
 
         for (ExecutionJobParameter parameter : executionJob.getParameters()) {
             String mappingType = parameter.getMappingType();
@@ -223,8 +215,7 @@ public class BatchExecutionService {
 
             if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
                 SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
-                        pluginConfigInterfaceOptional.get().getPluginConfig().getPluginPackage().getName(),
-                        parameter.getMappingSystemVariableName());
+                        executionJob.getPackageName(), parameter.getMappingSystemVariableName());
 
                 if (sVariable == null && FIELD_REQUIRED.equals(parameter.getRequired())) {
                     errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
