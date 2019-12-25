@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
@@ -163,8 +165,9 @@ public class BatchExecutionService {
         log.info("returnJsonString= " + responseData.toString());
         String returnJsonString = JsonUtils.toJsonString(responseData);
         log.info("returnJsonString= " + returnJsonString);
-        StationaryPluginResponse stationaryResultData = JsonUtils.toObject(returnJsonString,
-                StationaryPluginResponse.class);
+        ResultData<PluginResponseStationaryOutput> stationaryResultData = JSON.parseObject(returnJsonString,
+                new TypeReference<ResultData<PluginResponseStationaryOutput>>() {
+                });
         if (stationaryResultData.getOutputs().size() == 0) {
             errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no respond",
                     executionJob.getPluginConfigInterfaceId(), pluginInstance.getHost(), pluginInstance.getPort(),
