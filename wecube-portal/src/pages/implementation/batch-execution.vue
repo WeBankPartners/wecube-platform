@@ -37,60 +37,78 @@
           <Button @click="resetParametes">重置查询</Button>
         </div>
       </Card>
-      <a v-else @click="reExcute('displaySearchZone')"
-        >查询 资源实例 中满足以下条件的CI数据对象</a
-      >
+      <div v-else>
+        <a @click="reExcute('displaySearchZone')"
+          >查询 资源实例 中满足以下条件的CI数据对象:</a
+        >
+        <ul>
+          <li v-for="(sp, spIndex) in searchParameters">
+            <span
+              >{{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{
+                sp.value
+              }}]</span
+            >
+          </li>
+        </ul>
+      </div>
     </section>
     <section
       v-if="!displaySearchZone"
       class="search-result-table"
-      style="margin-top:60px;"
+      style="margin-top:20px;"
     >
-      <Button type="primary" @click="batchAction">批量操作</Button>
-      <WeTable
-        v-if="displayResultTableZone"
-        :tableData="tableData"
-        :tableOuterActions="[]"
-        :tableInnerActions="null"
-        :tableColumns="tableColumns"
-        :pagination="pagination"
-        @handleSubmit="handleSubmit"
-        @sortHandler="sortHandler"
-        @getSelectedRows="onSelectedRowsChange"
-        @pageChange="pageChange"
-        @pageSizeChange="pageSizeChange"
-        ref="table"
-      />
-      <a v-else @click="reExcute('displayResultTableZone')">找到20个资源实例</a>
+      <Button
+        type="primary"
+        :disabled="!seletedRows.length"
+        @click="batchAction"
+        >批量操作</Button
+      >
+      <div class="we-table">
+        <WeTable
+          v-if="displayResultTableZone"
+          :tableData="tableData"
+          :tableOuterActions="[]"
+          :tableInnerActions="null"
+          :tableColumns="tableColumns"
+          @getSelectedRows="onSelectedRowsChange"
+          ref="table"
+        />
+        <a v-else @click="reExcute('displayResultTableZone')"
+          >找到20个资源实例</a
+        >
+      </div>
       <Button type="primary" @click="excuteAction">执行</Button>
     </section>
     <section
       v-if="!displaySearchZone && !displayResultTableZone"
-      class="excute-result"
       style="margin-top:60px;"
     >
-      <Timeline>
-        <TimelineItem>
-          <p class="time">1976年</p>
-          <p class="content">Apple I 问世</p>
-        </TimelineItem>
-        <TimelineItem>
-          <p class="time">1984年</p>
-          <p class="content">发布 Macintosh</p>
-        </TimelineItem>
-        <TimelineItem>
-          <p class="time">2007年</p>
-          <p class="content">发布 iPhone</p>
-        </TimelineItem>
-        <TimelineItem>
-          <p class="time">2010年</p>
-          <p class="content">发布 iPad</p>
-        </TimelineItem>
-        <TimelineItem>
-          <p class="time">2011年10月5日</p>
-          <p class="content">史蒂夫·乔布斯去世</p>
-        </TimelineItem>
-      </Timeline>
+      <Card>
+        <Row>
+          <Col span="6" class="excute-result excute-result-search">
+            <Input v-model="businessKey" style="width:180px;" />
+            <Button type="primary">搜索</Button>
+            <ul style="margin: 8px 0">
+              <li
+                @click="activeResultKey = key"
+                :class="[
+                  activeResultKey === key ? 'active-key' : '',
+                  'business-key'
+                ]"
+                v-for="(key, keyIndex) in filterBusinessKeySet"
+              >
+                <span>{{ key }}</span>
+              </li>
+            </ul>
+          </Col>
+          <Col span="17" class="excute-result excute-result-json">
+            <Input v-model="resultFilterKey" style="width:300px;" />
+            <div>
+              <pre>{{ JSON.stringify(businessKeyContent, null, 2) }}</pre>
+            </div>
+          </Col>
+        </Row>
+      </Card>
     </section>
     <Modal
       :width="700"
@@ -253,7 +271,7 @@ export default {
       selectedEntityType: "",
       allEntityType: [],
 
-      dataModelExpression: "wecmdb:subsys",
+      dataModelExpression: "wecmdb:data_center_design",
       currentEntityName: "",
       currentPackageName: "",
       currentEntityAttr: "",
@@ -263,44 +281,40 @@ export default {
 
       searchParameters: [
         {
-          id: "wecmdbsubsys0",
+          id: "wecmdb__2__data_center_design__key_name",
+          pluginPackageAttribute: null,
+          name: "key_name",
+          description: "唯一名称",
+          dataType: "str",
+          key: "wecmdbdata_center_design0",
+          index: 0,
+          title: "key_name",
+          entityName: "data_center_design",
           packageName: "wecmdb",
-          entityName: "subsys",
-          description: "业务区域",
-          name: "business_zone",
-          dataType: "ref",
-          index: "0",
-          ai: "0",
-          value: null
+          nodeKey: 5,
+          checked: true,
+          indeterminate: false
         },
         {
-          id: "wecmdbsubsys0",
-          packageName: "wecmdb",
-          entityName: "subsys",
-          description: "编码",
-          name: "code",
+          id: "wecmdb__2__data_center_design__name",
+          pluginPackageAttribute: null,
+          name: "name",
+          description: "名称",
           dataType: "str",
-          index: "0",
-          ai: "1",
-          value: null
+          key: "wecmdbdata_center_design0",
+          index: 0,
+          title: "name",
+          entityName: "data_center_design",
+          packageName: "wecmdb",
+          nodeKey: 6,
+          checked: true,
+          indeterminate: false
         }
       ],
 
-      payload: {
-        filters: [],
-        pageable: {
-          pageSize: 10,
-          startIndex: 0
-        },
-        paging: true
-      },
-      pagination: {
-        pageSize: 10,
-        currentPage: 1,
-        total: 0
-      },
       tableData: [],
       innerActions,
+      seletedRows: [],
       tableColumns: [
         {
           title: this.$t("table_id"),
@@ -309,8 +323,13 @@ export default {
         },
         {
           title: this.$t("table_name"),
-          key: "name",
+          key: "key_name",
           displaySeqNo: 2
+        },
+        {
+          title: this.$t("table_description"),
+          key: "description",
+          displaySeqNo: 3
         }
       ],
 
@@ -318,11 +337,37 @@ export default {
       pluginForm: {},
       selectedPluginParams: [],
       allPlugins: [],
-      filteredPlugins: []
+      filteredPlugins: [],
+
+      excuteResult: {
+        key1: {
+          a1: 112,
+          b1: 2324,
+          c1: 3234
+        },
+        key2: {
+          a2: 1234,
+          b2: 2234,
+          c2: 32567
+        },
+        key3: {
+          a3: 1234,
+          b3: 2234,
+          c3: 32567
+        }
+      },
+      excuteBusinessKeySet: ["key1", "key2", "key3"],
+      filterBusinessKeySet: this.excuteBusinessKeySet,
+      activeResultKey: "",
+      businessKey: "",
+      resultFilterKey: ""
     };
   },
-  mounted() {
-    this.queryData();
+  mounted() {},
+  computed: {
+    businessKeyContent: function() {
+      return this.excuteResult[this.activeResultKey];
+    }
   },
   watch: {
     dataModelExpression: async function(val) {
@@ -366,6 +411,14 @@ export default {
         return _;
       });
       console.log(this.selectedPluginParams);
+    },
+    businessKey: function(val) {
+      this.filterBusinessKeySet = [];
+      for (const key in this.excuteResult) {
+        if (key.indexOf(this.businessKey) > -1) {
+          this.filterBusinessKeySet.push(key);
+        }
+      }
     }
   },
   methods: {
@@ -420,6 +473,7 @@ export default {
       }
       this.isShowSearchConditions = false;
       this.searchParameters = this.targetEntityAttr;
+      console.log(JSON.stringify(this.searchParameters));
     },
 
     async excuteSearch() {
@@ -432,6 +486,7 @@ export default {
         const index = keySet.indexOf(sParameter.key);
         if (index > -1) {
           const { name, value } = sParameter;
+          console.log(value);
           requestParameter.filters[index].attributeFilters.push({
             name,
             value,
@@ -440,6 +495,7 @@ export default {
         } else {
           keySet.push(sParameter.key);
           const { index, packageName, entityName, name, value } = sParameter;
+          console.log(value);
           requestParameter.filters.push({
             index,
             packageName,
@@ -454,13 +510,18 @@ export default {
           });
         }
       });
-      console.log(requestParameter);
       let { status, data, message } = await dmeIntegratedQuery(
         requestParameter
       );
-      console.log(data);
-      this.displaySearchZone = false;
-      this.displayResultTableZone = true;
+      if (status === "OK") {
+        if (data.length) {
+          this.tableData = data;
+          this.displaySearchZone = false;
+          this.displayResultTableZone = true;
+        } else {
+          this.$Message.warning("空数据！");
+        }
+      }
     },
     clearParametes() {
       this.searchParameters.forEach(item => {
@@ -487,69 +548,19 @@ export default {
       this.displayExcuteResultZone = false;
       this[this.DelConfig.key] = true;
     },
-
-    async queryData() {
-      this.payload.pageable.pageSize = this.pagination.pageSize;
-      this.payload.pageable.startIndex =
-        (this.pagination.currentPage - 1) * this.pagination.pageSize;
-      const { status, message, data } = await retrieveSystemVariables(
-        this.payload
-      );
-      if (status === "OK") {
-        this.tableData = data.contents;
-        this.pagination.total = data.pageInfo.totalRows;
-      }
-    },
-    handleSubmit(data) {
-      this.payload.filters = data;
-      this.queryData();
-    },
-    sortHandler(data) {
-      if (data.order === "normal") {
-        delete this.payload.sorting;
-      } else {
-        this.payload.sorting = {
-          asc: data.order === "asc",
-          field: data.key
-        };
-      }
-      this.queryData();
-    },
-    pageChange(current) {
-      this.pagination.currentPage = current;
-      this.queryData();
-    },
-    pageSizeChange(size) {
-      this.pagination.pageSize = size;
-      this.queryData();
-    },
-    actionFun(type, data) {
-      switch (type) {
-        case "cancel":
-          this.cancelHandler();
-          break;
-        default:
-          break;
-      }
-    },
     onSelectedRowsChange(rows, checkoutBoxdisable) {
-      if (rows.length > 0) {
-      } else {
-      }
       this.seletedRows = rows;
-      console.log(this.seletedRows);
     },
     batchAction() {
       this.getFilteredPluginInterfaceList();
       this.batchActionModalVisible = true;
     },
     async getFilteredPluginInterfaceList() {
-      console.log(this.searchParameters.slice(-1));
       const { status, message, data } = await getFilteredPluginInterfaceList(
-        // this.searchParameters.slice(-1).packageName,
-        // this.searchParameters.slice(-1).entityName
-        "wecmdb",
-        "resource_instance"
+        this.searchParameters.slice(-1)[0].packageName,
+        this.searchParameters.slice(-1)[0].entityName
+        // "wecmdb",
+        // "resource_instance"
       );
       if (status === "OK") {
         this.filteredPlugins = data;
@@ -559,8 +570,6 @@ export default {
       const plugin = this.filteredPlugins.find(_ => {
         return _.serviceName === this.pluginForm.serviceId;
       });
-      console.log(this.pluginForm.serviceId);
-      console.log(this.searchParameters);
       const inputParameterDefinitions = plugin.inputParameters.map(p => {
         const inputParameterValue =
           p.mappingType === "constant"
@@ -573,7 +582,6 @@ export default {
           inputParameterValue: inputParameterValue
         };
       });
-      console.log(inputParameterDefinitions);
       let currentEntity = this.currentEntityAttrList.find(_ => {
         return _.id === this.currentEntityAttr;
       });
@@ -594,6 +602,7 @@ export default {
           }
         ]
       };
+      console.log(requestBody);
       const { code, data, message } = await batchExecution(requestBody);
       console.log(data);
     }
@@ -620,5 +629,27 @@ export default {
 }
 .search-btn {
   margin-top: 16px;
+}
+.we-table /deep/ .ivu-form-label-top {
+  display: none;
+}
+.excute-result {
+  padding: 8px;
+  min-height: 300px;
+}
+.excute-result-search {
+  margin-right: 16px;
+  border-right: 1px solid #e8eaec;
+}
+.excute-result-json {
+  border: 1px solid #e8eaec;
+}
+.business-key {
+  padding: 0 4px;
+  cursor: pointer;
+  color: #2d8cf0;
+}
+.active-key {
+  color: red;
 }
 </style>
