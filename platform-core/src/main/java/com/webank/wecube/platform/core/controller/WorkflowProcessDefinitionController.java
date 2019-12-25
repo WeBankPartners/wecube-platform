@@ -1,18 +1,45 @@
 package com.webank.wecube.platform.core.controller;
 
-import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.workflow.*;
-import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
-import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
-import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefService;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webank.wecube.platform.auth.client.encryption.StringUtilsEx;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
+import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoExportImportDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
+import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
+import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
+import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefService;
 
 @RestController
 @RequestMapping("/v1")
@@ -28,13 +55,14 @@ public class WorkflowProcessDefinitionController {
     @Autowired
     private ProcessRoleServiceImpl processRoleService;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     @PostMapping("/process/definitions/deploy")
     public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
-
 
         ProcDefOutlineDto result = procDefService.deployProcessDefinition(requestDto);
         return CommonResponseDto.okayWithData(result);
@@ -52,8 +80,7 @@ public class WorkflowProcessDefinitionController {
     }
 
     @GetMapping("/process/definitions")
-    public CommonResponseDto getProcessDefinitions(
-            @RequestHeader(value = "Authorization") String token,
+    public CommonResponseDto getProcessDefinitions(@RequestHeader(value = "Authorization") String token,
             @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft,
             @RequestParam(name = "permission", required = false, defaultValue = "") String permission) {
         log.info("currentUser:{}", AuthenticationContextHolder.getCurrentUsername());
@@ -64,7 +91,7 @@ public class WorkflowProcessDefinitionController {
 
     @DeleteMapping("/process/definitions/{proc-def-id}")
     public CommonResponseDto removeProcessDefinition(@RequestHeader("Authorization") String token,
-                                                     @PathVariable("proc-def-id") String procDefId) {
+            @PathVariable("proc-def-id") String procDefId) {
         procDefService.removeProcessDefinition(token, procDefId);
         return CommonResponseDto.okay();
     }
@@ -90,20 +117,21 @@ public class WorkflowProcessDefinitionController {
 
     @GetMapping("/process/definitions/{proc-def-id}/tasknodes/{node-def-id}")
     public CommonResponseDto getTaskNodeParameters(@PathVariable("proc-def-id") String procDefId,
-                                                   @PathVariable("node-def-id") String nodeDefId) {
+            @PathVariable("node-def-id") String nodeDefId) {
         List<InterfaceParameterDto> result = workflowDataService.getTaskNodeParameters(procDefId, nodeDefId);
         return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/definitions/{proc-def-id}/preview/entities/{entity-data-id}")
-    public CommonResponseDto getProcessDataPreview(@PathVariable("proc-def-id") String procDefId, @PathVariable("entity-data-id") String dataId) {
+    public CommonResponseDto getProcessDataPreview(@PathVariable("proc-def-id") String procDefId,
+            @PathVariable("entity-data-id") String dataId) {
         List<GraphNodeDto> result = workflowDataService.getProcessDataPreview(procDefId, dataId);
         return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/{proc-id}/roles")
     public CommonResponseDto retrieveProcRoleBinding(@RequestHeader(value = "Authorization") String token,
-                                                     @PathVariable("proc-id") String procId) {
+            @PathVariable("proc-id") String procId) {
         try {
             return CommonResponseDto.okayWithData(processRoleService.retrieveRoleIdByProcId(token, procId));
         } catch (WecubeCoreException ex) {
@@ -113,8 +141,7 @@ public class WorkflowProcessDefinitionController {
 
     @PostMapping("/process/{proc-id}/roles")
     public CommonResponseDto updateProcRoleBinding(@RequestHeader(value = "Authorization") String token,
-                                                   @PathVariable("proc-id") String procId,
-                                                   @RequestBody ProcRoleRequestDto procRoleRequestDto) {
+            @PathVariable("proc-id") String procId, @RequestBody ProcRoleRequestDto procRoleRequestDto) {
         try {
             processRoleService.updateProcRoleBinding(token, procId, procRoleRequestDto);
         } catch (WecubeCoreException ex) {
@@ -125,14 +152,91 @@ public class WorkflowProcessDefinitionController {
 
     @DeleteMapping("/process/{proc-id}/roles")
     public CommonResponseDto deleteProcRoleBinding(@RequestHeader(value = "Authorization") String token,
-                                                   @PathVariable("proc-id") String procId,
-                                                   @RequestBody ProcRoleRequestDto procRoleRequestDto) {
+            @PathVariable("proc-id") String procId, @RequestBody ProcRoleRequestDto procRoleRequestDto) {
         try {
             processRoleService.deleteProcRoleBinding(token, procId, procRoleRequestDto);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
         return CommonResponseDto.okay();
+    }
+
+    @GetMapping(value = "/process/definitions/{proc-def-id}/export", produces = { MediaType.ALL_VALUE })
+    public ResponseEntity<byte[]> exportProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
+
+        ProcDefInfoExportImportDto result = procDefService.exportProcessDefinition(procDefId);
+        String filename = assembleProcessExportFilename(result);
+
+        String filedata = convertResult(result);
+        byte[] filedataBytes = StringUtilsEx.encodeBase64String(filedata.getBytes(Charset.forName("utf-8")))
+                .getBytes(Charset.forName("utf-8"));
+        // ByteArrayResource resource = new ByteArrayResource(filedataBytes);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.add("Content-Disposition", String.format("attachment;filename=%s", filename));
+        
+        if(log.isInfoEnabled()){
+            log.info("finished export process definition,size={},filename={}",filedataBytes.length, filename);
+        }
+        return ResponseEntity.ok().headers(headers).contentLength(filedataBytes.length)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(filedataBytes);
+    }
+
+    @PostMapping(value = "/process/definitions/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public CommonResponseDto importProcessDefinition(@RequestParam("uploadFile") MultipartFile file,
+            HttpServletRequest request) {
+        if (file == null || file.getSize() <= 0) {
+            log.error("invalid file content uploaded");
+            throw new WecubeCoreException("Invalid file content uploaded.");
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("About to import process definition,filename={},size={}", file.getOriginalFilename(),
+                    file.getSize());
+        }
+
+        try {
+            String filedata = IOUtils.toString(file.getInputStream(), Charset.forName("utf-8"));
+            String jsonData = new String(StringUtilsEx.decodeBase64(filedata), Charset.forName("utf-8"));
+            ProcDefInfoExportImportDto importDto = convertImportData(jsonData);
+            
+            String token = request.getHeader("Authorization");
+
+            ProcDefInfoExportImportDto result = procDefService.importProcessDefinition(importDto, token);
+            return CommonResponseDto.okayWithData(result);
+        } catch (IOException e) {
+            log.error("errors while reading upload file", e);
+            throw new WecubeCoreException("Failed to import process definition.");
+        }
+
+    }
+
+    private ProcDefInfoExportImportDto convertImportData(String jsonData) {
+        ProcDefInfoExportImportDto dto = null;
+        try {
+            dto = objectMapper.readValue(jsonData, ProcDefInfoExportImportDto.class);
+            return dto;
+        } catch (IOException e) {
+            log.error("errors while convert json data", e);
+            return null;
+        }
+    }
+
+    private String convertResult(ProcDefInfoExportImportDto result) {
+        String content = "";
+        try {
+            content = objectMapper.writeValueAsString(result);
+        } catch (JsonProcessingException e) {
+            log.error("errors while converting result", e);
+            throw new WecubeCoreException("Failed to convert result.");
+        }
+
+        return content;
+
+    }
+
+    private String assembleProcessExportFilename(ProcDefInfoExportImportDto result) {
+        return String.format("proc-%s-%s.pds", result.getProcDefName(), result.getProcDefKey());
     }
 
 }
