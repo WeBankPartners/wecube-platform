@@ -13,7 +13,13 @@ public interface PluginPackageMenuRepository extends CrudRepository<PluginPackag
 
     Optional<List<PluginPackageMenu>> findAllByCodeAndPluginPackage_StatusIn(String menuCode, Collection<PluginPackage.Status> statuses);
 
-    default Optional<List<PluginPackageMenu>> findAllActivateMenuByCode(String menuCode) {
+    Optional<List<PluginPackageMenu>> findAllByStatusAndPluginPackage_IdAndPluginPackage_StatusIn(PluginPackageMenu.Status status, String pluginPackageId, Collection<PluginPackage.Status> statuses);
+
+    default Optional<List<PluginPackageMenu>> findAllMenusByStatusAndPluginPackageId(PluginPackageMenu.Status status, String pluginPackageId) {
+        return findAllByStatusAndPluginPackage_IdAndPluginPackage_StatusIn(status, pluginPackageId, PluginPackage.ACTIVE_STATUS);
+    }
+
+    default Optional<List<PluginPackageMenu>> findAllActiveMenuByCode(String menuCode) {
         return findAllByCodeAndPluginPackage_StatusIn(menuCode, PluginPackage.ACTIVE_STATUS);
     }
 
