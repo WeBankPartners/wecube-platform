@@ -869,7 +869,12 @@ export default {
           .on("dblclick.zoom", null)
           .on("wheel.zoom", null)
           .on("mousewheel.zoom", null);
-        this.graph.graphviz = graph.graphviz().zoom(false);
+        this.graph.graphviz = graph
+          .graphviz()
+          .fit(true)
+          .zoom(false)
+          .height(graphEl.offsetHeight - 10)
+          .width(graphEl.offsetWidth - 10);
       };
       initEvent();
       this.renderModelGraph();
@@ -880,7 +885,12 @@ export default {
         let graph;
         graph = d3.select(`#flow`);
         graph.on("dblclick.zoom", null);
-        this.flowGraph.graphviz = graph.graphviz().zoom(false);
+        this.flowGraph.graphviz = graph
+          .graphviz()
+          .fit(true)
+          .zoom(false)
+          .height(graphEl.offsetHeight - 10)
+          .width(graphEl.offsetWidth - 10);
       };
       initEvent();
       this.renderFlowGraph(excution);
