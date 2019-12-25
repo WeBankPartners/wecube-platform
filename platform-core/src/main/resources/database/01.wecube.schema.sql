@@ -276,7 +276,7 @@ CREATE TABLE `batch_execution_jobs` (
 
 drop table if exists execution_jobs;
 CREATE TABLE `execution_jobs` (
-    `id`                      VARCHAR(255) PRIMARY KEY,
+    `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `batch_execution_job_id`  VARCHAR(255) NOT NULL,
     `package_name`            VARCHAR(63) NOT NULL,
     `entity_name`             VARCHAR(100) NOT NULL,
@@ -292,7 +292,7 @@ CREATE TABLE `execution_jobs` (
 
 drop table if exists execution_job_parameters;
 CREATE TABLE `execution_job_parameters` (
-    `id` VARCHAR(255) PRIMARY KEY,
+    `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `execution_job_id` VARCHAR(255) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `data_type` VARCHAR(50) NOT NULL,
