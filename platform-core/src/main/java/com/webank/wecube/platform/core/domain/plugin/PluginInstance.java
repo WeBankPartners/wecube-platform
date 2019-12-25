@@ -6,6 +6,7 @@ import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import javax.persistence.*;
 
 @Entity
+@EntityListeners(value = {PluginPackageMenuStatusListener.class})
 @Table(name = "plugin_instances")
 public class PluginInstance {
     public static final String CONTAINER_STATUS_RUNNING = "RUNNING";
@@ -18,9 +19,6 @@ public class PluginInstance {
     @ManyToOne
     @JoinColumn(name = "package_id")
     private PluginPackage pluginPackage;
-
-    @Column(name = "package_id", updatable = false, insertable = false)
-    private String packageId;
 
     @Column
     private String instanceName;
@@ -143,14 +141,6 @@ public class PluginInstance {
 
     public void setPluginMysqlInstanceResourceId(String pluginMysqlInstanceResourceId) {
         this.pluginMysqlInstanceResourceId = pluginMysqlInstanceResourceId;
-    }
-
-    public String getPackageId() {
-        return packageId;
-    }
-
-    public void setPackageId(String packageId) {
-        this.packageId = packageId;
     }
 
     public String getContainerName() {
