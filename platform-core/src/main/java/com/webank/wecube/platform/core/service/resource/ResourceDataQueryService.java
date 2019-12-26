@@ -30,11 +30,13 @@ import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PageInfo;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SqlQueryRequest;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
@@ -45,6 +47,8 @@ public class ResourceDataQueryService {
     
     @Autowired
     private PluginMysqlInstanceRepository pluginMysqlInstanceRepository;
+    @Autowired
+    private PluginPackageRepository pluginPackageRepository;
     @Autowired
     private ResourceProperties resourceProperties;
     @Autowired
@@ -167,9 +171,14 @@ public class ResourceDataQueryService {
 
 
     private DataSource getDataSource(String packageId) {
-        PluginMysqlInstance pluginMysqlInstance = pluginMysqlInstanceRepository.findByPluginPackageId(packageId);
+        Optional<PluginPackage> pluginPackageOpt = pluginPackageRepository.findById(packageId);
+        if(!pluginPackageOpt.isPresent()) {
+            throw new WecubeCoreException(String.format("Can not find out PluginPackage for package id:%s",packageId));
+        }
+        
+        PluginMysqlInstance pluginMysqlInstance = pluginMysqlInstanceRepository.findByPluginPackage_name(pluginPackageOpt.get().getName());
         if(pluginMysqlInstance == null) {
-            throw new WecubeCoreException(String.format("Can not find out PluginMysqlInstance for package id:%d",packageId));
+            throw new WecubeCoreException(String.format("Can not find out PluginMysqlInstance for package name:%s",pluginPackageOpt.get().getName()));
         }
         
         String dbUsername = pluginMysqlInstance.getUsername();
@@ -191,7 +200,7 @@ public class ResourceDataQueryService {
     }
 
     public List<List<String>> queryS3Files(String packageId) {
-        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByPackageId(packageId);
+        List<PluginInstance> pluginInstances = pluginInstanceRepository.findByPluginPackage_Id(packageId);
         if(pluginInstances == null || pluginInstances.size()==0) {
             logger.info(String.format("Can not find out plugin instance for packageId:%d", packageId));
             return Lists.newArrayList();

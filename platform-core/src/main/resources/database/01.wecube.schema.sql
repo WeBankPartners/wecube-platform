@@ -29,6 +29,7 @@ create table plugin_package_menus (
   local_display_name VARCHAR(256) not null,
   menu_order INTEGER NOT NULL AUTO_INCREMENT,
   path VARCHAR(256) not null,
+  active BIT default 0,
   KEY `plugin_package_menu_order` (`menu_order`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
@@ -162,7 +163,7 @@ create table menu_items
   id VARCHAR(255) PRIMARY KEY,
     parent_code VARCHAR(64),
     code        VARCHAR(64) NOT NULL,
-    source      VARCHAR(16) NOT NULL,
+    source      VARCHAR(255) NOT NULL,
     description VARCHAR(200),
     local_display_name VARCHAR(200),
     menu_order INTEGER NOT NULL AUTO_INCREMENT,
