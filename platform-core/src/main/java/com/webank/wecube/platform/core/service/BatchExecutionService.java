@@ -69,7 +69,7 @@ public class BatchExecutionService {
             ResultData<?> executionResult = runExecutionJob(job);
             Object resultObject = executionResult.getOutputs().get(0);
             executionResults.put(job.getBusinessKey(), new ExecutionJobResponseDto(
-                    job.getErrorCode().isEmpty() ? RESULT_CODE_ERROR : job.getErrorCode(), resultObject));
+                    job.getErrorCode() == null ? RESULT_CODE_ERROR : job.getErrorCode(), resultObject));
         }
 
         completeBatchExecutionJob(batchExecutionJob);
@@ -187,7 +187,7 @@ public class BatchExecutionService {
         }
         PluginResponseStationaryOutput stationaryOutput = stationaryResultData.getOutputs().get(0);
         executionJob.setReturnJson(returnJsonString);
-        executionJob.setErrorCode(stationaryOutput.getErrorCode().isEmpty() ? RESULT_CODE_ERROR : RESULT_CODE_OK);
+        executionJob.setErrorCode(stationaryOutput.getErrorCode() == null ? RESULT_CODE_ERROR : RESULT_CODE_OK);
         executionJob.setErrorMessage(stationaryOutput.getErrorMessage());
         return responseData;
     }
