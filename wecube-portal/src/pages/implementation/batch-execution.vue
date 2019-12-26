@@ -77,7 +77,6 @@
           >找到20个资源实例</a
         >
       </div>
-      <Button type="primary" @click="excuteAction">执行</Button>
     </section>
     <section
       v-if="!displaySearchZone && !displayResultTableZone"
@@ -104,7 +103,9 @@
           <Col span="17" class="excute-result excute-result-json">
             <Input v-model="resultFilterKey" style="width:300px;" />
             <div>
-              <pre>{{ JSON.stringify(businessKeyContent, null, 2) }}</pre>
+              <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
+              <pre> <span v-html="JSON.stringify(businessKeyContent, null, 2)"></span></pre>
+              <!-- <p>{{ JSON.stringify(businessKeyContent, null, 2) }}</p> -->
             </div>
           </Col>
         </Row>
@@ -280,21 +281,21 @@ export default {
       targetEntityAttr: [],
 
       searchParameters: [
-        {
-          id: "wecmdb__2__data_center_design__key_name",
-          pluginPackageAttribute: null,
-          name: "key_name",
-          description: "唯一名称",
-          dataType: "str",
-          key: "wecmdbdata_center_design0",
-          index: 0,
-          title: "key_name",
-          entityName: "data_center_design",
-          packageName: "wecmdb",
-          nodeKey: 5,
-          checked: true,
-          indeterminate: false
-        },
+        // {
+        //   id: "wecmdb__2__data_center_design__key_name",
+        //   pluginPackageAttribute: null,
+        //   name: "key_name",
+        //   description: "唯一名称",
+        //   dataType: "str",
+        //   key: "wecmdbdata_center_design0",
+        //   index: 0,
+        //   title: "key_name",
+        //   entityName: "data_center_design",
+        //   packageName: "wecmdb",
+        //   nodeKey: 5,
+        //   checked: true,
+        //   indeterminate: false
+        // },
         {
           id: "wecmdb__2__data_center_design__name",
           pluginPackageAttribute: null,
@@ -340,24 +341,45 @@ export default {
       filteredPlugins: [],
 
       excuteResult: {
-        key1: {
-          a1: 112,
-          b1: 2324,
-          c1: 3234
+        task1: {
+          id: 29,
+          serviceRequest: null,
+          callbackUrl: "/v1/process/instances/callback",
+          name: "batch-task-name",
+          reporter: null,
+          reportTime: "2019-12-26 06:23:39",
+          operatorRole: "batch-role-name",
+          operator: null,
+          operateTime: null,
+          inputParameters: null,
+          description: "batch-task-name",
+          result: null,
+          resultMessage: null,
+          status: "Pending",
+          requestId: "RequestId-1577341419129",
+          callbackParameter: null
         },
-        key2: {
-          a2: 1234,
-          b2: 2234,
-          c2: 32567
-        },
-        key3: {
-          a3: 1234,
-          b3: 2234,
-          c3: 32567
+        task2: {
+          id: 30,
+          serviceRequest: null,
+          callbackUrl: "/v1/process/instances/callback",
+          name: "batch-task-name",
+          reporter: null,
+          reportTime: "2019-12-26 06:23:39",
+          operatorRole: "batch-role-name",
+          operator: null,
+          operateTime: null,
+          inputParameters: null,
+          description: "batch-task-name",
+          result: null,
+          resultMessage: null,
+          status: "Pending",
+          requestId: "RequestId-1577341419168",
+          callbackParameter: null
         }
       },
-      excuteBusinessKeySet: ["key1", "key2", "key3"],
-      filterBusinessKeySet: this.excuteBusinessKeySet,
+      excuteBusinessKeySet: ["task1", "task2"],
+      filterBusinessKeySet: ["task1", "task2"],
       activeResultKey: "",
       businessKey: "",
       resultFilterKey: ""
@@ -366,6 +388,13 @@ export default {
   mounted() {},
   computed: {
     businessKeyContent: function() {
+      // const textww = '2'
+      // let res1 = JSON.stringify(this.excuteResult['key2']);
+      // console.log(res1)
+      // res1 = res1.replace(textww, `<span style=color:red>${textww}</span>`)
+      //  console.log(JSON.parse(res1))
+      // return JSON.parse(res1);
+      console.log(this.activeResultKey);
       return this.excuteResult[this.activeResultKey];
     }
   },
@@ -536,10 +565,6 @@ export default {
       this.DelConfig.isDisplay = true;
       this.DelConfig.key = key;
     },
-    excuteAction() {
-      this.displayResultTableZone = false;
-      this.displayExcuteResultZone = false;
-    },
     del() {
       this.DelConfig.isDisplay = false;
 
@@ -593,18 +618,171 @@ export default {
         businessKeyAttribute: currentEntity,
         resourceDatas: [
           {
-            businessKeyValue: "GZP3_GZP_MGMT_MT_APP_10.128.200.10",
-            id: "0015_0000000009"
+            businessKeyValue: "task1",
+            id: "1"
           },
           {
-            businessKeyValue: "GZP3_GZP_SF_BZa_APP_10.128.32.10",
-            id: "0015_0000000008"
+            businessKeyValue: "task2",
+            id: "2"
           }
         ]
       };
+      //   const requestBody = {
+      // "packageName": "service-mgmt",
+      // "entityName": "task",
+      // "pluginConfigInterface": {
+      //     "id": "service-mgmt__v1.8.7.1__task__create",
+      //     "pluginConfigId": "service-mgmt__v1.8.7.1__task",
+      //     "action": "create",
+      //     "serviceName": "service-mgmt/task(task)/create",
+      //     "serviceDisplayName": "service-mgmt/task(task)/create",
+      //     "path": "/service-mgmt/v1/tasks",
+      //     "httpMethod": "POST",
+      //     "isAsyncProcessing": "Y",
+      //     "inputParameters": [
+      //         {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__callbackUrl",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "INPUT",
+      //             "name": "callbackUrl",
+      //             "dataType": "string",
+      //             "mappingType": "system_variable",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": "CALLBACK_URL",
+      //             "required": "Y"
+      //         },
+      //         {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__roleName",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "INPUT",
+      //             "name": "roleName",
+      //             "dataType": "string",
+      //             "mappingType": "constant",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": null,
+      //             "required": "Y"
+      //         },
+      //         {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__taskName",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "INPUT",
+      //             "name": "taskName",
+      //             "dataType": "string",
+      //             "mappingType": "constant",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": null,
+      //             "required": "Y"
+      //         }
+      //     ],
+      //     "outputParameters": [
+      //         {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__OUTPUT__comment",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "OUTPUT",
+      //             "name": "comment",
+      //             "dataType": "string",
+      //             "mappingType": "context",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": null,
+      //             "required": "N"
+      //         },
+      //         {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__OUTPUT__errorCode",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "OUTPUT",
+      //             "name": "errorCode",
+      //             "dataType": "string",
+      //             "mappingType": "context",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": null,
+      //             "required": "N"
+      //         },
+      //         {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__OUTPUT__errorMessage",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "OUTPUT",
+      //             "name": "errorMessage",
+      //             "dataType": "string",
+      //             "mappingType": "context",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": null,
+      //             "required": "N"
+      //         }
+      //     ]
+      // },
+      // "inputParameterDefinitions": [
+      //     {
+      //         "inputParameter": {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__callbackUrl",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "INPUT",
+      //             "name": "callbackUrl",
+      //             "dataType": "string",
+      //             "mappingType": "system_variable",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": "CALLBACK_URL",
+      //             "required": "Y"
+      //         },
+      //         "inputParameterValue": null
+      //     },
+      //     {
+      //         "inputParameter": {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__roleName",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "INPUT",
+      //             "name": "roleName",
+      //             "dataType": "string",
+      //             "mappingType": "constant",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": null,
+      //             "required": "Y"
+      //         },
+      //         "inputParameterValue": "batch-role-name"
+      //     },
+      //     {
+      //         "inputParameter": {
+      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__taskName",
+      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
+      //             "type": "INPUT",
+      //             "name": "taskName",
+      //             "dataType": "string",
+      //             "mappingType": "constant",
+      //             "mappingEntityExpression": null,
+      //             "mappingSystemVariableName": null,
+      //             "required": "Y"
+      //         },
+      //         "inputParameterValue": "batch-task-name"
+      //     }
+      // ],
+      // "businessKeyAttribute": {
+      //     "id": "service-mgmt__1__task__name",
+      //     "pluginPackageAttribute": null,
+      //     "name": "name",
+      //     "description": "任务名称",
+      //     "dataType": "str"
+      // },
+      // "resourceDatas": [
+      //     {
+      //         "businessKeyValue": "task1",
+      //         "id": "1"
+      //     },
+      //     {
+      //         "businessKeyValue": "task2",
+      //         "id": "2"
+      //     }
+      // ]
       console.log(requestBody);
-      const { code, data, message } = await batchExecution(requestBody);
-      console.log(data);
+      const { status, data, message } = await batchExecution(requestBody);
+      if (status === "OK") {
+        this.excuteResult = data;
+        for (const key in data) {
+          this.excuteBusinessKeySet.push(key);
+        }
+        this.filterBusinessKeySet = this.excuteBusinessKeySet;
+        this.batchActionModalVisible = false;
+        this.displayResultTableZone = false;
+        this.displayExcuteResultZone = false;
+      }
     }
   },
   components: {
