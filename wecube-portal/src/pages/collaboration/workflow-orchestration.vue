@@ -53,6 +53,8 @@
         <Select
           @on-change="onEntitySelect"
           v-model="currentSelectedEntity"
+          filterable
+          clearable
           style="width: 70%"
         >
           <OptionGroup
@@ -72,13 +74,29 @@
       <Button type="info" @click="saveDiagram(false)">{{
         $t("save_flow")
       }}</Button>
+      <Button type="info" @click="exportProcessDefinition(false)">{{
+        $t("export_flow")
+      }}</Button>
+      <Button type="info" @click="getHeaders">{{ $t("import_flow") }}</Button>
+      <Upload
+        ref="uploadButton"
+        show-upload-list
+        accept=".pds"
+        name="uploadFile"
+        :on-success="onImportProcessDefinitionSuccess"
+        :on-error="onImportProcessDefinitionError"
+        action="platform/v1/process/definitions/import"
+        :headers="headers"
+      >
+        <Button style="display:none">{{ $t("import_flow") }}</Button>
+      </Upload>
     </Row>
     <div v-show="showBpmn" class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">
-          {{ $t("config_plugin") }}
-        </a>
+        <a href="javascript:void(0);" @click="openPluginModal">{{
+          $t("config_plugin")
+        }}</a>
         <br />
       </div>
 
@@ -160,9 +178,9 @@
             style="width:30%"
             @on-change="onParamsNodeChange(index)"
           >
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
-              i.label
-            }}</Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
+              {{ i.label }}
+            </Option>
           </Select>
           <Select
             v-if="item.bindType === 'context'"
@@ -180,9 +198,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
-          $t("confirm")
-        }}</Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
+          {{ $t("confirm") }}
+        </Button>
       </div>
     </Modal>
     <Modal
@@ -239,6 +257,7 @@ import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
 import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
 
 import PathExp from "../components/path-exp.vue";
+import axios from "axios";
 
 import {
   getAllFlow,
@@ -252,6 +271,7 @@ import {
   getPluginInterfaceList,
   removeProcessDefinition,
   getFilteredPluginInterfaceList,
+  exportProcessDefinitionWithId,
   getRolesByCurrentUser,
   getRoleList,
   getPermissionByProcessId,
@@ -283,6 +303,7 @@ export default {
   },
   data() {
     return {
+      headers: {},
       mgmtRolesKeyToFlow: [],
       useRolesKeyToFlow: [],
       currentUserRoles: [],
@@ -493,6 +514,7 @@ export default {
           let needParams = found.inputParameters.filter(
             _ => _.mappingType === "context" || _.mappingType === "constant"
           );
+          this.pluginForm.paramInfos = [];
           if (isUseOriginParamsInfo) return;
           this.pluginForm.paramInfos = needParams.map(_ => {
             return {
@@ -530,7 +552,7 @@ export default {
       }
     },
     onEntitySelect(v) {
-      this.currentSelectedEntity = v;
+      this.currentSelectedEntity = v || "";
       this.rootPkg = this.currentSelectedEntity.split(":")[0];
       this.rootEntity = this.currentSelectedEntity.split(":")[1];
 
@@ -682,6 +704,10 @@ export default {
           this.defaultPluginForm;
         // get flow's params infos - nodes -
         this.getFlowsNodes();
+        this.pluginForm.routineExpression &&
+          this.getFilteredPluginInterfaceList(
+            this.pluginForm.routineExpression
+          );
       }
     },
     onParamsNodeChange(index) {
@@ -696,7 +722,6 @@ export default {
         this.currentflowsNodes = data.filter(
           _ => _.nodeId !== this.currentNode.id
         );
-        console.log("this.currentflowsNodes", this.currentflowsNodes);
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index);
         });
@@ -715,7 +740,6 @@ export default {
         let res = data.filter(
           _ => _.type === this.pluginForm.paramInfos[index].bindParamType
         );
-        console.log("res", res);
         this.$set(this.pluginForm.paramInfos[index], "currentParamNames", res);
       }
     },
@@ -799,6 +823,87 @@ export default {
         moddleExtensions: {
           camunda: camundaModdleDescriptor
         }
+      });
+    },
+    getHeaders() {
+      let refreshRequest = null;
+      const currentTime = new Date().getTime();
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      if (token) {
+        const accessToken = token.find(t => t.tokenType === "accessToken");
+        const expiration = accessToken.expiration * 1 - currentTime;
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get("/auth/v1/api/token", {
+            headers: {
+              Authorization:
+                "Bearer " +
+                token.find(t => t.tokenType === "refreshToken").token
+            }
+          });
+          refreshRequest.then(
+            res => {
+              session.setItem("token", JSON.stringify(res.data.data));
+              this.setUploadActionHeader();
+              this.$refs.uploadButton.handleClick();
+            },
+            err => {
+              refreshRequest = null;
+              window.location.href = window.location.origin + "/#/login";
+            }
+          );
+        } else {
+          this.setUploadActionHeader();
+          this.$refs.uploadButton.handleClick();
+        }
+      } else {
+        window.location.href = window.location.origin + "/#/login";
+      }
+    },
+    setUploadActionHeader() {
+      let session = window.sessionStorage;
+      const token = JSON.parse(session.getItem("token"));
+      this.headers = {
+        Authorization:
+          "Bearer " + token.find(t => t.tokenType === "accessToken").token
+      };
+    },
+    exportProcessDefinition(isDraft) {
+      let _this = this;
+
+      let procDefId = this.selectedFlow;
+      debugger;
+
+      if (procDefId == null || procDefId === "undefined" || procDefId === "") {
+        this.$Notice.error({
+          title: "Error",
+          desc: "Must select a process to export."
+        });
+        return false;
+      }
+
+      exportProcessDefinitionWithId(procDefId);
+    },
+    async onImportProcessDefinitionSuccess(response, file, filelist) {
+      if (response.status === "OK") {
+        this.$Notice.success({
+          title: "Success",
+          desc: response.message || ""
+        });
+
+        this.getAllFlows();
+        this.selectedFlow = response.data.procDefId;
+      } else {
+        this.$Notice.warning({
+          title: "Warning",
+          desc: response.message || ""
+        });
+      }
+    },
+    async onImportProcessDefinitionError(error, file, filelist) {
+      this.$Notice.error({
+        title: "Error",
+        desc: file.message || ""
       });
     }
   }
