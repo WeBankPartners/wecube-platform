@@ -57,24 +57,27 @@
       class="search-result-table"
       style="margin-top:20px;"
     >
-      <Button
-        type="primary"
-        :disabled="!seletedRows.length"
-        @click="batchAction"
-        >批量操作</Button
-      >
       <div class="we-table">
-        <WeTable
-          v-if="displayResultTableZone"
-          :tableData="tableData"
-          :tableOuterActions="[]"
-          :tableInnerActions="null"
-          :tableColumns="tableColumns"
-          @getSelectedRows="onSelectedRowsChange"
-          ref="table"
-        />
-        <a v-else @click="reExcute('displayResultTableZone')"
-          >找到20个资源实例</a
+        <Card v-if="displayResultTableZone">
+          <Button
+            type="primary"
+            :disabled="!seletedRows.length"
+            @click="batchAction"
+            >批量操作</Button
+          >
+          <WeTable
+            :tableData="tableData"
+            :tableOuterActions="[]"
+            :tableInnerActions="null"
+            :tableColumns="tableColumns"
+            @getSelectedRows="onSelectedRowsChange"
+            ref="table"
+          />
+        </Card>
+        <a v-else @click="reExcute('displayResultTableZone')">
+          找到 {{ tableData.length }} 个资源实例,选择了其中{{
+            seletedRows.length
+          }}执行{{ pluginForm.serviceId }}</a
         >
       </div>
     </section>
@@ -87,6 +90,7 @@
           <Col span="6" class="excute-result excute-result-search">
             <Input v-model="businessKey" style="width:180px;" />
             <Button type="primary">搜索</Button>
+            <p>{{ pluginForm.serviceId }}</p>
             <ul style="margin: 8px 0">
               <li
                 @click="activeResultKey = key"
@@ -151,7 +155,7 @@
           <Select v-model="currentEntityAttr">
             <Option
               v-for="entityAttr in currentEntityAttrList"
-              :value="entityAttr.id"
+              :value="entityAttr.name"
               :key="entityAttr.id"
               >{{ entityAttr.name }}</Option
             >
@@ -246,6 +250,7 @@ import {
   retrieveSystemVariables,
   dmeAllEntities,
   dmeIntegratedQuery,
+  entityView,
   getFilteredPluginInterfaceList,
   batchExecution
 } from "@/api/server.js";
@@ -272,7 +277,7 @@ export default {
       selectedEntityType: "",
       allEntityType: [],
 
-      dataModelExpression: "wecmdb:data_center_design",
+      dataModelExpression: "wecmdb:network_zone",
       currentEntityName: "",
       currentPackageName: "",
       currentEntityAttr: "",
@@ -297,17 +302,17 @@ export default {
         //   indeterminate: false
         // },
         {
-          id: "wecmdb__2__data_center_design__name",
+          id: "wecmdb__2__network_zone__key_name",
           pluginPackageAttribute: null,
-          name: "name",
-          description: "名称",
+          name: "key_name",
+          description: "唯一名称",
           dataType: "str",
-          key: "wecmdbdata_center_design0",
+          key: "wecmdbnetwork_zone0",
           index: 0,
-          title: "name",
-          entityName: "data_center_design",
+          title: "key_name",
+          entityName: "network_zone",
           packageName: "wecmdb",
-          nodeKey: 6,
+          nodeKey: 7,
           checked: true,
           indeterminate: false
         }
@@ -342,22 +347,22 @@ export default {
 
       excuteResult: {
         task1: {
-          id: 29,
-          serviceRequest: null,
-          callbackUrl: "/v1/process/instances/callback",
-          name: "batch-task-name",
-          reporter: null,
-          reportTime: "2019-12-26 06:23:39",
-          operatorRole: "batch-role-name",
-          operator: null,
-          operateTime: null,
-          inputParameters: null,
-          description: "batch-task-name",
-          result: null,
-          resultMessage: null,
-          status: "Pending",
-          requestId: "RequestId-1577341419129",
-          callbackParameter: null
+          id: 29
+          // serviceRequest: null,
+          // callbackUrl: "/v1/process/instances/callback",
+          // name: "batch-task-name",
+          // reporter: null,
+          // reportTime: "2019-12-26 06:23:39",
+          // operatorRole: "batch-role-name",
+          // operator: null,
+          // operateTime: null,
+          // inputParameters: null,
+          // description: "batch-task-name",
+          // result: null,
+          // resultMessage: null,
+          // status: "Pending",
+          // requestId: "RequestId-1577341419129",
+          // callbackParameter: null
         },
         task2: {
           id: 30,
@@ -388,13 +393,12 @@ export default {
   mounted() {},
   computed: {
     businessKeyContent: function() {
-      // const textww = '2'
-      // let res1 = JSON.stringify(this.excuteResult['key2']);
-      // console.log(res1)
-      // res1 = res1.replace(textww, `<span style=color:red>${textww}</span>`)
-      //  console.log(JSON.parse(res1))
+      // const textww = 'id'
+      // let res1 = JSON.stringify(this.excuteResult['task1']);
+      // res1 = res1.replace(textww, `"<span style=color:red>${textww}</span>"`)
+      //  console.log(res1)
       // return JSON.parse(res1);
-      console.log(this.activeResultKey);
+      // console.log(this.activeResultKey);
       return this.excuteResult[this.activeResultKey];
     }
   },
@@ -496,16 +500,31 @@ export default {
         this.$Message.warning("业务主键不能为空！");
         return;
       }
-      if (this.targetEntityAttr == false) {
-        this.$Message.warning("查询条件不能为空！");
-        return;
-      }
+      // if (this.targetEntityAttr == false) {
+      //   this.$Message.warning("查询条件不能为空！");
+      //   return;
+      // }
       this.isShowSearchConditions = false;
       this.searchParameters = this.targetEntityAttr;
       console.log(JSON.stringify(this.searchParameters));
     },
-
     async excuteSearch() {
+      let { status, data, message } = await entityView(
+        this.currentPackageName,
+        this.currentEntityName
+      );
+      if (status === "OK") {
+        this.tableColumns = data.map((_, i) => {
+          return {
+            title: _.description,
+            key: _.name,
+            displaySeqNo: i + 1
+          };
+        });
+      }
+      this.entityData();
+    },
+    async entityData() {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
@@ -539,7 +558,7 @@ export default {
           });
         }
       });
-      let { status, data, message } = await dmeIntegratedQuery(
+      const { status, data, message } = await dmeIntegratedQuery(
         requestParameter
       );
       if (status === "OK") {
@@ -581,9 +600,11 @@ export default {
       this.batchActionModalVisible = true;
     },
     async getFilteredPluginInterfaceList() {
+      console.log(this.currentPackageName);
+      console.log(this.currentEntityName);
       const { status, message, data } = await getFilteredPluginInterfaceList(
-        this.searchParameters.slice(-1)[0].packageName,
-        this.searchParameters.slice(-1)[0].entityName
+        this.currentPackageName,
+        this.currentEntityName
         // "wecmdb",
         // "resource_instance"
       );
@@ -608,173 +629,29 @@ export default {
         };
       });
       let currentEntity = this.currentEntityAttrList.find(_ => {
-        return _.id === this.currentEntityAttr;
+        return _.name === this.currentEntityAttr;
       });
+      console.log(this.currentEntityAttr);
+      const resourceDatas = this.seletedRows.map(_ => {
+        return {
+          id: _.id,
+          businessKeyValue: _[this.currentEntityAttr]
+        };
+      });
+
       let requestBody = {
         packageName: this.currentPackageName,
         entityName: this.currentEntityName,
         pluginConfigInterface: plugin,
         inputParameterDefinitions,
         businessKeyAttribute: currentEntity,
-        resourceDatas: [
-          {
-            businessKeyValue: "task1",
-            id: "1"
-          },
-          {
-            businessKeyValue: "task2",
-            id: "2"
-          }
-        ]
+        resourceDatas
       };
-      //   const requestBody = {
-      // "packageName": "service-mgmt",
-      // "entityName": "task",
-      // "pluginConfigInterface": {
-      //     "id": "service-mgmt__v1.8.7.1__task__create",
-      //     "pluginConfigId": "service-mgmt__v1.8.7.1__task",
-      //     "action": "create",
-      //     "serviceName": "service-mgmt/task(task)/create",
-      //     "serviceDisplayName": "service-mgmt/task(task)/create",
-      //     "path": "/service-mgmt/v1/tasks",
-      //     "httpMethod": "POST",
-      //     "isAsyncProcessing": "Y",
-      //     "inputParameters": [
-      //         {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__callbackUrl",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "INPUT",
-      //             "name": "callbackUrl",
-      //             "dataType": "string",
-      //             "mappingType": "system_variable",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": "CALLBACK_URL",
-      //             "required": "Y"
-      //         },
-      //         {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__roleName",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "INPUT",
-      //             "name": "roleName",
-      //             "dataType": "string",
-      //             "mappingType": "constant",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": null,
-      //             "required": "Y"
-      //         },
-      //         {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__taskName",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "INPUT",
-      //             "name": "taskName",
-      //             "dataType": "string",
-      //             "mappingType": "constant",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": null,
-      //             "required": "Y"
-      //         }
-      //     ],
-      //     "outputParameters": [
-      //         {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__OUTPUT__comment",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "OUTPUT",
-      //             "name": "comment",
-      //             "dataType": "string",
-      //             "mappingType": "context",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": null,
-      //             "required": "N"
-      //         },
-      //         {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__OUTPUT__errorCode",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "OUTPUT",
-      //             "name": "errorCode",
-      //             "dataType": "string",
-      //             "mappingType": "context",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": null,
-      //             "required": "N"
-      //         },
-      //         {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__OUTPUT__errorMessage",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "OUTPUT",
-      //             "name": "errorMessage",
-      //             "dataType": "string",
-      //             "mappingType": "context",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": null,
-      //             "required": "N"
-      //         }
-      //     ]
-      // },
-      // "inputParameterDefinitions": [
-      //     {
-      //         "inputParameter": {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__callbackUrl",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "INPUT",
-      //             "name": "callbackUrl",
-      //             "dataType": "string",
-      //             "mappingType": "system_variable",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": "CALLBACK_URL",
-      //             "required": "Y"
-      //         },
-      //         "inputParameterValue": null
-      //     },
-      //     {
-      //         "inputParameter": {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__roleName",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "INPUT",
-      //             "name": "roleName",
-      //             "dataType": "string",
-      //             "mappingType": "constant",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": null,
-      //             "required": "Y"
-      //         },
-      //         "inputParameterValue": "batch-role-name"
-      //     },
-      //     {
-      //         "inputParameter": {
-      //             "id": "service-mgmt__v1.8.7.1__task__create__INPUT__taskName",
-      //             "pluginConfigInterfaceId": "service-mgmt__v1.8.7.1__task__create",
-      //             "type": "INPUT",
-      //             "name": "taskName",
-      //             "dataType": "string",
-      //             "mappingType": "constant",
-      //             "mappingEntityExpression": null,
-      //             "mappingSystemVariableName": null,
-      //             "required": "Y"
-      //         },
-      //         "inputParameterValue": "batch-task-name"
-      //     }
-      // ],
-      // "businessKeyAttribute": {
-      //     "id": "service-mgmt__1__task__name",
-      //     "pluginPackageAttribute": null,
-      //     "name": "name",
-      //     "description": "任务名称",
-      //     "dataType": "str"
-      // },
-      // "resourceDatas": [
-      //     {
-      //         "businessKeyValue": "task1",
-      //         "id": "1"
-      //     },
-      //     {
-      //         "businessKeyValue": "task2",
-      //         "id": "2"
-      //     }
-      // ]
-      console.log(requestBody);
+
       const { status, data, message } = await batchExecution(requestBody);
       if (status === "OK") {
         this.excuteResult = data;
+        this.excuteBusinessKeySet = this.filterBusinessKeySet = [];
         for (const key in data) {
           this.excuteBusinessKeySet.push(key);
         }
@@ -823,7 +700,7 @@ export default {
   border: 1px solid #e8eaec;
 }
 .business-key {
-  padding: 0 4px;
+  padding: 0 16px;
   cursor: pointer;
   color: #2d8cf0;
 }
