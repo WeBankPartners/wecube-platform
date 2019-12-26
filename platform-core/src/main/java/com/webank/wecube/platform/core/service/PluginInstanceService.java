@@ -143,7 +143,7 @@ public class PluginInstanceService {
     }
 
     public List<PluginInstance> getAvailableInstancesByPackageId(String packageId) {
-        return pluginInstanceRepository.findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING,
+        return pluginInstanceRepository.findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING,
                 packageId);
     }
 
@@ -162,7 +162,7 @@ public class PluginInstanceService {
         }
 
         List<PluginInstance> instances = pluginInstanceRepository
-                .findByContainerStatusAndPackageId(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.get().getId());
+                .findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.get().getId());
         if (instances == null || instances.size() == 0) {
             throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
         }

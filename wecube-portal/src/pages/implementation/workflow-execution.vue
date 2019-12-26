@@ -96,7 +96,7 @@
           </Col>
           <Col
             span="18"
-            style="text-align: center;margin-top: 5px;text-align: center;height:100%"
+            style="text-align: center;margin-top: 5px;text-align: center;height:100%;"
           >
             <div
               v-if="!isEnqueryPage && selectedTarget"
@@ -118,6 +118,10 @@
               </Button>
             </div>
             <div class="graph-container" id="graph" style="height:100%"></div>
+            <Spin size="large" fix v-show="isLoading">
+              <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+              <div>{{ $t("loading") }}</div>
+            </Spin>
           </Col>
         </Row>
       </Row>
@@ -194,7 +198,8 @@ export default {
       flowNodeDetail: {},
       modelDetailTimer: null,
       flowNodesBindings: [],
-      flowDetailTimer: null
+      flowDetailTimer: null,
+      isLoading: false
     };
   },
   mounted() {
@@ -241,7 +246,7 @@ export default {
     },
 
     orchestrationSelectHandler() {
-      this.getFlowOutlineData(this.selectedFlow);
+      (this.currentFlowNodeId = ""), this.getFlowOutlineData(this.selectedFlow);
       if (this.selectedFlow && this.isEnqueryPage === false) {
         this.showExcution = true;
       }
@@ -343,10 +348,12 @@ export default {
     },
     async getModelData() {
       if (!this.selectedFlow || !this.selectedTarget) return;
+      this.isLoading = true;
       let { status, data, message } = await getTreePreviewData(
         this.selectedFlow,
         this.selectedTarget
       );
+      this.isLoading = false;
       if (status === "OK") {
         this.modelData = data.map(_ => {
           return {
@@ -869,7 +876,12 @@ export default {
           .on("dblclick.zoom", null)
           .on("wheel.zoom", null)
           .on("mousewheel.zoom", null);
-        this.graph.graphviz = graph.graphviz().zoom(false);
+        this.graph.graphviz = graph
+          .graphviz()
+          .fit(true)
+          .zoom(false)
+          .height(graphEl.offsetHeight - 10)
+          .width(graphEl.offsetWidth - 10);
       };
       initEvent();
       this.renderModelGraph();
@@ -880,7 +892,12 @@ export default {
         let graph;
         graph = d3.select(`#flow`);
         graph.on("dblclick.zoom", null);
-        this.flowGraph.graphviz = graph.graphviz().zoom(false);
+        this.flowGraph.graphviz = graph
+          .graphviz()
+          .fit(true)
+          .zoom(false)
+          .height(graphEl.offsetHeight - 10)
+          .width(graphEl.offsetWidth - 10);
       };
       initEvent();
       this.renderFlowGraph(excution);

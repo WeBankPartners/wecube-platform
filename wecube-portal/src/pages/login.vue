@@ -12,7 +12,7 @@
         v-model="username"
         name="user"
         @on-enter="login"
-      /><
+      />
       <Input
         type="password"
         password
@@ -20,6 +20,7 @@
         v-model="password"
         name="password"
         @on-enter="login"
+        style="margin-top: 20px"
       />
       <Button
         type="primary"
