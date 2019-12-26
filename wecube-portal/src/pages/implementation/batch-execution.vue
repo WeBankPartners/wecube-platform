@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div class>
     <section class="search">
       <Card v-if="displaySearchZone">
         <div class="search-zone">
@@ -8,9 +8,9 @@
               <a @click="setSearchConditions">定义查询...</a>
             </FormItem>
             <FormItem label="查询路径：">
-              <span v-if="dataModelExpression != ':'">{{
-                dataModelExpression
-              }}</span>
+              <span v-if="dataModelExpression != ':'">
+                {{ dataModelExpression }}
+              </span>
               <span v-else>(无)</span>
             </FormItem>
             <FormItem label="查询条件：">
@@ -22,7 +22,7 @@
                     :key="spIndex"
                     style="padding:0 8px"
                   >
-                    <label for="">{{ sp.description }}:</label>
+                    <label for>{{ sp.description }}:</label>
                     <Input v-model="sp.value" />
                   </Col>
                 </Row>
@@ -32,7 +32,12 @@
           </Form>
         </div>
         <div class="search-btn">
-          <Button type="primary" @click="excuteSearch">执行查询</Button>
+          <Button
+            type="primary"
+            :disabled="!(!!currentPackageName && !!currentEntityName)"
+            @click="excuteSearch"
+            >执行查询</Button
+          >
           <Button @click="clearParametes">清空条件</Button>
           <Button @click="resetParametes">重置查询</Button>
         </div>
@@ -43,11 +48,11 @@
         >
         <ul>
           <li v-for="(sp, spIndex) in searchParameters">
-            <span
-              >{{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{
+            <span>
+              {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{
                 sp.value
-              }}]</span
-            >
+              }}]
+            </span>
           </li>
         </ul>
       </div>
@@ -77,8 +82,8 @@
         <a v-else @click="reExcute('displayResultTableZone')">
           找到 {{ tableData.length }} 个资源实例,选择了其中{{
             seletedRows.length
-          }}执行{{ pluginForm.serviceId }}</a
-        >
+          }}执行{{ pluginForm.serviceId }}
+        </a>
       </div>
     </section>
     <section
@@ -88,10 +93,9 @@
       <Card>
         <Row>
           <Col span="6" class="excute-result excute-result-search">
-            <Input v-model="businessKey" style="width:180px;" />
-            <Button type="primary">搜索</Button>
-            <p>{{ pluginForm.serviceId }}</p>
-            <ul style="margin: 8px 0">
+            <Input v-model="businessKey" />
+            <p class="excute-result-search-title">{{ pluginForm.serviceId }}</p>
+            <ul v-if="filterBusinessKeySet.length">
               <li
                 @click="activeResultKey = key"
                 :class="[
@@ -103,9 +107,13 @@
                 <span>{{ key }}</span>
               </li>
             </ul>
+            <p>暂无数据</p>
           </Col>
           <Col span="17" class="excute-result excute-result-json">
-            <Input v-model="resultFilterKey" style="width:300px;" />
+            <Input
+              v-model="resultFilterKey"
+              style="width:300px;visibility: hidden;"
+            />
             <div>
               <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
               <pre> <span v-html="JSON.stringify(businessKeyContent, null, 2)"></span></pre>
@@ -169,20 +177,15 @@
                 @on-check-change="checkChange"
                 show-checkbox
                 multiple
-              >
-              </Tree>
+              ></Tree>
             </Col>
             <Col span="12" class="tree-checked">
-              <span>
-                已选数据：
-              </span>
+              <span>已选数据：</span>
               <ul>
                 <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
-                  <span
-                    >{{ tea.packageName }}-{{ tea.entityName }}:{{
-                      tea.name
-                    }}</span
-                  >
+                  <span>
+                    {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }}
+                  </span>
                 </li>
               </ul>
             </Col>
@@ -190,13 +193,13 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="saveSearchCondition">{{
-          $t("save")
-        }}</Button>
+        <Button type="primary" @click="saveSearchCondition">
+          {{ $t("save") }}
+        </Button>
       </div>
     </Modal>
 
-    <Modal v-model="batchActionModalVisible" title="批量操作" width="40">
+    <Modal v-model="batchActionModalVisible" title="批量操作">
       <Form label-position="right" :label-width="150">
         <FormItem :label="$t('plugin')">
           <Select filterable clearable v-model="pluginForm.serviceId">
@@ -208,35 +211,37 @@
             >
           </Select>
         </FormItem>
-        <template
-          v-for="(item, index) in selectedPluginParams"
-          v-if="item.mappingType === 'constant'"
-        >
+        <template v-for="(item, index) in selectedPluginParams">
           <FormItem :label="item.name" :key="index">
-            <Input v-model="item.bindValue" />
+            <Input
+              v-if="item.mappingType === 'constant'"
+              v-model="item.bindValue"
+            />
+            <span v-else>{{
+              item.mappingType === "entity"
+                ? "从CI数据对象获取"
+                : "从系统参数获取"
+            }}</span>
           </FormItem>
         </template>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="excuteBatchAction">{{
-          $t("confirm")
-        }}</Button>
+        <Button type="primary" @click="excuteBatchAction">
+          {{ $t("confirm") }}
+        </Button>
       </div>
     </Modal>
 
     <Modal v-model="DelConfig.isDisplay" width="360">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="ios-information-circle"></Icon>
-        <span>删除确认</span>
+        <span>确认</span>
       </p>
       <div style="text-align:center">
-        <p>
-          <span style="color:#2d8cf0"> 后续数据 </span>
-          即将被删除
-        </p>
+        <p>将要清除当前结果，是否继续？</p>
       </div>
       <div slot="footer">
-        <Button type="error" size="large" long @click="del">删除</Button>
+        <Button type="warning" size="large" long @click="del">继续</Button>
       </div>
     </Modal>
   </div>
@@ -244,7 +249,6 @@
 
 <script>
 import PathExp from "@/pages/components/path-exp.vue";
-import { innerActions } from "@/const/actions.js";
 import {
   getAllDataModels,
   retrieveSystemVariables,
@@ -277,7 +281,7 @@ export default {
       selectedEntityType: "",
       allEntityType: [],
 
-      dataModelExpression: "wecmdb:network_zone",
+      dataModelExpression: "",
       currentEntityName: "",
       currentPackageName: "",
       currentEntityAttr: "",
@@ -301,43 +305,26 @@ export default {
         //   checked: true,
         //   indeterminate: false
         // },
-        {
-          id: "wecmdb__2__network_zone__key_name",
-          pluginPackageAttribute: null,
-          name: "key_name",
-          description: "唯一名称",
-          dataType: "str",
-          key: "wecmdbnetwork_zone0",
-          index: 0,
-          title: "key_name",
-          entityName: "network_zone",
-          packageName: "wecmdb",
-          nodeKey: 7,
-          checked: true,
-          indeterminate: false
-        }
+        // {
+        //   id: "wecmdb__2__network_zone__key_name",
+        //   pluginPackageAttribute: null,
+        //   name: "key_name",
+        //   description: "唯一名称",
+        //   dataType: "str",
+        //   key: "wecmdbnetwork_zone0",
+        //   index: 0,
+        //   title: "key_name",
+        //   entityName: "network_zone",
+        //   packageName: "wecmdb",
+        //   nodeKey: 7,
+        //   checked: true,
+        //   indeterminate: false
+        // }
       ],
 
       tableData: [],
-      innerActions,
       seletedRows: [],
-      tableColumns: [
-        {
-          title: this.$t("table_id"),
-          key: "id",
-          displaySeqNo: 1
-        },
-        {
-          title: this.$t("table_name"),
-          key: "key_name",
-          displaySeqNo: 2
-        },
-        {
-          title: this.$t("table_description"),
-          key: "description",
-          displaySeqNo: 3
-        }
-      ],
+      tableColumns: [],
 
       batchActionModalVisible: false,
       pluginForm: {},
@@ -456,14 +443,14 @@ export default {
   },
   methods: {
     setSearchConditions() {
+      this.allEntityType = [];
       this.getAllDataModels();
       this.isShowSearchConditions = true;
       if (document.querySelector(".wecube_attr-ul")) {
-        document.querySelector(".wecube_attr-ul").style.width = "730px";
+        document.querySelector(".wecube_attr-ul").style.width = "530px";
       }
 
       this.selectedEntityType = "";
-      this.allEntityType = [];
       this.dataModelExpression = ":";
       this.currentEntityAttr = "";
       this.currentEntityAttrList = [];
@@ -500,10 +487,6 @@ export default {
         this.$Message.warning("业务主键不能为空！");
         return;
       }
-      // if (this.targetEntityAttr == false) {
-      //   this.$Message.warning("查询条件不能为空！");
-      //   return;
-      // }
       this.isShowSearchConditions = false;
       this.searchParameters = this.targetEntityAttr;
       console.log(JSON.stringify(this.searchParameters));
@@ -649,6 +632,8 @@ export default {
       };
 
       const { status, data, message } = await batchExecution(requestBody);
+      this.batchActionModalVisible = false;
+      this.$Message.info("执行可能需要一点时间！");
       if (status === "OK") {
         this.excuteResult = data;
         this.excuteBusinessKeySet = this.filterBusinessKeySet = [];
@@ -656,7 +641,6 @@ export default {
           this.excuteBusinessKeySet.push(key);
         }
         this.filterBusinessKeySet = this.excuteBusinessKeySet;
-        this.batchActionModalVisible = false;
         this.displayResultTableZone = false;
         this.displayExcuteResultZone = false;
       }
@@ -676,7 +660,11 @@ export default {
   }
 }
 .ivu-form-item {
-  margin-bottom: 0 !important;
+  margin-bottom: 6px !important;
+}
+textarea:focus {
+  // outline: none;
+  outline: #96c5f7 solid 1px;
 }
 .tree-checked {
   border-left: 2px solid gray;
@@ -695,6 +683,14 @@ export default {
 .excute-result-search {
   margin-right: 16px;
   border-right: 1px solid #e8eaec;
+  .excute-result-search-title {
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  ul {
+    margin: 4px 0;
+  }
 }
 .excute-result-json {
   border: 1px solid #e8eaec;
