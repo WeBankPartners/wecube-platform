@@ -37,7 +37,7 @@ export const MENUS = [
   {
     code: "ADMIN",
     cnName: "系统",
-    enName: "System"
+    enName: "Admin"
   },
 
   {
@@ -49,7 +49,7 @@ export const MENUS = [
   {
     code: "COLLABORATION_WORKFLOW_ORCHESTRATION",
     cnName: "任务编排",
-    enName: "Workflow Orchestration",
+    enName: "Workflow Management",
     link: "/collaboration/workflow-orchestration"
   },
   {
@@ -71,9 +71,15 @@ export const MENUS = [
     link: "/implementation/workflow-execution"
   },
   {
+    code: "IMPLEMENTATION_BATCH_EXECUTION",
+    cnName: "批量执行",
+    enName: "Batch Execution"
+    // link: "/implementation/workflow-execution"
+  },
+  {
     code: "ADMIN_USER_ROLE_MANAGEMENT",
     cnName: "权限管理",
-    enName: "Permission Management",
+    enName: "Permissions",
     link: "/admin/user-role-management"
   }
 ];

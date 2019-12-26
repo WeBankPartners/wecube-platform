@@ -9,18 +9,20 @@
           style="padding-right: 10px"
         >
           <Tooltip
-            :content="menu.displayName"
+            :content="
+              $lang === 'zh-CN' ? menu.localDisplayName : menu.displayName
+            "
             placement="bottom"
             style="width: 100%"
           >
             <p
-              v-if="menu.menuType === 'package'"
+              v-if="menu.source === 'PLUGIN'"
               style="color: green;width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;"
             >
-              {{ menu.displayName }}
+              {{ $lang === "zh-CN" ? menu.localDisplayName : menu.displayName }}
             </p>
             <p
               v-else
@@ -58,8 +60,7 @@ export default {
   },
   props: {
     pkgId: {
-      required: true,
-      type: Number
+      required: true
     }
   },
   created() {
@@ -85,7 +86,7 @@ export default {
         this.menus = allCats.map(_ => {
           data.forEach(item => {
             if (item.category === "" + _.id) {
-              if (item.menuType === "system") {
+              if (item.source === "SYSTEM") {
                 const found = MENUS.find(m => m.code === item.code);
                 if (found) {
                   item.displayName =
