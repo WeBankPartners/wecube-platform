@@ -350,5 +350,6 @@
   "select_all": "全选",
   "cancel_select": "取消全选",
   "create_new_workflow_job": "新建任务编排",
-  "enquery_new_workflow_job": "查询历史编排"
+  "enquery_new_workflow_job": "查询历史编排",
+  "plugin_analysis": "插件包解析中....."
 }
