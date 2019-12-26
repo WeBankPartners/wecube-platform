@@ -9,6 +9,7 @@ import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
+import com.webank.wecube.platform.core.dto.ExecutionJobResponseDto;
 import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.dto.InputParameterDefinition;
@@ -57,17 +58,18 @@ public class BatchExecutionService {
     @Autowired
     protected ExpressionService expressionService;
 
-    public Map<String, Object> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
+    public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
             throws IOException {
         // check parameter
 
         BatchExecutionJob batchExecutionJob = saveToDb(batchExecutionRequest);
 
-        Map<String, Object> executionResults = new HashMap<>();
+        Map<String, ExecutionJobResponseDto> executionResults = new HashMap<>();
         for (ExecutionJob job : batchExecutionJob.getJobs()) {
             ResultData<?> executionResult = runExecutionJob(job);
             Object resultObject = executionResult.getOutputs().get(0);
-            executionResults.put(job.getBusinessKey(), resultObject);
+            executionResults.put(job.getBusinessKey(), new ExecutionJobResponseDto(
+                    job.getErrorCode().isEmpty() ? RESULT_CODE_ERROR : job.getErrorCode(), resultObject));
         }
 
         completeBatchExecutionJob(batchExecutionJob);
@@ -185,7 +187,7 @@ public class BatchExecutionService {
         }
         PluginResponseStationaryOutput stationaryOutput = stationaryResultData.getOutputs().get(0);
         executionJob.setReturnJson(returnJsonString);
-        executionJob.setErrorCode(stationaryOutput.getErrorCode());
+        executionJob.setErrorCode(stationaryOutput.getErrorCode().isEmpty() ? RESULT_CODE_ERROR : RESULT_CODE_OK);
         executionJob.setErrorMessage(stationaryOutput.getErrorMessage());
         return responseData;
     }
