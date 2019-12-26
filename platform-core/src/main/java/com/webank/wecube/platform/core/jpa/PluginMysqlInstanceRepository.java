@@ -15,4 +15,6 @@ public interface PluginMysqlInstanceRepository extends CrudRepository<PluginMysq
 
     List<PluginMysqlInstance> findByStatusAndPluginPackage_name(String status, String packageName);
     List<PluginMysqlInstance> findByStatusAndPluginPackage_Name(String status, String packageName);
+    
+    PluginMysqlInstance findByPluginPackage_name(String packageName);
 }
