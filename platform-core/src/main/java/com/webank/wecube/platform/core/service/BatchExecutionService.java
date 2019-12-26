@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
@@ -160,10 +162,12 @@ public class BatchExecutionService {
                 String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort()),
                 pluginConfigInterface.getPath(), Lists.newArrayList(callInterfaceParameterMap),
                 "RequestId-" + Long.toString(System.currentTimeMillis()));
-
+        log.info("returnJsonString= " + responseData.toString());
         String returnJsonString = JsonUtils.toJsonString(responseData);
-        StationaryPluginResponse stationaryResultData = JsonUtils.toObject(returnJsonString,
-                StationaryPluginResponse.class);
+        log.info("returnJsonString= " + returnJsonString);
+        ResultData<PluginResponseStationaryOutput> stationaryResultData = JSON.parseObject(returnJsonString,
+                new TypeReference<ResultData<PluginResponseStationaryOutput>>() {
+                });
         if (stationaryResultData.getOutputs().size() == 0) {
             errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no respond",
                     executionJob.getPluginConfigInterfaceId(), pluginInstance.getHost(), pluginInstance.getPort(),
@@ -189,14 +193,6 @@ public class BatchExecutionService {
 
     private void prepareInputParameterValues(ExecutionJob executionJob) {
         String errorMessage;
-        Optional<PluginConfigInterface> pluginConfigInterfaceOptional = pluginConfigInterfaceRepository
-                .findById(executionJob.getPluginConfigInterfaceId());
-        if (!pluginConfigInterfaceOptional.isPresent()) {
-            errorMessage = String.format("Can not found plugin config interface[%s]",
-                    executionJob.getPluginConfigInterfaceId());
-            log.error(errorMessage);
-            executionJob.setErrorWithMessage(errorMessage);
-        }
 
         for (ExecutionJobParameter parameter : executionJob.getParameters()) {
             String mappingType = parameter.getMappingType();
@@ -223,8 +219,7 @@ public class BatchExecutionService {
 
             if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
                 SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
-                        pluginConfigInterfaceOptional.get().getPluginConfig().getTargetPackage(),
-                        parameter.getMappingSystemVariableName());
+                        executionJob.getPackageName(), parameter.getMappingSystemVariableName());
 
                 if (sVariable == null && FIELD_REQUIRED.equals(parameter.getRequired())) {
                     errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
