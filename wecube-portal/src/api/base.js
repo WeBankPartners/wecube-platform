@@ -16,6 +16,15 @@ const throwError = res => {
       "error"
   });
 };
+const throwInfo = res => {
+  Vue.prototype.$Notice.info({
+    title: "Info",
+    desc:
+      (res.data &&
+        "status:" + res.data.status + "<br/> message:" + res.data.message) ||
+      "error"
+  });
+};
 
 let refreshRequest = null;
 
@@ -134,7 +143,7 @@ req.interceptors.response.use(
     const { response } = res;
     if (response.status === 401) {
       window.location.href = window.location.origin + "/#/login";
-      throwError(response);
+      throwInfo(response);
       return response;
     }
 

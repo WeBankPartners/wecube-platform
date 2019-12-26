@@ -350,5 +350,6 @@
   "select_all": "Select All",
   "cancel_select": "Unselect All",
   "create_new_workflow_job": "Create Workflow Job",
-  "enquery_new_workflow_job": "Enquery Workflow Job"
+  "enquery_new_workflow_job": "Enquery Workflow Job",
+  "plugin_analysis": "Parsing Plugin Package....."
 }
