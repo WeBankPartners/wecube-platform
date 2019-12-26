@@ -50,7 +50,9 @@
               :fade="false"
               @on-change="handleRoleClick"
             >
-              <span :title="item.displayName">{{ item.displayName }}</span>
+              <span :title="item.displayName">{{
+                item.name + "(" + item.displayName + ")"
+              }}</span>
             </Tag>
             <Button
               icon="ios-build"
