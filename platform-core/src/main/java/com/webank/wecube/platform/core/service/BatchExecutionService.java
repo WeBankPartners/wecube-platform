@@ -3,7 +3,6 @@ package com.webank.wecube.platform.core.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.google.common.collect.Lists;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
@@ -17,7 +16,6 @@ import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRoot
 import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
-import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.StationaryPluginResponse;
 
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -142,6 +140,7 @@ public class BatchExecutionService {
             }
         }
 
+        callInterfaceParameterMap.put(CALLBACK_PARAMETER_KEY, executionJob.getRootEntityId());
         Optional<PluginConfigInterface> pluginConfigInterfaceOptional = pluginConfigInterfaceRepository
                 .findById(executionJob.getPluginConfigInterfaceId());
         if (!pluginConfigInterfaceOptional.isPresent()) {
@@ -207,8 +206,8 @@ public class BatchExecutionService {
 
                 List<Object> attrValsPerExpr = expressionService.fetchData(criteria);
 
-                if (attrValsPerExpr == null) {
-                    errorMessage = String.format("returned null while fetch data with expression: %s",
+                if (attrValsPerExpr == null || attrValsPerExpr.size() == 0) {
+                    errorMessage = String.format("returned empty data while fetch data with expression: %s",
                             mappingEntityExpression);
                     log.error(errorMessage);
                     executionJob.setErrorWithMessage(errorMessage);

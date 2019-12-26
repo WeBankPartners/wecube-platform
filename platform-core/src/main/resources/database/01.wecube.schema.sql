@@ -24,7 +24,7 @@ create table plugin_package_menus (
   plugin_package_id VARCHAR(255) not null,
   code varchar(64) not null,
   category varchar(64) not null,
-  source VARCHAR(16) NOT NULL DEFAULT 'PLUGIN',
+  source VARCHAR(255) DEFAULT 'PLUGIN',
   display_name VARCHAR(256) not null,
   local_display_name VARCHAR(256) not null,
   menu_order INTEGER NOT NULL AUTO_INCREMENT,
