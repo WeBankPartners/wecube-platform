@@ -13,23 +13,23 @@ export default {
       tableData: [],
       tableColumns: [
         {
-          title: "归属",
+          title: this.$t("source"),
           key: "scopeType"
         },
         {
-          title: "参数名称",
+          title: this.$t("name"),
           key: "name"
         },
         {
-          title: "参数值",
+          title: this.$t("table_value"),
           key: "value"
         },
         {
-          title: "说明",
+          title: this.$t("description"),
           key: "description"
         },
         {
-          title: "状态",
+          title: this.$t("status"),
           key: "status"
         }
       ]

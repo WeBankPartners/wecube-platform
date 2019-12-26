@@ -78,7 +78,7 @@ public class PluginPackageDependency {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PluginPackageDependency that = (PluginPackageDependency) o;
-        return id == that.id &&
+        return Objects.equal(id, that.id) &&
                 Objects.equal(dependencyPackageName, that.dependencyPackageName) &&
                 Objects.equal(dependencyPackageVersion, that.dependencyPackageVersion);
     }
