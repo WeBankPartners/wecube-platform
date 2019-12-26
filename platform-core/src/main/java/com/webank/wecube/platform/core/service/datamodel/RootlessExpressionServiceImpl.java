@@ -307,6 +307,10 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
                                     DmeLinkFilterDto linkFilter,
                                     String dmePackageName,
                                     String dmeEntityName) throws WecubeCoreException {
+        if (null == linkFilter) {
+            return;
+        }
+
         if (null != linkFilter.getPackageName() && null != linkFilter.getEntityName()) {
             if (!dmePackageName.equals(linkFilter.getPackageName()) || !dmeEntityName.equals(linkFilter.getEntityName())) {
                 String msg = String.format("The given filter's package name: [%s] and entity name: [%s] don't match to the name in DME: [%s]:[%s].",
@@ -344,9 +348,20 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
         });
     }
 
-    private Queue<DmeLinkFilterDto> extendLinkFilter(List<DmeLinkFilterDto> linkFilterDtoList, Integer entityIndexSize) {
+    private Queue<DmeLinkFilterDto> extendLinkFilter(List<DmeLinkFilterDto> linkFilterDtoList, Integer entityIndexSize) throws WecubeCoreException {
         List<DmeLinkFilterDto> result = Arrays.asList(new DmeLinkFilterDto[entityIndexSize]);
-        linkFilterDtoList.forEach(linkFilterDto -> result.set(linkFilterDto.getIndex(), linkFilterDto));
+
+        linkFilterDtoList.forEach(linkFilterDto -> {
+            int index = linkFilterDto.getIndex();
+            if (result.get(index) != null) {
+                String msg = String.format("The current index: [%d] already has an filter, which cannot be overwritten by another filter.", index);
+                if (logger.isDebugEnabled()) {
+                    logger.error(msg, linkFilterDto.toString());
+                }
+                throw new WecubeCoreException(msg);
+            }
+            result.set(linkFilterDto.getIndex(), linkFilterDto);
+        });
         return new LinkedList<>(result);
     }
 }
