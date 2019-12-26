@@ -20,4 +20,5 @@ public interface PluginPackageDataModelService {
 
     List<PluginPackageAttributeDto> getRefByInfo(String packageName, String entityName);
 
+    List<PluginPackageAttributeDto> entityView(String packageName, String entityName);
 }
