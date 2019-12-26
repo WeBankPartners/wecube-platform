@@ -6,7 +6,7 @@
     <div class="content-container">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum">
         <BreadcrumbItem
-          ><a href="/">{{ $t("home") }}</a></BreadcrumbItem
+          ><a @click="homePageClickHandler">{{ $t("home") }}</a></BreadcrumbItem
         >
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
@@ -65,6 +65,10 @@ export default {
         this.parentBreadcrumb = "-";
         this.childBreadcrumb = this.$route.path.substr(1);
       }
+    },
+    homePageClickHandler() {
+      window.needReLoad = false;
+      this.$router.push("homepage");
     }
   },
   created() {

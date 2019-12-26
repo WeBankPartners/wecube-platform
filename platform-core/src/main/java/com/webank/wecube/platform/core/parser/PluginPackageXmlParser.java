@@ -341,7 +341,7 @@ public class PluginPackageXmlParser {
                 pluginPackageMenu.setLocalDisplayName(menuDisplayName);
             }
             pluginPackageMenu.setPath(pluginPackageMenuNode.getTextContent());
-            pluginPackageMenu.setSource(MenuItem.Source.PLUGIN.name());
+            pluginPackageMenu.setSource(pluginPackage.getId());
 
             pluginPackageMenu.setPluginPackage(pluginPackage);
 
