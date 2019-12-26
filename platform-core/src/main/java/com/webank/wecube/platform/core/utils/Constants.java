@@ -26,4 +26,6 @@ public class Constants {
     public static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
     public static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
 
+    public static final String RESULT_CODE_OK = "0";
+    public static final String RESULT_CODE_ERROR = "1";
 }
