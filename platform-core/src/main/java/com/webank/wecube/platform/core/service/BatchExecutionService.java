@@ -156,24 +156,31 @@ public class BatchExecutionService {
 
         PluginInstance pluginInstance = pluginInstanceService
                 .getRunningPluginInstance(pluginConfigInterface.getPluginConfig().getPluginPackage().getName());
-
-        ResultData<Object> responseData = pluginServiceStub.callPluginInterface(
-                String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort()),
-                pluginConfigInterface.getPath(), Lists.newArrayList(callInterfaceParameterMap),
-                "RequestId-" + Long.toString(System.currentTimeMillis()));
+        ResultData<Object> responseData = new ResultData<Object>();
+        try {
+            responseData = pluginServiceStub.callPluginInterface(
+                    String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort()),
+                    pluginConfigInterface.getPath(), Lists.newArrayList(callInterfaceParameterMap),
+                    "RequestId-" + Long.toString(System.currentTimeMillis()));
+        } catch (Exception e) {
+            errorMessage = e.getMessage();
+            log.error(errorMessage);
+            executionJob.setErrorWithMessage(errorMessage);
+            return buildResultDataWithError(errorMessage);
+        }
         log.info("returnJsonString= " + responseData.toString());
         String returnJsonString = JsonUtils.toJsonString(responseData);
         log.info("returnJsonString= " + returnJsonString);
         ResultData<PluginResponseStationaryOutput> stationaryResultData = JSON.parseObject(returnJsonString,
                 new TypeReference<ResultData<PluginResponseStationaryOutput>>() {
                 });
+
         if (stationaryResultData.getOutputs().size() == 0) {
             errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no respond",
                     executionJob.getPluginConfigInterfaceId(), pluginInstance.getHost(), pluginInstance.getPort(),
                     pluginConfigInterface.getPath(), callInterfaceParameterMap);
             log.error(errorMessage);
             executionJob.setErrorWithMessage(errorMessage);
-
             return buildResultDataWithError(errorMessage);
         }
         PluginResponseStationaryOutput stationaryOutput = stationaryResultData.getOutputs().get(0);
@@ -206,9 +213,11 @@ public class BatchExecutionService {
 
                 List<Object> attrValsPerExpr = expressionService.fetchData(criteria);
 
-                if (attrValsPerExpr == null || attrValsPerExpr.size() == 0) {
-                    errorMessage = String.format("returned empty data while fetch data with expression: %s",
-                            mappingEntityExpression);
+                if ((attrValsPerExpr == null || attrValsPerExpr.size() == 0)
+                        && FIELD_REQUIRED.equals(parameter.getRequired())) {
+                    errorMessage = String.format(
+                            "returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
+                            parameter.getName(), mappingEntityExpression, criteria.getRootData());
                     log.error(errorMessage);
                     executionJob.setErrorWithMessage(errorMessage);
                     break;
