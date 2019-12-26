@@ -424,7 +424,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeUNREGISTERED() {
+    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeStillREGISTERED() {
         mockSimpleDataModel();
 
         String packageName = "package_1";
@@ -461,7 +461,7 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         PluginPackageDataModelDto registeredNewDataModelDto = dataModelService.register(pluginPackageDataModelDto, true);
         Optional<PluginPackage> latestPluginPackageByName = pluginPackageRepository.findLatestVersionByName(packageName);
         assertThat(latestPluginPackageByName.isPresent()).isTrue();
-        assertThat(latestPluginPackageByName.get().getStatus()).isEqualTo(PluginPackage.Status.UNREGISTERED);
+        assertThat(latestPluginPackageByName.get().getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
 
         assertThat(registeredNewDataModelDto.getPluginPackageEntities()).hasSize(1);
         assertThat(registeredNewDataModelDto.getPluginPackageEntities().iterator().next().getAttributes()).hasSize(2);
