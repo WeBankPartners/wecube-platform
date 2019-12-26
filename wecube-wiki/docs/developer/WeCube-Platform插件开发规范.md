@@ -42,14 +42,19 @@ WeCube目前支持以下几种插件：
 必须命名为register.xml, [具体示例在此](https://github.com/WeBankPartners/wecube-platform/blob/dev/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)  
 
 ##### 后端API服务规范
-1. 提供镜像包，目前仅支持以容器方式启动插件服务程序  
-1.1 镜像包必须命名为image.tar，仅支持tar格式，并要求docker load出来的image要求：repository必须是插件包名，tag是版本号;  
-1.2 提供的所有API的URL必须以/plugin-name/version/开头，plugin-name是插件包名，使用纯小写字母，多于一个单词时使用“-”连接，version是插件包的版本号；例如,/cmdb/v1/xxx ,/service-mgmt/v2/xxx ；  
-~~1.3 必须为声明的模型提供两个数据查询API    
+###### 启动及打包方式规范 
+1.提供镜像包，目前仅支持以容器方式启动插件服务程序，  
+2.镜像包必须命名为image.tar，仅支持tar格式，并要求docker load出来的image要求：repository必须是插件包名，tag是版本号;  
+###### API的url规范
+提供的所有API的URL必须以/plugin-name/version/开头，plugin-name是插件包名，使用纯小写字母，多于一个单词时使用“-”连接，version是插件包的版本号；例如,/cmdb/v1/xxx ,/service-mgmt/v2/xxx ；  
+~~###### 数据模型查询API规范
+必须为声明的模型提供两个数据查询API    
     根据主键（接口参数命名为“id”）查询数据；  
     根据其他任意一个属性值（除主键外）查询数据；~~  
-1.4 必须提供日志查询API（url及参数待定）  
-1.5 在register.xml里resourceDependencies部分，必须声明docker标签，并描述以下属性：  
+~~###### 日志查询功能规范
+必须提供日志查询API（url及参数待定）~~  
+###### 容器启动参数的规范
+在register.xml里resourceDependencies部分，必须声明docker标签，并描述以下属性：  
 ```
 imageName  -- 镜像名，对应镜像包load出来的镜像，例如：service-mt:v0.6 、wecmdb:v0.1
 containerName  --  容器名，为了避免容器重名， 建议命名为镜像包+版本号，例如： service-mt-v0.6、 wecmdb-v0.1
@@ -57,7 +62,6 @@ portBindings  -- 端口映射参数，必须是“{{ALLOCATE_PORT}}:21000”格�
 volumeBindings  -- 卷绑定参数，必须是“{{BASE_MOUNT_PATH}}/service-mt/log:/log”格式， {{BASE_MOUNT_PATH}}是WeCube配置的默认绑定路径,可通过系统参数BASE_MOUNT_PATH配置
 envVariables  -- 容器环境变量， 容器启动所需参数，例如envVariables="DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}},CORE_ADDR={{CORE_ADDR}}"
 ```
-
 现在WeCube已支持容器启动的参数变量替换有：  
 {{ALLOCATE_HOST}}  -  用户在页面选择的母机  
 {{ALLOCATE_PORT}}  -  WeCube分配的端口  
@@ -85,7 +89,8 @@ envVariables  -- 容器环境变量， 容器启动所需参数，例如envVaria
 5.创建插件实例时，会找到envVariables中两个大括号中的变量名，然后以system_variable的value替换（若value为空，则使用defaultValue）。然后将替换后的值以env变量的方式传入到容器中。
 ```
 
-1.6  如有对外提供服务的插件接口，需要在register.xml里plugins部分声明；  
+###### 插件服务及接口规范
+如有对外提供服务的插件接口，需要在register.xml里plugins部分声明；  
 plugins里面可以有多个plugin，一个plugin里面可以有多个interface，一个interface下面有inputParameters和outputParameter，inputParameters和outputParameters里面都可以有多个parameter。
  - plugin声明插件的name 和对应的entity（和dataModel种的entity对应）,若不声明entity，也可以在插件注册页面让用户手动选择；  
  - interface声明单个API的action、path、httpMethod、isAsyncProcessing、type；  
@@ -95,51 +100,6 @@ path - API的path
 httpMethod - http方法，支持标准的http方法取值，纯大写字母，如'GET'、'POST'
 isAsyncProcessing - 是否异步接口，取值范围有'Y'(是)和'N'（否）,默认'N'
 type - 取值范围有'EXECUTION'（执行类）和'APPROVAL'（审批类）,不声明时默认'EXECUTION'
-```
- 
-插件的interface的返回参数格式规范为：
-```json
-{
-	"result_code":"0",
-	"result_message":"success",
-	"results":{
-		"outputs":[
-		]
-	}
-}
-```
-其中result_code=“0”代表成功，“1”代表失败，当失败时result_message返回错误信息，results.outputs就是声明的输出参数的数组。
-
-例如interface声明如下：
-```
-<interface action="confirm" path="/wecmdb/data/confirm" httpMethod='POST'>
-    <inputParameters>
-        <parameter datatype="string" mappingType='context' required='Y'>guid</parameter>
-    </inputParameters>
-    <outputParameters>
-        <parameter datatype="string">status</parameter>
-        <parameter datatype="string">message</parameter>
-        <parameter datatype="string">guid</parameter>
-        <parameter datatype="string">fixed_date</parameter>
-    </outputParameters>
-</interface>
-```
-那么这个interface返回的json是：
-```json
-{
-	"result_code":"0",
-	"result_message":"success",
-	"results":{
-		"outputs":[
-			{
-				"status":"OK",
-				"message":"xxxx",
-				"guid":"xxxxxxx",
-				"fixed_date":"xxxxx"
-			}
-		]
-	}
-}
 ```
  - inputParameters声明接口的输入参数；  
  - outputParameters声明接口的输出参数；  
@@ -151,7 +111,101 @@ required  --  是否必输
 mappingEntityExpression  -- 模型表达式，当mappingType为entity的时候，该字段有效
 ```
 
+插件的interface对应的API的输入参数和输出参数规范如下：
+```json
+输入参数
+{
+    "requestId": "request-001",  //仅异步调用需要用到
+    "operator": "admin",  //操作人
+    "inputs": [  
+        {},
+        {},
+        {}
+    ]
+}
+```  
+```json
+输出参数
+{
+    "resultCode": "0",  //调用插件结果，"0"代表调用成功，"1"代表调用失败
+    "resultMessage": "success",  //调用结果信息，一般用于调用失败时返回失败信息
+    "results": {
+        "outputs": [
+            {},
+            {},
+            {}
+        ]
+    }
+}
+```  
 
+输入参数中input数组的一个元素是一个json对象，它包含一个无需xml声明的属性（callbackParameter，类型String，同一个api请求中，input数组中的callbackParameter必须唯一，此字段会在返回参数中的results.output中返回，用于定位input数组中的每个元素的返回结果），其他的每个属性都需要定义在inputParameters标签的parameter中；
+输出参数中results.output数组的一个元素也是一个json对象，如上所述，它包含一个无需xml声明的属性（callbackParameter，类型String），其他的每个属性都需要定义在outputParameters标签的parameter中，并且固定包含以下两个属性
+ - errorCode  //String类型，"0"代表成功，"1"代表失败
+ - errorMessage  //String类型，当errorCode="1"时返回失败信息
+
+示例如下：
+下面是xml中的interface定义，
+```
+<interface action="create" path="/service-mgmt/v1/tasks" httpMethod='POST' isAsyncProcessing="Y" type="APPROVAL">
+    <inputParameters>
+        <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='CALLBACK_URL' required='Y'>
+            callbackUrl
+        </parameter>
+        <parameter datatype="string" mappingType='constant' required='Y'>taskName</parameter>
+        <parameter datatype="string" mappingType='constant' required='Y'>roleName</parameter>
+    </inputParameters>
+    <outputParameters>
+        <parameter datatype="string">errorCode</parameter>
+        <parameter datatype="string">errorMessage</parameter>
+        <parameter datatype="string">taskResult</parameter>
+    </outputParameters>
+</interface>
+```
+那么，这个interface请求的json是，  
+```json
+{
+    "requestId": "request-001",
+    "operator": "admin",
+    "inputs": [
+        {
+            "callbackParameter": "callback001",
+            "taskName": "task-001",
+            "roleName": "admin",
+            "callbackUrl": "/v1/process/instances/callback"
+        },
+        {
+            "callbackParameter": "callback002",
+            "taskName": "task-002",
+            "roleName": "admin",
+            "callbackUrl": "/v1/process/instances/callback"
+        }
+    ]
+}
+```
+这个interface返回的json是，  
+```
+{
+    "resultCode": "0",
+    "resultMessage": "success",
+    "results": {
+        "outputs": [
+            {
+                "callbackParameter": "callback001",
+                "errorCode": "0",
+                "errorMessage": "",
+                "taskResult": "Approve"
+            },
+            {
+                "callbackParameter": "callback002",
+                "errorCode": "1",
+                "errorMessage": "Reject this request",
+                "taskResult": "Reject"
+            }
+        ]
+    }
+}
+```
 
 ##### 前端UI页面规范  
 1.必须在register.xml的menus标签内声明菜单对应的访问页面相对路径； 
@@ -178,8 +232,6 @@ https://github.com/WeBankPartners/wecube-platform/blob/dev/wecube-wiki/docs/%E5%
 1. 需要在register.xml里resourceDependencies部分声明，schema是申请的数据库schema，initFileName是创建表的sql脚本，upgradeFileName是升级数据表结构的脚本。  
 2. 必须提供初始化数据表的init.sql；  
 ~~3. 如果已存在旧的插件版本，必须提供upgrade.sql，当进行版本升级时需要执行（当前仅支持连续版本升级，如1.1.1升到1.1.2， 或1.3升到1.4，不支持跨版本升级）;~~  
-
-
 
 ##### 插件包规范
  - 命名必须是全小写英文字母，单词之间使用“-”来连接；  
