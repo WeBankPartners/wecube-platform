@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.support;
 
 import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
@@ -9,6 +10,7 @@ import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.utils.Constants;
 import org.apache.commons.lang3.StringUtils;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -225,6 +227,9 @@ public class DomainIdBuilder {
         );
     }
 
-
+    public static String buildDomainId(BatchExecutionJob batchExecutionJob) throws ParseException {
+        return StringUtils.isNotBlank(batchExecutionJob.getId()) ? batchExecutionJob.getId()
+                : buildDomainId(Long.toString(System.currentTimeMillis()));
+    }
 
 }
