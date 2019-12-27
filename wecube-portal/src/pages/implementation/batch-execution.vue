@@ -17,12 +17,16 @@
               <div v-if="searchParameters.length">
                 <Row>
                   <Col
-                    span="6"
+                    span="8"
                     v-for="(sp, spIndex) in searchParameters"
                     :key="spIndex"
                     style="padding:0 8px"
                   >
-                    <label for>{{ sp.description }}:</label>
+                    <label
+                      >{{ sp.packageName }}-{{ sp.entityName }}.{{
+                        sp.description
+                      }}:</label
+                    >
                     <Input v-model="sp.value" />
                   </Col>
                 </Row>
@@ -213,7 +217,7 @@
       </Form>
       <div slot="footer">
         <Button type="primary" @click="saveSearchCondition">
-          {{ $t("save") }}
+          {{ $t("confirm") }}
         </Button>
       </div>
     </Modal>
@@ -305,7 +309,7 @@ export default {
 
       isShowSearchConditions: false,
       selectedEntityName: "",
-      selectedEntityType: "",
+      selectedEntityType: null,
       allEntityType: [],
 
       dataModelExpression: "",
@@ -402,7 +406,7 @@ export default {
         document.querySelector(".wecube_attr-ul").style.width = "530px";
       }
 
-      this.selectedEntityType = "";
+      this.selectedEntityType = null;
       this.dataModelExpression = ":";
       this.currentEntityAttr = "";
       this.currentEntityAttrList = [];
@@ -616,7 +620,8 @@ export default {
 .ivu-form-item {
   margin-bottom: 6px !important;
 }
-.ivu-form-item-error .ivu-select-selection {
+.ivu-form-item-error .ivu-select-selection,
+.ivu-form-item-error .ivu-select-arrow {
   border-color: #dcdee2 !important;
 }
 textarea:focus {
@@ -651,6 +656,9 @@ textarea:focus {
 }
 .excute-result-json {
   border: 1px solid #e8eaec;
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow: scroll;
 }
 .business-key {
   padding: 0 16px;
