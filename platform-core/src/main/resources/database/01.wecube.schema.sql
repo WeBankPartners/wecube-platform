@@ -24,7 +24,7 @@ create table plugin_package_menus (
   plugin_package_id VARCHAR(255) not null,
   code varchar(64) not null,
   category varchar(64) not null,
-  source VARCHAR(255) NOT NULL DEFAULT 'PLUGIN',
+  source VARCHAR(255) DEFAULT 'PLUGIN',
   display_name VARCHAR(256) not null,
   local_display_name VARCHAR(256) not null,
   menu_order INTEGER NOT NULL AUTO_INCREMENT,
@@ -268,5 +268,49 @@ CREATE TABLE `core_ru_proc_role_binding` (
     `permission` VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
+drop table if exists batch_execution_jobs;
+CREATE TABLE `batch_execution_jobs` (
+    `id` VARCHAR(255) NOT NULL,
+    `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `complete_timestamp` TIMESTAMP NULL DEFAULT NULL,
+    `creator` VARCHAR(255) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+
+drop table if exists execution_jobs;
+CREATE TABLE `execution_jobs` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `batch_execution_job_id` VARCHAR(255) NOT NULL,
+    `package_name` VARCHAR(63) NOT NULL,
+    `entity_name` VARCHAR(100) NOT NULL,
+    `business_key` VARCHAR(255) NOT NULL,
+    `root_entity_id` VARCHAR(255) NOT NULL,
+    `execute_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `complete_time` TIMESTAMP NULL,
+    `error_code` VARCHAR(1) NULL DEFAULT NULL,
+    `error_message` TEXT NULL,
+    `return_json` LONGTEXT NULL,
+    `plugin_config_interface_id` VARCHAR(255) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `job_id_and_root_entity_id` (`batch_execution_job_id`, `root_entity_id`),
+    CONSTRAINT `FK534bth9hibanrjd5fqdel8u9c` FOREIGN KEY (`batch_execution_job_id`) REFERENCES `batch_execution_jobs` (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+drop table if exists execution_job_parameters;
+CREATE TABLE `execution_job_parameters` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `execution_job_id` INT(11) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
+    `data_type` VARCHAR(50) NOT NULL,
+    `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
+    `mapping_entity_expression` VARCHAR(1024) NULL DEFAULT NULL,
+    `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
+    `required` VARCHAR(5) NULL DEFAULT NULL,
+    `constant_value` VARCHAR(255) NULL DEFAULT NULL,
+    `value` VARCHAR(255) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `FK_execution_job_parameters_execution_jobs` (`execution_job_id`),
+    CONSTRAINT `FK_execution_job_parameters_execution_jobs` FOREIGN KEY (`execution_job_id`) REFERENCES `execution_jobs` (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS = 1;
