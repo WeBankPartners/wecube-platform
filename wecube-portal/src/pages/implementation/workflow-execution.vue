@@ -249,6 +249,9 @@ export default {
       (this.currentFlowNodeId = ""), this.getFlowOutlineData(this.selectedFlow);
       if (this.selectedFlow && this.isEnqueryPage === false) {
         this.showExcution = true;
+        this.selectedTarget = "";
+        this.modelData = [];
+        this.initModelGraph();
       }
     },
     async getTargetOptions() {
