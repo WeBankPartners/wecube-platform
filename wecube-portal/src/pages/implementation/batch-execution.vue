@@ -64,6 +64,9 @@
     >
       <div class="we-table">
         <Card v-if="displayResultTableZone">
+          <p slot="title">
+            查询结果：
+          </p>
           <Button
             type="primary"
             :disabled="!seletedRows.length"
@@ -82,7 +85,7 @@
         <a v-else @click="reExcute('displayResultTableZone')">
           找到 {{ tableData.length }} 个资源实例,选择了其中{{
             seletedRows.length
-          }}执行{{ pluginForm.serviceId }}
+          }}执行{{ serviceId }}
         </a>
       </div>
     </section>
@@ -91,10 +94,13 @@
       style="margin-top:60px;"
     >
       <Card>
+        <p slot="title">
+          执行结果：
+        </p>
         <Row>
           <Col span="6" class="excute-result excute-result-search">
-            <Input v-model="businessKey" />
-            <p class="excute-result-search-title">{{ pluginForm.serviceId }}</p>
+            <Input v-model="businessKey" placeholder="请输入条件过滤" />
+            <p class="excute-result-search-title">{{ serviceId }}</p>
             <ul v-if="filterBusinessKeySet.length">
               <li
                 @click="activeResultKey = key"
@@ -107,7 +113,7 @@
                 <span>{{ key }}</span>
               </li>
             </ul>
-            <p>暂无数据</p>
+            <p v-else>暂无数据</p>
           </Col>
           <Col span="17" class="excute-result excute-result-json">
             <Input
@@ -202,7 +208,7 @@
     <Modal v-model="batchActionModalVisible" title="批量操作">
       <Form label-position="right" :label-width="150">
         <FormItem :label="$t('plugin')">
-          <Select filterable clearable v-model="pluginForm.serviceId">
+          <Select filterable clearable v-model="serviceId">
             <Option
               v-for="(item, index) in filteredPlugins"
               :value="item.serviceName"
@@ -226,7 +232,11 @@
         </template>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="excuteBatchAction">
+        <Button
+          type="primary"
+          @click="excuteBatchAction"
+          :disabled="!this.serviceId"
+        >
           {{ $t("confirm") }}
         </Button>
       </div>
@@ -327,7 +337,7 @@ export default {
       tableColumns: [],
 
       batchActionModalVisible: false,
-      pluginForm: {},
+      serviceId: null,
       selectedPluginParams: [],
       allPlugins: [],
       filteredPlugins: [],
@@ -420,7 +430,7 @@ export default {
         });
       }
     },
-    "pluginForm.serviceId": function(val) {
+    serviceId: function(val) {
       this.filteredPlugins.forEach(plugin => {
         if (plugin.serviceDisplayName === val) {
           this.selectedPluginParams = plugin.inputParameters;
@@ -561,6 +571,8 @@ export default {
     },
     resetParametes() {
       this.dataModelExpression = ":";
+      this.currentPackageName = null;
+      this.currentEntityName = null;
       this.searchParameters = [];
     },
     reExcute(key) {
@@ -573,6 +585,7 @@ export default {
       this.displaySearchZone = false;
       this.displayResultTableZone = false;
       this.displayExcuteResultZone = false;
+      this.businessKey = null;
       this[this.DelConfig.key] = true;
     },
     onSelectedRowsChange(rows, checkoutBoxdisable) {
@@ -581,15 +594,13 @@ export default {
     batchAction() {
       this.getFilteredPluginInterfaceList();
       this.batchActionModalVisible = true;
+      this.selectedPluginParams = [];
+      this.serviceId = null;
     },
     async getFilteredPluginInterfaceList() {
-      console.log(this.currentPackageName);
-      console.log(this.currentEntityName);
       const { status, message, data } = await getFilteredPluginInterfaceList(
         this.currentPackageName,
         this.currentEntityName
-        // "wecmdb",
-        // "resource_instance"
       );
       if (status === "OK") {
         this.filteredPlugins = data;
@@ -597,7 +608,7 @@ export default {
     },
     async excuteBatchAction() {
       const plugin = this.filteredPlugins.find(_ => {
-        return _.serviceName === this.pluginForm.serviceId;
+        return _.serviceName === this.serviceId;
       });
       const inputParameterDefinitions = plugin.inputParameters.map(p => {
         const inputParameterValue =
@@ -686,7 +697,7 @@ textarea:focus {
   .excute-result-search-title {
     margin-top: 16px;
     font-size: 16px;
-    font-weight: 500;
+    // font-weight: 500;
   }
   ul {
     margin: 4px 0;
