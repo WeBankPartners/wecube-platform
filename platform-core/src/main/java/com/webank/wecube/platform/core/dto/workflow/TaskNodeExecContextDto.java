@@ -11,6 +11,8 @@ public class TaskNodeExecContextDto {
     private String nodeType;
 
     private String requestId;
+    private String errorCode;
+    private String errorMessage;
 
     private List<RequestObjectDto> requestObjects = new ArrayList<>();
 
@@ -76,6 +78,22 @@ public class TaskNodeExecContextDto {
                 this.requestObjects.add(dto);
             }
         }
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMsg) {
+        this.errorMessage = errorMsg;
     }
 
 }
