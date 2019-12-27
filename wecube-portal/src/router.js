@@ -55,6 +55,11 @@ let router = new Router({
           path: "/implementation/workflow-execution",
           name: "workflowExecution",
           component: () => import("@/pages/implementation/workflow-execution")
+        },
+        {
+          path: "/implementation/batch-execution",
+          name: "batchExecution",
+          component: () => import("@/pages/implementation/batch-execution")
         }
       ]
     },
