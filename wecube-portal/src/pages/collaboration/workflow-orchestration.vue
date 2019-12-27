@@ -590,6 +590,9 @@ export default {
       this.flowRoleManageModal = true;
       this.mgmtRolesKeyToFlow = [];
       this.useRolesKeyToFlow = [];
+      this.currentSelectedEntity = "";
+      this.pluginForm = this.defaultPluginForm;
+      this.currentFlow = {};
       this.newFlowID = "wecube" + Date.now();
       const bpmnXmlStr =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
@@ -714,7 +717,7 @@ export default {
       this.getParamsOptionsByNode(index);
     },
     async getFlowsNodes() {
-      if (!this.currentFlow) return;
+      if (!this.currentFlow || !this.currentFlow.procDefId) return;
       let { status, data, message } = await getFlowNodes(
         this.currentFlow.procDefId
       );
