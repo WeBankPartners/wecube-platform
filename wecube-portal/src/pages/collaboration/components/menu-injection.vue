@@ -93,8 +93,6 @@ export default {
                     this.$lang === "zh-CN" ? found.cnName : found.enName;
                 }
               }
-              console.log(11, item);
-
               _.children.push(item);
             }
           });
