@@ -4,17 +4,32 @@
       {{ $t("wecube_desc") }}
     </p>
     <div class="graph_container">
-      <div class="scene">
-        <div class="cube rotating">
-          <div class="cube-face front"></div>
-          <div class="cube-face inner-faces inner-face"></div>
-          <div class="cube-face inner-faces inner-face2"></div>
-          <div class="cube-face inner-faces inner-face3"></div>
-          <div class="cube-face back"></div>
-          <div class="cube-face left"></div>
-          <div class="cube-face right"></div>
-          <div class="cube-face top"></div>
-          <div class="cube-face bottom"></div>
+      <div class="wrap">
+        <div class="cube">
+          <div class="front">
+            <h2>{{ $t("cube_front") }}</h2>
+            Workbench 汇聚任务 统一平台
+          </div>
+          <div class="back">
+            <h2>{{ $t("cube_back") }}</h2>
+            Expectation 规范设计 描绘期望
+          </div>
+          <div class="top">
+            <h2>{{ $t("cube_top") }}</h2>
+            Equilibration 不断调整 保持对等
+          </div>
+          <div class="bottom">
+            <h2>{{ $t("cube_bottom") }}</h2>
+            Wisdom 赋予智慧 制定策略
+          </div>
+          <div class="left">
+            <h2>{{ $t("cube_left") }}</h2>
+            Execution 自动执行 驱动实现
+          </div>
+          <div class="right">
+            <h2>{{ $t("cube_right") }}</h2>
+            Watching 持续监测 发现差异
+          </div>
         </div>
       </div>
     </div>
@@ -41,93 +56,114 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.graph_container {
-  position: absolute;
-  text-align: center;
-  height: calc(100vh - 200px);
-  width: calc(100vw - 550px);
-  left: 300px;
-  background-image: url("./images/wecube-bg.png");
-  background-repeat: no-repeat;
-  background-size: contain;
-}
-.scene {
-  position: relative;
-  margin: 150px auto;
-  width: 200px;
-  height: 200px;
-}
-.cube {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: 2s;
-}
-.rotating {
-  animation: spinner 10s infinite linear;
+.wrap {
+  margin-top: 150px;
+  // perspective: 1000px;
+  // perspective-origin: 50% 50%;
+  // background-image: linear-gradient(135deg,#ccc 25%,#ddd 25%,#ddd 50%, #ccc 50%, #ccc 75%,#ddd 75%,#ddd 100%);
+  // background-size: 80px 80px;
+  // border-top: solid 3px #999;
+  // border-bottom: solid 3px #999;
+  /* Background stripes animation */
+  // animation: bganim 3s linear 2s infinite;
 }
 
-.cube-face {
-  width: inherit;
-  height: inherit;
+@keyframes bganim {
+  from {
+    background-position: 0px;
+  }
+
+  to {
+    background-position: 80px;
+  }
+}
+
+.cube {
+  margin: auto;
+  position: relative;
+  height: 200px;
+  width: 200px;
+  transform-style: preserve-3d;
+}
+
+.cube div {
   position: absolute;
-  transition: 2s;
-  box-shadow: 0px 0px 130px #59f;
-  background-repeat: no-repeat;
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  opacity: 0.9;
   background-color: #111;
-  opacity: 0.7;
-  line-height: 200px;
+  border: solid 1px #eee;
+  box-shadow: 0px 0px 130px #59f;
   color: #fff;
+  transition: transform 0.2s ease-in;
   text-align: center;
-  font-family: sans-serif;
-  font-size: 20px;
-  font-weight: 800;
+  padding: 60px 0;
 }
 
 .front {
-  transform: translate3d(0, 0, 100px);
-  transition: 2s;
+  transform: translateZ(100px);
 }
+
 .back {
-  transform: rotateY(180deg) translate3d(0, 0, 100px);
+  transform: translateZ(-100px) rotateY(180deg);
 }
-.left {
-  transform: rotateY(-90deg) translate3d(0, 0, 100px);
-}
+
 .right {
-  transform: rotateY(90deg) translate3d(0, 0, 100px);
+  transform: rotateY(-270deg) translateX(100px);
+  transform-origin: top right;
 }
+
+.left {
+  transform: rotateY(270deg) translateX(-100px);
+  transform-origin: center left;
+}
+
 .top {
-  transform: rotateX(90deg) translate3d(0, 0, 100px);
+  transform: rotateX(-270deg) translateY(-100px);
+  transform-origin: top center;
 }
+
 .bottom {
-  transform: rotateX(-90deg) translate3d(0, 0, 100px);
+  transform: rotateX(270deg) translateY(100px);
+  transform-origin: bottom center;
 }
 
-@keyframes spinner {
+@keyframes rotate {
   from {
-    transform: rotateY(0deg) rotateX(0deg);
+    transform: rotateX(0deg) rotateY(0deg);
   }
+
   to {
-    transform: rotateY(359deg) rotateX(359deg);
+    transform: rotateX(360deg) rotateY(360deg);
   }
-}
-.inner-faces {
-  background: url("./images/core.gif");
-  background-position: center;
-  background-size: cover;
-  // opacity:.6;
-  box-shadow: 0px 0px 0px #fff;
 }
 
-.inner-face {
-  transform: translate3d(0, 0, 0px);
+.cube {
+  animation: rotate 20s infinite linear;
 }
-.inner-face2 {
-  transform: rotateY(90deg) translate3d(0, 0, 0px);
+
+.wrap:hover .front {
+  transform: translateZ(200px);
 }
-.inner-face3 {
-  transform: rotateX(90deg) translate3d(0, 0, 0px);
+
+.wrap:hover .back {
+  transform: translateZ(-200px) rotateY(180deg);
+}
+
+.wrap:hover .right {
+  transform: rotateY(-270deg) translateZ(100px) translateX(100px);
+}
+
+.wrap:hover .left {
+  transform: rotateY(270deg) translateZ(100px) translateX(-100px);
+}
+
+.wrap:hover .top {
+  transform: rotateX(-270deg) translateZ(100px) translateY(-100px);
+}
+
+.wrap:hover .bottom {
+  transform: rotateX(270deg) translateZ(100px) translateY(100px);
 }
 </style>
