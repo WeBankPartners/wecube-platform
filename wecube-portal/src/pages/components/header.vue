@@ -18,9 +18,11 @@
             <router-link
               v-for="submenu in menu.submenus"
               :key="submenu.code"
-              :to="submenu.link || ''"
+              :to="submenu.active ? submenu.link || '' : ''"
             >
-              <MenuItem :name="submenu.code">{{ submenu.title }}</MenuItem>
+              <MenuItem :disabled="!submenu.active" :name="submenu.code">{{
+                submenu.title
+              }}</MenuItem>
             </router-link>
           </Submenu>
         </div>
