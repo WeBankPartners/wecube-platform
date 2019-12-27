@@ -83,11 +83,11 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
             return "";
         }
 
-        if (s.length() < 220) {
+        if (s.length() < 200) {
             return s;
         }
 
-        return s.substring(0, 220);
+        return s.substring(0, 200);
     }
 
     protected String asString(Object val, String sType) {
