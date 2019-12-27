@@ -270,38 +270,51 @@ CREATE TABLE `core_ru_proc_role_binding` (
 
 drop table if exists batch_execution_jobs;
 CREATE TABLE `batch_execution_jobs` (
-    `id`                    VARCHAR(255) PRIMARY KEY,
-    `create_timestamp`      timestamp default current_timestamp,
-    `complete_timestamp`      timestamp 
+    `id` VARCHAR(255) NOT NULL,
+    `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `complete_timestamp` TIMESTAMP NULL DEFAULT NULL,
+    `creator` VARCHAR(255) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
 
 drop table if exists execution_jobs;
 CREATE TABLE `execution_jobs` (
-    `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `batch_execution_job_id`  VARCHAR(255) NOT NULL,
-    `package_name`            VARCHAR(63) NOT NULL,
-    `entity_name`             VARCHAR(100) NOT NULL,
-    `business_key`            VARCHAR(255) NOT NULL,
-    `root_entity_id`          VARCHAR(255) NOT NULL,
-    `execute_time`            timestamp default current_timestamp,
-    `complete_time`           timestamp ,
-    `error_code`              VARCHAR(1) NULL,
-    `error_message`           TEXT NULL,
-    `return_json`             LONGTEXT NULL,
-    UNIQUE INDEX `job_id_and_root_entity_id` (`batch_execution_job_id`, `root_entity_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ;
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `batch_execution_job_id` VARCHAR(255) NOT NULL,
+    `package_name` VARCHAR(63) NOT NULL,
+    `entity_name` VARCHAR(100) NOT NULL,
+    `business_key` VARCHAR(255) NOT NULL,
+    `root_entity_id` VARCHAR(255) NOT NULL,
+    `execute_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `complete_time` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `error_code` VARCHAR(1) NULL DEFAULT NULL,
+    `error_message` TEXT NULL,
+    `return_json` LONGTEXT NULL,
+    `plugin_config_interface_id` VARCHAR(255) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `job_id_and_root_entity_id` (`batch_execution_job_id`, `root_entity_id`),
+    CONSTRAINT `FK534bth9hibanrjd5fqdel8u9c` FOREIGN KEY (`batch_execution_job_id`) REFERENCES `batch_execution_jobs` (`id`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB;
 
 drop table if exists execution_job_parameters;
 CREATE TABLE `execution_job_parameters` (
-    `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `execution_job_id` VARCHAR(255) NOT NULL,
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `execution_job_id` INT(11) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `data_type` VARCHAR(50) NOT NULL,
     `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
-    `mapping_entity_expression` varchar(1024) NULL DEFAULT NULL,
+    `mapping_entity_expression` VARCHAR(1024) NULL DEFAULT NULL,
     `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
-    `required` varchar(5),
-    `constant_value` VARCHAR(255) NULL
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
+    `required` VARCHAR(5) NULL DEFAULT NULL,
+    `constant_value` VARCHAR(255) NULL DEFAULT NULL,
+    `value` VARCHAR(255) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `FK_execution_job_parameters_execution_jobs` (`execution_job_id`),
+    CONSTRAINT `FK_execution_job_parameters_execution_jobs` FOREIGN KEY (`execution_job_id`) REFERENCES `execution_jobs` (`id`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB;
 
 SET FOREIGN_KEY_CHECKS = 1;
