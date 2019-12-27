@@ -50,7 +50,9 @@
               :fade="false"
               @on-change="handleRoleClick"
             >
-              <span :title="item.displayName">{{ item.displayName }}</span>
+              <span :title="item.displayName">{{
+                item.name + "(" + item.displayName + ")"
+              }}</span>
             </Tag>
             <Button
               icon="ios-build"
@@ -239,6 +241,8 @@ export default {
                     ? this.$lang === "zh-CN"
                       ? menuObj.cnName
                       : menuObj.enName
+                    : this.$lang === "zh-CN"
+                    ? _.localDisplayName
                     : _.displayName,
                 id: _.id,
                 expand: true,
