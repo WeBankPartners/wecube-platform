@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJob;
 import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
@@ -24,6 +25,7 @@ import com.webank.wecube.platform.core.utils.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.ThrowsAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,8 +62,7 @@ public class BatchExecutionService {
 
     public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
             throws IOException {
-        // check parameter
-
+        checkParameters(batchExecutionRequest.getInputParameterDefinitions());
         BatchExecutionJob batchExecutionJob = saveToDb(batchExecutionRequest);
 
         Map<String, ExecutionJobResponseDto> executionResults = new HashMap<>();
@@ -74,6 +75,18 @@ public class BatchExecutionService {
 
         completeBatchExecutionJob(batchExecutionJob);
         return executionResults;
+    }
+
+    private void checkParameters(List<InputParameterDefinition> inputParameterDefinitions) {
+        inputParameterDefinitions.forEach(inputParameterDefinition -> {
+            PluginConfigInterfaceParameter inputParameter = inputParameterDefinition.getInputParameter();
+            if (inputParameter.getRequired().equals(FIELD_REQUIRED)
+                    && inputParameter.getMappingType().equals(MAPPING_TYPE_CONTEXT)) {
+                throw new WecubeCoreException(String.format(
+                        "Batch execution job does not support input parameter[%s] with [mappingType=%s] and [required=%s]",
+                        inputParameter.getName(), inputParameter.getMappingType(), inputParameter.getRequired()));
+            }
+        });
     }
 
     private BatchExecutionJob saveToDb(BatchExecutionRequestDto batchExecutionRequest) {
