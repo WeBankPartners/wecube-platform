@@ -93,6 +93,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         result.setRequestId(requestEntity.getRequestId());
+        result.setErrorCode(requestEntity.getErrorCode());
+        result.setErrorMessage(requestEntity.getErrorMessage());
 
         List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
                 requestEntity.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);

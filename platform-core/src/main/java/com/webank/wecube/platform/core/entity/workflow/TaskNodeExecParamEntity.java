@@ -44,7 +44,7 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
     @Column(name = "PARAM_DATA_TYPE")
     private String paramDataType; // int,string,boolean
 
-    @Column(name = "PARAM_DATA_VALUE")
+    @Column(name = "PARAM_DATA_VALUE", columnDefinition = "text")
     private String paramDataValue;
 
     public Integer getId() {
