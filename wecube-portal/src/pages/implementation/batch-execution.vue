@@ -135,7 +135,11 @@
       title="定义操作对象的查询方式"
     >
       <Form :label-width="110">
-        <FormItem label="路径起点：">
+        <FormItem
+          :rules="{ required: true }"
+          :show-message="false"
+          label="路径起点:"
+        >
           <Select
             v-model="selectedEntityType"
             filterable
@@ -155,7 +159,11 @@
             </OptionGroup>
           </Select>
         </FormItem>
-        <FormItem label="查询路径：">
+        <FormItem
+          :rules="{ required: true }"
+          :show-message="false"
+          label="查询路径："
+        >
           <PathExp
             :rootEntity="selectedEntityType"
             :allDataModelsWithAttrs="allEntityType"
@@ -165,7 +173,11 @@
         <FormItem label="目标类型：">
           <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
         </FormItem>
-        <FormItem label="业务主键：">
+        <FormItem
+          :rules="{ required: true }"
+          :show-message="false"
+          label="业务主键："
+        >
           <Select v-model="currentEntityAttr">
             <Option
               v-for="entityAttr in currentEntityAttrList"
@@ -207,7 +219,11 @@
 
     <Modal v-model="batchActionModalVisible" title="批量操作">
       <Form label-position="right" :label-width="150">
-        <FormItem :label="$t('plugin')">
+        <FormItem
+          :label="$t('plugin')"
+          :rules="{ required: true }"
+          :show-message="false"
+        >
           <Select filterable clearable v-model="serviceId">
             <Option
               v-for="(item, index) in filteredPlugins"
@@ -300,36 +316,36 @@ export default {
       targetEntityAttr: [],
 
       searchParameters: [
-        // {
-        //   id: "wecmdb__2__data_center_design__key_name",
-        //   pluginPackageAttribute: null,
-        //   name: "key_name",
-        //   description: "唯一名称",
-        //   dataType: "str",
-        //   key: "wecmdbdata_center_design0",
-        //   index: 0,
-        //   title: "key_name",
-        //   entityName: "data_center_design",
-        //   packageName: "wecmdb",
-        //   nodeKey: 5,
-        //   checked: true,
-        //   indeterminate: false
-        // },
-        // {
-        //   id: "wecmdb__2__network_zone__key_name",
-        //   pluginPackageAttribute: null,
-        //   name: "key_name",
-        //   description: "唯一名称",
-        //   dataType: "str",
-        //   key: "wecmdbnetwork_zone0",
-        //   index: 0,
-        //   title: "key_name",
-        //   entityName: "network_zone",
-        //   packageName: "wecmdb",
-        //   nodeKey: 7,
-        //   checked: true,
-        //   indeterminate: false
-        // }
+        {
+          id: "wecmdb__2__data_center_design__key_name",
+          pluginPackageAttribute: null,
+          name: "key_name",
+          description: "唯一名称",
+          dataType: "str",
+          key: "wecmdbdata_center_design0",
+          index: 0,
+          title: "key_name",
+          entityName: "data_center_design",
+          packageName: "wecmdb",
+          nodeKey: 5,
+          checked: true,
+          indeterminate: false
+        },
+        {
+          id: "wecmdb__2__network_zone__key_name",
+          pluginPackageAttribute: null,
+          name: "key_name",
+          description: "唯一名称",
+          dataType: "str",
+          key: "wecmdbnetwork_zone0",
+          index: 0,
+          title: "key_name",
+          entityName: "network_zone",
+          packageName: "wecmdb",
+          nodeKey: 7,
+          checked: true,
+          indeterminate: false
+        }
       ],
 
       tableData: [],
@@ -440,7 +456,6 @@ export default {
         _.bindValue = "";
         return _;
       });
-      console.log(this.selectedPluginParams);
     },
     businessKey: function(val) {
       this.filterBusinessKeySet = [];
@@ -499,7 +514,6 @@ export default {
       }
       this.isShowSearchConditions = false;
       this.searchParameters = this.targetEntityAttr;
-      console.log(JSON.stringify(this.searchParameters));
     },
     async excuteSearch() {
       let { status, data, message } = await entityView(
@@ -625,7 +639,6 @@ export default {
       let currentEntity = this.currentEntityAttrList.find(_ => {
         return _.name === this.currentEntityAttr;
       });
-      console.log(this.currentEntityAttr);
       const resourceDatas = this.seletedRows.map(_ => {
         return {
           id: _.id,
@@ -672,6 +685,9 @@ export default {
 }
 .ivu-form-item {
   margin-bottom: 6px !important;
+}
+.ivu-form-item-error .ivu-select-selection {
+  border-color: #dcdee2 !important;
 }
 textarea:focus {
   // outline: none;
