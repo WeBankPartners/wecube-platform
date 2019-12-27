@@ -48,7 +48,7 @@ public class InputParamAttr {
         this.mapType = mapType;
     }
 
-    public void addValues(Object... values) {
+    public void addValueObjects(Object... values) {
         for (Object v : values) {
             this.values.add(v);
         }
@@ -114,17 +114,21 @@ public class InputParamAttr {
 
     public String getValuesAsString() {
         if (values == null || values.isEmpty()) {
-            return null;
+            return String.valueOf(determineEmptyValue());
         }
 
         if (values.size() == 1) {
             Object v = values.get(0);
-            return v.toString();
+            if (v == null) {
+                return String.valueOf(determineEmptyValue());
+            }
+            return String.valueOf(v);
         }
 
         StringBuilder sb = new StringBuilder();
         for (Object v : values) {
-            sb.append(v.toString()).append(",");
+
+            sb.append(v == null ? String.valueOf(determineEmptyValue()) : String.valueOf(v)).append(",");
         }
 
         return sb.toString();
