@@ -893,8 +893,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
         TaskNodeExecParamEntity callbackParameterInputEntity = null;
         if (StringUtils.isNotBlank(callbackParameter)) {
-            callbackParameterInputEntity = taskNodeExecParamRepository.findOneByRequestIdAndParamTypeAndParamName(
-                    requestId, TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY);
+            callbackParameterInputEntity = taskNodeExecParamRepository.findOneByRequestIdAndParamTypeAndParamNameAndValue(
+                    requestId, TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
         }
 
         if (callbackParameterInputEntity != null) {
