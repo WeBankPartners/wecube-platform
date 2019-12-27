@@ -53,5 +53,35 @@ public class InputParamAttrTest {
         
         Assert.assertEquals("[A,B,,C]", actualResult);
     }
+    
+    @Test
+    public void testGetValuesAsStringWithEmptyElement(){
+        InputParamAttr attr = new InputParamAttr();
+        attr.setMapType("entity");
+        attr.setName("testAttr");
+        attr.setType(InputParamAttr.DATA_TYPE_STRING);
+        
+        attr.addValues(Arrays.asList(new String[]{"A","B"}));
+        attr.addValueObjects((String)null);
+        attr.addValueObjects("C");
+        
+        String actual = attr.getValuesAsString();
+        Assert.assertEquals("A,B,,C,", actual);
+    }
+    
+    @Test
+    public void testGetValuesAsStringWithEmptyNumberElement(){
+        InputParamAttr attr = new InputParamAttr();
+        attr.setMapType("entity");
+        attr.setName("testAttr");
+        attr.setType(InputParamAttr.DATA_TYPE_NUMBER);
+        
+        attr.addValues(Arrays.asList(new int[]{1,2}));
+        attr.addValueObjects((Integer)null);
+        attr.addValueObjects(9);
+        
+        String actual = attr.getValuesAsString();
+        Assert.assertEquals("1,2,0,9,", actual);
+    }
 
 }
