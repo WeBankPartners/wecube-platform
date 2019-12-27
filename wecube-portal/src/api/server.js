@@ -659,3 +659,13 @@ export const updateFlowPermission = (id, data) =>
   req.post(`/platform/v1/process/${id}/roles`, data);
 export const deleteFlowPermission = (id, data) =>
   req.delete(`/platform/v1/process/${id}/roles`, { data });
+export const dmeAllEntities = data =>
+  req.post(`/platform/v1/data-model/dme/all-entities`, data);
+export const dmeIntegratedQuery = data =>
+  req.post(`/platform/v1/data-model/dme/integrated-query`, data);
+export const entityView = (packageName, entityName) =>
+  req.get(
+    `/platform/v1/models/package/${packageName}/entity/${entityName}/attributes`
+  );
+export const batchExecution = data =>
+  req.post(`/platform/v1/batch-execution/run`, data);
