@@ -18,6 +18,7 @@
             accept=".zip"
             name="zip-file"
             :on-success="onSuccess"
+            :on-progress="onProgress"
             :on-error="onError"
             action="platform/v1/packages"
             :headers="headers"
@@ -26,6 +27,9 @@
               {{ $t("upload_plugin_btn") }}
             </Button>
           </Upload>
+          <span v-if="showSuccess" style="color:#2b85e4">{{
+            $t("plugin_analysis")
+          }}</span>
         </Card>
       </Row>
       <Row class="plugins-tree-container" style="margin-top: 20px">
@@ -399,6 +403,7 @@ export default {
   data() {
     return {
       headers: {},
+      showSuccess: false,
       isLoading: false,
       plugins: [],
       isShowConfigPanel: false,
@@ -500,6 +505,11 @@ export default {
     };
   },
   methods: {
+    onProgress(event, file, fileList) {
+      if (event.percent === 100) {
+        this.showSuccess = true;
+      }
+    },
     async onSuccess(response, file, filelist) {
       if (response.status === "OK") {
         this.$Notice.success({
@@ -513,6 +523,7 @@ export default {
           desc: response.message || ""
         });
       }
+      this.showSuccess = false;
     },
     onError(error, file, filelist) {
       this.$Notice.error({

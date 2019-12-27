@@ -9,20 +9,26 @@ import java.util.stream.Collectors;
 
 
 public interface PluginPackageMenuRepository extends CrudRepository<PluginPackageMenu, String> {
-    Optional<List<PluginPackageMenu>> findAllByPluginPackage_statusIn(Collection<PluginPackage.Status> statuses);
+    Optional<List<PluginPackageMenu>> findAllByPluginPackage_StatusIn(Collection<PluginPackage.Status> statuses);
 
     Optional<List<PluginPackageMenu>> findAllByCodeAndPluginPackage_StatusIn(String menuCode, Collection<PluginPackage.Status> statuses);
 
-    default Optional<List<PluginPackageMenu>> findAllActivateMenuByCode(String menuCode) {
+    Optional<List<PluginPackageMenu>> findAllByActiveAndPluginPackage_IdAndPluginPackage_StatusIn(boolean active, String pluginPackageId, Collection<PluginPackage.Status> statuses);
+
+    default Optional<List<PluginPackageMenu>> findAllMenusByStatusAndPluginPackageId(boolean active, String pluginPackageId) {
+        return findAllByActiveAndPluginPackage_IdAndPluginPackage_StatusIn(active, pluginPackageId, PluginPackage.ACTIVE_STATUS);
+    }
+
+    default Optional<List<PluginPackageMenu>> findAllActiveMenuByCode(String menuCode) {
         return findAllByCodeAndPluginPackage_StatusIn(menuCode, PluginPackage.ACTIVE_STATUS);
     }
 
-    default Optional<List<PluginPackageMenu>> findAllForAllActivePackages() {
-        return findAllByPluginPackage_statusIn(PluginPackage.ACTIVE_STATUS);
+    default Optional<List<PluginPackageMenu>> findAllPluginPackageMenusForAllActivePackages() {
+        return findAllByPluginPackage_StatusIn(PluginPackage.ACTIVE_STATUS);
     }
 
     default Optional<List<PluginPackageMenu>> findAndMergePluginMenus() {
-        Optional<List<PluginPackageMenu>> allForAllActivePackages = findAllForAllActivePackages();
+        Optional<List<PluginPackageMenu>> allForAllActivePackages = findAllPluginPackageMenusForAllActivePackages();
         if (allForAllActivePackages.isPresent()) {
             Map<String, TreeSet<PluginPackageMenu>> menuSetByMenuOrderMap = new HashMap<>();
             List<PluginPackageMenu> pluginPackageMenus = allForAllActivePackages.get();

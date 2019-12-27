@@ -31,12 +31,6 @@ body {
   animation-fill-mode: backwards;
 }
 
-h1,
-h2,
-p {
-  text-rendering: optimizeLegibility;
-}
-
 h2,
 p {
   color: #374140;
