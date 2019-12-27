@@ -2,8 +2,10 @@ package com.webank.wecube.platform.core.support.datamodel;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.Filter;
 import com.webank.wecube.platform.core.dto.UrlToResponseDto;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
+import com.webank.wecube.platform.core.utils.FilterUtils;
 import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,7 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -285,5 +288,34 @@ public class DataModelServiceStub {
         }
 
         return dataArray;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> filterData(Object jsonData, List<Filter> filterList) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (jsonData instanceof Map) {
+            result.addAll(filterData((Map<String, Object>) jsonData, filterList));
+        }
+
+        if (jsonData instanceof List) {
+            result.addAll(filterData((List<Map<String, Object>>) jsonData, filterList));
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> filterData(List<Map<String, Object>> jsonData, List<Filter> filterList) throws WecubeCoreException {
+        List<Predicate<Map<String, Object>>> predicateFilters;
+        try {
+            predicateFilters = FilterUtils.getPredicateList(filterList);
+        } catch (IllegalAccessException e) {
+            String msg = String.format("Cannot get filter predicate class from given filter list: [%s]", filterList.toString());
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return jsonData.stream().filter(predicateFilters.stream().reduce(p -> true, Predicate::and)).collect(Collectors.toList());
+    }
+
+    private List<Map<String, Object>> filterData(Map<String, Object> jsonData, List<Filter> filterList) {
+        return this.filterData(Collections.singletonList(jsonData), filterList);
     }
 }
