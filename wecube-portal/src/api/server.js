@@ -155,9 +155,7 @@ export const deleteEnumRecord = (catTypeId, catId, codeId) =>
   );
 export const addEnumRecord = (catTypeId, data) =>
   req.post(
-    `/platform/v1/cmdb/enum/category-types/${catTypeId}/categories/${
-      data.catId
-    }/codes/create`,
+    `/platform/v1/cmdb/enum/category-types/${catTypeId}/categories/${data.catId}/codes/create`,
     data
   );
 export const getEnumCatList = () =>
@@ -210,9 +208,7 @@ export const createPluginInstanceByPackageIdAndHostIp = (packageId, ip, port) =>
   );
 export const savePluginInstance = data =>
   req.post(
-    `/platform/v1/plugin/configs/${data.configId}/save?cmdbCiTypeId=${
-      data.cmdbCiTypeId
-    }&cmdbCiTypeName=${data.cmdbCiTypeName}`,
+    `/platform/v1/plugin/configs/${data.configId}/save?cmdbCiTypeId=${data.cmdbCiTypeId}&cmdbCiTypeName=${data.cmdbCiTypeName}`,
     data.pluginRegisteringModels
   );
 export const decommissionPluginConfig = configId =>
@@ -258,9 +254,7 @@ export const createEnumCategory = data =>
   );
 export const updateEnumCategory = data =>
   req.put(
-    `/platform/v1/cmdb/enum/category-types/${data.catTypeId}/categories/${
-      data.catId
-    }`,
+    `/platform/v1/cmdb/enum/category-types/${data.catTypeId}/categories/${data.catId}`,
     data
   );
 export const getAllCITypesByLayerWithAttr = data => {
@@ -380,9 +374,7 @@ export const getEffectiveStatus = () =>
   req.get(`/platform/v1/cmdb/static-data/effective-status`);
 export const createEnumCode = data => {
   return req.post(
-    `/platform/v1/cmdb/enum/category-types/0/categories/${
-      data.catId
-    }/codes/create`,
+    `/platform/v1/cmdb/enum/category-types/0/categories/${data.catId}/codes/create`,
     data
   );
 };
@@ -553,9 +545,7 @@ export const getDeployDesignTabs = () =>
 
 export const getDeployCiData = (data, payload) =>
   req.post(
-    `/platform/v1/cmdb/deploy-designs/tabs/ci-data?code-id=${
-      data.codeId
-    }&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
+    `/platform/v1/cmdb/deploy-designs/tabs/ci-data?code-id=${data.codeId}&env-code=${data.envCode}&system-design-guid=${data.systemDesignGuid}`,
     payload
   );
 
