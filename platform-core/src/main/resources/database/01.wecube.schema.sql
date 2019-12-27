@@ -286,7 +286,7 @@ CREATE TABLE `execution_jobs` (
     `business_key` VARCHAR(255) NOT NULL,
     `root_entity_id` VARCHAR(255) NOT NULL,
     `execute_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `complete_time` TIMESTAMP NOT NULL DEFAULT '0000-00-00 00:00:00',
+    `complete_time` TIMESTAMP NULL,
     `error_code` VARCHAR(1) NULL DEFAULT NULL,
     `error_message` TEXT NULL,
     `return_json` LONGTEXT NULL,
@@ -294,9 +294,7 @@ CREATE TABLE `execution_jobs` (
     PRIMARY KEY (`id`),
     UNIQUE INDEX `job_id_and_root_entity_id` (`batch_execution_job_id`, `root_entity_id`),
     CONSTRAINT `FK534bth9hibanrjd5fqdel8u9c` FOREIGN KEY (`batch_execution_job_id`) REFERENCES `batch_execution_jobs` (`id`)
-)
-COLLATE='utf8_general_ci'
-ENGINE=InnoDB;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 drop table if exists execution_job_parameters;
 CREATE TABLE `execution_job_parameters` (
@@ -313,8 +311,6 @@ CREATE TABLE `execution_job_parameters` (
     PRIMARY KEY (`id`),
     INDEX `FK_execution_job_parameters_execution_jobs` (`execution_job_id`),
     CONSTRAINT `FK_execution_job_parameters_execution_jobs` FOREIGN KEY (`execution_job_id`) REFERENCES `execution_jobs` (`id`)
-)
-COLLATE='utf8_general_ci'
-ENGINE=InnoDB;
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS = 1;
