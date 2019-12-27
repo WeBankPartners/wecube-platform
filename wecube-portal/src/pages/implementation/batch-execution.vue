@@ -106,7 +106,8 @@
                 @click="activeResultKey = key"
                 :class="[
                   activeResultKey === key ? 'active-key' : '',
-                  'business-key'
+                  'business-key',
+                  excuteResult[key].errorCode === '1' ? 'error-key' : ''
                 ]"
                 v-for="(key, keyIndex) in filterBusinessKeySet"
               >
@@ -122,7 +123,7 @@
             />
             <div>
               <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
-              <pre> <span v-html="JSON.stringify(businessKeyContent, null, 2)"></span></pre>
+              <pre> <span v-html="JSON.stringify(businessKeyContent ? businessKeyContent.result: {}, null, 2)"></span></pre>
               <!-- <p>{{ JSON.stringify(businessKeyContent, null, 2) }}</p> -->
             </div>
           </Col>
@@ -178,7 +179,7 @@
           :show-message="false"
           label="业务主键："
         >
-          <Select v-model="currentEntityAttr">
+          <Select filterable v-model="currentEntityAttr">
             <Option
               v-for="entityAttr in currentEntityAttrList"
               :value="entityAttr.name"
@@ -315,38 +316,7 @@ export default {
       allEntityAttr: [],
       targetEntityAttr: [],
 
-      searchParameters: [
-        {
-          id: "wecmdb__2__data_center_design__key_name",
-          pluginPackageAttribute: null,
-          name: "key_name",
-          description: "唯一名称",
-          dataType: "str",
-          key: "wecmdbdata_center_design0",
-          index: 0,
-          title: "key_name",
-          entityName: "data_center_design",
-          packageName: "wecmdb",
-          nodeKey: 5,
-          checked: true,
-          indeterminate: false
-        },
-        {
-          id: "wecmdb__2__network_zone__key_name",
-          pluginPackageAttribute: null,
-          name: "key_name",
-          description: "唯一名称",
-          dataType: "str",
-          key: "wecmdbnetwork_zone0",
-          index: 0,
-          title: "key_name",
-          entityName: "network_zone",
-          packageName: "wecmdb",
-          nodeKey: 7,
-          checked: true,
-          indeterminate: false
-        }
-      ],
+      searchParameters: [],
 
       tableData: [],
       seletedRows: [],
@@ -358,46 +328,9 @@ export default {
       allPlugins: [],
       filteredPlugins: [],
 
-      excuteResult: {
-        task1: {
-          id: 29
-          // serviceRequest: null,
-          // callbackUrl: "/v1/process/instances/callback",
-          // name: "batch-task-name",
-          // reporter: null,
-          // reportTime: "2019-12-26 06:23:39",
-          // operatorRole: "batch-role-name",
-          // operator: null,
-          // operateTime: null,
-          // inputParameters: null,
-          // description: "batch-task-name",
-          // result: null,
-          // resultMessage: null,
-          // status: "Pending",
-          // requestId: "RequestId-1577341419129",
-          // callbackParameter: null
-        },
-        task2: {
-          id: 30,
-          serviceRequest: null,
-          callbackUrl: "/v1/process/instances/callback",
-          name: "batch-task-name",
-          reporter: null,
-          reportTime: "2019-12-26 06:23:39",
-          operatorRole: "batch-role-name",
-          operator: null,
-          operateTime: null,
-          inputParameters: null,
-          description: "batch-task-name",
-          result: null,
-          resultMessage: null,
-          status: "Pending",
-          requestId: "RequestId-1577341419168",
-          callbackParameter: null
-        }
-      },
-      excuteBusinessKeySet: ["task1", "task2"],
-      filterBusinessKeySet: ["task1", "task2"],
+      excuteResult: {},
+      excuteBusinessKeySet: [],
+      filterBusinessKeySet: [],
       activeResultKey: "",
       businessKey: "",
       resultFilterKey: ""
@@ -406,12 +339,6 @@ export default {
   mounted() {},
   computed: {
     businessKeyContent: function() {
-      // const textww = 'id'
-      // let res1 = JSON.stringify(this.excuteResult['task1']);
-      // res1 = res1.replace(textww, `"<span style=color:red>${textww}</span>"`)
-      //  console.log(res1)
-      // return JSON.parse(res1);
-      // console.log(this.activeResultKey);
       return this.excuteResult[this.activeResultKey];
     }
   },
@@ -541,28 +468,30 @@ export default {
         const index = keySet.indexOf(sParameter.key);
         if (index > -1) {
           const { name, value } = sParameter;
-          console.log(value);
-          requestParameter.filters[index].attributeFilters.push({
-            name,
-            value,
-            operator: "eq"
-          });
+          if (value) {
+            requestParameter.filters[index].attributeFilters.push({
+              name,
+              value,
+              operator: "eq"
+            });
+          }
         } else {
           keySet.push(sParameter.key);
           const { index, packageName, entityName, name, value } = sParameter;
-          console.log(value);
-          requestParameter.filters.push({
-            index,
-            packageName,
-            entityName,
-            attributeFilters: [
-              {
-                name,
-                value,
-                operator: "eq"
-              }
-            ]
-          });
+          if (value) {
+            requestParameter.filters.push({
+              index,
+              packageName,
+              entityName,
+              attributeFilters: [
+                {
+                  name,
+                  value,
+                  operator: "eq"
+                }
+              ]
+            });
+          }
         }
       });
       const { status, data, message } = await dmeIntegratedQuery(
@@ -658,6 +587,7 @@ export default {
       const { status, data, message } = await batchExecution(requestBody);
       this.batchActionModalVisible = false;
       this.$Message.info("执行可能需要一点时间！");
+      this.seletedRows = [];
       if (status === "OK") {
         this.excuteResult = data;
         this.excuteBusinessKeySet = this.filterBusinessKeySet = [];
@@ -728,6 +658,9 @@ textarea:focus {
   color: #2d8cf0;
 }
 .active-key {
+  background: #e5e2e2;
+}
+.error-key {
   color: red;
 }
 </style>
