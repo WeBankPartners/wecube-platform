@@ -367,6 +367,8 @@ export default {
         if (val && val !== 100000) {
           this.getFlowXml(val);
           this.getPermissionByProcess(val);
+          this.pluginForm.paramInfos = [];
+          this.currentflowsNodes = [];
         }
         if (!val) {
           this.selectedFlow = oldVal;
@@ -514,7 +516,6 @@ export default {
           let needParams = found.inputParameters.filter(
             _ => _.mappingType === "context" || _.mappingType === "constant"
           );
-          this.pluginForm.paramInfos = [];
           if (isUseOriginParamsInfo) return;
           this.pluginForm.paramInfos = needParams.map(_ => {
             return {
@@ -557,12 +558,14 @@ export default {
       this.rootEntity = this.currentSelectedEntity.split(":")[1];
 
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
-      this.defaultPluginForm.routineExpression = v;
-      this.pluginForm = this.defaultPluginForm;
+      this.pluginForm = {
+        ...this.defaultPluginForm,
+        routineExpression: v
+      };
       this.resetNodePluginConfig();
     },
     resetNodePluginConfig() {
-      if (this.currentFlow) {
+      if (this.currentFlow && this.currentFlow.taskNodeInfos) {
         this.currentFlow.taskNodeInfos.forEach(_ => {
           if (_.nodeId.indexOf("Task") > -1) {
             Object.keys(_).forEach(key => {
@@ -591,7 +594,7 @@ export default {
       this.mgmtRolesKeyToFlow = [];
       this.useRolesKeyToFlow = [];
       this.currentSelectedEntity = "";
-      this.pluginForm = this.defaultPluginForm;
+      this.pluginForm = { ...this.defaultPluginForm };
       this.currentFlow = {};
       this.newFlowID = "wecube" + Date.now();
       const bpmnXmlStr =
@@ -697,14 +700,13 @@ export default {
           desc: this.$t("select_entity_first")
         });
       } else {
-        this.getPluginInterfaceList();
         this.pluginModalVisible = true;
-        this.pluginForm =
-          (this.currentFlow &&
-            this.currentFlow.taskNodeInfos.find(
-              _ => _.nodeId === this.currentNode.id
-            )) ||
-          this.defaultPluginForm;
+        this.pluginForm = (this.currentFlow &&
+          this.currentFlow.taskNodeInfos &&
+          this.currentFlow.taskNodeInfos.find(
+            _ => _.nodeId === this.currentNode.id
+          )) || { ...this.defaultPluginForm };
+        this.getPluginInterfaceList();
         // get flow's params infos - nodes -
         this.getFlowsNodes();
         this.pluginForm.routineExpression &&
@@ -717,7 +719,10 @@ export default {
       this.getParamsOptionsByNode(index);
     },
     async getFlowsNodes() {
-      if (!this.currentFlow || !this.currentFlow.procDefId) return;
+      if (!this.currentFlow || !this.currentFlow.procDefId) {
+        this.currentflowsNodes = [];
+        return;
+      }
       let { status, data, message } = await getFlowNodes(
         this.currentFlow.procDefId
       );
