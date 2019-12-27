@@ -151,6 +151,18 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         assertThat(pluginPackageDataModelService.getRefByInfo("Package_3", "Entity_1").size()).isEqualTo(REF_BY_COUNT);
     }
 
+    @Test
+    public void entityViewShouldSucceed() {
+        final String ENTITY_NAME = "Entity_1";
+        PluginPackageDataModelDto dataModelDto = mockPluginPackageDataModelDto("PackageName", "1.0");
+        this.pluginPackageDataModelService.register(dataModelDto);
+        List<PluginPackageAttributeDto> pluginPackageAttributeDtos = this.pluginPackageDataModelService.entityView("PackageName", ENTITY_NAME);
+        assertThat(pluginPackageAttributeDtos.size()).isEqualTo(MOCK_SIZE_PER_PACKAGE);
+        pluginPackageAttributeDtos.forEach(
+                pluginPackageAttributeDto -> assertThat(pluginPackageAttributeDto.getEntityName()).isEqualTo(ENTITY_NAME));
+
+    }
+
     private PluginPackageDataModelDto mockPluginPackageDataModelDto(String packageName, String packageVersion) {
 
         Set<PluginPackageEntityDto> pluginPackageEntityDtos = newLinkedHashSet();

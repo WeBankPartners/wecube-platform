@@ -69,4 +69,22 @@ public class DataModelExpressionParser {
         return evalByListener.getExpressionQueue();
     }
 
+    public Queue<DataModelExpressionDto> parseAll(String expression) {
+        if (expression.isEmpty() || !expression.contains(":")) {
+            throw new WecubeCoreException(String.format("Illegal data model expression[%s]", expression));
+        }
+
+        if (StringUtils.containsAny(expression, ">~")) {
+            Iterable<String> split = Splitter.onPattern("([>~])").split(expression);
+            String last = Iterables.getLast(split);
+            if (!last.contains(".")) {
+                expression = expression + "." + DataModelExpressionParser.FETCH_ALL;
+            }
+        } else {
+            if (!expression.contains(".")) {
+                expression = expression + "." + DataModelExpressionParser.FETCH_ALL;
+            }
+        }
+        return checkExpressionSyntax(expression);
+    }
 }
