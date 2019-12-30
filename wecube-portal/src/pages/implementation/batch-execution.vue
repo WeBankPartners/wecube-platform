@@ -88,7 +88,7 @@
         </Card>
         <a v-else @click="reExcute('displayResultTableZone')">
           找到 {{ tableData.length }} 个资源实例,选择了其中{{
-            seletedRows.length
+            seletedRowsNum
           }}执行{{ serviceId }}
         </a>
       </div>
@@ -324,6 +324,7 @@ export default {
 
       tableData: [],
       seletedRows: [],
+      seletedRowsNum: 0,
       tableColumns: [],
 
       batchActionModalVisible: false,
@@ -537,6 +538,7 @@ export default {
     },
     onSelectedRowsChange(rows, checkoutBoxdisable) {
       this.seletedRows = rows;
+      this.seletedRowsNum = this.seletedRows.length;
     },
     batchAction() {
       this.getFilteredPluginInterfaceList();
