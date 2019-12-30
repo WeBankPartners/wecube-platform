@@ -31,7 +31,7 @@ public class ApiRoleRelationshipService {
 	@Autowired
 	private ApiService apiService;
 
-	public List<SysApiEntity> getApisByRoleId(Long roleId) {
+	public List<SysApiEntity> getApisByRoleId(String roleId) {
 		List<SysApiEntity> apis = Lists.newArrayList();
 		apiRoleRelationshipRepository.findByRoleId(roleId).forEach(apiRole -> {
 			apis.add(apiRole.getApi());
@@ -47,7 +47,7 @@ public class ApiRoleRelationshipService {
 		return roles;
 	}
 
-	public void grantRoleForApis(Long roleId, List<Long> apiIds) throws Exception {
+	public void grantRoleForApis(String roleId, List<Long> apiIds) throws Exception {
 		SysRoleEntity role = roleService.getRoleByIdIfExisted(roleId);
 		for (Long apiId : apiIds) {
 			SysApiEntity apiEntity = apiService.getApiByIdIfExisted(apiId);
@@ -56,7 +56,7 @@ public class ApiRoleRelationshipService {
 		}
 	}
 
-	public void revokeRoleForApis(Long roleId, List<Long> apiIds) throws Exception {
+	public void revokeRoleForApis(String roleId, List<Long> apiIds) throws Exception {
 		roleService.getRoleByIdIfExisted(roleId);
 		for (Long apiId : apiIds) {
 			apiService.getApiByIdIfExisted(apiId);
