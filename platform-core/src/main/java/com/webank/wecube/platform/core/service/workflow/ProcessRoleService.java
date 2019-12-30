@@ -15,9 +15,9 @@ public interface ProcessRoleService {
 
     void updateProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto);
 
-    List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<Long> roleIdList);
+    List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<String> roleIdList);
 
-    List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<Long> roleIdList, String permissionStr);
+    List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<String> roleIdList, String permissionStr);
 
     void deleteProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto);
 }
