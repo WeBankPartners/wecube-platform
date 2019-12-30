@@ -4,7 +4,7 @@
 ![](https://img.shields.io/badge/language-java-orange.svg)
 ![](https://img.shields.io/badge/language-vue-green.svg)
 
-中文 / [English](README.md)
+中文 / [English](README_EN.md)
 
 ## 引言
 WeCube是一套开源的，一站式IT架构管理和运维管理工具，主要用于简化分布式架构IT管理，并可以通过插件进行功能扩展。
