@@ -39,22 +39,22 @@ public class ApiRoleRelationshipController {
 
 	@GetMapping("/roles/{role-id}/apis")
 	@ResponseBody
-	public CommonResponseDto getApisByRoleId(@PathVariable(value = "role-id") Long roleId) {
+	public CommonResponseDto getApisByRoleId(@PathVariable(value = "role-id") String roleId) {
 		return okayWithData(apiRoleRelationshipService.getApisByRoleId(roleId));
 	}
 
 	@PostMapping("/roles/{role-id}/apis")
 	@ResponseBody
-	public CommonResponseDto grantRoleForApis(@PathVariable(value = "role-id") Long roleId,
-			@RequestBody List<Long> apiIds) throws Exception {
+	public CommonResponseDto grantRoleForApis(@PathVariable(value = "role-id") String roleId,
+											  @RequestBody List<Long> apiIds) throws Exception {
 		apiRoleRelationshipService.grantRoleForApis(roleId, apiIds);
 		return okay();
 	}
 
 	@DeleteMapping("/roles/{role-id}/apis")
 	@ResponseBody
-	public CommonResponseDto revokeRoleForApis(@PathVariable(value = "role-id") Long roleId,
-			@RequestBody List<Long> apiIds) throws Exception {
+	public CommonResponseDto revokeRoleForApis(@PathVariable(value = "role-id") String roleId,
+											   @RequestBody List<Long> apiIds) throws Exception {
 		apiRoleRelationshipService.revokeRoleForApis(roleId, apiIds);
 		return okay();
 	}
