@@ -144,6 +144,11 @@ public class WorkflowEngineService {
         String procInstKey = event.getBusinessKey();
         String executionId = event.getExecutionId();
 
+        if (log.isInfoEnabled()) {
+            log.info("handling service invocation result,procInstId={},procInstKey={},executionId={},resultCode={}",
+                    procInstId, procInstKey, executionId, event.getResult());
+        }
+
         int resultCode = event.getResult();
 
         boolean successful = (resultCode == 0);
@@ -311,8 +316,8 @@ public class WorkflowEngineService {
                         break;
                     }
                 }
-                
-                if(isOneSucceedingFlowNodeStarted){
+
+                if (isOneSucceedingFlowNodeStarted) {
                     nodeStatus = TraceStatus.Completed.name();
                 }
             }
