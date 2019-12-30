@@ -1,6 +1,6 @@
 #!/bin/sh
 mkdir -p /log
-java -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port=8080 \
+java -Djava.security.egd=file:/dev/urandom -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port=8080 \
 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver \
 --spring.datasource.url=jdbc:mysql://${MYSQL_SERVER_ADDR}:${MYSQL_SERVER_PORT}/${MYSQL_SERVER_DATABASE_NAME}?serverTimezone=Asia\/Shanghai\&characterEncoding=utf8 \
 --spring.datasource.username=${MYSQL_USER_NAME} \
