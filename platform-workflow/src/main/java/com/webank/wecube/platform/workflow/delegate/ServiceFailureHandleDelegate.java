@@ -21,10 +21,15 @@ public class ServiceFailureHandleDelegate extends AbstractServiceExceptionHandle
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
-        
+
+        if (log.isInfoEnabled()) {
+            log.info("service processing faulted,inst={},exec={},nodeId={},instKey={}", execution.getProcessInstanceId(),
+                    execution.getId(), execution.getCurrentActivityId(), execution.getProcessBusinessKey());
+        }
+
         logServiceNodeException(execution, TraceStatus.Faulted, WorkflowConstants.PREFIX_SRV_BEAN_FAILURE);
     }
-    
+
     protected Logger getLogger() {
         return log;
     }

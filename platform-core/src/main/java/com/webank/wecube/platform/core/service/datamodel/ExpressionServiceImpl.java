@@ -1,8 +1,16 @@
 package com.webank.wecube.platform.core.service.datamodel;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.EntityDto;
 import com.webank.wecube.platform.core.dto.UrlToResponseDto;
+import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
@@ -20,6 +28,11 @@ import java.util.*;
 
 @Service
 public class ExpressionServiceImpl implements ExpressionService {
+    @Autowired
+    private PluginPackageEntityRepository pluginPackageEntityRepository;
+    @Autowired
+    private PluginPackageDataModelRepository pluginPackageDataModelRepository;
+    
     private ApplicationProperties applicationProperties;
     private static final Logger logger = LoggerFactory.getLogger(ExpressionServiceImpl.class);
     private DataModelServiceStub dataModelServiceStub;
@@ -421,5 +434,108 @@ public class ExpressionServiceImpl implements ExpressionService {
         }
         String writeBackAttr = Objects.requireNonNull(finalFetchDto.getOpFetch()).attr().getText();
         return new WriteBackTargetDto(lastRequestResponse, writeBackPackageName, writeBackEntityName, writeBackAttr);
+    }
+    
+    @Override
+    public List<EntityDto> getAllEntities(String dataModelExpression) {
+        if (dataModelExpression.isEmpty() || !dataModelExpression.contains(":")) {
+            throw new WecubeCoreException(String.format("Illegal data model expression[%s]", dataModelExpression));
+        }
+
+        Iterable<String> split = Splitter.onPattern("([>~])").split(dataModelExpression);
+        Iterable<String> firstSection = Splitter.onPattern("([:.])").splitToList((split.iterator().next()));
+        List<String> firstSectionStrings = new ArrayList<String>();
+        Iterator<String> firstSectionStringIterator = firstSection.iterator();
+        while (firstSectionStringIterator.hasNext()) {
+            firstSectionStrings.add(firstSectionStringIterator.next());
+        }
+        if (firstSectionStrings.size() < 2) {
+            throw new WecubeCoreException(String.format("Illegal data model expression[%s]", dataModelExpression));
+        }
+
+        Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser()
+                .parseAll(dataModelExpression);
+
+        List<EntityDto> entityDtos =new ArrayList<EntityDto>();
+        DataModelExpressionDto dataModelExpressionDtoFirst = expressionDtoQueue.poll();
+            entityDtos= resolveFirstLinkReturnEntities(dataModelExpressionDtoFirst);
+        
+        for (int i = expressionDtoQueue.size(); i > 1; i--) {
+            DataModelExpressionDto dataModelExpressionDto = expressionDtoQueue.poll();
+            EntityDto entityDto = resolveLinkReturnEntity(dataModelExpressionDto);
+            if (null != entityDto) {
+                entityDtos.add(entityDto);
+            }
+        }
+
+        entityDtos.forEach(entity -> {
+            Optional<PluginPackageDataModel> dataModelOptional = pluginPackageDataModelRepository
+                    .findLatestDataModelByPackageName(entity.getPackageName());
+            if (dataModelOptional.isPresent()) {
+                Optional<PluginPackageEntity> entityOptional = pluginPackageEntityRepository
+                        .findByPackageNameAndNameAndDataModelVersion(entity.getPackageName(), entity.getEntityName(),
+                                dataModelOptional.get().getVersion());
+                if (entityOptional.isPresent()) {
+                    entity.setAttributes(entityOptional.get().getPluginPackageAttributeList());
+                }
+            }
+        });
+
+        return entityDtos;
+    }
+
+    private EntityDto buildEntityForEntityFetch(DataModelExpressionDto expressionDto) {
+        DataModelParser.EntityContext entity = expressionDto.getEntity();
+        return new EntityDto(entity.pkg().getText(), entity.ety().getText());
+    }
+
+    private EntityDto resolveLinkReturnEntity(DataModelExpressionDto expressionDto) {
+        switch (expressionDto.getDataModelExpressionOpType()) {
+        case REF_TO:
+            return new EntityDto(expressionDto.getEntity().pkg().getText(), expressionDto.getEntity().ety().getText());
+        case REF_BY:
+            DataModelParser.Bwd_nodeContext bwdNode = expressionDto.getBwdNode();
+            return new EntityDto(bwdNode.entity().pkg().getText(), bwdNode.entity().ety().getText());
+        default:
+            break;
+        }
+        return null;
+    }
+
+    private List<EntityDto> resolveFirstLinkReturnEntities(DataModelExpressionDto expressionDto) {
+        switch (expressionDto.getDataModelExpressionOpType()) {
+        case ENTITY_FETCH:
+            EntityDto entityDto = buildEntityForEntityFetch(expressionDto);
+            return Lists.newArrayList(entityDto);
+        case REF_TO:
+            EntityDto firstEntityDtoInRefToCase = buildForwardNodeEntityForRefTo(expressionDto);
+            EntityDto secondEntityDtoInRefToCase = buildEntityForRefTo(expressionDto);
+            return Lists.newArrayList(firstEntityDtoInRefToCase, secondEntityDtoInRefToCase);
+        case REF_BY:
+            EntityDto firstEntityDtoInRefByCase = buildEntityForRefBy(expressionDto);
+            EntityDto secondEntityDtoInRefByCase = buildBackwardNodeEntityForRefBy(expressionDto);
+            return Lists.newArrayList(firstEntityDtoInRefByCase, secondEntityDtoInRefByCase);
+        default:
+            break;
+        }
+        return null;
+    }
+
+    private EntityDto buildForwardNodeEntityForRefTo(DataModelExpressionDto expressionDto) {
+        return new EntityDto(expressionDto.getFwdNode().entity().pkg().getText(),
+                expressionDto.getFwdNode().entity().ety().getText());
+    }
+
+    private EntityDto buildEntityForRefTo(DataModelExpressionDto expressionDto) {
+        return new EntityDto(expressionDto.getEntity().pkg().getText(), expressionDto.getEntity().ety().getText());
+    }
+
+    private EntityDto buildBackwardNodeEntityForRefBy(DataModelExpressionDto expressionDto) {
+        return new EntityDto(expressionDto.getBwdNode().entity().pkg().getText(),
+                expressionDto.getBwdNode().entity().ety().getText());
+    }
+
+    private EntityDto buildEntityForRefBy(DataModelExpressionDto expressionDto) {
+        return new EntityDto(expressionDto.getEntity().pkg().getText(), expressionDto.getEntity().ety().getText());
     }
 }
