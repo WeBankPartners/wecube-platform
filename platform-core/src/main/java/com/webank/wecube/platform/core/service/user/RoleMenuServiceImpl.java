@@ -48,7 +48,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      * @return role2MenuDto
      */
     @Override
-    public RoleMenuDto retrieveMenusByRoleId(Long roleId) throws WecubeCoreException {
+    public RoleMenuDto retrieveMenusByRoleId(String roleId) throws WecubeCoreException {
         logger.info(String.format("Fetching all menus by role ID: [%s]", roleId));
         List<RoleMenu> roleMenuList;
         try {
@@ -87,7 +87,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      * @param menuCodeList given total amount of the menuCode list
      */
     @Override
-    public void updateRoleToMenusByRoleId(Long roleId, List<String> menuCodeList) throws WecubeCoreException {
+    public void updateRoleToMenusByRoleId(String roleId, List<String> menuCodeList) throws WecubeCoreException {
         List<RoleMenu> roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
 
         // current menuCodeList - new menuCodeList = needToDeleteList
