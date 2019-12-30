@@ -23,6 +23,7 @@ body {
 }
 
 .row {
+  display: block;
   text-align: center;
   margin: 60px auto;
   animation-duration: 2s;
