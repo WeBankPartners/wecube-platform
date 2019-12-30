@@ -51,9 +51,9 @@ public class RoleController {
 
 	@DeleteMapping("/roles/{role-id}")
 	@ResponseBody
-	public CommonResponseDto deleteRole(@PathVariable(value = "role-id") Long id, HttpServletRequest request)
+	public CommonResponseDto deleteRole(@PathVariable(value = "role-id") String roleId, HttpServletRequest request)
 			throws Exception {
-		roleService.delete(id);
+		roleService.delete(roleId);
 		return okay();
 	}
 }
