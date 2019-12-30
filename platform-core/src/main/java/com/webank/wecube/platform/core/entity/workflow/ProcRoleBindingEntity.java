@@ -20,7 +20,7 @@ public class ProcRoleBindingEntity {
     @Enumerated(EnumType.STRING)
     private permissionEnum permission;
     @Column(name = "role_id")
-    private Long roleId;
+    private String roleId;
 
 
     public ProcRoleBindingEntity() {
@@ -51,11 +51,11 @@ public class ProcRoleBindingEntity {
         this.permission = permission;
     }
 
-    public Long getRoleId() {
+    public String getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(Long roleId) {
+    public void setRoleId(String roleId) {
         this.roleId = roleId;
     }
 

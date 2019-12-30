@@ -11,7 +11,7 @@ public class ProcRoleDto {
     private String id;
     private String processId;
     private String permission;
-    private Long roleId;
+    private String roleId;
 
     public static ProcRoleDto fromDomain(ProcRoleBindingEntity procRoleBindingEntity) {
         ProcRoleDto result = new ProcRoleDto();
@@ -22,7 +22,7 @@ public class ProcRoleDto {
         return result;
     }
 
-    public static ProcRoleBindingEntity toDomain(String procId, Long roleId, ProcRoleBindingEntity.permissionEnum permissionEnum) {
+    public static ProcRoleBindingEntity toDomain(String procId, String roleId, ProcRoleBindingEntity.permissionEnum permissionEnum) {
         ProcRoleBindingEntity result = new ProcRoleBindingEntity();
         result.setProcId(procId);
         result.setRoleId(roleId);
@@ -55,11 +55,11 @@ public class ProcRoleDto {
         this.permission = permission;
     }
 
-    public Long getRoleId() {
+    public String getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(Long roleId) {
+    public void setRoleId(String roleId) {
         this.roleId = roleId;
     }
 

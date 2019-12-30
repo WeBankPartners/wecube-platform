@@ -7,12 +7,12 @@ import java.util.List;
 public class ProcRoleRequestDto {
     String permission;
     @JsonProperty(value = "roleId")
-    List<Long> roleIdList;
+    List<String> roleIdList;
 
     public ProcRoleRequestDto() {
     }
 
-    public ProcRoleRequestDto(String permission, List<Long> roleIdList) {
+    public ProcRoleRequestDto(String permission, List<String> roleIdList) {
         this.permission = permission;
         this.roleIdList = roleIdList;
     }
@@ -25,11 +25,11 @@ public class ProcRoleRequestDto {
         this.permission = permission;
     }
 
-    public List<Long> getRoleIdList() {
+    public List<String> getRoleIdList() {
         return roleIdList;
     }
 
-    public void setRoleIdList(List<Long> roleIdList) {
+    public void setRoleIdList(List<String> roleIdList) {
         this.roleIdList = roleIdList;
     }
 }

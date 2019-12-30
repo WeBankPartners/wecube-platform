@@ -88,8 +88,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
         log.info("process definition saved with id:{}", savedProcDefInfoDraftEntity.getId());
         String currentUsername = AuthenticationContextHolder.getCurrentUsername();
-        List<Long> roleIds = userManagementService.getRoleIdListByUsername(token, currentUsername);
-        Map<String, List<Long>> roleBinds = new HashMap<String, List<Long>>();
+        List<String> roleIds = userManagementService.getRoleIdListByUsername(token, currentUsername);
+        Map<String, List<String>> roleBinds = new HashMap<>();
         roleBinds.put(ProcRoleBindingEntity.permissionEnum.MGMT.name(), roleIds);
 
         ProcDefInfoDto tmpProcDefInfoDto = new ProcDefInfoDto();
@@ -434,7 +434,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     public List<ProcDefInfoDto> getProcessDefinitions(String token, boolean includeDraftProcDef, String permissionStr) {
-        List<Long> roleIdList = this.userManagementService.getRoleIdListByUsername(token,
+        List<String> roleIdList = this.userManagementService.getRoleIdListByUsername(token,
                 AuthenticationContextHolder.getCurrentUsername());
 
         // check if there is permission specified
@@ -873,14 +873,14 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
     private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
 
-        Map<String, List<Long>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
+        Map<String, List<String>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
 
         if (null == permissionToRoleMap) {
             throw new WecubeCoreException("There is no process to role with permission mapping found.");
         }
 
         String errorMsg;
-        for (Map.Entry<String, List<Long>> permissionToRoleListEntry : permissionToRoleMap.entrySet()) {
+        for (Map.Entry<String, List<String>> permissionToRoleListEntry : permissionToRoleMap.entrySet()) {
             String permissionStr = permissionToRoleListEntry.getKey();
 
             // check if key is empty or NULL
@@ -897,7 +897,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 throw new WecubeCoreException(errorMsg);
             }
 
-            List<Long> roleIdList = permissionToRoleListEntry.getValue();
+            List<String> roleIdList = permissionToRoleListEntry.getValue();
 
             // check if roleIdList is NULL
             if (null == roleIdList) {
@@ -913,7 +913,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 log.error(errorMsg);
                 throw new WecubeCoreException(errorMsg);
             }
-            for (Long roleId : roleIdList) {
+            for (String roleId : roleIdList) {
                 processRoleService.createProcRoleBinding(procId,
                         new ProcRoleRequestDto(permissionStr, Collections.singletonList(roleId)));
             }

@@ -23,17 +23,15 @@ public interface UserManagementService {
 
     CommonResponseDto retrieveRole(String token);
 
-    CommonResponseDto deleteRole(String token, Long id);
-
-    void deleteRole(Long id);
+    CommonResponseDto deleteRole(String token, String id);
 
     CommonResponseDto getRolesByUserName(String token, String username);
 
-    CommonResponseDto getUsersByRoleId(String token, Long userId);
+    CommonResponseDto getUsersByRoleId(String token, String roleId);
 
-    CommonResponseDto grantRoleToUsers(String token, Long roleId, List<Object> userIdList);
+    CommonResponseDto grantRoleToUsers(String token, String roleId, List<Object> userIdList);
 
-    CommonResponseDto revokeRoleFromUsers(String token, Long roleId, List<Object> jsonObject);
+    CommonResponseDto revokeRoleFromUsers(String token, String roleId, List<Object> jsonObject);
 
     RoleDto createRole(RoleDto roleDto);
 
@@ -41,5 +39,5 @@ public interface UserManagementService {
 
     List<RoleMenuDto> getMenusByUserName(String token, String username);
 
-    List<Long> getRoleIdListByUsername(String token, String username);
+    List<String> getRoleIdListByUsername(String token, String username);
 }
