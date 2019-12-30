@@ -53,11 +53,32 @@ public class PluginResponse<DATATYPE> {
             this.outputs = outputs;
         }
 
+        public ResultData() {
+        }
+
+        public ResultData(List<DATATYPE> outputs) {
+            super();
+            this.outputs = outputs;
+        }
+
+        @Override
+        public String toString() {
+            return "ResultData [outputs=" + outputs + "]";
+        }
     }
 
     public static class DefaultPluginResponse extends PluginResponse<Object> {
     }
 
     public static class PluginRunScriptResponse extends PluginResponse<PluginRunScriptOutput> {
+    }
+
+    public static class StationaryPluginResponse extends PluginResponse<PluginResponseStationaryOutput> {
+    }
+
+    @Override
+    public String toString() {
+        return "PluginResponse [resultCode=" + resultCode + ", resultMessage=" + resultMessage + ", resultData="
+                + resultData + "]";
     }
 }

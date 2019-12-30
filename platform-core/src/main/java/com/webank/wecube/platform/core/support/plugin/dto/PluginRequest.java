@@ -41,4 +41,9 @@ public class PluginRequest<DATATYPE> {
 
     public static class PluginLoggingInfoSearchDetailRequest extends PluginRequest<PluginLoggingInfoSearchDetailRequestParameter> {
     }
+
+    @Override
+    public String toString() {
+        return "PluginRequest [requestId=" + requestId + ", inputs=" + inputs + "]";
+    }
 }
