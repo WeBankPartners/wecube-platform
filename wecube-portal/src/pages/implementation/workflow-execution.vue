@@ -64,19 +64,19 @@
                   }}
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">
-                {{ $t("query_orch") }}
-              </Button>
+              <Button type="info" @click="queryHandler">{{
+                $t("query_orch")
+              }}</Button>
             </FormItem>
           </Form>
         </Col>
         <Col span="4" style="text-align: right;">
-          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">
-            {{ $t("enquery_new_workflow_job") }}
-          </Button>
-          <Button type="success" v-if="isEnqueryPage" @click="createHandler">
-            {{ $t("create_new_workflow_job") }}
-          </Button>
+          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">{{
+            $t("enquery_new_workflow_job")
+          }}</Button>
+          <Button type="success" v-if="isEnqueryPage" @click="createHandler">{{
+            $t("create_new_workflow_job")
+          }}</Button>
         </Col>
       </Row>
       <Row v-show="isShowBody">
@@ -89,34 +89,15 @@
           >
             <div class="graph-container" id="flow" style="height:90%"></div>
             <div style="text-align: center;margin-top: 5px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">
-                {{ $t("execute") }}
-              </Button>
+              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
+                $t("execute")
+              }}</Button>
             </div>
           </Col>
           <Col
             span="18"
             style="text-align: center;margin-top: 5px;text-align: center;height:100%;"
           >
-            <div
-              v-if="!isEnqueryPage && selectedTarget"
-              style="text-align: left;padding-left: 20px"
-            >
-              <Button
-                type="info"
-                size="small"
-                @click="selectAllModelNodes(true)"
-              >
-                {{ $t("select_all") }}
-              </Button>
-              <Button
-                type="info"
-                size="small"
-                @click="selectAllModelNodes(false)"
-              >
-                {{ $t("cancel_select") }}
-              </Button>
-            </div>
             <div class="graph-container" id="graph" style="height:100%"></div>
             <Spin size="large" fix v-show="isLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -137,9 +118,9 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
-        <Button type="info" @click="workFlowActionHandler('retry')">{{
-          $t("retry")
-        }}</Button>
+        <Button type="info" @click="workFlowActionHandler('retry')">
+          {{ $t("retry") }}
+        </Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
@@ -147,6 +128,26 @@
           >{{ $t("skip") }}</Button
         >
       </div>
+    </Modal>
+    <Modal
+      :title="$t('select_model')"
+      v-model="targetModalVisible"
+      :mask-closable="false"
+      :scrollable="true"
+      :footer-hide="true"
+      :mask="false"
+      class="model_target"
+      width="50"
+      @on-visible-change="targetModelConfirm"
+    >
+      <Table
+        border
+        ref="selection"
+        max-height="400"
+        @on-selection-change="targetModelSelectHandel"
+        :columns="targetModelColums"
+        :data="tartetModels"
+      ></Table>
     </Modal>
     <div id="model_graph_detail">
       <highlight-code lang="json">{{ modelNodeDetail }}</highlight-code>
@@ -192,6 +193,27 @@ export default {
       isShowBody: false,
       isEnqueryPage: false,
       workflowActionModalVisible: false,
+      targetModalVisible: false,
+      tartetModels: [],
+      targetModelColums: [
+        {
+          type: "selection",
+          width: 60,
+          align: "center"
+        },
+        {
+          title: "PackageName",
+          key: "packageName"
+        },
+        {
+          title: "EntityName",
+          key: "entityName"
+        },
+        {
+          title: "DataId",
+          key: "dataId"
+        }
+      ],
       currentFailedNodeID: "",
       timer: null,
       modelNodeDetail: {},
@@ -212,6 +234,29 @@ export default {
     this.timer = null;
   },
   methods: {
+    targetModelConfirm(visible) {
+      this.targetModalVisible = visible;
+      if (!visible) {
+        document.getElementById("graph").innerHTML = "";
+        this.initModelGraph();
+      }
+    },
+    targetModelSelectHandel(selection) {
+      const currentFlow = this.flowData.flowNodes.find(
+        i => i.nodeId === this.currentFlowNodeId
+      );
+      this.modelData.forEach(i => {
+        const flowNodeIndex = i.refFlowNodeIds.indexOf(currentFlow.orderedNo);
+        if (flowNodeIndex > -1) {
+          i.refFlowNodeIds.splice(flowNodeIndex, 1);
+        }
+        selection.forEach(_ => {
+          if (i.id === _.id) {
+            i.refFlowNodeIds.push(currentFlow.orderedNo);
+          }
+        });
+      });
+    },
     async getProcessInstances(
       isAfterCreate = false,
       createResponse = undefined
@@ -780,94 +825,31 @@ export default {
       this.renderFlowGraph();
     },
     highlightModel(nodeId) {
-      let temp = [];
-
       this.foundRefAry = this.flowData.flowNodes
         .find(item => item.nodeId == nodeId)
         .routineExpression.split(/[~.>()]/)
         .filter(i => i.length > 0);
-      this.modelData.forEach(item => {
-        item["isHighlight"] = this.foundRefAry[
-          this.foundRefAry.length - 1
-        ].includes(item.entityName);
-        this.foundRefAry.forEach(i => {
-          if (item.id.includes(i)) {
-            temp.push(
-              item.packageName + "_" + item.entityName + "_" + item.dataId
-            );
-          }
+      this.tartetModels = JSON.parse(
+        JSON.stringify(
+          this.modelData.filter(_ =>
+            this.foundRefAry[this.foundRefAry.length - 1].includes(_.entityName)
+          )
+        )
+      );
+      this.targetModalVisible = true;
+      this.$nextTick(() => {
+        let objData = this.$refs.selection.objData;
+        const currentFlow = this.flowData.flowNodes.find(
+          i => i.nodeId === this.currentFlowNodeId
+        );
+        this.modelData.forEach(_ => {
+          const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo);
+          Object.keys(objData).forEach(i => {
+            if (_.id === objData[i].id && flowNodeIndex > -1) {
+              objData[i]._isChecked = true;
+            }
+          });
         });
-      });
-      this.initModelGraph();
-      removeEvent(".model", "click", this.modelClickHandler);
-      temp.forEach(_ => {
-        // replace ':' by _'
-        addEvent(`#${_}`, "click", this.modelClickHandler);
-      });
-    },
-    selectAllModelNodes(isSelect) {
-      const currentFlow = this.flowData.flowNodes.find(
-        i => i.nodeId === this.currentFlowNodeId
-      );
-      let temp = [];
-      this.modelData.forEach(item => {
-        if (item.isHighlight) {
-          const flowNodeIndex = item.refFlowNodeIds.indexOf(
-            currentFlow.orderedNo
-          );
-          if (flowNodeIndex < 0 && isSelect) {
-            item.refFlowNodeIds.push(currentFlow.orderedNo);
-          }
-          if (flowNodeIndex > -1 && !isSelect) {
-            item.refFlowNodeIds.splice(flowNodeIndex, 1);
-          }
-        }
-        this.foundRefAry.forEach(i => {
-          if (item.id.includes(i)) {
-            temp.push(
-              item.packageName + "_" + item.entityName + "_" + item.dataId
-            );
-          }
-        });
-      });
-      document.getElementById("graph").innerHTML = "";
-      this.initModelGraph();
-      temp.forEach(_ => {
-        addEvent(`#${_}`, "click", this.modelClickHandler);
-      });
-    },
-    modelClickHandler(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      let g = e.currentTarget;
-      let temp = [];
-      let foundModelNode = this.modelData.find(
-        _ => _.packageName + "_" + _.entityName + "_" + _.dataId === g.id
-      );
-      const currentFlow = this.flowData.flowNodes.find(
-        i => i.nodeId === this.currentFlowNodeId
-      );
-      this.modelData.forEach(item => {
-        this.foundRefAry.forEach(i => {
-          if (item.id.includes(i)) {
-            temp.push(
-              item.packageName + "_" + item.entityName + "_" + item.dataId
-            );
-          }
-        });
-      });
-      const flowNodeIndex = foundModelNode.refFlowNodeIds.indexOf(
-        currentFlow.orderedNo
-      );
-      if (flowNodeIndex > -1) {
-        foundModelNode.refFlowNodeIds.splice(flowNodeIndex, 1);
-      } else {
-        foundModelNode.refFlowNodeIds.push(currentFlow.orderedNo);
-      }
-      document.getElementById("graph").innerHTML = "";
-      this.initModelGraph();
-      temp.forEach(_ => {
-        addEvent(`#${_}`, "click", this.modelClickHandler);
       });
     },
     initModelGraph() {
@@ -882,9 +864,9 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .fit(true)
-          .zoom(false)
-          .height(graphEl.offsetHeight - 10)
-          .width(graphEl.offsetWidth - 10);
+          .zoom(false);
+        // .height(graphEl.offsetHeight - 10)
+        // .width(graphEl.offsetWidth - 10);
       };
       initEvent();
       this.renderModelGraph();
@@ -911,6 +893,9 @@ export default {
 <style lang="scss" scoped>
 body {
   color: #15a043;
+}
+.model_target .ivu-modal-content-drag {
+  right: 40px;
 }
 .graph-container {
   overflow: auto;
