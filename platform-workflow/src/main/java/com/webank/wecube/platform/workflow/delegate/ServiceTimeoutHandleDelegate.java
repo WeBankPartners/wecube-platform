@@ -16,6 +16,12 @@ public class ServiceTimeoutHandleDelegate extends AbstractServiceExceptionHandle
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
+        
+        if (log.isInfoEnabled()) {
+            log.info("service processing timeouted,inst={},exec={},nodeId={},instKey={}", execution.getProcessInstanceId(),
+                    execution.getId(), execution.getCurrentActivityId(), execution.getProcessBusinessKey());
+        }
+        
         logServiceNodeException(execution, TraceStatus.Timeouted, WorkflowConstants.PREFIX_SRV_BEAN_TIMEOUT);
     }
     
