@@ -48,7 +48,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     @Override
     public ProcRoleOverviewDto retrieveRoleIdByProcId(String token, String procId) throws WecubeCoreException {
         // check if the current user has the role to manage such process
-        List<Long> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
+        List<String> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
         boolean ifUserHasMgmtPermission = checkIfUserHasMgmtPermission(procId, roleIdListByUsername);
         if (!ifUserHasMgmtPermission) {
             String msg = String.format("The user doesn't have process: [%s]'s MGMT permission", procId);
@@ -74,9 +74,9 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     }
 
     @Override
-    public List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<Long> roleIdList) {
+    public List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<String> roleIdList) {
         List<ProcRoleDto> result = new ArrayList<>();
-        for (Long roleId : roleIdList) {
+        for (String roleId : roleIdList) {
             logger.info(String.format("Finding process to role binding information from roleId: [%s].", roleId));
             List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleId(roleId);
             for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
@@ -87,10 +87,10 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     }
 
     @Override
-    public List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<Long> roleIdList, String permissionStr) {
+    public List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<String> roleIdList, String permissionStr) {
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
         List<ProcRoleDto> result = new ArrayList<>();
-        for (Long roleId : roleIdList) {
+        for (String roleId : roleIdList) {
             logger.info(String.format("Finding process to role binding information from roleId: [%s] and permission: [%s]", roleId, permissionEnum.toString()));
             List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleIdAndPermission(roleId, permissionEnum);
             for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
@@ -103,7 +103,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     @Override
     public void createProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
         String permissionStr = procRoleRequestDto.getPermission();
-        List<Long> roleIdList = procRoleRequestDto.getRoleIdList();
+        List<String> roleIdList = procRoleRequestDto.getRoleIdList();
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
 
         batchSaveData(procId, permissionStr, roleIdList, permissionEnum);
@@ -112,11 +112,11 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     @Override
     public void updateProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto) throws WecubeCoreException {
         String permissionStr = procRoleRequestDto.getPermission();
-        List<Long> roleIdList = procRoleRequestDto.getRoleIdList();
+        List<String> roleIdList = procRoleRequestDto.getRoleIdList();
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
 
         // check if user's roles has permission to manage this process
-        List<Long> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
+        List<String> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
         boolean ifUserHasMgmtPermission = checkIfUserHasMgmtPermission(procId, roleIdListByUsername);
         if (!ifUserHasMgmtPermission) {
             String msg = String.format("The user doesn't have process: [%s]'s MGMT permission", procId);
@@ -131,7 +131,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(procRoleRequestDto.getPermission());
 
         // check if the current user has the role to manage such process
-        List<Long> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
+        List<String> roleIdListByUsername = this.userManagementService.getRoleIdListByUsername(token, AuthenticationContextHolder.getCurrentUsername());
         boolean ifUserHasMgmtPermission = checkIfUserHasMgmtPermission(procId, roleIdListByUsername);
         if (!ifUserHasMgmtPermission) {
             String msg = String.format("The user doesn't have process: [%s]'s MGMT permission", procId);
@@ -150,18 +150,18 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
             });
         }
 
-        for (Long roleId : procRoleRequestDto.getRoleIdList()) {
+        for (String roleId : procRoleRequestDto.getRoleIdList()) {
             this.procRoleBindingRepository.deleteByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
         }
     }
 
-    public boolean checkIfUserHasMgmtPermission(String procId, List<Long> userOwnedRoleIdList) {
+    public boolean checkIfUserHasMgmtPermission(String procId, List<String> userOwnedRoleIdList) {
         Optional<List<ProcRoleBindingEntity>> byProcIdAndPermission = this.procRoleBindingRepository.findByProcIdAndPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
-        List<Long> mgmtRoleIdList = new ArrayList<>();
+        List<String> mgmtRoleIdList = new ArrayList<>();
         if (byProcIdAndPermission.isPresent()) {
             mgmtRoleIdList = byProcIdAndPermission.get().stream().map(ProcRoleBindingEntity::getRoleId).collect(Collectors.toList());
         }
-        for (Long roleId : userOwnedRoleIdList) {
+        for (String roleId : userOwnedRoleIdList) {
             if (mgmtRoleIdList.contains(roleId)) {
                 return true;
             }
@@ -170,13 +170,13 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         return false;
     }
 
-    public boolean checkIfUserHasUsePermission(String procId, List<Long> userOwnedRoleIdList) {
+    public boolean checkIfUserHasUsePermission(String procId, List<String> userOwnedRoleIdList) {
         Optional<List<ProcRoleBindingEntity>> byProcIdAndPermission = this.procRoleBindingRepository.findByProcIdAndPermission(procId, ProcRoleBindingEntity.permissionEnum.USE);
-        List<Long> mgmtRoleIdList = new ArrayList<>();
+        List<String> mgmtRoleIdList = new ArrayList<>();
         if (byProcIdAndPermission.isPresent()) {
             mgmtRoleIdList = byProcIdAndPermission.get().stream().map(ProcRoleBindingEntity::getRoleId).collect(Collectors.toList());
         }
-        for (Long roleId : userOwnedRoleIdList) {
+        for (String roleId : userOwnedRoleIdList) {
             if (mgmtRoleIdList.contains(roleId)) {
                 return true;
             }
@@ -184,8 +184,8 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         return false;
     }
 
-    private void batchSaveData(String procId, String permissionStr, List<Long> roleIdList, ProcRoleBindingEntity.permissionEnum permissionEnum) {
-        for (Long roleId : roleIdList) {
+    private void batchSaveData(String procId, String permissionStr, List<String> roleIdList, ProcRoleBindingEntity.permissionEnum permissionEnum) {
+        for (String roleId : roleIdList) {
             // find current stored data
             Optional<ProcRoleBindingEntity> byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository.findByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
 

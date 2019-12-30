@@ -13,11 +13,11 @@ public class ProcRoleOverviewDto {
     @JsonProperty(value = "processId")
     private String processId;
     @JsonProperty(value = "MGMT")
-    private List<Long> mgmtRoleIdList;
+    private List<String> mgmtRoleIdList;
     @JsonProperty(value = "USE")
-    private List<Long> useRoleIdList;
+    private List<String> useRoleIdList;
 
-    public ProcRoleOverviewDto(String processId, List<Long> mgmtRoleIdList, List<Long> useRoleIdList) {
+    public ProcRoleOverviewDto(String processId, List<String> mgmtRoleIdList, List<String> useRoleIdList) {
         this.processId = processId;
         this.mgmtRoleIdList = mgmtRoleIdList;
         this.useRoleIdList = useRoleIdList;
@@ -36,19 +36,19 @@ public class ProcRoleOverviewDto {
         this.processId = processId;
     }
 
-    public List<Long> getMgmtRoleIdList() {
+    public List<String> getMgmtRoleIdList() {
         return mgmtRoleIdList;
     }
 
-    public void setMgmtRoleIdList(List<Long> mgmtRoleIdList) {
+    public void setMgmtRoleIdList(List<String> mgmtRoleIdList) {
         this.mgmtRoleIdList = mgmtRoleIdList;
     }
 
-    public List<Long> getUseRoleIdList() {
+    public List<String> getUseRoleIdList() {
         return useRoleIdList;
     }
 
-    public void setUseRoleIdList(List<Long> useRoleIdList) {
+    public void setUseRoleIdList(List<String> useRoleIdList) {
         this.useRoleIdList = useRoleIdList;
     }
 }
