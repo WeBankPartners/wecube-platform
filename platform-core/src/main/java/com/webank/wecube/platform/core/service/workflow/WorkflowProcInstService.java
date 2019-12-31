@@ -34,10 +34,12 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcInstInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.ProcRoleBindingRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
+import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcFlowNodeInst;
 import com.webank.wecube.platform.workflow.model.ProcInstOutline;
@@ -69,6 +71,12 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     @Autowired
     protected TaskNodeExecRequestRepository taskNodeExecRequestRepository;
+
+    @Autowired
+    private UserManagementServiceImpl userManagementService;
+
+    @Autowired
+    private ProcRoleBindingRepository procRoleBindingRepository;
 
     public TaskNodeExecContextDto getTaskNodeContextInfo(Integer procInstId, Integer nodeInstId) {
         Optional<TaskNodeInstInfoEntity> nodeEntityOpt = taskNodeInstInfoRepository.findById(nodeInstId);
@@ -286,9 +294,24 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 request.getAct());
     }
 
-    public List<ProcInstInfoDto> getProcessInstances() {
+    public List<ProcInstInfoDto> getProcessInstances(String token) {
         List<ProcInstInfoDto> result = new ArrayList<>();
-        List<ProcInstInfoEntity> procInstInfoEntities = procInstInfoRepository.findAll();
+        List<Long> roleIdList = this.userManagementService.getRoleIdListByUsername(token,
+                AuthenticationContextHolder.getCurrentUsername());
+        if (roleIdList.size() == 0) {
+            return result;
+        }
+
+        List<String> procDefIds = procRoleBindingRepository
+                .findDistinctProcIdByRoleIdsAndPermissionIsUse(roleIdList);
+        if (procDefIds.size() == 0) {
+            return result;
+        }
+
+        List<ProcInstInfoEntity> procInstInfoEntities = procInstInfoRepository.findByProcDefIdIn(procDefIds);
+        if (procInstInfoEntities.size() == 0) {
+            return result;
+        }
 
         for (ProcInstInfoEntity e : procInstInfoEntities) {
             ProcInstInfoDto d = new ProcInstInfoDto();
