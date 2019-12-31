@@ -238,12 +238,16 @@ public class PluginPackageService {
 
     private void updateSystemVariableStatus(PluginPackage pluginPackage) {
         List<SystemVariable> systemVariables = systemVariableRepository.findAllByScope(pluginPackage.getName());
-        systemVariables.stream()
-                .filter(systemVariable -> SystemVariable.ACTIVE.equals(systemVariable.getStatus()) && !pluginPackage.getId().equals(systemVariable.getSource()))
-                .map(systemVariable -> systemVariable.deactivate());
-        systemVariables.stream()
-                .filter(systemVariable -> SystemVariable.INACTIVE.equals(systemVariable.getStatus()) && pluginPackage.getId().equals(systemVariable.getSource()))
-                .map(systemVariable -> systemVariable.activate());
+        systemVariables.forEach(systemVariable->{
+            if (SystemVariable.ACTIVE.equals(systemVariable.getStatus())&& !pluginPackage.getId().equals(systemVariable.getSource())) {
+                systemVariable.deactivate();
+            }
+            if (SystemVariable.INACTIVE.equals(systemVariable.getStatus())
+                    && pluginPackage.getId().equals(systemVariable.getSource())) {
+                systemVariable.activate();
+            }
+        });
+        
         systemVariableRepository.saveAll(systemVariables);
     }
 
