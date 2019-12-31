@@ -13,12 +13,12 @@ public class RoleMenu {
     private String id;
 
     @Column(name = "role_id")
-    private Long roleId;
+    private String roleId;
 
     @Column(name = "menu_code")
     private String menuCode;
 
-    public RoleMenu(Long roleId, String menuCode) {
+    public RoleMenu(String roleId, String menuCode) {
         this.roleId = roleId;
         this.menuCode = menuCode;
     }
@@ -43,11 +43,11 @@ public class RoleMenu {
         this.id = id;
     }
 
-    public Long getRoleId() {
+    public String getRoleId() {
         return roleId;
     }
 
-    public void setRoleId(Long roleId) {
+    public void setRoleId(String roleId) {
         this.roleId = roleId;
     }
 

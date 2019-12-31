@@ -17,55 +17,55 @@ import com.webank.wecube.platform.auth.server.repository.UserRoleRelationshipRep
 @Service("userRoleRelationshipService")
 public class UserRoleRelationshipService {
 
-	private static final Logger log = LoggerFactory.getLogger(UserRoleRelationshipService.class);
+    private static final Logger log = LoggerFactory.getLogger(UserRoleRelationshipService.class);
 
-	@Autowired
-	private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-	@Autowired
-	private UserRoleRelationshipRepository userRoleRelationshipRepository;
+    @Autowired
+    private UserRoleRelationshipRepository userRoleRelationshipRepository;
 
-	@Autowired
-	private RoleService roleService;
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private UserService userService;
 
-	public List<SysUserEntity> getUsersByRoleId(Long roleId) {
-		List<SysUserEntity> users = Lists.newArrayList();
-		userRoleRelationshipRepository.findByRoleId(roleId).forEach(userRole -> {
-			users.add(userRole.getUser());
-		});
-		return users;
-	}
+    public List<SysUserEntity> getUsersByRoleId(String roleName) {
+        List<SysUserEntity> users = Lists.newArrayList();
+        userRoleRelationshipRepository.findAllByRole_Name(roleName).forEach(userRole -> {
+            users.add(userRole.getUser());
+        });
+        return users;
+    }
 
-	public List<SysRoleEntity> getRolesByUserName(String userName) {
-		List<SysRoleEntity> roles = Lists.newArrayList();
-		userRoleRelationshipRepository.findByUserId(userRepository.findOneByUsername(userName).getId())
-				.forEach(userRole -> {
-					roles.add(userRole.getRole());
-				});
-		return roles;
-	}
+    public List<SysRoleEntity> getRolesByUserName(String userName) {
+        List<SysRoleEntity> roles = Lists.newArrayList();
+        userRoleRelationshipRepository.findByUserId(userRepository.findOneByUsername(userName).getId())
+                .forEach(userRole -> {
+                    roles.add(userRole.getRole());
+                });
+        return roles;
+    }
 
-	public void grantRoleForUsers(Long roleId, List<Long> userIds) throws Exception {
-		SysRoleEntity role = roleService.getRoleByIdIfExisted(roleId);
-		for (Long userId : userIds) {
-			log.info("userId={}", userId);
-			SysUserEntity userEntity = userService.getUserByIdIfExisted(userId);
-			if (null == userRoleRelationshipRepository.findOneByUserIdAndRoleId(userId, roleId))
-				userRoleRelationshipRepository.save(new UserRoleRelationshipEntity(userEntity, role));
-		}
-	}
+    public void grantRoleForUsers(String roleId, List<Long> userIds) throws Exception {
+        SysRoleEntity role = roleService.getRoleByIdIfExisted(roleId);
+        for (Long userId : userIds) {
+            log.info("userId={}", userId);
+            SysUserEntity userEntity = userService.getUserByIdIfExisted(userId);
+            if (null == userRoleRelationshipRepository.findOneByUserIdAndRoleId(userId, roleId))
+                userRoleRelationshipRepository.save(new UserRoleRelationshipEntity(userEntity, role));
+        }
+    }
 
-	public void revokeRoleForUsers(Long roleId, List<Long> userIds) throws Exception {
-		roleService.getRoleByIdIfExisted(roleId);
-		for (Long userId : userIds) {
-			userService.getUserByIdIfExisted(userId);
-			UserRoleRelationshipEntity userRoleRelationshipEntity = userRoleRelationshipRepository
-					.findOneByUserIdAndRoleId(userId, roleId);
-			if (null != userRoleRelationshipEntity)
-				userRoleRelationshipRepository.delete(userRoleRelationshipEntity);
-		}
-	}
+    public void revokeRoleForUsers(String roleId, List<Long> userIds) throws Exception {
+        roleService.getRoleByIdIfExisted(roleId);
+        for (Long userId : userIds) {
+            userService.getUserByIdIfExisted(userId);
+            UserRoleRelationshipEntity userRoleRelationshipEntity = userRoleRelationshipRepository
+                    .findOneByUserIdAndRoleId(userId, roleId);
+            if (null != userRoleRelationshipEntity)
+                userRoleRelationshipRepository.delete(userRoleRelationshipEntity);
+        }
+    }
 
 }

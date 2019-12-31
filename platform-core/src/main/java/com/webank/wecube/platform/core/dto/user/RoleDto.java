@@ -15,7 +15,7 @@ public class RoleDto {
     @JsonProperty(value = "updatedTime")
     private String updatedTime;
     @JsonProperty(value = "id")
-    private Long id;
+    private String id;
     @JsonProperty(value = "displayName")
     private String displayName;
     @JsonProperty(value = "name")
@@ -30,7 +30,7 @@ public class RoleDto {
         this.name = name;
     }
 
-    public RoleDto(String createdBy, String updatedBy, String createdTime, String updatedTime, Long id, String displayName, String name) {
+    public RoleDto(String createdBy, String updatedBy, String createdTime, String updatedTime, String id, String displayName, String name) {
         this.createdBy = createdBy;
         this.updatedBy = updatedBy;
         this.createdTime = createdTime;
@@ -88,11 +88,11 @@ public class RoleDto {
         this.updatedTime = updatedTime;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

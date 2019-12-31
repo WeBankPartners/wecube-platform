@@ -9,9 +9,9 @@ import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.entity.UserRoleRelationshipEntity;
 
 public interface ApiRoleRelationshipRepository extends JpaRepository<ApiRoleRelationshipEntity, Long> {
-	List<ApiRoleRelationshipEntity> findByRoleId(Long roleId);
+	List<ApiRoleRelationshipEntity> findByRoleId(String roleId);
 
 	List<ApiRoleRelationshipEntity> findByApiId(Long apiId);
 
-	ApiRoleRelationshipEntity findOneByApiIdAndRoleId(Long apiId, Long roleId);
+	ApiRoleRelationshipEntity findOneByApiIdAndRoleId(Long apiId, String roleId);
 }

@@ -26,8 +26,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RoleMenuServiceTest extends DatabaseBasedTest {
 
-    static final Long ROLE_ONE = 1L;
-    static final Long ROLE_TWO = 2L;
+    static final String ROLE_ONE = "1";
+    static final String ROLE_TWO = "2";
     @Autowired
     private RoleMenuRepository roleMenuRepository;
     @Autowired
