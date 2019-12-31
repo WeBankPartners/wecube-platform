@@ -21,7 +21,8 @@ import {
   createSystemVariables,
   updateSystemVariables,
   deleteSystemVariables,
-  getResourceServerStatus
+  getResourceServerStatus,
+  getVariableScope
 } from "@/api/server.js";
 import { outerActions } from "@/const/actions.js";
 import { formatData } from "../util/format.js";
@@ -93,6 +94,7 @@ export default {
           inputKey: "scope",
           searchSeqNo: 5,
           displaySeqNo: 5,
+          disEditor: true,
           component: "WeSelect",
           inputType: "select",
           placeholder: this.$t("table_scope"),
@@ -380,11 +382,25 @@ export default {
           data: formatData(data.contents)
         });
       }
+    },
+    async getScopeList() {
+      const { status, message, data } = await getVariableScope();
+      if (status === "OK") {
+        const opts = data.map(_ => {
+          return {
+            label: _,
+            value: _,
+            key: _
+          };
+        });
+        this.$set(this.tableColumns[4], "options", opts);
+      }
     }
   },
   mounted() {
     this.getStatus();
     this.queryData();
+    this.getScopeList();
   }
 };
 </script>
