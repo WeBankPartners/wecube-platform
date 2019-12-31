@@ -127,7 +127,10 @@ const getChildRouters = routes => {
       );
       if (found && found.children) {
         found.children.forEach(child => {
-          childRouters.push({ link: `${found.path}/${child.path}` });
+          childRouters.push({
+            link: `${found.path}/${child.path}`,
+            active: _.active
+          });
         });
       }
     });
