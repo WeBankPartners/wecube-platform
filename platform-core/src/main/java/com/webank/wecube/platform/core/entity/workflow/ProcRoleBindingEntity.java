@@ -21,6 +21,8 @@ public class ProcRoleBindingEntity {
     private permissionEnum permission;
     @Column(name = "role_id")
     private String roleId;
+    @Column(name = "role_name")
+    private String roleName;
 
 
     public ProcRoleBindingEntity() {
@@ -57,6 +59,14 @@ public class ProcRoleBindingEntity {
 
     public void setRoleId(String roleId) {
         this.roleId = roleId;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
     /**
