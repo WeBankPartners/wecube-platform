@@ -1,10 +1,23 @@
 # WeCube
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![](https://img.shields.io/github/v/tag/WeBankPartners/wecube-platform.svg)](https://github.com/WeBankPartners/wecube-platform/tree/v2.0.0)
-![](https://img.shields.io/github/languages/code-size/WeBankPartners/wecube-platform.svg)
-![](https://img.shields.io/badge/language-java-orange.svg)
-![](https://img.shields.io/badge/language-vue-green.svg)
+<p align="left">
+    <a href="https://opensource.org/licenses/Apache-2.0" alt="License">
+        <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a>
+    <a href="https://github.com/WeBankPartners/wecube-platform/tree/v2.0.0" alt="Tag">
+        <img src="https://img.shields.io/github/v/tag/WeBankPartners/wecube-platform.svg" /></a>
+    <a href="#" alt="Code Size">
+        <img src="https://img.shields.io/github/languages/code-size/WeBankPartners/wecube-platform.svg" /></a>
+    <a href="#" alt="Java">
+        <img src="https://img.shields.io/badge/language-java-orange.svg" /></a>
+    <a href="#" alt="Vue">
+        <img src="https://img.shields.io/badge/language-vue-green.svg" /></a>
+    <a href="https://github.com/WeBankPartners/wecube-platform/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/WeBankPartners/wecube-platform" /></a>
+    <a href="https://github.com/WeBankPartners/wecube-platform/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/WeBankPartners/wecube-platform" /></a>
+    <a href="https://circleci.com/gh/WeBankPartners/wecube-platform/tree/master">
+        <img src="https://img.shields.io/circleci/project/github/WeBankPartners/wecube-platform/master"
+            alt="build status"></a>
+</p>
 English / [中文](README.md)
 
 ## Introduction
