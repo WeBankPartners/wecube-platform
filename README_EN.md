@@ -1,11 +1,10 @@
 # WeCube
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![](https://img.shields.io/github/v/tag/WeBankPartners/wecube-platform.svg)
+[![](https://img.shields.io/github/v/tag/WeBankPartners/wecube-platform.svg)](https://github.com/WeBankPartners/wecube-platform/tree/v2.0.0)
 ![](https://img.shields.io/github/languages/code-size/WeBankPartners/wecube-platform.svg)
 ![](https://img.shields.io/badge/language-java-orange.svg)
 ![](https://img.shields.io/badge/language-vue-green.svg)
-
 English / [中文](README.md)
 
 ## Introduction
