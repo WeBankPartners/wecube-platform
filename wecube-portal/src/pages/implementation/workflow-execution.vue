@@ -3,7 +3,7 @@
     <Card dis-hover>
       <Row>
         <Col span="20">
-          <Form v-if="!isEnqueryPage">
+          <!-- <Form v-if="false">
             <Col span="6">
               <FormItem :label-width="100" :label="$t('select_orch')">
                 <Select
@@ -42,7 +42,7 @@
                 </Select>
               </FormItem>
             </Col>
-          </Form>
+          </Form> -->
           <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
               <Select
@@ -70,7 +70,10 @@
             </FormItem>
           </Form>
         </Col>
-        <Col span="4" style="text-align: right;">
+        <Col
+          span="4"
+          style="text-align: right;margin-bottom:8px;padding-right:40px;float:right;"
+        >
           <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">{{
             $t("enquery_new_workflow_job")
           }}</Button>
@@ -79,7 +82,7 @@
           }}</Button>
         </Col>
       </Row>
-      <Row v-show="isShowBody">
+      <Row>
         <Row
           style="border:1px solid #d3cece;border-radius:3px; padding:5px;height:600px"
         >
@@ -87,17 +90,61 @@
             span="6"
             style="border-right:1px solid #d3cece; text-align: center;height:100%"
           >
+            <div class="excution-serach">
+              <Form>
+                <FormItem :label-width="100" :label="$t('select_orch')">
+                  <Select
+                    label
+                    v-model="selectedFlow"
+                    :disabled="isEnqueryPage"
+                    @on-change="orchestrationSelectHandler"
+                    @on-open-change="getAllFlow"
+                    filterable
+                  >
+                    <Option
+                      v-for="item in allFlows"
+                      :value="item.procDefId"
+                      :key="item.procDefId"
+                      >{{ item.procDefName + " " + item.createdTime }}</Option
+                    >
+                  </Select>
+                </FormItem>
+              </Form>
+            </div>
+
             <div class="graph-container" id="flow" style="height:90%"></div>
-            <div style="text-align: center;margin-top: 5px;">
+            <!-- <div style="text-align: center;margin-top: 5px;">
               <Button v-if="showExcution" type="info" @click="excutionFlow">{{
                 $t("execute")
               }}</Button>
-            </div>
+            </div> -->
           </Col>
           <Col
             span="18"
             style="text-align: center;margin-top: 5px;text-align: center;height:100%;"
           >
+            <div>
+              <Form>
+                <FormItem :label-width="100" :label="$t('target_object')">
+                  <Select
+                    style="width:400px;float:left"
+                    label
+                    v-model="selectedTarget"
+                    :disabled="isEnqueryPage"
+                    @on-change="onTargetSelectHandler"
+                    @on-open-change="getTargetOptions"
+                    filterable
+                  >
+                    <Option
+                      v-for="item in allTarget"
+                      :value="item.id"
+                      :key="item.id"
+                      >{{ item.key_name }}</Option
+                    >
+                  </Select>
+                </FormItem>
+              </Form>
+            </div>
             <div class="graph-container" id="graph" style="height:100%"></div>
             <Spin size="large" fix v-show="isLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
@@ -106,6 +153,15 @@
           </Col>
         </Row>
       </Row>
+      <div style="text-align: right;margin-top: 6px;margin-right:40px">
+        <Button
+          v-if="showExcution"
+          style="width:120px"
+          type="info"
+          @click="excutionFlow"
+          >{{ $t("execute") }}</Button
+        >
+      </div>
     </Card>
     <Modal
       :title="$t('select_an_operation')"
@@ -130,15 +186,15 @@
       </div>
     </Modal>
     <Modal
-      :title="$t('select_model')"
+      :title="currentNodeTitle"
       v-model="targetModalVisible"
       :mask-closable="false"
       :scrollable="true"
-      :footer-hide="true"
       :mask="false"
       class="model_target"
       width="50"
-      @on-visible-change="targetModelConfirm"
+      @on-ok="targetModelConfirm"
+      @on-cancel="cancleModal"
     >
       <Table
         border
@@ -147,7 +203,22 @@
         @on-selection-change="targetModelSelectHandel"
         :columns="targetModelColums"
         :data="tartetModels"
-      ></Table>
+      >
+        <template slot-scope="{ row, index }" slot="action">
+          <Tooltip placement="bottom" theme="light" max-width="300">
+            <Button
+              type="primary"
+              @click="show(row, index)"
+              size="small"
+              style="margin-right: 5px"
+              >View</Button
+            >
+            <div slot="content">
+              <pre><span>{{row}}</span></pre>
+            </div>
+          </Tooltip>
+        </template>
+      </Table>
     </Modal>
     <div id="model_graph_detail">
       <highlight-code lang="json">{{ modelNodeDetail }}</highlight-code>
@@ -181,6 +252,7 @@ export default {
       flowGraph: {},
       modelData: [],
       flowData: {},
+      currentNodeTitle: null,
       allFlowInstances: [],
       allFlows: [],
       allTarget: [],
@@ -190,7 +262,6 @@ export default {
       selectedFlow: "",
       selectedTarget: "",
       showExcution: true,
-      isShowBody: false,
       isEnqueryPage: false,
       workflowActionModalVisible: false,
       targetModalVisible: false,
@@ -212,6 +283,12 @@ export default {
         {
           title: "DataId",
           key: "dataId"
+        },
+        {
+          title: "Action",
+          slot: "action",
+          width: 100,
+          align: "center"
         }
       ],
       currentFailedNodeID: "",
@@ -238,8 +315,12 @@ export default {
       this.targetModalVisible = visible;
       if (!visible) {
         document.getElementById("graph").innerHTML = "";
-        this.initModelGraph();
+        // this.initModelGraph();
+        this.renderModelGraph();
       }
+    },
+    cancleModal() {
+      // this.modelData = []
     },
     targetModelSelectHandel(selection) {
       const currentFlow = this.flowData.flowNodes.find(
@@ -296,7 +377,7 @@ export default {
         this.showExcution = true;
         this.selectedTarget = "";
         this.modelData = [];
-        this.initModelGraph();
+        this.renderModelGraph();
       }
     },
     async getTargetOptions() {
@@ -322,7 +403,6 @@ export default {
       clearInterval(this.timer);
       this.timer = null;
       if (!this.selectedFlowInstance) return;
-      this.isShowBody = true;
       this.isEnqueryPage = true;
 
       this.$nextTick(async () => {
@@ -355,12 +435,11 @@ export default {
     },
     queryHistory() {
       this.isEnqueryPage = true;
-      this.isShowBody = false;
+      this.showExcution = false;
     },
     createHandler() {
       clearInterval(this.timer);
       this.timer = null;
-      this.isShowBody = true;
       this.isEnqueryPage = false;
       this.selectedFlowInstance = "";
       this.selectedTarget = "";
@@ -412,7 +491,7 @@ export default {
         if (this.isEnqueryPage) {
           this.formatNodesBindings();
         }
-        this.initModelGraph();
+        this.renderModelGraph();
       }
     },
     async getFlowOutlineData(id) {
@@ -428,7 +507,7 @@ export default {
         const nodeId = _.packageName + "_" + _.entityName + "_" + _.dataId;
         let color = _.isHighlight ? "#5DB400" : "black";
         const isRecord = _.refFlowNodeIds.length > 0;
-        const shape = isRecord ? "Mrecord" : "ellipse";
+        const shape = isRecord ? "ellipse" : "ellipse";
         const label =
           _.refFlowNodeIds.toString().replace(/,/g, "/") +
           (isRecord ? "|" : "") +
@@ -822,6 +901,10 @@ export default {
       let g = e.currentTarget;
       this.highlightModel(g.id);
       this.currentFlowNodeId = g.id;
+      const currentNode = this.flowData.flowNodes.find(_ => {
+        return _.nodeId === this.currentFlowNodeId;
+      });
+      this.currentNodeTitle = `${currentNode.orderedNo}、${currentNode.nodeName}`;
       this.renderFlowGraph();
     },
     highlightModel(nodeId) {
@@ -845,6 +928,7 @@ export default {
         this.modelData.forEach(_ => {
           const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo);
           Object.keys(objData).forEach(i => {
+            // objData[i]._isChecked = false;
             if (_.id === objData[i].id && flowNodeIndex > -1) {
               objData[i]._isChecked = true;
             }
@@ -863,10 +947,10 @@ export default {
           .on("mousewheel.zoom", null);
         this.graph.graphviz = graph
           .graphviz()
-          .fit(true)
-          .zoom(false);
-        // .height(graphEl.offsetHeight - 10)
-        // .width(graphEl.offsetWidth - 10);
+          // .fit(true)
+          .zoom(true)
+          .height(graphEl.offsetHeight - 10)
+          .width(graphEl.offsetWidth - 10);
       };
       initEvent();
       this.renderModelGraph();
@@ -880,7 +964,7 @@ export default {
         this.flowGraph.graphviz = graph
           .graphviz()
           .fit(true)
-          .zoom(false)
+          .zoom(true)
           .height(graphEl.offsetHeight - 10)
           .width(graphEl.offsetWidth - 10);
       };
@@ -896,6 +980,15 @@ body {
 }
 .model_target .ivu-modal-content-drag {
   right: 40px;
+}
+.pages /deep/ .ivu-card-body {
+  padding: 8px;
+}
+.ivu-form-item {
+  margin-bottom: 0 !important;
+}
+.excution-serach {
+  margin: 5px 6px 0 0;
 }
 .graph-container {
   overflow: auto;
