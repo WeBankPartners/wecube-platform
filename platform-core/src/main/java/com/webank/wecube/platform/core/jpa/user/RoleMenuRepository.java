@@ -10,6 +10,6 @@ import java.util.List;
  */
 public interface RoleMenuRepository extends CrudRepository<RoleMenu, String> {
 
-    List<RoleMenu> findAllByRoleId(Long roleId);
+    List<RoleMenu> findAllByRoleId(String roleId);
 
 }

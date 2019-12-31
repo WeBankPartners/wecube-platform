@@ -5,19 +5,19 @@ import com.webank.wecube.platform.core.dto.MenuItemDto;
 import java.util.List;
 
 public class RoleMenuDto {
-    private Long roleId;
+    private String roleId;
     private List<MenuItemDto> menuList;
 
-    public RoleMenuDto(Long roleName, List<MenuItemDto> menuList) {
+    public RoleMenuDto(String roleName, List<MenuItemDto> menuList) {
         this.roleId = roleName;
         this.menuList = menuList;
     }
 
-    public Long getRoleName() {
+    public String getRoleName() {
         return roleId;
     }
 
-    public void setRoleName(Long roleId) {
+    public void setRoleName(String roleId) {
         this.roleId = roleId;
     }
 
