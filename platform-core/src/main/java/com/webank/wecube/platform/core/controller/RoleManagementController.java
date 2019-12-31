@@ -51,9 +51,9 @@ public class RoleManagementController {
     @DeleteMapping("/roles/{role-id}/delete")
     @ResponseBody
     public CommonResponseDto deleteRole(@RequestHeader(value = "Authorization") String token,
-                                        @PathVariable("role-id") Long id) {
+                                        @PathVariable("role-id") String roleName) {
         try {
-            return userManagementService.deleteRole(token, id);
+            return userManagementService.deleteRole(token, roleName);
         } catch (WecubeCoreException e) {
             return CommonResponseDto.error(e.getMessage());
         }
@@ -62,7 +62,7 @@ public class RoleManagementController {
     @GetMapping("/roles/{role-id}/users")
     @ResponseBody
     public CommonResponseDto getUsersByRoleId(@RequestHeader(value = "Authorization") String token,
-                                              @PathVariable(value = "role-id") Long roleId) {
+                                              @PathVariable(value = "role-id") String roleId) {
         try {
             return userManagementService.getUsersByRoleId(token, roleId);
         } catch (WecubeCoreException ex) {
@@ -74,7 +74,7 @@ public class RoleManagementController {
     @PostMapping("/roles/{role-id}/users/grant")
     @ResponseBody
     public CommonResponseDto grantRoleToUsers(@RequestHeader(value = "Authorization") String token,
-                                              @PathVariable(value = "role-id") Long roleId,
+                                              @PathVariable(value = "role-id") String roleId,
                                               @RequestBody List<Object> userIdList) {
         try {
             return userManagementService.grantRoleToUsers(token, roleId, userIdList);
@@ -86,7 +86,7 @@ public class RoleManagementController {
     @DeleteMapping("/roles/{role-id}/users/revoke")
     @ResponseBody
     public CommonResponseDto revokeRoleFromUsers(@RequestHeader(value = "Authorization") String token,
-                                                 @PathVariable(value = "role-id") Long roleId,
+                                                 @PathVariable(value = "role-id") String roleId,
                                                  @RequestBody List<Object> requestBody) {
         try {
             return userManagementService.revokeRoleFromUsers(token, roleId, requestBody);
@@ -97,7 +97,7 @@ public class RoleManagementController {
 
     @GetMapping("/roles/{role-id}/menus")
     @ResponseBody
-    public CommonResponseDto retrieveMenusByRoleId(@PathVariable(value = "role-id") Long roleId) {
+    public CommonResponseDto retrieveMenusByRoleId(@PathVariable(value = "role-id") String roleId) {
         try {
             return CommonResponseDto.okayWithData(this.roleMenuService.retrieveMenusByRoleId(roleId));
         } catch (WecubeCoreException ex) {
@@ -108,7 +108,7 @@ public class RoleManagementController {
 
     @PostMapping("/roles/{role-id}/menus")
     @ResponseBody
-    public CommonResponseDto updateRoleToMenusByRoleId(@PathVariable(value = "role-id") Long roleId,
+    public CommonResponseDto updateRoleToMenusByRoleId(@PathVariable(value = "role-id") String roleId,
                                                        @RequestBody List<String> menuCodeList) {
         try {
             this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList);
