@@ -16,7 +16,6 @@ import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 import com.webank.wecube.platform.core.utils.StringUtils;
 
@@ -28,9 +27,6 @@ public class SystemVariableService {
 
     @Autowired
     private SystemVariableRepository systemVariableRepository;
-
-    @Autowired
-    private PluginPackageRepository pluginPackageRepository;
 
     public QueryResponse<SystemVariableDto> retrieveSystemVariables(QueryRequest queryRequest) {
         QueryResponse<SystemVariable> queryResponse = entityRepository.query(SystemVariable.class, queryRequest);
@@ -186,13 +182,15 @@ public class SystemVariableService {
         return systemVariableRepository.findAll();
     }
 
-
     public List<SystemVariable> getPluginSystemVariableByPackageId(String packageId) {
         Optional<List<SystemVariable>> systemVariablesOptional = systemVariableRepository.findBySource(packageId);
         if (systemVariablesOptional.isPresent()) {
             return systemVariablesOptional.get();
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
+    public List<String> retrieveSystemVariableScope() {
+        return systemVariableRepository.findDistinctScope();
+    }
 }
