@@ -24,50 +24,50 @@ import com.webank.wecube.platform.auth.server.repository.UserRoleRelationshipRep
 @Service("authorityRoleRelationshipService")
 public class AuthorityRoleRelationshipService {
 
-	private static final Logger log = LoggerFactory.getLogger(AuthorityRoleRelationshipService.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthorityRoleRelationshipService.class);
 
-	@Autowired
-	private AuthorityRoleRelationshipRepository authorityRoleRelationshipRepository;
+    @Autowired
+    private AuthorityRoleRelationshipRepository authorityRoleRelationshipRepository;
 
-	@Autowired
-	private RoleService roleService;
-	@Autowired
-	private AuthorityService authorityService;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private AuthorityService authorityService;
 
-	public List<SysAuthorityEntity> getAuthoritysByRoleId(Long roleId) {
-		List<SysAuthorityEntity> authoritys = Lists.newArrayList();
-		authorityRoleRelationshipRepository.findByRoleId(roleId).forEach(authorityRole -> {
-			authoritys.add(authorityRole.getAuthority());
-		});
-		return authoritys;
-	}
+    public List<SysAuthorityEntity> getAuthoritysByRoleId(String roleId) {
+        List<SysAuthorityEntity> authoritys = Lists.newArrayList();
+        authorityRoleRelationshipRepository.findByRoleId(roleId).forEach(authorityRole -> {
+            authoritys.add(authorityRole.getAuthority());
+        });
+        return authoritys;
+    }
 
-	public List<SysRoleEntity> getRolesByAuthorityId(Long authorityId) {
-		List<SysRoleEntity> roles = Lists.newArrayList();
-		authorityRoleRelationshipRepository.findByAuthorityId(authorityId).forEach(authorityRole -> {
-			roles.add(authorityRole.getRole());
-		});
-		return roles;
-	}
+    public List<SysRoleEntity> getRolesByAuthorityId(Long authorityId) {
+        List<SysRoleEntity> roles = Lists.newArrayList();
+        authorityRoleRelationshipRepository.findByAuthorityId(authorityId).forEach(authorityRole -> {
+            roles.add(authorityRole.getRole());
+        });
+        return roles;
+    }
 
-	public void grantRoleForAuthoritys(Long roleId, List<Long> authorityIds) throws Exception {
-		SysRoleEntity role = roleService.getRoleByIdIfExisted(roleId);
-		for (Long authorityId : authorityIds) {
-			SysAuthorityEntity authorityEntity = authorityService.getAuthorityByIdIfExisted(authorityId);
-			if (null == authorityRoleRelationshipRepository.findOneByAuthorityIdAndRoleId(authorityId, roleId))
-				authorityRoleRelationshipRepository.save(new AuthorityRoleRelationshipEntity(authorityEntity, role));
-		}
-	}
+    public void grantRoleForAuthoritys(String roleId, List<Long> authorityIds) throws Exception {
+        SysRoleEntity role = roleService.getRoleByIdIfExisted(roleId);
+        for (Long authorityId : authorityIds) {
+            SysAuthorityEntity authorityEntity = authorityService.getAuthorityByIdIfExisted(authorityId);
+            if (null == authorityRoleRelationshipRepository.findOneByAuthorityIdAndRoleId(authorityId, roleId))
+                authorityRoleRelationshipRepository.save(new AuthorityRoleRelationshipEntity(authorityEntity, role));
+        }
+    }
 
-	public void revokeRoleForAuthoritys(Long roleId, List<Long> authorityIds) throws Exception {
-		roleService.getRoleByIdIfExisted(roleId);
-		for (Long authorityId : authorityIds) {
-			authorityService.getAuthorityByIdIfExisted(authorityId);
-			AuthorityRoleRelationshipEntity authorityRoleRelationshipEntity = authorityRoleRelationshipRepository
-					.findOneByAuthorityIdAndRoleId(authorityId, roleId);
-			if (null != authorityRoleRelationshipEntity)
-				authorityRoleRelationshipRepository.delete(authorityRoleRelationshipEntity);
-		}
-	}
+    public void revokeRoleForAuthoritys(String roleId, List<Long> authorityIds) throws Exception {
+        roleService.getRoleByIdIfExisted(roleId);
+        for (Long authorityId : authorityIds) {
+            authorityService.getAuthorityByIdIfExisted(authorityId);
+            AuthorityRoleRelationshipEntity authorityRoleRelationshipEntity = authorityRoleRelationshipRepository
+                    .findOneByAuthorityIdAndRoleId(authorityId, roleId);
+            if (null != authorityRoleRelationshipEntity)
+                authorityRoleRelationshipRepository.delete(authorityRoleRelationshipEntity);
+        }
+    }
 
 }

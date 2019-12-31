@@ -38,6 +38,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     private static final String AUTH_SERVER_USER_DELETE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users/{" + USER_ID_PLACE_HOLDER + "}";
     private static final String AUTH_SERVER_ROLE_CREATE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles";
     private static final String AUTH_SERVER_ROLE_RETRIEVE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles";
+    private static final String AUTH_SERVER_ROLE_RETRIEVE_ROLE_ID_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}";
     private static final String AUTH_SERVER_ROLE_DELETE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}";
     private static final String AUTH_SERVER_USER2ROLE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users/{" + USER_NAME_PLACE_HOLDER + "}/roles";
     private static final String AUTH_SERVER_ROLE2USER_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}/users";
@@ -152,21 +153,27 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto deleteRole(String token, Long id) {
+    public CommonResponseDto retrieveRoleById(String token, String roleId) {
         HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
-        requestUrlMap.put(ROLE_ID_PLACE_HOLDER, String.valueOf(id));
-        String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_DELETE_URL, requestUrlMap);
-        logger.info(String.format("Sending DELETE request to: [%s]", requestUrl));
-        ResponseEntity<String> response = RestTemplateUtils.sendDeleteWithoutBody(this.restTemplate, requestUrl, httpHeaders);
+        requestUrlMap.put(ROLE_ID_PLACE_HOLDER, roleId);
+        String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_RETRIEVE_ROLE_ID_URL, requestUrlMap);
+        logger.info(String.format("Sending GET request to: [%s]", requestUrl));
+        ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
         return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
-    public void deleteRole(Long id) {
-        String token = "Bearer";
-        deleteRole(token, id);
+    public CommonResponseDto deleteRole(String token, String roleId) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
+        Map<String, String> requestUrlMap = new HashMap<>();
+        requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
+        requestUrlMap.put(ROLE_ID_PLACE_HOLDER, roleId);
+        String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_DELETE_URL, requestUrlMap);
+        logger.info(String.format("Sending DELETE request to: [%s]", requestUrl));
+        ResponseEntity<String> response = RestTemplateUtils.sendDeleteWithoutBody(this.restTemplate, requestUrl, httpHeaders);
+        return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
@@ -188,13 +195,13 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public List<Long> getRoleIdListByUsername(String token, String username) {
+    public List<String> getRoleIdListByUsername(String token, String username) {
         List<RoleDto> roleListByUserName = this.getRoleListByUserName(token, username);
         return roleListByUserName.stream().map(RoleDto::getId).collect(Collectors.toList());
     }
 
     @Override
-    public CommonResponseDto getUsersByRoleId(String token, Long roleId) {
+    public CommonResponseDto getUsersByRoleId(String token, String roleId) {
         HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
@@ -206,7 +213,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto grantRoleToUsers(String token, Long roleId, List<Object> userIdList) {
+    public CommonResponseDto grantRoleToUsers(String token, String roleId, List<Object> userIdList) {
         HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
@@ -218,7 +225,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto revokeRoleFromUsers(String token, Long roleId, List<Object> requestObject) {
+    public CommonResponseDto revokeRoleFromUsers(String token, String roleId, List<Object> requestObject) {
         HttpHeaders httpHeaders = createHeaderWithToken(token);
         Map<String, String> requestUrlMap = new HashMap<>();
         requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
