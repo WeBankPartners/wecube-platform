@@ -11,20 +11,20 @@ import java.util.Optional;
 
 public interface ProcRoleBindingRepository extends CrudRepository<ProcRoleBindingEntity, String> {
 
-    List<ProcRoleBindingEntity> findAllByRoleId(Long roleId);
+    List<ProcRoleBindingEntity> findAllByRoleName(String roleName);
 
-    List<ProcRoleBindingEntity> findAllByRoleIdAndPermission(Long roleId, ProcRoleBindingEntity.permissionEnum permission);
+    List<ProcRoleBindingEntity> findAllByRoleNameAndPermission(String roleName, ProcRoleBindingEntity.permissionEnum permission);
 
     List<ProcRoleBindingEntity> findAllByProcId(String procId);
 
     void deleteByProcId(String procId);
 
-    Optional<ProcRoleBindingEntity> findByProcIdAndRoleIdAndPermission(String procId, Long roleId, ProcRoleBindingEntity.permissionEnum permissionEnum);
+    Optional<ProcRoleBindingEntity> findByProcIdAndRoleNameAndPermission(String procId, String roleName, ProcRoleBindingEntity.permissionEnum permissionEnum);
 
-    Optional<List<ProcRoleBindingEntity>> findByProcIdAndPermission(String procId, ProcRoleBindingEntity.permissionEnum permissionEnum);
-
-    void deleteByProcIdAndRoleIdAndPermission(String procId, Long roleId, ProcRoleBindingEntity.permissionEnum permissionEnum);
+    Optional<List<ProcRoleBindingEntity>> findAllByProcIdAndPermission(String procId, ProcRoleBindingEntity.permissionEnum permissionEnum);
 
     @Query(value = "select distinct proc_id from core_ru_proc_role_binding where role_id in (:roleIds) and permission = 'USE'", nativeQuery = true)
-    List<String> findDistinctProcIdByRoleIdsAndPermissionIsUse(@Param("roleIds") List<Long> roleIds);
+    List<String> findDistinctProcIdByRoleIdsAndPermissionIsUse(@Param("roleIds") List<String> roleIds);
+
+    void deleteByProcIdAndRoleIdAndPermission(String procId, String roleId, ProcRoleBindingEntity.permissionEnum permissionEnum);
 }
