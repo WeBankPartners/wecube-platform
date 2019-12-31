@@ -31,6 +31,7 @@ http {
         }
 	location /platform {
 		proxy_pass http://core;
+		proxy_set_header Host ${PUBLIC_DOMAIN};
 	}
 	location /auth {
 		proxy_pass http://core;
