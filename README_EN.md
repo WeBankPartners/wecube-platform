@@ -18,6 +18,7 @@
         <img src="https://img.shields.io/circleci/project/github/WeBankPartners/wecube-platform/master"
             alt="build status"></a>
 </p>
+
 English / [中文](README.md)
 
 ## Introduction
