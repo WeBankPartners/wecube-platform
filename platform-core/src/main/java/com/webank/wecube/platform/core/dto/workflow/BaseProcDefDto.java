@@ -15,7 +15,7 @@ public abstract class BaseProcDefDto {
 
     private String createdTime;
 
-    private Map<String, List<Long>> permissionToRole;
+    private Map<String, List<String>> permissionToRole;
 
     public String getProcDefId() {
         return procDefId;
@@ -81,11 +81,11 @@ public abstract class BaseProcDefDto {
         this.createdTime = createdTime;
     }
 
-    public Map<String, List<Long>> getPermissionToRole() {
+    public Map<String, List<String>> getPermissionToRole() {
         return permissionToRole;
     }
 
-    public void setPermissionToRole(Map<String, List<Long>> permissionToRole) {
+    public void setPermissionToRole(Map<String, List<String>> permissionToRole) {
         this.permissionToRole = permissionToRole;
     }
 }
