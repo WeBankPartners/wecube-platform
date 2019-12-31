@@ -82,19 +82,17 @@ public class WorkflowProcessDefinitionController {
     }
 
     @GetMapping("/process/definitions")
-    public CommonResponseDto getProcessDefinitions(@RequestHeader(value = "Authorization") String token,
-                                                   @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft,
+    public CommonResponseDto getProcessDefinitions(@RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft,
                                                    @RequestParam(name = "permission", required = false, defaultValue = "") String permission) {
         log.info("currentUser:{}", AuthenticationContextHolder.getCurrentUsername());
         boolean includeDraftProcDef = (includeDraft == 1);
-        List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(token, includeDraftProcDef, permission);
+        List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef, permission);
         return CommonResponseDto.okayWithData(result);
     }
 
     @DeleteMapping("/process/definitions/{proc-def-id}")
-    public CommonResponseDto removeProcessDefinition(@RequestHeader("Authorization") String token,
-                                                     @PathVariable("proc-def-id") String procDefId) {
-        procDefService.removeProcessDefinition(token, procDefId);
+    public CommonResponseDto removeProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
+        procDefService.removeProcessDefinition(procDefId);
         return CommonResponseDto.okay();
     }
 
