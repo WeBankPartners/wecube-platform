@@ -95,7 +95,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         ProcDefInfoDto tmpProcDefInfoDto = new ProcDefInfoDto();
         tmpProcDefInfoDto.setPermissionToRole(roleBinds);
 
-        this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), tmpProcDefInfoDto);
+        this.saveProcRoleBinding(token, savedProcDefInfoDraftEntity.getId(), tmpProcDefInfoDto);
 
         result.setProcDefData(draftEntity.getProcDefData());
         result.setProcDefKey(draftEntity.getProcDefKey());
@@ -227,15 +227,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         ProcDefInfoEntity procDef = procDefOpt.get();
 
-        String username = AuthenticationContextHolder.getCurrentUsername();
-        boolean isAvailableToManageThisProcess = this.processRoleService.checkIfUserHasMgmtPermission(procDef.getId(),
-                this.userManagementService.getRoleIdListByUsername(token, username));
-        if (!isAvailableToManageThisProcess) {
-            String msg = String.format("The user: [%s] doesn't have permission to manage this process: [%s]", username,
-                    procDef.getId());
-            log.error(msg);
-            throw new WecubeCoreException(msg);
-        }
+        this.processRoleService.checkPermission(procDef.getId(), ProcRoleBindingEntity.permissionEnum.MGMT);
 
         if (!ProcDefInfoEntity.DRAFT_STATUS.equals(procDef.getStatus())) {
             // set NOT DRAFT_STATUS process to DELETED_STATUS, without deleting
@@ -468,7 +460,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         return procDefInfoDtos;
     }
 
-    public ProcDefInfoDto draftProcessDefinition(ProcDefInfoDto procDefDto) {
+    public ProcDefInfoDto draftProcessDefinition(String token, ProcDefInfoDto procDefDto) {
         String originalId = procDefDto.getProcDefId();
 
         Date currTime = new Date();
@@ -501,7 +493,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
         // Save ProcRoleBindingEntity
-        this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), procDefDto);
+        this.saveProcRoleBinding(token, savedProcDefInfoDraftEntity.getId(), procDefDto);
 
         ProcDefInfoDto procDefResult = new ProcDefInfoDto();
         procDefResult.setProcDefId(draftEntity.getId());
@@ -607,7 +599,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         }
     }
 
-    public ProcDefOutlineDto deployProcessDefinition(ProcDefInfoDto procDefInfoDto) {
+    public ProcDefOutlineDto deployProcessDefinition(String token, ProcDefInfoDto procDefInfoDto) {
 
         String procDefName = procDefInfoDto.getProcDefName();
         if (StringUtils.isBlank(procDefName)) {
@@ -645,7 +637,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.save(procDefEntity);
         // Save ProcRoleBindingEntity
-        this.saveProcRoleBinding(savedProcDefInfoEntity.getId(), procDefInfoDto);
+        this.saveProcRoleBinding(token, savedProcDefInfoEntity.getId(), procDefInfoDto);
 
         processDeployTaskNodeInfos(procDefInfoDto, procDefEntity, currTime);
 
@@ -871,7 +863,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         processDefInfoRepo.deleteById(procEntity.getId());
     }
 
-    private void saveProcRoleBinding(String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
+    private void saveProcRoleBinding(String token, String procId, ProcDefInfoDto procDefInfoDto) throws WecubeCoreException {
 
         Map<String, List<String>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
 
@@ -913,10 +905,8 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 log.error(errorMsg);
                 throw new WecubeCoreException(errorMsg);
             }
-            for (String roleId : roleIdList) {
-                processRoleService.createProcRoleBinding(procId,
-                        new ProcRoleRequestDto(permissionStr, Collections.singletonList(roleId)));
-            }
+            processRoleService.createProcRoleBinding(token, procId,
+                    new ProcRoleRequestDto(permissionStr, roleIdList));
         }
     }
 
