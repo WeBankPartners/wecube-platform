@@ -12,6 +12,7 @@ public class ProcRoleDto {
     private String processId;
     private String permission;
     private String roleId;
+    private String roleName;
 
     public static ProcRoleDto fromDomain(ProcRoleBindingEntity procRoleBindingEntity) {
         ProcRoleDto result = new ProcRoleDto();
@@ -19,14 +20,16 @@ public class ProcRoleDto {
         result.setProcessId(procRoleBindingEntity.getProcId());
         result.setPermission(procRoleBindingEntity.getPermission().toString());
         result.setRoleId(procRoleBindingEntity.getRoleId());
+        result.setRoleName(procRoleBindingEntity.getRoleName());
         return result;
     }
 
-    public static ProcRoleBindingEntity toDomain(String procId, String roleId, ProcRoleBindingEntity.permissionEnum permissionEnum) {
+    public static ProcRoleBindingEntity toDomain(String procId, String roleId, ProcRoleBindingEntity.permissionEnum permissionEnum, String roleName) {
         ProcRoleBindingEntity result = new ProcRoleBindingEntity();
         result.setProcId(procId);
         result.setRoleId(roleId);
         result.setPermission(permissionEnum);
+        result.setRoleName(roleName);
         return result;
 
     }
@@ -61,6 +64,14 @@ public class ProcRoleDto {
 
     public void setRoleId(String roleId) {
         this.roleId = roleId;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
     @Override
