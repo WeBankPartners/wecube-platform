@@ -23,6 +23,8 @@ public interface UserManagementService {
 
     CommonResponseDto retrieveRole(String token);
 
+    CommonResponseDto retrieveRoleById(String token, String roleId);
+
     CommonResponseDto deleteRole(String token, String id);
 
     CommonResponseDto getRolesByUserName(String token, String username);
