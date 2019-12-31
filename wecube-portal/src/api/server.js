@@ -669,3 +669,5 @@ export const entityView = (packageName, entityName) =>
   );
 export const batchExecution = data =>
   req.post(`/platform/v1/batch-execution/run`, data);
+export const getVariableScope = () =>
+  req.get(`/platform/v1/system-variables/constant/system-variable-scope`);
