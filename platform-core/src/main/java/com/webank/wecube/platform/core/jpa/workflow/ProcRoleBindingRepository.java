@@ -21,11 +21,12 @@ public interface ProcRoleBindingRepository extends CrudRepository<ProcRoleBindin
 
     Optional<ProcRoleBindingEntity> findByProcIdAndRoleIdAndPermission(String procId, String roleId, ProcRoleBindingEntity.permissionEnum permissionEnum);
 
-    Optional<List<ProcRoleBindingEntity>> findByProcIdAndPermission(String procId, ProcRoleBindingEntity.permissionEnum permissionEnum);
+    Optional<List<ProcRoleBindingEntity>> findAllByProcIdAndPermission(String procId, ProcRoleBindingEntity.permissionEnum permissionEnum);
 
     void deleteByProcIdAndRoleIdAndPermission(String procId, Long roleId, ProcRoleBindingEntity.permissionEnum permissionEnum);
 
     @Query(value = "select distinct proc_id from core_ru_proc_role_binding where role_id in (:roleIds) and permission = 'USE'", nativeQuery = true)
-    List<String> findDistinctProcIdByRoleIdsAndPermissionIsUse(@Param("roleIds") List<Long> roleIds);
+    List<String> findDistinctProcIdByRoleIdsAndPermissionIsUse(@Param("roleIds") List<String> roleIds);
+
     void deleteByProcIdAndRoleIdAndPermission(String procId, String roleId, ProcRoleBindingEntity.permissionEnum permissionEnum);
 }

@@ -58,31 +58,33 @@ public class WorkflowProcessDefinitionController {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @PostMapping("/process/definitions/deploy")
-    public CommonResponseDto deployProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto deployProcessDefinition(@RequestHeader(value = "Authorization") String token,
+                                                     @RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("deploy process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
-        ProcDefOutlineDto result = procDefService.deployProcessDefinition(requestDto);
+        ProcDefOutlineDto result = procDefService.deployProcessDefinition(token, requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
     @PostMapping("/process/definitions/draft")
-    public CommonResponseDto draftProcessDefinition(@RequestBody ProcDefInfoDto requestDto) {
+    public CommonResponseDto draftProcessDefinition(@RequestHeader(value = "Authorization") String token,
+                                                    @RequestBody ProcDefInfoDto requestDto) {
         if (log.isDebugEnabled()) {
             log.debug("draft process:procDefKey={},procDefName={},rootEntity={}", requestDto.getProcDefKey(),
                     requestDto.getProcDefName(), requestDto.getRootEntity());
         }
 
-        ProcDefInfoDto result = procDefService.draftProcessDefinition(requestDto);
+        ProcDefInfoDto result = procDefService.draftProcessDefinition(token, requestDto);
         return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/definitions")
     public CommonResponseDto getProcessDefinitions(@RequestHeader(value = "Authorization") String token,
-            @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft,
-            @RequestParam(name = "permission", required = false, defaultValue = "") String permission) {
+                                                   @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft,
+                                                   @RequestParam(name = "permission", required = false, defaultValue = "") String permission) {
         log.info("currentUser:{}", AuthenticationContextHolder.getCurrentUsername());
         boolean includeDraftProcDef = (includeDraft == 1);
         List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(token, includeDraftProcDef, permission);
@@ -91,7 +93,7 @@ public class WorkflowProcessDefinitionController {
 
     @DeleteMapping("/process/definitions/{proc-def-id}")
     public CommonResponseDto removeProcessDefinition(@RequestHeader("Authorization") String token,
-            @PathVariable("proc-def-id") String procDefId) {
+                                                     @PathVariable("proc-def-id") String procDefId) {
         procDefService.removeProcessDefinition(token, procDefId);
         return CommonResponseDto.okay();
     }
@@ -117,23 +119,22 @@ public class WorkflowProcessDefinitionController {
 
     @GetMapping("/process/definitions/{proc-def-id}/tasknodes/{node-def-id}")
     public CommonResponseDto getTaskNodeParameters(@PathVariable("proc-def-id") String procDefId,
-            @PathVariable("node-def-id") String nodeDefId) {
+                                                   @PathVariable("node-def-id") String nodeDefId) {
         List<InterfaceParameterDto> result = workflowDataService.getTaskNodeParameters(procDefId, nodeDefId);
         return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/definitions/{proc-def-id}/preview/entities/{entity-data-id}")
     public CommonResponseDto getProcessDataPreview(@PathVariable("proc-def-id") String procDefId,
-            @PathVariable("entity-data-id") String dataId) {
+                                                   @PathVariable("entity-data-id") String dataId) {
         List<GraphNodeDto> result = workflowDataService.getProcessDataPreview(procDefId, dataId);
         return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/process/{proc-id}/roles")
-    public CommonResponseDto retrieveProcRoleBinding(@RequestHeader(value = "Authorization") String token,
-            @PathVariable("proc-id") String procId) {
+    public CommonResponseDto retrieveProcRoleBinding(@PathVariable("proc-id") String procId) {
         try {
-            return CommonResponseDto.okayWithData(processRoleService.retrieveRoleIdByProcId(token, procId));
+            return CommonResponseDto.okayWithData(processRoleService.retrieveRoleIdByProcId(procId));
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -141,7 +142,7 @@ public class WorkflowProcessDefinitionController {
 
     @PostMapping("/process/{proc-id}/roles")
     public CommonResponseDto updateProcRoleBinding(@RequestHeader(value = "Authorization") String token,
-            @PathVariable("proc-id") String procId, @RequestBody ProcRoleRequestDto procRoleRequestDto) {
+                                                   @PathVariable("proc-id") String procId, @RequestBody ProcRoleRequestDto procRoleRequestDto) {
         try {
             processRoleService.updateProcRoleBinding(token, procId, procRoleRequestDto);
         } catch (WecubeCoreException ex) {
@@ -151,17 +152,16 @@ public class WorkflowProcessDefinitionController {
     }
 
     @DeleteMapping("/process/{proc-id}/roles")
-    public CommonResponseDto deleteProcRoleBinding(@RequestHeader(value = "Authorization") String token,
-            @PathVariable("proc-id") String procId, @RequestBody ProcRoleRequestDto procRoleRequestDto) {
+    public CommonResponseDto deleteProcRoleBinding(@PathVariable("proc-id") String procId, @RequestBody ProcRoleRequestDto procRoleRequestDto) {
         try {
-            processRoleService.deleteProcRoleBinding(token, procId, procRoleRequestDto);
+            processRoleService.deleteProcRoleBinding(procId, procRoleRequestDto);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
         return CommonResponseDto.okay();
     }
 
-    @GetMapping(value = "/process/definitions/{proc-def-id}/export", produces = { MediaType.ALL_VALUE })
+    @GetMapping(value = "/process/definitions/{proc-def-id}/export", produces = {MediaType.ALL_VALUE})
     public ResponseEntity<byte[]> exportProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
 
         ProcDefInfoExportImportDto result = procDefService.exportProcessDefinition(procDefId);
@@ -174,17 +174,17 @@ public class WorkflowProcessDefinitionController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.add("Content-Disposition", String.format("attachment;filename=%s", filename));
-        
-        if(log.isInfoEnabled()){
-            log.info("finished export process definition,size={},filename={}",filedataBytes.length, filename);
+
+        if (log.isInfoEnabled()) {
+            log.info("finished export process definition,size={},filename={}", filedataBytes.length, filename);
         }
         return ResponseEntity.ok().headers(headers).contentLength(filedataBytes.length)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).body(filedataBytes);
     }
 
-    @PostMapping(value = "/process/definitions/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    @PostMapping(value = "/process/definitions/import", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public CommonResponseDto importProcessDefinition(@RequestParam("uploadFile") MultipartFile file,
-            HttpServletRequest request) {
+                                                     HttpServletRequest request) {
         if (file == null || file.getSize() <= 0) {
             log.error("invalid file content uploaded");
             throw new WecubeCoreException("Invalid file content uploaded.");
@@ -199,7 +199,7 @@ public class WorkflowProcessDefinitionController {
             String filedata = IOUtils.toString(file.getInputStream(), Charset.forName("utf-8"));
             String jsonData = new String(StringUtilsEx.decodeBase64(filedata), Charset.forName("utf-8"));
             ProcDefInfoExportImportDto importDto = convertImportData(jsonData);
-            
+
             String token = request.getHeader("Authorization");
 
             ProcDefInfoExportImportDto result = procDefService.importProcessDefinition(importDto, token);

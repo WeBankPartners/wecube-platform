@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.utils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,8 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonUtils {
 
-    public static String toJsonString(Object object){
-        if(object == null) return "";
+    public static String toJsonString(Object object) {
+        if (object == null) return "";
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -33,5 +34,10 @@ public class JsonUtils {
         ObjectMapper mapper = new ObjectMapper();
         JavaType javaType = mapper.getTypeFactory().constructType(clzz);
         return mapper.readValue(jsonContent.getBytes(), javaType);
+    }
+
+    public static <T> T toObject(Object mapContent, Class<T> clzz) {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.convertValue(mapContent, clzz);
     }
 }

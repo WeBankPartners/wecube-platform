@@ -265,6 +265,7 @@ CREATE TABLE `core_ru_proc_role_binding` (
     `id`      VARCHAR(255) PRIMARY KEY,
     `proc_id`      VARCHAR(255) NOT NULL,
     `role_id` VARCHAR(64)       NOT NULL,
+    `role_name` VARCHAR(64)     NOT NULL,
     `permission` VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
