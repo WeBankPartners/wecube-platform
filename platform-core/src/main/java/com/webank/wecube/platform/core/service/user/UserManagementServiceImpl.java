@@ -137,18 +137,6 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto retrieveRoleById(String token, String roleId) {
-        HttpHeaders httpHeaders = createHeaderWithToken(token);
-        Map<String, String> requestUrlMap = new HashMap<>();
-        requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
-        requestUrlMap.put(ROLE_ID_PLACE_HOLDER, roleId);
-        String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_RETRIEVE_ROLE_ID_URL, requestUrlMap);
-        logger.info(String.format("Sending GET request to: [%s]", requestUrl));
-        ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
-        return RestTemplateUtils.checkResponse(response);
-    }
-
-    @Override
     public List<RoleDto> retrieveRole() throws WecubeCoreException {
         String token = "Bearer";
         CommonResponseDto commonResponseDto = retrieveRole(token);
@@ -162,6 +150,18 @@ public class UserManagementServiceImpl implements UserManagementService {
             throw new WecubeCoreException(msg);
         }
         return resultDto;
+    }
+
+    @Override
+    public CommonResponseDto retrieveRoleById(String token, String roleId) {
+        HttpHeaders httpHeaders = createHeaderWithToken(token);
+        Map<String, String> requestUrlMap = new HashMap<>();
+        requestUrlMap.put(GATEWAY_PLACE_HOLDER, this.gatewayUrl);
+        requestUrlMap.put(ROLE_ID_PLACE_HOLDER, roleId);
+        String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_RETRIEVE_ROLE_ID_URL, requestUrlMap);
+        logger.info(String.format("Sending GET request to: [%s]", requestUrl));
+        ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl, httpHeaders);
+        return RestTemplateUtils.checkResponse(response);
     }
 
     @Override
