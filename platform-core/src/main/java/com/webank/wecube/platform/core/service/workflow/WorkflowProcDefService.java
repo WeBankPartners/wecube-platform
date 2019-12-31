@@ -1,14 +1,6 @@
 package com.webank.wecube.platform.core.service.workflow;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.EnumUtils;
@@ -213,7 +205,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         return result;
     }
 
-    public void removeProcessDefinition(String token, String procDefId) {
+    public void removeProcessDefinition(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
             throw new WecubeCoreException("Process definition id is blank.");
         }
@@ -425,16 +417,15 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         return pdto;
     }
 
-    public List<ProcDefInfoDto> getProcessDefinitions(String token, boolean includeDraftProcDef, String permissionStr) {
-        List<String> roleIdList = this.userManagementService.getRoleIdListByUsername(token,
-                AuthenticationContextHolder.getCurrentUsername());
+    public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permissionStr) {
+        List<String> currentUserRoleNameList = new ArrayList<>(Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
 
         // check if there is permission specified
         List<ProcRoleDto> procRoleDtoList;
         if (!StringUtils.isEmpty(permissionStr)) {
-            procRoleDtoList = processRoleService.retrieveProcessByRoleIdListAndPermission(roleIdList, permissionStr);
+            procRoleDtoList = processRoleService.retrieveProcessByRoleIdListAndPermission(currentUserRoleNameList, permissionStr);
         } else {
-            procRoleDtoList = processRoleService.retrieveAllProcessByRoleIdList(roleIdList);
+            procRoleDtoList = processRoleService.retrieveAllProcessByRoleIdList(currentUserRoleNameList);
         }
         Set<ProcRoleDto> procRoleDtoSet = new HashSet<>(procRoleDtoList);
 
@@ -905,8 +896,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 log.error(errorMsg);
                 throw new WecubeCoreException(errorMsg);
             }
-            processRoleService.createProcRoleBinding(token, procId,
-                    new ProcRoleRequestDto(permissionStr, roleIdList));
+            processRoleService.batchSaveData(token, procId, roleIdList, permissionStr);
         }
     }
 
