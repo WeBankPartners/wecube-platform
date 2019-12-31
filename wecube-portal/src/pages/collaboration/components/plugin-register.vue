@@ -478,6 +478,10 @@ export default {
     },
     ok() {
       this.registerName = this.addRegisterName;
+      this.currentPluginObj.id = new Date().getMilliseconds() + "";
+      this.currentPluginObj.registerName = this.registerName;
+      this.sourceList.push(this.currentPluginObj);
+      this.model1 = this.currentPluginObj.id;
       this.hasNewSource = true;
     },
     cancel() {
