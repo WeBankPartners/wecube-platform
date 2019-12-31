@@ -39,22 +39,22 @@ public class AuthorityRoleRelationshipController {
 
 	@GetMapping("/roles/{role-id}/authoritys")
 	@ResponseBody
-	public CommonResponseDto getAuthoritysByRoleId(@PathVariable(value = "role-id") Long roleId) {
+	public CommonResponseDto getAuthoritysByRoleId(@PathVariable(value = "role-id") String roleId) {
 		return okayWithData(authorityRoleRelationshipService.getAuthoritysByRoleId(roleId));
 	}
 
 	@PostMapping("/roles/{role-id}/authoritys")
 	@ResponseBody
-	public CommonResponseDto grantRoleForAuthoritys(@PathVariable(value = "role-id") Long roleId,
-			@RequestBody List<Long> authorityIds) throws Exception {
+	public CommonResponseDto grantRoleForAuthoritys(@PathVariable(value = "role-id") String roleId,
+													@RequestBody List<Long> authorityIds) throws Exception {
 		authorityRoleRelationshipService.grantRoleForAuthoritys(roleId, authorityIds);
 		return okay();
 	}
 
 	@DeleteMapping("/roles/{role-id}/authoritys")
 	@ResponseBody
-	public CommonResponseDto revokeRoleForAuthoritys(@PathVariable(value = "role-id") Long roleId,
-			@RequestBody List<Long> authorityIds) throws Exception {
+	public CommonResponseDto revokeRoleForAuthoritys(@PathVariable(value = "role-id") String roleId,
+													 @RequestBody List<Long> authorityIds) throws Exception {
 		authorityRoleRelationshipService.revokeRoleForAuthoritys(roleId, authorityIds);
 		return okay();
 	}
