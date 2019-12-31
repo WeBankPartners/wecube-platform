@@ -9,15 +9,15 @@ import java.util.List;
 import java.util.Map;
 
 public interface ProcessRoleService {
-    ProcRoleOverviewDto retrieveRoleIdByProcId(String token, String procId);
+    ProcRoleOverviewDto retrieveRoleIdByProcId(String procId);
 
-    void createProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto);
+    void createProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto);
 
     void updateProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto);
 
-    List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<Long> roleIdList);
+    List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<String> roleIdList);
 
-    List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<Long> roleIdList, String permissionStr);
+    List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<String> roleIdList, String permissionStr);
 
-    void deleteProcRoleBinding(String token, String procId, ProcRoleRequestDto procRoleRequestDto);
+    void deleteProcRoleBinding(String procId, ProcRoleRequestDto procRoleRequestDto);
 }
