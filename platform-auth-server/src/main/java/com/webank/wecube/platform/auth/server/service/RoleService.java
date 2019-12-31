@@ -20,40 +20,38 @@ import com.webank.wecube.platform.auth.server.service.impl.SubSystemInfoDataServ
 @Service("roleService")
 public class RoleService {
 
-	private static final Logger log = LoggerFactory.getLogger(RoleService.class);
+    private static final Logger log = LoggerFactory.getLogger(RoleService.class);
+    @Autowired
+    PasswordEncoder passwordEncoder;
+    @Autowired
+    private RoleRepository roleRepository;
 
-	@Autowired
-	private RoleRepository roleRepository;
+    public SysRoleEntity create(CreateRoleDto createRoleDto) throws Exception {
 
-	@Autowired
-	PasswordEncoder passwordEncoder;
+        SysRoleEntity existedRole = roleRepository.findOneByName(createRoleDto.getName());
 
-	public SysRoleEntity create(CreateRoleDto createRoleDto) throws Exception {
+        log.info("existUser = {}", existedRole);
+        if (!(null == existedRole))
+            throw new Exception(String.format("Role [%s] already existed", createRoleDto.getName()));
 
-		SysRoleEntity existedRole = roleRepository.findOneByName(createRoleDto.getName());
+        SysRoleEntity role = new SysRoleEntity(createRoleDto.getName(), createRoleDto.getDisplayName());
+        roleRepository.saveAndFlush(role);
 
-		log.info("existUser = {}", existedRole);
-		if (!(null == existedRole))
-			throw new Exception(String.format("Role [%s] already existed", createRoleDto.getName()));
+        return role;
+    }
 
-		SysRoleEntity role = new SysRoleEntity(createRoleDto.getName(), createRoleDto.getDisplayName());
-		roleRepository.saveAndFlush(role);
+    public List<SysRoleEntity> retrieve() {
+        return roleRepository.findAll();
+    }
 
-		return role;
-	}
+    public void delete(String roleId) {
+        roleRepository.deleteById(roleId);
+    }
 
-	public List<SysRoleEntity> retrieve() {
-		return roleRepository.findAll();
-	}
-
-	public void delete(Long id) {
-		roleRepository.deleteById(id);
-	}
-
-	public SysRoleEntity getRoleByIdIfExisted(Long roleId) throws Exception {
-		Optional<SysRoleEntity> roleEntityOptional = roleRepository.findById(roleId);
-		if (!roleEntityOptional.isPresent())
-			throw new Exception(String.format("Role ID [%d] does not exist", roleId));
-		return roleEntityOptional.get();
-	}
+    public SysRoleEntity getRoleByIdIfExisted(String roleId) throws Exception {
+        Optional<SysRoleEntity> roleEntityOptional = roleRepository.findById(roleId);
+        if (!roleEntityOptional.isPresent())
+            throw new Exception(String.format("Role ID [%d] does not exist", roleId));
+        return roleEntityOptional.get();
+    }
 }
