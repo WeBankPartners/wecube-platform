@@ -82,7 +82,7 @@
     <!-- 4.系统参数 - 描述运行本插件包需要的系统参数 -->
     <systemParameters>
         <systemParameter name="xxx" defaultValue='xxxx' scopeType='global'/>
-        <systemParameter name="xxx" defaultValue='xxxx' scopeType='plugin-package'/>
+        <systemParameter name="xxx" defaultValue='xxxx' scopeType='servicemanagement'/>
     </systemParameters>
 
     <!-- 5.权限设定 -->
@@ -209,7 +209,7 @@ Attribute的refVersion在初期版本中存在，在新的规范中已经删除�
 | ------------ | ---------- | -------- |
 | name         | 名称       | 是       |
 | defaultValue | 默认值     | 否       |
-| scopeType    | 作用域类型 | 是       |
+| scopeType    | 作用域类型 | 否，取值范围是"global"或插件包名   |
 
 ### authorities
 
