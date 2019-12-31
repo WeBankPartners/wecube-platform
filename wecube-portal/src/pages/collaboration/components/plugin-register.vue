@@ -26,7 +26,7 @@
             <Col style="border-bottom: 2px solid #bbb7b7;">
               <FormItem :label-width="100" :label="$t('regist_source')">
                 <Select
-                  v-model="model1"
+                  v-model="selectedSource"
                   @on-change="registSourceChange"
                   :placeholder="$t('regist_source_placeholder')"
                 >
@@ -316,7 +316,7 @@
           <Input v-model="addRegisterName" placeholder=""></Input>
         </FormItem>
         <FormItem :label="$t('copy_source')">
-          <Select v-model="model1" @on-change="copyRegistSource">
+          <Select v-model="selectedSource" @on-change="copyRegistSource">
             <Option v-for="item in sourceList" :value="item.id" :key="item.id"
               >{{ item.name }}({{ item.registerName }})</Option
             >
@@ -347,7 +347,7 @@ export default {
       addRegistModal: false,
       currentPluginObj: {},
       sourceList: [],
-      model1: "",
+      selectedSource: "",
       registerName: "",
       addRegisterName: "",
       hasNewSource: false,
@@ -416,18 +416,23 @@ export default {
       const { data, status, message } = await savePluginConfig(
         currentPluginForSave
       );
+      const id = data.id;
       if (status === "OK") {
         this.$Notice.success({
           title: "Success",
           desc: message
         });
+        this.currentPluginObj.status = "ENABLED";
         if (this.hasNewSource) {
+          this.hasNewSource = false;
           const { data, status, message } = await getAllPluginByPkgId(
             this.pkgId
           );
           if (status === "OK") {
-            this.hidePanal = false;
+            // this.hidePanal = false;
             this.plugins = data;
+            this.currentPluginObj.id = id;
+            this.selectedSource = id;
           }
           return;
         }
@@ -481,7 +486,7 @@ export default {
       this.currentPluginObj.id = new Date().getMilliseconds() + "";
       this.currentPluginObj.registerName = this.registerName;
       this.sourceList.push(this.currentPluginObj);
-      this.model1 = this.currentPluginObj.id;
+      this.selectedSource = this.currentPluginObj.id;
       this.hasNewSource = true;
     },
     cancel() {
