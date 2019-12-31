@@ -32,6 +32,7 @@ services:
     environment:
       - GATEWAY_HOST={{GATEWAY_HOST}}
       - GATEWAY_PORT={{GATEWAY_PORT}}
+      - PUBLIC_DOMAIN={{PUBLIC_DOMAIN}}
       - TZ=Asia/Shanghai
     command: /bin/bash -c "envsubst < /etc/nginx/conf.d/nginx.tpl > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"
 
