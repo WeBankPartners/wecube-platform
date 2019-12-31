@@ -34,12 +34,12 @@ public class PlugableApplicationTaskDispatcher implements JavaDelegate {
 
     @Override
     public void execute(DelegateExecution execution) throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("service processing dispatch,inst={},exec={},nodeId={},instKey={}", execution.getProcessInstanceId(),
+                    execution.getId(), execution.getCurrentActivityId(), execution.getProcessBusinessKey());
+        }
 
-        String processInstanceBizKey = execution.getBusinessKey();
-        String processInstanceId = execution.getProcessInstanceId();
         String processDefinitionId = execution.getProcessDefinitionId();
-        log.info("start to call plugin with process instance id [{}] and bizKey [{}]", processInstanceId,
-                processInstanceBizKey);
 
         ProcessDefinition procDef = execution.getProcessEngine().getRepositoryService().createProcessDefinitionQuery()
                 .processDefinitionId(processDefinitionId).singleResult();
