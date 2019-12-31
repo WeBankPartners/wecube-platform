@@ -71,11 +71,11 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     }
 
     @Override
-    public List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<String> roleIdList) {
+    public List<ProcRoleDto> retrieveAllProcessByRoleIdList(List<String> roleNameList) {
         List<ProcRoleDto> result = new ArrayList<>();
-        for (String roleId : roleIdList) {
-            logger.info(String.format("Finding process to role binding information from roleId: [%s].", roleId));
-            List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleId(roleId);
+        for (String roleName : roleNameList) {
+            logger.info(String.format("Finding process to role binding information from roleName: [%s].", roleName));
+            List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleName(roleName);
             for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
                 result.add(ProcRoleDto.fromDomain(procRoleBindingEntity));
             }
@@ -84,12 +84,12 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
     }
 
     @Override
-    public List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<String> roleIdList, String permissionStr) {
+    public List<ProcRoleDto> retrieveProcessByRoleIdListAndPermission(List<String> roleNameList, String permissionStr) {
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
         List<ProcRoleDto> result = new ArrayList<>();
-        for (String roleId : roleIdList) {
-            logger.info(String.format("Finding process to role binding information from roleId: [%s] and permission: [%s]", roleId, permissionEnum.toString()));
-            List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleIdAndPermission(roleId, permissionEnum);
+        for (String roleName : roleNameList) {
+            logger.info(String.format("Finding process to role binding information from roleName: [%s] and permission: [%s]", roleName, permissionEnum.toString()));
+            List<ProcRoleBindingEntity> allByRoleIdAndPermission = this.procRoleBindingRepository.findAllByRoleNameAndPermission(roleName, permissionEnum);
             for (ProcRoleBindingEntity procRoleBindingEntity : allByRoleIdAndPermission) {
                 result.add(ProcRoleDto.fromDomain(procRoleBindingEntity));
             }
@@ -103,7 +103,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         List<String> roleIdList = procRoleRequestDto.getRoleIdList();
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
 
-        batchSaveData(token, procId, permissionStr, roleIdList, permissionEnum);
+        batchSaveData(token, procId, roleIdList, permissionStr);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
 
         // check if user's roles has permission to manage this process
         checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
-        batchSaveData(token, procId, permissionStr, roleIdList, permissionEnum);
+        batchSaveData(token, procId, roleIdList, permissionStr);
     }
 
     @Override
@@ -174,18 +174,25 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
 
     }
 
-    private void batchSaveData(String token, String procId, String permissionStr, List<String> roleIdList, ProcRoleBindingEntity.permissionEnum permissionEnum) {
+    public void batchSaveData(String token, String procId, List<String> roleIdList, String permissionStr) {
+        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
         for (String roleId : roleIdList) {
+
+            RoleDto roleDto = JsonUtils.toObject(userManagementService.retrieveRoleById(token, roleId).getData(), RoleDto.class);
+            String roleName = roleDto.getName();
             // find current stored data
-            Optional<ProcRoleBindingEntity> byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository.findByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
+            Optional<ProcRoleBindingEntity> byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository
+                    .findByProcIdAndRoleNameAndPermission(
+                            procId,
+                            roleName,
+                            permissionEnum);
 
             if (byProcIdAndRoleIdAndPermission.isPresent()) {
-                logger.warn(String.format("Found stored data in DB, the given data is, procId: [%s], roleId: [%s], permission: [%s]", procId, roleId, permissionStr));
+                logger.warn(String.format("Found stored data in DB, the given data is, procId: [%s], roleId: [%s], permission: [%s]", procId, roleId, permissionEnum.toString()));
                 return;
             }
             // if no stored data found, then save new data in to the database
             // get roleDto from auth server
-            RoleDto roleDto = JsonUtils.toObject(userManagementService.retrieveRoleById(token, roleId).getData(), RoleDto.class);
             this.procRoleBindingRepository.save(ProcRoleDto.toDomain(procId, roleId, permissionEnum, roleDto.getName()));
         }
     }
