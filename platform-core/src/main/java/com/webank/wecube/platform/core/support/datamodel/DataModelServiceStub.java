@@ -31,6 +31,7 @@ public class DataModelServiceStub {
     public static final String UPDATE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
     public static final String DELETE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/delete";
     public static final String UNIQUE_IDENTIFIER = "id";
+    public static final String VISUAL_FIELD = "displayName";
 
     private static final Logger logger = LoggerFactory.getLogger(DataModelServiceStub.class);
 
