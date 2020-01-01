@@ -206,13 +206,7 @@
       >
         <template slot-scope="{ row, index }" slot="action">
           <Tooltip placement="bottom" theme="light" max-width="300">
-            <Button
-              type="primary"
-              @click="show(row, index)"
-              size="small"
-              style="margin-right: 5px"
-              >View</Button
-            >
+            <Button type="warning" size="small">View</Button>
             <div slot="content">
               <pre><span>{{row}}</span></pre>
             </div>
@@ -314,13 +308,13 @@ export default {
     targetModelConfirm(visible) {
       this.targetModalVisible = visible;
       if (!visible) {
-        document.getElementById("graph").innerHTML = "";
+        // document.getElementById("graph").innerHTML = "";
         // this.initModelGraph();
         this.renderModelGraph();
       }
     },
     cancleModal() {
-      // this.modelData = []
+      this.targetModelSelectHandel([]);
     },
     targetModelSelectHandel(selection) {
       const currentFlow = this.flowData.flowNodes.find(
@@ -790,7 +784,6 @@ export default {
       this.start();
     },
     retryHandler(e) {
-      debugger;
       this.currentFailedNodeID = e.target.parentNode.getAttribute("id");
       this.workflowActionModalVisible = true;
     },
@@ -908,10 +901,18 @@ export default {
       this.renderFlowGraph();
     },
     highlightModel(nodeId) {
-      this.foundRefAry = this.flowData.flowNodes
-        .find(item => item.nodeId == nodeId)
-        .routineExpression.split(/[~.>()]/)
-        .filter(i => i.length > 0);
+      const routineExpression = this.flowData.flowNodes.find(
+        item => item.nodeId === nodeId
+      ).routineExpression;
+      if (routineExpression) {
+        this.foundRefAry = routineExpression
+          .split(/[~.>()]/)
+          .filter(i => i.length > 0);
+      } else {
+        this.$Message.info(this.$t("no_result"));
+        this.targetModalVisible = false;
+        return;
+      }
       this.tartetModels = JSON.parse(
         JSON.stringify(
           this.modelData.filter(_ =>
@@ -928,7 +929,7 @@ export default {
         this.modelData.forEach(_ => {
           const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo);
           Object.keys(objData).forEach(i => {
-            // objData[i]._isChecked = false;
+            objData[i]._isChecked = false;
             if (_.id === objData[i].id && flowNodeIndex > -1) {
               objData[i]._isChecked = true;
             }
@@ -964,7 +965,7 @@ export default {
         this.flowGraph.graphviz = graph
           .graphviz()
           .fit(true)
-          .zoom(true)
+          .zoom(false)
           .height(graphEl.offsetHeight - 10)
           .width(graphEl.offsetWidth - 10);
       };
