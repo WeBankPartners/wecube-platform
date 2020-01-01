@@ -9,16 +9,18 @@ public class TreeNode {
     private String packageName;
     private String entityName;
     private Object rootId;
+    private Object displayName;
     private TreeNode parent;
     private List<TreeNode> children;
 
     public TreeNode() {
     }
 
-    public TreeNode(String packageName, String entityName, Object rootId, TreeNode parent, List<TreeNode> children) {
+    public TreeNode(String packageName, String entityName, Object rootId, Object displayName, TreeNode parent, List<TreeNode> children) {
         this.packageName = packageName;
         this.entityName = entityName;
         this.rootId = rootId;
+        this.displayName = displayName;
         this.parent = parent;
         this.children = children;
     }
@@ -27,6 +29,13 @@ public class TreeNode {
         this.packageName = packageName;
         this.entityName = entityName;
         this.rootId = rootId;
+    }
+
+    public TreeNode(String packageName, String entityName, Object rootId, Object displayName) {
+        this.packageName = packageName;
+        this.entityName = entityName;
+        this.rootId = rootId;
+        this.displayName = displayName;
     }
 
     public String getPackageName() {
@@ -69,11 +78,23 @@ public class TreeNode {
         this.children = children;
     }
 
+    public Object getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(Object displayName) {
+        this.displayName = displayName;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
+        if (this == o) {
+            return true;
+        }
 
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         TreeNode treeNode = (TreeNode) o;
 
