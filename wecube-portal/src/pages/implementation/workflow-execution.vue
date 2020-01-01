@@ -308,13 +308,13 @@ export default {
     targetModelConfirm(visible) {
       this.targetModalVisible = visible;
       if (!visible) {
-        document.getElementById("graph").innerHTML = "";
+        // document.getElementById("graph").innerHTML = "";
         // this.initModelGraph();
         this.renderModelGraph();
       }
     },
     cancleModal() {
-      // this.modelData = []
+      this.targetModelSelectHandel([]);
     },
     targetModelSelectHandel(selection) {
       const currentFlow = this.flowData.flowNodes.find(
@@ -929,7 +929,7 @@ export default {
         this.modelData.forEach(_ => {
           const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo);
           Object.keys(objData).forEach(i => {
-            // objData[i]._isChecked = false;
+            objData[i]._isChecked = false;
             if (_.id === objData[i].id && flowNodeIndex > -1) {
               objData[i]._isChecked = true;
             }
@@ -949,7 +949,7 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           // .fit(true)
-          .zoom(false)
+          .zoom(true)
           .height(graphEl.offsetHeight - 10)
           .width(graphEl.offsetWidth - 10);
       };
