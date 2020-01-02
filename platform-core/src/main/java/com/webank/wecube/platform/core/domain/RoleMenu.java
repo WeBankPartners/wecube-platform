@@ -15,11 +15,15 @@ public class RoleMenu {
     @Column(name = "role_id")
     private String roleId;
 
+    @Column(name = "role_name")
+    private String roleName;
+
     @Column(name = "menu_code")
     private String menuCode;
 
-    public RoleMenu(String roleId, String menuCode) {
+    public RoleMenu(String roleId, String roleName, String menuCode) {
         this.roleId = roleId;
+        this.roleName = roleName;
         this.menuCode = menuCode;
     }
 
@@ -57,5 +61,13 @@ public class RoleMenu {
 
     public void setMenuCode(String menuCode) {
         this.menuCode = menuCode;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 }
