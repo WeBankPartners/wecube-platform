@@ -108,10 +108,11 @@ public class RoleManagementController {
 
     @PostMapping("/roles/{role-id}/menus")
     @ResponseBody
-    public CommonResponseDto updateRoleToMenusByRoleId(@PathVariable(value = "role-id") String roleId,
+    public CommonResponseDto updateRoleToMenusByRoleId(@RequestHeader(value = "Authorization") String token,
+                                                       @PathVariable(value = "role-id") String roleId,
                                                        @RequestBody List<String> menuCodeList) {
         try {
-            this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList);
+            this.roleMenuService.updateRoleToMenusByRoleId(token, roleId, menuCodeList);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
