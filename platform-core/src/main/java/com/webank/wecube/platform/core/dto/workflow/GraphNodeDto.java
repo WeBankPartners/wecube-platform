@@ -10,6 +10,7 @@ public class GraphNodeDto {
     private String packageName;
     private String entityName;
     private String dataId;
+    private String displayName;
 
     private String id;
     private List<String> previousIds = new ArrayList<>();
@@ -100,4 +101,11 @@ public class GraphNodeDto {
         this.dataId = dataId;
     }
 
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
 }
