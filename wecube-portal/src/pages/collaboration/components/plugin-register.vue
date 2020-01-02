@@ -422,7 +422,6 @@ export default {
           title: "Success",
           desc: message
         });
-        this.currentPluginObj.status = "ENABLED";
         if (this.hasNewSource) {
           this.hasNewSource = false;
           const { data, status, message } = await getAllPluginByPkgId(
