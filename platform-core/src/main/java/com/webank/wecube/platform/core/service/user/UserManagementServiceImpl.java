@@ -47,7 +47,6 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     private String gatewayUrl;
     private RestTemplate restTemplate;
-    private RoleMenuServiceImpl roleMenuService;
 
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -55,11 +54,9 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Autowired
     public UserManagementServiceImpl(RestTemplate restTemplate,
-                                     ApplicationProperties applicationProperties,
-                                     RoleMenuServiceImpl roleMenuService) {
+                                     ApplicationProperties applicationProperties) {
         this.restTemplate = restTemplate;
         this.gatewayUrl = applicationProperties.getGatewayUrl();
-        this.roleMenuService = roleMenuService;
     }
 
     @Override
@@ -189,12 +186,6 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public List<RoleMenuDto> getMenusByUserName(String token, String username) {
-        List<RoleDto> roleDtoList = getRoleListByUserName(token, username);
-        return roleDtoList.stream().map(roleDto -> this.roleMenuService.retrieveMenusByRoleId(roleDto.getId())).collect(Collectors.toList());
-    }
-
-    @Override
     public List<String> getRoleIdListByUsername(String token, String username) {
         List<RoleDto> roleListByUserName = this.getRoleListByUserName(token, username);
         return roleListByUserName.stream().map(RoleDto::getId).collect(Collectors.toList());
@@ -234,6 +225,12 @@ public class UserManagementServiceImpl implements UserManagementService {
         logger.info(String.format("Sending DELETE request to: [%s] with body: [%s]", requestUrl, requestObject));
         ResponseEntity<String> response = RestTemplateUtils.sendDeleteWithBody(this.restTemplate, requestUrl, httpHeaders, requestObject);
         return RestTemplateUtils.checkResponse(response);
+    }
+
+    @Override
+    public List<RoleDto> getRoleListByUserName(String token, String username) {
+        CommonResponseDto rolesByUserName = getRolesByUserName(token, username);
+        return extractRoleDtoListFromJsonResponse(rolesByUserName);
     }
 
 
@@ -280,10 +277,5 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
         return roleDtoList;
 
-    }
-
-    private List<RoleDto> getRoleListByUserName(String token, String username) {
-        CommonResponseDto rolesByUserName = getRolesByUserName(token, username);
-        return extractRoleDtoListFromJsonResponse(rolesByUserName);
     }
 }

@@ -39,7 +39,7 @@ public interface UserManagementService {
 
     List<RoleDto> retrieveRole();
 
-    List<RoleMenuDto> getMenusByUserName(String token, String username);
-
     List<String> getRoleIdListByUsername(String token, String username);
+
+    List<RoleDto> getRoleListByUserName(String token, String username);
 }
