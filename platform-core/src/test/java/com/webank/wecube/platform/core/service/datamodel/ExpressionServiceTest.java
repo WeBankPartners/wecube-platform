@@ -73,13 +73,13 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
     public void wecmdbFwdNodeExpressionFetchWithoutLastOpFetchShouldSucceed() {
         mockFwdNodeExpressionServer(server);
 
-        final int WECMDB_SYSTEM_DESIGN_DATA_COLUMN_LENGTH = 11;
+        final int WECMDB_SYSTEM_DESIGN_DATA_COLUMN_LENGTH = 12;
         List<Object> resultOne = dataModelExpressionService.fetchData(
                 new DataModelExpressionToRootData("wecmdb:system_design", "0001_0000000001"));
         LinkedHashMap<String, Object> resultOneMap = (LinkedHashMap<String, Object>) resultOne.get(0);
         assertThat(resultOneMap.size()).isEqualTo(WECMDB_SYSTEM_DESIGN_DATA_COLUMN_LENGTH);
 
-        final int WECMDB_UNIT_DATA_COLUMN_LENGTH = 14;
+        final int WECMDB_UNIT_DATA_COLUMN_LENGTH = 15;
         List<Object> resultTwo = dataModelExpressionService.fetchData(
                 new DataModelExpressionToRootData("wecmdb:unit", "0008_0000000003"));
         LinkedHashMap<String, Object> resultTwoMap = (LinkedHashMap<String, Object>) resultTwo.get(0);
@@ -273,6 +273,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0001_0000000001\",\n" +
                         "            \"name\": \"Deposit Micro Core System\",\n" +
                         "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"displayName\": \"Deposit Micro Core System\",\n" +
                         "            \"id\": \"0001_0000000001\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
@@ -293,6 +294,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"package\": \"\",\n" +
                         "            \"r_guid\": \"0008_0000000003\",\n" +
                         "            \"description\": \"\",\n" +
+                        "            \"displayName\": \"\",\n" +
                         "            \"resource_set\": \"0020_0000000001\",\n" +
                         "            \"key_name\": \"EDP-CORE_PRD-APP\",\n" +
                         "            \"instance_num\": 1,\n" +
@@ -323,6 +325,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0001_0000000001\",\n" +
                         "            \"name\": \"Deposit Micro Core System\",\n" +
                         "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"displayName\": \"Deposit Micro Core System\",\n" +
                         "            \"id\": \"0001_0000000001\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
@@ -343,6 +346,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"package\": \"\",\n" +
                         "            \"r_guid\": \"0008_0000000003\",\n" +
                         "            \"description\": \"\",\n" +
+                        "            \"displayName\": \"\",\n" +
                         "            \"resource_set\": \"0020_0000000001\",\n" +
                         "            \"key_name\": \"EDP-CORE_PRD-APP\",\n" +
                         "            \"instance_num\": 1,\n" +
@@ -371,6 +375,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0002_0000000006\",\n" +
                         "            \"description\": \"ADM Batch Subsystem\",\n" +
+                        "            \"displayName\": \"ADM Batch Subsystem\",\n" +
                         "            \"dcn_design_type\": 132,\n" +
                         "            \"key_name\": \"EDP-ADMBATCH\",\n" +
                         "            \"name\": \"ADM Batch Subsystem\",\n" +
@@ -397,6 +402,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0001_0000000001\",\n" +
                         "            \"name\": \"Deposit Micro Core System\",\n" +
                         "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"displayName\": \"Deposit Micro Core System\",\n" +
                         "            \"id\": \"0001_0000000001\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
@@ -407,6 +413,30 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
 
     private void mockOneLinkWithOpByOnlyExpressionServer(MockRestServiceServer server) {
         // mockOneLinkWithOpByOnlyExpression
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys?filter=id,0007_0000000001", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"subsys_design\": \"0002_0000000010\",\n" +
+                        "            \"key_name\": \"ECIF-CORE_PRD\",\n" +
+                        "            \"code\": \"CORE\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"manager\": \"nertonsong\",\n" +
+                        "            \"r_guid\": \"0007_0000000001\",\n" +
+                        "            \"description\": \"ECIF-CORE PRD\",\n" +
+                        "            \"displayName\": \"ECIF-CORE PRD\",\n" +
+                        "            \"id\": \"0007_0000000001\",\n" +
+                        "            \"state\": 37,\n" +
+                        "            \"env\": 111,\n" +
+                        "            \"fixed_date\": \"2019-07-24 16:30:17\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
 
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=subsys,0007_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
@@ -421,6 +451,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"package\": \"\",\n" +
                         "            \"r_guid\": \"0008_0000000001\",\n" +
                         "            \"description\": \"\",\n" +
+                        "            \"displayName\": \"\",\n" +
                         "            \"resource_set\": \"0020_0000000001\",\n" +
                         "            \"key_name\": \"ECIF-CORE_PRD-APP\",\n" +
                         "            \"instance_num\": 1,\n" +
@@ -437,6 +468,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"package\": \"0011_0000000010\",\n" +
                         "            \"r_guid\": \"0008_0000000007\",\n" +
                         "            \"description\": \"aa\",\n" +
+                        "            \"displayName\": \"aa\",\n" +
                         "            \"resource_set\": \"0020_0000000001\",\n" +
                         "            \"key_name\": \"ECIF-CORE_PRD-DB\",\n" +
                         "            \"instance_num\": 1,\n" +
@@ -448,6 +480,32 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "        }\n" +
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
+
+        // second expression
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/service_design?filter=id,0004_0000000001", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"subsys_design\": \"0002_0000000010\",\n" +
+                        "            \"key_name\": \"ECIF-CORE_PRD\",\n" +
+                        "            \"code\": \"CORE\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"manager\": \"nertonsong\",\n" +
+                        "            \"r_guid\": \"0007_0000000001\",\n" +
+                        "            \"description\": \"ECIF-CORE PRD\",\n" +
+                        "            \"displayName\": \"ECIF-CORE PRD\",\n" +
+                        "            \"id\": \"0007_0000000001\",\n" +
+                        "            \"state\": 37,\n" +
+                        "            \"env\": 111,\n" +
+                        "            \"fixed_date\": \"2019-07-24 16:30:17\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
 
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/invoke_design?filter=service_design,0004_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
@@ -463,6 +521,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0005_0000000008\",\n" +
                         "            \"service_design\": \"0004_0000000001\",\n" +
                         "            \"description\": \"Access CORE\",\n" +
+                        "            \"displayName\": \"Access CORE\",\n" +
                         "            \"id\": \"0005_0000000008\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"type\": 152,\n" +
@@ -477,6 +536,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0005_0000000009\",\n" +
                         "            \"service_design\": \"0004_0000000001\",\n" +
                         "            \"description\": \"Access CORE\",\n" +
+                        "            \"displayName\": \"Access CORE\",\n" +
                         "            \"id\": \"0005_0000000009\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"type\": 152,\n" +
@@ -506,6 +566,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"manager\": \"nertonsong\",\n" +
                         "            \"r_guid\": \"0007_0000000001\",\n" +
                         "            \"description\": \"ECIF-CORE PRD\",\n" +
+                        "            \"displayName\": \"ECIF-CORE PRD\",\n" +
                         "            \"id\": \"0007_0000000001\",\n" +
                         "            \"state\": 37,\n" +
                         "            \"env\": 111,\n" +
@@ -527,6 +588,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0002_0000000010\",\n" +
                         "            \"description\": \"CRM Core Subsystem\",\n" +
+                        "            \"displayName\": \"CRM Core Subsystem\",\n" +
                         "            \"dcn_design_type\": 135,\n" +
                         "            \"key_name\": \"ECIF-CORE\",\n" +
                         "            \"name\": \"CRM Core Subsystem\",\n" +
@@ -553,6 +615,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0001_0000000003\",\n" +
                         "            \"name\": \"CRM System\",\n" +
                         "            \"description\": \"CRM System\",\n" +
+                        "            \"displayName\": \"CRM System\",\n" +
                         "            \"id\": \"0001_0000000003\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": \"2019-07-24 17:28:17\"\n" +
@@ -573,6 +636,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0018_0000000002\",\n" +
                         "            \"description\": \"\",\n" +
+                        "            \"displayName\": \"\",\n" +
                         "            \"zone2\": \"0017_0000000001\",\n" +
                         "            \"zone1\": \"0017_0000000003\",\n" +
                         "            \"key_name\": \"PRD-GZ1-MGMT_link_PRD-GZ1-SF\",\n" +
@@ -601,6 +665,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0017_0000000003\",\n" +
                         "            \"vpc\": \"\",\n" +
                         "            \"description\": \"MGMT\",\n" +
+                        "            \"displayName\": \"MGMT\",\n" +
                         "            \"idc\": \"0016_0000000001\",\n" +
                         "            \"type\": 121,\n" +
                         "            \"key_name\": \"PRD-GZ1-MGMT\",\n" +
@@ -628,6 +693,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0023_0000000003\",\n" +
                         "            \"description\": \"MGMT\",\n" +
+                        "            \"displayName\": \"MGMT\",\n" +
                         "            \"id\": \"0023_0000000003\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"type\": 121,\n" +
@@ -639,6 +705,31 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
     }
 
     private void mockMultipleLinksWithOpByOnlyExpressionServer(MockRestServiceServer server) {
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys?filter=id,0007_0000000001", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"subsys_design\": \"0002_0000000010\",\n" +
+                        "            \"key_name\": \"ECIF-CORE_PRD\",\n" +
+                        "            \"code\": \"CORE\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"manager\": \"nertonsong\",\n" +
+                        "            \"r_guid\": \"0007_0000000001\",\n" +
+                        "            \"description\": \"ECIF-CORE PRD\",\n" +
+                        "            \"displayName\": \"ECIF-CORE PRD\",\n" +
+                        "            \"id\": \"0007_0000000001\",\n" +
+                        "            \"state\": 37,\n" +
+                        "            \"env\": 111,\n" +
+                        "            \"fixed_date\": \"2019-07-24 16:30:17\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=subsys,0007_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
@@ -652,6 +743,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"package\": \"\",\n" +
                         "            \"r_guid\": \"0008_0000000001\",\n" +
                         "            \"description\": \"\",\n" +
+                        "            \"displayName\": \"\",\n" +
                         "            \"resource_set\": \"0020_0000000001\",\n" +
                         "            \"key_name\": \"ECIF-CORE_PRD-APP\",\n" +
                         "            \"instance_num\": 1,\n" +
@@ -668,6 +760,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"package\": \"0011_0000000010\",\n" +
                         "            \"r_guid\": \"0008_0000000007\",\n" +
                         "            \"description\": \"aa\",\n" +
+                        "            \"displayName\": \"aa\",\n" +
                         "            \"resource_set\": \"0020_0000000001\",\n" +
                         "            \"key_name\": \"ECIF-CORE_PRD-DB\",\n" +
                         "            \"instance_num\": 1,\n" +
@@ -694,6 +787,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0015_0000000001\",\n" +
                         "            \"instance_mem\": 2,\n" +
                         "            \"description\": \"APP_01\",\n" +
+                        "            \"displayName\": \"APP_01\",\n" +
                         "            \"type\": 174,\n" +
                         "            \"key_name\": \"ECIF-CORE_PRD-APP_APP_01\",\n" +
                         "            \"instance_num\": 3,\n" +
@@ -720,6 +814,31 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
 
     private void mockMultipleLinksWithMixedOpExpressionServer(MockRestServiceServer server) {
         // first request
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys?filter=id,0007_0000000001", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"subsys_design\": \"0002_0000000010\",\n" +
+                        "            \"key_name\": \"ECIF-CORE_PRD\",\n" +
+                        "            \"code\": \"CORE\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"manager\": \"nertonsong\",\n" +
+                        "            \"r_guid\": \"0007_0000000001\",\n" +
+                        "            \"description\": \"ECIF-CORE PRD\",\n" +
+                        "            \"displayName\": \"ECIF-CORE PRD\",\n" +
+                        "            \"id\": \"0007_0000000001\",\n" +
+                        "            \"state\": 37,\n" +
+                        "            \"env\": 111,\n" +
+                        "            \"fixed_date\": \"2019-07-24 16:30:17\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=subsys,0007_0000000001", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
@@ -733,6 +852,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"package\": \"\",\n" +
                         "            \"r_guid\": \"0008_0000000001\",\n" +
                         "            \"description\": \"\",\n" +
+                        "            \"displayName\": \"\",\n" +
                         "            \"resource_set\": \"0020_0000000001\",\n" +
                         "            \"key_name\": \"ECIF-CORE_PRD-APP\",\n" +
                         "            \"instance_num\": 1,\n" +
@@ -749,6 +869,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"package\": \"0011_0000000010\",\n" +
                         "            \"r_guid\": \"0008_0000000007\",\n" +
                         "            \"description\": \"aa\",\n" +
+                        "            \"displayName\": \"aa\",\n" +
                         "            \"resource_set\": \"0020_0000000001\",\n" +
                         "            \"key_name\": \"ECIF-CORE_PRD-DB\",\n" +
                         "            \"instance_num\": 1,\n" +
@@ -774,6 +895,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0003_0000000006\",\n" +
                         "            \"description\": \"Application module\",\n" +
+                        "            \"displayName\": \"Application module\",\n" +
                         "            \"resource_set_design\": null,\n" +
                         "            \"across_idc\": 147,\n" +
                         "            \"type\": 106,\n" +
@@ -800,6 +922,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0003_0000000007\",\n" +
                         "            \"description\": \"DB Module\",\n" +
+                        "            \"displayName\": \"DB Module\",\n" +
                         "            \"resource_set_design\": null,\n" +
                         "            \"across_idc\": 147,\n" +
                         "            \"type\": 107,\n" +
@@ -826,6 +949,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0002_0000000010\",\n" +
                         "            \"description\": \"CRM Core Subsystem\",\n" +
+                        "            \"displayName\": \"CRM Core Subsystem\",\n" +
                         "            \"dcn_design_type\": 135,\n" +
                         "            \"key_name\": \"ECIF-CORE\",\n" +
                         "            \"name\": \"CRM Core Subsystem\",\n" +
@@ -838,6 +962,31 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "}", MediaType.APPLICATION_JSON));
 
         // second request
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_design?filter=id,0023_0000000004", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": [\n" +
+                        "        {\n" +
+                        "            \"biz_key\": null,\n" +
+                        "            \"subsys_design\": \"0002_0000000010\",\n" +
+                        "            \"key_name\": \"ECIF-CORE_PRD\",\n" +
+                        "            \"code\": \"CORE\",\n" +
+                        "            \"orchestration\": null,\n" +
+                        "            \"manager\": \"nertonsong\",\n" +
+                        "            \"r_guid\": \"0007_0000000001\",\n" +
+                        "            \"description\": \"ECIF-CORE PRD\",\n" +
+                        "            \"displayName\": \"ECIF-CORE PRD\",\n" +
+                        "            \"id\": \"0023_0000000004\",\n" +
+                        "            \"state\": 37,\n" +
+                        "            \"env\": 111,\n" +
+                        "            \"fixed_date\": \"2019-07-24 16:30:17\"\n" +
+                        "        }\n" +
+                        "    ]\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link_design?filter=zone_design2,0023_0000000004", this.gatewayUrl)))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess("{\n" +
@@ -851,6 +1000,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0024_0000000005\",\n" +
                         "            \"description\": \"MGMT-ECN\",\n" +
+                        "            \"displayName\": \"MGMT-ECN\",\n" +
                         "            \"id\": \"0024_0000000005\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": null,\n" +
@@ -864,6 +1014,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0024_0000000006\",\n" +
                         "            \"description\": \"PARTNERNET-ECN\",\n" +
+                        "            \"displayName\": \"PARTNERNET-ECN\",\n" +
                         "            \"id\": \"0024_0000000006\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": null,\n" +
@@ -885,6 +1036,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0018_0000000003\",\n" +
                         "            \"description\": \"\",\n" +
+                        "            \"displayName\": \"\",\n" +
                         "            \"zone2\": \"0017_0000000002\",\n" +
                         "            \"zone1\": \"0017_0000000003\",\n" +
                         "            \"key_name\": \"PRD-GZ1-MGMT_link_PRD-GZ1-ECN\",\n" +
@@ -910,6 +1062,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"orchestration\": null,\n" +
                         "            \"r_guid\": \"0018_0000000007\",\n" +
                         "            \"description\": \"\",\n" +
+                        "            \"displayName\": \"\",\n" +
                         "            \"zone2\": \"0017_0000000002\",\n" +
                         "            \"zone1\": \"0017_0000000005\",\n" +
                         "            \"key_name\": \"PRD-GZ1-PARTNERNET_link_PRD-GZ1-ECN\",\n" +
@@ -938,6 +1091,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0017_0000000003\",\n" +
                         "            \"vpc\": \"\",\n" +
                         "            \"description\": \"MGMT\",\n" +
+                        "            \"displayName\": \"MGMT\",\n" +
                         "            \"idc\": \"0016_0000000001\",\n" +
                         "            \"type\": 121,\n" +
                         "            \"key_name\": \"PRD-GZ1-MGMT\",\n" +
@@ -966,6 +1120,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0017_0000000005\",\n" +
                         "            \"vpc\": \"\",\n" +
                         "            \"description\": \"PARTNER\",\n" +
+                        "            \"displayName\": \"PARTNER\",\n" +
                         "            \"idc\": \"0016_0000000001\",\n" +
                         "            \"type\": 117,\n" +
                         "            \"key_name\": \"PRD-GZ1-PARTNERNET\",\n" +
@@ -998,6 +1153,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0001_0000000001\",\n" +
                         "            \"name\": \"Deposit Micro Core System\",\n" +
                         "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"displayName\": \"Deposit Micro Core System\",\n" +
                         "            \"id\": \"0001_0000000001\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +
@@ -1021,6 +1177,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
                         "            \"r_guid\": \"0001_0000000001\",\n" +
                         "            \"name\": \"Deposit Micro Core System\",\n" +
                         "            \"description\": \"Deposit Micro Core System\",\n" +
+                        "            \"displayName\": \"Deposit Micro Core System\",\n" +
                         "            \"id\": \"0001_0000000001\",\n" +
                         "            \"state\": 34,\n" +
                         "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" +

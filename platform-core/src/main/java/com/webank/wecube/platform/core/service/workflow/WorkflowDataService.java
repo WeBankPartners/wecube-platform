@@ -105,7 +105,7 @@ public class WorkflowDataService {
             if (!"subProcess".equals(nodeType)) {
                 continue;
             }
-            
+
             log.info("About to fetch data for node {} {}", f.getNodeDefId(), f.getNodeName());
 
             log.info("About to fetch data with expression {} and data id {}", f.getRoutineExpression(), dataId);
@@ -114,7 +114,7 @@ public class WorkflowDataService {
             try {
                 nodes = expressionService.getPreviewTree(expr);
             } catch (Exception e) {
-                log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId,e);
+                log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId, e);
                 throw new WecubeCoreException(e.getMessage());
             }
 
@@ -122,7 +122,7 @@ public class WorkflowDataService {
                 log.warn("None data returned for {} and {}", f.getRoutineExpression(), dataId);
                 continue;
             }
-            
+
             log.info("total {} records returned for {} and {}", nodes.size(), f.getRoutineExpression(), dataId);
 
             for (TreeNode tn : nodes) {
@@ -133,6 +133,7 @@ public class WorkflowDataService {
                     currNode.setDataId(tn.getRootId().toString());
                     currNode.setPackageName(tn.getPackageName());
                     currNode.setEntityName(tn.getEntityName());
+                    currNode.setDisplayName(tn.getDisplayName() == null ? null : tn.getDisplayName().toString());
 
                     addToResult(result, currNode);
                 }
