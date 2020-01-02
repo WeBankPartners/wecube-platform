@@ -3,46 +3,6 @@
     <Card dis-hover>
       <Row>
         <Col span="20">
-          <!-- <Form v-if="false">
-            <Col span="6">
-              <FormItem :label-width="100" :label="$t('select_orch')">
-                <Select
-                  label
-                  v-model="selectedFlow"
-                  :disabled="isEnqueryPage"
-                  @on-change="orchestrationSelectHandler"
-                  @on-open-change="getAllFlow"
-                  filterable
-                >
-                  <Option
-                    v-for="item in allFlows"
-                    :value="item.procDefId"
-                    :key="item.procDefId"
-                    >{{ item.procDefName + " " + item.createdTime }}</Option
-                  >
-                </Select>
-              </FormItem>
-            </Col>
-            <Col span="8">
-              <FormItem :label-width="100" :label="$t('target_object')">
-                <Select
-                  label
-                  v-model="selectedTarget"
-                  :disabled="isEnqueryPage"
-                  @on-change="onTargetSelectHandler"
-                  @on-open-change="getTargetOptions"
-                  filterable
-                >
-                  <Option
-                    v-for="item in allTarget"
-                    :value="item.id"
-                    :key="item.id"
-                    >{{ item.key_name }}</Option
-                  >
-                </Select>
-              </FormItem>
-            </Col>
-          </Form> -->
           <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
               <Select
@@ -113,11 +73,6 @@
             </div>
 
             <div class="graph-container" id="flow" style="height:90%"></div>
-            <!-- <div style="text-align: center;margin-top: 5px;">
-              <Button v-if="showExcution" type="info" @click="excutionFlow">{{
-                $t("execute")
-              }}</Button>
-            </div> -->
           </Col>
           <Col
             span="18"
@@ -145,7 +100,7 @@
                 </FormItem>
               </Form>
             </div>
-            <div class="graph-container" id="graph" style="height:100%"></div>
+            <div class="graph-container" id="graph" style="height:90%"></div>
             <Spin size="large" fix v-show="isLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t("loading") }}</div>
@@ -199,16 +154,22 @@
       <Table
         border
         ref="selection"
-        max-height="400"
+        max-height="300"
         @on-selection-change="targetModelSelectHandel"
         :columns="targetModelColums"
         :data="tartetModels"
       >
         <template slot-scope="{ row, index }" slot="action">
-          <Tooltip placement="bottom" theme="light" max-width="300">
+          <Tooltip
+            placement="bottom"
+            theme="light"
+            @on-popper-show="getDetail(row)"
+            :delay="500"
+            max-width="400"
+          >
             <Button type="warning" size="small">View</Button>
             <div slot="content">
-              <pre><span>{{row}}</span></pre>
+              <pre><span>{{rowContent}}</span></pre>
             </div>
           </Tooltip>
         </template>
@@ -247,6 +208,7 @@ export default {
       modelData: [],
       flowData: {},
       currentNodeTitle: null,
+      rowContent: null,
       allFlowInstances: [],
       allFlows: [],
       allTarget: [],
@@ -275,8 +237,8 @@ export default {
           key: "entityName"
         },
         {
-          title: "DataId",
-          key: "dataId"
+          title: "DisplayName",
+          key: "displayName"
         },
         {
           title: "Action",
@@ -305,6 +267,15 @@ export default {
     this.timer = null;
   },
   methods: {
+    async getDetail(row) {
+      const { status, message, data } = await getModelNodeDetail(
+        row.entityName,
+        row.dataId
+      );
+      if (status === "OK") {
+        this.rowContent = data;
+      }
+    },
     targetModelConfirm(visible) {
       this.targetModalVisible = visible;
       if (!visible) {
@@ -503,16 +474,9 @@ export default {
         const isRecord = _.refFlowNodeIds.length > 0;
         const shape = isRecord ? "ellipse" : "ellipse";
         const label =
-          _.refFlowNodeIds.toString().replace(/,/g, "/") +
-          (isRecord ? "|" : "") +
-          _.packageName.slice(0, 5) +
-          "..." +
-          _.entityName.slice(-5);
-        return `${nodeId} [label="${
-          isRecord
-            ? label
-            : _.packageName.slice(0, 5) + "..." + _.entityName.slice(-5)
-        }" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`;
+          _.displayName ||
+          _.entityName + "\n" + _.refFlowNodeIds.toString().replace(/,/g, "/");
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`;
       });
       let genEdge = () => {
         let pathAry = [];
@@ -915,8 +879,10 @@ export default {
       }
       this.tartetModels = JSON.parse(
         JSON.stringify(
-          this.modelData.filter(_ =>
-            this.foundRefAry[this.foundRefAry.length - 1].includes(_.entityName)
+          this.modelData.filter(
+            _ =>
+              this.foundRefAry[this.foundRefAry.length - 1].split(":")[1] ===
+              _.entityName
           )
         )
       );
@@ -948,7 +914,7 @@ export default {
           .on("mousewheel.zoom", null);
         this.graph.graphviz = graph
           .graphviz()
-          // .fit(true)
+          .fit(true)
           .zoom(true)
           .height(graphEl.offsetHeight - 10)
           .width(graphEl.offsetWidth - 10);
