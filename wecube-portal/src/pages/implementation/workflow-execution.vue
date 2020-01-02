@@ -474,8 +474,9 @@ export default {
         const isRecord = _.refFlowNodeIds.length > 0;
         const shape = isRecord ? "ellipse" : "ellipse";
         const label =
-          _.displayName ||
-          _.entityName + "\n" + _.refFlowNodeIds.toString().replace(/,/g, "/");
+          (_.displayName || _.dataId) +
+          "\n" +
+          _.refFlowNodeIds.toString().replace(/,/g, "/");
         return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`;
       });
       let genEdge = () => {
