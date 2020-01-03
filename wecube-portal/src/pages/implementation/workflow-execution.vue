@@ -401,6 +401,14 @@ export default {
     queryHistory() {
       this.isEnqueryPage = true;
       this.showExcution = false;
+      this.selectedFlow = "";
+      this.selectedTarget = "";
+      this.modelData = [];
+      this.flowData = {};
+      this.$nextTick(() => {
+        this.initModelGraph();
+        this.initFlowGraph();
+      });
     },
     createHandler() {
       clearInterval(this.timer);
