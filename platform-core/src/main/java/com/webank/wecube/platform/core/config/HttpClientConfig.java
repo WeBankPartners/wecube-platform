@@ -5,7 +5,6 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HeaderElement;
@@ -26,11 +25,14 @@ import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -44,20 +46,19 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
+import com.webank.wecube.platform.auth.client.http.configuration.EnableJwtSsoClient;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.HttpClientProperties;
-import com.webank.wecube.platform.core.interceptor.RestTemplateInterceptor;
-
-import lombok.extern.slf4j.Slf4j;
+import com.webank.wecube.platform.core.http.UserJwtSsoTokenRestTemplate;
 
 @Configuration
 @EnableScheduling
-@Slf4j
+@EnableJwtSsoClient
 public class HttpClientConfig {
+    private static final Logger log = LoggerFactory.getLogger(HttpClientConfig.class);
 
     @Autowired
     private HttpClientProperties httpClientProperties;
-    @Autowired
-    private RestTemplateInterceptor restTemplateInterceptor;
+    
 
     @Bean
     public PoolingHttpClientConnectionManager poolingConnectionManager() {
@@ -154,16 +155,28 @@ public class HttpClientConfig {
         return scheduler;
     }
     
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate template = restTemplateBuilder().build();
-        template.setInterceptors(Collections.singletonList(restTemplateInterceptor));
-        return template;
+    @Bean("userJwtSsoTokenRestTemplate")
+    public RestTemplate userJwtSsoTokenRestTemplate() {
+        return new UserJwtSsoTokenRestTemplate();
     }
+    
+//    @Bean("jwtSsoRestTemplate")
+//    public JwtSsoRestTemplate jwtSsoRestTemplate(JwtSsoClientContext ctx)
+//            throws KeyManagementException, KeyStoreException, NoSuchAlgorithmException {
+//        JwtSsoRestTemplate t = new JwtSsoRestTemplate(ctx);
+////        t.setRequestFactory(httpComponentsClientHttpRequestFactory());
+//        return t;
+//    }
 
     @Bean
     public RestTemplateBuilder restTemplateBuilder() {
         return new RestTemplateBuilder(customRestTemplateCustomizer());
+    }
+    
+    @Bean
+    @Primary
+    public RestTemplate restTemplate(){
+        return restTemplateBuilder().build();
     }
 
     @Bean
