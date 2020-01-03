@@ -57,55 +57,50 @@ public class MenuService {
         List<MenuItemDto> allSysMenus = getAllSysMenus();
         returnMenuDto = new ArrayList<>(allSysMenus);
 
-        returnMenuDto.addAll(getAllPackageMenus());
+        Optional<List<PluginPackageMenu>> optionalPluginPackageMenus = pluginPackageMenuRepository.findAndMergePluginMenus();
+        optionalPluginPackageMenus.ifPresent(pluginPackageMenus -> returnMenuDto.addAll(packageMenuToMenuItemDto(pluginPackageMenus)));
         Collections.sort(returnMenuDto);
-
         return returnMenuDto;
     }
 
     public List<MenuItemDto> getCurrentUserAllMenus() throws WecubeCoreException {
+        List<MenuItemDto> result = getAllSysMenus();
         // find all distinct current user's own menu codes
         Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
-        List<String> currentUserMenuCodeList;
-        if (CollectionUtils.isEmpty(currentUserRoles)) {
-            return new ArrayList<>();
-        } else {
+        if (!CollectionUtils.isEmpty(currentUserRoles)) {
+            List<String> currentUserMenuCodeList;
             Set<String> currentUserMenuCodeSet = new HashSet<>();
             for (String userRole : currentUserRoles) {
                 currentUserMenuCodeSet.addAll(roleMenuService.getMenuCodeListByRoleName(userRole));
             }
             currentUserMenuCodeList = new ArrayList<>(currentUserMenuCodeSet);
+            log.info(String.format("Current user's all menuCode list is: [%s]", currentUserMenuCodeList));
+
+            // filter all packageMenu which has menuCode in current user's own menu code
+            List<MenuItemDto> packageMenuDto = new ArrayList<>();
+            for (String menuCode : currentUserMenuCodeList) {
+                Optional<List<PluginPackageMenu>> foundPackageMenuByCode = this.pluginPackageMenuRepository.findAllActiveMenuByCode(menuCode);
+                foundPackageMenuByCode.ifPresent(pluginPackageMenus -> packageMenuDto.addAll(packageMenuToMenuItemDto(pluginPackageMenus)));
+            }
+
+            // append packageMenu and sysMenu
+            result.addAll(packageMenuDto);
+            Collections.sort(result);
+            log.info(String.format("Found menuCode: [%s] from both system and plugin package menu database.", result.stream().map(MenuItemDto::getCode).collect(Collectors.toList()).toString()));
         }
-        log.info(String.format("Current user's all menuCode list is: [%s]", currentUserMenuCodeList));
-
-        // filter all packageMenu which has menuCode in current user's own menu code
-        List<MenuItemDto> allPackageMenus = this.getAllPackageMenus();
-        List<String> finalCurrentUserMenuCodeList = currentUserMenuCodeList;
-        List<MenuItemDto> currentUserPackageMenuDtoList = allPackageMenus.stream()
-                .filter(menuItemDto -> finalCurrentUserMenuCodeList.contains(menuItemDto.getCode()))
-                .peek(packageMenu -> {
-                    MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
-                    if (null == menuItem) {
-                        String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
-                                packageMenu.getCategory());
-                        log.error(msg);
-                        throw new WecubeCoreException(msg);
-                    }
-                })
-                .collect(Collectors.toList());
-
-        // append packageMenu and sysMenu
-        List<MenuItemDto> result = getAllSysMenus();
-        result.addAll(currentUserPackageMenuDtoList);
-        Collections.sort(result);
-        log.info(String.format("Found menuCode: [%s] from both system and plugin package menu database.", result.stream().map(MenuItemDto::getCode).collect(Collectors.toList()).toString()));
         return result;
     }
 
-    public List<MenuItemDto> getAllPackageMenus() {
-        List<MenuItemDto> returnMenuDto = new ArrayList<>();
-        Optional<List<PluginPackageMenu>> optionalPluginPackageMenus = pluginPackageMenuRepository.findAndMergePluginMenus();
-        optionalPluginPackageMenus.ifPresent(pluginPackageMenus -> pluginPackageMenus.forEach(packageMenu -> {
+    public List<PluginPackageMenu> sortPluginPackageMenusById(Set<PluginPackageMenu> packageMenus) {
+        List<PluginPackageMenu> packageMenusList = new ArrayList<>(packageMenus);
+        Collections.sort(packageMenusList);
+        return packageMenusList;
+    }
+
+
+    private List<MenuItemDto> packageMenuToMenuItemDto(List<PluginPackageMenu> pluginPackageMenus) {
+        List<MenuItemDto> result = new ArrayList<>();
+        pluginPackageMenus.forEach(packageMenu -> {
             MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
             if (null == menuItem) {
                 String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
@@ -115,15 +110,9 @@ public class MenuService {
             }
             MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
 
-            returnMenuDto.add(packageMenuDto);
-        }));
-        return returnMenuDto;
-    }
-
-    public List<PluginPackageMenu> sortPluginPackageMenusById(Set<PluginPackageMenu> packageMenus) {
-        List<PluginPackageMenu> packageMenusList = new ArrayList<>(packageMenus);
-        Collections.sort(packageMenusList);
-        return packageMenusList;
+            result.add(packageMenuDto);
+        });
+        return result;
     }
 
 }
