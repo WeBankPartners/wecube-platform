@@ -315,7 +315,7 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
                         "            \"business_group\": \"business_group_A\",\n" +
                         "            \"code\": \"DEMO1\",\n" +
                         "            \"r_guid\": \"0001_0000000001\",\n" +
-                        "            \"name\": \"演示系统1\",\n" +
+                        "            \"name\": \"Demo 1\",\n" +
                         "            \"description\": \"1\",\n" +
                         "            \"id\": \"0001_0000000001\",\n" +
                         "            \"state\": \"new\",\n" +
@@ -327,7 +327,7 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
                         "            \"business_group\": \"business_group_B\",\n" +
                         "            \"code\": \"DEMO2\",\n" +
                         "            \"r_guid\": \"0001_0000000002\",\n" +
-                        "            \"name\": \"演示系统2\",\n" +
+                        "            \"name\": \"Demo 2\",\n" +
                         "            \"description\": \"\",\n" +
                         "            \"id\": \"0001_0000000002\",\n" +
                         "            \"state\": \"new\",\n" +
