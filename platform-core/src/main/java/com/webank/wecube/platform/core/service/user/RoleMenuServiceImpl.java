@@ -133,6 +133,17 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         return roleDtoList.stream().map(roleDto -> this.retrieveMenusByRoleId(roleDto.getId())).collect(Collectors.toList());
     }
 
+    @Override
+    public List<String> getMenuCodeListByRoleName(String roleName) {
+        Optional<List<RoleMenu>> allByRoleName = this.roleMenuRepository.findAllByRoleName(roleName);
+        List<String> result = new ArrayList<>();
+        if (allByRoleName.isPresent()) {
+            result = allByRoleName.get().stream().map(RoleMenu::getMenuCode).collect(Collectors.toList());
+        }
+        return result;
+    }
+
+
     private MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
         MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
         if (null == menuItem) {
