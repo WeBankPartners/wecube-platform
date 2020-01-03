@@ -64,7 +64,7 @@ public class MenuService {
     }
 
     public List<MenuItemDto> getCurrentUserAllMenus() throws WecubeCoreException {
-        List<MenuItemDto> result = new ArrayList<>();
+        List<MenuItemDto> result = new ArrayList<>(getAllSysMenus());
         // find all distinct current user's own menu codes
         Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         if (!CollectionUtils.isEmpty(currentUserRoles)) {
@@ -75,18 +75,11 @@ public class MenuService {
             }
             currentUserMenuCodeList = new ArrayList<>(currentUserMenuCodeSet);
             log.info(String.format("Current user's all menuCode list is: [%s]", currentUserMenuCodeList));
-
             // filter all packageMenu which has menuCode in current user's own menu code
             List<MenuItemDto> packageMenuDto = new ArrayList<>();
             for (String menuCode : currentUserMenuCodeList) {
-                MenuItem sysMenu = this.menuItemRepository.findByCode(menuCode);
-                if (sysMenu != null) {
-                    result.add(MenuItemDto.fromSystemMenuItem(sysMenu));
-                } else {
                     Optional<List<PluginPackageMenu>> foundPackageMenuByCode = this.pluginPackageMenuRepository.findAllActiveMenuByCode(menuCode);
                     foundPackageMenuByCode.ifPresent(pluginPackageMenus -> packageMenuDto.addAll(packageMenuToMenuItemDto(pluginPackageMenus)));
-                }
-
             }
 
             // append packageMenu and sysMenu
