@@ -33,7 +33,7 @@ public class RoleMenu {
     @PrePersist
     public void initGuid() {
         if (this.id == null || "".equals(this.id)) {
-            this.id = Objects.requireNonNull(this.roleId, "The [roleId] cannot be NULL while persisting [role_menu]").toString()
+            this.id = Objects.requireNonNull(this.roleName, "The [roleId] cannot be NULL while persisting [role_menu]")
                     + Constants.KEY_COLUMN_DELIMITER
                     + Objects.requireNonNull(this.menuCode, "The [menuItem] cannot be NULL while persisting [role_menu]");
         }
