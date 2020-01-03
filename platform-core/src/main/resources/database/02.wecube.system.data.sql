@@ -17,7 +17,7 @@ insert into menu_items (id,parent_code,code,source,menu_order,description,local_
 ,('IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION', 'IMPLEMENTATION', 'IMPLEMENTATION_BATCH_EXECUTION', 'SYSTEM', 15, '', '批量执行');
 
 delete from role_menu;
-insert into role_menu (id, role_id, role_name, menu_id) values
+insert into role_menu (id, role_id, role_name, menu_code) values
 ('admin__JOBS','admin','admin','JOBS'),
 ('admin__DESIGNING','admin','admin','DESIGNING'),
 ('admin__IMPLEMENTATION','admin','admin','IMPLEMENTATION'),
