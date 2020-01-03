@@ -57,12 +57,12 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     @Test
     public void getMyMenusShouldReturnSuccess() {
         mockMenus();
-        final int MENU_NUM_WITH_BOTH_SYS_AND_CORE = 12;
+        final int CURRENT_USER_USABLE_MENUS = 0; // because current user is not authorized to use any menu
         try {
             mvc.perform(get("/v1/my-menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message", is("Success")))
-                    .andExpect(jsonPath("$.data", is(iterableWithSize(MENU_NUM_WITH_BOTH_SYS_AND_CORE))))
+                    .andExpect(jsonPath("$.data", is(iterableWithSize(CURRENT_USER_USABLE_MENUS))))
                     .andDo(print())
                     .andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
