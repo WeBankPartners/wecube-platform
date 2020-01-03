@@ -23,7 +23,7 @@ public class AuthenticationRequestContextInterceptor implements HandlerIntercept
             AuthenticatedUser currentUser = new AuthenticatedUser(userPrincipal.getName());
 
             currentUser.withAuthorities(extractAuthorities(userPrincipal));
-            currentUser.setAuthorization(request.getHeader(AUTHORIZATION));
+            currentUser.setToken(request.getHeader(AUTHORIZATION));
             AuthenticationContextHolder.setAuthenticatedUser(currentUser);
 
             request.setAttribute(REQ_ATTR_KEY_CURRENT_USER, currentUser);
