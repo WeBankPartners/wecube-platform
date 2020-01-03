@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.utils;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,13 +28,13 @@ public class JsonUtils {
     public static <T> List<T> toList(String jsonContent, Class<T> clzz) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JavaType javaType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clzz);
-        return (List<T>) mapper.readValue(jsonContent.getBytes(), javaType);
+        return (List<T>) mapper.readValue(jsonContent.getBytes(Charset.forName("UTF-8")), javaType);
     }
 
     public static <T> T toObject(String jsonContent, Class<T> clzz) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JavaType javaType = mapper.getTypeFactory().constructType(clzz);
-        return mapper.readValue(jsonContent.getBytes(), javaType);
+        return mapper.readValue(jsonContent.getBytes(Charset.forName("UTF-8")), javaType);
     }
 
     public static <T> T toObject(Object mapContent, Class<T> clzz) {
