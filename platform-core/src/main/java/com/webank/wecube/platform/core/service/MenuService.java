@@ -50,6 +50,16 @@ public class MenuService {
         return returnMenuDto;
     }
 
+    public List<MenuItemDto> getAllSysRootMenus() {
+        List<MenuItemDto> returnMenuDto = new ArrayList<>();
+        Iterable<MenuItem> systemMenus = menuItemRepository.findRootMenuItems();
+        for (MenuItem systemMenu : systemMenus) {
+            MenuItemDto systemMenuDto = MenuItemDto.fromSystemMenuItem(systemMenu);
+            returnMenuDto.add(systemMenuDto);
+        }
+        return returnMenuDto;
+    }
+
 
     public List<MenuItemDto> getAllMenus() {
         List<MenuItemDto> returnMenuDto;
@@ -64,7 +74,8 @@ public class MenuService {
     }
 
     public List<MenuItemDto> getCurrentUserAllMenus() throws WecubeCoreException {
-        List<MenuItemDto> result = new ArrayList<>(getAllSysMenus());
+        List<MenuItemDto> result = new ArrayList<>(getAllSysRootMenus());
+        log.info(String.format("Found all system menu codes: [%s]", result.toString()));
         // find all distinct current user's own menu codes
         Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         if (!CollectionUtils.isEmpty(currentUserRoles)) {
@@ -76,14 +87,21 @@ public class MenuService {
             currentUserMenuCodeList = new ArrayList<>(currentUserMenuCodeSet);
             log.info(String.format("Current user's all menuCode list is: [%s]", currentUserMenuCodeList));
             // filter all packageMenu which has menuCode in current user's own menu code
-            List<MenuItemDto> packageMenuDto = new ArrayList<>();
+            List<MenuItemDto> foundRoleMenu = new ArrayList<>();
             for (String menuCode : currentUserMenuCodeList) {
+                MenuItem sysMenu = this.menuItemRepository.findByCode(menuCode);
+                log.info(String.format("Core try toFind menu code: [%s]", menuCode));
+                if (sysMenu != null) {
+                    MenuItemDto menuItemDto = MenuItemDto.fromSystemMenuItem(sysMenu);
+                    foundRoleMenu.add(menuItemDto);
+                } else {
                     Optional<List<PluginPackageMenu>> foundPackageMenuByCode = this.pluginPackageMenuRepository.findAllActiveMenuByCode(menuCode);
-                    foundPackageMenuByCode.ifPresent(pluginPackageMenus -> packageMenuDto.addAll(packageMenuToMenuItemDto(pluginPackageMenus)));
+                    foundPackageMenuByCode.ifPresent(pluginPackageMenus -> foundRoleMenu.addAll(packageMenuToMenuItemDto(pluginPackageMenus)));
+                }
             }
 
             // append packageMenu and sysMenu
-            result.addAll(packageMenuDto);
+            result.addAll(foundRoleMenu);
             log.info(String.format("Found menuCode: [%s] from both system and plugin package menu database.", result.stream().map(MenuItemDto::getCode).collect(Collectors.toList()).toString()));
         }
         Collections.sort(result);
