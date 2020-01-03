@@ -57,7 +57,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     @Test
     public void getMyMenusShouldReturnSuccess() {
         mockMenus();
-        final int CURRENT_USER_USABLE_MENUS = 0; // because current user is not authorized to use any menu
+        final int CURRENT_USER_USABLE_MENUS = 8; // because current user is not authorized to use any menu
         try {
             mvc.perform(get("/v1/my-menus").contentType(MediaType.APPLICATION_JSON).content("{}"))
                     .andExpect(status().isOk())
