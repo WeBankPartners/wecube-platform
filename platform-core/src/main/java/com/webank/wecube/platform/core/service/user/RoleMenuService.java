@@ -9,5 +9,7 @@ public interface RoleMenuService {
 
     List<RoleMenuDto> getMenusByUserName(String token, String username);
 
+    List<String> getMenuCodeListByRoleName(String roleName);
+
     void updateRoleToMenusByRoleId(String token, String roleId, List<String> menuCodeList);
 }
