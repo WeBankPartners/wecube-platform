@@ -64,11 +64,11 @@ public class MenuService {
     }
 
     public List<MenuItemDto> getCurrentUserAllMenus() throws WecubeCoreException {
-        List<MenuItemDto> result = getAllSysMenus();
-        log.info(String.format("Found all sys menus are: [%s]", result.stream().map(MenuItemDto::getCode).collect(Collectors.toList()).toString()));
+        List<MenuItemDto> result = new ArrayList<>();
         // find all distinct current user's own menu codes
         Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         if (!CollectionUtils.isEmpty(currentUserRoles)) {
+            result.addAll(getAllSysMenus());
             List<String> currentUserMenuCodeList;
             Set<String> currentUserMenuCodeSet = new HashSet<>();
             for (String userRole : currentUserRoles) {
