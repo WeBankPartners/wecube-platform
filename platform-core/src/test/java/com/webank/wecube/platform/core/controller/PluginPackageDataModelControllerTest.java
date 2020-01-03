@@ -18,6 +18,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -55,6 +56,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
     @Autowired
+    @Qualifier("userJwtSsoTokenRestTemplate")
     private RestTemplate restTemplate;
     @Autowired
     private PluginPackageDataModelController dataModelController;
