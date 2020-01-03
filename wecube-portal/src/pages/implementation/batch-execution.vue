@@ -127,7 +127,10 @@
             />
             <div>
               <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
-              <pre> <span v-html="JSON.stringify(businessKeyContent ? businessKeyContent.result: {}, null, 2)"></span></pre>
+              <pre
+                v-if="businessKeyContent"
+              > <span v-html="JSON.stringify(businessKeyContent.result, null, 2)"></span></pre>
+              <pre v-else> <span></span></pre>
               <!-- <p>{{ JSON.stringify(businessKeyContent, null, 2) }}</p> -->
             </div>
           </Col>
