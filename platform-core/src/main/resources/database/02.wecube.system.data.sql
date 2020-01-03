@@ -18,14 +18,6 @@ insert into menu_items (id,parent_code,code,source,menu_order,description,local_
 
 delete from role_menu;
 insert into role_menu (id, role_id, role_name, menu_code) values
-('admin__JOBS','admin','admin','JOBS'),
-('admin__DESIGNING','admin','admin','DESIGNING'),
-('admin__IMPLEMENTATION','admin','admin','IMPLEMENTATION'),
-('admin__MONITORING','admin','admin','MONITORING'),
-('admin__ADJUSTMENT','admin','admin','ADJUSTMENT'),
-('admin__INTELLIGENCE_OPS','admin','admin','INTELLIGENCE_OPS'),
-('admin__COLLABORATION','admin','admin','COLLABORATION'),
-('admin__ADMIN','admin','admin','ADMIN'),
 ('admin__IMPLEMENTATION_WORKFLOW_EXECUTION','admin','admin','IMPLEMENTATION__IMPLEMENTATION_WORKFLOW_EXECUTION'),
 ('admin__COLLABORATION_PLUGIN_MANAGEMENT','admin','admin','COLLABORATION__COLLABORATION_PLUGIN_MANAGEMENT'),
 ('admin__COLLABORATION_WORKFLOW_ORCHESTRATION','admin','admin','COLLABORATION__COLLABORATION_WORKFLOW_ORCHESTRATION'),
