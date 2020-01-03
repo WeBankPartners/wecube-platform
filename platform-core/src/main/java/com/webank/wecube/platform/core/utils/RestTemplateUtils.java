@@ -159,7 +159,7 @@ public class RestTemplateUtils {
             responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
         } catch (IOException e) {
             String msg = "Cannot transfer response from target server to CommonResponseDto class, the target server doesn't standardize the response style.";
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException(msg,e);
         }
 
         if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
