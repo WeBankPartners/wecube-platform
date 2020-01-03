@@ -15,11 +15,15 @@ public class RoleMenu {
     @Column(name = "role_id")
     private String roleId;
 
+    @Column(name = "role_name")
+    private String roleName;
+
     @Column(name = "menu_code")
     private String menuCode;
 
-    public RoleMenu(String roleId, String menuCode) {
+    public RoleMenu(String roleId, String roleName, String menuCode) {
         this.roleId = roleId;
+        this.roleName = roleName;
         this.menuCode = menuCode;
     }
 
@@ -29,7 +33,7 @@ public class RoleMenu {
     @PrePersist
     public void initGuid() {
         if (this.id == null || "".equals(this.id)) {
-            this.id = Objects.requireNonNull(this.roleId, "The [roleId] cannot be NULL while persisting [role_menu]").toString()
+            this.id = Objects.requireNonNull(this.roleName, "The [roleId] cannot be NULL while persisting [role_menu]")
                     + Constants.KEY_COLUMN_DELIMITER
                     + Objects.requireNonNull(this.menuCode, "The [menuItem] cannot be NULL while persisting [role_menu]");
         }
@@ -57,5 +61,13 @@ public class RoleMenu {
 
     public void setMenuCode(String menuCode) {
         this.menuCode = menuCode;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 }

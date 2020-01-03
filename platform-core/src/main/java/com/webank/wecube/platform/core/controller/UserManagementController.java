@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.controller;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,12 @@ import java.util.Map;
 @RequestMapping("v1/")
 public class UserManagementController {
     private UserManagementServiceImpl userManagementService;
+    private RoleMenuServiceImpl roleMenuService;
 
     @Autowired
-    public UserManagementController(UserManagementServiceImpl userManagementService) {
+    public UserManagementController(UserManagementServiceImpl userManagementService, RoleMenuServiceImpl roleMenuService) {
         this.userManagementService = userManagementService;
+        this.roleMenuService = roleMenuService;
     }
 
     @PostMapping("/users/create")
@@ -81,7 +84,7 @@ public class UserManagementController {
     public CommonResponseDto getMenusByUsername(@RequestHeader(value = "Authorization") String token,
                                                 @PathVariable(value = "user-name") String userName) {
         try {
-            return CommonResponseDto.okayWithData(this.userManagementService.getMenusByUserName(token, userName));
+            return CommonResponseDto.okayWithData(this.roleMenuService.getMenusByUserName(token, userName));
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }

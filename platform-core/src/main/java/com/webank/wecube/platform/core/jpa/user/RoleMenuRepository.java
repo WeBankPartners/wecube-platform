@@ -4,6 +4,7 @@ import com.webank.wecube.platform.core.domain.RoleMenu;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author howechen
@@ -11,5 +12,7 @@ import java.util.List;
 public interface RoleMenuRepository extends CrudRepository<RoleMenu, String> {
 
     List<RoleMenu> findAllByRoleId(String roleId);
+
+    Optional<List<RoleMenu>> findAllByRoleName(String roleName);
 
 }
