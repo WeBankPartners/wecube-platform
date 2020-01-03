@@ -49,6 +49,7 @@ public final class AuthenticationContextHolder {
 
     public static class AuthenticatedUser {
         private final String username;
+        private String authorization;
         private Set<String> grantedAuthorities = new HashSet<String>();
 
         public AuthenticatedUser(String username) {
@@ -72,6 +73,14 @@ public final class AuthenticationContextHolder {
             }
 
             return this;
+        }
+
+        public String getAuthorization() {
+            return authorization;
+        }
+
+        public void setAuthorization(String authorization) {
+            this.authorization = authorization;
         }
 
     }

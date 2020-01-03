@@ -5,6 +5,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HeaderElement;
@@ -44,6 +45,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
 import com.webank.wecube.platform.core.commons.ApplicationProperties.HttpClientProperties;
+import com.webank.wecube.platform.core.interceptor.RestTemplateInterceptor;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,6 +56,8 @@ public class HttpClientConfig {
 
     @Autowired
     private HttpClientProperties httpClientProperties;
+    @Autowired
+    private RestTemplateInterceptor restTemplateInterceptor;
 
     @Bean
     public PoolingHttpClientConnectionManager poolingConnectionManager() {
@@ -153,6 +157,7 @@ public class HttpClientConfig {
     @Bean
     public RestTemplate restTemplate() {
         RestTemplate template = restTemplateBuilder().build();
+        template.setInterceptors(Collections.singletonList(restTemplateInterceptor));
         return template;
     }
 
