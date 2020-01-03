@@ -13,26 +13,33 @@ import java.security.Principal;
 
 @Component
 public class AuthenticationRequestContextInterceptor implements HandlerInterceptor {
+    private static final String AUTHORIZATION = "Authorization";
     public static final String REQ_ATTR_KEY_CURRENT_USER = "REQ_ATTR_KEY_CURRENT_USER";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         Principal userPrincipal = request.getUserPrincipal();
         if (userPrincipal != null) {
-            String[] authorities = new String[0];
-            if (userPrincipal instanceof UsernamePasswordAuthenticationToken) {
-                authorities = ((UsernamePasswordAuthenticationToken) userPrincipal).getAuthorities()
-                        .stream()
-                        .map(GrantedAuthority::toString)
-                        .toArray(String[]::new);
-            }
             AuthenticatedUser currentUser = new AuthenticatedUser(userPrincipal.getName());
-            currentUser.withAuthorities(authorities);
+
+            currentUser.withAuthorities(extractAuthorities(userPrincipal));
+            currentUser.setToken(request.getHeader(AUTHORIZATION));
             AuthenticationContextHolder.setAuthenticatedUser(currentUser);
 
             request.setAttribute(REQ_ATTR_KEY_CURRENT_USER, currentUser);
         }
         return true;
+    }
+
+    private String[] extractAuthorities(Principal userPrincipal) {
+        String[] authorities = new String[0];
+        if (userPrincipal instanceof UsernamePasswordAuthenticationToken) {
+            authorities = ((UsernamePasswordAuthenticationToken) userPrincipal).getAuthorities()
+                    .stream()
+                    .map(GrantedAuthority::toString)
+                    .toArray(String[]::new);
+        }
+        return authorities;
     }
 
     @Override
