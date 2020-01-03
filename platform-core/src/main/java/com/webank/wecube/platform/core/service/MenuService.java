@@ -68,7 +68,6 @@ public class MenuService {
         // find all distinct current user's own menu codes
         Set<String> currentUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         if (!CollectionUtils.isEmpty(currentUserRoles)) {
-            result.addAll(getAllSysMenus());
             List<String> currentUserMenuCodeList;
             Set<String> currentUserMenuCodeSet = new HashSet<>();
             for (String userRole : currentUserRoles) {
