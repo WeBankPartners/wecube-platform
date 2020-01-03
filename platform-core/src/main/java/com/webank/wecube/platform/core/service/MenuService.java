@@ -76,6 +76,7 @@ public class MenuService {
             }
             currentUserMenuCodeList = new ArrayList<>(currentUserMenuCodeSet);
         }
+        log.info(String.format("Current user's all menuCode list is: [%s]", currentUserMenuCodeList));
 
         // filter all packageMenu which has menuCode in current user's own menu code
         List<MenuItemDto> allPackageMenus = this.getAllPackageMenus();
@@ -97,6 +98,7 @@ public class MenuService {
         List<MenuItemDto> result = getAllSysMenus();
         result.addAll(currentUserPackageMenuDtoList);
         Collections.sort(result);
+        log.info(String.format("Found menuCode: [%s] from both system and plugin package menu database.", result.stream().map(MenuItemDto::getCode).collect(Collectors.toList()).toString()));
         return result;
     }
 
