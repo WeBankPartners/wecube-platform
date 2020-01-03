@@ -16,6 +16,24 @@ insert into menu_items (id,parent_code,code,source,menu_order,description,local_
 ,('ADMIN__ADMIN_USER_ROLE_MANAGEMENT', 'ADMIN', 'ADMIN_USER_ROLE_MANAGEMENT', 'SYSTEM', 14, '', '用户管理')
 ,('IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION', 'IMPLEMENTATION', 'IMPLEMENTATION_BATCH_EXECUTION', 'SYSTEM', 15, '', '批量执行');
 
+delete from role_menu;
+insert into role_menu (id, role_id, role_name, menu_id) values
+('admin__JOBS','admin','admin','JOBS'),
+('admin__DESIGNING','admin','admin','DESIGNING'),
+('admin__IMPLEMENTATION','admin','admin','IMPLEMENTATION'),
+('admin__MONITORING','admin','admin','MONITORING'),
+('admin__ADJUSTMENT','admin','admin','ADJUSTMENT'),
+('admin__INTELLIGENCE_OPS','admin','admin','INTELLIGENCE_OPS'),
+('admin__COLLABORATION','admin','admin','COLLABORATION'),
+('admin__ADMIN','admin','admin','ADMIN'),
+('admin__IMPLEMENTATION_WORKFLOW_EXECUTION','admin','admin','IMPLEMENTATION__IMPLEMENTATION_WORKFLOW_EXECUTION'),
+('admin__COLLABORATION_PLUGIN_MANAGEMENT','admin','admin','COLLABORATION__COLLABORATION_PLUGIN_MANAGEMENT'),
+('admin__COLLABORATION_WORKFLOW_ORCHESTRATION','admin','admin','COLLABORATION__COLLABORATION_WORKFLOW_ORCHESTRATION'),
+('admin__ADMIN_SYSTEM_PARAMS','admin','admin','ADMIN__ADMIN_SYSTEM_PARAMS'),
+('admin__ADMIN_RESOURCES_MANAGEMENT','admin','admin','ADMIN__ADMIN_RESOURCES_MANAGEMENT'),
+('admin__ADMIN_USER_ROLE_MANAGEMENT','admin','admin','ADMIN__ADMIN_USER_ROLE_MANAGEMENT'),
+('admin__IMPLEMENTATION_BATCH_EXECUTION','admin','admin','IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION');
+
 
 
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('global__CORE_ADDR', NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', 'system', 'active');
