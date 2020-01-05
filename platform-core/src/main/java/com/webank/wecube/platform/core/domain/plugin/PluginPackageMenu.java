@@ -7,6 +7,7 @@ import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
+import java.util.Comparator;
 
 @Entity
 @Table(name = "plugin_package_menus")
@@ -15,10 +16,7 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
     @Id
     private String id;
 
-    @JsonBackReference
-    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH })
-    @JoinColumn(name = "plugin_package_id")
-    private PluginPackage pluginPackage;
+    public static final Comparator<PluginPackageMenu> COMPARE_BY_MENU_ORDER = Comparator.comparing(PluginPackageMenu::getMenuOrder);
 
     @Column
     private String code;
@@ -138,9 +136,10 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this(null, pluginPackage, code, category, pluginPackage.getId(), displayName, null, path);
     }
 
-    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, Integer menuOrder, String path) {
-        this(null, pluginPackage, code, category, source, displayName, displayName,menuOrder, path);
-    }
+    @JsonBackReference
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
+    @JoinColumn(name = "plugin_package_id")
+    private PluginPackage pluginPackage;
 
     public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, String localDisplayName, Integer menuOrder, String path) {
         this(id, pluginPackage, code, category, source, displayName, localDisplayName, menuOrder, path, false);
@@ -159,13 +158,17 @@ public class PluginPackageMenu implements Comparable<PluginPackageMenu> {
         this.active = status;
     }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
+    public PluginPackageMenu(String id, PluginPackage pluginPackage, String code, String category, String source, String displayName, Integer menuOrder, String path) {
+        this(null, pluginPackage, code, category, source, displayName, displayName, menuOrder, path);
     }
 
     @Override
     public int compareTo(PluginPackageMenu compareObject) {
         return this.getId().compareTo(compareObject.getId());
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toStringExclude(this, new String[]{"pluginPackage"});
     }
 }
