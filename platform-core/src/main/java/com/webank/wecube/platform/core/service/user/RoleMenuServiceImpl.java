@@ -144,7 +144,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     }
 
 
-    private MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
+    public MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
         MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
         if (null == menuItem) {
             String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
