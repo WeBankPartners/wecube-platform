@@ -27,7 +27,7 @@ public class JwtSsoClientConfiguration {
     private RestTemplate restTemplate;
 
     @ConditionalOnMissingBean(JwtSsoRestTemplate.class)
-    @Bean
+    @Bean("jwtSsoRestTemplate")
     public JwtSsoRestTemplate jwtSsoRestTemplate(JwtSsoClientContext ctx) {
         return new JwtSsoRestTemplate(ctx);
     }
