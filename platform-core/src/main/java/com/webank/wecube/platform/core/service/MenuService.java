@@ -87,22 +87,23 @@ public class MenuService {
             currentUserMenuCodeList = new ArrayList<>(currentUserMenuCodeSet);
             log.info(String.format("Current user's all menuCode list is: [%s]", currentUserMenuCodeList));
             // filter all packageMenu which has menuCode in current user's own menu code
-            List<MenuItemDto> foundRoleMenu = new ArrayList<>();
+            List<MenuItemDto> foundMenusByMenuCode = new ArrayList<>();
             for (String menuCode : currentUserMenuCodeList) {
                 MenuItem sysMenu = this.menuItemRepository.findByCode(menuCode);
                 log.info(String.format("Core try toFind menu code: [%s]", menuCode));
                 if (sysMenu != null) {
+                    // given menu code belongs to a system menu
                     MenuItemDto menuItemDto = MenuItemDto.fromSystemMenuItem(sysMenu);
-                    foundRoleMenu.add(menuItemDto);
+                    foundMenusByMenuCode.add(menuItemDto);
                 } else {
-                    Optional<List<PluginPackageMenu>> foundPackageMenuByCode = this.pluginPackageMenuRepository.findAllActiveMenuByCode(menuCode);
-                    foundPackageMenuByCode.ifPresent(pluginPackageMenus -> foundRoleMenu.addAll(packageMenuToMenuItemDto(pluginPackageMenus)));
+                    // given menu code belongs to a package menu
+                    Optional<PluginPackageMenu> foundPackageMenuByCode = this.pluginPackageMenuRepository.findAndMergePluginMenus(menuCode);
+                    foundPackageMenuByCode.ifPresent(pluginPackageMenus -> foundMenusByMenuCode.add(roleMenuService.transferPackageMenuToMenuItemDto(pluginPackageMenus)));
                 }
             }
 
             // append packageMenu and sysMenu
-            result.addAll(foundRoleMenu);
-            log.info(String.format("Found menuCode: [%s] from both system and plugin package menu database.", result.stream().map(MenuItemDto::getCode).collect(Collectors.toList()).toString()));
+            result.addAll(foundMenusByMenuCode);
         }
         Collections.sort(result);
         return result;
