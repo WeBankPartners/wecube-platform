@@ -1,16 +1,12 @@
 package com.webank.wecube.platform.auth.server.repository;
 
-import java.util.List;
-
+import com.webank.wecube.platform.auth.server.entity.UserRoleRelationshipEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
-import com.webank.wecube.platform.auth.server.entity.UserRoleRelationshipEntity;
+import java.util.List;
 
 public interface UserRoleRelationshipRepository extends JpaRepository<UserRoleRelationshipEntity, Long> {
-    List<UserRoleRelationshipEntity> findByRoleId(Long roleId);
-
-    List<UserRoleRelationshipEntity> findAllByRole_Name(String roleName);
+    List<UserRoleRelationshipEntity> findByRoleId(String roleId);
 
     List<UserRoleRelationshipEntity> findByUserId(Long userId);
 
