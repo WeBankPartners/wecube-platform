@@ -49,6 +49,22 @@ public interface PluginPackageMenuRepository extends CrudRepository<PluginPackag
         return Optional.empty();
     }
 
+    /**
+     * Find menu by menuCode and return one with largest menu order
+     * Which is the package's latest version
+     *
+     * @param menuCode menu code of menu
+     * @return optional of found PluginPackageMenu
+     */
+    default Optional<PluginPackageMenu> findAndMergePluginMenus(String menuCode) {
+        Optional<List<PluginPackageMenu>> menuByCodeFromDifferentVersionPackages = findAllActiveMenuByCode(menuCode);
+        if (menuByCodeFromDifferentVersionPackages.isPresent()) {
+            List<PluginPackageMenu> pluginPackageMenus = menuByCodeFromDifferentVersionPackages.get();
+            return pluginPackageMenus.stream().max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
+        }
+        return Optional.empty();
+    }
+
     class PluginPackageMenuComparator implements Comparator<PluginPackageMenu> {
         @Override
         public int compare(PluginPackageMenu menu1, PluginPackageMenu menu2) {
