@@ -30,9 +30,9 @@ public class UserRoleRelationshipService {
     @Autowired
     private UserService userService;
 
-    public List<SysUserEntity> getUsersByRoleId(String roleName) {
+    public List<SysUserEntity> getUsersByRoleId(String roleId) {
         List<SysUserEntity> users = Lists.newArrayList();
-        userRoleRelationshipRepository.findAllByRole_Name(roleName).forEach(userRole -> {
+        userRoleRelationshipRepository.findByRoleId(roleId).forEach(userRole -> {
             users.add(userRole.getUser());
         });
         return users;
