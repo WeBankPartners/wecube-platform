@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.service.datamodel;
 
+import com.webank.wecube.platform.auth.client.context.JwtSsoClientContext;
+import com.webank.wecube.platform.auth.client.model.JwtSsoAccessToken;
+import com.webank.wecube.platform.auth.client.model.JwtSsoRefreshToken;
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
@@ -7,12 +10,14 @@ import com.webank.wecube.platform.core.support.datamodel.dto.TreeNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -27,7 +32,8 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
     @Autowired
     ExpressionServiceImpl dataModelExpressionService;
     @Autowired
-    private RestTemplate restTemplate;
+    @Qualifier(value = "jwtSsoRestTemplate")
+    private RestTemplate jwtSsoRestTemplate;
     @Autowired
     private ApplicationProperties applicationProperties;
     private String gatewayUrl;
@@ -35,7 +41,7 @@ public class ExpressionServiceTest extends BaseSpringBootTest {
 
     @Before
     public void setup() {
-        server = MockRestServiceServer.bindTo(restTemplate).build();
+        server = MockRestServiceServer.bindTo(jwtSsoRestTemplate).build();
         gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
 
