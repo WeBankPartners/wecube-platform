@@ -9,6 +9,7 @@ import com.webank.wecube.platform.core.dto.Filter;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
@@ -30,7 +31,8 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
     @Autowired
     RootlessExpressionServiceImpl rootlessExpressionService;
     @Autowired
-    private RestTemplate restTemplate;
+    @Qualifier(value = "jwtSsoRestTemplate")
+    private RestTemplate jwtSsoRestTemplate;
     @Autowired
     private ApplicationProperties applicationProperties;
     private String gatewayUrl;
@@ -38,7 +40,7 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 
     @Before
     public void setup() {
-        server = MockRestServiceServer.bindTo(restTemplate).build();
+        server = MockRestServiceServer.bindTo(jwtSsoRestTemplate).build();
         gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
 
