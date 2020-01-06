@@ -92,6 +92,9 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         result.setNodeInstId(nodeEntity.getId());
         result.setNodeName(nodeEntity.getNodeName());
         result.setNodeType(nodeEntity.getNodeType());
+        if (StringUtils.isNotBlank(nodeEntity.getErrorMessage())) {
+            result.setErrorMessage(nodeEntity.getErrorMessage());
+        }
 
         TaskNodeExecRequestEntity requestEntity = taskNodeExecRequestRepository
                 .findCurrentEntityByNodeInstId(nodeEntity.getId());
@@ -102,7 +105,11 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         result.setRequestId(requestEntity.getRequestId());
         result.setErrorCode(requestEntity.getErrorCode());
-        result.setErrorMessage(requestEntity.getErrorMessage());
+        if (StringUtils.isNotBlank(result.getErrorMessage())) {
+            result.setErrorMessage(result.getErrorMessage() + "|" + requestEntity.getErrorMessage());
+        } else {
+            result.setErrorMessage(requestEntity.getErrorMessage());
+        }
 
         List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
                 requestEntity.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
@@ -121,50 +128,49 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
             List<TaskNodeExecParamEntity> responseParamEntities) {
         List<RequestObjectDto> requestObjects = new ArrayList<>();
-        
-        if(requestParamEntities == null){
+
+        if (requestParamEntities == null) {
             return requestObjects;
         }
-        
-        Map<String, Map<String,String>> respParamsByObjectId = new HashMap<String,Map<String,String>>();
-        if(responseParamEntities != null){
-            for(TaskNodeExecParamEntity respParamEntity : responseParamEntities){
+
+        Map<String, Map<String, String>> respParamsByObjectId = new HashMap<String, Map<String, String>>();
+        if (responseParamEntities != null) {
+            for (TaskNodeExecParamEntity respParamEntity : responseParamEntities) {
                 Map<String, String> respParamsMap = respParamsByObjectId.get(respParamEntity.getObjectId());
-                if(respParamsMap == null){
-                    respParamsMap = new HashMap<String,String>();
+                if (respParamsMap == null) {
+                    respParamsMap = new HashMap<String, String>();
                     respParamsByObjectId.put(respParamEntity.getObjectId(), respParamsMap);
                 }
-                
+
                 respParamsMap.put(respParamEntity.getParamName(), respParamEntity.getParamDataValue());
             }
         }
-        
-        Map<String,RequestObjectDto> objs = new HashMap<>();
-        for(TaskNodeExecParamEntity rp : requestParamEntities){
+
+        Map<String, RequestObjectDto> objs = new HashMap<>();
+        for (TaskNodeExecParamEntity rp : requestParamEntities) {
             RequestObjectDto ro = objs.get(rp.getObjectId());
-            if(ro == null){
+            if (ro == null) {
                 ro = new RequestObjectDto();
                 objs.put(rp.getObjectId(), ro);
             }
-            
+
             ro.addInput(rp.getParamName(), rp.getParamDataValue());
         }
-        
-        for(String objectId : objs.keySet()){
+
+        for (String objectId : objs.keySet()) {
             RequestObjectDto obj = objs.get(objectId);
             Map<String, String> respParamsMap = respParamsByObjectId.get(objectId);
-            if(respParamsMap != null){
-                respParamsMap.forEach((k,v) -> {
+            if (respParamsMap != null) {
+                respParamsMap.forEach((k, v) -> {
                     obj.addOutput(k, v);
                 });
             }
-            
+
             requestObjects.add(obj);
         }
 
         return requestObjects;
     }
-
 
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindings(Integer procInstId) {
         Optional<ProcInstInfoEntity> procInstEntityOpt = procInstInfoRepository.findById(procInstId);
@@ -302,8 +308,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             return result;
         }
 
-        List<String> procDefIds = procRoleBindingRepository
-                .findDistinctProcIdByRoleIdsAndPermissionIsUse(roleIdList);
+        List<String> procDefIds = procRoleBindingRepository.findDistinctProcIdByRoleIdsAndPermissionIsUse(roleIdList);
         if (procDefIds.size() == 0) {
             return result;
         }

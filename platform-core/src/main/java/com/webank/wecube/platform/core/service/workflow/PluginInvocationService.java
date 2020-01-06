@@ -155,6 +155,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                         TaskNodeInstInfoEntity.FAULTED_STATUS);
                 taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
                 taskNodeInstEntity.setUpdatedTime(new Date());
+                taskNodeInstEntity.setErrorMessage(trimWithMaxLength(e == null ? "errors" : e.getMessage()));
 
                 taskNodeInstInfoRepository.save(taskNodeInstEntity);
             }
@@ -384,9 +385,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 //
                 String mappingType = param.getMappingType();
                 inputAttr.setMapType(mappingType);
-                
-                handleEntityMapping( mappingType,  param,  entityDataId,
-                         objectVals);
+
+                handleEntityMapping(mappingType, param, entityDataId, objectVals);
 
                 handleContextMapping(mappingType, taskNodeDefEntity, paramName, procInstEntity, param, paramType,
                         objectVals);
@@ -473,7 +473,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 if (FIELD_REQUIRED.equals(param.getRequired())) {
                     log.error("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
                             bindParamName, bindParamType);
-                    throw new WecubeCoreException("Parameter entity does not exist.");
+                    throw new WecubeCoreException(String.format(
+                            "parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
+                            bindParamName, bindParamType));
                 }
             }
 
@@ -495,7 +497,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
                 log.error("variable is null but is mandatory for {}", paramName);
-                throw new WecubeCoreException("Variable is null but mandatory.");
+                throw new WecubeCoreException(String.format("Variable is null but is mandatory for {%s}", paramName));
             }
 
             String sVal = sVariable.getValue();
@@ -505,7 +507,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(param.getRequired())) {
                 log.error("variable is blank but is mandatory for {}", paramName);
-                throw new WecubeCoreException("Variable is blank but mandatory.");
+                throw new WecubeCoreException(String.format("variable is blank but is mandatory for {%s}", paramName));
             }
 
             objectVals.add(sVal);
@@ -521,7 +523,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             if (nodeParamEntity == null) {
                 log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
-                throw new WecubeCoreException("Task node parameter entity does not exist.");
+                throw new WecubeCoreException(
+                        String.format("Task node parameter entity does not exist for {%s}.", paramName));
             }
 
             Object val = null;
@@ -608,6 +611,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     }
 
     private TaskNodeInstInfoEntity retrieveTaskNodeInstInfoEntity(Integer procInstId, String nodeId) {
+        Date currTime = new Date();
         TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstInfoRepository.findOneByProcInstIdAndNodeId(procInstId,
                 nodeId);
         if (taskNodeInstEntity == null) {
@@ -618,7 +622,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (!TaskNodeInstInfoEntity.IN_PROGRESS_STATUS.equals(taskNodeInstEntity.getStatus())) {
             String originalStatus = taskNodeInstEntity.getStatus();
             taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
-            taskNodeInstEntity.setUpdatedTime(new Date());
+            taskNodeInstEntity.setUpdatedTime(currTime);
+            
+            if(StringUtils.isNotBlank(taskNodeInstEntity.getErrorMessage())){
+                taskNodeInstEntity.setErrorMessage("");
+            }
 
             if (log.isDebugEnabled()) {
                 log.debug("task node instance {} update status from {} to {}", taskNodeInstEntity.getId(),
@@ -626,6 +634,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             }
 
             taskNodeInstInfoRepository.save(taskNodeInstEntity);
+        }
+        
+        TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
+                .findCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
+
+        if (formerRequestEntity != null) {
+            formerRequestEntity.setCurrent(false);
+            formerRequestEntity.setUpdatedTime(currTime);
+            taskNodeExecRequestRepository.save(formerRequestEntity);
         }
 
         return taskNodeInstEntity;
@@ -893,8 +910,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
         TaskNodeExecParamEntity callbackParameterInputEntity = null;
         if (StringUtils.isNotBlank(callbackParameter)) {
-            callbackParameterInputEntity = taskNodeExecParamRepository.findOneByRequestIdAndParamTypeAndParamNameAndValue(
-                    requestId, TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
+            callbackParameterInputEntity = taskNodeExecParamRepository
+                    .findOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
+                            TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
         }
 
         if (callbackParameterInputEntity != null) {
