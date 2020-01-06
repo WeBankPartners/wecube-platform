@@ -10,6 +10,7 @@ import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -35,13 +36,14 @@ public class DataModelServiceStub {
 
     private static final Logger logger = LoggerFactory.getLogger(DataModelServiceStub.class);
 
-    private RestTemplate restTemplate;
-    private HttpHeaders httpHeaders = new HttpHeaders();
+    @Autowired
+    @Qualifier(value = "jwtSsoRestTemplate")
+    private RestTemplate jwtSsoRestTemplate;
 
     @Autowired
-    public DataModelServiceStub(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+    @Qualifier(value = "userJwtSsoTokenRestTemplate")
+    private RestTemplate userJwtSsoTokenRestTemplate;
+
 
     /**
      * Issue a request from request url with place holders and param map
@@ -85,12 +87,13 @@ public class DataModelServiceStub {
      * @param uriStr bind and expanded uri string
      * @return common response dto
      */
-    public UrlToResponseDto sendGetRequest(String uriStr) {
+    private UrlToResponseDto sendGetRequest(String uriStr) {
+        HttpHeaders httpHeaders = new HttpHeaders();
 
         logger.info(String.format("Sending GET request to target url: [%s]", uriStr));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
-        response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, uriStr, this.httpHeaders);
+        response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.jwtSsoRestTemplate, uriStr, httpHeaders);
         responseDto = RestTemplateUtils.checkResponse(response);
         return new UrlToResponseDto(uriStr, responseDto);
     }
@@ -101,11 +104,12 @@ public class DataModelServiceStub {
      * @param uriStr bind and expanded uri string
      * @return common response dto
      */
-    public UrlToResponseDto sendPostRequest(String uriStr, List<Map<String, Object>> postRequestBodyParamMap) {
+    private UrlToResponseDto sendPostRequest(String uriStr, List<Map<String, Object>> postRequestBodyParamMap) {
+        HttpHeaders httpHeaders = new HttpHeaders();
         logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, postRequestBodyParamMap));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
-        response = RestTemplateUtils.sendPostRequestWithBody(this.restTemplate, uriStr, this.httpHeaders, postRequestBodyParamMap);
+        response = RestTemplateUtils.sendPostRequestWithBody(this.jwtSsoRestTemplate, uriStr, httpHeaders, postRequestBodyParamMap);
         responseDto = RestTemplateUtils.checkResponse(response);
         return new UrlToResponseDto(uriStr, responseDto);
     }
