@@ -34,6 +34,9 @@ public class TaskNodeInstInfoEntity extends BaseInstanceStatusEntity {
 
     @Column(name = "PROC_DEF_KEY")
     private String procDefKey;
+    
+    @Column(name = "ERR_MSG")
+    private String errorMessage;
 
     public String getNodeDefId() {
         return nodeDefId;
@@ -107,4 +110,11 @@ public class TaskNodeInstInfoEntity extends BaseInstanceStatusEntity {
         this.orderedNo = orderedNo;
     }
 
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 }
