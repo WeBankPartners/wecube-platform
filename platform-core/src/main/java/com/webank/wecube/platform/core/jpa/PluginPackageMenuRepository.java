@@ -43,7 +43,17 @@ public interface PluginPackageMenuRepository extends CrudRepository<PluginPackag
                     }
             );
 
-            return Optional.of(menuSetByMenuOrderMap.values().stream().map(it -> it.last()).collect(Collectors.toList()));
+            List<PluginPackageMenu> result = new ArrayList<>();
+            for (TreeSet<PluginPackageMenu> menuCodeTreeSet : menuSetByMenuOrderMap.values()) {
+                Optional<PluginPackageMenu> activeMenuOptional = menuCodeTreeSet.stream().filter(PluginPackageMenu::isActive).max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
+                if (activeMenuOptional.isPresent()) {
+                    result.add(activeMenuOptional.get());
+                } else {
+                    Optional<PluginPackageMenu> maxMenuOrderInactiveMenuOptional = menuCodeTreeSet.stream().max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
+                    maxMenuOrderInactiveMenuOptional.ifPresent(menu -> result.add(maxMenuOrderInactiveMenuOptional.get()));
+                }
+            }
+            return Optional.of(result);
         }
 
         return Optional.empty();
@@ -60,7 +70,12 @@ public interface PluginPackageMenuRepository extends CrudRepository<PluginPackag
         Optional<List<PluginPackageMenu>> menuByCodeFromDifferentVersionPackages = findAllActiveMenuByCode(menuCode);
         if (menuByCodeFromDifferentVersionPackages.isPresent()) {
             List<PluginPackageMenu> pluginPackageMenus = menuByCodeFromDifferentVersionPackages.get();
-            return pluginPackageMenus.stream().max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
+            Optional<PluginPackageMenu> activeMenuOptional = pluginPackageMenus.stream().filter(PluginPackageMenu::isActive).max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
+            if (activeMenuOptional.isPresent()) {
+                return activeMenuOptional;
+            } else {
+                return pluginPackageMenus.stream().max(PluginPackageMenu.COMPARE_BY_MENU_ORDER);
+            }
         }
         return Optional.empty();
     }
