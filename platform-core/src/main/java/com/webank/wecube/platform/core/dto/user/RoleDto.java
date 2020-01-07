@@ -20,6 +20,8 @@ public class RoleDto {
     private String displayName;
     @JsonProperty(value = "name")
     private String name;
+    @JsonProperty(value = "E-mail")
+    private String email;
 
 
     public RoleDto() {
@@ -96,4 +98,11 @@ public class RoleDto {
         this.id = id;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }
