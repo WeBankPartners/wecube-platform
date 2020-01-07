@@ -111,7 +111,7 @@
                 :class="[
                   activeResultKey === key ? 'active-key' : '',
                   'business-key',
-                  excuteResult[key].errorCode === '1' ? 'error-key' : '',
+                  excuteResult[key].errorCode === '1' ? 'error-key' : ''
                 ]"
                 v-for="(key, keyIndex) in filterBusinessKeySet"
                 :key="keyIndex"
@@ -290,7 +290,7 @@ import {
   dmeIntegratedQuery,
   entityView,
   getFilteredPluginInterfaceList,
-  batchExecution,
+  batchExecution
 } from '@/api/server.js'
 
 export default {
@@ -304,9 +304,9 @@ export default {
       DelConfig: {
         isDisplay: false,
         displayConfig: {
-          name: '',
+          name: ''
         },
-        key: null,
+        key: null
       },
 
       isShowSearchConditions: false,
@@ -340,14 +340,14 @@ export default {
       filterBusinessKeySet: [],
       activeResultKey: '',
       businessKey: '',
-      resultFilterKey: '',
+      resultFilterKey: ''
     }
   },
   mounted() {},
   computed: {
     businessKeyContent: function() {
       return this.excuteResult[this.activeResultKey]
-    },
+    }
   },
   watch: {
     dataModelExpression: async function(val) {
@@ -355,7 +355,7 @@ export default {
         return
       }
       const params = {
-        dataModelExpression: val,
+        dataModelExpression: val
       }
       const { data, status } = await dmeAllEntities(params)
       if (status === 'OK') {
@@ -375,7 +375,7 @@ export default {
           })
           this.allEntityAttr.push({
             title: `${single.packageName}-${single.entityName}`,
-            children: childNode,
+            children: childNode
           })
         })
       }
@@ -398,7 +398,7 @@ export default {
           this.filterBusinessKeySet.push(key)
         }
       }
-    },
+    }
   },
   methods: {
     setSearchConditions() {
@@ -433,7 +433,7 @@ export default {
               var t = b.name.toLowerCase()
               if (s < t) return -1
               if (s > t) return 1
-            }),
+            })
           }
         })
       }
@@ -452,14 +452,14 @@ export default {
     async excuteSearch() {
       let { status, data } = await entityView(
         this.currentPackageName,
-        this.currentEntityName,
+        this.currentEntityName
       )
       if (status === 'OK') {
         this.tableColumns = data.map((_, i) => {
           return {
             title: _.description,
             key: _.name,
-            displaySeqNo: i + 1,
+            displaySeqNo: i + 1
           }
         })
       }
@@ -468,7 +468,7 @@ export default {
     async entityData() {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
-        filters: [],
+        filters: []
       }
       let keySet = []
       this.searchParameters.forEach(sParameter => {
@@ -479,7 +479,7 @@ export default {
             requestParameter.filters[index].attributeFilters.push({
               name,
               value,
-              operator: 'eq',
+              operator: 'eq'
             })
           }
         } else {
@@ -494,9 +494,9 @@ export default {
                 {
                   name,
                   value,
-                  operator: 'eq',
-                },
-              ],
+                  operator: 'eq'
+                }
+              ]
             })
           }
         }
@@ -549,7 +549,7 @@ export default {
     async getFilteredPluginInterfaceList() {
       const { status, data } = await getFilteredPluginInterfaceList(
         this.currentPackageName,
-        this.currentEntityName,
+        this.currentEntityName
       )
       if (status === 'OK') {
         this.filteredPlugins = data
@@ -568,7 +568,7 @@ export default {
             : null
         return {
           inputParameter: p,
-          inputParameterValue: inputParameterValue,
+          inputParameterValue: inputParameterValue
         }
       })
       let currentEntity = this.currentEntityAttrList.find(_ => {
@@ -577,7 +577,7 @@ export default {
       const resourceDatas = this.seletedRows.map(_ => {
         return {
           id: _.id,
-          businessKeyValue: _[this.currentEntityAttr],
+          businessKeyValue: _[this.currentEntityAttr]
         }
       })
 
@@ -587,7 +587,7 @@ export default {
         pluginConfigInterface: plugin,
         inputParameterDefinitions,
         businessKeyAttribute: currentEntity,
-        resourceDatas,
+        resourceDatas
       }
 
       const { status, data } = await batchExecution(requestBody)
@@ -604,11 +604,11 @@ export default {
         this.displayResultTableZone = false
         this.displayExcuteResultZone = false
       }
-    },
+    }
   },
   components: {
-    PathExp,
-  },
+    PathExp
+  }
 }
 </script>
 

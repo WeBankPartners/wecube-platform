@@ -14,8 +14,7 @@
   },
   "lint-staged": {
     "*.{js,json,css,md,vue}": [
-      "prettier --tab-width 2 --write",
-      "eslint",
+      "prettier --write",
       "git add"
     ]
   },

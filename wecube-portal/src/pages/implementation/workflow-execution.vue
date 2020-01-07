@@ -195,7 +195,7 @@ import {
   retryProcessInstance,
   getModelNodeDetail,
   getNodeBindings,
-  getNodeContext,
+  getNodeContext
 } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line
@@ -227,26 +227,26 @@ export default {
         {
           type: 'selection',
           width: 60,
-          align: 'center',
+          align: 'center'
         },
         {
           title: 'PackageName',
-          key: 'packageName',
+          key: 'packageName'
         },
         {
           title: 'EntityName',
-          key: 'entityName',
+          key: 'entityName'
         },
         {
           title: 'DisplayName',
-          key: 'displayName',
+          key: 'displayName'
         },
         {
           title: 'Action',
           slot: 'action',
           width: 100,
-          align: 'center',
-        },
+          align: 'center'
+        }
       ],
       currentFailedNodeID: '',
       timer: null,
@@ -255,7 +255,7 @@ export default {
       modelDetailTimer: null,
       flowNodesBindings: [],
       flowDetailTimer: null,
-      isLoading: false,
+      isLoading: false
     }
   },
   mounted() {
@@ -271,7 +271,7 @@ export default {
     async getDetail(row) {
       const { status, data } = await getModelNodeDetail(
         row.entityName,
-        row.dataId,
+        row.dataId
       )
       if (status === 'OK') {
         this.rowContent = data
@@ -290,7 +290,7 @@ export default {
     },
     targetModelSelectHandel(selection) {
       const currentFlow = this.flowData.flowNodes.find(
-        i => i.nodeId === this.currentFlowNodeId,
+        i => i.nodeId === this.currentFlowNodeId
       )
       this.modelData.forEach(i => {
         const flowNodeIndex = i.refFlowNodeIds.indexOf(currentFlow.orderedNo)
@@ -306,7 +306,7 @@ export default {
     },
     async getProcessInstances(
       isAfterCreate = false,
-      createResponse = undefined,
+      createResponse = undefined
     ) {
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
@@ -371,14 +371,14 @@ export default {
 
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(
-          _ => _.id === this.selectedFlowInstance,
+          _ => _.id === this.selectedFlowInstance
         )
         this.getNodeBindings(found.id)
         let { status, data } = await getProcessInstance(found && found.id)
         if (status === 'OK') {
           this.flowData = {
             ...data,
-            flowNodes: data.taskNodeInstances,
+            flowNodes: data.taskNodeInstances
           }
           this.getTargetOptions()
 
@@ -448,14 +448,14 @@ export default {
       this.isLoading = true
       let { status, data } = await getTreePreviewData(
         this.selectedFlow,
-        this.selectedTarget,
+        this.selectedTarget
       )
       this.isLoading = false
       if (status === 'OK') {
         this.modelData = data.map(_ => {
           return {
             ..._,
-            refFlowNodeIds: [],
+            refFlowNodeIds: []
           }
         })
         if (this.isEnqueryPage) {
@@ -527,7 +527,7 @@ export default {
         const found = this.modelData.find(
           _ =>
             _.packageName + '_' + _.entityName + '_' + _.dataId ===
-            e.target.parentNode.id,
+            e.target.parentNode.id
         )
         let modelDetail = document.getElementById('model_graph_detail')
         let el = e || window.event
@@ -535,7 +535,7 @@ export default {
         let y = el.clientY
         const { status, data } = await getModelNodeDetail(
           found.entityName,
-          found.dataId,
+          found.dataId
         )
         if (status === 'OK') {
           this.modelNodeDetail = data
@@ -549,22 +549,22 @@ export default {
         removeEvent(
           '#model_graph_detail',
           'mouseenter',
-          this.modelDetailEnterHandler,
+          this.modelDetailEnterHandler
         )
         removeEvent(
           '#model_graph_detail',
           'mouseleave',
-          this.modelDetailLeaveHandler,
+          this.modelDetailLeaveHandler
         )
         addEvent(
           '#model_graph_detail',
           'mouseenter',
-          this.modelDetailEnterHandler,
+          this.modelDetailEnterHandler
         )
         addEvent(
           '#model_graph_detail',
           'mouseleave',
-          this.modelDetailLeaveHandler,
+          this.modelDetailLeaveHandler
         )
       }, 500)
     },
@@ -587,7 +587,7 @@ export default {
         InProgress: '#3C83F8',
         Faulted: '#FF6262',
         Timeouted: '#F7B500',
-        NotStarted: '#7F8A96',
+        NotStarted: '#7F8A96'
       }
       let nodes =
         this.flowData &&
@@ -666,7 +666,7 @@ export default {
         this.showExcution = false
       } else {
         const currentTarget = this.allTarget.find(
-          _ => _.id === this.selectedTarget,
+          _ => _.id === this.selectedTarget
         )
         let taskNodeBinds = []
         this.modelData.forEach(_ => {
@@ -674,7 +674,7 @@ export default {
           _.refFlowNodeIds.forEach(i => {
             temp.push({
               ..._,
-              flowOrderNo: i,
+              flowOrderNo: i
             })
           })
           taskNodeBinds = taskNodeBinds.concat(temp)
@@ -686,15 +686,15 @@ export default {
           procDefId: this.flowData.procDefId,
           taskNodeBinds: taskNodeBinds.map(_ => {
             const node = this.flowData.flowNodes.find(
-              node => node.orderedNo === _.flowOrderNo,
+              node => node.orderedNo === _.flowOrderNo
             )
             return {
               entityDataId: _.dataId,
               entityTypeId: this.flowData.rootEntity,
               nodeDefId: (node && node.nodeDefId) || '',
-              orderedNo: _.flowOrderNo,
+              orderedNo: _.flowOrderNo
             }
-          }),
+          })
         }
         let { status, data } = await createFlowInstance(payload)
         if (status === 'OK') {
@@ -722,13 +722,13 @@ export default {
     },
     async getStatus() {
       const found = this.allFlowInstances.find(
-        _ => _.id === this.selectedFlowInstance,
+        _ => _.id === this.selectedFlowInstance
       )
       let { status, data } = await getProcessInstance(found && found.id)
       if (status === 'OK') {
         this.flowData = {
           ...data,
-          flowNodes: data.taskNodeInstances,
+          flowNodes: data.taskNodeInstances
         }
         this.initFlowGraph(true)
         removeEvent('.retry', 'click', this.retryHandler)
@@ -749,7 +749,7 @@ export default {
     },
     async workFlowActionHandler(type) {
       const found = this.flowData.flowNodes.find(
-        _ => _.nodeId === this.currentFailedNodeID,
+        _ => _.nodeId === this.currentFailedNodeID
       )
       if (!found) {
         return
@@ -757,7 +757,7 @@ export default {
       const payload = {
         act: type,
         nodeInstId: found.id,
-        procInstId: found.procInstId,
+        procInstId: found.procInstId
       }
       const { status } = await retryProcessInstance(payload)
       if (status === 'OK') {
@@ -765,7 +765,7 @@ export default {
           title: 'Success',
           desc:
             (type === 'retry' ? 'Retry' : 'Skip') +
-            ' action is proceed successfully',
+            ' action is proceed successfully'
         })
         this.workflowActionModalVisible = false
         this.processInstance()
@@ -795,7 +795,7 @@ export default {
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
         const found = this.flowData.flowNodes.find(
-          _ => _.nodeId === e.target.parentNode.id,
+          _ => _.nodeId === e.target.parentNode.id
         )
         let flowDetail = document.getElementById('flow_graph_detail')
         let el = e || window.event
@@ -803,7 +803,7 @@ export default {
         let y = el.clientY
         const { status, data } = await getNodeContext(
           found.procInstId,
-          found.id,
+          found.id
         )
         if (status === 'OK') {
           this.flowNodeDetail = data
@@ -817,22 +817,22 @@ export default {
         removeEvent(
           '#flow_graph_detail',
           'mouseenter',
-          this.flowDetailEnterHandler,
+          this.flowDetailEnterHandler
         )
         removeEvent(
           '#flow_graph_detail',
           'mouseleave',
-          this.flowDetailLeaveHandler,
+          this.flowDetailLeaveHandler
         )
         addEvent(
           '#flow_graph_detail',
           'mouseenter',
-          this.flowDetailEnterHandler,
+          this.flowDetailEnterHandler
         )
         addEvent(
           '#flow_graph_detail',
           'mouseleave',
-          this.flowDetailLeaveHandler,
+          this.flowDetailLeaveHandler
         )
       }, 500)
     },
@@ -858,7 +858,7 @@ export default {
     },
     highlightModel(nodeId) {
       const routineExpression = this.flowData.flowNodes.find(
-        item => item.nodeId === nodeId,
+        item => item.nodeId === nodeId
       ).routineExpression
       if (routineExpression) {
         this.foundRefAry = routineExpression
@@ -874,15 +874,15 @@ export default {
           this.modelData.filter(
             _ =>
               this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] ===
-              _.entityName,
-          ),
-        ),
+              _.entityName
+          )
+        )
       )
       this.targetModalVisible = true
       this.$nextTick(() => {
         let objData = this.$refs.selection.objData
         const currentFlow = this.flowData.flowNodes.find(
-          i => i.nodeId === this.currentFlowNodeId,
+          i => i.nodeId === this.currentFlowNodeId
         )
         this.modelData.forEach(_ => {
           const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo)
@@ -929,8 +929,8 @@ export default {
       }
       initEvent()
       this.renderFlowGraph(excution)
-    },
-  },
+    }
+  }
 }
 </script>
 <style lang="scss" scoped>
