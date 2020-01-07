@@ -352,5 +352,6 @@
   "create_new_workflow_job": "Create Workflow Job",
   "enquery_new_workflow_job": "Enquery Workflow Job",
   "plugin_analysis": "Parsing Plugin Package.....",
-  "select_model": "Select Target"
+  "select_model": "Select Target",
+  "email": "E-mail"
 }
