@@ -8,6 +8,7 @@
           v-model="selectedFlow"
           style="width: 70%"
           @on-open-change="getAllFlows"
+          filterable
         >
           <Option :value="100000">
             <Button
@@ -367,7 +368,7 @@ export default {
           this.currentflowsNodes = []
         }
         if (!val) {
-          this.selectedFlow = oldVal
+          // this.selectedFlow = oldVal
         }
       }
     }
@@ -476,7 +477,7 @@ export default {
     },
     init () {
       this.getAllDataModels()
-      this.getAllFlows()
+      this.getAllFlows(true)
       this.getPluginInterfaceList()
     },
     async getAllDataModels () {
@@ -520,16 +521,18 @@ export default {
         }
       }
     },
-    async getAllFlows () {
-      const { data, status } = await getAllFlow()
-      if (status === 'OK') {
-        let sortedResult = data.sort((a, b) => {
-          let s = a.createdTime.toLowerCase()
-          let t = b.createdTime.toLowerCase()
-          if (s > t) return -1
-          if (s < t) return 1
-        })
-        this.allFlows = sortedResult
+    async getAllFlows (s) {
+      if (s) {
+        const { data, status } = await getAllFlow()
+        if (status === 'OK') {
+          let sortedResult = data.sort((a, b) => {
+            let s = a.createdTime.toLowerCase()
+            let t = b.createdTime.toLowerCase()
+            if (s > t) return -1
+            if (s < t) return 1
+          })
+          this.allFlows = sortedResult
+        }
       }
     },
     async deleteFlow (id) {
@@ -539,7 +542,7 @@ export default {
           title: 'Success',
           desc: message
         })
-        this.getAllFlows()
+        this.getAllFlows(true)
       }
     },
     onEntitySelect (v) {
@@ -606,11 +609,14 @@ export default {
           console.error(err)
         }
       })
+      this.$nextTick(() => {
+        this.selectedFlow = null
+      })
     },
     saveDiagram (isDraft) {
       let _this = this
       const okHandler = data => {
-        this.getAllFlows()
+        this.getAllFlows(true)
         this.selectedFlow = data.data.procDefId
       }
       // eslint-disable-next-line handle-callback-err
@@ -885,7 +891,7 @@ export default {
           desc: response.message || ''
         })
 
-        this.getAllFlows()
+        this.getAllFlows(true)
         this.selectedFlow = response.data.procDefId
       } else {
         this.$Notice.warning({
