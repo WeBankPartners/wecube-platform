@@ -1,21 +1,21 @@
 export const formatData = data => {
-  let exportData = [];
+  let exportData = []
   exportData = data.map((_, index) => {
     return {
       ..._,
       weTableForm: { ..._ }
-    };
-  });
+    }
+  })
 
   exportData.forEach(_ => {
-    for (let i in _["weTableForm"]) {
+    for (let i in _['weTableForm']) {
       if (
-        typeof _["weTableForm"][i] === "object" &&
-        _["weTableForm"][i] !== null
+        typeof _['weTableForm'][i] === 'object' &&
+        _['weTableForm'][i] !== null
       ) {
-        _["weTableForm"][i] = _[i].value || _[i].key_name;
+        _['weTableForm'][i] = _[i].value || _[i].key_name
       }
     }
-  });
-  return exportData.map(_ => _.weTableForm);
-};
+  })
+  return exportData.map(_ => _.weTableForm)
+}
