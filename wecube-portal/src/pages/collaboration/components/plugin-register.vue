@@ -139,7 +139,7 @@
                             >*</span
                           >
                           <span
-                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 95%;"
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
                             >{{ param.name }}</span
                           >
                         </Tooltip>
@@ -217,12 +217,12 @@
                   >
                     <Col span="4">
                       <FormItem :label-width="0">
-                        <Tooltip :content="outPut.name">
+                        <Tooltip :content="outPut.name" style="width: 100%">
                           <span v-if="outPut.required === 'Y'" style="color:red"
                             >*</span
                           >
                           <span
-                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
                             >{{ outPut.name }}</span
                           >
                         </Tooltip>
