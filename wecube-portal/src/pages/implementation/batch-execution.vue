@@ -295,7 +295,7 @@ import {
 
 export default {
   name: '',
-  data() {
+  data () {
     return {
       displaySearchZone: true,
       displayResultTableZone: false,
@@ -343,14 +343,14 @@ export default {
       resultFilterKey: ''
     }
   },
-  mounted() {},
+  mounted () {},
   computed: {
-    businessKeyContent: function() {
+    businessKeyContent: function () {
       return this.excuteResult[this.activeResultKey]
     }
   },
   watch: {
-    dataModelExpression: async function(val) {
+    dataModelExpression: async function (val) {
       if (val === ':') {
         return
       }
@@ -380,7 +380,7 @@ export default {
         })
       }
     },
-    serviceId: function(val) {
+    serviceId: function (val) {
       this.filteredPlugins.forEach(plugin => {
         if (plugin.serviceDisplayName === val) {
           this.selectedPluginParams = plugin.inputParameters
@@ -391,7 +391,7 @@ export default {
         return _
       })
     },
-    businessKey: function(val) {
+    businessKey: function (val) {
       this.filterBusinessKeySet = []
       for (const key in this.excuteResult) {
         if (key.indexOf(this.businessKey) > -1) {
@@ -401,7 +401,7 @@ export default {
     }
   },
   methods: {
-    setSearchConditions() {
+    setSearchConditions () {
       this.allEntityType = []
       this.getAllDataModels()
       this.isShowSearchConditions = true
@@ -418,17 +418,17 @@ export default {
       this.allEntityAttr = []
       this.targetEntityAttr = []
     },
-    changeEntityType() {
+    changeEntityType () {
       this.targetEntityAttr = []
     },
-    async getAllDataModels() {
+    async getAllDataModels () {
       const { data, status } = await getAllDataModels()
       if (status === 'OK') {
         this.allEntityType = data.map(_ => {
           // handle result sort by name
           return {
             ..._,
-            pluginPackageEntities: _.pluginPackageEntities.sort(function(a, b) {
+            pluginPackageEntities: _.pluginPackageEntities.sort(function (a, b) {
               var s = a.name.toLowerCase()
               var t = b.name.toLowerCase()
               if (s < t) return -1
@@ -438,10 +438,10 @@ export default {
         })
       }
     },
-    checkChange(totalChecked) {
+    checkChange (totalChecked) {
       this.targetEntityAttr = totalChecked
     },
-    saveSearchCondition() {
+    saveSearchCondition () {
       if (!this.currentEntityAttr) {
         this.$Message.warning('业务主键不能为空！')
         return
@@ -449,7 +449,7 @@ export default {
       this.isShowSearchConditions = false
       this.searchParameters = this.targetEntityAttr
     },
-    async excuteSearch() {
+    async excuteSearch () {
       let { status, data } = await entityView(
         this.currentPackageName,
         this.currentEntityName
@@ -465,7 +465,7 @@ export default {
       }
       this.entityData()
     },
-    async entityData() {
+    async entityData () {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
@@ -512,22 +512,22 @@ export default {
         }
       }
     },
-    clearParametes() {
+    clearParametes () {
       this.searchParameters.forEach(item => {
         item.value = ''
       })
     },
-    resetParametes() {
+    resetParametes () {
       this.dataModelExpression = ':'
       this.currentPackageName = null
       this.currentEntityName = null
       this.searchParameters = []
     },
-    reExcute(key) {
+    reExcute (key) {
       this.DelConfig.isDisplay = true
       this.DelConfig.key = key
     },
-    del() {
+    del () {
       this.DelConfig.isDisplay = false
 
       this.displaySearchZone = false
@@ -536,17 +536,17 @@ export default {
       this.businessKey = null
       this[this.DelConfig.key] = true
     },
-    onSelectedRowsChange(rows, checkoutBoxdisable) {
+    onSelectedRowsChange (rows, checkoutBoxdisable) {
       this.seletedRows = rows
       this.seletedRowsNum = this.seletedRows.length
     },
-    batchAction() {
+    batchAction () {
       this.getFilteredPluginInterfaceList()
       this.batchActionModalVisible = true
       this.selectedPluginParams = []
       this.serviceId = null
     },
-    async getFilteredPluginInterfaceList() {
+    async getFilteredPluginInterfaceList () {
       const { status, data } = await getFilteredPluginInterfaceList(
         this.currentPackageName,
         this.currentEntityName
@@ -555,7 +555,7 @@ export default {
         this.filteredPlugins = data
       }
     },
-    async excuteBatchAction() {
+    async excuteBatchAction () {
       const plugin = this.filteredPlugins.find(_ => {
         return _.serviceName === this.serviceId
       })
