@@ -6,7 +6,7 @@
     <div class="content-container">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum">
         <BreadcrumbItem
-          ><a @click="homePageClickHandler">{{ $t("home") }}</a></BreadcrumbItem
+          ><a @click="homePageClickHandler">{{ $t('home') }}</a></BreadcrumbItem
         >
         <BreadcrumbItem>{{ parentBreadcrumb }}</BreadcrumbItem>
         <BreadcrumbItem>{{ childBreadcrumb }}</BreadcrumbItem>
@@ -17,64 +17,64 @@
   </div>
 </template>
 <script>
-import Header from "./components/header";
-import { MENUS } from "../const/menus.js";
+import Header from './components/header'
+import { MENUS } from '../const/menus.js'
 export default {
   components: {
     Header
   },
-  data() {
+  data () {
     return {
       isShowBreadcrum: true,
       allMenusAry: [],
-      parentBreadcrumb: "",
-      childBreadcrumb: ""
-    };
+      parentBreadcrumb: '',
+      childBreadcrumb: ''
+    }
   },
   methods: {
-    allMenus(data) {
-      this.allMenusAry = data;
-      console.log(this.allMenusAry);
+    allMenus (data) {
+      this.allMenusAry = data
+      console.log(this.allMenusAry)
     },
-    setBreadcrumb() {
+    setBreadcrumb () {
       this.isShowBreadcrum = !(
-        this.$route.path === "/homepage" || this.$route.path === "/404"
-      );
-      if (this.$route.path === "/coming-soon") {
-        this.parentBreadcrumb = "-";
-        this.childBreadcrumb = "Coming Soon";
-        return;
+        this.$route.path === '/homepage' || this.$route.path === '/404'
+      )
+      if (this.$route.path === '/coming-soon') {
+        this.parentBreadcrumb = '-'
+        this.childBreadcrumb = 'Coming Soon'
+        return
       }
-      let currentLangKey = localStorage.getItem("lang") || navigator.language;
+      let currentLangKey = localStorage.getItem('lang') || navigator.language
       const menuObj = window.myMenus
         ? []
-            .concat(...window.myMenus.map(_ => _.submenus))
-            .find(m => m.link === this.$route.path)
-        : MENUS.find(m => m.link === this.$route.path);
+          .concat(...window.myMenus.map(_ => _.submenus))
+          .find(m => m.link === this.$route.path)
+        : MENUS.find(m => m.link === this.$route.path)
       if (menuObj) {
         this.allMenusAry.forEach(_ => {
           _.submenus.forEach(sub => {
             if (menuObj.code === sub.code) {
               this.parentBreadcrumb =
-                currentLangKey === "zh-CN" ? _.cnName : _.enName;
+                currentLangKey === 'zh-CN' ? _.cnName : _.enName
             }
-          });
-        });
-        this.childBreadcrumb = menuObj.title;
+          })
+        })
+        this.childBreadcrumb = menuObj.title
       } else {
-        this.parentBreadcrumb = "-";
-        this.childBreadcrumb = this.$route.path.substr(1);
+        this.parentBreadcrumb = '-'
+        this.childBreadcrumb = this.$route.path.substr(1)
       }
     },
-    homePageClickHandler() {
-      window.needReLoad = false;
-      this.$router.push("homepage");
+    homePageClickHandler () {
+      window.needReLoad = false
+      this.$router.push('homepage')
     }
   },
-  created() {
-    this.setBreadcrumb();
+  created () {
+    this.setBreadcrumb()
   },
-  mounted() {
+  mounted () {
     // TODO: get plugins url by axios.
     // let pluginURLs = [
     //   {
@@ -88,19 +88,19 @@ export default {
   },
   watch: {
     allMenusAry: {
-      handler(val) {
-        this.setBreadcrumb();
+      handler (val) {
+        this.setBreadcrumb()
       },
       immediate: true
     },
     $route: {
-      handler(val) {
-        this.setBreadcrumb();
+      handler (val) {
+        this.setBreadcrumb()
       },
       immediate: true
     }
   }
-};
+}
 </script>
 <style lang="scss">
 #nav {
@@ -149,14 +149,14 @@ html {
 .validation-form {
   .no-need-validation {
     .ivu-form-item-label:before {
-      content: " ";
+      content: ' ';
       display: inline-block;
       margin-right: 4px;
       line-height: 1;
     }
   }
   .ivu-form-item-label:before {
-    content: "*";
+    content: '*';
     display: inline-block;
     margin-right: 4px;
     line-height: 1;
