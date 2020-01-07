@@ -31,12 +31,11 @@ import {
   deleteEnumCodes,
   getAllNonSystemEnumCodes,
   getNonSystemCategories
-} from "@/api/server.js";
-import { formatData } from "../util/format.js";
-import { outerActions, innerActions } from "@/const/actions.js";
+} from '@/api/server.js'
+import { outerActions, innerActions } from '@/const/actions.js'
 
 export default {
-  data() {
+  data () {
     return {
       outerActions,
       innerActions,
@@ -45,69 +44,69 @@ export default {
       seachFilters: {},
       tableColumns: [
         {
-          title: this.$t("enum_name"),
-          key: "catName",
-          inputKey: "catId",
+          title: this.$t('enum_name'),
+          key: 'catName',
+          inputKey: 'catId',
           searchSeqNo: 1,
           displaySeqNo: 1,
-          component: "WeSelect",
-          onChange: "getGroupList",
+          component: 'WeSelect',
+          onChange: 'getGroupList',
           disEditor: true, // 枚举名称不可改
-          inputType: "select",
-          placeholder: "catName",
+          inputType: 'select',
+          placeholder: 'catName',
           options: []
         },
         {
-          title: this.$t("enum_key"),
-          key: "code",
-          inputKey: "code",
+          title: this.$t('enum_key'),
+          key: 'code',
+          inputKey: 'code',
           searchSeqNo: 2,
           displaySeqNo: 2,
-          component: "Input",
-          inputType: "text",
-          placeholder: "code"
+          component: 'Input',
+          inputType: 'text',
+          placeholder: 'code'
         },
         {
-          title: this.$t("enum_value"),
-          key: "value",
-          inputKey: "value",
+          title: this.$t('enum_value'),
+          key: 'value',
+          inputKey: 'value',
           searchSeqNo: 3,
           displaySeqNo: 3,
-          component: "Input",
-          inputType: "text",
-          placeholder: "value"
+          component: 'Input',
+          inputType: 'text',
+          placeholder: 'value'
         },
         {
-          title: this.$t("enum_type"),
-          key: "catTypeName",
-          inputKey: "cat.catType.catTypeName",
+          title: this.$t('enum_type'),
+          key: 'catTypeName',
+          inputKey: 'cat.catType.catTypeName',
           searchSeqNo: 0, // 不可作为搜索条件
           displaySeqNo: 4,
-          component: "Input",
+          component: 'Input',
           disEditor: true, // 枚举类型不可改
-          inputType: "text",
-          placeholder: "catTypeName"
+          inputType: 'text',
+          placeholder: 'catTypeName'
         },
         {
-          title: this.$t("enum_group"),
-          key: "groupCodeId",
-          inputKey: "groupCodeId",
+          title: this.$t('enum_group'),
+          key: 'groupCodeId',
+          inputKey: 'groupCodeId',
           searchSeqNo: 5,
           displaySeqNo: 5,
-          component: "WeSelect",
-          inputType: "select",
-          placeholder: "groupCodeId",
-          optionKey: "catId"
+          component: 'WeSelect',
+          inputType: 'select',
+          placeholder: 'groupCodeId',
+          optionKey: 'catId'
         },
         {
-          title: this.$t("enum_status"),
-          key: "status",
-          inputKey: "status",
+          title: this.$t('enum_status'),
+          key: 'status',
+          inputKey: 'status',
           searchSeqNo: 6,
           displaySeqNo: 6,
-          component: "WeSelect",
-          inputType: "select",
-          placeholder: "status",
+          component: 'WeSelect',
+          inputType: 'select',
+          placeholder: 'status',
           options: []
         }
       ],
@@ -125,262 +124,262 @@ export default {
         paging: true,
         sorting: {
           asc: true,
-          field: ""
+          field: ''
         },
-        refResources: ["cat"]
+        refResources: ['cat']
       },
       ascOptions: {},
       seletedRows: []
-    };
+    }
   },
   props: {
     catId: {}
   },
   watch: {
     catId: {
-      handler(val) {
-        this.queryData();
+      handler (val) {
+        this.queryData()
         if (val) {
-          this.getGroupList(val);
+          this.getGroupList(val)
         }
       },
       immediate: true
     }
   },
-  beforeRouteLeave(to, from, next) {
-    this.$destroy();
-    next();
+  beforeRouteLeave (to, from, next) {
+    this.$destroy()
+    next()
   },
   methods: {
-    pageChange(current) {
-      this.pagination.currentPage = current;
-      this.queryData();
+    pageChange (current) {
+      this.pagination.currentPage = current
+      this.queryData()
     },
-    pageSizeChange(size) {
-      this.pagination.pageSize = size;
-      this.queryData();
+    pageSizeChange (size) {
+      this.pagination.pageSize = size
+      this.queryData()
     },
-    sortHandler(data) {
+    sortHandler (data) {
       this.payload.sorting = {
-        asc: data.order === "asc",
+        asc: data.order === 'asc',
         field: data.key
-      };
-      this.queryData();
+      }
+      this.queryData()
     },
-    handleSubmit(data) {
-      this.payload.filters = data;
-      this.pagination.currentPage = 1;
-      this.queryData();
+    handleSubmit (data) {
+      this.payload.filters = data
+      this.pagination.currentPage = 1
+      this.queryData()
     },
-    setNewAddedRow(index, key, v) {
-      this.$refs.table.data[index][key] = v;
+    setNewAddedRow (index, key, v) {
+      this.$refs.table.data[index][key] = v
     },
-    async getGroupList(catId) {
+    async getGroupList (catId) {
       if (catId) {
-        const { data, status, message } = await getGroupListByCodeId(catId);
-        let opts = [];
-        if (status === "OK") {
+        const { data, status } = await getGroupListByCodeId(catId)
+        let opts = []
+        if (status === 'OK') {
           opts = data.map(_ => {
             return {
               value: _.codeId,
               label: _.value
-            };
-          });
+            }
+          })
         }
-        this.$set(this.ascOptions, catId, opts);
+        this.$set(this.ascOptions, catId, opts)
       }
-      this.$refs.table.form.groupCodeId = "";
+      this.$refs.table.form.groupCodeId = ''
     },
-    getAsyncOptions(rows, disable) {
+    getAsyncOptions (rows, disable) {
       rows.forEach(async _ => {
         if (!this.ascOptions[_.catId] && _.catId > 0) {
-          this.getGroupList(_.catId);
+          this.getGroupList(_.catId)
         }
-      });
-      this.$refs.table.setTableData(disable);
+      })
+      this.$refs.table.setTableData(disable)
     },
-    async queryData() {
-      this.payload.pageable.pageSize = this.pagination.pageSize;
+    async queryData () {
+      this.payload.pageable.pageSize = this.pagination.pageSize
       this.payload.pageable.startIndex =
-        (this.pagination.currentPage - 1) * this.pagination.pageSize;
+        (this.pagination.currentPage - 1) * this.pagination.pageSize
       if (this.catId > -1) {
-        const found = this.payload.filters.find(_ => _.name === "catId");
+        const found = this.payload.filters.find(_ => _.name === 'catId')
         if (found) {
-          found.value = this.catId;
+          found.value = this.catId
         } else {
           this.payload.filters.push({
-            name: "catId",
-            operator: "eq",
+            name: 'catId',
+            operator: 'eq',
             value: this.catId
-          });
+          })
         }
       }
-      const { status, message, data } =
-        this.$route.name === "baseData"
+      const { status, data } =
+        this.$route.name === 'baseData'
           ? await getAllSystemEnumCodes(this.payload)
-          : await getAllNonSystemEnumCodes(this.payload);
-      if (status === "OK") {
-        this.pagination.total = data.pageInfo.totalRows;
+          : await getAllNonSystemEnumCodes(this.payload)
+      if (status === 'OK') {
+        this.pagination.total = data.pageInfo.totalRows
         this.tableData = data.contents.map(_ => {
           return {
             ..._,
             ..._.cat,
             catTypeName:
-              _.cat.catType.catTypeName === "sys"
-                ? this.$t("sys_enum")
-                : _.cat.catType.catTypeName === "common"
-                ? this.$t("pub_enum")
-                : this.$t("pri_enum") + "-" + _.cat.catType.catTypeName
-          };
-        });
+              _.cat.catType.catTypeName === 'sys'
+                ? this.$t('sys_enum')
+                : _.cat.catType.catTypeName === 'common'
+                  ? this.$t('pub_enum')
+                  : this.$t('pri_enum') + '-' + _.cat.catType.catTypeName
+          }
+        })
       }
     },
-    async getEnumNames() {
-      const { status, message, data } =
-        this.$route.name === "baseData"
+    async getEnumNames () {
+      const { status, data } =
+        this.$route.name === 'baseData'
           ? await getSystemCategories()
-          : await getNonSystemCategories();
-      if (status === "OK") {
+          : await getNonSystemCategories()
+      if (status === 'OK') {
         this.tableColumns[0].options = data.map(_ => {
           // this.getGroupList(_.catId);
           return {
             value: _.catId,
             label: _.catName
-          };
-        });
+          }
+        })
       }
     },
-    async getEnumsStatus() {
-      const { status, message, data } = await getEffectiveStatus();
-      if (status === "OK") {
+    async getEnumsStatus () {
+      const { status, data } = await getEffectiveStatus()
+      if (status === 'OK') {
         this.tableColumns[this.tableColumns.length - 1].options = data.map(
           _ => {
             return {
               value: _,
               label: _
-            };
+            }
           }
-        );
+        )
       }
     },
 
-    actionFun(type, data) {
+    actionFun (type, data) {
       switch (type) {
-        case "export":
-          this.exportHandler();
-          break;
-        case "add":
-          this.addHandler();
-          break;
-        case "edit":
-          this.editHandler();
-          break;
-        case "save":
-          this.saveHandler(data);
-          break;
-        case "delete":
-          this.deleteHandler(data);
-          break;
-        case "cancel":
-          this.cancelHandler();
-          break;
-        case "innerCancel":
-          this.$refs.table.rowCancelHandler(data.weTableRowId);
-          break;
+        case 'export':
+          this.exportHandler()
+          break
+        case 'add':
+          this.addHandler()
+          break
+        case 'edit':
+          this.editHandler()
+          break
+        case 'save':
+          this.saveHandler(data)
+          break
+        case 'delete':
+          this.deleteHandler(data)
+          break
+        case 'cancel':
+          this.cancelHandler()
+          break
+        case 'innerCancel':
+          this.$refs.table.rowCancelHandler(data.weTableRowId)
+          break
         default:
-          break;
+          break
       }
     },
-    cancelHandler() {
-      this.$refs.table.setAllRowsUneditable();
-      this.$refs.table.setCheckoutStatus();
+    cancelHandler () {
+      this.$refs.table.setAllRowsUneditable()
+      this.$refs.table.setCheckoutStatus()
       this.outerActions &&
         this.outerActions.forEach(_ => {
           _.props.disabled = !(
-            _.actionType === "add" ||
-            _.actionType === "export" ||
-            _.actionType === "cancel"
-          );
-        });
+            _.actionType === 'add' ||
+            _.actionType === 'export' ||
+            _.actionType === 'cancel'
+          )
+        })
     },
-    addHandler() {
-      let emptyRowData = {};
+    addHandler () {
+      let emptyRowData = {}
       this.tableColumns.forEach(_ => {
-        if (_.inputType === "multiSelect" || _.inputType === "multiRef") {
-          emptyRowData[_.inputKey] = [];
+        if (_.inputType === 'multiSelect' || _.inputType === 'multiRef') {
+          emptyRowData[_.inputKey] = []
         } else {
-          emptyRowData[_.inputKey] = "";
+          emptyRowData[_.inputKey] = ''
         }
-      });
-      emptyRowData["isRowEditable"] = true;
-      emptyRowData["isNewAddedRow"] = true;
-      emptyRowData["weTableRowId"] = new Date().getTime();
-      emptyRowData["catId"] = this.catId ? this.catId : "";
-      this.tableData.unshift(emptyRowData);
+      })
+      emptyRowData['isRowEditable'] = true
+      emptyRowData['isNewAddedRow'] = true
+      emptyRowData['weTableRowId'] = new Date().getTime()
+      emptyRowData['catId'] = this.catId ? this.catId : ''
+      this.tableData.unshift(emptyRowData)
       this.$nextTick(() => {
-        this.$refs.table.pushNewAddedRowToSelections();
-        this.$refs.table.setCheckoutStatus(true);
-      });
+        this.$refs.table.pushNewAddedRowToSelections()
+        this.$refs.table.setCheckoutStatus(true)
+      })
       this.outerActions.forEach(_ => {
-        _.props.disabled = _.actionType === "add";
-      });
+        _.props.disabled = _.actionType === 'add'
+      })
     },
-    editHandler() {
-      this.$refs.table.swapRowEditable(true);
+    editHandler () {
+      this.$refs.table.swapRowEditable(true)
       this.outerActions.forEach(_ => {
-        if (_.actionType === "save") {
-          _.props.disabled = false;
+        if (_.actionType === 'save') {
+          _.props.disabled = false
         }
-      });
+      })
       this.$nextTick(() => {
-        this.$refs.table.setCheckoutStatus(true);
-      });
+        this.$refs.table.setCheckoutStatus(true)
+      })
     },
-    deleteHandler(deleteData) {
+    deleteHandler (deleteData) {
       this.$Modal.confirm({
-        title: this.$t("confirm_to_delete"),
-        "z-index": 1000000,
+        title: this.$t('confirm_to_delete'),
+        'z-index': 1000000,
         onOk: async () => {
-          const payload = deleteData.map(_ => _.codeId);
-          const { status, message, data } = await deleteEnumCodes(payload);
-          if (status === "OK") {
+          const payload = deleteData.map(_ => _.codeId)
+          const { status, message } = await deleteEnumCodes(payload)
+          if (status === 'OK') {
             this.$Notice.success({
-              title: "Delete Enum Success",
+              title: 'Delete Enum Success',
               desc: message
-            });
+            })
             this.outerActions.forEach(_ => {
               _.props.disabled =
-                _.actionType === "save" ||
-                _.actionType === "edit" ||
-                _.actionType === "delete";
-            });
-            this.queryData();
+                _.actionType === 'save' ||
+                _.actionType === 'edit' ||
+                _.actionType === 'delete'
+            })
+            this.queryData()
           }
         },
         onCancel: () => {}
-      });
-      document.querySelector(".ivu-modal-mask").click();
+      })
+      document.querySelector('.ivu-modal-mask').click()
     },
-    async saveHandler(data) {
+    async saveHandler (data) {
       let setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
           _.props.disabled = !(
-            _.actionType === "add" || _.actionType === "export"
-          );
-        });
-        this.$refs.table.setAllRowsUneditable();
+            _.actionType === 'add' || _.actionType === 'export'
+          )
+        })
+        this.$refs.table.setAllRowsUneditable()
         this.$nextTick(() => {
           /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs.table.$refs.table.$refs.tbody.objData;
+          let objData = this.$refs.table.$refs.table.$refs.tbody.objData
           for (let obj in objData) {
-            objData[obj]._isChecked = false;
-            objData[obj]._isDisabled = false;
+            objData[obj]._isChecked = false
+            objData[obj]._isDisabled = false
           }
-        });
-      };
-      let d = JSON.parse(JSON.stringify(data));
-      let addObj = d.find(_ => _.isNewAddedRow);
-      let editAry = d.filter(_ => !_.isNewAddedRow);
+        })
+      }
+      let d = JSON.parse(JSON.stringify(data))
+      let addObj = d.find(_ => _.isNewAddedRow)
+      let editAry = d.filter(_ => !_.isNewAddedRow)
       if (addObj) {
         let payload = {
           callbackId: 1,
@@ -389,15 +388,15 @@ export default {
           status: addObj.status,
           value: addObj.value,
           groupCodeId: addObj.groupCodeId
-        };
-        const { status, message, data } = await createEnumCode(payload);
-        if (status === "OK") {
+        }
+        const { status, message } = await createEnumCode(payload)
+        if (status === 'OK') {
           this.$Notice.success({
-            title: "Add Enum Success",
+            title: 'Add Enum Success',
             desc: message
-          });
-          setBtnsStatus();
-          this.queryData();
+          })
+          setBtnsStatus()
+          this.queryData()
         }
       }
       if (editAry.length > 0) {
@@ -410,79 +409,79 @@ export default {
             groupCodeId: _.groupCodeId,
             status: _.status,
             value: _.value
-          };
-        });
-        const { status, message, data } = await updateEnumCode(payload);
-        if (status === "OK") {
+          }
+        })
+        const { status, message } = await updateEnumCode(payload)
+        if (status === 'OK') {
           this.$Notice.success({
-            title: "Update Enum Success",
+            title: 'Update Enum Success',
             desc: message
-          });
-          setBtnsStatus();
-          this.queryData();
+          })
+          setBtnsStatus()
+          this.queryData()
         }
       }
     },
-    onSelectedRowsChange(rows, checkoutBoxdisable) {
+    onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {
         this.outerActions.forEach(_ => {
-          _.props.disabled = _.actionType === "add";
-        });
+          _.props.disabled = _.actionType === 'add'
+        })
       } else {
         this.outerActions.forEach(_ => {
           _.props.disabled = !(
-            _.actionType === "add" ||
-            _.actionType === "export" ||
-            _.actionType === "cancel"
-          );
-        });
+            _.actionType === 'add' ||
+            _.actionType === 'export' ||
+            _.actionType === 'cancel'
+          )
+        })
       }
-      this.seletedRows = rows;
-      this.getAsyncOptions(rows, checkoutBoxdisable);
+      this.seletedRows = rows
+      this.getAsyncOptions(rows, checkoutBoxdisable)
     },
-    async exportHandler() {
-      const { status, message, data } =
-        this.$route.name === "baseData"
+    async exportHandler () {
+      const { status, data } =
+        this.$route.name === 'baseData'
           ? await getAllSystemEnumCodes({ ...this.payload, paging: false })
-          : await getAllNonSystemEnumCodes({ ...this.payload, paging: false });
+          : await getAllNonSystemEnumCodes({ ...this.payload, paging: false })
 
-      if (status === "OK") {
+      if (status === 'OK') {
         this.$refs.table.export({
           filename:
-            this.$route.name === "baseData" ? "Basic Enums Data" : "Enums Data",
+            this.$route.name === 'baseData' ? 'Basic Enums Data' : 'Enums Data',
           data: data.contents.map(_ => {
-            const formatValue = _.value ? _.value.replace(/,/g, ";") : "";
+            const formatValue = _.value ? _.value.replace(/,/g, ';') : ''
             return {
               ..._,
               value: formatValue,
-              groupCodeId: _.groupCodeId ? _.groupCodeId.value : "",
+              groupCodeId: _.groupCodeId ? _.groupCodeId.value : '',
               catName: _.cat.catName
-            };
+            }
           })
-        });
+        })
       }
     },
-    setActionsParams() {
-      const routerFlag = this.$route.name === "enumEnquiry";
-      this.outerActions = routerFlag ? null : outerActions;
-      this.innerActions = routerFlag ? null : innerActions;
-      this.showCheckbox = routerFlag ? false : true;
+    setActionsParams () {
+      const routerFlag = this.$route.name === 'enumEnquiry'
+      this.outerActions = routerFlag ? null : outerActions
+      this.innerActions = routerFlag ? null : innerActions
+      this.showCheckbox = !routerFlag
     }
   },
-  created() {
+  created () {
     if (this.catId) {
-      this.tableColumns.shift();
+      this.tableColumns.shift()
     } else {
-      this.setActionsParams();
-      this.getEnumNames();
+      this.setActionsParams()
+      this.getEnumNames()
     }
-    this.queryData();
-    this.getEnumsStatus();
+    this.queryData()
+    this.getEnumsStatus()
   },
-  mounted() {
-    this.cancelHandler();
+  mounted () {
+    this.cancelHandler()
   }
-};
+}
 </script>
 
 <style lang="scss" scoped></style>
