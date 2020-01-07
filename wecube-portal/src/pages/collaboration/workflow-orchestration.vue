@@ -23,13 +23,19 @@
             v-for="item in allFlows"
             :value="item.procDefId"
             :key="item.procDefId"
-          >
-            {{
+            :label="
               (item.procDefName || 'Null') +
                 ' ' +
                 item.createdTime +
                 (item.status === 'draft' ? '*' : '')
-            }}
+            "
+          >
+            <span>{{
+              (item.procDefName || 'Null') +
+                ' ' +
+                item.createdTime +
+                (item.status === 'draft' ? '*' : '')
+            }}</span>
             <span style="float:right">
               <Button
                 @click.stop.prevent="deleteFlow(item.procDefId)"
@@ -72,12 +78,12 @@
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram(false)">{{
-        $t('save_flow')
-      }}</Button>
-      <Button type="info" @click="exportProcessDefinition(false)">{{
-        $t('export_flow')
-      }}</Button>
+      <Button type="info" @click="saveDiagram(false)">
+        {{ $t('save_flow') }}
+      </Button>
+      <Button type="info" @click="exportProcessDefinition(false)">
+        {{ $t('export_flow') }}
+      </Button>
       <Button type="info" @click="getHeaders">{{ $t('import_flow') }}</Button>
       <Upload
         ref="uploadButton"
@@ -95,9 +101,9 @@
     <div v-show="showBpmn" class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">{{
-          $t('config_plugin')
-        }}</a>
+        <a href="javascript:void(0);" @click="openPluginModal">
+          {{ $t('config_plugin') }}
+        </a>
         <br />
       </div>
 
@@ -179,9 +185,9 @@
             style="width:30%"
             @on-change="onParamsNodeChange(index)"
           >
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">
-              {{ i.label }}
-            </Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
+              i.label
+            }}</Option>
           </Select>
           <Select
             v-if="item.bindType === 'context'"
@@ -199,9 +205,9 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
-          {{ $t('confirm') }}
-        </Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
+          $t('confirm')
+        }}</Button>
       </div>
     </Modal>
     <Modal
