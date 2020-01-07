@@ -202,7 +202,7 @@ import * as d3 from 'd3-selection'
 import * as d3Graphviz from 'd3-graphviz'
 import { addEvent, removeEvent } from '../util/event.js'
 export default {
-  data() {
+  data () {
     return {
       graph: {},
       flowGraph: {},
@@ -258,17 +258,17 @@ export default {
       isLoading: false
     }
   },
-  mounted() {
+  mounted () {
     this.getProcessInstances()
     this.getAllFlow()
     this.createHandler()
   },
-  destroyed() {
+  destroyed () {
     clearInterval(this.timer)
     this.timer = null
   },
   methods: {
-    async getDetail(row) {
+    async getDetail (row) {
       const { status, data } = await getModelNodeDetail(
         row.entityName,
         row.dataId
@@ -277,7 +277,7 @@ export default {
         this.rowContent = data
       }
     },
-    targetModelConfirm(visible) {
+    targetModelConfirm (visible) {
       this.targetModalVisible = visible
       if (!visible) {
         // document.getElementById("graph").innerHTML = "";
@@ -285,10 +285,10 @@ export default {
         this.renderModelGraph()
       }
     },
-    cancleModal() {
+    cancleModal () {
       this.targetModelSelectHandel([])
     },
-    targetModelSelectHandel(selection) {
+    targetModelSelectHandel (selection) {
       const currentFlow = this.flowData.flowNodes.find(
         i => i.nodeId === this.currentFlowNodeId
       )
@@ -304,7 +304,7 @@ export default {
         })
       })
     },
-    async getProcessInstances(
+    async getProcessInstances (
       isAfterCreate = false,
       createResponse = undefined
     ) {
@@ -319,13 +319,13 @@ export default {
         }
       }
     },
-    async getNodeBindings(id) {
+    async getNodeBindings (id) {
       const { status, data } = await getNodeBindings(id)
       if (status === 'OK') {
         this.flowNodesBindings = data
       }
     },
-    async getAllFlow() {
+    async getAllFlow () {
       let { status, data } = await getAllFlow(false)
       if (status === 'OK') {
         this.allFlows = data.sort((a, b) => {
@@ -337,7 +337,7 @@ export default {
       }
     },
 
-    orchestrationSelectHandler() {
+    orchestrationSelectHandler () {
       this.currentFlowNodeId = ''
       this.getFlowOutlineData(this.selectedFlow)
       if (this.selectedFlow && this.isEnqueryPage === false) {
@@ -347,7 +347,7 @@ export default {
         this.renderModelGraph()
       }
     },
-    async getTargetOptions() {
+    async getTargetOptions () {
       if (!(this.flowData.rootEntity || this.flowData.entityTypeId)) return
       let pkgName = ''
       let entityName = ''
@@ -363,7 +363,7 @@ export default {
         this.allTarget = data
       }
     },
-    queryHandler() {
+    queryHandler () {
       clearInterval(this.timer)
       this.timer = null
       if (!this.selectedFlowInstance) return
@@ -395,7 +395,7 @@ export default {
         this.getModelData()
       })
     },
-    queryHistory() {
+    queryHistory () {
       this.isEnqueryPage = true
       this.showExcution = false
       this.selectedFlow = ''
@@ -407,7 +407,7 @@ export default {
         this.initFlowGraph()
       })
     },
-    createHandler() {
+    createHandler () {
       clearInterval(this.timer)
       this.timer = null
       this.isEnqueryPage = false
@@ -422,10 +422,10 @@ export default {
         this.initFlowGraph()
       })
     },
-    onTargetSelectHandler() {
+    onTargetSelectHandler () {
       this.getModelData()
     },
-    formatNodesBindings() {
+    formatNodesBindings () {
       // let bindings = this.flowNodesBindings.map(_ => {
       //   const found = this.flowData.flowNodes.find(
       //     i => i.nodeDefId === _.nodeDefId
@@ -443,7 +443,7 @@ export default {
         })
       })
     },
-    async getModelData() {
+    async getModelData () {
       if (!this.selectedFlow || !this.selectedTarget) return
       this.isLoading = true
       let { status, data } = await getTreePreviewData(
@@ -464,7 +464,7 @@ export default {
         this.renderModelGraph()
       }
     },
-    async getFlowOutlineData(id) {
+    async getFlowOutlineData (id) {
       let { status, data } = await getFlowOutlineByID(id)
       if (status === 'OK') {
         this.flowData = data
@@ -472,7 +472,7 @@ export default {
         this.getTargetOptions()
       }
     },
-    renderModelGraph() {
+    renderModelGraph () {
       let nodes = this.modelData.map((_, index) => {
         const nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
         let color = _.isHighlight ? '#5DB400' : 'black'
@@ -521,7 +521,7 @@ export default {
       addEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       addEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
     },
-    modelGraphMouseenterHandler(e) {
+    modelGraphMouseenterHandler (e) {
       clearTimeout(this.modelDetailTimer)
       this.modelDetailTimer = setTimeout(async () => {
         const found = this.modelData.find(
@@ -568,19 +568,19 @@ export default {
         )
       }, 500)
     },
-    modelDetailEnterHandler(e) {
+    modelDetailEnterHandler (e) {
       let modelDetail = document.getElementById('model_graph_detail')
       modelDetail.style.display = 'block'
     },
-    modelDetailLeaveHandler(e) {
+    modelDetailLeaveHandler (e) {
       let modelDetail = document.getElementById('model_graph_detail')
       modelDetail.style.display = 'none'
     },
-    modelGraphMouseleaveHandler(e) {
+    modelGraphMouseleaveHandler (e) {
       clearTimeout(this.modelDetailTimer)
       this.modelDetailLeaveHandler(e)
     },
-    renderFlowGraph(excution) {
+    renderFlowGraph (excution) {
       const statusColor = {
         Completed: '#5DB400',
         deployed: '#7F8A96',
@@ -615,8 +615,8 @@ export default {
                 excution
                   ? statusColor[_.status]
                   : _.nodeId === this.currentFlowNodeId
-                  ? '#5DB400'
-                  : '#7F8A96'
+                    ? '#5DB400'
+                    : '#7F8A96'
               }"  shape="box" id="${_.nodeId}" ]`
             }
           })
@@ -659,7 +659,7 @@ export default {
       this.flowGraph.graphviz.renderDot(nodesString)
       this.bindFlowEvent()
     },
-    async excutionFlow() {
+    async excutionFlow () {
       // 区分已存在的flowInstance执行 和 新建的执行
       if (this.isEnqueryPage) {
         this.processInstance()
@@ -704,7 +704,7 @@ export default {
         }
       }
     },
-    start() {
+    start () {
       if (this.timer === null) {
         this.getStatus()
       }
@@ -716,11 +716,11 @@ export default {
         this.getStatus()
       }, 5000)
     },
-    stop() {
+    stop () {
       clearInterval(this.timer)
       this.timer = null
     },
-    async getStatus() {
+    async getStatus () {
       const found = this.allFlowInstances.find(
         _ => _.id === this.selectedFlowInstance
       )
@@ -739,15 +739,15 @@ export default {
         }
       }
     },
-    processInstance() {
+    processInstance () {
       this.timer = null
       this.start()
     },
-    retryHandler(e) {
+    retryHandler (e) {
       this.currentFailedNodeID = e.target.parentNode.getAttribute('id')
       this.workflowActionModalVisible = true
     },
-    async workFlowActionHandler(type) {
+    async workFlowActionHandler (type) {
       const found = this.flowData.flowNodes.find(
         _ => _.nodeId === this.currentFailedNodeID
       )
@@ -771,7 +771,7 @@ export default {
         this.processInstance()
       }
     },
-    bindFlowEvent() {
+    bindFlowEvent () {
       if (this.isEnqueryPage !== true) {
         addEvent('.flow', 'mouseover', e => {
           e.preventDefault()
@@ -787,11 +787,11 @@ export default {
         addEvent('.flow text', 'mouseleave', this.flowGraphLeaveHandler)
       }
     },
-    flowGraphLeaveHandler(e) {
+    flowGraphLeaveHandler (e) {
       clearTimeout(this.flowDetailTimer)
       this.flowDetailLeaveHandler()
     },
-    flowGraphMouseenterHandler(e) {
+    flowGraphMouseenterHandler (e) {
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
         const found = this.flowData.flowNodes.find(
@@ -836,15 +836,15 @@ export default {
         )
       }, 500)
     },
-    flowDetailEnterHandler(e) {
+    flowDetailEnterHandler (e) {
       let modelDetail = document.getElementById('flow_graph_detail')
       modelDetail.style.display = 'block'
     },
-    flowDetailLeaveHandler(e) {
+    flowDetailLeaveHandler (e) {
       let modelDetail = document.getElementById('flow_graph_detail')
       modelDetail.style.display = 'none'
     },
-    flowNodesClickHandler(e) {
+    flowNodesClickHandler (e) {
       e.preventDefault()
       e.stopPropagation()
       let g = e.currentTarget
@@ -856,7 +856,7 @@ export default {
       this.currentNodeTitle = `${currentNode.orderedNo}、${currentNode.nodeName}`
       this.renderFlowGraph()
     },
-    highlightModel(nodeId) {
+    highlightModel (nodeId) {
       const routineExpression = this.flowData.flowNodes.find(
         item => item.nodeId === nodeId
       ).routineExpression
@@ -895,7 +895,7 @@ export default {
         })
       })
     },
-    initModelGraph() {
+    initModelGraph () {
       const graphEl = document.getElementById('graph')
       const initEvent = () => {
         let graph
@@ -914,7 +914,7 @@ export default {
       initEvent()
       this.renderModelGraph()
     },
-    initFlowGraph(excution = false) {
+    initFlowGraph (excution = false) {
       const graphEl = document.getElementById('flow')
       const initEvent = () => {
         let graph
