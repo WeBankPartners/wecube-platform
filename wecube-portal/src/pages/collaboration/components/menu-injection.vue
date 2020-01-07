@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Col span="4" v-for="(menuGroup, index) in menus" :key="menuGroup.id">
+    <Col span="4" v-for="menuGroup in menus" :key="menuGroup.id">
       <List size="small">
         <h6 slot="header">{{ menuGroup.displayName }}</h6>
         <ListItem
@@ -22,7 +22,7 @@
     overflow: hidden;
     text-overflow: ellipsis;"
             >
-              {{ $lang === "zh-CN" ? menu.localDisplayName : menu.displayName }}
+              {{ $lang === 'zh-CN' ? menu.localDisplayName : menu.displayName }}
             </p>
             <p
               v-else
@@ -41,20 +41,20 @@
 </template>
 
 <script>
-import { getMenuInjection } from "@/api/server";
-import { MENUS } from "../../../const/menus.js";
+import { getMenuInjection } from '@/api/server'
+import { MENUS } from '../../../const/menus.js'
 
 export default {
-  name: "menu-injection",
-  data() {
+  name: 'menu-injection',
+  data () {
     return {
       menus: []
-    };
+    }
   },
   watch: {
     pkgId: {
       handler: () => {
-        this.getData();
+        this.getData()
       }
     }
   },
@@ -63,43 +63,43 @@ export default {
       required: true
     }
   },
-  created() {
-    this.getData();
+  created () {
+    this.getData()
   },
   methods: {
-    async getData() {
-      let { status, data, message } = await getMenuInjection(this.pkgId);
-      if (status === "OK") {
-        let allCats = [];
+    async getData () {
+      let { status, data } = await getMenuInjection(this.pkgId)
+      if (status === 'OK') {
+        let allCats = []
         data.forEach((_, index) => {
-          if (!_.category && _.code !== "COLLABORATION" && _.code !== "ADMIN") {
-            const found = MENUS.find(m => m.code === _.code);
+          if (!_.category && _.code !== 'COLLABORATION' && _.code !== 'ADMIN') {
+            const found = MENUS.find(m => m.code === _.code)
             allCats.push({
               id: _.id,
               code: _.code,
-              displayName: this.$lang === "zh-CN" ? found.cnName : found.enName,
+              displayName: this.$lang === 'zh-CN' ? found.cnName : found.enName,
               children: []
-            });
+            })
           }
-        });
+        })
 
         this.menus = allCats.map(_ => {
           data.forEach(item => {
-            if (item.category === "" + _.id) {
-              if (item.source === "SYSTEM") {
-                const found = MENUS.find(m => m.code === item.code);
+            if (item.category === '' + _.id) {
+              if (item.source === 'SYSTEM') {
+                const found = MENUS.find(m => m.code === item.code)
                 if (found) {
                   item.displayName =
-                    this.$lang === "zh-CN" ? found.cnName : found.enName;
+                    this.$lang === 'zh-CN' ? found.cnName : found.enName
                 }
               }
-              _.children.push(item);
+              _.children.push(item)
             }
-          });
-          return _;
-        });
+          })
+          return _
+        })
       }
     }
   }
-};
+}
 </script>
