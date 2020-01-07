@@ -352,5 +352,6 @@
   "create_new_workflow_job": "新建任务编排",
   "enquery_new_workflow_job": "查询历史编排",
   "plugin_analysis": "插件包解析中.....",
-  "select_model": "选择模型"
+  "select_model": "选择模型",
+  "email": "邮箱"
 }
