@@ -1,33 +1,33 @@
 <template>
   <div>
     <p style="margin-top: 20px; height: 200px; font-size: 24px !important;">
-      {{ $t("wecube_desc") }}
+      {{ $t('wecube_desc') }}
     </p>
     <div class="graph_container">
       <div class="wrap">
         <div class="cube">
           <div class="front">
-            <h2>{{ $t("cube_front") }}</h2>
+            <h2>{{ $t('cube_front') }}</h2>
             Workbench 汇聚任务 统一平台
           </div>
           <div class="back">
-            <h2>{{ $t("cube_back") }}</h2>
+            <h2>{{ $t('cube_back') }}</h2>
             Expectation 规范设计 描绘期望
           </div>
           <div class="top">
-            <h2>{{ $t("cube_top") }}</h2>
+            <h2>{{ $t('cube_top') }}</h2>
             Equilibration 不断调整 保持对等
           </div>
           <div class="bottom">
-            <h2>{{ $t("cube_bottom") }}</h2>
+            <h2>{{ $t('cube_bottom') }}</h2>
             Wisdom 赋予智慧 制定策略
           </div>
           <div class="left">
-            <h2>{{ $t("cube_left") }}</h2>
+            <h2>{{ $t('cube_left') }}</h2>
             Execution 自动执行 驱动实现
           </div>
           <div class="right">
-            <h2>{{ $t("cube_right") }}</h2>
+            <h2>{{ $t('cube_right') }}</h2>
             Watching 持续监测 发现差异
           </div>
         </div>
@@ -38,21 +38,21 @@
 
 <script>
 export default {
-  data() {
+  data () {
     return {
-      currentLanguage: "",
+      currentLanguage: '',
       toggle: true
-    };
+    }
   },
-  async created() {
-    this.getLocalLang();
+  async created () {
+    this.getLocalLang()
   },
   methods: {
-    getLocalLang() {
-      this.currentLanguage = localStorage.getItem("lang") || navigator.language;
+    getLocalLang () {
+      this.currentLanguage = localStorage.getItem('lang') || navigator.language
     }
   }
-};
+}
 </script>
 
 <style lang="scss" scoped>
