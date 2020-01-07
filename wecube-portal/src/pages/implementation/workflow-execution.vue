@@ -9,24 +9,34 @@
                 v-model="selectedFlowInstance"
                 style="width:70%"
                 filterable
+                clearable
               >
                 <Option
                   v-for="item in allFlowInstances"
                   :value="item.id"
                   :key="item.id"
-                >
-                  {{
+                  :label="
                     item.procInstName +
                       ' ' +
                       (item.createdTime || 'createdTime') +
                       ' ' +
                       (item.operator || 'operator')
-                  }}
+                  "
+                >
+                  <span>
+                    {{
+                      item.procInstName +
+                        ' ' +
+                        (item.createdTime || 'createdTime') +
+                        ' ' +
+                        (item.operator || 'operator')
+                    }}
+                  </span>
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">{{
-                $t('query_orch')
-              }}</Button>
+              <Button type="info" @click="queryHandler">
+                {{ $t('query_orch') }}
+              </Button>
             </FormItem>
           </Form>
         </Col>
@@ -34,12 +44,12 @@
           span="4"
           style="text-align: right;margin-bottom:8px;padding-right:40px;float:right;"
         >
-          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">{{
-            $t('enquery_new_workflow_job')
-          }}</Button>
-          <Button type="success" v-if="isEnqueryPage" @click="createHandler">{{
-            $t('create_new_workflow_job')
-          }}</Button>
+          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">
+            {{ $t('enquery_new_workflow_job') }}
+          </Button>
+          <Button type="success" v-if="isEnqueryPage" @click="createHandler">
+            {{ $t('create_new_workflow_job') }}
+          </Button>
         </Col>
       </Row>
       <Row>
@@ -129,9 +139,9 @@
         class="workflowActionModal-container"
         style="text-align: center;margin-top: 20px;"
       >
-        <Button type="info" @click="workFlowActionHandler('retry')">
-          {{ $t('retry') }}
-        </Button>
+        <Button type="info" @click="workFlowActionHandler('retry')">{{
+          $t('retry')
+        }}</Button>
         <Button
           type="info"
           @click="workFlowActionHandler('skip')"
