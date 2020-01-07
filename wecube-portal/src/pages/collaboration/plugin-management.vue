@@ -3,14 +3,14 @@
     <Col span="6">
       <Row>
         <Card dis-hover>
-          <p slot="title">{{ $t("upload_plugin_pkg_title") }}</p>
+          <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
           <Button
             type="info"
             ghost
             icon="ios-cloud-upload-outline"
             @click="getHeaders"
           >
-            {{ $t("upload_plugin_btn") }}
+            {{ $t('upload_plugin_btn') }}
           </Button>
           <Upload
             ref="uploadButton"
@@ -24,29 +24,29 @@
             :headers="headers"
           >
             <Button style="display:none" icon="ios-cloud-upload-outline">
-              {{ $t("upload_plugin_btn") }}
+              {{ $t('upload_plugin_btn') }}
             </Button>
           </Upload>
           <span v-if="showSuccess" style="color:#2b85e4">{{
-            $t("plugin_analysis")
+            $t('plugin_analysis')
           }}</span>
         </Card>
       </Row>
       <Row class="plugins-tree-container" style="margin-top: 20px">
         <Card dis-hover>
           <Row slot="title">
-            <Col span="12">{{ $t("plugins_list") }}</Col>
+            <Col span="12">{{ $t('plugins_list') }}</Col>
             <Col style="float: right">
               <Checkbox
                 style="width: max-content"
                 v-model="isShowDecomissionedPackage"
-                >{{ $t("is_show_decomissioned_pkg") }}</Checkbox
+                >{{ $t('is_show_decomissioned_pkg') }}</Checkbox
               >
             </Col>
           </Row>
           <div style="height: 70%; overflow: auto">
             <span v-if="plugins.length < 1">
-              {{ $t("no_plugin_packages") }}
+              {{ $t('no_plugin_packages') }}
             </span>
             <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
               <Panel
@@ -64,7 +64,7 @@
                       ? 'nonDecomissionedPkgName'
                       : 'decomissionedPkgName'
                   "
-                  >{{ plugin.name + "_" + plugin.version }}</span
+                  >{{ plugin.name + '_' + plugin.version }}</span
                 >
                 <span style="float: right; margin-right: 10px">
                   <Button
@@ -83,7 +83,7 @@
                     type="info"
                     ghost
                     icon="ios-checkmark-circle"
-                    >{{ $t("plugin_config_check") }}</Button
+                    >{{ $t('plugin_config_check') }}</Button
                   >
                   <Button
                     @click="manageService(plugin.id)"
@@ -91,7 +91,7 @@
                     type="info"
                     ghost
                     icon="ios-construct"
-                    >{{ $t("service_regist") }}</Button
+                    >{{ $t('service_regist') }}</Button
                   >
                   <Button
                     @click="manageRuntimePlugin(plugin.id)"
@@ -99,7 +99,7 @@
                     type="info"
                     ghost
                     icon="ios-settings"
-                    >{{ $t("runtime_manage") }}</Button
+                    >{{ $t('runtime_manage') }}</Button
                   >
                 </p>
               </Panel>
@@ -152,7 +152,7 @@
           :label="$t('confirm')"
         >
           <Button type="info" @click="registPackage()">
-            {{ $t("confirm_to_regist_plugin") }}
+            {{ $t('confirm_to_regist_plugin') }}
           </Button>
         </TabPane>
       </Tabs>
@@ -173,7 +173,7 @@
     >
       <Spin size="large" fix v-if="isLoading">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>{{ $t("loading") }}</div>
+        <div>{{ $t('loading') }}</div>
       </Spin>
       <div v-if="Object.keys(currentPlugin).length > 0">
         <div v-if="currentPlugin.children">
@@ -181,7 +181,7 @@
             <Collapse value="1" @on-change="onRuntimeCollapseChange">
               <Panel name="1">
                 <span style="font-size: 14px; font-weight: 600">
-                  {{ $t("runtime_container") }}
+                  {{ $t('runtime_container') }}
                 </span>
                 <p slot="content">
                   <Card dis-hover>
@@ -204,11 +204,11 @@
                         size="small"
                         type="success"
                         @click="getAvailablePortByHostIp"
-                        >{{ $t("port_preview") }}</Button
+                        >{{ $t('port_preview') }}</Button
                       >
                       <div v-if="availiableHostsWithPort.length > 0">
                         <p style="margin-top: 20px">
-                          {{ $t("avaliable_port") }}:
+                          {{ $t('avaliable_port') }}:
                         </p>
 
                         <div
@@ -221,7 +221,7 @@
                           >
                             <div class="instance-item">
                               <Col span="4">
-                                {{ item.ip + ":" + item.port }}
+                                {{ item.ip + ':' + item.port }}
                               </Col>
                               <Button
                                 size="small"
@@ -232,7 +232,7 @@
                                     item.port
                                   )
                                 "
-                                >{{ $t("create") }}</Button
+                                >{{ $t('create') }}</Button
                               >
                             </div>
                           </div>
@@ -240,9 +240,9 @@
                       </div>
                     </Row>
                     <Row>
-                      <p style="margin-top: 20px">{{ $t("running_node") }}:</p>
+                      <p style="margin-top: 20px">{{ $t('running_node') }}:</p>
                       <div v-if="allInstances.length === 0">
-                        {{ $t("no_avaliable_instances") }}
+                        {{ $t('no_avaliable_instances') }}
                       </div>
                       <div v-else>
                         <div v-for="item in allInstances" :key="item.id">
@@ -257,7 +257,7 @@
                                 size="small"
                                 type="error"
                                 @click="removePluginInstance(item.id)"
-                                >{{ $t("ternmiante") }}</Button
+                                >{{ $t('ternmiante') }}</Button
                               >
                             </Col>
                           </div>
@@ -300,7 +300,7 @@
               </Panel>
               <Panel name="2">
                 <span style="font-size: 14px; font-weight: 600">
-                  {{ $t("database") }}
+                  {{ $t('database') }}
                 </span>
                 <Row slot="content">
                   <Row>
@@ -313,12 +313,12 @@
                     </Col>
                     <Col span="4" offset="1">
                       <Button @click="getDBTableData">
-                        {{ $t("execute") }}
+                        {{ $t('execute') }}
                       </Button>
                     </Col>
                   </Row>
                   <Row style="margin-top: 20px">
-                    {{ $t("search_result") + ":" }}
+                    {{ $t('search_result') + ':' }}
                     <div style="width: 100%;overflow: auto">
                       <Table
                         :columns="dbQueryColumns"
@@ -341,7 +341,7 @@
               </Panel>
               <Panel name="3">
                 <span style="font-size: 14px; font-weight: 600">
-                  {{ $t("storage_service") }}
+                  {{ $t('storage_service') }}
                 </span>
                 <Row slot="content">
                   <Table
@@ -370,26 +370,26 @@ import {
   getAvailableInstancesByPackageId,
   queryDataBaseByPackageId,
   queryStorageFilesByPackageId
-} from "@/api/server.js";
+} from '@/api/server.js'
+
+import DataModel from './components/data-model.vue'
+import DependencyAnalysis from './components/dependency-analysis.vue'
+import PluginRegister from './components/plugin-register.vue'
+import MenuInjection from './components/menu-injection.vue'
+import SysParmas from './components/system-params.vue'
+import RuntimesResources from './components/runtime-resource.vue'
+import AuthSettings from './components/auth-setting.vue'
+import axios from 'axios'
 const logTablePagination = {
   pageSize: 10,
   currentPage: 1,
   total: 0
-};
+}
 const dbTablePagination = {
   pageSize: 5,
   currentPage: 1,
   total: 0
-};
-
-import DataModel from "./components/data-model.vue";
-import DependencyAnalysis from "./components/dependency-analysis.vue";
-import PluginRegister from "./components/plugin-register.vue";
-import MenuInjection from "./components/menu-injection.vue";
-import SysParmas from "./components/system-params.vue";
-import RuntimesResources from "./components/runtime-resource.vue";
-import AuthSettings from "./components/auth-setting.vue";
-import axios from "axios";
+}
 export default {
   components: {
     DataModel,
@@ -400,7 +400,7 @@ export default {
     RuntimesResources,
     AuthSettings
   },
-  data() {
+  data () {
     return {
       headers: {},
       showSuccess: false,
@@ -409,64 +409,64 @@ export default {
       isShowConfigPanel: false,
       isShowServicePanel: false,
       isShowRuntimeManagementPanel: false,
-      currentTab: "dependency",
+      currentTab: 'dependency',
       currentPlugin: {},
       logTableData: [],
       totalLogTableData: [],
       innerActions: [
         {
-          label: this.$t("show_details"),
+          label: this.$t('show_details'),
           props: {
-            type: "info",
-            size: "small"
+            type: 'info',
+            size: 'small'
           },
-          actionType: "showLogDetails"
+          actionType: 'showLogDetails'
         }
       ],
       logTableColumns: [
         {
-          title: this.$t("instance"),
-          key: "instance",
-          inputKey: "instance",
+          title: this.$t('instance'),
+          key: 'instance',
+          inputKey: 'instance',
           searchSeqNo: 1,
           displaySeqNo: 1,
-          component: "WeSelect",
+          component: 'WeSelect',
           isMultiple: true,
-          placeholder: this.$t("instance"),
+          placeholder: this.$t('instance'),
           span: 5,
-          width: "200px",
+          width: '200px',
           options: []
         },
         {
-          title: this.$t("file_name"),
-          key: "file_name",
-          inputKey: "file_name",
+          title: this.$t('file_name'),
+          key: 'file_name',
+          inputKey: 'file_name',
           searchSeqNo: 2,
           displaySeqNo: 2,
-          component: "Input",
+          component: 'Input',
           isNotFilterable: true,
-          placeholder: this.$t("file_name"),
-          width: "200px"
+          placeholder: this.$t('file_name'),
+          width: '200px'
         },
         {
-          title: this.$t("line_number"),
-          key: "line_number",
-          inputKey: "line_number",
+          title: this.$t('line_number'),
+          key: 'line_number',
+          inputKey: 'line_number',
           searchSeqNo: 3,
           displaySeqNo: 3,
-          component: "Input",
+          component: 'Input',
           isNotFilterable: true,
-          placeholder: this.$t("line_number"),
-          width: "150px"
+          placeholder: this.$t('line_number'),
+          width: '150px'
         },
         {
-          title: this.$t("match_text"),
-          key: "log",
-          inputKey: "log",
+          title: this.$t('match_text'),
+          key: 'log',
+          inputKey: 'log',
           searchSeqNo: 4,
           displaySeqNo: 4,
-          component: "Input",
-          placeholder: this.$t("match_text")
+          component: 'Input',
+          placeholder: this.$t('match_text')
         }
       ],
       logTablePagination,
@@ -475,171 +475,165 @@ export default {
       allInstances: [],
       searchFilters: [],
       logDetailsModalVisible: false,
-      logDetails: "",
-      dbQueryCommandString: "",
+      logDetails: '',
+      dbQueryCommandString: '',
       dbQueryColumns: [],
       dbQueryData: [],
       storageServiceColumns: [
         {
-          title: this.$t("file_name"),
-          key: "file"
+          title: this.$t('file_name'),
+          key: 'file'
         },
         {
-          title: this.$t("path"),
-          key: "path"
+          title: this.$t('path'),
+          key: 'path'
         },
         {
-          title: "Hash",
-          key: "hash"
+          title: 'Hash',
+          key: 'hash'
         },
         {
-          title: this.$t("upload_time"),
-          key: "uploadTime"
+          title: this.$t('upload_time'),
+          key: 'uploadTime'
         }
       ],
       storageServiceData: [],
-      defaultCreateParams: "",
+      defaultCreateParams: '',
       selectHosts: [],
       availiableHostsWithPort: [],
       isShowDecomissionedPackage: false
-    };
+    }
   },
   methods: {
-    onProgress(event, file, fileList) {
+    onProgress (event, file, fileList) {
       if (event.percent === 100) {
-        this.showSuccess = true;
+        this.showSuccess = true
       }
     },
-    async onSuccess(response, file, filelist) {
-      if (response.status === "OK") {
+    async onSuccess (response, file, filelist) {
+      if (response.status === 'OK') {
         this.$Notice.success({
-          title: "Success",
-          desc: response.message || ""
-        });
-        this.getAllPluginPkgs();
+          title: 'Success',
+          desc: response.message || ''
+        })
+        this.getAllPluginPkgs()
       } else {
         this.$Notice.warning({
-          title: "Warning",
-          desc: response.message || ""
-        });
+          title: 'Warning',
+          desc: response.message || ''
+        })
       }
-      this.showSuccess = false;
+      this.showSuccess = false
     },
-    onError(error, file, filelist) {
+    onError (file, filelist) {
       this.$Notice.error({
-        title: "Error",
-        desc: file.message || ""
-      });
+        title: 'Error',
+        desc: file.message || ''
+      })
     },
-    swapPanel(panel) {
-      this.isShowServicePanel = panel === "servicePanel";
-      this.isShowConfigPanel = panel === "pluginConfigPanel";
-      this.isShowRuntimeManagementPanel = panel === "runtimeManagePanel";
+    swapPanel (panel) {
+      this.isShowServicePanel = panel === 'servicePanel'
+      this.isShowConfigPanel = panel === 'pluginConfigPanel'
+      this.isShowRuntimeManagementPanel = panel === 'runtimeManagePanel'
     },
-    async createPluginInstanceByPackageIdAndHostIp(ip, port) {
+    async createPluginInstanceByPackageIdAndHostIp (ip, port) {
       this.$Notice.info({
-        title: "Info",
-        desc: "Start Launching... It will take sometime."
-      });
-      this.isLoading = true;
-      const {
-        data,
-        status,
-        message
-      } = await createPluginInstanceByPackageIdAndHostIp(
+        title: 'Info',
+        desc: 'Start Launching... It will take sometime.'
+      })
+      this.isLoading = true
+      const { status } = await createPluginInstanceByPackageIdAndHostIp(
         this.currentPlugin.id,
         ip,
         port
-      );
-      this.isLoading = false;
-      if (status === "OK") {
+      )
+      this.isLoading = false
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "Success",
-          desc: "Instance launched successfully"
-        });
-        this.getAvailableInstancesByPackageId(this.currentPlugin.id);
+          title: 'Success',
+          desc: 'Instance launched successfully'
+        })
+        this.getAvailableInstancesByPackageId(this.currentPlugin.id)
       }
     },
 
-    async registPackage() {
-      let { status, data, message } = await registPluginPackage(
-        this.currentPlugin.id
-      );
-      if (status === "OK") {
-        this.$set(this.currentPlugin, "status", "REGISTERED");
+    async registPackage () {
+      let { status } = await registPluginPackage(this.currentPlugin.id)
+      if (status === 'OK') {
+        this.$set(this.currentPlugin, 'status', 'REGISTERED')
         this.$Notice.success({
-          title: "Success",
-          desc: this.$t("reload_to_get_ui")
-        });
+          title: 'Success',
+          desc: this.$t('reload_to_get_ui')
+        })
       }
     },
-    deletePlugin(packageId) {
-      let pkgId = packageId;
+    deletePlugin (packageId) {
+      let pkgId = packageId
       this.$Modal.confirm({
-        title: this.$t("confirm_to_delete"),
-        "z-index": 1000000,
+        title: this.$t('confirm_to_delete'),
+        'z-index': 1000000,
         onOk: async () => {
-          let { status, data, message } = await deletePluginPkg(pkgId);
-          if (status === "OK") {
+          let { status } = await deletePluginPkg(pkgId)
+          if (status === 'OK') {
             this.$Notice.success({
-              title: "Success",
-              desc: this.$t("reload_to_delete_ui")
-            });
-            this.getAllPluginPkgs();
-            this.swapPanel("");
+              title: 'Success',
+              desc: this.$t('reload_to_delete_ui')
+            })
+            this.getAllPluginPkgs()
+            this.swapPanel('')
           }
         },
         onCancel: () => {}
-      });
-      document.querySelector(".ivu-modal-mask").click();
+      })
+      document.querySelector('.ivu-modal-mask').click()
     },
-    configPlugin(packageId) {
-      this.swapPanel("pluginConfigPanel");
-      this.currentPlugin = this.plugins.find(_ => _.id === packageId);
-      this.selectedCiType = this.currentPlugin.cmdbCiTypeId || "";
+    configPlugin (packageId) {
+      this.swapPanel('pluginConfigPanel')
+      this.currentPlugin = this.plugins.find(_ => _.id === packageId)
+      this.selectedCiType = this.currentPlugin.cmdbCiTypeId || ''
     },
-    manageService(packageId) {
-      this.swapPanel("servicePanel");
-      this.currentPlugin = this.plugins.find(_ => _.id === packageId);
-      this.selectedCiType = this.currentPlugin.cmdbCiTypeId || "";
+    manageService (packageId) {
+      this.swapPanel('servicePanel')
+      this.currentPlugin = this.plugins.find(_ => _.id === packageId)
+      this.selectedCiType = this.currentPlugin.cmdbCiTypeId || ''
     },
-    async manageRuntimePlugin(packageId) {
-      this.swapPanel("runtimeManagePanel");
-      let currentPlugin = this.plugins.find(_ => _.id === packageId);
-      this.selectedCiType = currentPlugin.cmdbCiTypeId || "";
-      this.currentPlugin = currentPlugin;
+    async manageRuntimePlugin (packageId) {
+      this.swapPanel('runtimeManagePanel')
+      let currentPlugin = this.plugins.find(_ => _.id === packageId)
+      this.selectedCiType = currentPlugin.cmdbCiTypeId || ''
+      this.currentPlugin = currentPlugin
       if (currentPlugin.pluginConfigs) {
-        this.selectHosts = [];
-        this.availiableHostsWithPort = [];
-        this.getAvailableInstancesByPackageId(this.currentPlugin.id);
+        this.selectHosts = []
+        this.availiableHostsWithPort = []
+        this.getAvailableInstancesByPackageId(this.currentPlugin.id)
       }
-      this.dbQueryData = [];
-      this.dbQueryColumns = [];
-      this.getAvailableContainerHosts();
-      this.resetLogTable();
+      this.dbQueryData = []
+      this.dbQueryColumns = []
+      this.getAvailableContainerHosts()
+      this.resetLogTable()
     },
-    onRuntimeCollapseChange(key) {
-      const found = !!key.find(i => i === "3");
+    onRuntimeCollapseChange (key) {
+      const found = !!key.find(i => i === '3')
       if (found) {
-        this.getStorageTableData();
+        this.getStorageTableData()
       }
     },
-    async getStorageTableData() {
-      let { status, data, message } = await queryStorageFilesByPackageId(
+    async getStorageTableData () {
+      let { status, data } = await queryStorageFilesByPackageId(
         this.currentPlugin.id
-      );
-      if (status === "OK") {
+      )
+      if (status === 'OK') {
         this.storageServiceData = data.map(_ => {
           return {
             file: _[0],
             path: _[1],
             hash: _[2],
             uploadTime: _[3]
-          };
-        });
+          }
+        })
       }
     },
-    async getDBTableData() {
+    async getDBTableData () {
       let payload = {
         sqlQuery: this.dbQueryCommandString,
         pageable: {
@@ -648,71 +642,69 @@ export default {
             this.dbTablePagination.pageSize *
             (this.dbTablePagination.currentPage - 1)
         }
-      };
-      let { status, data, message } = await queryDataBaseByPackageId(
+      }
+      let { status, data } = await queryDataBaseByPackageId(
         this.currentPlugin.id,
         payload
-      );
-      if (status === "OK") {
-        this.dbTablePagination.total = data.pageInfo.totalRows;
+      )
+      if (status === 'OK') {
+        this.dbTablePagination.total = data.pageInfo.totalRows
         this.dbQueryColumns = data.headers.map(_ => {
           return {
             key: _,
             title: _,
             minWidth: 170
-          };
-        });
+          }
+        })
         this.dbQueryData = data.contents.map(_ => {
-          let tempObj = {};
+          let tempObj = {}
           _.forEach((i, index) => {
-            tempObj[this.dbQueryColumns[index].key] = i;
-          });
-          return tempObj;
-        });
+            tempObj[this.dbQueryColumns[index].key] = i
+          })
+          return tempObj
+        })
       }
     },
-    onDBTablePageChange(currentPage) {
-      this.dbTablePagination.currentPage = currentPage;
-      this.getDBTableData();
+    onDBTablePageChange (currentPage) {
+      this.dbTablePagination.currentPage = currentPage
+      this.getDBTableData()
     },
-    onDBTablePageSizeChange(pageSize) {
-      this.dbTablePagination.pageSize = pageSize;
-      this.getDBTableData();
+    onDBTablePageSizeChange (pageSize) {
+      this.dbTablePagination.pageSize = pageSize
+      this.getDBTableData()
     },
-    pluginPackageChangeHandler(key) {
-      this.swapPanel("");
-      this.dbQueryCommandString = "";
+    pluginPackageChangeHandler (key) {
+      this.swapPanel('')
+      this.dbQueryCommandString = ''
     },
-    async removePluginInstance(instanceId) {
-      this.isLoading = true;
-      let { data, status, message } = await removePluginInstance(instanceId);
-      if (status === "OK") {
+    async removePluginInstance (instanceId) {
+      this.isLoading = true
+      let { status, message } = await removePluginInstance(instanceId)
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "Success",
+          title: 'Success',
           desc: message
-        });
+        })
       }
-      this.getAvailableInstancesByPackageId(this.currentPlugin.id);
+      this.getAvailableInstancesByPackageId(this.currentPlugin.id)
     },
-    async getAvailableInstancesByPackageId(id) {
-      this.isLoading = true;
-      let { data, status, message } = await getAvailableInstancesByPackageId(
-        id
-      );
-      if (status === "OK") {
+    async getAvailableInstancesByPackageId (id) {
+      this.isLoading = true
+      let { data, status } = await getAvailableInstancesByPackageId(id)
+      if (status === 'OK') {
         this.allInstances = data.map(_ => {
-          if (_.status !== "REMOVED") {
+          if (_.status !== 'REMOVED') {
             return {
               id: _.id,
               hostIp: _.host,
               port: _.port,
-              displayLabel: _.host + ":" + _.port
-            };
+              displayLabel: _.host + ':' + _.port
+            }
           }
-        });
+        })
         // this.getHostsForTableFilter();
       }
-      this.isLoading = false;
+      this.isLoading = false
     },
     // getHostsForTableFilter() {
     //   this.logTableColumns[0].options = this.allInstances.map(_ => {
@@ -722,31 +714,31 @@ export default {
     //     };
     //   });
     // },
-    async getAvailableContainerHosts() {
-      const { data, status, message } = await getAvailableContainerHosts();
-      if (status === "OK") {
-        this.allAvailiableHosts = data;
+    async getAvailableContainerHosts () {
+      const { data, status } = await getAvailableContainerHosts()
+      if (status === 'OK') {
+        this.allAvailiableHosts = data
       }
     },
-    getAvailablePortByHostIp() {
-      this.availiableHostsWithPort = [];
+    getAvailablePortByHostIp () {
+      this.availiableHostsWithPort = []
       this.selectHosts.forEach(async _ => {
-        const { data, status, message } = await getAvailablePortByHostIp(_);
-        if (status === "OK") {
+        const { data, status } = await getAvailablePortByHostIp(_)
+        if (status === 'OK') {
           this.availiableHostsWithPort.push({
             ip: _,
             port: data,
             createParams: this.defaultCreateParams
-          });
+          })
         }
-      });
+      })
     },
-    handleLogTableSubmit(data) {
-      this.searchFilters = data;
-      this.getLogTableData();
+    handleLogTableSubmit (data) {
+      this.searchFilters = data
+      this.getLogTableData()
     },
-    async getLogTableData() {
-      if (this.searchFilters.length < 2) return;
+    async getLogTableData () {
+      if (this.searchFilters.length < 2) return
       const payload = {
         instanceIds: this.searchFilters[0].value,
         pluginRequest: {
@@ -756,60 +748,60 @@ export default {
             }
           ]
         }
-      };
-      let { status, data, message } = await queryLog(payload);
-      if (status === "OK") {
+      }
+      let { status, data } = await queryLog(payload)
+      if (status === 'OK') {
         for (let i in data) {
-          let arr = [];
+          let arr = []
           this.totalLogTableData = arr.concat(
             data[i].outputs.map(_ => {
               return {
                 instance: this.allInstances.find(j => j.id === +i).displayLabel,
                 instanceId: i,
                 ..._
-              };
+              }
             })
-          );
+          )
         }
-        this.handleLogTablePagination();
+        this.handleLogTablePagination()
       }
     },
-    onLogTableChange(current) {
-      this.logTablePagination.currentPage = current;
-      this.handleLogTablePagination();
+    onLogTableChange (current) {
+      this.logTablePagination.currentPage = current
+      this.handleLogTablePagination()
     },
-    onLogTablePageSizeChange(size) {
-      this.logTablePagination.pageSize = size;
-      this.handleLogTablePagination();
+    onLogTablePageSizeChange (size) {
+      this.logTablePagination.pageSize = size
+      this.handleLogTablePagination()
     },
-    handleLogTablePagination() {
-      this.logTablePagination.total = this.totalLogTableData.length;
-      let temp = Array.from(this.totalLogTableData);
+    handleLogTablePagination () {
+      this.logTablePagination.total = this.totalLogTableData.length
+      let temp = Array.from(this.totalLogTableData)
       this.logTableData = temp.splice(
         (this.logTablePagination.currentPage - 1) *
           this.logTablePagination.pageSize,
         this.logTablePagination.pageSize
-      );
+      )
     },
-    actionFun(type, data) {
-      if (type === "showLogDetails") {
-        this.getLogDetail(data);
+    actionFun (type, data) {
+      if (type === 'showLogDetails') {
+        this.getLogDetail(data)
       }
     },
-    resetLogTable() {
-      this.logTableData = [];
-      this.totalLogTableData = [];
-      this.$refs.table && this.$refs.table.reset();
+    resetLogTable () {
+      this.logTableData = []
+      this.totalLogTableData = []
+      this.$refs.table && this.$refs.table.reset()
     },
-    selectHost(v) {
-      this.selectHosts = v;
+    selectHost (v) {
+      this.selectHosts = v
     },
-    handleTabClick(name) {
-      this.currentTab = name;
+    handleTabClick (name) {
+      this.currentTab = name
     },
-    async getAllPluginPkgs() {
-      let { status, data, message } = await getAllPluginPkgs();
-      if (status === "OK") {
+    async getAllPluginPkgs () {
+      let { status, data } = await getAllPluginPkgs()
+      if (status === 'OK') {
         this.plugins = data.map(_ => {
           return {
             ..._,
@@ -824,61 +816,62 @@ export default {
                 id: i.id,
                 expand: true,
                 checked: false
-              };
+              }
             })
-          };
-        });
+          }
+        })
       }
     },
-    getHeaders() {
-      let refreshRequest = null;
-      const currentTime = new Date().getTime();
-      let session = window.sessionStorage;
-      const token = JSON.parse(session.getItem("token"));
+    getHeaders () {
+      let refreshRequest = null
+      const currentTime = new Date().getTime()
+      let session = window.sessionStorage
+      const token = JSON.parse(session.getItem('token'))
       if (token) {
-        const accessToken = token.find(t => t.tokenType === "accessToken");
-        const expiration = accessToken.expiration * 1 - currentTime;
+        const accessToken = token.find(t => t.tokenType === 'accessToken')
+        const expiration = accessToken.expiration * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get("/auth/v1/api/token", {
+          refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
               Authorization:
-                "Bearer " +
-                token.find(t => t.tokenType === "refreshToken").token
+                'Bearer ' +
+                token.find(t => t.tokenType === 'refreshToken').token
             }
-          });
+          })
           refreshRequest.then(
             res => {
-              session.setItem("token", JSON.stringify(res.data.data));
-              this.setUploadActionHeader();
-              this.$refs.uploadButton.handleClick();
+              session.setItem('token', JSON.stringify(res.data.data))
+              this.setUploadActionHeader()
+              this.$refs.uploadButton.handleClick()
             },
+            // eslint-disable-next-line handle-callback-err
             err => {
-              refreshRequest = null;
-              window.location.href = window.location.origin + "/#/login";
+              refreshRequest = null
+              window.location.href = window.location.origin + '/#/login'
             }
-          );
+          )
         } else {
-          this.setUploadActionHeader();
-          this.$refs.uploadButton.handleClick();
+          this.setUploadActionHeader()
+          this.$refs.uploadButton.handleClick()
         }
       } else {
-        window.location.href = window.location.origin + "/#/login";
+        window.location.href = window.location.origin + '/#/login'
       }
     },
-    setUploadActionHeader() {
-      let session = window.sessionStorage;
-      const token = JSON.parse(session.getItem("token"));
+    setUploadActionHeader () {
+      let session = window.sessionStorage
+      const token = JSON.parse(session.getItem('token'))
       this.headers = {
         Authorization:
-          "Bearer " + token.find(t => t.tokenType === "accessToken").token
-      };
+          'Bearer ' + token.find(t => t.tokenType === 'accessToken').token
+      }
     }
   },
-  created() {
-    this.getAllPluginPkgs();
+  created () {
+    this.getAllPluginPkgs()
   },
   computed: {}
-};
+}
 </script>
 <style lang="scss">
 .decomissionedPkgName {
