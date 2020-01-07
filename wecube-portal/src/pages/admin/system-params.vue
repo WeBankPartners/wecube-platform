@@ -23,12 +23,12 @@ import {
   deleteSystemVariables,
   getResourceServerStatus,
   getVariableScope
-} from "@/api/server.js";
-import { outerActions } from "@/const/actions.js";
-import { formatData } from "../util/format.js";
+} from '@/api/server.js'
+import { outerActions } from '@/const/actions.js'
+import { formatData } from '../util/format.js'
 
 export default {
-  data() {
+  data () {
     return {
       payload: {
         filters: [],
@@ -47,230 +47,228 @@ export default {
       tableData: [],
       tableColumns: [
         {
-          title: this.$t("table_id"),
-          key: "id",
-          inputKey: "id",
+          title: this.$t('table_id'),
+          key: 'id',
+          inputKey: 'id',
           searchSeqNo: 1,
           displaySeqNo: 1,
           disEditor: true,
           disAdded: true,
-          component: "Input",
-          inputType: "text",
-          placeholder: this.$t("table_id")
+          component: 'Input',
+          inputType: 'text',
+          placeholder: this.$t('table_id')
         },
         {
-          title: this.$t("table_name"),
-          key: "name",
-          inputKey: "name",
+          title: this.$t('table_name'),
+          key: 'name',
+          inputKey: 'name',
           searchSeqNo: 2,
           displaySeqNo: 2,
-          component: "Input",
-          inputType: "text",
-          placeholder: this.$t("table_name")
+          component: 'Input',
+          inputType: 'text',
+          placeholder: this.$t('table_name')
         },
         {
-          title: this.$t("table_value"),
-          key: "value",
-          inputKey: "value",
+          title: this.$t('table_value'),
+          key: 'value',
+          inputKey: 'value',
           searchSeqNo: 3,
           displaySeqNo: 3,
-          component: "Input",
-          inputType: "text",
-          placeholder: this.$t("table_value")
+          component: 'Input',
+          inputType: 'text',
+          placeholder: this.$t('table_value')
         },
         {
-          title: this.$t("table_default_value"),
-          key: "defaultValue",
-          inputKey: "defaultValue",
+          title: this.$t('table_default_value'),
+          key: 'defaultValue',
+          inputKey: 'defaultValue',
           searchSeqNo: 4,
           displaySeqNo: 4,
-          component: "Input",
-          inputType: "text",
-          placeholder: this.$t("table_default_value")
+          component: 'Input',
+          inputType: 'text',
+          placeholder: this.$t('table_default_value')
         },
         {
-          title: this.$t("table_scope"),
-          key: "scope",
-          inputKey: "scope",
+          title: this.$t('table_scope'),
+          key: 'scope',
+          inputKey: 'scope',
           searchSeqNo: 5,
           displaySeqNo: 5,
           disEditor: true,
-          component: "WeSelect",
-          inputType: "select",
-          placeholder: this.$t("table_scope"),
+          component: 'WeSelect',
+          inputType: 'select',
+          placeholder: this.$t('table_scope'),
           options: [
             {
-              label: "global",
-              value: "global",
-              key: "global"
+              label: 'global',
+              value: 'global',
+              key: 'global'
             },
             {
-              label: "plugin-package",
-              value: "plugin-package",
-              key: "plugin-package"
+              label: 'plugin-package',
+              value: 'plugin-package',
+              key: 'plugin-package'
             }
           ]
         },
         {
-          title: this.$t("table_source"),
-          key: "source",
-          inputKey: "source",
+          title: this.$t('table_source'),
+          key: 'source',
+          inputKey: 'source',
           searchSeqNo: 6,
           displaySeqNo: 6,
-          component: "Input",
-          inputType: "text",
-          placeholder: this.$t("table_source")
+          component: 'Input',
+          inputType: 'text',
+          placeholder: this.$t('table_source')
         },
         {
-          title: this.$t("table_status"),
-          key: "status",
-          inputKey: "status",
+          title: this.$t('table_status'),
+          key: 'status',
+          inputKey: 'status',
           searchSeqNo: 8,
           displaySeqNo: 8,
-          component: "WeSelect",
-          inputType: "select",
-          placeholder: this.$t("table_status")
+          component: 'WeSelect',
+          inputType: 'select',
+          placeholder: this.$t('table_status')
         }
       ]
-    };
+    }
   },
   methods: {
-    async queryData() {
-      this.payload.pageable.pageSize = this.pagination.pageSize;
+    async queryData () {
+      this.payload.pageable.pageSize = this.pagination.pageSize
       this.payload.pageable.startIndex =
-        (this.pagination.currentPage - 1) * this.pagination.pageSize;
-      const { status, message, data } = await retrieveSystemVariables(
-        this.payload
-      );
-      if (status === "OK") {
-        this.tableData = data.contents;
-        this.pagination.total = data.pageInfo.totalRows;
+        (this.pagination.currentPage - 1) * this.pagination.pageSize
+      const { status, data } = await retrieveSystemVariables(this.payload)
+      if (status === 'OK') {
+        this.tableData = data.contents
+        this.pagination.total = data.pageInfo.totalRows
       }
     },
-    async getStatus() {
-      const { status, message, data } = await getResourceServerStatus({});
-      if (status === "OK") {
-        this.setOptions(data, "status");
+    async getStatus () {
+      const { status, data } = await getResourceServerStatus({})
+      if (status === 'OK') {
+        this.setOptions(data, 'status')
       }
     },
-    setOptions(data, column) {
-      let statusIndex;
+    setOptions (data, column) {
+      let statusIndex
       this.tableColumns.find((_, i) => {
         if (_.key === column) {
-          statusIndex = i;
+          statusIndex = i
         }
-      });
+      })
       const options = data.map(_ => {
         return {
           label: _,
           value: _,
           key: _
-        };
-      });
-      this.$set(this.tableColumns[statusIndex], "options", options);
+        }
+      })
+      this.$set(this.tableColumns[statusIndex], 'options', options)
     },
-    handleSubmit(data) {
-      this.payload.filters = data;
-      this.queryData();
+    handleSubmit (data) {
+      this.payload.filters = data
+      this.queryData()
     },
-    sortHandler(data) {
-      if (data.order === "normal") {
-        delete this.payload.sorting;
+    sortHandler (data) {
+      if (data.order === 'normal') {
+        delete this.payload.sorting
       } else {
         this.payload.sorting = {
-          asc: data.order === "asc",
+          asc: data.order === 'asc',
           field: data.key
-        };
+        }
       }
-      this.queryData();
+      this.queryData()
     },
-    pageChange(current) {
-      this.pagination.currentPage = current;
-      this.queryData();
+    pageChange (current) {
+      this.pagination.currentPage = current
+      this.queryData()
     },
-    pageSizeChange(size) {
-      this.pagination.pageSize = size;
-      this.queryData();
+    pageSizeChange (size) {
+      this.pagination.pageSize = size
+      this.queryData()
     },
-    actionFun(type, data) {
+    actionFun (type, data) {
       switch (type) {
-        case "add":
-          this.addHandler();
-          break;
-        case "save":
-          this.saveHandler(data);
-          break;
-        case "edit":
-          this.editHandler();
-          break;
-        case "delete":
-          this.deleteHandler(data);
-          break;
-        case "cancel":
-          this.cancelHandler();
-          break;
-        case "export":
-          this.exportHandler();
-          break;
+        case 'add':
+          this.addHandler()
+          break
+        case 'save':
+          this.saveHandler(data)
+          break
+        case 'edit':
+          this.editHandler()
+          break
+        case 'delete':
+          this.deleteHandler(data)
+          break
+        case 'cancel':
+          this.cancelHandler()
+          break
+        case 'export':
+          this.exportHandler()
+          break
         default:
-          break;
+          break
       }
     },
-    onSelectedRowsChange(rows, checkoutBoxdisable) {
+    onSelectedRowsChange (rows, checkoutBoxdisable) {
       if (rows.length > 0) {
         this.outerActions.forEach(_ => {
-          _.props.disabled = _.actionType === "add";
-        });
+          _.props.disabled = _.actionType === 'add'
+        })
       } else {
         this.outerActions.forEach(_ => {
           _.props.disabled = !(
-            _.actionType === "add" ||
-            _.actionType === "export" ||
-            _.actionType === "cancel"
-          );
-        });
+            _.actionType === 'add' ||
+            _.actionType === 'export' ||
+            _.actionType === 'cancel'
+          )
+        })
       }
-      this.seletedRows = rows;
+      this.seletedRows = rows
     },
-    addHandler() {
-      let emptyRowData = {};
+    addHandler () {
+      let emptyRowData = {}
       this.tableColumns.forEach(_ => {
-        emptyRowData[_.inputKey] = "";
-      });
-      emptyRowData.isRowEditable = true;
-      emptyRowData.isNewAddedRow = true;
-      emptyRowData.weTableRowId = new Date().getTime();
-      this.tableData.unshift(emptyRowData);
+        emptyRowData[_.inputKey] = ''
+      })
+      emptyRowData.isRowEditable = true
+      emptyRowData.isNewAddedRow = true
+      emptyRowData.weTableRowId = new Date().getTime()
+      this.tableData.unshift(emptyRowData)
       this.$nextTick(() => {
-        this.$refs.table.pushNewAddedRowToSelections();
-        this.$refs.table.setCheckoutStatus(true);
-      });
+        this.$refs.table.pushNewAddedRowToSelections()
+        this.$refs.table.setCheckoutStatus(true)
+      })
       this.outerActions.forEach(_ => {
-        _.props.disabled = _.actionType === "add";
-      });
+        _.props.disabled = _.actionType === 'add'
+      })
     },
-    async saveHandler(data) {
+    async saveHandler (data) {
       const setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
           _.props.disabled = !(
-            _.actionType === "add" ||
-            _.actionType === "export" ||
-            _.actionType === "cancel"
-          );
-        });
-        this.$refs.table.setAllRowsUneditable();
+            _.actionType === 'add' ||
+            _.actionType === 'export' ||
+            _.actionType === 'cancel'
+          )
+        })
+        this.$refs.table.setAllRowsUneditable()
         this.$nextTick(() => {
           /* to get iview original data to set _ischecked flag */
-          let objData = this.$refs.table.$refs.table.$refs.tbody.objData;
+          let objData = this.$refs.table.$refs.table.$refs.tbody.objData
           for (let obj in objData) {
-            objData[obj]._isChecked = false;
-            objData[obj]._isDisabled = false;
+            objData[obj]._isChecked = false
+            objData[obj]._isDisabled = false
           }
-        });
-      };
-      let d = JSON.parse(JSON.stringify(data));
-      let addObj = d.find(_ => _.isNewAddedRow);
-      let editAry = d.filter(_ => !_.isNewAddedRow);
+        })
+      }
+      let d = JSON.parse(JSON.stringify(data))
+      let addObj = d.find(_ => _.isNewAddedRow)
+      let editAry = d.filter(_ => !_.isNewAddedRow)
       if (addObj) {
         let payload = {
           defaultValue: addObj.defaultValue,
@@ -282,17 +280,15 @@ export default {
           source: addObj.source,
           seqNo: addObj.seqNo,
           status: addObj.status
-        };
-        const { status, message, data } = await createSystemVariables([
-          payload
-        ]);
-        if (status === "OK") {
+        }
+        const { status, message } = await createSystemVariables([payload])
+        if (status === 'OK') {
           this.$Notice.success({
-            title: "Add Success",
+            title: 'Add Success',
             desc: message
-          });
-          setBtnsStatus();
-          this.queryData();
+          })
+          setBtnsStatus()
+          this.queryData()
         }
       }
       if (editAry.length > 0) {
@@ -308,101 +304,99 @@ export default {
             source: _.source,
             seqNo: _.seqNo,
             status: _.status
-          };
-        });
-        const { status, message, data } = await updateSystemVariables(payload);
-        if (status === "OK") {
+          }
+        })
+        const { status, message } = await updateSystemVariables(payload)
+        if (status === 'OK') {
           this.$Notice.success({
-            title: "Update Success",
+            title: 'Update Success',
             desc: message
-          });
-          setBtnsStatus();
-          this.queryData();
+          })
+          setBtnsStatus()
+          this.queryData()
         }
       }
     },
-    editHandler() {
-      this.$refs.table.swapRowEditable(true);
+    editHandler () {
+      this.$refs.table.swapRowEditable(true)
       this.outerActions.forEach(_ => {
-        if (_.actionType === "save") {
-          _.props.disabled = false;
+        if (_.actionType === 'save') {
+          _.props.disabled = false
         }
-      });
+      })
       this.$nextTick(() => {
-        this.$refs.table.setCheckoutStatus(true);
-      });
+        this.$refs.table.setCheckoutStatus(true)
+      })
     },
-    deleteHandler(deleteData) {
+    deleteHandler (deleteData) {
       this.$Modal.confirm({
-        title: this.$t("confirm_to_delete"),
-        "z-index": 1000000,
+        title: this.$t('confirm_to_delete'),
+        'z-index': 1000000,
         onOk: async () => {
           const payload = deleteData.map(_ => {
             return {
               id: _.id
-            };
-          });
-          const { status, message, data } = await deleteSystemVariables(
-            payload
-          );
-          if (status === "OK") {
+            }
+          })
+          const { status, message } = await deleteSystemVariables(payload)
+          if (status === 'OK') {
             this.$Notice.success({
-              title: "Delete Success",
+              title: 'Delete Success',
               desc: message
-            });
+            })
             this.outerActions.forEach(_ => {
               _.props.disabled =
-                _.actionType === "save" ||
-                _.actionType === "edit" ||
-                _.actionType === "delete";
-            });
-            this.queryData();
+                _.actionType === 'save' ||
+                _.actionType === 'edit' ||
+                _.actionType === 'delete'
+            })
+            this.queryData()
           }
         },
         onCancel: () => {}
-      });
+      })
     },
-    cancelHandler() {
-      this.$refs.table.setAllRowsUneditable();
-      this.$refs.table.setCheckoutStatus();
+    cancelHandler () {
+      this.$refs.table.setAllRowsUneditable()
+      this.$refs.table.setCheckoutStatus()
       this.outerActions &&
         this.outerActions.forEach(_ => {
           _.props.disabled = !(
-            _.actionType === "add" ||
-            _.actionType === "export" ||
-            _.actionType === "cancel"
-          );
-        });
+            _.actionType === 'add' ||
+            _.actionType === 'export' ||
+            _.actionType === 'cancel'
+          )
+        })
     },
-    async exportHandler() {
-      const { status, message, data } = await retrieveSystemVariables({});
-      if (status === "OK") {
+    async exportHandler () {
+      const { status, data } = await retrieveSystemVariables({})
+      if (status === 'OK') {
         this.$refs.table.export({
-          filename: "System Params",
+          filename: 'System Params',
           data: formatData(data.contents)
-        });
+        })
       }
     },
-    async getScopeList() {
-      const { status, message, data } = await getVariableScope();
-      if (status === "OK") {
+    async getScopeList () {
+      const { status, data } = await getVariableScope()
+      if (status === 'OK') {
         const opts = data.map(_ => {
           return {
             label: _,
             value: _,
             key: _
-          };
-        });
-        this.$set(this.tableColumns[4], "options", opts);
+          }
+        })
+        this.$set(this.tableColumns[4], 'options', opts)
       }
     }
   },
-  mounted() {
-    this.getStatus();
-    this.queryData();
-    this.getScopeList();
+  mounted () {
+    this.getStatus()
+    this.queryData()
+    this.getScopeList()
   }
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

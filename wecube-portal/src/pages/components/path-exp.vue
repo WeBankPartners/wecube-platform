@@ -18,7 +18,7 @@
           <ul v-for="opt in options" :key="opt.id">
             <li class @click="optClickHandler(opt)">
               {{
-                opt.dataType === "ref"
+                opt.dataType === 'ref'
                   ? isRefBy
                     ? `(${opt.name})${opt.packageName}:${opt.entityName}`
                     : `${opt.name}>${opt.refPackageName}:${opt.refEntityName}`
@@ -33,21 +33,21 @@
   </div>
 </template>
 <script>
-import { getRefByIdInfoByPackageNameAndEntityName } from "@/api/server";
+import { getRefByIdInfoByPackageNameAndEntityName } from '@/api/server'
 export default {
-  name: "PathExp",
-  data() {
+  name: 'PathExp',
+  data () {
     return {
       optionsHide: false,
-      currentEntity: "", //节点变化时更新
-      currentPkg: "", //节点变化时更新
-      inputVal: "",
+      currentEntity: '', // 节点变化时更新
+      currentPkg: '', // 节点变化时更新
+      inputVal: '',
       options: [],
-      currentOperator: "",
+      currentOperator: '',
       isRefBy: false,
       entityPath: [],
       isLastNode: false
-    };
+    }
   },
   props: {
     value: {
@@ -56,219 +56,216 @@ export default {
     rootPkg: {},
     disabled: {},
     rootEntity: {},
-    allDataModelsWithAttrs: {} //组件外层调用getDataModelByPackageName传入
+    allDataModelsWithAttrs: {} // 组件外层调用getDataModelByPackageName传入
   },
   watch: {
     currentPkg: {
-      handler(val) {
+      handler (val) {
         // this.$emit("getPluginPkgDataModel", 'service-mt');
         // console.log(this.allEntity);
       }
     },
     value: {
-      handler(val) {
-        this.restorePathExp();
+      handler (val) {
+        this.restorePathExp()
       },
       immediate: true
     },
     allDataModelsWithAttrs: {
-      handler(val) {}
+      handler (val) {}
     },
     rootEntity: {
-      handler(val) {
+      handler (val) {
         if (!val) {
-          return;
+          return
         }
-        const found = this.allEntity.find(_ => _.name === val);
-        this.currentPkg = found.packageName;
-        this.currentEntity = val;
-        this.inputVal = `${this.currentPkg}:${val}`;
+        const found = this.allEntity.find(_ => _.name === val)
+        this.currentPkg = found.packageName
+        this.currentEntity = val
+        this.inputVal = `${this.currentPkg}:${val}`
         this.entityPath = [
           {
             entity: this.currentEntity,
             pkg: this.currentPkg
           }
-        ];
-        this.options = [];
-        this.isLastNode = false;
-        this.$emit("input", this.inputVal.replace(/\s/g, ""));
+        ]
+        this.options = []
+        this.isLastNode = false
+        this.$emit('input', this.inputVal.replace(/\s/g, ''))
       }
     }
   },
   computed: {
-    inputValueWithNoSpace() {
-      return this.inputVal.replace(/\s/g, "");
+    inputValueWithNoSpace () {
+      return this.inputVal.replace(/\s/g, '')
     },
-    allEntity() {
-      let entity = [];
+    allEntity () {
+      let entity = []
       this.allDataModelsWithAttrs.forEach(_ => {
         if (_.pluginPackageEntities) {
           entity = entity.concat(_.pluginPackageEntities).map(i => {
-            let noneFound = i.attributes.find(_ => _.name === "NONE");
+            let noneFound = i.attributes.find(_ => _.name === 'NONE')
             return {
               ...i,
-              attributes: !!noneFound
+              attributes: noneFound
                 ? i.attributes
                 : i.attributes.concat({
-                    dataType: "str",
-                    description: "NONE",
-                    entityName: i.name,
-                    id: i.id + "__NONE",
-                    name: "NONE",
-                    packageName: _.packageName,
-                    refAttributeName: null,
-                    refEntityName: null,
-                    refPackageName: null
-                  })
-            };
-          });
+                  dataType: 'str',
+                  description: 'NONE',
+                  entityName: i.name,
+                  id: i.id + '__NONE',
+                  name: 'NONE',
+                  packageName: _.packageName,
+                  refAttributeName: null,
+                  refEntityName: null,
+                  refPackageName: null
+                })
+            }
+          })
         }
-      });
-      return entity;
+      })
+      return entity
     }
   },
-  mounted() {
-    this.currentEntity = this.rootEntity;
-    const found = this.allEntity.find(_ => _.name === this.rootEntity);
-    this.currentPkg = found ? found.packageName : "";
-    this.restorePathExp();
+  mounted () {
+    this.currentEntity = this.rootEntity
+    const found = this.allEntity.find(_ => _.name === this.rootEntity)
+    this.currentPkg = found ? found.packageName : ''
+    this.restorePathExp()
 
-    this.$emit("input", this.inputVal.replace(/\s/g, ""));
-    if (document.querySelector(".wecube_attr-ul")) {
-      document.querySelector(".wecube_attr-ul").style.width =
-        document.querySelector(".wecube_input_in textarea").clientWidth + "px";
+    this.$emit('input', this.inputVal.replace(/\s/g, ''))
+    if (document.querySelector('.wecube_attr-ul')) {
+      document.querySelector('.wecube_attr-ul').style.width =
+        document.querySelector('.wecube_input_in textarea').clientWidth + 'px'
     }
   },
   methods: {
-    restorePathExp() {
+    restorePathExp () {
       if (this.value) {
         this.inputVal = this.value
-          .replace(/\~/g, " ~")
-          .replace(/\>/g, " >")
-          .replace(/\./g, " .");
-        const pathList = this.value.split(/[~.>]/);
-        let path = {};
+          // eslint-disable-next-line no-useless-escape
+          .replace(/\~/g, ' ~')
+          // eslint-disable-next-line no-useless-escape
+          .replace(/\>/g, ' >')
+          .replace(/\./g, ' .')
+        const pathList = this.value.split(/[~.>]/)
+        let path = {}
         pathList.forEach(_ => {
-          const ifEntity = _.indexOf(":");
+          const ifEntity = _.indexOf(':')
           if (ifEntity > 0) {
-            const isBy = _.indexOf(")");
-            const current = _.split(":");
+            const isBy = _.indexOf(')')
+            const current = _.split(':')
             if (isBy > 0) {
               path = {
                 entity: current[1],
-                pkg: current[0].split(")")[1]
-              };
+                pkg: current[0].split(')')[1]
+              }
             } else {
               path = {
                 entity: current[1],
                 pkg: current[0]
-              };
+              }
             }
           }
-          this.entityPath.push(path);
-        });
+          this.entityPath.push(path)
+        })
       } else {
-        this.inputVal = `${this.currentPkg}:${this.currentEntity || ""}`;
+        this.inputVal = `${this.currentPkg}:${this.currentEntity || ''}`
         this.entityPath.push({
           entity: this.currentEntity,
           pkg: this.currentPkg
-        });
+        })
       }
     },
-    optClickHandler(item) {
-      this.optionsHide = false;
-      this.isLastNode = !(item.dataType === "ref");
+    optClickHandler (item) {
+      this.optionsHide = false
+      this.isLastNode = !(item.dataType === 'ref')
       const newValue =
-        item.dataType === "ref"
+        item.dataType === 'ref'
           ? this.isRefBy
             ? `(${item.name})${item.packageName}:${item.entityName}`
             : `${item.name}>${item.refPackageName}:${item.refEntityName}`
-          : item.name;
-      this.currentPkg = this.isRefBy ? item.packageName : item.refPackageName;
-      this.currentEntity = this.isRefBy ? item.entityName : item.refEntityName;
+          : item.name
+      this.currentPkg = this.isRefBy ? item.packageName : item.refPackageName
+      this.currentEntity = this.isRefBy ? item.entityName : item.refEntityName
       this.entityPath.push({
         entity: this.currentEntity,
         pkg: this.currentPkg
-      });
-      this.inputVal = this.inputVal + " " + this.currentOperator + newValue;
-      this.options = [];
-      this.$refs["textarea"].focus();
-      this.$emit("input", this.inputVal.replace(/\s/g, ""));
+      })
+      this.inputVal = this.inputVal + ' ' + this.currentOperator + newValue
+      this.options = []
+      this.$refs['textarea'].focus()
+      this.$emit('input', this.inputVal.replace(/\s/g, ''))
     },
-    inputHandler(v) {
+    inputHandler (v) {
       if (!v.data) {
         // 删除的逻辑
-        this.isRefBy = false;
-        let valList = this.inputVal.split(" ");
+        this.isRefBy = false
+        let valList = this.inputVal.split(' ')
         if (valList.length > 1) {
-          valList.splice(-1, 1);
-          this.inputVal = valList.join(" ");
-          this.entityPath.splice(-1, 1);
-          this.$emit("input", this.inputVal.replace(/\s/g, ""));
+          valList.splice(-1, 1)
+          this.inputVal = valList.join(' ')
+          this.entityPath.splice(-1, 1)
+          this.$emit('input', this.inputVal.replace(/\s/g, ''))
         } else if (valList.length < 2) {
-          this.inputVal = valList[0];
-          this.$emit("input", this.inputVal.replace(/\s/g, ""));
+          this.inputVal = valList[0]
+          this.$emit('input', this.inputVal.replace(/\s/g, ''))
         }
-        this.$refs.textarea.value = this.inputVal;
-        this.isLastNode = false;
-        return;
+        this.$refs.textarea.value = this.inputVal
+        this.isLastNode = false
       } else {
-        if (!(v.data === "." || v.data === "~")) {
+        if (!(v.data === '.' || v.data === '~')) {
           this.$Message.error({
-            content: this.$t("input_correct_operator")
-          });
-          this.$refs.textarea.value = this.inputVal;
-          return;
+            content: this.$t('input_correct_operator')
+          })
+          this.$refs.textarea.value = this.inputVal
+          return
         }
         if (this.isLastNode) {
-          this.optionsHide = false;
+          this.optionsHide = false
           this.$Message.warning({
-            content: this.$t("is_model_attribute")
-          });
-          this.$refs.textarea.value = this.inputVal;
-          return;
+            content: this.$t('is_model_attribute')
+          })
+          this.$refs.textarea.value = this.inputVal
+          return
         }
-        if (v.data === ".") {
-          this.currentOperator = v.data;
-          this.isRefBy = false;
-          this.optionsHide = true;
-          this.getAttrByEntity();
+        if (v.data === '.') {
+          this.currentOperator = v.data
+          this.isRefBy = false
+          this.optionsHide = true
+          this.getAttrByEntity()
         }
-        if (v.data === "~") {
-          this.currentOperator = v.data;
-          this.isRefBy = true;
-          this.optionsHide = true;
-          this.options = [];
-          this.getRefByEntity();
+        if (v.data === '~') {
+          this.currentOperator = v.data
+          this.isRefBy = true
+          this.optionsHide = true
+          this.options = []
+          this.getRefByEntity()
         }
       }
     },
-    getAttrByEntity() {
-      //获取当前选中entity的属性作为下拉选项
-      this.options = [];
+    getAttrByEntity () {
+      // 获取当前选中entity的属性作为下拉选项
+      this.options = []
       this.allEntity.forEach(e => {
-        if (e.name == this.entityPath[this.entityPath.length - 1].entity) {
-          this.options = e.attributes;
+        if (e.name === this.entityPath[this.entityPath.length - 1].entity) {
+          this.options = e.attributes
         }
-      });
+      })
     },
-    async getRefByEntity() {
-      //获取当前entity被哪些属性引用作为下拉选项
-      const current = this.entityPath[this.entityPath.length - 1];
-      const {
-        status,
-        message,
-        data
-      } = await getRefByIdInfoByPackageNameAndEntityName(
+    async getRefByEntity () {
+      // 获取当前entity被哪些属性引用作为下拉选项
+      const current = this.entityPath[this.entityPath.length - 1]
+      const { status, data } = await getRefByIdInfoByPackageNameAndEntityName(
         current.pkg,
         current.entity
-      );
-      if (status === "OK") {
-        this.options = data;
+      )
+      if (status === 'OK') {
+        this.options = data
       }
     }
   }
-};
+}
 </script>
 <style lang="scss">
 * {

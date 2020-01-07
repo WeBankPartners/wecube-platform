@@ -7,19 +7,19 @@
 </template>
 <script>
 export default {
-  mounted() {
+  mounted () {
     // remove loading
-    const boxLoading = document.getElementById("boxLoading");
-    const boxTitle = document.getElementById("boxTitle");
-    boxLoading.style.display = "none";
-    boxTitle.style.display = "none";
+    const boxLoading = document.getElementById('boxLoading')
+    const boxTitle = document.getElementById('boxTitle')
+    boxLoading.style.display = 'none'
+    boxTitle.style.display = 'none'
   }
-};
+}
 </script>
 
 <style lang="scss" scoped>
 #wecube_app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
