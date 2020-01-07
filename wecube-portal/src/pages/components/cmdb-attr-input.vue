@@ -34,17 +34,17 @@
   </Row>
 </template>
 <script>
-import AttrInput from "./attr-input";
+import AttrInput from './attr-input'
 export default {
   components: {
     AttrInput
   },
-  data() {
+  data () {
     return {
-      mappingType: "CMDB_CI_TYPE",
+      mappingType: 'CMDB_CI_TYPE',
       cmdbEnumCode: 0,
-      cmdbAttr: ""
-    };
+      cmdbAttr: ''
+    }
   },
   props: {
     allCiTypes: { required: true },
@@ -57,45 +57,45 @@ export default {
   },
   watch: {
     paramData: {
-      handler(val) {
-        this.mappingType = val.mappingType;
-        this.cmdbEnumCode = val.cmdbEnumCode;
+      handler (val) {
+        this.mappingType = val.mappingType
+        this.cmdbEnumCode = val.cmdbEnumCode
       },
       immediate: true
     }
   },
-  mounted() {
-    this.$emit("input", this.outputValue);
+  mounted () {
+    this.$emit('input', this.outputValue)
   },
   computed: {
-    outputValue() {
-      if (this.mappingType === "CMDB_CI_TYPE") {
+    outputValue () {
+      if (this.mappingType === 'CMDB_CI_TYPE') {
         return {
           mappingType: this.mappingType,
           cmdbEnumCode: null,
           cmdbColumnSource: this.cmdbAttr.cmdbColumnSource,
           cmdbColumnCriteria: this.cmdbAttr.cmdbColumnCriteria
-        };
+        }
       } else {
         return {
           mappingType: this.mappingType,
           cmdbEnumCode: this.cmdbEnumCode,
           cmdbColumnSource: null,
           cmdbColumnCriteria: null
-        };
+        }
       }
     }
   },
   methods: {
-    mappingTypeChangeHandler(v) {
-      this.$emit("input", this.outputValue);
+    mappingTypeChangeHandler (v) {
+      this.$emit('input', this.outputValue)
     },
-    cmdbAttrChangeHandler(v) {
-      this.$emit("input", this.outputValue);
+    cmdbAttrChangeHandler (v) {
+      this.$emit('input', this.outputValue)
     },
-    cmdbEnumCodeChangeHandler(v) {
-      this.$emit("input", this.outputValue);
+    cmdbEnumCodeChangeHandler (v) {
+      this.$emit('input', this.outputValue)
     }
   }
-};
+}
 </script>

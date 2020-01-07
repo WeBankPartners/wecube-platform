@@ -18,7 +18,7 @@
           <ul v-for="opt in attrNameArray" :key="opt.attrId">
             <li @click="selectAttr(opt)">
               {{
-                opt.inputType === "ref"
+                opt.inputType === 'ref'
                   ? `( ${opt.ciTypeAttrName} ) ${opt.ciTypeName}`
                   : opt.ciTypeAttrName
               }}
@@ -34,22 +34,22 @@
 </template>
 
 <script>
-import { getRefCiTypeFrom, getCiTypeAttr } from "@/api/server.js";
+import { getRefCiTypeFrom, getCiTypeAttr } from '@/api/server.js'
 export default {
-  data() {
+  data () {
     return {
       optionsHide: false,
       options: [],
-      inputVal: "",
+      inputVal: '',
       optests: [],
       routine: [],
       allCi: [],
       attrNameArray: [],
       isShowSelect: false,
-      enumCodes: ["id", "code", "value", "groupCodeId"],
+      enumCodes: ['id', 'code', 'value', 'groupCodeId'],
       autoFillArray: [],
       inputRuleStatus: 1 // 0 - 花括号内 ; 1 - 花括号外
-    };
+    }
   },
   props: {
     allLayers: {
@@ -62,283 +62,286 @@ export default {
     },
     value: {
       required: true,
-      default: ""
+      default: ''
     },
     rootCiTypeId: {
       required: false
     }
   },
   computed: {
-    allCiTypes() {
-      let result = [];
+    allCiTypes () {
+      let result = []
       this.allLayers.forEach(layer => {
         if (layer.ciTypes instanceof Array) {
-          result = result.concat(layer.ciTypes);
+          result = result.concat(layer.ciTypes)
         }
-      });
-      return result;
+      })
+      return result
     },
-    ciTypesObj() {
-      let obj = {};
+    ciTypesObj () {
+      let obj = {}
       this.allCiTypes.forEach(_ => {
-        obj[_.ciTypeId] = _;
-      });
-      return obj;
+        obj[_.ciTypeId] = _
+      })
+      return obj
     },
-    ciTypeAttrsObj() {
-      let obj = {};
+    ciTypeAttrsObj () {
+      let obj = {}
       this.allCiTypes.forEach(ciType => {
         ciType.attributes.forEach(attr => {
-          obj[attr.ciTypeAttrId] = attr;
-        });
-      });
-      return obj;
+          obj[attr.ciTypeAttrId] = attr
+        })
+      })
+      return obj
     },
-    autoFillLastObjValue() {
-      return this.autoFillArray[this.autoFillArray.length - 1].value;
+    autoFillLastObjValue () {
+      return this.autoFillArray[this.autoFillArray.length - 1].value
     }
   },
   watch: {
-    optionsHide() {
-      let doms = document.getElementsByClassName("attr-ul");
+    optionsHide () {
+      let doms = document.getElementsByClassName('attr-ul')
       for (let i = 0; i < doms.length; i++) {
-        doms[i].style.width = this.$refs.textarea.clientWidth + "px";
+        doms[i].style.width = this.$refs.textarea.clientWidth + 'px'
       }
     },
-    allCiTypes() {
-      this.displayInputData();
+    allCiTypes () {
+      this.displayInputData()
     }
   },
-  mounted() {
-    this.displayInputData();
+  mounted () {
+    this.displayInputData()
   },
   methods: {
-    inputHandler(v) {
+    inputHandler (v) {
       if (this.inputRuleStatus === 1) {
-        const rule = /[\/\\\-_a-zA-Z0-9]{1}/;
+        // eslint-disable-next-line no-useless-escape
+        const rule = /[\/\\\-_a-zA-Z0-9]{1}/
         if (v.data) {
           if (rule.test(v.data)) {
-            this.inputVal = this.$refs.textarea.value;
+            this.inputVal = this.$refs.textarea.value
             if (this.autoFillArray.length) {
-              this.setAutoData();
+              this.setAutoData()
             } else {
               this.autoFillArray.push({
-                type: "delimiter",
+                type: 'delimiter',
                 value: this.inputVal
-              });
+              })
             }
-            this.$emit("input", JSON.stringify(this.autoFillArray));
-          } else if (v.data === "{") {
+            this.$emit('input', JSON.stringify(this.autoFillArray))
+          } else if (v.data === '{') {
             if (this.rootCiTypeId) {
               this.inputVal =
                 this.$refs.textarea.value +
-                " " +
+                ' ' +
                 this.ciTypesObj[this.rootCiTypeId].name +
-                " ";
+                ' '
               const val = [
                 {
                   ciTypeId: this.rootCiTypeId
                 }
-              ];
+              ]
               this.autoFillArray.push({
-                type: "rule",
+                type: 'rule',
                 value: JSON.stringify(val)
-              });
+              })
             } else {
-              this.inputVal = this.$refs.textarea.value + " ";
-              this.allCi = this.allCiTypes;
-              this.optionsHide = true;
-              this.autoFillArray.push({ type: "rule", value: "" });
+              this.inputVal = this.$refs.textarea.value + ' '
+              this.allCi = this.allCiTypes
+              this.optionsHide = true
+              this.autoFillArray.push({ type: 'rule', value: '' })
             }
-            this.inputRuleStatus = 0;
+            this.inputRuleStatus = 0
           } else {
-            this.$refs.textarea.value = this.inputVal;
+            this.$refs.textarea.value = this.inputVal
             this.$Message.error({
-              content: this.$t("auto_fill_error_msg")
-            });
+              content: this.$t('auto_fill_error_msg')
+            })
           }
-        } else if (v.inputType === "deleteContentBackward") {
+        } else if (v.inputType === 'deleteContentBackward') {
           if (this.autoFillLastObjValue.length) {
-            this.inputVal = this.inputVal.substr(0, this.inputVal.length - 1);
-            this.setAutoData();
+            this.inputVal = this.inputVal.substr(0, this.inputVal.length - 1)
+            this.setAutoData()
           } else {
-            this.autoFillArray.splice(-2, 2);
+            this.autoFillArray.splice(-2, 2)
             this.inputVal = this.inputVal.substr(
               0,
-              this.inputVal.lastIndexOf("{")
-            );
+              this.inputVal.lastIndexOf('{')
+            )
           }
           if (this.inputVal) {
-            this.$emit("input", JSON.stringify(this.autoFillArray));
+            this.$emit('input', JSON.stringify(this.autoFillArray))
           } else {
-            this.autoFillArray = [];
-            this.$emit("input", "");
+            this.autoFillArray = []
+            this.$emit('input', '')
           }
         } else {
-          this.$refs.textarea.value = this.inputVal;
+          this.$refs.textarea.value = this.inputVal
         }
       } else {
         if (v.data) {
           if (!this.autoFillLastObjValue) {
-            this.$refs.textarea.value = this.inputVal;
+            this.$refs.textarea.value = this.inputVal
             this.$Message.error({
-              content: this.$t("select_entity_first")
-            });
+              content: this.$t('select_entity_first')
+            })
           } else {
-            const objList = JSON.parse(this.autoFillLastObjValue);
-            const obj = objList[objList.length - 1];
+            const objList = JSON.parse(this.autoFillLastObjValue)
+            const obj = objList[objList.length - 1]
             if (
               !obj.parentRs ||
-              this.ciTypeAttrsObj[obj.parentRs.attrId].inputType === "ref"
+              this.ciTypeAttrsObj[obj.parentRs.attrId].inputType === 'ref'
             ) {
-              if (v.data === "." || v.data === "-") {
+              if (v.data === '.' || v.data === '-') {
                 if (
-                  this.inputVal[this.inputVal.length - 1] === "." ||
-                  this.inputVal[this.inputVal.length - 1] === "-"
+                  this.inputVal[this.inputVal.length - 1] === '.' ||
+                  this.inputVal[this.inputVal.length - 1] === '-'
                 ) {
-                  this.inputVal = this.inputVal.replace(/.$/, v.data);
+                  this.inputVal = this.inputVal.replace(/.$/, v.data)
                 } else {
-                  this.inputVal = this.$refs.textarea.value;
+                  this.inputVal = this.$refs.textarea.value
                 }
-                this.optionsHide = true;
-                this.getNextRef(v.data);
+                this.optionsHide = true
+                this.getNextRef(v.data)
               } else {
-                this.$refs.textarea.value = this.inputVal;
+                this.$refs.textarea.value = this.inputVal
                 this.$Message.error({
-                  content: this.$t("please_input_dot_or_dash")
-                });
+                  content: this.$t('please_input_dot_or_dash')
+                })
               }
             } else if (
               !obj.parentRs ||
               (this.ciTypeAttrsObj[obj.parentRs.attrId].inputType ===
-                "select" &&
+                'select' &&
                 !obj.enumCodeAttr)
             ) {
-              this.$refs.textarea.value = this.inputVal;
+              this.$refs.textarea.value = this.inputVal
               this.$Message.error({
-                content: this.$t("please_select_enum")
-              });
+                content: this.$t('please_select_enum')
+              })
             } else {
-              if (v.data === "}") {
-                this.$emit("input", JSON.stringify(this.autoFillArray));
-                this.autoFillArray.push({ type: "delimiter", value: "" });
-                this.inputVal = this.$refs.textarea.value;
-                this.inputRuleStatus = 1;
+              if (v.data === '}') {
+                this.$emit('input', JSON.stringify(this.autoFillArray))
+                this.autoFillArray.push({ type: 'delimiter', value: '' })
+                this.inputVal = this.$refs.textarea.value
+                this.inputRuleStatus = 1
               } else {
-                this.$refs.textarea.value = this.inputVal;
+                this.$refs.textarea.value = this.inputVal
                 this.$Message.error({
-                  content: this.$t("please_input_right_close")
-                });
+                  content: this.$t('please_input_right_close')
+                })
               }
             }
           }
-        } else if (v.inputType === "deleteContentBackward") {
+        } else if (v.inputType === 'deleteContentBackward') {
           if (
-            this.autoFillLastObjValue !== "[]" &&
-            this.autoFillLastObjValue !== ""
+            this.autoFillLastObjValue !== '[]' &&
+            this.autoFillLastObjValue !== ''
           ) {
-            let val = JSON.parse(this.autoFillLastObjValue);
-            this.isShowSelect = false;
+            let val = JSON.parse(this.autoFillLastObjValue)
+            this.isShowSelect = false
             if (this.rootCiTypeId && val.length === 1) {
-              this.attrNameArray = [];
-              this.optionsHide = false;
-              this.autoFillArray.splice(-1, 1);
+              this.attrNameArray = []
+              this.optionsHide = false
+              this.autoFillArray.splice(-1, 1)
               this.inputVal = this.inputVal.substr(
                 0,
-                this.inputVal.lastIndexOf("{")
-              );
+                this.inputVal.lastIndexOf('{')
+              )
               if (!this.inputVal) {
-                this.autoFillArray = [];
-                this.$emit("input", "");
+                this.autoFillArray = []
+                this.$emit('input', '')
               }
-              this.inputRuleStatus = 1;
-              this.optionsHide = false;
-              return;
+              this.inputRuleStatus = 1
+              this.optionsHide = false
+              return
             }
-            let lastAttrVal = "";
-            const lastAttrObj = val[val.length - 1];
-            const ciTypeName = this.ciTypesObj[lastAttrObj.ciTypeId].name;
-            let ciTypeAttrName = "";
+            let lastAttrVal = ''
+            const lastAttrObj = val[val.length - 1]
+            const ciTypeName = this.ciTypesObj[lastAttrObj.ciTypeId].name
+            let ciTypeAttrName = ''
             if (lastAttrObj.parentRs) {
               const attrName = this.ciTypeAttrsObj[lastAttrObj.parentRs.attrId]
-                .name;
+                .name
               lastAttrVal +=
-                lastAttrObj.parentRs.isReferedFromParent === 1 ? "." : "-";
+                lastAttrObj.parentRs.isReferedFromParent === 1 ? '.' : '-'
               if (
                 this.ciTypeAttrsObj[lastAttrObj.parentRs.attrId].inputType ===
-                "ref"
+                'ref'
               ) {
-                ciTypeAttrName = `(${attrName})${ciTypeName} `;
+                ciTypeAttrName = `(${attrName})${ciTypeName} `
               } else {
-                ciTypeAttrName = `${attrName} `;
+                ciTypeAttrName = `${attrName} `
               }
-              lastAttrVal += ciTypeAttrName;
+              lastAttrVal += ciTypeAttrName
             } else {
-              lastAttrVal += ciTypeName;
+              lastAttrVal += ciTypeName
             }
             this.inputVal = this.inputVal.substr(
               0,
               this.inputVal.lastIndexOf(lastAttrVal)
-            );
-            val.splice(-1, 1);
+            )
+            val.splice(-1, 1)
+            // eslint-disable-next-line standard/computed-property-even-spacing
             this.autoFillArray[
               this.autoFillArray.length - 1
-            ].value = JSON.stringify(val);
-            if (this.inputVal[this.inputVal.length - 2] === "{") {
-              this.allCi = this.allCiTypes;
-              this.optionsHide = true;
+            ].value = JSON.stringify(val)
+            if (this.inputVal[this.inputVal.length - 2] === '{') {
+              this.allCi = this.allCiTypes
+              this.optionsHide = true
             } else {
-              this.attrNameArray = [];
-              this.optionsHide = false;
+              this.attrNameArray = []
+              this.optionsHide = false
             }
           } else {
-            this.autoFillArray.splice(-1, 1);
+            this.autoFillArray.splice(-1, 1)
             this.inputVal = this.inputVal.substr(
               0,
-              this.inputVal.lastIndexOf("{")
-            );
-            this.inputRuleStatus = 1;
-            this.allCi = [];
-            this.optionsHide = false;
+              this.inputVal.lastIndexOf('{')
+            )
+            this.inputRuleStatus = 1
+            this.allCi = []
+            this.optionsHide = false
             if (!this.inputVal) {
-              this.$emit("input", "");
-              this.autoFillArray = [];
+              this.$emit('input', '')
+              this.autoFillArray = []
             }
           }
         } else {
-          this.$refs.textarea.value = this.inputVal;
+          this.$refs.textarea.value = this.inputVal
         }
       }
     },
-    setAutoData() {
-      let val = this.inputVal.split(/[\{\}]/);
+    setAutoData () {
+      // eslint-disable-next-line no-useless-escape
+      let val = this.inputVal.split(/[\{\}]/)
       this.autoFillArray[this.autoFillArray.length - 1].value =
-        val[val.length - 1];
+        val[val.length - 1]
     },
-    async getNextRef(operator) {
-      const objList = JSON.parse(this.autoFillLastObjValue);
-      const obj = objList[objList.length - 1];
-      let attrArray = [];
-      if (operator === ".") {
-        let { status, data, message } = await getCiTypeAttr(obj.ciTypeId);
-        if (status === "OK") {
+    async getNextRef (operator) {
+      const objList = JSON.parse(this.autoFillLastObjValue)
+      const obj = objList[objList.length - 1]
+      let attrArray = []
+      if (operator === '.') {
+        let { status, data } = await getCiTypeAttr(obj.ciTypeId)
+        if (status === 'OK') {
           data.forEach(_ => {
             attrArray.push({
               ..._,
               ciTypeName:
-                _.inputType === "ref"
+                _.inputType === 'ref'
                   ? this.allCiTypes.find(i => i.ciTypeId === _.referenceId).name
                   : this.allCiTypes.find(i => i.ciTypeId === _.ciTypeId).name,
               ciTypeAttrName: _.name,
               isReferedFromParent: 1,
-              id: _.inputType === "ref" ? _.referenceId : _.ciTypeId
-            });
-          });
-          this.attrNameArray = attrArray;
+              id: _.inputType === 'ref' ? _.referenceId : _.ciTypeId
+            })
+          })
+          this.attrNameArray = attrArray
         }
-      } else if (operator === "-") {
-        let { status, data, message } = await getRefCiTypeFrom(obj.ciTypeId);
-        if (status === "OK") {
+      } else if (operator === '-') {
+        let { status, data } = await getRefCiTypeFrom(obj.ciTypeId)
+        if (status === 'OK') {
           attrArray = data.map(_ => {
             return {
               ..._,
@@ -347,107 +350,107 @@ export default {
               ciTypeAttrName: _.name,
               isReferedFromParent: 0,
               id: _.ciTypeId
-            };
-          });
-          this.attrNameArray = attrArray;
+            }
+          })
+          this.attrNameArray = attrArray
         }
       }
     },
-    selectCiType(opt) {
-      this.optionsHide = false;
+    selectCiType (opt) {
+      this.optionsHide = false
       this.autoFillArray[this.autoFillArray.length - 1].value = JSON.stringify([
         {
           ciTypeId: opt.ciTypeId
         }
-      ]);
-      this.inputVal += opt.name + " ";
-      this.allCi = [];
-      this.$refs.textarea.focus();
+      ])
+      this.inputVal += opt.name + ' '
+      this.allCi = []
+      this.$refs.textarea.focus()
     },
-    selectAttr(opt) {
-      this.optionsHide = false;
+    selectAttr (opt) {
+      this.optionsHide = false
       const val = {
         ciTypeId: opt.id,
         parentRs: {
           attrId: opt.ciTypeAttrId,
           isReferedFromParent: opt.isReferedFromParent
         }
-      };
-      let result = JSON.parse(this.autoFillLastObjValue);
-      result.push(val);
+      }
+      let result = JSON.parse(this.autoFillLastObjValue)
+      result.push(val)
       this.autoFillArray[this.autoFillArray.length - 1].value = JSON.stringify(
         result
-      );
+      )
       this.inputVal +=
-        opt.inputType === "ref"
+        opt.inputType === 'ref'
           ? `(${opt.ciTypeAttrName})${opt.ciTypeName} `
-          : opt.ciTypeAttrName + " ";
-      this.attrNameArray = [];
-      this.$refs.textarea.focus();
-      if (opt.inputType === "select") {
-        this.isShowSelect = true;
-        this.optionsHide = true;
+          : opt.ciTypeAttrName + ' '
+      this.attrNameArray = []
+      this.$refs.textarea.focus()
+      if (opt.inputType === 'select') {
+        this.isShowSelect = true
+        this.optionsHide = true
       }
     },
-    selectEnumCode(code) {
-      this.optionsHide = false;
-      this.isShowSelect = false;
-      this.inputVal += `.${code} `;
-      let result = JSON.parse(this.autoFillLastObjValue);
-      result[result.length - 1].enumCodeAttr = code;
+    selectEnumCode (code) {
+      this.optionsHide = false
+      this.isShowSelect = false
+      this.inputVal += `.${code} `
+      let result = JSON.parse(this.autoFillLastObjValue)
+      result[result.length - 1].enumCodeAttr = code
       this.autoFillArray[this.autoFillArray.length - 1].value = JSON.stringify(
         result
-      );
-      this.$refs.textarea.focus();
+      )
+      this.$refs.textarea.focus()
     },
-    displayInputData() {
+    displayInputData () {
       if (!this.allCiTypes.length || !this.value) {
-        return;
+        return
       }
       if (this.value) {
-        this.inputVal = "";
-        this.autoFillArray = JSON.parse(this.value);
+        this.inputVal = ''
+        this.autoFillArray = JSON.parse(this.value)
         if (
-          this.autoFillArray[this.autoFillArray.length - 1].type !== "delimiter"
+          this.autoFillArray[this.autoFillArray.length - 1].type !== 'delimiter'
         ) {
-          this.autoFillArray.push({ type: "delimiter", value: "" });
+          this.autoFillArray.push({ type: 'delimiter', value: '' })
         }
         this.autoFillArray.forEach(_ => {
-          if (_.type === "delimiter") {
-            this.inputVal += _.value;
+          if (_.type === 'delimiter') {
+            this.inputVal += _.value
           } else {
-            let val = "{ ";
-            let data = JSON.parse(_.value);
+            let val = '{ '
+            let data = JSON.parse(_.value)
             data.forEach(item => {
-              const ciTypeName = this.ciTypesObj[item.ciTypeId].name;
+              const ciTypeName = this.ciTypesObj[item.ciTypeId].name
               if (item.parentRs) {
                 const refType =
-                  item.parentRs.isReferedFromParent === 1 ? "." : "-";
-                const attrName = this.ciTypeAttrsObj[item.parentRs.attrId].name;
+                  item.parentRs.isReferedFromParent === 1 ? '.' : '-'
+                const attrName = this.ciTypeAttrsObj[item.parentRs.attrId].name
                 if (
-                  this.ciTypeAttrsObj[item.parentRs.attrId].inputType === "ref"
+                  this.ciTypeAttrsObj[item.parentRs.attrId].inputType === 'ref'
                 ) {
-                  val += `${refType}(${attrName})${ciTypeName} `;
+                  val += `${refType}(${attrName})${ciTypeName} `
                 } else if (
                   this.ciTypeAttrsObj[item.parentRs.attrId].inputType ===
-                  "select"
+                  'select'
                 ) {
-                  val += `${refType}${attrName} .${item.enumCodeAttr} `;
+                  val += `${refType}${attrName} .${item.enumCodeAttr} `
                 } else {
-                  val += `${refType}${attrName} `;
+                  val += `${refType}${attrName} `
                 }
               } else {
-                val += ciTypeName + " ";
+                val += ciTypeName + ' '
               }
-            });
-            val += "}";
-            this.inputVal += val;
+            })
+            val += '}'
+            this.inputVal += val
           }
-        });
+        })
       }
     }
   }
-};
+}
 </script>
 
 <style lang="scss">
