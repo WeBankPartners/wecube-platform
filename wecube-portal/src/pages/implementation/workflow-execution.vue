@@ -175,6 +175,16 @@
         </template>
       </Table>
     </Modal>
+    <Modal
+      v-model="showNodeDetail"
+      :title="nodeTitle"
+      draggable
+      :styles="{ top: '200px' }"
+    >
+      <div style="height:250px;overflow:auto;">
+        <pre>{{ nodeDetail }}</pre>
+      </div>
+    </Modal>
     <div id="model_graph_detail">
       <highlight-code lang="json">{{ modelNodeDetail }}</highlight-code>
     </div>
@@ -198,12 +208,15 @@ import {
   getNodeContext
 } from '@/api/server'
 import * as d3 from 'd3-selection'
-// eslint-disable-next-line
+// eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
 import { addEvent, removeEvent } from '../util/event.js'
 export default {
   data () {
     return {
+      showNodeDetail: false,
+      nodeTitle: null,
+      nodeDetail: null,
       graph: {},
       flowGraph: {},
       modelData: [],
@@ -426,15 +439,6 @@ export default {
       this.getModelData()
     },
     formatNodesBindings () {
-      // let bindings = this.flowNodesBindings.map(_ => {
-      //   const found = this.flowData.flowNodes.find(
-      //     i => i.nodeDefId === _.nodeDefId
-      //   )
-      //   return {
-      //     ..._,
-      //     orderedNo: found ? found.orderedNo : ''
-      //   }
-      // })
       this.modelData.forEach(item => {
         this.flowNodesBindings.forEach(d => {
           if (d.entityTypeId + ':' + d.entityDataId === item.id) {
@@ -529,44 +533,16 @@ export default {
             _.packageName + '_' + _.entityName + '_' + _.dataId ===
             e.target.parentNode.id
         )
-        let modelDetail = document.getElementById('model_graph_detail')
-        let el = e || window.event
-        let x = el.clientX
-        let y = el.clientY
+        this.nodeTitle = `${found.displayName}`
         const { status, data } = await getModelNodeDetail(
           found.entityName,
           found.dataId
         )
         if (status === 'OK') {
-          this.modelNodeDetail = data
+          this.nodeDetail = data
         }
-        let clientWidth = document.body.clientWidth
-        const positionX =
-          clientWidth - x < 600 ? x - 600 + 5 + 'px' : x + 5 + 'px'
-        modelDetail.style.display = 'block'
-        modelDetail.style.left = positionX
-        modelDetail.style.top = y + 'px'
-        removeEvent(
-          '#model_graph_detail',
-          'mouseenter',
-          this.modelDetailEnterHandler
-        )
-        removeEvent(
-          '#model_graph_detail',
-          'mouseleave',
-          this.modelDetailLeaveHandler
-        )
-        addEvent(
-          '#model_graph_detail',
-          'mouseenter',
-          this.modelDetailEnterHandler
-        )
-        addEvent(
-          '#model_graph_detail',
-          'mouseleave',
-          this.modelDetailLeaveHandler
-        )
-      }, 500)
+        this.showNodeDetail = true
+      }, 1000)
     },
     modelDetailEnterHandler (e) {
       let modelDetail = document.getElementById('model_graph_detail')
@@ -797,44 +773,17 @@ export default {
         const found = this.flowData.flowNodes.find(
           _ => _.nodeId === e.target.parentNode.id
         )
-        let flowDetail = document.getElementById('flow_graph_detail')
-        let el = e || window.event
-        let x = el.clientX
-        let y = el.clientY
+        this.nodeTitle =
+          (found.orderedNo ? found.orderedNo + '、' : '') + found.nodeName
         const { status, data } = await getNodeContext(
           found.procInstId,
           found.id
         )
         if (status === 'OK') {
-          this.flowNodeDetail = data
+          this.nodeDetail = data
         }
-        let clientWidth = document.body.clientWidth
-        const positionX =
-          clientWidth - x < 600 ? x - 600 + 5 + 'px' : x + 5 + 'px'
-        flowDetail.style.display = 'block'
-        flowDetail.style.left = positionX
-        flowDetail.style.top = y + 'px'
-        removeEvent(
-          '#flow_graph_detail',
-          'mouseenter',
-          this.flowDetailEnterHandler
-        )
-        removeEvent(
-          '#flow_graph_detail',
-          'mouseleave',
-          this.flowDetailLeaveHandler
-        )
-        addEvent(
-          '#flow_graph_detail',
-          'mouseenter',
-          this.flowDetailEnterHandler
-        )
-        addEvent(
-          '#flow_graph_detail',
-          'mouseleave',
-          this.flowDetailLeaveHandler
-        )
-      }, 500)
+        this.showNodeDetail = true
+      }, 1000)
     },
     flowDetailEnterHandler (e) {
       let modelDetail = document.getElementById('flow_graph_detail')
