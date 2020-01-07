@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.auth.server.service;
 
+import com.webank.wecube.platform.auth.server.common.util.ValidateUtils;
 import com.webank.wecube.platform.auth.server.dto.CreateRoleDto;
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
 import com.webank.wecube.platform.auth.server.repository.RoleRepository;
@@ -9,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,8 +22,10 @@ public class RoleService {
     @Autowired
     private RoleRepository roleRepository;
 
-    @Valid
     public SysRoleEntity create(CreateRoleDto createRoleDto) throws Exception {
+        if (!ValidateUtils.isEmailValid(createRoleDto.getEmail())) {
+            throw new Exception("Please input the correct E-mail address");
+        }
 
         SysRoleEntity existedRole = roleRepository.findOneByName(createRoleDto.getName());
 
@@ -49,7 +51,7 @@ public class RoleService {
     public SysRoleEntity getRoleByIdIfExisted(String roleId) throws Exception {
         Optional<SysRoleEntity> roleEntityOptional = roleRepository.findById(roleId);
         if (!roleEntityOptional.isPresent()) {
-            throw new Exception(String.format("Role ID [%d] does not exist", roleId));
+            throw new Exception(String.format("Role ID [%s] does not exist", roleId));
         }
         return roleEntityOptional.get();
     }
