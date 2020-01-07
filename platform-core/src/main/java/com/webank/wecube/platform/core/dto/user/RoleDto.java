@@ -1,26 +1,17 @@
 package com.webank.wecube.platform.core.dto.user;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
+/**
+ * @author howechen
+ */
 public class RoleDto {
 
-    @JsonProperty(value = "createdBy")
     private String createdBy;
-    @JsonProperty(value = "updatedBy")
     private String updatedBy;
-    @JsonProperty(value = "createdTime")
     private String createdTime;
-    @JsonProperty(value = "updatedTime")
     private String updatedTime;
-    @JsonProperty(value = "id")
     private String id;
-    @JsonProperty(value = "displayName")
     private String displayName;
-    @JsonProperty(value = "name")
     private String name;
-    @JsonProperty(value = "E-mail")
     private String email;
 
 
