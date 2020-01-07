@@ -13,7 +13,6 @@
       width="300"
       :mask-closable="false"
       :title="$t('select_flow')"
-      @on-cancel
       @on-ok="saveOrchestration"
     >
       <Select filterable clearable v-model="selectedOrchestration">
@@ -28,40 +27,40 @@
   </div>
 </template>
 <script>
-import { getEnumCodesByCategoryId, updateCiDatas } from "@/api/server";
+import { getEnumCodesByCategoryId, updateCiDatas } from '@/api/server'
 export default {
-  name: "orchestration",
-  data() {
+  name: 'orchestration',
+  data () {
     return {
       orchestrationVisiable: false,
       allOrchestration: [],
-      selectedOrchestration: ""
-    };
+      selectedOrchestration: ''
+    }
   },
   props: {
     row: {},
     col: {}
   },
 
-  mounted() {
-    this.getAllOrchestration();
+  mounted () {
+    this.getAllOrchestration()
   },
   methods: {
-    async getAllOrchestration() {
-      const { data, message, status } = await getEnumCodesByCategoryId(
+    async getAllOrchestration () {
+      const { data, status } = await getEnumCodesByCategoryId(
         0,
         this.col.referenceId
-      );
-      if (status === "OK") {
+      )
+      if (status === 'OK') {
         this.allOrchestration = data.map(_ => {
           return {
             label: _.value,
             codeId: _.codeId
-          };
-        });
+          }
+        })
       }
     },
-    async saveOrchestration() {
+    async saveOrchestration () {
       let payload = {
         id: this.row.citypeId,
         updateData: [
@@ -72,23 +71,23 @@ export default {
               : null
           }
         ]
-      };
-      let { status, data, message } = await updateCiDatas(payload);
-      if (status === "OK") {
+      }
+      let { status, message } = await updateCiDatas(payload)
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "Success",
+          title: 'Success',
           desc: message
-        });
-        this.$emit("handleSubmit");
+        })
+        this.$emit('handleSubmit')
       }
     },
-    visibleChangeHandler(state) {
-      this.orchestrationVisiable = state;
+    visibleChangeHandler (state) {
+      this.orchestrationVisiable = state
     },
-    showOrchestration() {
-      this.orchestrationVisiable = true;
-      this.selectedOrchestration = this.row.orchestration || ""; // 回显
+    showOrchestration () {
+      this.orchestrationVisiable = true
+      this.selectedOrchestration = this.row.orchestration || '' // 回显
     }
   }
-};
+}
 </script>
