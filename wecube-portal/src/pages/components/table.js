@@ -2,6 +2,7 @@ import "./table.scss";
 import moment from "moment";
 const DEFAULT_FILTER_NUMBER = 5;
 const DATE_FORMAT = "YYYY-MM-DD HH:mm:ss";
+const MIN_WIDTH = 130;
 
 export default {
   name: "WeTable",
@@ -25,7 +26,8 @@ export default {
       selectedRows: [],
       data: [],
       isShowHiddenFilters: false,
-      showedColumns: []
+      showedColumns: [],
+      columns: []
     };
   },
   mounted() {
@@ -496,6 +498,11 @@ export default {
         data: data.data
       });
     },
+    onColResize(newWidth, oldWidth, column, event) {
+      let cols = [...this.columns];
+      cols.find(x => x.key === column.key).width = newWidth;
+      this.columns = cols;
+    },
     calColumn() {
       let compare = (a, b) => {
         if (a.displaySeqNo < b.displaySeqNo) {
@@ -506,24 +513,31 @@ export default {
         }
         return 0;
       };
-      this.columns = this.tableColumns
+      const columns = this.tableColumns
         .filter(_ => _.isDisplayed || _.displaySeqNo || _.children)
-        .sort(compare)
-        .map(_ => {
-          if (_.children) {
-            return {
-              ..._,
-              children: _.children
-                .filter(_ => _.isDisplayed || _.displaySeqNo)
-                .sort(compare)
-                .map(j => {
-                  return this.renderCol(j);
-                })
-            };
-          } else {
-            return this.renderCol(_);
-          }
-        });
+        .sort(compare);
+      const tableWidth = this.$refs.table
+        ? this.$refs.table.$el.clientWidth
+        : 1000; // 获取table宽度，默认值1000
+      const colLength = columns.length; // 获取传入展示的column长度
+      this.colWidth = Math.floor(tableWidth / colLength);
+      this.columns = columns.map((_, idx) => {
+        const isLast = colLength - 1 === idx;
+        if (_.children) {
+          const children = _.children
+            .filter(_ => _.isDisplayed || _.displaySeqNo)
+            .sort(compare);
+          return {
+            ..._,
+            children: children.map((j, index) => {
+              const isChildLast = isLast && children.length - 1 === index;
+              return this.renderCol(j, isChildLast);
+            })
+          };
+        } else {
+          return this.renderCol(_, isLast);
+        }
+      });
 
       if (this.showCheckbox && !this.highlightRow) {
         this.columns.unshift({
@@ -581,7 +595,7 @@ export default {
         });
       }
     },
-    renderCol(col) {
+    renderCol(col, isLastCol = false) {
       let setValueHandler = (_this, v, col, params) => {
         _this.selectedRows.forEach(_ => {
           if (_.weTableRowId === params.row.weTableRowId) {
@@ -595,7 +609,13 @@ export default {
         ...col,
         tooltip: true,
         // maxWidth: 500,
-        minWidth: 130,
+        minWidth: MIN_WIDTH,
+        width: isLastCol
+          ? null
+          : this.colWidth < MIN_WIDTH
+          ? MIN_WIDTH
+          : this.colWidth, // 除最后一列，都加上默认宽度，等宽
+        resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? "custom" : false,
         render: (h, params) => {
           if (
@@ -736,6 +756,7 @@ export default {
           on-on-selection-change={this.onCheckboxSelect}
           on-on-current-change={this.onRadioSelect}
           on-on-sort-change={this.sortHandler}
+          on-on-column-width-resize={this.onColResize}
           size="small"
         />
         {pagination && (
