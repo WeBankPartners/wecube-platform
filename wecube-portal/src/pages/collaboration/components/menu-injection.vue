@@ -16,22 +16,13 @@
             style="width: 100%"
           >
             <p
-              v-if="menu.source === 'PLUGIN'"
-              style="color: green;width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;"
+              :class="
+                menu.source === 'SYSTEM'
+                  ? 'menu-injection_menu-item'
+                  : 'menu-injection_menu-item_new'
+              "
             >
               {{ $lang === 'zh-CN' ? menu.localDisplayName : menu.displayName }}
-            </p>
-            <p
-              v-else
-              style="width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;"
-            >
-              {{ menu.displayName }}
             </p>
           </Tooltip>
         </ListItem>
@@ -103,3 +94,19 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+.menu-injection_menu-item {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-injection_menu-item_new {
+  width: 100%;
+  color: green;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>
