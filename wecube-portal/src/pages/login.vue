@@ -13,6 +13,7 @@
         name="user"
         @on-enter="login"
       />
+
       <Input
         type="password"
         password
@@ -36,50 +37,50 @@
   </div>
 </template>
 <script>
-import { login } from "../api/server";
+import { login } from '../api/server'
 export default {
-  data() {
+  data () {
     return {
-      username: "",
-      password: "",
+      username: '',
+      ***REMOVED***
       loading: false
-    };
+    }
   },
   methods: {
-    async login() {
-      if (!this.username || !this.password) return;
-      this.loading = true;
+    async login () {
+      if (!this.username || !this.password) return
+      this.loading = true
       const payload = {
         username: this.username,
         password: this.password
-      };
-      const { status, message, data } = await login(payload);
-      if (status === "OK") {
-        let session = window.sessionStorage;
-        session.setItem("token", JSON.stringify(data));
-        session.setItem("username", this.username);
-        this.$router.push("/homepage");
       }
-      this.loading = false;
+      const { status, data } = await login(payload)
+      if (status === 'OK') {
+        let session = window.sessionStorage
+        session.setItem('token', JSON.stringify(data))
+        session.setItem('username', this.username)
+        this.$router.push('/homepage')
+      }
+      this.loading = false
     },
-    clearSession() {
-      let session = window.sessionStorage;
-      session.removeItem("token");
-      session.removeItem("username");
-      window.needReLoad = true;
+    clearSession () {
+      let session = window.sessionStorage
+      session.removeItem('token')
+      session.removeItem('username')
+      window.needReLoad = true
     }
   },
-  created() {
-    this.clearSession();
+  created () {
+    this.clearSession()
   }
-};
+}
 </script>
 <style scoped>
 .body {
   position: absolute;
   width: 100%;
   height: 100%;
-  background-image: url("../assets/bg.jpg");
+  background-image: url('../assets/bg.jpg');
   background-size: cover;
   -webkit-filter: blur(3px);
   z-index: 0;
@@ -95,7 +96,7 @@ export default {
 .header-login div {
   width: 600px;
   height: 50px;
-  background-image: url("../assets/wecube-logo.png");
+  background-image: url('../assets/wecube-logo.png');
   background-size: contain;
   background-repeat: no-repeat;
 }
