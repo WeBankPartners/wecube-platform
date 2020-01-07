@@ -1,118 +1,118 @@
-import Vue from "vue";
+import Vue from 'vue'
 export const components = {
   number: {
-    component: "Input",
-    type: "number"
+    component: 'Input',
+    type: 'number'
   },
   date: {
-    component: "DatePicker",
-    type: "datetimerange"
+    component: 'DatePicker',
+    type: 'datetimerange'
   },
   text: {
-    component: "Input",
-    type: "text"
+    component: 'Input',
+    type: 'text'
   },
   select: {
-    component: "WeSelect",
+    component: 'WeSelect',
     options: []
   },
   ref: {
-    component: "refSelect",
+    component: 'refSelect',
     highlightRow: true
   },
   multiSelect: {
-    component: "WeSelect",
+    component: 'WeSelect',
     options: []
   },
   multiRef: {
-    component: "refSelect"
+    component: 'refSelect'
   },
   textArea: {
-    component: "Input",
-    type: "text"
+    component: 'Input',
+    type: 'text'
   }
-};
+}
 export const outerActions = [
   {
-    label: Vue.t("add"),
+    label: Vue.t('add'),
     props: {
-      type: "success",
-      icon: "md-add",
+      type: 'success',
+      icon: 'md-add',
       disabled: false
     },
-    actionType: "add"
+    actionType: 'add'
   },
   {
-    label: Vue.t("save"),
+    label: Vue.t('save'),
     props: {
-      type: "info",
-      icon: "md-checkmark",
+      type: 'info',
+      icon: 'md-checkmark',
       disabled: true
     },
-    actionType: "save"
+    actionType: 'save'
   },
   {
-    label: Vue.t("edit"),
+    label: Vue.t('edit'),
     props: {
-      type: "info",
-      icon: "ios-build",
+      type: 'info',
+      icon: 'ios-build',
       disabled: true
     },
-    actionType: "edit"
+    actionType: 'edit'
   },
   {
-    label: Vue.t("delete"),
+    label: Vue.t('delete'),
     props: {
-      type: "error",
-      icon: "ios-trash-outline",
+      type: 'error',
+      icon: 'ios-trash-outline',
       disabled: true
     },
-    actionType: "delete"
+    actionType: 'delete'
   },
   {
-    label: Vue.t("cancel"),
+    label: Vue.t('cancel'),
     props: {
-      type: "warning",
-      icon: "md-undo"
+      type: 'warning',
+      icon: 'md-undo'
       // disabled: true
     },
-    actionType: "cancel"
+    actionType: 'cancel'
   },
   {
-    label: Vue.t("export"),
+    label: Vue.t('export'),
     props: {
-      type: "primary",
-      icon: "ios-download-outline"
+      type: 'primary',
+      icon: 'ios-download-outline'
     },
-    actionType: "export"
+    actionType: 'export'
   },
   {
-    label: Vue.t("filter_columns"),
+    label: Vue.t('filter_columns'),
     props: {
-      type: "primary",
-      icon: "ios-funnel",
-      shape: "circle",
+      type: 'primary',
+      icon: 'ios-funnel',
+      shape: 'circle',
       disabled: false
     },
-    actionType: "filterColumns"
+    actionType: 'filterColumns'
   }
-];
+]
 export const innerActions = [
   {
-    label: Vue.t("cancel"),
+    label: Vue.t('cancel'),
     props: {
-      type: "warning",
-      size: "small"
+      type: 'warning',
+      size: 'small'
     },
-    actionType: "innerCancel",
+    actionType: 'innerCancel',
     visible: {
-      key: "isRowEditable",
+      key: 'isRowEditable',
       value: true
     }
   }
-];
+]
 export const pagination = {
   pageSize: 10,
   currentPage: 1,
   total: 0
-};
+}
