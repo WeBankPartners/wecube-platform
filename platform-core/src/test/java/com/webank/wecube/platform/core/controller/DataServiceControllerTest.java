@@ -5,6 +5,7 @@ import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
@@ -24,7 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class DataServiceControllerTest extends AbstractControllerTest {
     @Autowired
-    private RestTemplate restTemplate;
+    @Qualifier(value = "jwtSsoRestTemplate")
+    private RestTemplate jwtSsoRestTemplate;
     @Autowired
     private ApplicationProperties applicationProperties;
     private String gatewayUrl;
@@ -34,7 +36,7 @@ public class DataServiceControllerTest extends AbstractControllerTest {
 
     @Before
     public void setup() {
-        this.server = MockRestServiceServer.bindTo(restTemplate).build();
+        this.server = MockRestServiceServer.bindTo(jwtSsoRestTemplate).build();
         this.gatewayUrl = this.applicationProperties.getGatewayUrl();
         mvc = MockMvcBuilders.standaloneSetup(controllerToTest).build();
     }
