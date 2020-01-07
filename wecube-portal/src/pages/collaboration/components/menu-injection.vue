@@ -89,8 +89,6 @@ export default {
           })
           return _
         })
-
-        console.log('menus', this.menus)
       }
     }
   }
