@@ -4,13 +4,13 @@
       <Col span="7">
         <Card>
           <p slot="title">
-            {{ $t("user") }}
+            {{ $t('user') }}
             <Button
               icon="ios-add"
               type="dashed"
               size="small"
               @click="openAddUserModal"
-              >{{ $t("add_user") }}</Button
+              >{{ $t('add_user') }}</Button
             >
           </p>
           <Tag
@@ -32,13 +32,13 @@
       <Col span="7" offset="1">
         <Card>
           <p slot="title">
-            {{ $t("role") }}
+            {{ $t('role') }}
             <Button
               icon="ios-add"
               type="dashed"
               size="small"
               @click="openAddRoleModal"
-              >{{ $t("add_role") }}</Button
+              >{{ $t('add_role') }}</Button
             >
           </p>
           <div class="role-item" v-for="item in roles" :key="item.id">
@@ -51,7 +51,7 @@
               @on-change="handleRoleClick"
             >
               <span :title="item.displayName">{{
-                item.name + "(" + item.displayName + ")"
+                item.name + '(' + item.displayName + ')'
               }}</span>
             </Tag>
             <Button
@@ -59,14 +59,14 @@
               type="dashed"
               size="small"
               @click="openUserManageModal(item.id)"
-              >{{ $t("user") }}</Button
+              >{{ $t('user') }}</Button
             >
           </div>
         </Card>
       </Col>
       <Col span="7" offset="1">
         <Card>
-          <p slot="title">{{ $t("menus") }}</p>
+          <p slot="title">{{ $t('menus') }}</p>
           <Tree
             :data="menus"
             show-checkbox
@@ -142,10 +142,8 @@
 import {
   userCreate,
   getUserList,
-  deleteUser,
   roleCreate,
   getRoleList,
-  deleteRole,
   getRolesByUserName,
   getUsersByRoleId,
   grantRolesForUser,
@@ -154,19 +152,19 @@ import {
   getMenusByUserName,
   getMenusByRoleId,
   updateRoleToMenusByRoleId
-} from "@/api/server";
-import { MENUS } from "@/const/menus.js";
+} from '@/api/server'
+import { MENUS } from '@/const/menus.js'
 
 export default {
-  data() {
+  data () {
     return {
       users: [],
       roles: [],
       addedUser: {},
       addedRole: {},
-      addedRoleValue: "",
-      transferTitles: [this.$t("unselected_user"), this.$t("selected_user")],
-      transferStyle: { width: "300px" },
+      addedRoleValue: '',
+      transferTitles: [this.$t('unselected_user'), this.$t('selected_user')],
+      transferStyle: { width: '300px' },
       usersKeyBySelectedRole: [],
       allUsersForTransfer: [],
       addUserModalVisible: false,
@@ -174,50 +172,50 @@ export default {
       userManageModal: false,
       originMenus: [],
       menus: []
-    };
+    }
   },
   methods: {
-    async handleMenuTreeCheck(allChecked, currentChecked) {
-      const menuCodes = allChecked.filter(i => i.category).map(_ => _.code);
-      const { status, message, data } = await updateRoleToMenusByRoleId(
+    async handleMenuTreeCheck (allChecked, currentChecked) {
+      const menuCodes = allChecked.filter(i => i.category).map(_ => _.code)
+      const { status, message } = await updateRoleToMenusByRoleId(
         this.currentRoleId,
         menuCodes
-      );
-      if (status === "OK") {
+      )
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "success",
+          title: 'success',
           desc: message
-        });
+        })
       }
-      this.handleRoleClick(true, this.currentRoleId);
+      this.handleRoleClick(true, this.currentRoleId)
     },
-    async getAllMenus() {
-      const { status, message, data } = await getAllMenusList();
-      if (status === "OK") {
-        this.originMenus = data;
+    async getAllMenus () {
+      const { status, data } = await getAllMenusList()
+      if (status === 'OK') {
+        this.originMenus = data
       }
-      this.menus = this.menusResponseHandeler(this.originMenus);
+      this.menus = this.menusResponseHandeler(this.originMenus)
     },
-    menusPermissionSelected(allMenus, menusPermissions = []) {
+    menusPermissionSelected (allMenus, menusPermissions = []) {
       allMenus.forEach(_ => {
         _.children.forEach(m => {
-          const subMenu = menusPermissions.find(n => m.code === n.code);
-          m.checked = subMenu ? true : false;
-        });
-        _.indeterminate = false;
-        _.checked = false;
-      });
+          const subMenu = menusPermissions.find(n => m.code === n.code)
+          m.checked = !!subMenu
+        })
+        _.indeterminate = false
+        _.checked = false
+      })
     },
-    menusResponseHandeler(data, disabled = true) {
-      let menus = [];
+    menusResponseHandeler (data, disabled = true) {
+      let menus = []
       data.forEach(_ => {
         if (!_.category) {
-          let menuObj = MENUS.find(m => m.code === _.code);
+          let menuObj = MENUS.find(m => m.code === _.code)
           menus.push({
             ..._,
             title:
-              _.source === "SYSTEM"
-                ? this.$lang === "zh-CN"
+              _.source === 'SYSTEM'
+                ? this.$lang === 'zh-CN'
                   ? menuObj.cnName
                   : menuObj.enName
                 : _.displayName,
@@ -226,220 +224,220 @@ export default {
             checked: false,
             children: [],
             disabled
-          });
+          })
         }
-      });
+      })
       data.forEach(_ => {
         if (_.category) {
-          let menuObj = MENUS.find(m => m.code === _.code);
+          let menuObj = MENUS.find(m => m.code === _.code)
           menus.forEach(h => {
             if (_.category === h.id) {
               h.children.push({
                 ..._,
                 title:
-                  _.source === "SYSTEM"
-                    ? this.$lang === "zh-CN"
+                  _.source === 'SYSTEM'
+                    ? this.$lang === 'zh-CN'
                       ? menuObj.cnName
                       : menuObj.enName
-                    : this.$lang === "zh-CN"
-                    ? _.localDisplayName
-                    : _.displayName,
+                    : this.$lang === 'zh-CN'
+                      ? _.localDisplayName
+                      : _.displayName,
                 id: _.id,
                 expand: true,
                 checked: false,
                 disabled
-              });
+              })
             }
-          });
+          })
         }
-      });
-      return menus;
+      })
+      return menus
     },
-    renderUserNameForTransfer(item) {
-      return item.label;
+    renderUserNameForTransfer (item) {
+      return item.label
     },
-    async getAllUsers() {
-      let { status, data, message } = await getUserList();
-      if (status === "OK") {
+    async getAllUsers () {
+      let { status, data } = await getUserList()
+      if (status === 'OK') {
         this.users = data.map(_ => {
           return {
             ..._,
             checked: false,
-            color: "#5cadff"
-          };
-        });
+            color: '#5cadff'
+          }
+        })
       }
     },
-    async getAllRoles() {
-      let { status, data, message } = await getRoleList();
-      if (status === "OK") {
+    async getAllRoles () {
+      let { status, data } = await getRoleList()
+      if (status === 'OK') {
         this.roles = data.map(_ => {
           return {
             ..._,
             checked: false,
-            color: "success"
-          };
-        });
+            color: 'success'
+          }
+        })
       }
     },
-    async handleUserClick(checked, name) {
-      this.currentRoleId = 0;
+    async handleUserClick (checked, name) {
+      this.currentRoleId = 0
       this.users.forEach(_ => {
-        _.checked = false;
+        _.checked = false
         if (name === _.username) {
-          _.checked = checked;
+          _.checked = checked
         }
-      });
-      let permissions = await getMenusByUserName(name);
-      if (permissions.status === "OK") {
-        const userMenus = [].concat(...permissions.data.map(_ => _.menuList));
-        this.menusPermissionSelected(this.menus, userMenus);
+      })
+      let permissions = await getMenusByUserName(name)
+      if (permissions.status === 'OK') {
+        const userMenus = [].concat(...permissions.data.map(_ => _.menuList))
+        this.menusPermissionSelected(this.menus, userMenus)
       }
-      let { status, data, message } = await getRolesByUserName(name);
-      if (status === "OK") {
+      let { status, data } = await getRolesByUserName(name)
+      if (status === 'OK') {
         this.roles.forEach(_ => {
-          _.checked = false;
-          const found = data.find(item => item.id === _.id);
+          _.checked = false
+          const found = data.find(item => item.id === _.id)
           if (found) {
-            _.checked = checked;
+            _.checked = checked
           }
           // this.menus = this.menusResponseHandeler(this.allMenusOriginResponse);
-        });
+        })
       }
     },
-    async handleRoleClick(checked, id) {
-      this.currentRoleId = id;
+    async handleRoleClick (checked, id) {
+      this.currentRoleId = id
       // this.menus = this.menusResponseHandeler(
       //   this.allMenusOriginResponse,
       //   false
       // );
       this.roles.forEach(_ => {
-        _.checked = false;
+        _.checked = false
         if (id === _.id) {
-          _.checked = checked;
+          _.checked = checked
         }
-      });
-      this.menus = this.menusResponseHandeler(this.originMenus, false);
-      let permissions = await getMenusByRoleId(id);
-      if (permissions.status === "OK") {
-        this.menusPermissionSelected(this.menus, permissions.data.menuList);
+      })
+      this.menus = this.menusResponseHandeler(this.originMenus, false)
+      let permissions = await getMenusByRoleId(id)
+      if (permissions.status === 'OK') {
+        this.menusPermissionSelected(this.menus, permissions.data.menuList)
       }
-      let { status, data, message } = await getUsersByRoleId(id);
-      if (status === "OK") {
+      let { status, data } = await getUsersByRoleId(id)
+      if (status === 'OK') {
         this.users.forEach(_ => {
-          _.checked = false;
-          const found = data.find(item => item.username === _.username);
+          _.checked = false
+          const found = data.find(item => item.username === _.username)
           if (found) {
-            _.checked = checked;
+            _.checked = checked
           }
-        });
+        })
       }
     },
-    async handleUserTransferChange(newTargetKeys, direction, moveKeys) {
-      if (direction === "right") {
-        let { status, data, message } = await grantRolesForUser(
+    async handleUserTransferChange (newTargetKeys, direction, moveKeys) {
+      if (direction === 'right') {
+        let { status, message } = await grantRolesForUser(
           moveKeys,
           this.selectedRole
-        );
-        if (status === "OK") {
+        )
+        if (status === 'OK') {
           this.$Notice.success({
-            title: "success",
+            title: 'success',
             desc: message
-          });
-          this.usersKeyBySelectedRole = newTargetKeys;
+          })
+          this.usersKeyBySelectedRole = newTargetKeys
         }
       } else {
-        let { status, data, message } = await revokeRolesForUser(
+        let { status, message } = await revokeRolesForUser(
           moveKeys,
           this.selectedRole
-        );
-        if (status === "OK") {
+        )
+        if (status === 'OK') {
           this.$Notice.success({
-            title: "success",
+            title: 'success',
             desc: message
-          });
-          this.usersKeyBySelectedRole = newTargetKeys;
+          })
+          this.usersKeyBySelectedRole = newTargetKeys
         }
       }
     },
-    confirmUser() {
+    confirmUser () {
       if (this.currentRoleId !== 0) {
-        this.handleRoleClick(true, this.currentRoleId);
+        this.handleRoleClick(true, this.currentRoleId)
       }
     },
-    async openUserManageModal(id) {
-      this.usersKeyBySelectedRole = [];
-      this.allUsersForTransfer = [];
-      this.selectedRole = id;
-      let { status, data, message } = await getUsersByRoleId(id);
-      if (status === "OK") {
-        this.usersKeyBySelectedRole = data.map(_ => _.id);
+    async openUserManageModal (id) {
+      this.usersKeyBySelectedRole = []
+      this.allUsersForTransfer = []
+      this.selectedRole = id
+      let { status, data } = await getUsersByRoleId(id)
+      if (status === 'OK') {
+        this.usersKeyBySelectedRole = data.map(_ => _.id)
       }
       this.allUsersForTransfer = this.users.map(_ => {
         return {
           key: _.id,
           username: _.username,
-          label: _.username || ""
-        };
-      });
-      this.userManageModal = true;
+          label: _.username || ''
+        }
+      })
+      this.userManageModal = true
     },
-    async addUser() {
+    async addUser () {
       if (!this.addedUser.username) {
         this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("username_cannot_empty")
-        });
-        return;
+          title: 'Warning',
+          desc: this.$t('username_cannot_empty')
+        })
+        return
       }
       if (!this.addedUser.password) {
         this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("password_cannot_empty")
-        });
-        return;
+          title: 'Warning',
+          desc: this.$t('password_cannot_empty')
+        })
+        return
       }
-      let { status, data, message } = await userCreate(this.addedUser);
-      if (status === "OK") {
+      let { status, message } = await userCreate(this.addedUser)
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "success",
+          title: 'success',
           desc: message
-        });
-        this.addedUser = {};
-        this.getAllUsers();
+        })
+        this.addedUser = {}
+        this.getAllUsers()
       }
     },
-    async addRole() {
+    async addRole () {
       if (!this.addedRole.name) {
         this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("role_cannot_empty")
-        });
-        return;
+          title: 'Warning',
+          desc: this.$t('role_cannot_empty')
+        })
+        return
       }
-      let { status, data, message } = await roleCreate(this.addedRole);
-      if (status === "OK") {
+      let { status, message } = await roleCreate(this.addedRole)
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "success",
+          title: 'success',
           desc: message
-        });
-        this.getAllRoles();
+        })
+        this.getAllRoles()
       }
     },
-    openAddRoleModal() {
-      this.addRoleModalVisible = true;
+    openAddRoleModal () {
+      this.addRoleModalVisible = true
     },
-    openAddUserModal() {
-      this.addUserModalVisible = true;
+    openAddUserModal () {
+      this.addUserModalVisible = true
     },
-    cancel() {}
+    cancel () {}
   },
-  created() {
-    this.getAllUsers();
-    this.getAllRoles();
-    this.getAllMenus();
+  created () {
+    this.getAllUsers()
+    this.getAllRoles()
+    this.getAllMenus()
   }
-};
+}
 </script>
 <style lang="scss" scoped>
 .ivu-tag {
