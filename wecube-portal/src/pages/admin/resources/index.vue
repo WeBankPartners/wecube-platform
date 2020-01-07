@@ -10,44 +10,40 @@
 </template>
 
 <script>
-import {
-  getResourceItemStatus,
-  getResourceItemType,
-  retrieveServers
-} from "@/api/server.js";
-import WeServer from "./server";
-import WeService from "./service";
+import { retrieveServers } from '@/api/server.js'
+import WeServer from './server'
+import WeService from './service'
 
 export default {
   components: {
     WeServer,
     WeService
   },
-  data() {
+  data () {
     return {
-      currentTab: "hosts",
+      currentTab: 'hosts',
       servers: []
-    };
+    }
   },
   methods: {
-    handleTabClick(tab) {
-      this.$refs[tab].queryData();
+    handleTabClick (tab) {
+      this.$refs[tab].queryData()
     },
-    async queryServers() {
-      const { status, message, data } = await retrieveServers({});
-      if (status === "OK") {
+    async queryServers () {
+      const { status, data } = await retrieveServers({})
+      if (status === 'OK') {
         this.servers = data.contents.map(_ => {
           return {
             label: _.name,
             value: _.id,
             key: _.id
-          };
-        });
+          }
+        })
       }
     }
   },
-  mounted() {
-    this.queryServers();
+  mounted () {
+    this.queryServers()
   }
-};
+}
 </script>
