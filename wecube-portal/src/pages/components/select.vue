@@ -39,10 +39,10 @@
   </div>
 </template>
 <script>
-const DEFAULT_TAG_NUMBER = 2;
-import { queryReferenceEnumCodes } from "@/api/server";
+import { queryReferenceEnumCodes } from '@/api/server'
+const DEFAULT_TAG_NUMBER = 2
 export default {
-  name: "WeSelect",
+  name: 'WeSelect',
 
   props: {
     value: {},
@@ -52,36 +52,36 @@ export default {
     maxTags: { default: () => DEFAULT_TAG_NUMBER },
     filterParams: {}
   },
-  data() {
+  data () {
     return {
       filterOpts: []
-    };
+    }
   },
   watch: {},
   computed: {
-    opts() {
+    opts () {
       if (this.filterParams) {
-        return this.filterOpts;
+        return this.filterOpts
       } else {
-        return this.options;
+        return this.options
       }
     }
   },
-  mounted() {},
+  mounted () {},
   methods: {
-    formatOptions() {},
-    changeValue(val) {
-      this.$emit("input", val ? val : null);
-      this.$emit("change", val ? val : null);
+    formatOptions () {},
+    changeValue (val) {
+      this.$emit('input', val || null)
+      this.$emit('change', val || null)
     },
-    async getFilterRulesOptions(val) {
+    async getFilterRulesOptions (val) {
       if (val && this.filterParams) {
-        const rows = JSON.parse(JSON.stringify(this.filterParams.params));
-        delete rows.isRowEditable;
-        delete rows.weTableForm;
-        delete rows.weTableRowId;
-        delete rows.isNewAddedRow;
-        delete rows.nextOperations;
+        const rows = JSON.parse(JSON.stringify(this.filterParams.params))
+        delete rows.isRowEditable
+        delete rows.weTableForm
+        delete rows.weTableRowId
+        delete rows.isNewAddedRow
+        delete rows.nextOperations
         const payload = {
           attrId: this.filterParams.attrId,
           params: {
@@ -89,22 +89,20 @@ export default {
               data: rows
             }
           }
-        };
-        const { data, status, message } = await queryReferenceEnumCodes(
-          payload
-        );
-        if (status === "OK") {
+        }
+        const { data, status } = await queryReferenceEnumCodes(payload)
+        if (status === 'OK') {
           this.filterOpts = data.contents
-            .filter(j => j.status === "active")
+            .filter(j => j.status === 'active')
             .map(i => {
               return {
                 label: i.value,
                 value: i.codeId
-              };
-            });
+              }
+            })
         }
       }
     }
   }
-};
+}
 </script>
