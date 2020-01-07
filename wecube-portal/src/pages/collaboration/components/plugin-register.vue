@@ -2,7 +2,7 @@
   <div>
     <Row>
       <Col span="5">
-        <div v-if="plugins.length < 1">{{ $t("no_plugin") }}</div>
+        <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
         <Menu
           theme="light"
           :active-name="currentPlugin"
@@ -85,23 +85,23 @@
           <hr />
           <Row style="margin-bottom:10px;margin-top:10px">
             <Col span="3">
-              <strong style="font-size:15px;">{{ $t("operation") }}</strong>
+              <strong style="font-size:15px;">{{ $t('operation') }}</strong>
             </Col>
             <Col span="3">
-              <strong style="font-size:15px;">{{ $t("params_type") }}</strong>
+              <strong style="font-size:15px;">{{ $t('params_type') }}</strong>
             </Col>
             <Col span="3" offset="0">
-              <strong style="font-size:15px;">{{ $t("params_name") }}</strong>
+              <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
             </Col>
             <Col span="3" offset="0">
-              <strong style="font-size:15px;">{{ $t("data_type") }}</strong>
+              <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
             </Col>
             <Col span="3" offset="1">
-              <strong style="font-size:15px;">{{ $t("attribute") }}</strong>
+              <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
             </Col>
             <Col span="3" offset="4">
               <strong style="font-size:15px;">{{
-                $t("attribute_type")
+                $t('attribute_type')
               }}</strong>
             </Col>
           </Row>
@@ -124,7 +124,7 @@
               <Row>
                 <Col span="3">
                   <FormItem :label-width="0">
-                    <span>{{ $t("input_params") }}</span>
+                    <span>{{ $t('input_params') }}</span>
                   </FormItem>
                 </Col>
                 <Col span="21" offset="0">
@@ -207,7 +207,7 @@
               <Row>
                 <Col span="3">
                   <FormItem :label-width="0">
-                    <span>{{ $t("output_params") }}</span>
+                    <span>{{ $t('output_params') }}</span>
                   </FormItem>
                 </Col>
                 <Col span="21" offset="0">
@@ -280,25 +280,25 @@
                 type="primary"
                 v-if="currentPluginObj.status === 'DISABLED'"
                 @click="pluginSave"
-                >{{ $t("save") }}</Button
+                >{{ $t('save') }}</Button
               >
               <Button
                 type="primary"
                 v-if="currentPluginObj.status === 'DISABLED'"
                 @click="regist"
-                >{{ $t("regist") }}</Button
+                >{{ $t('regist') }}</Button
               >
               <Button
                 type="error"
                 v-if="currentPluginObj.status === 'DISABLED'"
                 @click="deleteRegisterSource"
-                >{{ $t("delete") }}</Button
+                >{{ $t('delete') }}</Button
               >
               <Button
                 type="error"
                 v-if="currentPluginObj.status === 'ENABLED'"
                 @click="removePlugin"
-                >{{ $t("decommission") }}</Button
+                >{{ $t('decommission') }}</Button
               >
             </Col>
           </Row>
@@ -327,7 +327,7 @@
   </div>
 </template>
 <script>
-import PathExp from "../../components/path-exp.vue";
+import PathExp from '../../components/path-exp.vue'
 import {
   getAllPluginByPkgId,
   getAllDataModels,
@@ -336,40 +336,40 @@ import {
   deleteRegisterSource,
   savePluginConfig,
   retrieveSystemVariables
-} from "@/api/server";
+} from '@/api/server'
 
 export default {
-  data() {
+  data () {
     return {
       allDataModelsWithAttrs: {},
-      currentPlugin: "",
+      currentPlugin: '',
       plugins: [],
       addRegistModal: false,
       currentPluginObj: {},
       sourceList: [],
-      selectedSource: "",
-      registerName: "",
-      addRegisterName: "",
+      selectedSource: '',
+      registerName: '',
+      addRegisterName: '',
       hasNewSource: false,
       hidePanal: true,
       allEntityType: [],
-      selectedEntityType: "",
-      targetPackage: "",
+      selectedEntityType: '',
+      targetPackage: '',
       form: {},
       allSystemVariables: []
       // pluginInterfaces:[]
-    };
+    }
   },
   components: {
     PathExp
   },
   computed: {
-    currentEntityAttr() {
+    currentEntityAttr () {
       const allEntity = [].concat(
         ...this.allEntityType.map(_ => _.pluginPackageEntities)
-      );
-      const found = allEntity.find(i => i.name === this.selectedEntityType);
-      return found ? found.attributes : [];
+      )
+      const found = allEntity.find(i => i.name === this.selectedEntityType)
+      return found ? found.attributes : []
     }
   },
   props: {
@@ -382,199 +382,195 @@ export default {
   },
   watch: {},
   methods: {
-    async retrieveSystemVariables() {
-      const { data, status, message } = await retrieveSystemVariables({
+    async retrieveSystemVariables () {
+      const { data, status } = await retrieveSystemVariables({
         filters: [],
         paging: false
-      });
-      if (status === "OK") {
-        this.allSystemVariables = data.contents;
+      })
+      if (status === 'OK') {
+        this.allSystemVariables = data.contents
       }
     },
-    async pluginSave() {
-      this.currentPluginObj.entityName = this.selectedEntityType;
+    async pluginSave () {
+      this.currentPluginObj.entityName = this.selectedEntityType
       const entitys = [].concat(
         ...this.allEntityType.map(_ => _.pluginPackageEntities)
-      );
+      )
       if (this.selectedEntityType) {
         const entityId = entitys.find(i => i.name === this.selectedEntityType)
-          .id;
-        this.currentPluginObj.entityId = entityId;
-        this.currentPluginObj.targetEntity = this.selectedEntityType;
-        this.currentPluginObj.targetPackage = this.targetPackage;
+          .id
+        this.currentPluginObj.entityId = entityId
+        this.currentPluginObj.targetEntity = this.selectedEntityType
+        this.currentPluginObj.targetPackage = this.targetPackage
       } else {
-        this.currentPluginObj.targetPackage = null;
+        this.currentPluginObj.targetPackage = null
       }
 
-      this.currentPluginObj.registerName = this.registerName;
+      this.currentPluginObj.registerName = this.registerName
       let currentPluginForSave = JSON.parse(
         JSON.stringify(this.currentPluginObj)
-      );
+      )
       if (this.hasNewSource) {
-        delete currentPluginForSave.id;
+        delete currentPluginForSave.id
       }
       const { data, status, message } = await savePluginConfig(
         currentPluginForSave
-      );
-      const id = data.id;
-      if (status === "OK") {
+      )
+      const id = data.id
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "Success",
+          title: 'Success',
           desc: message
-        });
+        })
         if (this.hasNewSource) {
-          this.hasNewSource = false;
-          const { data, status, message } = await getAllPluginByPkgId(
-            this.pkgId
-          );
-          if (status === "OK") {
+          this.hasNewSource = false
+          const { data, status } = await getAllPluginByPkgId(this.pkgId)
+          if (status === 'OK') {
             // this.hidePanal = false;
-            this.plugins = data;
-            this.currentPluginObj.id = id;
-            this.selectedSource = id;
+            this.plugins = data
+            this.currentPluginObj.id = id
+            this.selectedSource = id
           }
-          return;
+          return
         }
-        this.getAllPluginByPkgId();
+        this.getAllPluginByPkgId()
       }
     },
-    mappingTypeChange(v, param) {
-      if (v === "entity") {
-        param.mappingEntityExpression = null;
+    mappingTypeChange (v, param) {
+      if (v === 'entity') {
+        param.mappingEntityExpression = null
       }
     },
-    async regist() {
-      const saveRes = await savePluginConfig(this.currentPluginObj);
-      if (saveRes.status === "OK") {
-        const { data, status, message } = await registerPlugin(
+    async regist () {
+      const saveRes = await savePluginConfig(this.currentPluginObj)
+      if (saveRes.status === 'OK') {
+        const { status, message } = await registerPlugin(
           this.currentPluginObj.id
-        );
-        if (status === "OK") {
+        )
+        if (status === 'OK') {
           this.$Notice.success({
-            title: "Success",
+            title: 'Success',
             desc: message
-          });
-          this.getAllPluginByPkgId();
-          this.currentPluginObj.status = "ENABLED";
+          })
+          this.getAllPluginByPkgId()
+          this.currentPluginObj.status = 'ENABLED'
         }
       }
     },
-    async deleteRegisterSource() {
-      const { data, status, message } = await deleteRegisterSource(
+    async deleteRegisterSource () {
+      const { status, message } = await deleteRegisterSource(
         this.currentPluginObj.id
-      );
-      if (status === "OK") {
+      )
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "Success",
+          title: 'Success',
           desc: message
-        });
-        const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
-        if (status === "OK") {
-          this.plugins = data;
+        })
+        const { data, status } = await getAllPluginByPkgId(this.pkgId)
+        if (status === 'OK') {
+          this.plugins = data
         }
-        this.hidePanal = false;
+        this.hidePanal = false
       }
     },
-    addRegistMsg() {
-      this.addRegisterName = "";
-      this.addRegistModal = true;
-      this.hasNewSource = false;
+    addRegistMsg () {
+      this.addRegisterName = ''
+      this.addRegistModal = true
+      this.hasNewSource = false
     },
-    ok() {
-      this.registerName = this.addRegisterName;
-      this.currentPluginObj.id = new Date().getMilliseconds() + "";
-      this.currentPluginObj.registerName = this.registerName;
-      this.sourceList.push(this.currentPluginObj);
-      this.selectedSource = this.currentPluginObj.id;
-      this.hasNewSource = true;
+    ok () {
+      this.registerName = this.addRegisterName
+      this.currentPluginObj.id = new Date().getMilliseconds() + ''
+      this.currentPluginObj.registerName = this.registerName
+      this.sourceList.push(this.currentPluginObj)
+      this.selectedSource = this.currentPluginObj.id
+      this.hasNewSource = true
     },
-    cancel() {
-      this.registerName = "";
-      this.selectedEntityType = "";
-      this.currentPluginObj = {};
-      this.currentPluginData = {};
+    cancel () {
+      this.registerName = ''
+      this.selectedEntityType = ''
+      this.currentPluginObj = {}
+      this.currentPluginData = {}
     },
-    async removePlugin() {
-      const { data, status, message } = await deletePlugin(
-        this.currentPluginObj.id
-      );
-      if (status === "OK") {
+    async removePlugin () {
+      const { status, message } = await deletePlugin(this.currentPluginObj.id)
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "Success",
+          title: 'Success',
           desc: message
-        });
-        this.getAllPluginByPkgId();
-        this.currentPluginObj.status = "DISABLED";
+        })
+        this.getAllPluginByPkgId()
+        this.currentPluginObj.status = 'DISABLED'
       }
     },
-    async getAllPluginByPkgId() {
-      const { data, status, message } = await getAllPluginByPkgId(this.pkgId);
-      if (status === "OK") {
-        this.plugins = data;
+    async getAllPluginByPkgId () {
+      const { data, status } = await getAllPluginByPkgId(this.pkgId)
+      if (status === 'OK') {
+        this.plugins = data
         if (data.length === 1) {
-          this.selectPlugin(data[0].name || "");
+          this.selectPlugin(data[0].name || '')
         }
       }
     },
-    selectPlugin(val) {
-      this.hasNewSource = false;
-      this.hidePanal = true;
-      this.currentPlugin = val;
+    selectPlugin (val) {
+      this.hasNewSource = false
+      this.hidePanal = true
+      this.currentPlugin = val
       let currentPluginData = this.plugins.find(
         plugin => plugin.pluginConfigName === val
-      );
+      )
       this.sourceList = currentPluginData
         ? currentPluginData.pluginConfigDtoList
-        : [];
+        : []
     },
-    registSourceChange(v) {
-      if (!v || v === "add") {
-        this.registerName = "";
-        this.selectedEntityType = "";
-        this.currentPluginObj = {};
-        return;
+    registSourceChange (v) {
+      if (!v || v === 'add') {
+        this.registerName = ''
+        this.selectedEntityType = ''
+        this.currentPluginObj = {}
+        return
       }
 
       this.currentPluginObj = JSON.parse(
         JSON.stringify(this.sourceList.find(source => source.id === v))
-      );
-      this.selectedEntityType = this.currentPluginObj.entityName;
-      this.registerName = this.currentPluginObj.registerName;
-      this.selectedEntityType = this.currentPluginObj.targetEntity;
-      this.targetPackage = this.currentPluginObj.targetPackage;
-      this.hasNewSource = false;
+      )
+      this.selectedEntityType = this.currentPluginObj.entityName
+      this.registerName = this.currentPluginObj.registerName
+      this.selectedEntityType = this.currentPluginObj.targetEntity
+      this.targetPackage = this.currentPluginObj.targetPackage
+      this.hasNewSource = false
     },
-    copyRegistSource(v) {
-      this.registSourceChange(v);
-      this.currentPluginObj.status = "DISABLED";
+    copyRegistSource (v) {
+      this.registSourceChange(v)
+      this.currentPluginObj.status = 'DISABLED'
     },
-    onSelectEntityType(val) {
-      this.targetPackage = val ? val.label.split("**")[1] : "";
+    onSelectEntityType (val) {
+      this.targetPackage = val ? val.label.split('**')[1] : ''
     },
-    async getAllDataModels() {
-      const { data, status, message } = await getAllDataModels();
-      if (status === "OK") {
+    async getAllDataModels () {
+      const { data, status } = await getAllDataModels()
+      if (status === 'OK') {
         this.allEntityType = data.map(_ => {
           // handle result sort by name
           return {
             ..._,
-            pluginPackageEntities: _.pluginPackageEntities.sort(function(a, b) {
-              var s = a.name.toLowerCase();
-              var t = b.name.toLowerCase();
-              if (s < t) return -1;
-              if (s > t) return 1;
+            pluginPackageEntities: _.pluginPackageEntities.sort(function (a, b) {
+              var s = a.name.toLowerCase()
+              var t = b.name.toLowerCase()
+              if (s < t) return -1
+              if (s > t) return 1
             })
-          };
-        });
+          }
+        })
       }
     }
   },
-  created() {
-    this.getAllPluginByPkgId();
-    this.getAllDataModels();
-    this.retrieveSystemVariables();
-    this.selectedEntityType = this.currentPluginObj.entityName;
+  created () {
+    this.getAllPluginByPkgId()
+    this.getAllDataModels()
+    this.retrieveSystemVariables()
+    this.selectedEntityType = this.currentPluginObj.entityName
   }
-};
+}
 </script>
 <style lang="scss"></style>
