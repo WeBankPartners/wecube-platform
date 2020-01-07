@@ -117,6 +117,9 @@
             :placeholder="$t('please_input')"
           />
         </FormItem>
+        <FormItem :label="$t('email')">
+          <Input v-model="addedRole.email" :placeholder="$t('please_input')" />
+        </FormItem>
       </Form>
     </Modal>
     <Modal
