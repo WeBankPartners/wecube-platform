@@ -3,10 +3,10 @@
 module.exports = {
   root: true,
   parserOptions: {
-    parser: 'babel-eslint',
+    parser: 'babel-eslint'
   },
   env: {
-    browser: true,
+    browser: true
   },
   extends: ['plugin:vue/essential', 'standard'],
   // required to lint *.vue files
@@ -17,7 +17,6 @@ module.exports = {
     'generator-star-spacing': 'off',
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'vue/no-parsing-error': [2, { 'x-invalid-end-tag': false }],
-    // "semi": ["warning", "always"]
-  },
+    'vue/no-parsing-error': [2, { 'x-invalid-end-tag': false }]
+  }
 }
