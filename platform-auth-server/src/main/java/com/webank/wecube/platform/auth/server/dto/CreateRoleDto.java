@@ -5,7 +5,6 @@ import javax.validation.constraints.Email;
 public class CreateRoleDto {
 	private String name;
 	private String displayName;
-	@Email(message = "Please provide a valid E-mail address.")
 	private String email;
 
 	public String getName() {
