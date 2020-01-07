@@ -18,7 +18,7 @@ import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.ScpService;
-import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
+import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import org.apache.commons.io.FileUtils;
@@ -86,7 +86,7 @@ public class PluginPackageService {
     private PluginConfigService pluginConfigService;
 
     @Autowired
-    private UserManagementServiceImpl userManagementService;
+    private UserManagementService userManagementService;
 
     @Autowired
     private SystemVariableRepository systemVariableRepository;
