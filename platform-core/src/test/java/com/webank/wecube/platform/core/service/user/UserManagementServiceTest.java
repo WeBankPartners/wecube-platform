@@ -8,6 +8,7 @@ import com.webank.wecube.platform.core.dto.user.RoleDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
@@ -28,6 +29,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     @Autowired
     UserManagementServiceImpl userManagementService;
     @Autowired
+    @Qualifier(value = "userJwtSsoTokenRestTemplate")
     private RestTemplate restTemplate;
     @Autowired
     private ApplicationProperties applicationProperties;
