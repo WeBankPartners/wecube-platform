@@ -175,6 +175,16 @@
         </template>
       </Table>
     </Modal>
+    <Modal
+      v-model="showNodeDetail"
+      :title="nodeTitle"
+      draggable
+      :styles="{ top: '200px' }"
+    >
+      <div style="height:250px;overflow:auto;">
+        <pre>{{ nodeDetail }}</pre>
+      </div>
+    </Modal>
     <div id="model_graph_detail">
       <highlight-code lang="json">{{ modelNodeDetail }}</highlight-code>
     </div>
@@ -203,6 +213,9 @@ import { addEvent, removeEvent } from "../util/event.js";
 export default {
   data() {
     return {
+      showNodeDetail: false,
+      nodeTitle: null,
+      nodeDetail: null,
       graph: {},
       flowGraph: {},
       modelData: [],
@@ -540,44 +553,16 @@ export default {
             _.packageName + "_" + _.entityName + "_" + _.dataId ===
             e.target.parentNode.id
         );
-        let modelDetail = document.getElementById("model_graph_detail");
-        let el = e || window.event;
-        let x = el.clientX;
-        let y = el.clientY;
+        this.nodeTitle = `${found.displayName}`;
         const { status, message, data } = await getModelNodeDetail(
           found.entityName,
           found.dataId
         );
         if (status === "OK") {
-          this.modelNodeDetail = data;
+          this.nodeDetail = data;
         }
-        let clientWidth = document.body.clientWidth;
-        const positionX =
-          clientWidth - x < 600 ? x - 600 + 5 + "px" : x + 5 + "px";
-        modelDetail.style.display = "block";
-        modelDetail.style.left = positionX;
-        modelDetail.style.top = y + "px";
-        removeEvent(
-          "#model_graph_detail",
-          "mouseenter",
-          this.modelDetailEnterHandler
-        );
-        removeEvent(
-          "#model_graph_detail",
-          "mouseleave",
-          this.modelDetailLeaveHandler
-        );
-        addEvent(
-          "#model_graph_detail",
-          "mouseenter",
-          this.modelDetailEnterHandler
-        );
-        addEvent(
-          "#model_graph_detail",
-          "mouseleave",
-          this.modelDetailLeaveHandler
-        );
-      }, 500);
+        this.showNodeDetail = true;
+      }, 1000);
     },
     modelDetailEnterHandler(e) {
       let modelDetail = document.getElementById("model_graph_detail");
@@ -814,44 +799,17 @@ export default {
         const found = this.flowData.flowNodes.find(
           _ => _.nodeId === e.target.parentNode.id
         );
-        let flowDetail = document.getElementById("flow_graph_detail");
-        let el = e || window.event;
-        let x = el.clientX;
-        let y = el.clientY;
+        this.nodeTitle =
+          (found.orderedNo ? found.orderedNo + "、" : "") + found.nodeName;
         const { status, message, data } = await getNodeContext(
           found.procInstId,
           found.id
         );
         if (status === "OK") {
-          this.flowNodeDetail = data;
+          this.nodeDetail = data;
         }
-        let clientWidth = document.body.clientWidth;
-        const positionX =
-          clientWidth - x < 600 ? x - 600 + 5 + "px" : x + 5 + "px";
-        flowDetail.style.display = "block";
-        flowDetail.style.left = positionX;
-        flowDetail.style.top = y + "px";
-        removeEvent(
-          "#flow_graph_detail",
-          "mouseenter",
-          this.flowDetailEnterHandler
-        );
-        removeEvent(
-          "#flow_graph_detail",
-          "mouseleave",
-          this.flowDetailLeaveHandler
-        );
-        addEvent(
-          "#flow_graph_detail",
-          "mouseenter",
-          this.flowDetailEnterHandler
-        );
-        addEvent(
-          "#flow_graph_detail",
-          "mouseleave",
-          this.flowDetailLeaveHandler
-        );
-      }, 500);
+        this.showNodeDetail = true;
+      }, 1000);
     },
     flowDetailEnterHandler(e) {
       let modelDetail = document.getElementById("flow_graph_detail");
