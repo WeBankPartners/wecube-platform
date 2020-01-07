@@ -59,6 +59,5 @@ sed -i "s~{{AUTH_SERVER_MYSQL_USER_PASSWORD}}~$auth_server_mysql_user_password~g
 sed -i "s~{{AUTH_SERVER_PORT}}~$auth_server_port~g" docker-compose.yml
 sed -i "s~{{AUTH_CUSTOM_PARAM}}~$auth_custom_param~g" docker-compose.yml
 sed -i "s~{{PUBLIC_DOMAIN}}~$public_domain~g" docker-compose.yml
-
-
-
+sed -i "s~{{JWT_SSO_AUTH_URI}}~$jwt_sso_auth_uri~g" docker-compose.yml
+sed -i "s~{{JWT_SSO_TOKEN_URI}}~$jwt_sso_token_uri~g" docker-compose.yml
