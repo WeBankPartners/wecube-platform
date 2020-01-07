@@ -40,7 +40,13 @@ public class RoleController {
     // @PreAuthorize(value = "hasRole('AUTH_ADMIN') or hasAuthority('SUB_SYSTEM')")
     public CommonResponseDto createRole(@RequestBody CreateRoleDto createRoleDto, HttpServletRequest request)
             throws Exception {
-        return okayWithData(roleService.create(createRoleDto));
+        SysRoleEntity sysRoleEntity;
+        try {
+            sysRoleEntity = roleService.create(createRoleDto);
+        } catch (Exception ex) {
+            return error(ex.getMessage());
+        }
+        return okayWithData(sysRoleEntity);
     }
 
     @GetMapping("/roles")
