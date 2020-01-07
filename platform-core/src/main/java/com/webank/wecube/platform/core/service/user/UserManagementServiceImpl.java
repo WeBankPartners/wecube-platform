@@ -15,6 +15,7 @@ import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 
     @Autowired
-    public UserManagementServiceImpl(RestTemplate restTemplate,
+    public UserManagementServiceImpl(@Qualifier(value = "userJwtSsoTokenRestTemplate") RestTemplate restTemplate,
                                      ApplicationProperties applicationProperties) {
         this.restTemplate = restTemplate;
         this.gatewayUrl = applicationProperties.getGatewayUrl();

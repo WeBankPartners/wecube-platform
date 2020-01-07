@@ -14,6 +14,7 @@ import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
@@ -48,6 +49,7 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
     @Autowired
+    @Qualifier(value = "userJwtSsoTokenRestTemplate")
     private RestTemplate restTemplate;
     @Autowired
     private ApplicationProperties applicationProperties;
