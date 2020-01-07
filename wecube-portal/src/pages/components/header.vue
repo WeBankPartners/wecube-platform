@@ -32,11 +32,11 @@
       <div class="profile">
         <Dropdown style="cursor: pointer">
           <span style="color: white">{{ username }}</span>
-          <Icon :size="18" type="ios-arrow-down" color="white" size="14"></Icon>
+          <Icon :size="18" type="ios-arrow-down" color="white"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/login">
               <a @click="logout" style="width: 100%; display: block">
-                {{ $t("logout") }}
+                {{ $t('logout') }}
               </a>
             </DropdownItem>
           </DropdownMenu>
@@ -67,205 +67,191 @@
   </Header>
 </template>
 <script>
-import Vue from "vue";
-import { getMyMenus, getAllPluginPackageResourceFiles } from "@/api/server.js";
+import Vue from 'vue'
+import { getMyMenus, getAllPluginPackageResourceFiles } from '@/api/server.js'
 
-import { MENUS } from "../../const/menus.js";
+import { MENUS } from '../../const/menus.js'
 
 export default {
-  data() {
+  data () {
     return {
-      username: "",
-      currentLanguage: "",
+      username: '',
+      currentLanguage: '',
       language: {
-        "zh-CN": "简体中文",
-        "en-US": "English"
+        'zh-CN': '简体中文',
+        'en-US': 'English'
       },
       menus: [],
       needLoad: true
-    };
+    }
   },
   methods: {
-    logout() {
-      window.location.href = window.location.origin + "/#/login";
+    logout () {
+      window.location.href = window.location.origin + '/#/login'
     },
-    changeLanguage(lan) {
-      Vue.config.lang = lan;
-      this.currentLanguage = this.language[lan];
-      localStorage.setItem("lang", lan);
+    changeLanguage (lan) {
+      Vue.config.lang = lan
+      this.currentLanguage = this.language[lan]
+      localStorage.setItem('lang', lan)
     },
-    getLocalLang() {
-      let currentLangKey = localStorage.getItem("lang") || navigator.language;
-      this.currentLanguage = this.language[currentLangKey];
+    getLocalLang () {
+      let currentLangKey = localStorage.getItem('lang') || navigator.language
+      this.currentLanguage = this.language[currentLangKey]
     },
-    async getMyMenus() {
-      let { status, data, message } = await getMyMenus();
-      if (status === "OK") {
+    async getMyMenus () {
+      let { status, data } = await getMyMenus()
+      if (status === 'OK') {
         data.forEach(_ => {
           if (!_.category) {
-            let menuObj = MENUS.find(m => m.code === _.code);
+            let menuObj = MENUS.find(m => m.code === _.code)
             if (menuObj) {
               this.menus.push({
-                title: this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
+                title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
                 id: _.id,
                 submenus: [],
                 ..._,
                 ...menuObj
-              });
+              })
             } else {
               this.menus.push({
                 title: _.code,
                 id: _.id,
                 submenus: [],
                 ..._
-              });
+              })
             }
           }
-        });
+        })
         data.forEach(_ => {
           if (_.category) {
-            let menuObj = MENUS.find(m => m.code === _.code);
+            let menuObj = MENUS.find(m => m.code === _.code)
             if (menuObj) {
-              //Platform Menus
+              // Platform Menus
               this.menus.forEach(h => {
-                if (_.category === "" + h.id) {
+                if (_.category === '' + h.id) {
                   h.submenus.push({
                     title:
-                      this.$lang === "zh-CN" ? menuObj.cnName : menuObj.enName,
+                      this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
                     id: _.id,
                     ..._,
                     ...menuObj
-                  });
+                  })
                 }
-              });
+              })
             } else {
-              //Plugins Menus
+              // Plugins Menus
               this.menus.forEach(h => {
-                if (_.category === "" + h.id) {
+                if (_.category === '' + h.id) {
                   h.submenus.push({
                     title:
-                      this.$lang === "zh-CN"
+                      this.$lang === 'zh-CN'
                         ? _.localDisplayName
                         : _.displayName,
                     id: _.id,
                     link: _.path,
                     ..._
-                  });
+                  })
                 }
-              });
+              })
             }
           }
-        });
-        console.log(this.menus);
-        this.$emit("allMenus", this.menus);
-        window.myMenus = this.menus;
+        })
+        console.log(this.menus)
+        this.$emit('allMenus', this.menus)
+        window.myMenus = this.menus
       }
     },
 
-    async getAllPluginPackageResourceFiles() {
-      const {
-        status,
-        message,
-        data
-      } = await getAllPluginPackageResourceFiles();
-      if (status === "OK" && data && data.length > 0) {
-        // const data = [
-
-        //   { relatedPath: "http://localhost:8888/js/app.3ed190d8.js",packageName:'itsm' },
-        //   { relatedPath: "http://localhost:8888/css/app.4fbf708b.css",packageName:'itsm' },
-        // { relatedPath: "http://localhost:8888/js/app.6c85d4cb.js",packageName:'monitor' },
-        // { relatedPath: "http://localhost:8888/css/app.54dd0db0.css",packageName:'monitor' },
-        //   { relatedPath: "http://localhost:8888/js/app.910d8b40.js",packageName:'cmdb' },
-        //   { relatedPath: "http://localhost:8888/css/app.0e016ca6.css",packageName:'cmdb' },
-
-        // ];
+    async getAllPluginPackageResourceFiles () {
+      const { status, data } = await getAllPluginPackageResourceFiles()
+      if (status === 'OK' && data && data.length > 0) {
         this.$Notice.info({
-          title: this.$t("notification_title"),
-          desc: this.$t("notification_desc")
-        });
+          title: this.$t('notification_title'),
+          desc: this.$t('notification_desc')
+        })
 
-        const eleContain = document.getElementsByTagName("body");
-        let script = {};
+        const eleContain = document.getElementsByTagName('body')
+        let script = {}
         data.forEach(file => {
-          if (file.relatedPath.indexOf(".js") > -1) {
-            let contains = document.createElement("script");
-            contains.type = "text/javascript";
-            contains.src = file.relatedPath;
-            script[file.packageName] = contains;
-            eleContain[0].appendChild(contains);
+          if (file.relatedPath.indexOf('.js') > -1) {
+            let contains = document.createElement('script')
+            contains.type = 'text/javascript'
+            contains.src = file.relatedPath
+            script[file.packageName] = contains
+            eleContain[0].appendChild(contains)
           }
-          if (file.relatedPath.indexOf(".css") > -1) {
-            let contains = document.createElement("link");
-            contains.type = "text/css";
-            contains.rel = "stylesheet";
-            contains.href = file.relatedPath;
-            eleContain[0].appendChild(contains);
+          if (file.relatedPath.indexOf('.css') > -1) {
+            let contains = document.createElement('link')
+            contains.type = 'text/css'
+            contains.rel = 'stylesheet'
+            contains.href = file.relatedPath
+            eleContain[0].appendChild(contains)
           }
-        });
+        })
         Object.keys(script).forEach(key => {
           if (script[key].readyState) {
-            //IE
+            // IE
             script[key].onreadystatechange = () => {
               if (
-                script[key].readyState == "complete" ||
-                script[key].readyState == "loaded"
+                script[key].readyState === 'complete' ||
+                script[key].readyState === 'loaded'
               ) {
-                script[key].onreadystatechange = null;
+                script[key].onreadystatechange = null
               }
-            };
+            }
           } else {
-            //非IE
+            // 非IE
             script[key].onload = () => {
               setTimeout(() => {
                 this.$Notice.success({
-                  title: this.$t("notification_title"),
-                  desc: `${key} ${this.$t("plugin_load")}`
-                });
-              }, 0);
-            };
+                  title: this.$t('notification_title'),
+                  desc: `${key} ${this.$t('plugin_load')}`
+                })
+              }, 0)
+            }
           }
-        });
+        })
       }
     }
   },
-  async created() {
-    let session = window.sessionStorage;
-    const currentTime = new Date().getTime();
-    const token = JSON.parse(session.getItem("token"));
+  async created () {
+    let session = window.sessionStorage
+    const currentTime = new Date().getTime()
+    const token = JSON.parse(session.getItem('token'))
     const refreshToken = token
-      ? token.find(t => t.tokenType === "refreshToken")
-      : { expiration: 0 };
-    const expiration = refreshToken.expiration * 1 - currentTime;
+      ? token.find(t => t.tokenType === 'refreshToken')
+      : { expiration: 0 }
+    const expiration = refreshToken.expiration * 1 - currentTime
     if (!token || expiration < 0) {
-      this.$router.push("/login");
+      this.$router.push('/login')
     } else {
-      this.getLocalLang();
-      this.getMyMenus();
-      this.username = window.sessionStorage.getItem("username");
+      this.getLocalLang()
+      this.getMyMenus()
+      this.username = window.sessionStorage.getItem('username')
     }
   },
   watch: {
-    $lang: function(lang) {
-      this.$router.go(0);
+    $lang: function (lang) {
+      this.$router.go(0)
     }
   },
-  mounted() {
+  mounted () {
     if (window.needReLoad) {
-      let session = window.sessionStorage;
-      const currentTime = new Date().getTime();
-      const token = JSON.parse(session.getItem("token"));
+      let session = window.sessionStorage
+      const currentTime = new Date().getTime()
+      const token = JSON.parse(session.getItem('token'))
       const refreshToken = token
-        ? token.find(t => t.tokenType === "refreshToken")
-        : { expiration: 0 };
-      const expiration = refreshToken.expiration * 1 - currentTime;
+        ? token.find(t => t.tokenType === 'refreshToken')
+        : { expiration: 0 }
+      const expiration = refreshToken.expiration * 1 - currentTime
       if (token || expiration > 0) {
         // setTimeout(()=>{this.getAllPluginPackageResourceFiles()},5000)
-        this.getAllPluginPackageResourceFiles();
-        window.needReLoad = false;
+        this.getAllPluginPackageResourceFiles()
+        window.needReLoad = false
       }
     }
   }
-};
+}
 </script>
 
 <style lang="scss" scoped>

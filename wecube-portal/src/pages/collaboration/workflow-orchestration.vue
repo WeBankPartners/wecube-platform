@@ -2,7 +2,7 @@
   <div>
     <Row style="margin-bottom: 10px">
       <Col span="6">
-        <span style="margin-right: 10px">{{ $t("flow_name") }}</span>
+        <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select
           clearable
           v-model="selectedFlow"
@@ -19,15 +19,15 @@
             ></Button>
           </Option>
           <Option
-            v-for="(item, index) in allFlows"
+            v-for="item in allFlows"
             :value="item.procDefId"
             :key="item.procDefId"
           >
             {{
-              (item.procDefName || "Null") +
-                " " +
+              (item.procDefName || 'Null') +
+                ' ' +
                 item.createdTime +
-                (item.status === "draft" ? "*" : "")
+                (item.status === 'draft' ? '*' : '')
             }}
             <span style="float:right">
               <Button
@@ -49,7 +49,7 @@
         </Select>
       </Col>
       <Col span="8" ofset="1">
-        <span style="margin-right: 10px">{{ $t("instance_type") }}</span>
+        <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
         <Select
           @on-change="onEntitySelect"
           v-model="currentSelectedEntity"
@@ -72,12 +72,12 @@
         </Select>
       </Col>
       <Button type="info" @click="saveDiagram(false)">{{
-        $t("save_flow")
+        $t('save_flow')
       }}</Button>
       <Button type="info" @click="exportProcessDefinition(false)">{{
-        $t("export_flow")
+        $t('export_flow')
       }}</Button>
-      <Button type="info" @click="getHeaders">{{ $t("import_flow") }}</Button>
+      <Button type="info" @click="getHeaders">{{ $t('import_flow') }}</Button>
       <Upload
         ref="uploadButton"
         show-upload-list
@@ -88,14 +88,14 @@
         action="platform/v1/process/definitions/import"
         :headers="headers"
       >
-        <Button style="display:none">{{ $t("import_flow") }}</Button>
+        <Button style="display:none">{{ $t('import_flow') }}</Button>
       </Upload>
     </Row>
     <div v-show="showBpmn" class="containers" ref="content">
       <div class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
         <a href="javascript:void(0);" @click="openPluginModal">{{
-          $t("config_plugin")
+          $t('config_plugin')
         }}</a>
         <br />
       </div>
@@ -144,7 +144,7 @@
         <FormItem :label="$t('timeout')" prop="timeoutExpression">
           <Select clearable v-model="pluginForm.timeoutExpression">
             <Option v-for="item in timeSelection" :value="item" :key="item"
-              >{{ item }} {{ $t("mins") }}</Option
+              >{{ item }} {{ $t('mins') }}</Option
             >
           </Select>
         </FormItem>
@@ -199,7 +199,7 @@
       </Form>
       <div slot="footer">
         <Button type="primary" @click="savePluginConfig('pluginConfigForm')">
-          {{ $t("confirm") }}
+          {{ $t('confirm') }}
         </Button>
       </div>
     </Modal>
@@ -211,7 +211,7 @@
       @on-cancel="confirmRole"
     >
       <div>
-        <div class="role-transfer-title">{{ $t("mgmt_role") }}</div>
+        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
         <Transfer
           :titles="transferTitles"
           :list-style="transferStyle"
@@ -223,7 +223,7 @@
         ></Transfer>
       </div>
       <div style="margin-top: 30px">
-        <div class="role-transfer-title">{{ $t("use_role") }}</div>
+        <div class="role-transfer-title">{{ $t('use_role') }}</div>
         <Transfer
           :titles="transferTitles"
           :list-style="transferStyle"
@@ -238,33 +238,30 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
+import BpmnModeler from 'bpmn-js/lib/Modeler'
+import propertiesPanelModule from 'bpmn-js-properties-panel'
+import propertiesProviderModule from 'bpmn-js-properties-panel/lib/provider/camunda'
 
-import BpmnModeler from "bpmn-js/lib/Modeler";
-import propertiesPanelModule from "bpmn-js-properties-panel";
-import propertiesProviderModule from "bpmn-js-properties-panel/lib/provider/camunda";
-
-import camundaModdleDescriptor from "camunda-bpmn-moddle/resources/camunda";
-import customTranslate from "@/locale/flow-i18n/custom-translate";
+import camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda'
+import customTranslate from '@/locale/flow-i18n/custom-translate'
 
 /* Left side toolbar and node edit style */
-import "bpmn-js/dist/assets/diagram-js.css";
-import "bpmn-js/dist/assets/bpmn-font/css/bpmn.css";
-import "bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css";
-import "bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css";
+import 'bpmn-js/dist/assets/diagram-js.css'
+import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css'
+import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css'
+import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
 
 /* Right side toobar style */
-import "bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css";
+import 'bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css'
 
-import PathExp from "../components/path-exp.vue";
-import axios from "axios";
+import PathExp from '../components/path-exp.vue'
+import axios from 'axios'
 
 import {
   getAllFlow,
   saveFlow,
   saveFlowDraft,
   getFlowDetailByID,
-  getLatestOnlinePluginInterfaces,
   getFlowNodes,
   getParamsInfosByFlowIdAndNodeId,
   getAllDataModels,
@@ -277,645 +274,634 @@ import {
   getPermissionByProcessId,
   updateFlowPermission,
   deleteFlowPermission
-} from "@/api/server.js";
+} from '@/api/server.js'
 
-function setCTM(node, m) {
+function setCTM (node, m) {
   var mstr =
-    "matrix(" +
+    'matrix(' +
     m.a +
-    "," +
+    ',' +
     m.b +
-    "," +
+    ',' +
     m.c +
-    "," +
+    ',' +
     m.d +
-    "," +
+    ',' +
     m.e +
-    "," +
+    ',' +
     m.f +
-    ")";
-  node.setAttribute("transform", mstr);
+    ')'
+  node.setAttribute('transform', mstr)
 }
 
 export default {
   components: {
     PathExp
   },
-  data() {
+  data () {
     return {
       headers: {},
       mgmtRolesKeyToFlow: [],
       useRolesKeyToFlow: [],
       currentUserRoles: [],
       allRolesBackUp: [],
-      currentSettingFlow: "",
+      currentSettingFlow: '',
       flowRoleManageModal: false,
       isAdd: false,
-      transferTitles: [this.$t("unselected_role"), this.$t("selected_role")],
-      transferStyle: { width: "300px" },
-      newFlowID: "",
+      transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
+      transferStyle: { width: '300px' },
+      newFlowID: '',
       bpmnModeler: null,
       container: null,
       canvas: null,
-      processName: "",
+      processName: '',
       currentNode: {
-        id: "",
-        name: ""
+        id: '',
+        name: ''
       },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
       allFlows: [],
       allEntityType: [],
       selectedFlow: null,
-      currentSelectedEntity: "",
-      rootPkg: "",
-      rootEntity: "",
+      currentSelectedEntity: '',
+      rootPkg: '',
+      rootEntity: '',
       pluginModalVisible: false,
-      currentUserRoles: [],
       pluginForm: {},
       defaultPluginForm: {
-        description: "",
-        nodeDefId: "",
-        nodeId: "",
-        nodeName: "",
-        nodeType: "",
-        orderedNo: "",
+        description: '',
+        nodeDefId: '',
+        nodeId: '',
+        nodeName: '',
+        nodeType: '',
+        orderedNo: '',
         paramInfos: [],
-        procDefId: "",
-        procDefKey: "",
+        procDefId: '',
+        procDefKey: '',
         routineExpression: null,
-        routineRaw: "",
-        serviceId: "",
-        serviceName: "",
-        status: "",
-        timeoutExpression: "30"
+        routineRaw: '',
+        serviceId: '',
+        serviceName: '',
+        status: '',
+        timeoutExpression: '30'
       },
       serviceTaskBindInfos: [],
       allPlugins: [],
       filteredPlugins: [],
-      timeSelection: ["5", "10", "20", "30", "60"],
+      timeSelection: ['5', '10', '20', '30', '60'],
       paramsTypes: [
-        { value: "INPUT", label: this.$t("input") },
-        { value: "OUTPUT", label: this.$t("output") }
+        { value: 'INPUT', label: this.$t('input') },
+        { value: 'OUTPUT', label: this.$t('output') }
       ],
       currentflowsNodes: [],
       currentFlow: null
-    };
+    }
   },
   watch: {
     selectedFlow: {
-      handler(val, oldVal) {
+      handler (val, oldVal) {
         if (val && val !== 100000) {
-          this.getFlowXml(val);
-          this.getPermissionByProcess(val);
-          this.pluginForm.paramInfos = [];
-          this.currentflowsNodes = [];
+          this.getFlowXml(val)
+          this.getPermissionByProcess(val)
+          this.pluginForm.paramInfos = []
+          this.currentflowsNodes = []
         }
         if (!val) {
-          this.selectedFlow = oldVal;
+          this.selectedFlow = oldVal
         }
       }
     }
   },
   computed: {
-    allRoles() {
-      return this.isAdd ? this.currentUserRoles : this.allRolesBackUp;
+    allRoles () {
+      return this.isAdd ? this.currentUserRoles : this.allRolesBackUp
     },
-    showBpmn() {
+    showBpmn () {
       if (this.selectedFlow || this.isAdd) {
-        return true;
+        return true
       } else {
-        return false;
+        return false
       }
     }
   },
-  created() {
-    this.init();
-    this.getRoleList();
-    this.getRolesByCurrentUser();
+  created () {
+    this.init()
+    this.getRoleList()
+    this.getRolesByCurrentUser()
   },
-  mounted() {
-    this.initFlow();
+  mounted () {
+    this.initFlow()
   },
   methods: {
-    renderRoleNameForTransfer(item) {
-      return item.label;
+    renderRoleNameForTransfer (item) {
+      return item.label
     },
-    handleMgmtRoleTransferChange(newTargetKeys, direction, moveKeys) {
+    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
       if (this.isAdd) {
-        this.mgmtRolesKeyToFlow = newTargetKeys;
+        this.mgmtRolesKeyToFlow = newTargetKeys
       } else {
-        if (direction === "right") {
-          this.updateFlowPermission(this.currentSettingFlow, moveKeys, "mgmt");
+        if (direction === 'right') {
+          this.updateFlowPermission(this.currentSettingFlow, moveKeys, 'mgmt')
         } else {
-          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, "mgmt");
+          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, 'mgmt')
         }
-        this.mgmtRolesKeyToFlow = newTargetKeys;
+        this.mgmtRolesKeyToFlow = newTargetKeys
       }
     },
-    handleUseRoleTransferChange(newTargetKeys, direction, moveKeys) {
+    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
       if (this.isAdd) {
-        this.useRolesKeyToFlow = newTargetKeys;
+        this.useRolesKeyToFlow = newTargetKeys
       } else {
-        if (direction === "right") {
-          this.updateFlowPermission(this.currentSettingFlow, moveKeys, "use");
+        if (direction === 'right') {
+          this.updateFlowPermission(this.currentSettingFlow, moveKeys, 'use')
         } else {
-          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, "use");
+          this.deleteFlowPermission(this.currentSettingFlow, moveKeys, 'use')
         }
-        this.useRolesKeyToFlow = newTargetKeys;
+        this.useRolesKeyToFlow = newTargetKeys
       }
     },
-    async updateFlowPermission(proId, roleId, type) {
+    async updateFlowPermission (proId, roleId, type) {
       const payload = {
         permission: type,
         roleId: roleId
-      };
-      const { status, message, data } = await updateFlowPermission(
-        proId,
-        payload
-      );
+      }
+      await updateFlowPermission(proId, payload)
     },
-    async deleteFlowPermission(proId, roleId, type) {
+    async deleteFlowPermission (proId, roleId, type) {
       const payload = {
         permission: type,
         roleId: roleId
-      };
-      const { status, message, data } = await deleteFlowPermission(
-        proId,
-        payload
-      );
+      }
+      await deleteFlowPermission(proId, payload)
     },
-    setFlowPermission(id) {
-      this.getPermissionByProcess(id);
-      this.flowRoleManageModal = true;
-      this.currentSettingFlow = id;
+    setFlowPermission (id) {
+      this.getPermissionByProcess(id)
+      this.flowRoleManageModal = true
+      this.currentSettingFlow = id
     },
-    async getPermissionByProcess(id) {
-      const { status, message, data } = await getPermissionByProcessId(id);
-      if (status === "OK") {
-        this.mgmtRolesKeyToFlow = data.MGMT;
-        this.useRolesKeyToFlow = data.USE;
+    async getPermissionByProcess (id) {
+      const { status, data } = await getPermissionByProcessId(id)
+      if (status === 'OK') {
+        this.mgmtRolesKeyToFlow = data.MGMT
+        this.useRolesKeyToFlow = data.USE
       }
     },
-    confirmRole() {
-      this.flowRoleManageModal = false;
-      this.isAdd = false;
+    confirmRole () {
+      this.flowRoleManageModal = false
+      this.isAdd = false
     },
-    async getRoleList() {
-      const { status, message, data } = await getRoleList();
-      if (status === "OK") {
+    async getRoleList () {
+      const { status, data } = await getRoleList()
+      if (status === 'OK') {
         this.allRolesBackUp = data.map(_ => {
           return {
             ..._,
             key: _.id,
             label: _.displayName
-          };
-        });
+          }
+        })
       }
     },
-    async getRolesByCurrentUser() {
-      const { status, message, data } = await getRolesByCurrentUser();
-      if (status === "OK") {
+    async getRolesByCurrentUser () {
+      const { status, data } = await getRolesByCurrentUser()
+      if (status === 'OK') {
         this.currentUserRoles = data.map(_ => {
           return {
             ..._,
             key: _.id,
             label: _.displayName
-          };
-        });
+          }
+        })
       }
     },
-    init() {
-      this.getAllDataModels();
-      this.getAllFlows();
-      this.getPluginInterfaceList();
+    init () {
+      this.getAllDataModels()
+      this.getAllFlows()
+      this.getPluginInterfaceList()
     },
-    async getAllDataModels() {
-      let { data, status, message } = await getAllDataModels();
-      if (status === "OK") {
-        this.allEntityType = data;
+    async getAllDataModels () {
+      let { data, status } = await getAllDataModels()
+      if (status === 'OK') {
+        this.allEntityType = data
       }
     },
-    async getFilteredPluginInterfaceList(path) {
-      const pathList = path.split(/[~)>]/);
-      const last = pathList[pathList.length - 1].split(":");
-      const { status, message, data } = await getFilteredPluginInterfaceList(
+    async getFilteredPluginInterfaceList (path) {
+      const pathList = path.split(/[~)>]/)
+      const last = pathList[pathList.length - 1].split(':')
+      const { status, data } = await getFilteredPluginInterfaceList(
         last[0],
         last[1]
-      );
-      if (status === "OK") {
-        this.filteredPlugins = data;
+      )
+      if (status === 'OK') {
+        this.filteredPlugins = data
       }
     },
-    async getPluginInterfaceList(isUseOriginParamsInfo = true) {
-      let { status, data, message } = await getPluginInterfaceList();
-      if (status === "OK") {
-        this.allPlugins = data;
+    async getPluginInterfaceList (isUseOriginParamsInfo = true) {
+      let { status, data } = await getPluginInterfaceList()
+      if (status === 'OK') {
+        this.allPlugins = data
 
-        let found = data.find(_ => _.serviceName === this.pluginForm.serviceId);
+        let found = data.find(_ => _.serviceName === this.pluginForm.serviceId)
         if (found) {
           let needParams = found.inputParameters.filter(
-            _ => _.mappingType === "context" || _.mappingType === "constant"
-          );
-          if (isUseOriginParamsInfo) return;
+            _ => _.mappingType === 'context' || _.mappingType === 'constant'
+          )
+          if (isUseOriginParamsInfo) return
           this.pluginForm.paramInfos = needParams.map(_ => {
             return {
               paramName: _.name,
-              bindNodeId: "",
-              bindParamType: "INPUT",
-              bindParamName: "",
+              bindNodeId: '',
+              bindParamType: 'INPUT',
+              bindParamName: '',
               bindType: _.mappingType,
-              bindValue: ""
-            };
-          });
+              bindValue: ''
+            }
+          })
         }
       }
     },
-    async getAllFlows() {
-      const { data, message, status } = await getAllFlow();
-      if (status === "OK") {
+    async getAllFlows () {
+      const { data, status } = await getAllFlow()
+      if (status === 'OK') {
         let sortedResult = data.sort((a, b) => {
-          let s = a.createdTime.toLowerCase();
-          let t = b.createdTime.toLowerCase();
-          if (s > t) return -1;
-          if (s < t) return 1;
-        });
-        this.allFlows = sortedResult;
+          let s = a.createdTime.toLowerCase()
+          let t = b.createdTime.toLowerCase()
+          if (s > t) return -1
+          if (s < t) return 1
+        })
+        this.allFlows = sortedResult
       }
     },
-    async deleteFlow(id) {
-      let { status, data, message } = await removeProcessDefinition(id);
-      if (status === "OK") {
+    async deleteFlow (id) {
+      let { status, message } = await removeProcessDefinition(id)
+      if (status === 'OK') {
         this.$Notice.success({
-          title: "Success",
+          title: 'Success',
           desc: message
-        });
-        this.getAllFlows();
+        })
+        this.getAllFlows()
       }
     },
-    onEntitySelect(v) {
-      this.currentSelectedEntity = v || "";
-      this.rootPkg = this.currentSelectedEntity.split(":")[0];
-      this.rootEntity = this.currentSelectedEntity.split(":")[1];
+    onEntitySelect (v) {
+      this.currentSelectedEntity = v || ''
+      this.rootPkg = this.currentSelectedEntity.split(':')[0]
+      this.rootEntity = this.currentSelectedEntity.split(':')[1]
 
-      if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = [];
+      if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = []
       this.pluginForm = {
         ...this.defaultPluginForm,
         routineExpression: v
-      };
-      this.resetNodePluginConfig();
+      }
+      this.resetNodePluginConfig()
     },
-    resetNodePluginConfig() {
+    resetNodePluginConfig () {
       if (this.currentFlow && this.currentFlow.taskNodeInfos) {
         this.currentFlow.taskNodeInfos.forEach(_ => {
-          if (_.nodeId.indexOf("Task") > -1) {
+          if (_.nodeId.indexOf('Task') > -1) {
             Object.keys(_).forEach(key => {
-              _[key] = this.defaultPluginForm[key];
-            });
+              _[key] = this.defaultPluginForm[key]
+            })
           }
-        });
+        })
       }
     },
-    resetZoom() {
-      var canvas = this.bpmnModeler.get("canvas");
-      canvas._changeViewbox(function() {
+    resetZoom () {
+      var canvas = this.bpmnModeler.get('canvas')
+      canvas._changeViewbox(function () {
         setCTM(canvas._viewport, {
-          a: "1",
-          b: "0",
-          c: "0",
-          d: "1",
-          e: "0",
-          f: "0"
-        });
-      });
+          a: '1',
+          b: '0',
+          c: '0',
+          d: '1',
+          e: '0',
+          f: '0'
+        })
+      })
     },
-    createNewDiagram() {
-      this.isAdd = true;
-      this.flowRoleManageModal = true;
-      this.mgmtRolesKeyToFlow = [];
-      this.useRolesKeyToFlow = [];
-      this.currentSelectedEntity = "";
-      this.pluginForm = { ...this.defaultPluginForm };
-      this.currentFlow = {};
-      this.newFlowID = "wecube" + Date.now();
+    createNewDiagram () {
+      this.isAdd = true
+      this.flowRoleManageModal = true
+      this.mgmtRolesKeyToFlow = []
+      this.useRolesKeyToFlow = []
+      this.currentSelectedEntity = ''
+      this.pluginForm = { ...this.defaultPluginForm }
+      this.currentFlow = {}
+      this.newFlowID = 'wecube' + Date.now()
       const bpmnXmlStr =
         '<?xml version="1.0" encoding="UTF-8"?>\n' +
         '<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="sample-diagram" targetNamespace="http://bpmn.io/schema/bpmn">\n' +
         '  <bpmn2:process id="' +
         this.newFlowID +
         '" isExecutable="true">\n' +
-        "  </bpmn2:process>\n" +
+        '  </bpmn2:process>\n' +
         '  <bpmndi:BPMNDiagram id="BPMNDiagram_1">\n' +
         '    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="' +
         this.newFlowID +
         '">\n' +
-        "    </bpmndi:BPMNPlane>\n" +
-        "  </bpmndi:BPMNDiagram>\n" +
-        "</bpmn2:definitions>";
-      this.bpmnModeler.importXML(bpmnXmlStr, function(err) {
+        '    </bpmndi:BPMNPlane>\n' +
+        '  </bpmndi:BPMNDiagram>\n' +
+        '</bpmn2:definitions>'
+      this.bpmnModeler.importXML(bpmnXmlStr, function (err) {
         if (err) {
-          console.error(err);
+          console.error(err)
         }
-      });
+      })
     },
-    saveDiagram(isDraft) {
-      let _this = this;
+    saveDiagram (isDraft) {
+      let _this = this
       const okHandler = data => {
-        this.getAllFlows();
-        this.selectedFlow = data.data.procDefId;
-      };
-      this.bpmnModeler.saveXML({ format: true }, function(err, xml) {
-        if (!xml) return;
-        const xmlString = xml.replace(/[\r\n]/g, "");
-        const processName = document.getElementById("camunda-name").innerText;
+        this.getAllFlows()
+        this.selectedFlow = data.data.procDefId
+      }
+      // eslint-disable-next-line handle-callback-err
+      this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
+        if (!xml) return
+        const xmlString = xml.replace(/[\r\n]/g, '')
+        const processName = document.getElementById('camunda-name').innerText
         const payload = {
           permissionToRole: {
             MGMT: _this.mgmtRolesKeyToFlow,
             USE: _this.useRolesKeyToFlow
           },
           procDefData: xmlString,
-          procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || "",
+          procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || '',
           procDefKey: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
+            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ''
             : _this.newFlowID,
           procDefName: processName,
           rootEntity: _this.currentSelectedEntity,
           status: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ""
-            : "",
+            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ''
+            : '',
           taskNodeInfos: _this.serviceTaskBindInfos
-        };
+        }
 
         isDraft
           ? saveFlowDraft(payload).then(data => {
-              if (data && data.status === "OK") {
-                _this.$Notice.success({
-                  title: "Success",
-                  desc: data.message
-                });
-                okHandler(data);
-              }
-            })
+            if (data && data.status === 'OK') {
+              _this.$Notice.success({
+                title: 'Success',
+                desc: data.message
+              })
+              okHandler(data)
+            }
+          })
           : saveFlow(payload).then(data => {
-              if (data && data.status === "OK") {
-                _this.$Notice.success({
-                  title: "Success",
-                  desc: data.message
-                });
+            if (data && data.status === 'OK') {
+              _this.$Notice.success({
+                title: 'Success',
+                desc: data.message
+              })
 
-                okHandler(data);
-              }
-            });
-      });
+              okHandler(data)
+            }
+          })
+      })
     },
-    savePluginConfig(ref) {
-      let index = -1;
+    savePluginConfig (ref) {
+      let index = -1
       this.serviceTaskBindInfos.forEach((_, i) => {
         if (this.currentNode.id === _.nodeId) {
-          index = i;
+          index = i
         }
-      });
+      })
       if (index > -1) {
-        this.serviceTaskBindInfos.splice(index, 1);
+        this.serviceTaskBindInfos.splice(index, 1)
       }
 
       let found = this.allPlugins.find(
         _ => _.serviceName === this.pluginForm.serviceId
-      );
+      )
 
-      let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm));
+      let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       this.serviceTaskBindInfos.push({
         ...pluginFormCopy,
         nodeId: this.currentNode.id,
         nodeName: this.currentNode.name,
-        serviceName: (found && found.serviceName) || "",
+        serviceName: (found && found.serviceName) || '',
         routineRaw: pluginFormCopy.routineExpression
-      });
-      this.pluginModalVisible = false;
-      this.saveDiagram(true);
+      })
+      this.pluginModalVisible = false
+      this.saveDiagram(true)
     },
-    async openPluginModal() {
+    async openPluginModal () {
       if (!this.currentSelectedEntity) {
         this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("select_entity_first")
-        });
+          title: 'Warning',
+          desc: this.$t('select_entity_first')
+        })
       } else {
-        this.pluginModalVisible = true;
+        this.pluginModalVisible = true
         this.pluginForm = (this.currentFlow &&
           this.currentFlow.taskNodeInfos &&
           this.currentFlow.taskNodeInfos.find(
             _ => _.nodeId === this.currentNode.id
-          )) || { ...this.defaultPluginForm };
-        this.getPluginInterfaceList();
+          )) || { ...this.defaultPluginForm }
+        this.getPluginInterfaceList()
         // get flow's params infos - nodes -
-        this.getFlowsNodes();
+        this.getFlowsNodes()
         this.pluginForm.routineExpression &&
-          this.getFilteredPluginInterfaceList(
-            this.pluginForm.routineExpression
-          );
+          this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
       }
     },
-    onParamsNodeChange(index) {
-      this.getParamsOptionsByNode(index);
+    onParamsNodeChange (index) {
+      this.getParamsOptionsByNode(index)
     },
-    async getFlowsNodes() {
+    async getFlowsNodes () {
       if (!this.currentFlow || !this.currentFlow.procDefId) {
-        this.currentflowsNodes = [];
-        return;
+        this.currentflowsNodes = []
+        return
       }
-      let { status, data, message } = await getFlowNodes(
-        this.currentFlow.procDefId
-      );
-      if (status === "OK") {
+      let { status, data } = await getFlowNodes(this.currentFlow.procDefId)
+      if (status === 'OK') {
         this.currentflowsNodes = data.filter(
           _ => _.nodeId !== this.currentNode.id
-        );
+        )
         this.pluginForm.paramInfos.forEach((_, index) => {
-          this.onParamsNodeChange(index);
-        });
+          this.onParamsNodeChange(index)
+        })
       }
     },
-    async getParamsOptionsByNode(index) {
+    async getParamsOptionsByNode (index) {
       const found = this.currentflowsNodes.find(
         _ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId
-      );
-      if (!this.currentFlow) return;
-      let { status, data, message } = await getParamsInfosByFlowIdAndNodeId(
+      )
+      if (!this.currentFlow) return
+      let { status, data } = await getParamsInfosByFlowIdAndNodeId(
         this.currentFlow.procDefId,
         found.nodeDefId
-      );
-      if (status === "OK") {
+      )
+      if (status === 'OK') {
         let res = data.filter(
           _ => _.type === this.pluginForm.paramInfos[index].bindParamType
-        );
-        this.$set(this.pluginForm.paramInfos[index], "currentParamNames", res);
+        )
+        this.$set(this.pluginForm.paramInfos[index], 'currentParamNames', res)
       }
     },
-    bindRightClick() {
-      var menu = document.getElementById("right_click_menu");
-      var elements = document.getElementsByClassName("djs-element djs-shape");
-      const _this = this;
+    bindRightClick () {
+      var menu = document.getElementById('right_click_menu')
+      var elements = document.getElementsByClassName('djs-element djs-shape')
+      const _this = this
       for (var i = 0; i < elements.length; i++) {
-        elements[i].oncontextmenu = function(e) {
-          var e = e || window.event;
-          var x = e.clientX;
-          var y = e.clientY;
-          menu.style.display = "block";
-          menu.style.left = x - 25 + "px";
-          menu.style.top = y - 130 + "px";
+        elements[i].oncontextmenu = function (e) {
+          e = e || window.event
+          var x = e.clientX
+          var y = e.clientY
+          menu.style.display = 'block'
+          menu.style.left = x - 25 + 'px'
+          menu.style.top = y - 130 + 'px'
           _this.currentNode.id = e.target.parentNode.getAttribute(
-            "data-element-id"
-          );
+            'data-element-id'
+          )
           _this.currentNode.name =
             (e.target.previousSibling &&
               e.target.previousSibling.children[1] &&
               e.target.previousSibling.children[1].children[0] &&
               e.target.previousSibling.children[1].children[0].innerHTML) ||
-            "";
-          return false;
-        };
+            ''
+          return false
+        }
       }
 
-      document.onclick = function(e) {
-        var e = e || window.event;
-        menu.style.display = "none";
-      };
+      document.onclick = function (e) {
+        e = e || window.event
+        menu.style.display = 'none'
+      }
 
-      menu.onclick = function(e) {
-        var e = e || window.event;
-        e.stopPropagation();
-      };
+      menu.onclick = function (e) {
+        e = e || window.event
+        e.stopPropagation()
+      }
     },
-    async getFlowXml(id) {
-      const { status, message, data } = await getFlowDetailByID(id);
-      if (status === "OK") {
-        this.currentFlow = data;
-        const _this = this;
-        this.bpmnModeler.importXML(data.procDefData, function(err) {
+    async getFlowXml (id) {
+      const { status, data } = await getFlowDetailByID(id)
+      if (status === 'OK') {
+        this.currentFlow = data
+        const _this = this
+        this.bpmnModeler.importXML(data.procDefData, function (err) {
           if (err) {
-            console.error(err);
+            console.error(err)
           }
-          _this.bindRightClick();
-          _this.serviceTaskBindInfos = data.taskNodeInfos;
-          _this.currentSelectedEntity = data.rootEntity || "";
-          _this.rootPkg = data.rootEntity.split(":")[0] || "";
-          _this.rootEntity = data.rootEntity.split(":")[1] || "";
-        });
+          _this.bindRightClick()
+          _this.serviceTaskBindInfos = data.taskNodeInfos
+          _this.currentSelectedEntity = data.rootEntity || ''
+          _this.rootPkg = data.rootEntity.split(':')[0] || ''
+          _this.rootEntity = data.rootEntity.split(':')[1] || ''
+        })
       }
     },
-    initFlow() {
-      this.container = this.$refs.content;
-      const canvas = this.$refs.canvas;
+    initFlow () {
+      this.container = this.$refs.content
+      const canvas = this.$refs.canvas
       canvas.onmouseup = () => {
-        this.bindRightClick();
-      };
+        this.bindRightClick()
+      }
       var customTranslateModule = {
-        translate: ["value", customTranslate]
-      };
+        translate: ['value', customTranslate]
+      }
 
-      if (this.$lang === "zh-CN") {
-        this.additionalModules.push(customTranslateModule);
+      if (this.$lang === 'zh-CN') {
+        this.additionalModules.push(customTranslateModule)
       } else {
         if (this.additionalModules.length > 2) {
-          this.additionalModules.pop();
+          this.additionalModules.pop()
         }
       }
 
       this.bpmnModeler = new BpmnModeler({
         container: canvas,
         propertiesPanel: {
-          parent: "#js-properties-panel"
+          parent: '#js-properties-panel'
         },
         additionalModules: this.additionalModules,
 
         moddleExtensions: {
           camunda: camundaModdleDescriptor
         }
-      });
+      })
     },
-    getHeaders() {
-      let refreshRequest = null;
-      const currentTime = new Date().getTime();
-      let session = window.sessionStorage;
-      const token = JSON.parse(session.getItem("token"));
+    getHeaders () {
+      let refreshRequest = null
+      const currentTime = new Date().getTime()
+      let session = window.sessionStorage
+      const token = JSON.parse(session.getItem('token'))
       if (token) {
-        const accessToken = token.find(t => t.tokenType === "accessToken");
-        const expiration = accessToken.expiration * 1 - currentTime;
+        const accessToken = token.find(t => t.tokenType === 'accessToken')
+        const expiration = accessToken.expiration * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get("/auth/v1/api/token", {
+          refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
               Authorization:
-                "Bearer " +
-                token.find(t => t.tokenType === "refreshToken").token
+                'Bearer ' +
+                token.find(t => t.tokenType === 'refreshToken').token
             }
-          });
+          })
           refreshRequest.then(
             res => {
-              session.setItem("token", JSON.stringify(res.data.data));
-              this.setUploadActionHeader();
-              this.$refs.uploadButton.handleClick();
+              session.setItem('token', JSON.stringify(res.data.data))
+              this.setUploadActionHeader()
+              this.$refs.uploadButton.handleClick()
             },
+            // eslint-disable-next-line handle-callback-err
             err => {
-              refreshRequest = null;
-              window.location.href = window.location.origin + "/#/login";
+              refreshRequest = null
+              window.location.href = window.location.origin + '/#/login'
             }
-          );
+          )
         } else {
-          this.setUploadActionHeader();
-          this.$refs.uploadButton.handleClick();
+          this.setUploadActionHeader()
+          this.$refs.uploadButton.handleClick()
         }
       } else {
-        window.location.href = window.location.origin + "/#/login";
+        window.location.href = window.location.origin + '/#/login'
       }
     },
-    setUploadActionHeader() {
-      let session = window.sessionStorage;
-      const token = JSON.parse(session.getItem("token"));
+    setUploadActionHeader () {
+      let session = window.sessionStorage
+      const token = JSON.parse(session.getItem('token'))
       this.headers = {
         Authorization:
-          "Bearer " + token.find(t => t.tokenType === "accessToken").token
-      };
+          'Bearer ' + token.find(t => t.tokenType === 'accessToken').token
+      }
     },
-    exportProcessDefinition(isDraft) {
-      let _this = this;
+    exportProcessDefinition (isDraft) {
+      let procDefId = this.selectedFlow
+      debugger
 
-      let procDefId = this.selectedFlow;
-      debugger;
-
-      if (procDefId == null || procDefId === "undefined" || procDefId === "") {
+      if (procDefId == null || procDefId === 'undefined' || procDefId === '') {
         this.$Notice.error({
-          title: "Error",
-          desc: "Must select a process to export."
-        });
-        return false;
+          title: 'Error',
+          desc: 'Must select a process to export.'
+        })
+        return false
       }
 
-      exportProcessDefinitionWithId(procDefId);
+      exportProcessDefinitionWithId(procDefId)
     },
-    async onImportProcessDefinitionSuccess(response, file, filelist) {
-      if (response.status === "OK") {
+    async onImportProcessDefinitionSuccess (response, file, filelist) {
+      if (response.status === 'OK') {
         this.$Notice.success({
-          title: "Success",
-          desc: response.message || ""
-        });
+          title: 'Success',
+          desc: response.message || ''
+        })
 
-        this.getAllFlows();
-        this.selectedFlow = response.data.procDefId;
+        this.getAllFlows()
+        this.selectedFlow = response.data.procDefId
       } else {
         this.$Notice.warning({
-          title: "Warning",
-          desc: response.message || ""
-        });
+          title: 'Warning',
+          desc: response.message || ''
+        })
       }
     },
-    async onImportProcessDefinitionError(error, file, filelist) {
+    onImportProcessDefinitionError (file) {
       this.$Notice.error({
-        title: "Error",
-        desc: file.message || ""
-      });
+        title: 'Error',
+        desc: file.message || ''
+      })
     }
   }
-};
+}
 </script>
 <style lang="scss">
 .containers {
@@ -994,24 +980,24 @@ export default {
 }
 
 // hide panal tab item
-[data-group="documentation"],
-[data-group="historyConfiguration"],
-[data-group="jobConfiguration"],
-[data-group="externalTaskConfiguration"],
-[data-group="candidateStarterConfiguration"],
-[data-group="tasklist"],
-[data-group="async"] {
+[data-group='documentation'],
+[data-group='historyConfiguration'],
+[data-group='jobConfiguration'],
+[data-group='externalTaskConfiguration'],
+[data-group='candidateStarterConfiguration'],
+[data-group='tasklist'],
+[data-group='async'] {
   display: none;
 }
 
 // hide node toolbar
-[data-id="replace-with-rule-task"],
-[data-id="replace-with-send-task"],
-[data-id="replace-with-receive-task"],
-[data-id="replace-with-manual-task"],
-[data-id="replace-with-script-task"],
-[data-id="replace-with-user-task"],
-[data-id="replace-with-transaction"] {
+[data-id='replace-with-rule-task'],
+[data-id='replace-with-send-task'],
+[data-id='replace-with-receive-task'],
+[data-id='replace-with-manual-task'],
+[data-id='replace-with-script-task'],
+[data-id='replace-with-user-task'],
+[data-id='replace-with-transaction'] {
   display: none;
 }
 

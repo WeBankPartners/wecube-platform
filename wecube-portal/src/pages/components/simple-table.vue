@@ -33,13 +33,13 @@ export default {
           currentPage: 1,
           pageSize: 5,
           total: 0
-        };
+        }
       }
     },
     pageSizeOptions: {
       type: Array,
       default: () => {
-        return [5, 10, 20];
+        return [5, 10, 20]
       }
     },
     loading: {
@@ -48,17 +48,17 @@ export default {
     }
   },
   methods: {
-    onChange(currentPage) {
-      this.$emit("pageChange", currentPage);
+    onChange (currentPage) {
+      this.$emit('pageChange', currentPage)
     },
-    onPageSizeChange(pageSize) {
-      this.$emit("pageSizeChange", pageSize);
+    onPageSizeChange (pageSize) {
+      this.$emit('pageSizeChange', pageSize)
     },
-    onRowClick(row) {
-      this.$emit("rowClick", row);
+    onRowClick (row) {
+      this.$emit('rowClick', row)
     }
   }
-};
+}
 </script>
 
 <style lang="scss" scoped></style>

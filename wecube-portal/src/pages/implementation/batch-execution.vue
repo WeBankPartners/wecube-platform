@@ -51,7 +51,7 @@
           >查询 资源实例 中满足以下条件的CI数据对象:</a
         >
         <ul>
-          <li v-for="(sp, spIndex) in searchParameters">
+          <li v-for="(sp, spIndex) in searchParameters" :key="spIndex">
             <span>
               {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{
                 sp.value
@@ -114,6 +114,7 @@
                   excuteResult[key].errorCode === '1' ? 'error-key' : ''
                 ]"
                 v-for="(key, keyIndex) in filterBusinessKeySet"
+                :key="keyIndex"
               >
                 <span>{{ key }}</span>
               </li>
@@ -220,7 +221,7 @@
       </Form>
       <div slot="footer">
         <Button type="primary" @click="saveSearchCondition">
-          {{ $t("confirm") }}
+          {{ $t('confirm') }}
         </Button>
       </div>
     </Modal>
@@ -248,9 +249,9 @@
               v-model="item.bindValue"
             />
             <span v-else>{{
-              item.mappingType === "entity"
-                ? "从CI数据对象获取"
-                : "从系统参数获取"
+              item.mappingType === 'entity'
+                ? '从CI数据对象获取'
+                : '从系统参数获取'
             }}</span>
           </FormItem>
         </template>
@@ -261,7 +262,7 @@
           @click="excuteBatchAction"
           :disabled="!this.serviceId"
         >
-          {{ $t("confirm") }}
+          {{ $t('confirm') }}
         </Button>
       </div>
     </Modal>
@@ -282,21 +283,19 @@
 </template>
 
 <script>
-import PathExp from "@/pages/components/path-exp.vue";
+import PathExp from '@/pages/components/path-exp.vue'
 import {
   getAllDataModels,
-  retrieveSystemVariables,
   dmeAllEntities,
   dmeIntegratedQuery,
   entityView,
   getFilteredPluginInterfaceList,
   batchExecution
-} from "@/api/server.js";
-import { formatData } from "../util/format.js";
+} from '@/api/server.js'
 
 export default {
-  name: "",
-  data() {
+  name: '',
+  data () {
     return {
       displaySearchZone: true,
       displayResultTableZone: false,
@@ -305,20 +304,20 @@ export default {
       DelConfig: {
         isDisplay: false,
         displayConfig: {
-          name: ""
+          name: ''
         },
         key: null
       },
 
       isShowSearchConditions: false,
-      selectedEntityName: "",
+      selectedEntityName: '',
       selectedEntityType: null,
       allEntityType: [],
 
-      dataModelExpression: "",
-      currentEntityName: "",
-      currentPackageName: "",
-      currentEntityAttr: "",
+      dataModelExpression: '',
+      currentEntityName: '',
+      currentPackageName: '',
+      currentEntityAttr: '',
       currentEntityAttrList: [],
       allEntityAttr: [],
       targetEntityAttr: [],
@@ -339,153 +338,153 @@ export default {
       excuteResult: {},
       excuteBusinessKeySet: [],
       filterBusinessKeySet: [],
-      activeResultKey: "",
-      businessKey: "",
-      resultFilterKey: ""
-    };
+      activeResultKey: '',
+      businessKey: '',
+      resultFilterKey: ''
+    }
   },
-  mounted() {},
+  mounted () {},
   computed: {
-    businessKeyContent: function() {
-      return this.excuteResult[this.activeResultKey];
+    businessKeyContent: function () {
+      return this.excuteResult[this.activeResultKey]
     }
   },
   watch: {
-    dataModelExpression: async function(val) {
-      if (val === ":") {
-        return;
+    dataModelExpression: async function (val) {
+      if (val === ':') {
+        return
       }
       const params = {
         dataModelExpression: val
-      };
-      const { data, status, message } = await dmeAllEntities(params);
-      if (status === "OK") {
-        this.currentEntityName = data.slice(-1)[0].entityName;
-        this.currentPackageName = data.slice(-1)[0].packageName;
-        this.currentEntityAttrList = data.slice(-1)[0].attributes;
+      }
+      const { data, status } = await dmeAllEntities(params)
+      if (status === 'OK') {
+        this.currentEntityName = data.slice(-1)[0].entityName
+        this.currentPackageName = data.slice(-1)[0].packageName
+        this.currentEntityAttrList = data.slice(-1)[0].attributes
 
-        this.allEntityAttr = [];
+        this.allEntityAttr = []
         data.forEach((single, index) => {
           const childNode = single.attributes.map(attr => {
-            attr.key = single.packageName + single.entityName + index;
-            attr.index = index;
-            attr.title = attr.name;
-            attr.entityName = single.entityName;
-            attr.packageName = single.packageName;
-            return attr;
-          });
+            attr.key = single.packageName + single.entityName + index
+            attr.index = index
+            attr.title = attr.name
+            attr.entityName = single.entityName
+            attr.packageName = single.packageName
+            return attr
+          })
           this.allEntityAttr.push({
             title: `${single.packageName}-${single.entityName}`,
             children: childNode
-          });
-        });
+          })
+        })
       }
     },
-    serviceId: function(val) {
+    serviceId: function (val) {
       this.filteredPlugins.forEach(plugin => {
         if (plugin.serviceDisplayName === val) {
-          this.selectedPluginParams = plugin.inputParameters;
+          this.selectedPluginParams = plugin.inputParameters
         }
-      });
+      })
       this.selectedPluginParams = this.selectedPluginParams.map(_ => {
-        _.bindValue = "";
-        return _;
-      });
+        _.bindValue = ''
+        return _
+      })
     },
-    businessKey: function(val) {
-      this.filterBusinessKeySet = [];
+    businessKey: function (val) {
+      this.filterBusinessKeySet = []
       for (const key in this.excuteResult) {
         if (key.indexOf(this.businessKey) > -1) {
-          this.filterBusinessKeySet.push(key);
+          this.filterBusinessKeySet.push(key)
         }
       }
     }
   },
   methods: {
-    setSearchConditions() {
-      this.allEntityType = [];
-      this.getAllDataModels();
-      this.isShowSearchConditions = true;
-      if (document.querySelector(".wecube_attr-ul")) {
-        document.querySelector(".wecube_attr-ul").style.width = "530px";
+    setSearchConditions () {
+      this.allEntityType = []
+      this.getAllDataModels()
+      this.isShowSearchConditions = true
+      if (document.querySelector('.wecube_attr-ul')) {
+        document.querySelector('.wecube_attr-ul').style.width = '530px'
       }
 
-      this.selectedEntityType = null;
-      this.dataModelExpression = ":";
-      this.currentEntityAttr = "";
-      this.currentEntityAttrList = [];
-      this.currentPackageName = "";
-      this.currentEntityName = "";
-      this.allEntityAttr = [];
-      this.targetEntityAttr = [];
+      this.selectedEntityType = null
+      this.dataModelExpression = ':'
+      this.currentEntityAttr = ''
+      this.currentEntityAttrList = []
+      this.currentPackageName = ''
+      this.currentEntityName = ''
+      this.allEntityAttr = []
+      this.targetEntityAttr = []
     },
-    changeEntityType() {
-      this.targetEntityAttr = [];
+    changeEntityType () {
+      this.targetEntityAttr = []
     },
-    async getAllDataModels() {
-      const { data, status, message } = await getAllDataModels();
-      if (status === "OK") {
+    async getAllDataModels () {
+      const { data, status } = await getAllDataModels()
+      if (status === 'OK') {
         this.allEntityType = data.map(_ => {
           // handle result sort by name
           return {
             ..._,
-            pluginPackageEntities: _.pluginPackageEntities.sort(function(a, b) {
-              var s = a.name.toLowerCase();
-              var t = b.name.toLowerCase();
-              if (s < t) return -1;
-              if (s > t) return 1;
+            pluginPackageEntities: _.pluginPackageEntities.sort(function (a, b) {
+              var s = a.name.toLowerCase()
+              var t = b.name.toLowerCase()
+              if (s < t) return -1
+              if (s > t) return 1
             })
-          };
-        });
+          }
+        })
       }
     },
-    checkChange(totalChecked) {
-      this.targetEntityAttr = totalChecked;
+    checkChange (totalChecked) {
+      this.targetEntityAttr = totalChecked
     },
-    saveSearchCondition() {
+    saveSearchCondition () {
       if (!this.currentEntityAttr) {
-        this.$Message.warning("业务主键不能为空！");
-        return;
+        this.$Message.warning('业务主键不能为空！')
+        return
       }
-      this.isShowSearchConditions = false;
-      this.searchParameters = this.targetEntityAttr;
+      this.isShowSearchConditions = false
+      this.searchParameters = this.targetEntityAttr
     },
-    async excuteSearch() {
-      let { status, data, message } = await entityView(
+    async excuteSearch () {
+      let { status, data } = await entityView(
         this.currentPackageName,
         this.currentEntityName
-      );
-      if (status === "OK") {
+      )
+      if (status === 'OK') {
         this.tableColumns = data.map((_, i) => {
           return {
             title: _.description,
             key: _.name,
             displaySeqNo: i + 1
-          };
-        });
+          }
+        })
       }
-      this.entityData();
+      this.entityData()
     },
-    async entityData() {
+    async entityData () {
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
-      };
-      let keySet = [];
+      }
+      let keySet = []
       this.searchParameters.forEach(sParameter => {
-        const index = keySet.indexOf(sParameter.key);
+        const index = keySet.indexOf(sParameter.key)
         if (index > -1) {
-          const { name, value } = sParameter;
+          const { name, value } = sParameter
           if (value) {
             requestParameter.filters[index].attributeFilters.push({
               name,
               value,
-              operator: "eq"
-            });
+              operator: 'eq'
+            })
           }
         } else {
-          keySet.push(sParameter.key);
-          const { index, packageName, entityName, name, value } = sParameter;
+          keySet.push(sParameter.key)
+          const { index, packageName, entityName, name, value } = sParameter
           if (value) {
             requestParameter.filters.push({
               index,
@@ -495,94 +494,92 @@ export default {
                 {
                   name,
                   value,
-                  operator: "eq"
+                  operator: 'eq'
                 }
               ]
-            });
+            })
           }
         }
-      });
-      const { status, data, message } = await dmeIntegratedQuery(
-        requestParameter
-      );
-      if (status === "OK") {
+      })
+      const { status, data } = await dmeIntegratedQuery(requestParameter)
+      if (status === 'OK') {
         if (data.length) {
-          this.tableData = data;
-          this.displaySearchZone = false;
-          this.displayResultTableZone = true;
+          this.tableData = data
+          this.displaySearchZone = false
+          this.displayResultTableZone = true
         } else {
-          this.$Message.warning("空数据！");
+          this.$Message.warning('空数据！')
         }
       }
     },
-    clearParametes() {
+    clearParametes () {
       this.searchParameters.forEach(item => {
-        item.value = "";
-      });
+        item.value = ''
+      })
     },
-    resetParametes() {
-      this.dataModelExpression = ":";
-      this.currentPackageName = null;
-      this.currentEntityName = null;
-      this.searchParameters = [];
+    resetParametes () {
+      this.dataModelExpression = ':'
+      this.currentPackageName = null
+      this.currentEntityName = null
+      this.searchParameters = []
     },
-    reExcute(key) {
-      this.DelConfig.isDisplay = true;
-      this.DelConfig.key = key;
+    reExcute (key) {
+      this.DelConfig.isDisplay = true
+      this.DelConfig.key = key
     },
-    del() {
-      this.DelConfig.isDisplay = false;
+    del () {
+      this.DelConfig.isDisplay = false
 
-      this.displaySearchZone = false;
-      this.displayResultTableZone = false;
-      this.displayExcuteResultZone = false;
-      this.businessKey = null;
-      this[this.DelConfig.key] = true;
+      this.displaySearchZone = false
+      this.displayResultTableZone = false
+      this.displayExcuteResultZone = false
+      this.businessKey = null
+      this[this.DelConfig.key] = true
     },
-    onSelectedRowsChange(rows, checkoutBoxdisable) {
-      this.seletedRows = rows;
-      this.seletedRowsNum = this.seletedRows.length;
+    onSelectedRowsChange (rows, checkoutBoxdisable) {
+      this.seletedRows = rows
+      this.seletedRowsNum = this.seletedRows.length
     },
-    batchAction() {
-      this.getFilteredPluginInterfaceList();
-      this.batchActionModalVisible = true;
-      this.selectedPluginParams = [];
-      this.serviceId = null;
+    batchAction () {
+      this.getFilteredPluginInterfaceList()
+      this.batchActionModalVisible = true
+      this.selectedPluginParams = []
+      this.serviceId = null
     },
-    async getFilteredPluginInterfaceList() {
-      const { status, message, data } = await getFilteredPluginInterfaceList(
+    async getFilteredPluginInterfaceList () {
+      const { status, data } = await getFilteredPluginInterfaceList(
         this.currentPackageName,
         this.currentEntityName
-      );
-      if (status === "OK") {
-        this.filteredPlugins = data;
+      )
+      if (status === 'OK') {
+        this.filteredPlugins = data
       }
     },
-    async excuteBatchAction() {
+    async excuteBatchAction () {
       const plugin = this.filteredPlugins.find(_ => {
-        return _.serviceName === this.serviceId;
-      });
+        return _.serviceName === this.serviceId
+      })
       const inputParameterDefinitions = plugin.inputParameters.map(p => {
         const inputParameterValue =
-          p.mappingType === "constant"
-            ? p.dataType === "number"
+          p.mappingType === 'constant'
+            ? p.dataType === 'number'
               ? Number(p.bindValue)
               : p.bindValue
-            : null;
+            : null
         return {
           inputParameter: p,
           inputParameterValue: inputParameterValue
-        };
-      });
+        }
+      })
       let currentEntity = this.currentEntityAttrList.find(_ => {
-        return _.name === this.currentEntityAttr;
-      });
+        return _.name === this.currentEntityAttr
+      })
       const resourceDatas = this.seletedRows.map(_ => {
         return {
           id: _.id,
           businessKeyValue: _[this.currentEntityAttr]
-        };
-      });
+        }
+      })
 
       let requestBody = {
         packageName: this.currentPackageName,
@@ -591,28 +588,28 @@ export default {
         inputParameterDefinitions,
         businessKeyAttribute: currentEntity,
         resourceDatas
-      };
+      }
 
-      const { status, data, message } = await batchExecution(requestBody);
-      this.batchActionModalVisible = false;
-      this.$Message.info("执行可能需要一点时间！");
-      this.seletedRows = [];
-      if (status === "OK") {
-        this.excuteResult = data;
-        this.excuteBusinessKeySet = this.filterBusinessKeySet = [];
+      const { status, data } = await batchExecution(requestBody)
+      this.batchActionModalVisible = false
+      this.$Message.info('执行可能需要一点时间！')
+      this.seletedRows = []
+      if (status === 'OK') {
+        this.excuteResult = data
+        this.excuteBusinessKeySet = this.filterBusinessKeySet = []
         for (const key in data) {
-          this.excuteBusinessKeySet.push(key);
+          this.excuteBusinessKeySet.push(key)
         }
-        this.filterBusinessKeySet = this.excuteBusinessKeySet;
-        this.displayResultTableZone = false;
-        this.displayExcuteResultZone = false;
+        this.filterBusinessKeySet = this.excuteBusinessKeySet
+        this.displayResultTableZone = false
+        this.displayExcuteResultZone = false
       }
     }
   },
   components: {
     PathExp
   }
-};
+}
 </script>
 
 <style lang="scss" scope>

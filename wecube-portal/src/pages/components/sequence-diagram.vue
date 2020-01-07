@@ -1,7 +1,7 @@
 <template>
   <div>
     <Button @click="showSequence" size="small" type="info">{{
-      $t("select_sequence")
+      $t('select_sequence')
     }}</Button>
     <Modal
       v-model="sequenceVisiable"
@@ -14,16 +14,16 @@
       <Row>
         <Col span="17">
           <Card>
-            <p slot="title">{{ $t("sequence_graph") }}</p>
+            <p slot="title">{{ $t('sequence_graph') }}</p>
             <div :id="'abc' + guid"></div>
           </Card>
         </Col>
         <Col span="7" style="padding: 0 0 0 20px">
           <Card>
-            <p slot="title">{{ $t("sequence_steps") }}</p>
+            <p slot="title">{{ $t('sequence_steps') }}</p>
             <Row>
               <Col span="7">
-                <span>{{ $t("select_sequence_steps") }}</span>
+                <span>{{ $t('select_sequence_steps') }}</span>
               </Col>
               <Col span="16">
                 <Select
@@ -69,19 +69,19 @@
   </div>
 </template>
 <script>
-import { queryCiData } from "@/api/server";
-import mermaid from "mermaid";
+import { queryCiData } from '@/api/server'
+import mermaid from 'mermaid'
 
 export default {
-  name: "sequenceDiagram",
-  data() {
+  name: 'sequenceDiagram',
+  data () {
     return {
       sequenceData: [],
       selectedSequences: [],
       selectedSequenceData: [],
       sequenceVisiable: false,
-      graphString: "sequenceDiagram \n A->>B"
-    };
+      graphString: 'sequenceDiagram \n A->>B'
+    }
   },
   props: {
     guid: {},
@@ -91,113 +91,119 @@ export default {
   },
   watch: {
     sequenceData: {
-      handler(val) {
+      handler (val) {
         if (val.length > 0) {
-          this.displaySequence();
+          this.displaySequence()
         }
       }
     }
   },
-  mounted() {
-    this.getSequenceData();
+  mounted () {
+    this.getSequenceData()
   },
   methods: {
-    displaySequence() {
+    displaySequence () {
       if (this.value) {
-        this.selectedSequences = this.value;
-        this.selectChangeHandler(this.value);
+        this.selectedSequences = this.value
+        this.selectChangeHandler(this.value)
       }
     },
-    moveUpSequence(id) {
-      let currentIndex = this.selectedSequenceData.map(i => i.guid).indexOf(id);
+    moveUpSequence (id) {
+      let currentIndex = this.selectedSequenceData.map(i => i.guid).indexOf(id)
       if (!this.selectedSequenceData[currentIndex - 1]) {
         this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("already_first_floor")
-        });
-        return;
+          title: 'Warning',
+          desc: this.$t('already_first_floor')
+        })
+        return
       }
-      let clone = JSON.parse(JSON.stringify(this.selectedSequenceData));
+      let clone = JSON.parse(JSON.stringify(this.selectedSequenceData))
 
-      clone[currentIndex] = this.selectedSequenceData[currentIndex - 1];
-      clone[currentIndex - 1] = this.selectedSequenceData[currentIndex];
+      clone[currentIndex] = this.selectedSequenceData[currentIndex - 1]
+      clone[currentIndex - 1] = this.selectedSequenceData[currentIndex]
 
-      this.selectedSequenceData = clone;
-      this.initSequenceGraph();
-      this.$emit("input", this.selectedSequenceData.map(_ => _.guid));
+      this.selectedSequenceData = clone
+      this.initSequenceGraph()
+      this.$emit(
+        'input',
+        this.selectedSequenceData.map(_ => _.guid)
+      )
     },
-    moveDownSequence(id) {
-      let currentIndex = this.selectedSequenceData.map(i => i.guid).indexOf(id);
+    moveDownSequence (id) {
+      let currentIndex = this.selectedSequenceData.map(i => i.guid).indexOf(id)
       if (!this.selectedSequenceData[currentIndex + 1]) {
         this.$Notice.warning({
-          title: "Warning",
-          desc: this.$t("already_last_floor")
-        });
-        return;
+          title: 'Warning',
+          desc: this.$t('already_last_floor')
+        })
+        return
       }
-      let clone = JSON.parse(JSON.stringify(this.selectedSequenceData));
+      let clone = JSON.parse(JSON.stringify(this.selectedSequenceData))
 
-      clone[currentIndex] = this.selectedSequenceData[currentIndex + 1];
-      clone[currentIndex + 1] = this.selectedSequenceData[currentIndex];
+      clone[currentIndex] = this.selectedSequenceData[currentIndex + 1]
+      clone[currentIndex + 1] = this.selectedSequenceData[currentIndex]
 
-      this.selectedSequenceData = clone;
-      this.initSequenceGraph();
-      this.$emit("input", this.selectedSequenceData.map(_ => _.guid));
+      this.selectedSequenceData = clone
+      this.initSequenceGraph()
+      this.$emit(
+        'input',
+        this.selectedSequenceData.map(_ => _.guid)
+      )
     },
-    initSequenceGraph() {
-      this.graphString = "sequenceDiagram \n";
-      const graphNode = ["sequenceDiagram"];
+    initSequenceGraph () {
+      this.graphString = 'sequenceDiagram \n'
+      const graphNode = ['sequenceDiagram']
       if (this.selectedSequenceData.length > 0) {
         this.selectedSequenceData.forEach((_, index) => {
           graphNode.push(
             `${_.unit_design.key_name.replace(
               /-/g,
-              "&"
+              '&'
             )}->>${_.service_design.key_name
-              .replace(`-${_.service_design.code}`, "")
-              .replace(/-/g, "&")}:${index + 1} : ${
-              _.description.length === 0 ? "" : _.description
+              .replace(`-${_.service_design.code}`, '')
+              .replace(/-/g, '&')}:${index + 1} : ${
+              _.description.length === 0 ? '' : _.description
             }`
-          );
-        });
-        this.graphString = graphNode.toString().replace(/,/g, " \n");
+          )
+        })
+        this.graphString = graphNode.toString().replace(/,/g, ' \n')
       }
-      const element = document.querySelector(`#abc${this.guid}`);
-      element.removeAttribute("data-processed");
-      element.innerHTML = this.graphString;
-      mermaid.parse(this.graphString);
-      mermaid.init(undefined, element);
+      const element = document.querySelector(`#abc${this.guid}`)
+      element.removeAttribute('data-processed')
+      element.innerHTML = this.graphString
+      mermaid.parse(this.graphString)
+      mermaid.init(undefined, element)
       this.$nextTick(() => {
-        this.replaceSvgContentHandler();
-      });
+        this.replaceSvgContentHandler()
+      })
     },
-    replaceSvgContentHandler() {
-      const nodes = document.querySelectorAll("g text tspan");
+    replaceSvgContentHandler () {
+      const nodes = document.querySelectorAll('g text tspan')
       nodes.forEach(i => {
-        const inner = i.innerHTML;
-        i.innerHTML = inner.replace(/&amp;/g, "-");
-      });
+        const inner = i.innerHTML
+        i.innerHTML = inner.replace(/&amp;/g, '-')
+      })
     },
-    showSequence() {
-      this.sequenceVisiable = true;
+    showSequence () {
+      this.sequenceVisiable = true
       this.$nextTick(() => {
-        this.initSequenceGraph();
-      });
+        this.initSequenceGraph()
+      })
     },
-    selectChangeHandler(val) {
+    selectChangeHandler (val) {
       this.selectedSequenceData = val.map(_ => {
-        let found = this.sequenceData.find(i => i.guid === _);
+        let found = this.sequenceData.find(i => i.guid === _)
         if (found) {
-          return found;
+          return found
         }
-      });
-      this.initSequenceGraph();
-      this.$emit("input", val);
+      })
+      this.initSequenceGraph()
+      this.$emit('input', val)
     },
-    visibleChangeHandler(status) {
-      this.sequenceVisiable = status;
+    visibleChangeHandler (status) {
+      this.sequenceVisiable = status
     },
-    async getSequenceData() {
+    async getSequenceData () {
       const payload = {
         id: 5,
         queryObject: {
@@ -206,16 +212,16 @@ export default {
           paging: false,
           sorting: {}
         }
-      };
-      const { data, status, message } = await queryCiData(payload);
-      if (status === "OK") {
+      }
+      const { data, status } = await queryCiData(payload)
+      if (status === 'OK') {
         this.sequenceData = data.contents.map(_ => {
-          return { ..._.data };
-        });
+          return { ..._.data }
+        })
       }
     }
   }
-};
+}
 </script>
 <style lang="scss">
 .sequence_name {
