@@ -684,10 +684,10 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       this.serviceTaskBindInfos.push({
+        nodeDefId: this.currentNode.nodeDefId,
         ...pluginFormCopy,
         nodeId: this.currentNode.id,
         nodeName: this.currentNode.name,
-        nodeDefId: this.currentNode.nodeDefId,
         serviceName: (found && found.serviceName) || '',
         routineRaw: pluginFormCopy.routineExpression
       })
