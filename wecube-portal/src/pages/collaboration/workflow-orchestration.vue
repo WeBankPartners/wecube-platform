@@ -169,9 +169,9 @@
             @on-open-change="getFlowsNodes"
           >
             <Option
-              v-for="i in currentflowsNodes"
+              v-for="(i, index) in currentflowsNodes"
               :value="i.nodeId"
-              :key="i.nodeId"
+              :key="index"
               >{{ i.nodeName }}</Option
             >
           </Select>
