@@ -70,6 +70,7 @@
                     @on-change="orchestrationSelectHandler"
                     @on-open-change="getAllFlow"
                     filterable
+                    clearable
                   >
                     <Option
                       v-for="item in allFlows"
@@ -99,6 +100,7 @@
                     @on-change="onTargetSelectHandler"
                     @on-open-change="getTargetOptions"
                     filterable
+                    clearable
                   >
                     <Option
                       v-for="item in allTarget"
