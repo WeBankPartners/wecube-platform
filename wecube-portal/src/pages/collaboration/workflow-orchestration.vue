@@ -10,15 +10,6 @@
           @on-open-change="getAllFlows"
           filterable
         >
-          <Option :value="100000">
-            <Button
-              @click="createNewDiagram()"
-              icon="md-add"
-              type="success"
-              size="small"
-              style="width: 100%;"
-            ></Button>
-          </Option>
           <Option
             v-for="item in allFlows"
             :value="item.procDefId"
@@ -54,8 +45,13 @@
             </span>
           </Option>
         </Select>
+        <Button
+          @click="createNewDiagram()"
+          icon="md-add"
+          type="success"
+        ></Button>
       </Col>
-      <Col span="8" ofset="1">
+      <Col span="8" offset="1">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
         <Select
           @on-change="onEntitySelect"
@@ -445,6 +441,7 @@ export default {
       this.getPermissionByProcess(id)
       this.flowRoleManageModal = true
       this.currentSettingFlow = id
+      this.isAdd = false
     },
     async getPermissionByProcess (id) {
       const { status, data } = await getPermissionByProcessId(id)
@@ -455,7 +452,6 @@ export default {
     },
     confirmRole () {
       this.flowRoleManageModal = false
-      this.isAdd = false
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
