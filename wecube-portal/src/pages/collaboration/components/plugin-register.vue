@@ -412,6 +412,9 @@ export default {
       )
       if (this.hasNewSource) {
         delete currentPluginForSave.id
+        currentPluginForSave.interfaces.map(_ => {
+          delete _.id
+        })
       }
       const { data, status, message } = await savePluginConfig(
         currentPluginForSave
