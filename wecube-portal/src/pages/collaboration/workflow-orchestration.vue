@@ -10,15 +10,6 @@
           @on-open-change="getAllFlows"
           filterable
         >
-          <Option :value="100000">
-            <Button
-              @click="createNewDiagram()"
-              icon="md-add"
-              type="success"
-              size="small"
-              style="width: 100%;"
-            ></Button>
-          </Option>
           <Option
             v-for="item in allFlows"
             :value="item.procDefId"
@@ -54,8 +45,13 @@
             </span>
           </Option>
         </Select>
+        <Button
+          @click="createNewDiagram()"
+          icon="md-add"
+          type="success"
+        ></Button>
       </Col>
-      <Col span="8" ofset="1">
+      <Col span="8" offset="1">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
         <Select
           @on-change="onEntitySelect"
@@ -173,9 +169,9 @@
             @on-open-change="getFlowsNodes"
           >
             <Option
-              v-for="i in currentflowsNodes"
+              v-for="(i, index) in currentflowsNodes"
               :value="i.nodeId"
-              :key="i.nodeId"
+              :key="index"
               >{{ i.nodeName }}</Option
             >
           </Select>
@@ -324,7 +320,8 @@ export default {
       processName: '',
       currentNode: {
         id: '',
-        name: ''
+        name: '',
+        nodeDefId: ''
       },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
       allFlows: [],
@@ -367,7 +364,7 @@ export default {
   watch: {
     selectedFlow: {
       handler (val, oldVal) {
-        if (val && val !== 100000) {
+        if (val) {
           this.getFlowXml(val)
           this.getPermissionByProcess(val)
           this.pluginForm.paramInfos = []
@@ -445,6 +442,7 @@ export default {
       this.getPermissionByProcess(id)
       this.flowRoleManageModal = true
       this.currentSettingFlow = id
+      this.isAdd = false
     },
     async getPermissionByProcess (id) {
       const { status, data } = await getPermissionByProcessId(id)
@@ -455,7 +453,6 @@ export default {
     },
     confirmRole () {
       this.flowRoleManageModal = false
-      this.isAdd = false
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
@@ -687,6 +684,7 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       this.serviceTaskBindInfos.push({
+        nodeDefId: this.currentNode.nodeDefId,
         ...pluginFormCopy,
         nodeId: this.currentNode.id,
         nodeName: this.currentNode.name,
@@ -729,6 +727,9 @@ export default {
         this.currentflowsNodes = data.filter(
           _ => _.nodeId !== this.currentNode.id
         )
+        this.currentNode.nodeDefId = data.find(
+          i => i.nodeId === this.currentNode.id
+        ).nodeDefId
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index)
         })
