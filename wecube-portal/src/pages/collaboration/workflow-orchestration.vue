@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row style="margin-bottom: 10px">
-      <Col span="6">
+      <Col span="7">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select
           clearable
