@@ -363,7 +363,7 @@ export default {
   watch: {
     selectedFlow: {
       handler (val, oldVal) {
-        if (val && val !== 100000) {
+        if (val) {
           this.getFlowXml(val)
           this.getPermissionByProcess(val)
           this.pluginForm.paramInfos = []
