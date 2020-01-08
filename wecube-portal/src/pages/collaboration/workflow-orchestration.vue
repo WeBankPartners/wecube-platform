@@ -739,7 +739,7 @@ export default {
       const found = this.currentflowsNodes.find(
         _ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId
       )
-      if (!this.currentFlow) return
+      if (!this.currentFlow || !found) return
       let { status, data } = await getParamsInfosByFlowIdAndNodeId(
         this.currentFlow.procDefId,
         found.nodeDefId
