@@ -320,7 +320,8 @@ export default {
       processName: '',
       currentNode: {
         id: '',
-        name: ''
+        name: '',
+        nodeDefId: ''
       },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
       allFlows: [],
@@ -686,6 +687,7 @@ export default {
         ...pluginFormCopy,
         nodeId: this.currentNode.id,
         nodeName: this.currentNode.name,
+        nodeDefId: this.currentNode.nodeDefId,
         serviceName: (found && found.serviceName) || '',
         routineRaw: pluginFormCopy.routineExpression
       })
@@ -725,6 +727,9 @@ export default {
         this.currentflowsNodes = data.filter(
           _ => _.nodeId !== this.currentNode.id
         )
+        this.currentNode.nodeDefId = data.find(
+          i => i.nodeId === this.currentNode.id
+        ).nodeDefId
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index)
         })
