@@ -434,7 +434,7 @@ export default {
             this.currentPluginObj.id = id
             this.selectedSource = id
           }
-          return
+          // return
         }
         this.getAllPluginByPkgId()
       }
@@ -445,6 +445,11 @@ export default {
       }
     },
     async regist () {
+      this.currentPluginObj = JSON.parse(
+        JSON.stringify(
+          this.sourceList.find(source => source.id === this.selectedSource)
+        )
+      )
       const saveRes = await savePluginConfig(this.currentPluginObj)
       if (saveRes.status === 'OK') {
         const { status, message } = await registerPlugin(
