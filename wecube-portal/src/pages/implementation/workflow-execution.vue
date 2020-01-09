@@ -495,11 +495,12 @@ export default {
         let color = _.isHighlight ? '#5DB400' : 'black'
         const isRecord = _.refFlowNodeIds.length > 0
         const shape = isRecord ? 'ellipse' : 'ellipse'
+        const fontSize = Math.abs(50 - _.displayName.length) * 0.25
         const label =
           (_.displayName || _.dataId) +
           '\n' +
           _.refFlowNodeIds.toString().replace(/,/g, '/')
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fontsize="${fontSize}" fillcolor="white" shape="${shape}"]`
       })
       let genEdge = () => {
         let pathAry = []
