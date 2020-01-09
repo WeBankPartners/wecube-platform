@@ -29,7 +29,15 @@
             }}</span>
             <span style="float:right">
               <Button
-                @click.stop.prevent="deleteFlow(item.procDefId)"
+                @click="
+                  showDeleteConfirm(
+                    item.procDefId,
+                    (item.procDefName || 'Null') +
+                      ' ' +
+                      item.createdTime +
+                      (item.status === 'draft' ? '*' : '')
+                  )
+                "
                 icon="ios-trash"
                 type="error"
                 size="small"
@@ -37,7 +45,7 @@
             </span>
             <span style="float:right;margin-right: 10px">
               <Button
-                @click.stop.prevent="setFlowPermission(item.procDefId)"
+                @click="setFlowPermission(item.procDefId)"
                 icon="ios-build"
                 type="primary"
                 size="small"
@@ -537,6 +545,16 @@ export default {
           this.allFlows = sortedResult
         }
       }
+    },
+    showDeleteConfirm (id, name) {
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        content: name,
+        onOk: () => {
+          this.deleteFlow(id)
+        },
+        onCancel: () => {}
+      })
     },
     async deleteFlow (id) {
       let { status, message } = await removeProcessDefinition(id)
