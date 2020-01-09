@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.entity.workflow;
+package com.webank.wecube.platform.core.entity;
 
 import java.util.Date;
 
