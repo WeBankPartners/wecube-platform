@@ -151,6 +151,7 @@
         >
           <Select
             v-model="selectedEntityType"
+            ref="select"
             filterable
             @on-change="changeEntityType"
           >
@@ -402,28 +403,28 @@ export default {
   },
   methods: {
     setSearchConditions () {
-      this.allEntityType = []
       this.getAllDataModels()
-      this.isShowSearchConditions = true
       if (document.querySelector('.wecube_attr-ul')) {
         document.querySelector('.wecube_attr-ul').style.width = '530px'
       }
-
-      this.selectedEntityType = null
+      this.$refs.select.setQuery(null)
       this.dataModelExpression = ':'
-      this.currentEntityAttr = ''
+      this.currentEntityAttr = null
       this.currentEntityAttrList = []
       this.currentPackageName = ''
       this.currentEntityName = ''
       this.allEntityAttr = []
       this.targetEntityAttr = []
+      this.isShowSearchConditions = true
     },
     changeEntityType () {
       this.targetEntityAttr = []
     },
     async getAllDataModels () {
+      this.selectedEntityType = null
       const { data, status } = await getAllDataModels()
       if (status === 'OK') {
+        this.allEntityType = []
         this.allEntityType = data.map(_ => {
           // handle result sort by name
           return {
