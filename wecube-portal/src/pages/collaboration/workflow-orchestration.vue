@@ -103,7 +103,7 @@
       </Upload>
     </Row>
     <div v-show="showBpmn" class="containers" ref="content">
-      <div class="canvas" ref="canvas"></div>
+      <div style="height:100%;" class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
         <a href="javascript:void(0);" @click="openPluginModal">
           {{ $t('config_plugin') }}
@@ -335,6 +335,7 @@ export default {
       allFlows: [],
       allEntityType: [],
       selectedFlow: null,
+      temporaryFlow: null,
       currentSelectedEntity: '',
       rootPkg: '',
       rootEntity: '',
@@ -378,8 +379,14 @@ export default {
           this.pluginForm.paramInfos = []
           this.currentflowsNodes = []
         }
-        if (!val) {
-          // this.selectedFlow = oldVal
+      }
+    },
+    temporaryFlow: {
+      handler (val, oldVal) {
+        if (val) {
+          setTimeout(() => {
+            this.selectedFlow = val
+          }, 200)
         }
       }
     }
@@ -636,10 +643,6 @@ export default {
     },
     saveDiagram (isDraft) {
       let _this = this
-      const okHandler = data => {
-        this.getAllFlows(true)
-        this.selectedFlow = data.data.procDefId
-      }
       // eslint-disable-next-line handle-callback-err
       this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
         if (!xml) return
@@ -670,7 +673,8 @@ export default {
                 title: 'Success',
                 desc: data.message
               })
-              okHandler(data)
+              _this.getAllFlows(true)
+              _this.temporaryFlow = data.data.procDefId
             }
           })
           : saveFlow(payload).then(data => {
@@ -679,8 +683,8 @@ export default {
                 title: 'Success',
                 desc: data.message
               })
-
-              okHandler(data)
+              _this.getAllFlows(true)
+              _this.temporaryFlow = data.data.procDefId
             }
           })
       })
@@ -897,8 +901,6 @@ export default {
     },
     exportProcessDefinition (isDraft) {
       let procDefId = this.selectedFlow
-      debugger
-
       if (procDefId == null || procDefId === 'undefined' || procDefId === '') {
         this.$Notice.error({
           title: 'Error',
