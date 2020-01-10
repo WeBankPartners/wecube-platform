@@ -445,12 +445,13 @@ export default {
       }
     },
     async regist () {
-      this.currentPluginObj = JSON.parse(
-        JSON.stringify(
-          this.sourceList.find(source => source.id === this.selectedSource)
-        )
+      const pluginConfigDtoList = this.plugins.find(
+        plugin => plugin.pluginConfigName === this.currentPlugin
+      ).pluginConfigDtoList
+      const plugin = pluginConfigDtoList.find(
+        dto => dto.id === this.currentPluginObj.id
       )
-      const saveRes = await savePluginConfig(this.currentPluginObj)
+      const saveRes = await savePluginConfig(plugin)
       if (saveRes.status === 'OK') {
         const { status, message } = await registerPlugin(
           this.currentPluginObj.id
