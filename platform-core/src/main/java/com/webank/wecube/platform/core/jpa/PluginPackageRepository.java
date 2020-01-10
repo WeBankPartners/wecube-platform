@@ -23,17 +23,18 @@ public interface PluginPackageRepository extends CrudRepository<PluginPackage, S
 
     List<PluginPackage> findAllByName(String name);
 
-    Optional<List<PluginPackage>> findAllByNameAndStatusIn(String name, Collection<PluginPackage.Status> statuses);
+    Optional<List<PluginPackage>> findAllByNameAndStatusInOrderByUploadTimestampAsc(String name, Collection<PluginPackage.Status> statuses);
 
-    default Optional<List<PluginPackage>> findAllActiveByName(String name) {
-        return findAllByNameAndStatusIn(name, PluginPackage.ACTIVE_STATUS);
+    default Optional<List<PluginPackage>> findAllActiveByNameOrderByUploadTimestampAsc(String name) {
+        return findAllByNameAndStatusInOrderByUploadTimestampAsc(name, PluginPackage.ACTIVE_STATUS);
     }
 
     default Optional<PluginPackage> findLatestActiveVersionByName(String name) {
-        Optional<List<PluginPackage>> pluginPackages = findAllActiveByName(name);
+        Optional<List<PluginPackage>> pluginPackages = findAllActiveByNameOrderByUploadTimestampAsc(name);
         if (!pluginPackages.isPresent()) return Optional.empty();
 
-        return Optional.ofNullable(pickLastOne(pluginPackages.get(), new PluginPackageVersionComparator()));
+        List<PluginPackage> packageList=pluginPackages.get();
+        return Optional.ofNullable(packageList.get(packageList.size()-1));
     }
 
     default Optional<PluginPackage> findLatestVersionByName(String name, String... excludeVersions) {
