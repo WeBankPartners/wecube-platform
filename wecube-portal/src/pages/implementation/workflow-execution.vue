@@ -454,7 +454,8 @@ export default {
     formatNodesBindings () {
       this.modelData.forEach(item => {
         this.flowNodesBindings.forEach(d => {
-          if (d.entityTypeId + ':' + d.entityDataId === item.id) {
+          // if (d.entityTypeId + ':' + d.entityDataId === item.id) {
+          if (d.entityDataId === item.dataId) {
             item.refFlowNodeIds.push(d.orderedNo)
           }
         })
