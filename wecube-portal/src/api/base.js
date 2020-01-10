@@ -141,8 +141,8 @@ req.interceptors.response.use(
       }
     }
   },
-  res => {
-    const { response } = res
+  err => {
+    const { response } = err
     if (response.status === 401) {
       window.location.href = window.location.origin + '/#/login'
       throwInfo(response)
@@ -151,7 +151,7 @@ req.interceptors.response.use(
 
     return new Promise((resolve, reject) => {
       resolve({
-        data: throwError(res)
+        data: throwError(err)
       })
     })
   }
