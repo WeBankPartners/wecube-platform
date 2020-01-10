@@ -13,20 +13,22 @@
               >{{ $t('add_user') }}</Button
             >
           </p>
-          <Tag
-            v-for="item in users"
-            :key="item.id"
-            :name="item.username"
-            :color="item.color"
-            :checked="item.checked"
-            checkable
-            :fade="false"
-            @on-change="handleUserClick"
-          >
-            <span :title="` ${item.username} `">
-              {{ ` ${item.username} ` }}
-            </span>
-          </Tag>
+          <div class="tagContainers">
+            <Tag
+              v-for="item in users"
+              :key="item.id"
+              :name="item.username"
+              :color="item.color"
+              :checked="item.checked"
+              checkable
+              :fade="false"
+              @on-change="handleUserClick"
+            >
+              <span :title="` ${item.username} `">
+                {{ ` ${item.username} ` }}
+              </span>
+            </Tag>
+          </div>
         </Card>
       </Col>
       <Col span="7" offset="1">
@@ -41,37 +43,41 @@
               >{{ $t('add_role') }}</Button
             >
           </p>
-          <div class="role-item" v-for="item in roles" :key="item.id">
-            <Tag
-              :name="item.id"
-              :color="item.color"
-              :checked="item.checked"
-              checkable
-              :fade="false"
-              @on-change="handleRoleClick"
-            >
-              <span :title="item.displayName">{{
-                item.name + '(' + item.displayName + ')'
-              }}</span>
-            </Tag>
-            <Button
-              icon="ios-build"
-              type="dashed"
-              size="small"
-              @click="openUserManageModal(item.id)"
-              >{{ $t('user') }}</Button
-            >
+          <div class="tagContainers">
+            <div class="role-item" v-for="item in roles" :key="item.id">
+              <Tag
+                :name="item.id"
+                :color="item.color"
+                :checked="item.checked"
+                checkable
+                :fade="false"
+                @on-change="handleRoleClick"
+              >
+                <span :title="item.displayName">{{
+                  item.name + '(' + item.displayName + ')'
+                }}</span>
+              </Tag>
+              <Button
+                icon="ios-build"
+                type="dashed"
+                size="small"
+                @click="openUserManageModal(item.id)"
+                >{{ $t('user') }}</Button
+              >
+            </div>
           </div>
         </Card>
       </Col>
       <Col span="7" offset="1">
         <Card>
           <p slot="title">{{ $t('menus') }}</p>
-          <Tree
-            :data="menus"
-            show-checkbox
-            @on-check-change="handleMenuTreeCheck"
-          ></Tree>
+          <div class="tagContainers">
+            <Tree
+              :data="menus"
+              show-checkbox
+              @on-check-change="handleMenuTreeCheck"
+            ></Tree>
+          </div>
         </Card>
       </Col>
     </Row>
@@ -199,14 +205,16 @@ export default {
       }
       this.menus = this.menusResponseHandeler(this.originMenus)
     },
-    menusPermissionSelected (allMenus, menusPermissions = []) {
+    menusPermissionSelected (allMenus, menusPermissions = [], disabled) {
       allMenus.forEach(_ => {
         _.children.forEach(m => {
           const subMenu = menusPermissions.find(n => m.code === n.code)
           m.checked = !!subMenu
+          m.disabled = disabled
         })
         _.indeterminate = false
         _.checked = false
+        _.disabled = disabled
       })
     },
     menusResponseHandeler (data, disabled = true) {
@@ -291,48 +299,60 @@ export default {
           _.checked = checked
         }
       })
-      let permissions = await getMenusByUserName(name)
-      if (permissions.status === 'OK') {
-        const userMenus = [].concat(...permissions.data.map(_ => _.menuList))
-        this.menusPermissionSelected(this.menus, userMenus)
-      }
-      let { status, data } = await getRolesByUserName(name)
-      if (status === 'OK') {
+      if (checked) {
+        let permissions = await getMenusByUserName(name)
+        if (permissions.status === 'OK') {
+          const userMenus = [].concat(...permissions.data.map(_ => _.menuList))
+          this.menusPermissionSelected(this.menus, userMenus, true)
+        }
+        let { status, data } = await getRolesByUserName(name)
+        if (status === 'OK') {
+          this.roles.forEach(_ => {
+            _.checked = false
+            const found = data.find(item => item.id === _.id)
+            if (found) {
+              _.checked = checked
+            }
+          })
+        }
+      } else {
         this.roles.forEach(_ => {
           _.checked = false
-          const found = data.find(item => item.id === _.id)
-          if (found) {
-            _.checked = checked
-          }
-          // this.menus = this.menusResponseHandeler(this.allMenusOriginResponse);
         })
+        this.menusPermissionSelected(this.menus, [], true)
       }
     },
     async handleRoleClick (checked, id) {
       this.currentRoleId = id
-      // this.menus = this.menusResponseHandeler(
-      //   this.allMenusOriginResponse,
-      //   false
-      // );
       this.roles.forEach(_ => {
         _.checked = false
         if (id === _.id) {
           _.checked = checked
         }
       })
-      this.menus = this.menusResponseHandeler(this.originMenus, false)
-      let permissions = await getMenusByRoleId(id)
-      if (permissions.status === 'OK') {
-        this.menusPermissionSelected(this.menus, permissions.data.menuList)
-      }
-      let { status, data } = await getUsersByRoleId(id)
-      if (status === 'OK') {
+      this.menus = this.menusResponseHandeler(this.originMenus, !checked)
+      if (checked) {
+        let permissions = await getMenusByRoleId(id)
+        if (permissions.status === 'OK') {
+          this.menusPermissionSelected(
+            this.menus,
+            permissions.data.menuList,
+            false
+          )
+        }
+        let { status, data } = await getUsersByRoleId(id)
+        if (status === 'OK') {
+          this.users.forEach(_ => {
+            _.checked = false
+            const found = data.find(item => item.username === _.username)
+            if (found) {
+              _.checked = checked
+            }
+          })
+        }
+      } else {
         this.users.forEach(_ => {
           _.checked = false
-          const found = data.find(item => item.username === _.username)
-          if (found) {
-            _.checked = checked
-          }
         })
       }
     },
@@ -443,6 +463,10 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.tagContainers {
+  overflow: auto;
+  height: calc(100vh - 210px);
+}
 .ivu-tag {
   display: block;
   border: #515a61 1px dashed !important;
