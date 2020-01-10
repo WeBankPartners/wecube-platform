@@ -61,7 +61,7 @@
                 <span
                   :class="
                     plugin.status !== 'DECOMMISSIONED'
-                      ? 'nonDecomissionedPkgName'
+                      ? ''
                       : 'decomissionedPkgName'
                   "
                   >{{ plugin.name + '_' + plugin.version }}</span
@@ -877,7 +877,5 @@ export default {
 .decomissionedPkgName {
   font-style: italic;
   text-decoration: line-through;
-}
-.nonDecomissionedPkgName {
 }
 </style>
