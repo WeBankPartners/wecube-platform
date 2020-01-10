@@ -285,9 +285,6 @@ export default {
     this.getProcessInstances()
     this.getAllFlow()
     this.createHandler()
-    const bodyHeight = document.body.clientHeight
-    let graphContainer = document.getElementById('graphcontain')
-    graphContainer.style.height = bodyHeight - 210 + 'px'
   },
   destroyed () {
     clearInterval(this.timer)
@@ -908,7 +905,7 @@ body {
   border: 1px solid #d3cece;
   border-radius: 3px;
   padding: 5px;
-  height: 600px;
+  height: calc(100vh - 210px);
 }
 .model_target .ivu-modal-content-drag {
   right: 40px;
