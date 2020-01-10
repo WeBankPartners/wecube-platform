@@ -280,7 +280,7 @@ public class PluginPackageService {
     }
 
     private void ensureNoMoreThanTwoActivePackages(PluginPackage pluginPackage) {
-        Optional<List<PluginPackage>> allByNameAndStatus = pluginPackageRepository.findAllActiveByName(pluginPackage.getName());
+        Optional<List<PluginPackage>> allByNameAndStatus = pluginPackageRepository.findAllActiveByNameOrderByUploadTimestampAsc(pluginPackage.getName());
         if (allByNameAndStatus.isPresent()) {
             List<PluginPackage> pluginPackages = allByNameAndStatus.get();
             if (pluginPackages.size() > 1) {

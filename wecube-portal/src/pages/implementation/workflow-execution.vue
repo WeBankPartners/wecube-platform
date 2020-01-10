@@ -53,9 +53,7 @@
         </Col>
       </Row>
       <Row>
-        <Row
-          style="border:1px solid #d3cece;border-radius:3px; padding:5px;height:600px"
-        >
+        <Row id="graphcontain">
           <Col
             span="6"
             style="border-right:1px solid #d3cece; text-align: center;height:100%"
@@ -161,7 +159,6 @@
       class="model_target"
       width="50"
       @on-ok="targetModelConfirm"
-      @on-cancel="cancleModal"
     >
       <Table
         border
@@ -280,7 +277,8 @@ export default {
       modelDetailTimer: null,
       flowNodesBindings: [],
       flowDetailTimer: null,
-      isLoading: false
+      isLoading: false,
+      catchNodeTableList: []
     }
   },
   mounted () {
@@ -305,15 +303,16 @@ export default {
     targetModelConfirm (visible) {
       this.targetModalVisible = visible
       if (!visible) {
+        this.updateNodeInfo()
         // document.getElementById("graph").innerHTML = "";
         // this.initModelGraph();
         this.renderModelGraph()
       }
     },
-    cancleModal () {
-      this.targetModelSelectHandel([])
-    },
     targetModelSelectHandel (selection) {
+      this.catchNodeTableList = selection
+    },
+    updateNodeInfo () {
       const currentFlow = this.flowData.flowNodes.find(
         i => i.nodeId === this.currentFlowNodeId
       )
@@ -322,7 +321,7 @@ export default {
         if (flowNodeIndex > -1) {
           i.refFlowNodeIds.splice(flowNodeIndex, 1)
         }
-        selection.forEach(_ => {
+        this.catchNodeTableList.forEach(_ => {
           if (i.id === _.id) {
             i.refFlowNodeIds.push(currentFlow.orderedNo)
           }
@@ -453,7 +452,8 @@ export default {
     formatNodesBindings () {
       this.modelData.forEach(item => {
         this.flowNodesBindings.forEach(d => {
-          if (d.entityTypeId + ':' + d.entityDataId === item.id) {
+          // if (d.entityTypeId + ':' + d.entityDataId === item.id) {
+          if (d.entityDataId === item.dataId) {
             item.refFlowNodeIds.push(d.orderedNo)
           }
         })
@@ -494,11 +494,12 @@ export default {
         let color = _.isHighlight ? '#5DB400' : 'black'
         const isRecord = _.refFlowNodeIds.length > 0
         const shape = isRecord ? 'ellipse' : 'ellipse'
+        const fontSize = Math.abs(50 - _.displayName.length) * 0.25
         const label =
           (_.displayName || _.dataId) +
           '\n' +
           _.refFlowNodeIds.toString().replace(/,/g, '/')
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fontsize="${fontSize}" fillcolor="white" shape="${shape}"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -734,6 +735,8 @@ export default {
     retryHandler (e) {
       this.currentFailedNodeID = e.target.parentNode.getAttribute('id')
       this.workflowActionModalVisible = true
+      this.targetModalVisible = false
+      this.showNodeDetail = false
     },
     async workFlowActionHandler (type) {
       const found = this.flowData.flowNodes.find(
@@ -840,6 +843,7 @@ export default {
         )
       )
       this.targetModalVisible = true
+      this.showNodeDetail = false
       this.$nextTick(() => {
         let objData = this.$refs.selection.objData
         const currentFlow = this.flowData.flowNodes.find(
@@ -848,7 +852,6 @@ export default {
         this.modelData.forEach(_ => {
           const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo)
           Object.keys(objData).forEach(i => {
-            objData[i]._isChecked = false
             if (_.id === objData[i].id && flowNodeIndex > -1) {
               objData[i]._isChecked = true
             }
@@ -897,6 +900,12 @@ export default {
 <style lang="scss" scoped>
 body {
   color: #15a043;
+}
+#graphcontain {
+  border: 1px solid #d3cece;
+  border-radius: 3px;
+  padding: 5px;
+  height: calc(100vh - 210px);
 }
 .model_target .ivu-modal-content-drag {
   right: 40px;

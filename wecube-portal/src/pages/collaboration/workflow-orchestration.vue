@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row style="margin-bottom: 10px">
-      <Col span="6">
+      <Col span="7">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select
           clearable
@@ -29,7 +29,15 @@
             }}</span>
             <span style="float:right">
               <Button
-                @click.stop.prevent="deleteFlow(item.procDefId)"
+                @click="
+                  showDeleteConfirm(
+                    item.procDefId,
+                    (item.procDefName || 'Null') +
+                      ' ' +
+                      item.createdTime +
+                      (item.status === 'draft' ? '*' : '')
+                  )
+                "
                 icon="ios-trash"
                 type="error"
                 size="small"
@@ -37,7 +45,7 @@
             </span>
             <span style="float:right;margin-right: 10px">
               <Button
-                @click.stop.prevent="setFlowPermission(item.procDefId)"
+                @click="setFlowPermission(item.procDefId)"
                 icon="ios-build"
                 type="primary"
                 size="small"
@@ -95,7 +103,7 @@
       </Upload>
     </Row>
     <div v-show="showBpmn" class="containers" ref="content">
-      <div class="canvas" ref="canvas"></div>
+      <div style="height:100%;" class="canvas" ref="canvas"></div>
       <div id="right_click_menu">
         <a href="javascript:void(0);" @click="openPluginModal">
           {{ $t('config_plugin') }}
@@ -320,12 +328,14 @@ export default {
       processName: '',
       currentNode: {
         id: '',
-        name: ''
+        name: '',
+        nodeDefId: ''
       },
       additionalModules: [propertiesProviderModule, propertiesPanelModule],
       allFlows: [],
       allEntityType: [],
       selectedFlow: null,
+      temporaryFlow: null,
       currentSelectedEntity: '',
       rootPkg: '',
       rootEntity: '',
@@ -369,8 +379,14 @@ export default {
           this.pluginForm.paramInfos = []
           this.currentflowsNodes = []
         }
-        if (!val) {
-          // this.selectedFlow = oldVal
+      }
+    },
+    temporaryFlow: {
+      handler (val, oldVal) {
+        if (val) {
+          setTimeout(() => {
+            this.selectedFlow = val
+          }, 200)
         }
       }
     }
@@ -537,6 +553,16 @@ export default {
         }
       }
     },
+    showDeleteConfirm (id, name) {
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        content: name,
+        onOk: () => {
+          this.deleteFlow(id)
+        },
+        onCancel: () => {}
+      })
+    },
     async deleteFlow (id) {
       let { status, message } = await removeProcessDefinition(id)
       if (status === 'OK') {
@@ -617,10 +643,6 @@ export default {
     },
     saveDiagram (isDraft) {
       let _this = this
-      const okHandler = data => {
-        this.getAllFlows(true)
-        this.selectedFlow = data.data.procDefId
-      }
       // eslint-disable-next-line handle-callback-err
       this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
         if (!xml) return
@@ -651,7 +673,8 @@ export default {
                 title: 'Success',
                 desc: data.message
               })
-              okHandler(data)
+              _this.getAllFlows(true)
+              _this.temporaryFlow = data.data.procDefId
             }
           })
           : saveFlow(payload).then(data => {
@@ -660,8 +683,8 @@ export default {
                 title: 'Success',
                 desc: data.message
               })
-
-              okHandler(data)
+              _this.getAllFlows(true)
+              _this.temporaryFlow = data.data.procDefId
             }
           })
       })
@@ -683,6 +706,7 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       this.serviceTaskBindInfos.push({
+        nodeDefId: this.currentNode.nodeDefId,
         ...pluginFormCopy,
         nodeId: this.currentNode.id,
         nodeName: this.currentNode.name,
@@ -725,6 +749,9 @@ export default {
         this.currentflowsNodes = data.filter(
           _ => _.nodeId !== this.currentNode.id
         )
+        this.currentNode.nodeDefId = data.find(
+          i => i.nodeId === this.currentNode.id
+        ).nodeDefId
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index)
         })
@@ -734,7 +761,7 @@ export default {
       const found = this.currentflowsNodes.find(
         _ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId
       )
-      if (!this.currentFlow) return
+      if (!this.currentFlow || !found) return
       let { status, data } = await getParamsInfosByFlowIdAndNodeId(
         this.currentFlow.procDefId,
         found.nodeDefId
@@ -874,8 +901,6 @@ export default {
     },
     exportProcessDefinition (isDraft) {
       let procDefId = this.selectedFlow
-      debugger
-
       if (procDefId == null || procDefId === 'undefined' || procDefId === '') {
         this.$Notice.error({
           title: 'Error',
