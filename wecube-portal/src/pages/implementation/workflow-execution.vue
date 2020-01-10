@@ -454,7 +454,8 @@ export default {
     formatNodesBindings () {
       this.modelData.forEach(item => {
         this.flowNodesBindings.forEach(d => {
-          if (d.entityTypeId + ':' + d.entityDataId === item.id) {
+          // if (d.entityTypeId + ':' + d.entityDataId === item.id) {
+          if (d.entityDataId === item.dataId) {
             item.refFlowNodeIds.push(d.orderedNo)
           }
         })
@@ -736,6 +737,8 @@ export default {
     retryHandler (e) {
       this.currentFailedNodeID = e.target.parentNode.getAttribute('id')
       this.workflowActionModalVisible = true
+      this.targetModalVisible = false
+      this.showNodeDetail = false
     },
     async workFlowActionHandler (type) {
       const found = this.flowData.flowNodes.find(
@@ -842,6 +845,7 @@ export default {
         )
       )
       this.targetModalVisible = true
+      this.showNodeDetail = false
       this.$nextTick(() => {
         let objData = this.$refs.selection.objData
         const currentFlow = this.flowData.flowNodes.find(
