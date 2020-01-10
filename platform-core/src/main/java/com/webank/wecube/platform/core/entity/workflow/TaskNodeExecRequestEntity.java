@@ -5,6 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
+
 @Entity
 @Table(name = "CORE_RU_TASK_NODE_EXEC_REQ")
 public class TaskNodeExecRequestEntity extends BaseTraceableEntity {

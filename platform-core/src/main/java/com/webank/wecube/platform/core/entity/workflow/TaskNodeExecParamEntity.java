@@ -6,6 +6,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
+
 @Entity
 @Table(name = "CORE_RU_TASK_NODE_EXEC_PARAM")
 public class TaskNodeExecParamEntity extends BaseTraceableEntity {
