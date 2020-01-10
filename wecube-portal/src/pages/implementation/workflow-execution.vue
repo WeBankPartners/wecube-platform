@@ -159,7 +159,6 @@
       class="model_target"
       width="50"
       @on-ok="targetModelConfirm"
-      @on-cancel="cancleModal"
     >
       <Table
         border
@@ -278,7 +277,8 @@ export default {
       modelDetailTimer: null,
       flowNodesBindings: [],
       flowDetailTimer: null,
-      isLoading: false
+      isLoading: false,
+      catchNodeTableList: []
     }
   },
   mounted () {
@@ -306,15 +306,16 @@ export default {
     targetModelConfirm (visible) {
       this.targetModalVisible = visible
       if (!visible) {
+        this.updateNodeInfo()
         // document.getElementById("graph").innerHTML = "";
         // this.initModelGraph();
         this.renderModelGraph()
       }
     },
-    cancleModal () {
-      this.targetModelSelectHandel([])
-    },
     targetModelSelectHandel (selection) {
+      this.catchNodeTableList = selection
+    },
+    updateNodeInfo () {
       const currentFlow = this.flowData.flowNodes.find(
         i => i.nodeId === this.currentFlowNodeId
       )
@@ -323,7 +324,7 @@ export default {
         if (flowNodeIndex > -1) {
           i.refFlowNodeIds.splice(flowNodeIndex, 1)
         }
-        selection.forEach(_ => {
+        this.catchNodeTableList.forEach(_ => {
           if (i.id === _.id) {
             i.refFlowNodeIds.push(currentFlow.orderedNo)
           }
@@ -495,11 +496,12 @@ export default {
         let color = _.isHighlight ? '#5DB400' : 'black'
         const isRecord = _.refFlowNodeIds.length > 0
         const shape = isRecord ? 'ellipse' : 'ellipse'
+        const fontSize = Math.abs(50 - _.displayName.length) * 0.25
         const label =
           (_.displayName || _.dataId) +
           '\n' +
           _.refFlowNodeIds.toString().replace(/,/g, '/')
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fontsize="${fontSize}" fillcolor="white" shape="${shape}"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -849,7 +851,6 @@ export default {
         this.modelData.forEach(_ => {
           const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo)
           Object.keys(objData).forEach(i => {
-            objData[i]._isChecked = false
             if (_.id === objData[i].id && flowNodeIndex > -1) {
               objData[i]._isChecked = true
             }
