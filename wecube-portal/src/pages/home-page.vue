@@ -57,7 +57,7 @@ export default {
 
 <style lang="scss" scoped>
 .wrap {
-  margin-top: 150px;
+  margin-top: 100px;
   // perspective: 1000px;
   // perspective-origin: 50% 50%;
   // background-image: linear-gradient(135deg,#ccc 25%,#ddd 25%,#ddd 50%, #ccc 50%, #ccc 75%,#ddd 75%,#ddd 100%);
