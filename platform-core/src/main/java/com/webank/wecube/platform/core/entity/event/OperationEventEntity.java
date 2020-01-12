@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.entity.event;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,7 +13,7 @@ import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
 @Entity
 @Table(name = "CORE_OPERATION_EVENT")
 public class OperationEventEntity extends BaseTraceableEntity {
-    
+
     public static final String STATUS_NEW = "New";
     public static final String STATUS_IN_PROGRESS = "InProgress";
     public static final String STATUS_COMPLETED = "Completed";
@@ -56,6 +58,15 @@ public class OperationEventEntity extends BaseTraceableEntity {
 
     @Column(name = "PROC_INST_ID")
     private String procInstId;
+
+    @Column(name = "PRIORITY")
+    private int priority;
+
+    @Column(name = "START_TIME")
+    private Date startTime;
+
+    @Column(name = "END_TIME")
+    private Date endTime;
 
     public Long getId() {
         return id;
@@ -161,4 +172,27 @@ public class OperationEventEntity extends BaseTraceableEntity {
         this.procInstId = procInstId;
     }
 
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public Date getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
+    }
 }
