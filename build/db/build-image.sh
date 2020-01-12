@@ -1,4 +1,6 @@
 #!/bin/bash
+cd `dirname $0`
+
 set -ex
 cp -r ../../platform-core/src/main/resources/database  database
 
