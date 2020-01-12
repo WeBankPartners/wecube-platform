@@ -7,7 +7,7 @@ cp -r ../../platform-core/src/main/resources/database  database
 TEXT='use wecube;'
 
 cd database
-for i in `ls -1 ./wecube.*.sql`; do
+for i in `ls -1 ./*.wecube.*.sql`; do
      CONTENTS=`cat $i`
      echo $TEXT > $i  
      echo $CONTENTS >> $i
@@ -23,7 +23,7 @@ cp ../../platform-auth-server/src/main/resources/database/*  database
 TEXT='use auth;'
 
 cd database
-for i in `ls -1 ./auth.*.sql`; do
+for i in `ls -1 ./*.auth.*.sql`; do
      CONTENTS=`cat $i`
      echo $TEXT > $i  
      echo $CONTENTS >> $i
