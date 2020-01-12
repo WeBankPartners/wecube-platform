@@ -30,7 +30,6 @@ for i in `ls -1 ./auth.*.sql`; do
 done
 cd ../
 
-echo "SET NAMES utf8;" > ./database/000000_create_database.sql
 echo "create database auth charset = utf8;" >> ./database/000000_create_database.sql
 
 docker build -t wecube-db:dev .
