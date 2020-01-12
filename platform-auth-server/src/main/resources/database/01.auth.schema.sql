@@ -1,3 +1,5 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
 /*Table structure for table `auth_sys_api` */
 
 CREATE TABLE `auth_sys_api` (
@@ -175,3 +177,4 @@ CREATE TABLE `auth_sys_user_role` (
   CONSTRAINT `FKpll9es009p59gcxh1e68wp6jc` FOREIGN KEY (`user_id`) REFERENCES `auth_sys_user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
 
+SET FOREIGN_KEY_CHECKS = 1;
