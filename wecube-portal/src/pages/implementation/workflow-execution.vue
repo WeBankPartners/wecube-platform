@@ -184,13 +184,23 @@
         </template>
       </Table>
     </Modal>
-    <Modal
-      v-model="showNodeDetail"
-      :title="nodeTitle"
-      draggable
-      :styles="{ top: '200px' }"
-    >
-      <div style="height:250px;overflow:auto;">
+    <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen">
+      <p slot="header">
+        <span>{{ nodeTitle }}</span>
+        <Icon
+          v-if="!nodeDetailFullscreen"
+          @click="nodeDetailFullscreen = true"
+          class="header-icon"
+          type="ios-expand"
+        />
+        <Icon
+          v-else
+          @click="nodeDetailFullscreen = false"
+          class="header-icon"
+          type="ios-contract"
+        />
+      </p>
+      <div style="overflow:auto;">
         <pre>{{ nodeDetail }}</pre>
       </div>
     </Modal>
@@ -224,6 +234,7 @@ export default {
   data () {
     return {
       showNodeDetail: false,
+      nodeDetailFullscreen: false,
       nodeTitle: null,
       nodeDetail: null,
       graph: {},
@@ -420,6 +431,8 @@ export default {
       })
     },
     queryHistory () {
+      clearInterval(this.timer)
+      this.timer = null
       this.isEnqueryPage = true
       this.showExcution = false
       this.selectedFlow = ''
@@ -939,5 +952,9 @@ body {
   padding: 5px 5px;
   box-shadow: 0 0 5px grey;
   overflow: auto;
+}
+.header-icon {
+  float: right;
+  margin: 3px 20px 0 0;
 }
 </style>
