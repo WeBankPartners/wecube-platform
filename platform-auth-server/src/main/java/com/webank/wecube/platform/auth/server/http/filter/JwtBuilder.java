@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.auth.server.filter;
+package com.webank.wecube.platform.auth.server.http.filter;
 
 import org.springframework.security.core.Authentication;
 
