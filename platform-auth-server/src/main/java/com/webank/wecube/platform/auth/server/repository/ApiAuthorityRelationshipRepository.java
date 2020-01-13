@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.webank.wecube.platform.auth.server.entity.ApiAuthorityRelationshipEntity;
 import com.webank.wecube.platform.auth.server.entity.ApiRoleRelationshipEntity;
-import com.webank.wecube.platform.auth.server.entity.AuthorityRoleRelationshipEntity;
+import com.webank.wecube.platform.auth.server.entity.RoleAuthorityRsEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
-import com.webank.wecube.platform.auth.server.entity.UserRoleRelationshipEntity;
+import com.webank.wecube.platform.auth.server.entity.UserRoleRsEntity;
 
 public interface ApiAuthorityRelationshipRepository extends JpaRepository<ApiAuthorityRelationshipEntity, Long> {
 	List<ApiAuthorityRelationshipEntity> findByApiId(Long apiId);

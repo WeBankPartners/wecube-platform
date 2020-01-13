@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.auth.server.filter;
+package com.webank.wecube.platform.auth.server.http.filter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
