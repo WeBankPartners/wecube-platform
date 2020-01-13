@@ -420,6 +420,8 @@ export default {
       })
     },
     queryHistory () {
+      clearInterval(this.timer)
+      this.timer = null
       this.isEnqueryPage = true
       this.showExcution = false
       this.selectedFlow = ''
