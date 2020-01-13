@@ -623,8 +623,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String originalStatus = taskNodeInstEntity.getStatus();
             taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
             taskNodeInstEntity.setUpdatedTime(currTime);
-            
-            if(StringUtils.isNotBlank(taskNodeInstEntity.getErrorMessage())){
+
+            if (StringUtils.isNotBlank(taskNodeInstEntity.getErrorMessage())) {
                 taskNodeInstEntity.setErrorMessage("");
             }
 
@@ -635,7 +635,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             taskNodeInstInfoRepository.save(taskNodeInstEntity);
         }
-        
+
         TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
                 .findCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
 
@@ -942,7 +942,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
             paramEntity.setParamDataType(paramDataType);
-            paramEntity.setParamDataValue(asString(entry.getValue(), paramDataType));
+            paramEntity.setParamDataValue(
+                    trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE));
             paramEntity.setRequestId(requestId);
 
             taskNodeExecParamRepository.save(paramEntity);
