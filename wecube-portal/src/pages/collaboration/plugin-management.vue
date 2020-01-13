@@ -44,7 +44,11 @@
               >
             </Col>
           </Row>
-          <div style="height: 70%; overflow: auto">
+          <Spin size="large" v-if="isLoadingPluginList">
+            <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+            <div>{{ $t('loading') }}</div>
+          </Spin>
+          <div v-if="!isLoadingPluginList" style="height: 70%; overflow: auto">
             <span v-if="plugins.length < 1">
               {{ $t('no_plugin_packages') }}
             </span>
@@ -501,7 +505,8 @@ export default {
       defaultCreateParams: '',
       selectHosts: [],
       availiableHostsWithPort: [],
-      isShowDecomissionedPackage: false
+      isShowDecomissionedPackage: false,
+      isLoadingPluginList: false
     }
   },
   methods: {
@@ -800,7 +805,9 @@ export default {
       this.currentTab = name
     },
     async getAllPluginPkgs () {
+      this.isLoadingPluginList = true
       let { status, data } = await getAllPluginPkgs()
+      this.isLoadingPluginList = false
       if (status === 'OK') {
         this.plugins = data.map(_ => {
           return {
