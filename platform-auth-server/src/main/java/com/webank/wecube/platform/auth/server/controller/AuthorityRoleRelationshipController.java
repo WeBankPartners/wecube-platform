@@ -31,31 +31,5 @@ public class AuthorityRoleRelationshipController {
 	@Autowired
 	AuthorityRoleRelationshipService authorityRoleRelationshipService;
 
-	@GetMapping("/authoritys/{authority-id}/roles")
-	@ResponseBody
-	public CommonResponseDto getRolesByAuthorityId(@PathVariable(value = "authority-id") Long authorityId) {
-		return okayWithData(authorityRoleRelationshipService.getRolesByAuthorityId(authorityId));
-	}
-
-	@GetMapping("/roles/{role-id}/authoritys")
-	@ResponseBody
-	public CommonResponseDto getAuthoritysByRoleId(@PathVariable(value = "role-id") String roleId) {
-		return okayWithData(authorityRoleRelationshipService.getAuthoritysByRoleId(roleId));
-	}
-
-	@PostMapping("/roles/{role-id}/authoritys")
-	@ResponseBody
-	public CommonResponseDto grantRoleForAuthoritys(@PathVariable(value = "role-id") String roleId,
-													@RequestBody List<Long> authorityIds) throws Exception {
-		authorityRoleRelationshipService.grantRoleForAuthoritys(roleId, authorityIds);
-		return okay();
-	}
-
-	@DeleteMapping("/roles/{role-id}/authoritys")
-	@ResponseBody
-	public CommonResponseDto revokeRoleForAuthoritys(@PathVariable(value = "role-id") String roleId,
-													 @RequestBody List<Long> authorityIds) throws Exception {
-		authorityRoleRelationshipService.revokeRoleForAuthoritys(roleId, authorityIds);
-		return okay();
-	}
+	
 }
