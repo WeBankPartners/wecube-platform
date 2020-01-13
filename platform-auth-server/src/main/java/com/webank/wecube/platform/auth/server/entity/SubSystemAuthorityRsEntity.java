@@ -5,32 +5,32 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "AUTH_SYS_ROLE_AUTHORITY")
-public class RoleAuthorityRsEntity extends BaseStatusFeaturedEntity {
+@Table(name = "AUTH_SYS_SUB_SYSTEM_AUTHORITY")
+public class SubSystemAuthorityRsEntity extends BaseStatusFeaturedEntity {
 
-    @Column(name = "ROLE_ID")
-    private String roleId;
-    @Column(name = "ROLE_NAME")
-    private String roleName;
+    @Column(name = "SUB_SYSTEM_ID")
+    private String subSystemId;
+    @Column(name = "SUB_SYSTEM_CODE")
+    private String subSystemCode;
     @Column(name = "AUTHORITY_ID")
     private String authorityId;
     @Column(name = "AUTHORITY_CODE")
     private String authorityCode;
 
-    public String getRoleId() {
-        return roleId;
+    public String getSubSystemId() {
+        return subSystemId;
     }
 
-    public void setRoleId(String roleId) {
-        this.roleId = roleId;
+    public void setSubSystemId(String subSystemId) {
+        this.subSystemId = subSystemId;
     }
 
-    public String getRoleName() {
-        return roleName;
+    public String getSubSystemCode() {
+        return subSystemCode;
     }
 
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
+    public void setSubSystemCode(String subSystemCode) {
+        this.subSystemCode = subSystemCode;
     }
 
     public String getAuthorityId() {

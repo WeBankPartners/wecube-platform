@@ -22,7 +22,7 @@ import com.webank.wecube.platform.auth.server.service.UserManagementService;
 
 @RestController
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
-public class UserManagementController {
+public class SimpleLocalUserManagementController {
 
     @Autowired
     private UserManagementService userManagementService;

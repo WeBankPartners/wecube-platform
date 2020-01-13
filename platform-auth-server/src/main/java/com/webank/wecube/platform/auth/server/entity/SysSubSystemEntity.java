@@ -8,70 +8,81 @@ import javax.persistence.Table;
 @Table(name = "AUTH_SYS_SUB_SYSTEM")
 public class SysSubSystemEntity extends BaseUUIDFeaturedEntity {
 
-	@Column(name = "NAME")
-	private String name;
+    @Column(name = "NAME")
+    private String name;
 
-	@Column(name = "SYSTEM_CODE")
-	private String systemCode;
+    @Column(name = "SYSTEM_CODE")
+    private String systemCode;
 
-	@Column(name = "API_KEY", length = 500)
-	private String apiKey;
+    @Column(name = "API_KEY", length = 500)
+    private String apiKey;
 
-	@Column(name = "PUB_API_KEY", length = 500)
-	private String pubApiKey;
+    @Column(name = "PUB_API_KEY", length = 500)
+    private String pubApiKey;
 
-	@Column(name = "IS_ACTIVE")
-	private Boolean active;
+    @Column(name = "DESCRIPTION")
+    private String description;
 
-	@Column(name = "IS_BLOCKED")
-	private Boolean blocked;
+    @Column(name = "IS_ACTIVE")
+    private boolean active = true;
 
-	public String getName() {
-		return name;
-	}
+    @Column(name = "IS_BLOCKED")
+    private boolean blocked = false;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getSystemCode() {
-		return systemCode;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setSystemCode(String systemCode) {
-		this.systemCode = systemCode;
-	}
+    public String getSystemCode() {
+        return systemCode;
+    }
 
-	public String getApiKey() {
-		return apiKey;
-	}
+    public void setSystemCode(String systemCode) {
+        this.systemCode = systemCode;
+    }
 
-	public void setApiKey(String apiKey) {
-		this.apiKey = apiKey;
-	}
+    public String getApiKey() {
+        return apiKey;
+    }
 
-	public String getPubApiKey() {
-		return pubApiKey;
-	}
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
 
-	public void setPubApiKey(String pubApiKey) {
-		this.pubApiKey = pubApiKey;
-	}
+    public String getPubApiKey() {
+        return pubApiKey;
+    }
 
-	public Boolean getActive() {
-		return active;
-	}
+    public void setPubApiKey(String pubApiKey) {
+        this.pubApiKey = pubApiKey;
+    }
 
-	public void setActive(Boolean active) {
-		this.active = active;
-	}
+    public boolean isActive() {
+        return active;
+    }
 
-	public Boolean getBlocked() {
-		return blocked;
-	}
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 
-	public void setBlocked(Boolean blocked) {
-		this.blocked = blocked;
-	}
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
 }

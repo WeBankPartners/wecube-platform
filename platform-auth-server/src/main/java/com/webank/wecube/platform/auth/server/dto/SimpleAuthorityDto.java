@@ -1,26 +1,28 @@
-package com.webank.wecube.platform.auth.server.entity;
+package com.webank.wecube.platform.auth.server.dto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import java.io.Serializable;
 
-@Entity
-@Table(name = "AUTH_SYS_AUTHORITY")
-public class SysAuthorityEntity extends BaseStatusFeaturedEntity {
-    
-    public static final String SCOPE_GLOBAL = "GLOBAL";
+public class SimpleAuthorityDto implements Serializable {
 
-    @Column(name = "CODE")
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2877918185362439084L;
+    private String id;
     private String code;
-
-    @Column(name = "DISPLAY_NAME")
     private String displayName;
-
-    @Column(name = "SCOPE")
     private String scope;
-    
-    @Column(name = "DESCRIPTION")
     private String description;
+
+    private boolean active;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getCode() {
         return code;
@@ -53,4 +55,13 @@ public class SysAuthorityEntity extends BaseStatusFeaturedEntity {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
 }

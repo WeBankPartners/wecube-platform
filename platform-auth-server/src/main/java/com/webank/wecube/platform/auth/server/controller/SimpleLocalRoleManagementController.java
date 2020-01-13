@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
@@ -21,32 +22,53 @@ import com.webank.wecube.platform.auth.server.service.RoleManagementService;
 
 @RestController
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
-public class RoleManagementController {
+public class SimpleLocalRoleManagementController {
 
     @Autowired
-    private RoleManagementService roleMgmtService;
+    private RoleManagementService roleManagementService;
 
     @PostMapping("/roles")
     public CommonResponseDto registerLocalRole(@RequestBody SimpleLocalRoleDto roleDto) {
-        SimpleLocalRoleDto result = roleMgmtService.registerLocalRole(roleDto);
+        SimpleLocalRoleDto result = roleManagementService.registerLocalRole(roleDto);
         return okayWithData(result);
     }
 
     @GetMapping("/roles")
     public CommonResponseDto retrieveAllLocalRoles() {
-        List<SimpleLocalRoleDto> result = roleMgmtService.retrieveAllLocalRoles();
+        List<SimpleLocalRoleDto> result = roleManagementService.retrieveAllLocalRoles();
         return okayWithData(result);
     }
 
     @GetMapping("/roles/{role-id}")
     public CommonResponseDto retrieveRoleInfo(@PathVariable(value = "role-id") String roleId) {
-        SimpleLocalRoleDto result = roleMgmtService.retriveLocalRoleByRoleId(roleId);
+        SimpleLocalRoleDto result = roleManagementService.retriveLocalRoleByRoleId(roleId);
         return okayWithData(result);
     }
 
     @DeleteMapping("/roles/{role-id}")
     public CommonResponseDto deleteRole(@PathVariable(value = "role-id") String roleId) {
-        roleMgmtService.unregisterLocalRole(roleId);
+        roleManagementService.unregisterLocalRole(roleId);
+        return okay();
+    }
+    
+    @GetMapping("/roles/{role-id}/authorities")
+    public CommonResponseDto retrieveAllRoleAuthoritiesByRoleId(@PathVariable(value = "role-id") String roleId) {
+        return okayWithData(authorityRoleRelationshipService.getAuthoritysByRoleId(roleId));
+    }
+
+    @PostMapping("/roles/{role-id}/authoritys")
+    @ResponseBody
+    public CommonResponseDto grantRoleForAuthoritys(@PathVariable(value = "role-id") String roleId,
+                                                    @RequestBody List<Long> authorityIds) throws Exception {
+        authorityRoleRelationshipService.grantRoleForAuthoritys(roleId, authorityIds);
+        return okay();
+    }
+
+    @DeleteMapping("/roles/{role-id}/authoritys")
+    @ResponseBody
+    public CommonResponseDto revokeRoleForAuthoritys(@PathVariable(value = "role-id") String roleId,
+                                                     @RequestBody List<Long> authorityIds) throws Exception {
+        authorityRoleRelationshipService.revokeRoleForAuthoritys(roleId, authorityIds);
         return okay();
     }
 }
