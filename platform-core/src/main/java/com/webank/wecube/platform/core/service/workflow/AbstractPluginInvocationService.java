@@ -33,6 +33,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     
     protected static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     protected static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
+    
+    protected static final int MAX_PARAM_VAL_SIZE = 3000;
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -104,6 +106,14 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
         return val.toString();
 
+    }
+    
+    protected String trimExceedParamValue(String val, int size){
+        if(val.length() > size){
+            return val.substring(0, size);
+        }
+        
+        return val;
     }
 
     protected Object fromString(String val, String sType) {
