@@ -353,5 +353,11 @@
   "enquery_new_workflow_job": "查询历史编排",
   "plugin_analysis": "插件包解析中.....",
   "select_model": "选择模型",
-  "email": "邮箱"
+  "email": "邮箱",
+  "bc_define_query_objects": "定义查询对象",
+  "bc_query_path": "查询路径",
+  "bc_query_condition": "查询条件",
+  "bc_empty": "无",
+  "bc_execute_query": "执行查询",
+  "bc_clear_condition": "清空条件"
 }

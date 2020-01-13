@@ -353,5 +353,12 @@
   "enquery_new_workflow_job": "Enquery Workflow Job",
   "plugin_analysis": "Parsing Plugin Package.....",
   "select_model": "Select Target",
-  "email": "E-mail"
+  "email": "E-mail",
+  "bc_define_query_objects": "Define Query Objects",
+  "bc_query_path": "Query Path",
+  "bc_query_condition": "Query Conditions",
+  "bc_empty": "Empty",
+  "bc_execute_query": "Execute Query",
+  "bc_clear_condition": "Clear Conditions",
+  "bc_reset_query": "Reset Query"
 }
