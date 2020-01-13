@@ -12,9 +12,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedAuthenticationFilter;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedLoginFilter;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextRepository;
+import com.webank.wecube.platform.auth.server.http.filter.JwtSsoBasedAuthenticationFilter;
+import com.webank.wecube.platform.auth.server.http.filter.JwtSsoBasedLoginFilter;
+import com.webank.wecube.platform.auth.server.http.filter.JwtSsoBasedSecurityContextRepository;
 
 @Profile({ ApplicationConstants.Profile.MOCK })
 @Configuration

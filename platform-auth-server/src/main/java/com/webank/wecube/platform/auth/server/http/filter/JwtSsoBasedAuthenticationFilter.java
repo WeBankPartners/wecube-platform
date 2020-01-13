@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.auth.server.filter;
+package com.webank.wecube.platform.auth.server.http.filter;
 
 import static com.webank.wecube.platform.auth.server.common.ApplicationConstants.JwtInfo.CLAIM_KEY_AUTHORITIES;
 import static com.webank.wecube.platform.auth.server.common.ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE;

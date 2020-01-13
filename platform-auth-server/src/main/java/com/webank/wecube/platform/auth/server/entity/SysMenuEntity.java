@@ -15,7 +15,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "AUTH_SYS_MENU")
-public class SysMenuEntity extends AbstractTraceableEntity {
+public class SysMenuEntity extends BaseTraceableEntity {
 
     @Id
     @GeneratedValue

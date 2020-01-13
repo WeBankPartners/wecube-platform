@@ -1,49 +1,21 @@
 package com.webank.wecube.platform.auth.server.entity;
 
-import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.Email;
 
 @Entity
 @Table(name = "AUTH_SYS_ROLE")
-public class SysRoleEntity extends AbstractTraceableEntity {
+public class SysRoleEntity extends BaseStatusFeaturedEntity {
 
-    @Id
-    @GenericGenerator(name = "jpa-uuid", strategy = "uuid")
-    @GeneratedValue(generator = "jpa-uuid")
-    @Column(name = "ID")
-    private String id;
-
-    @Column(name = "NAME", unique = true)
+    @Column(name = "NAME")
     private String name;
 
     @Column(name = "DISPLAY_NAME")
     private String displayName;
 
-    @Column(name = "EMAIL")
-    private String email;
-
-    public SysRoleEntity() {
-    }
-
-    public SysRoleEntity(String name, String displayName, String email) {
-        this.setName(name);
-        this.setDisplayName(displayName);
-        this.setEmail(email);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
+    @Column(name = "EMAIL_ADDR")
+    private String emailAddress;
 
     public String getName() {
         return name;
@@ -61,11 +33,12 @@ public class SysRoleEntity extends AbstractTraceableEntity {
         this.displayName = displayName;
     }
 
-    public String getEmail() {
-        return email;
+    public String getEmailAddress() {
+        return emailAddress;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setEmailAddress(String emailAddress) {
+        this.emailAddress = emailAddress;
     }
+
 }

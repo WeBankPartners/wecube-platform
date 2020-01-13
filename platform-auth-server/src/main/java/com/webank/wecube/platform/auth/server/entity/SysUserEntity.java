@@ -2,91 +2,143 @@ package com.webank.wecube.platform.auth.server.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "AUTH_SYS_USER")
-public class SysUserEntity extends AbstractTraceableEntity {
+public class SysUserEntity extends BaseUUIDFeaturedEntity {
+    @Column(name = "USERNAME")
+    private String username;
 
-	@Id
-	@GeneratedValue
-	@Column(name = "ID")
-	private Long id;
+    @Column(name = "ENGLISH_NAME")
+    private String englishName;
 
-	@Column(name = "USERNAME")
-	private String username;
+    @Column(name = "LOCAL_NAME")
+    private String localName;
 
-	@Column(name = "PASSWORD")
-	private String password;
+    @Column(name = "DEPT")
+    private String department;
 
-	@Column(name = "IS_ACTIVE")
-	private Boolean active;
+    @Column(name = "TITLE")
+    private String title;
 
-	@Column(name = "IS_BLOCKED")
-	private Boolean blocked;
+    @Column(name = "EMAIL_ADDR")
+    private String emailAddr;
 
-//	@ManyToMany(fetch = FetchType.EAGER)
-//	@JoinTable(name = "AUTH_SYS_USER_ROLE", joinColumns = { @JoinColumn(name = "USER_ID") }, inverseJoinColumns = {
-//			@JoinColumn(name = "ROLE_ID") })
-//	private List<SysRoleEntity> roles = new ArrayList<SysRoleEntity>();
+    @Column(name = "OFFICE_TEL_NO")
+    private String officeTelNo;
 
-	public SysUserEntity() {
-	}
+    @Column(name = "CELL_PHONE_NO")
+    private String cellPhoneNo;
 
-	public SysUserEntity(String username, String password, Boolean active) {
-		this.setUsername(username);
-		this.setPassword(password);
-		this.setActive(active);
-	}
+    @Column(name = "PASSWORD")
+    private String password;
 
-	public Long getId() {
-		return id;
-	}
+    @Column(name = "IS_ACTIVE")
+    private boolean active = true;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @Column(name = "IS_BLOCKED")
+    private boolean blocked = false;
 
-	public String getUsername() {
-		return username;
-	}
+    @Column(name = "IS_DELETED")
+    private boolean deleted = false;
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public SysUserEntity() {
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public Boolean getActive() {
-		return active;
-	}
+    public String getEnglishName() {
+        return englishName;
+    }
 
-	public void setActive(Boolean active) {
-		this.active = active;
-	}
+    public void setEnglishName(String englishName) {
+        this.englishName = englishName;
+    }
 
-	public Boolean getBlocked() {
-		return blocked;
-	}
+    public String getLocalName() {
+        return localName;
+    }
 
-	public void setBlocked(Boolean blocked) {
-		this.blocked = blocked;
-	}
+    public void setLocalName(String localName) {
+        this.localName = localName;
+    }
 
-//	public List<SysRoleEntity> getRoles() {
-//		return roles;
-//	}
-//
-//	public void setRoles(List<SysRoleEntity> roles) {
-//		this.roles = roles;
-//	}
+    public String getDepartment() {
+        return department;
+    }
 
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getEmailAddr() {
+        return emailAddr;
+    }
+
+    public void setEmailAddr(String emailAddr) {
+        this.emailAddr = emailAddr;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public String getOfficeTelNo() {
+        return officeTelNo;
+    }
+
+    public void setOfficeTelNo(String officeTelNo) {
+        this.officeTelNo = officeTelNo;
+    }
+
+    public String getCellPhoneNo() {
+        return cellPhoneNo;
+    }
+
+    public void setCellPhoneNo(String cellPhoneNo) {
+        this.cellPhoneNo = cellPhoneNo;
+    }
 }

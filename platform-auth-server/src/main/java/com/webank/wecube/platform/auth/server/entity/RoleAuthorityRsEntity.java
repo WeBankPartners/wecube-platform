@@ -9,13 +9,17 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "AUTH_SYS_AUTHORITY_ROLE")
-public class AuthorityRoleRelationshipEntity extends AbstractTraceableEntity {
+@Table(name = "AUTH_SYS_ROLE_AUTHORITY")
+public class RoleAuthorityRsEntity extends BaseStatusFeaturedEntity {
 
-	@Id
-	@GeneratedValue
-	@Column(name = "ID")
-	private Long id;
+    private String roleId;
+    
+    private String roleName;
+    
+    private String authorityId;
+    
+    private String authorityName;
+
 
 	@ManyToOne
 	@JoinColumn(name = "AUTHORITY_ID")
@@ -25,21 +29,14 @@ public class AuthorityRoleRelationshipEntity extends AbstractTraceableEntity {
 	@JoinColumn(name = "ROLE_ID")
 	private SysRoleEntity role;
 
-	public AuthorityRoleRelationshipEntity() {
+	public RoleAuthorityRsEntity() {
 	}
 
-	public AuthorityRoleRelationshipEntity(SysAuthorityEntity authority, SysRoleEntity role) {
+	public RoleAuthorityRsEntity(SysAuthorityEntity authority, SysRoleEntity role) {
 		this.setAuthority(authority);
 		this.setRole(role);
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
 
 	public SysAuthorityEntity getAuthority() {
 		return authority;

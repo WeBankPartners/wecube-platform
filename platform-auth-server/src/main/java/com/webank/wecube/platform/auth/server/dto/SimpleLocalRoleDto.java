@@ -1,13 +1,28 @@
 package com.webank.wecube.platform.auth.server.dto;
 
-import javax.validation.constraints.Email;
+import java.io.Serializable;
 
-public class CreateRoleDto {
+public class SimpleLocalRoleDto implements Serializable{
+    
+    
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -5419011196635473302L;
+    private String id;
 	private String name;
 	private String displayName;
 	private String email;
+	
+	public String getId() {
+        return id;
+    }
 
-	public String getName() {
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
 		return name;
 	}
 

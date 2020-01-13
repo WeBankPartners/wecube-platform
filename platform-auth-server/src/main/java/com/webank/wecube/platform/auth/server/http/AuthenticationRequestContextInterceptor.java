@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.interceptor;
+package com.webank.wecube.platform.auth.server.http;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -12,12 +12,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
-import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
+import com.webank.wecube.platform.auth.server.http.AuthenticationContextHolder.AuthenticatedUser;
 
 @Component
 public class AuthenticationRequestContextInterceptor implements HandlerInterceptor {
-    public static final String REQ_ATTR_KEY_CURRENT_USER = "REQ_ATTR_KEY_CURRENT_USER";
+    public static final String REQUEST_ATTR_KEY_CURRENT_USER = "REQ_ATTR_KEY_CURRENT_USER";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -28,7 +27,7 @@ public class AuthenticationRequestContextInterceptor implements HandlerIntercept
 
             AuthenticationContextHolder.setAuthenticatedUser(currentUser);
 
-            request.setAttribute(REQ_ATTR_KEY_CURRENT_USER, currentUser);
+            request.setAttribute(REQUEST_ATTR_KEY_CURRENT_USER, currentUser);
         }
         return true;
     }
@@ -47,6 +46,6 @@ public class AuthenticationRequestContextInterceptor implements HandlerIntercept
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
             throws Exception {
         AuthenticationContextHolder.clearCurrentUser();
-        request.removeAttribute(REQ_ATTR_KEY_CURRENT_USER);
+        request.removeAttribute(REQUEST_ATTR_KEY_CURRENT_USER);
     }
 }

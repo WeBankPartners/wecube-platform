@@ -10,7 +10,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "AUTH_SYS_API_AUTHORITY")
-public class ApiAuthorityRelationshipEntity extends AbstractTraceableEntity {
+public class ApiAuthorityRelationshipEntity extends BaseTraceableEntity {
 
 	@Id
 	@GeneratedValue
