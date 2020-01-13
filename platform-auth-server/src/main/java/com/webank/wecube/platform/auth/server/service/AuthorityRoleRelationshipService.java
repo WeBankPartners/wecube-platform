@@ -9,17 +9,17 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.auth.server.entity.ApiRoleRelationshipEntity;
-import com.webank.wecube.platform.auth.server.entity.AuthorityRoleRelationshipEntity;
+import com.webank.wecube.platform.auth.server.entity.RoleAuthorityRsEntity;
 import com.webank.wecube.platform.auth.server.entity.SysApiEntity;
 import com.webank.wecube.platform.auth.server.entity.SysAuthorityEntity;
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
-import com.webank.wecube.platform.auth.server.entity.UserRoleRelationshipEntity;
+import com.webank.wecube.platform.auth.server.entity.UserRoleRsEntity;
 import com.webank.wecube.platform.auth.server.repository.ApiRepository;
 import com.webank.wecube.platform.auth.server.repository.ApiRoleRelationshipRepository;
 import com.webank.wecube.platform.auth.server.repository.AuthorityRoleRelationshipRepository;
 import com.webank.wecube.platform.auth.server.repository.UserRepository;
-import com.webank.wecube.platform.auth.server.repository.UserRoleRelationshipRepository;
+import com.webank.wecube.platform.auth.server.repository.UserRoleRsRepository;
 
 @Service("authorityRoleRelationshipService")
 public class AuthorityRoleRelationshipService {
@@ -30,7 +30,7 @@ public class AuthorityRoleRelationshipService {
     private AuthorityRoleRelationshipRepository authorityRoleRelationshipRepository;
 
     @Autowired
-    private RoleService roleService;
+    private RoleManagementService roleService;
     @Autowired
     private AuthorityService authorityService;
 
@@ -55,7 +55,7 @@ public class AuthorityRoleRelationshipService {
         for (Long authorityId : authorityIds) {
             SysAuthorityEntity authorityEntity = authorityService.getAuthorityByIdIfExisted(authorityId);
             if (null == authorityRoleRelationshipRepository.findOneByAuthorityIdAndRoleId(authorityId, roleId))
-                authorityRoleRelationshipRepository.save(new AuthorityRoleRelationshipEntity(authorityEntity, role));
+                authorityRoleRelationshipRepository.save(new RoleAuthorityRsEntity(authorityEntity, role));
         }
     }
 
@@ -63,7 +63,7 @@ public class AuthorityRoleRelationshipService {
         roleService.getRoleByIdIfExisted(roleId);
         for (Long authorityId : authorityIds) {
             authorityService.getAuthorityByIdIfExisted(authorityId);
-            AuthorityRoleRelationshipEntity authorityRoleRelationshipEntity = authorityRoleRelationshipRepository
+            RoleAuthorityRsEntity authorityRoleRelationshipEntity = authorityRoleRelationshipRepository
                     .findOneByAuthorityIdAndRoleId(authorityId, roleId);
             if (null != authorityRoleRelationshipEntity)
                 authorityRoleRelationshipRepository.delete(authorityRoleRelationshipEntity);

@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.auth.server.handler;
+package com.webank.wecube.platform.auth.server.http.handler;
 
 import java.io.IOException;
 

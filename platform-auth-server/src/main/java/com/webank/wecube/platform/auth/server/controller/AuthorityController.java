@@ -19,12 +19,12 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 import com.webank.wecube.platform.auth.server.dto.CreateApiDto;
 import com.webank.wecube.platform.auth.server.dto.CreateAuthorityDto;
-import com.webank.wecube.platform.auth.server.dto.CreateRoleDto;
+import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
 import com.webank.wecube.platform.auth.server.dto.CreateUserDto;
 import com.webank.wecube.platform.auth.server.service.ApiService;
 import com.webank.wecube.platform.auth.server.service.AuthorityService;
-import com.webank.wecube.platform.auth.server.service.RoleService;
-import com.webank.wecube.platform.auth.server.service.UserService;
+import com.webank.wecube.platform.auth.server.service.RoleManagementService;
+import com.webank.wecube.platform.auth.server.service.UserManagementService;
 
 import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okayWithData;
 import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okay;
