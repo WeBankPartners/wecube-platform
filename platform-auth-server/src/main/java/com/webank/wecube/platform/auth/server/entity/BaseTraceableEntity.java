@@ -6,7 +6,7 @@ import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
-public abstract class AbstractTraceableEntity {
+public abstract class BaseTraceableEntity {
     @Column(name = "CREATED_BY")
     private String createdBy;
 

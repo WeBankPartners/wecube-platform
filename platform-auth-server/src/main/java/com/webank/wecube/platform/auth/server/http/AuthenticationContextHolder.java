@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.commons;
+package com.webank.wecube.platform.auth.server.http;
 
 import java.util.Collection;
 import java.util.Collections;
