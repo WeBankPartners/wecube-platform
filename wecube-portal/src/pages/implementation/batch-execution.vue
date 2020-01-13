@@ -3,17 +3,19 @@
     <section class="search">
       <Card v-if="displaySearchZone">
         <div class="search-zone">
-          <Form :label-width="110">
-            <FormItem label="查询操作对象：">
-              <a @click="setSearchConditions">定义查询...</a>
+          <Form :label-width="170" label-colon>
+            <FormItem :label="$t('bc_define_query_objects')">
+              <a @click="setSearchConditions"
+                >{{ $t('bc_define_query_objects') }}...</a
+              >
             </FormItem>
-            <FormItem label="查询路径：">
+            <FormItem :label="$t('bc_query_path')">
               <span v-if="dataModelExpression != ':'">
                 {{ dataModelExpression }}
               </span>
-              <span v-else>(无)</span>
+              <span v-else>({{ $t('bc_empty') }})</span>
             </FormItem>
-            <FormItem label="查询条件：">
+            <FormItem :label="$t('bc_query_condition')">
               <div v-if="searchParameters.length">
                 <Row>
                   <Col
@@ -31,7 +33,7 @@
                   </Col>
                 </Row>
               </div>
-              <span v-else>(无)</span>
+              <span v-else>({{ $t('bc_empty') }})</span>
             </FormItem>
           </Form>
         </div>
@@ -40,10 +42,12 @@
             type="primary"
             :disabled="!(!!currentPackageName && !!currentEntityName)"
             @click="excuteSearch"
-            >执行查询</Button
+            >{{ $t('bc_execute_query') }}</Button
           >
-          <Button @click="clearParametes">清空条件</Button>
-          <Button @click="resetParametes">重置查询</Button>
+          <Button @click="clearParametes">{{
+            $t('bc_clear_condition')
+          }}</Button>
+          <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
         </div>
       </Card>
       <div v-else>
@@ -141,7 +145,7 @@
     <Modal
       :width="700"
       v-model="isShowSearchConditions"
-      title="定义操作对象的查询方式"
+      :title="$t('bc_define_query_objects')"
     >
       <Form :label-width="110">
         <FormItem
