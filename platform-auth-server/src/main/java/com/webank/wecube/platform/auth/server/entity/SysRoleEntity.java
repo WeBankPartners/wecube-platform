@@ -16,6 +16,9 @@ public class SysRoleEntity extends BaseStatusFeaturedEntity {
 
     @Column(name = "EMAIL_ADDR")
     private String emailAddress;
+    
+    @Column(name = "DESCRIPTION")
+    private String description;
 
     public String getName() {
         return name;
@@ -39,6 +42,14 @@ public class SysRoleEntity extends BaseStatusFeaturedEntity {
 
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

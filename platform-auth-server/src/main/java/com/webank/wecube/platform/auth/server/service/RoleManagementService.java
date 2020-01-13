@@ -12,9 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.auth.server.common.AuthServerException;
 import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
+import com.webank.wecube.platform.auth.server.entity.RoleAuthorityRsEntity;
+import com.webank.wecube.platform.auth.server.entity.SysAuthorityEntity;
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
 import com.webank.wecube.platform.auth.server.entity.UserRoleRsEntity;
 import com.webank.wecube.platform.auth.server.http.AuthenticationContextHolder;
@@ -133,6 +136,42 @@ public class RoleManagementService {
             if (!StringUtilsEx.isEmailValid(roleDto.getEmail())) {
                 throw new AuthServerException("Unexpected email address.");
             }
+        }
+    }
+    
+    public List<SysAuthorityEntity> getAuthoritysByRoleId(String roleId) {
+        List<SysAuthorityEntity> authoritys = Lists.newArrayList();
+        authorityRoleRelationshipRepository.findByRoleId(roleId).forEach(authorityRole -> {
+            authoritys.add(authorityRole.getAuthority());
+        });
+        return authoritys;
+    }
+
+    public List<SysRoleEntity> getRolesByAuthorityId(Long authorityId) {
+        List<SysRoleEntity> roles = Lists.newArrayList();
+        authorityRoleRelationshipRepository.findByAuthorityId(authorityId).forEach(authorityRole -> {
+            roles.add(authorityRole.getRole());
+        });
+        return roles;
+    }
+
+    public void grantRoleForAuthoritys(String roleId, List<Long> authorityIds) throws Exception {
+        SysRoleEntity role = roleService.getRoleByIdIfExisted(roleId);
+        for (Long authorityId : authorityIds) {
+            SysAuthorityEntity authorityEntity = authorityService.getAuthorityByIdIfExisted(authorityId);
+            if (null == authorityRoleRelationshipRepository.findOneByAuthorityIdAndRoleId(authorityId, roleId))
+                authorityRoleRelationshipRepository.save(new RoleAuthorityRsEntity(authorityEntity, role));
+        }
+    }
+
+    public void revokeRoleForAuthoritys(String roleId, List<Long> authorityIds) throws Exception {
+        roleService.getRoleByIdIfExisted(roleId);
+        for (Long authorityId : authorityIds) {
+            authorityService.getAuthorityByIdIfExisted(authorityId);
+            RoleAuthorityRsEntity authorityRoleRelationshipEntity = authorityRoleRelationshipRepository
+                    .findOneByAuthorityIdAndRoleId(authorityId, roleId);
+            if (null != authorityRoleRelationshipEntity)
+                authorityRoleRelationshipRepository.delete(authorityRoleRelationshipEntity);
         }
     }
 }
