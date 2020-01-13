@@ -15,7 +15,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "AUTH_SYS_API")
-public class SysApiEntity extends AbstractTraceableEntity {
+public class SysApiEntity extends BaseTraceableEntity {
 
 	@Id
 	@GeneratedValue
