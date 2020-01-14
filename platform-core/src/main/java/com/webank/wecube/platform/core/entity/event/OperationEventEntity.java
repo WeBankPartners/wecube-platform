@@ -58,6 +58,9 @@ public class OperationEventEntity extends BaseTraceableEntity {
 
     @Column(name = "PROC_INST_ID")
     private String procInstId;
+    
+    @Column(name = "PROC_INST_KEY")
+    private String procInstKey;
 
     @Column(name = "PRIORITY")
     private int priority;
@@ -195,4 +198,14 @@ public class OperationEventEntity extends BaseTraceableEntity {
     public void setEndTime(Date endTime) {
         this.endTime = endTime;
     }
+
+    public String getProcInstKey() {
+        return procInstKey;
+    }
+
+    public void setProcInstKey(String procInstKey) {
+        this.procInstKey = procInstKey;
+    }
+    
+    
 }
