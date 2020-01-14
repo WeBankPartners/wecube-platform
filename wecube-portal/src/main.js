@@ -69,6 +69,9 @@ class WatchRouters {
 let WatchRouter = new WatchRouters()
 WatchRouter.on('change', path => {
   if (window.needReLoad) return
+  if (path === '/login' || path === '/404') {
+    path = '/homepage'
+  }
   window.location.href = window.location.origin + '/#' + path
 })
 
@@ -155,7 +158,7 @@ router.beforeEach((to, from, next) => {
         /* has permission */
         window.sessionStorage.setItem(
           'currentPath',
-          to.path === '/404' ? '/homepage' : to.path
+          to.path === '/404' || to.path === '/login' ? '/homepage' : to.path
         )
         next()
       } else {
