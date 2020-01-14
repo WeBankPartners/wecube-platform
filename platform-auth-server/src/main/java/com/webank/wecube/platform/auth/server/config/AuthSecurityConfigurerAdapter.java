@@ -34,20 +34,6 @@ import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
  */
 @EnableConfigurationProperties({ AuthServerProperties.class })
 public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
-    private static final String[] AUTH_WHITELIST = { //
-            // "/v1/api/login", //
-            "/v1/users/**", // for dev only
-            "/v1/roles/**", // for dev only
-            "/v1/api/ping", //
-            "/v2/api-docs", //
-            "/error", //
-            "/swagger-resources", //
-            "/swagger-resources/**", //
-            "/configuration/ui", //
-            "/configuration/security", //
-            "/swagger-ui.html", //
-            "/webjars/**" //
-    };
 
     protected Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -61,7 +47,7 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
     protected AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
 
     protected String[] getAuthWhiteList() {
-        return AUTH_WHITELIST;
+        return new String[]{};
     }
 
     public void addInterceptors(InterceptorRegistry registry) {
