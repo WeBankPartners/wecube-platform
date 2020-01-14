@@ -184,7 +184,12 @@
         </template>
       </Table>
     </Modal>
-    <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen">
+    <Modal
+      v-model="showNodeDetail"
+      :fullscreen="nodeDetailFullscreen"
+      width="1000"
+      :styles="{ top: '5%' }"
+    >
       <p slot="header">
         <span>{{ nodeTitle }}</span>
         <Icon
@@ -201,11 +206,15 @@
         />
       </p>
       <div style="overflow:auto;">
+        <h5>Data:</h5>
+        <div style="margin: 0 6px 6px" v-html="nodeDetailResponseHeader"></div>
         <!-- <pre>{{ nodeDetail }}</pre> -->
+        <h5>requestObjects:</h5>
         <Table
           :columns="nodeDetailColumns"
+          max-height="300"
           tooltip="true"
-          :data="nodeDetailData"
+          :data="nodeDetailIO"
         ></Table>
       </div>
     </Modal>
@@ -291,15 +300,41 @@ export default {
           title: 'inputs',
           key: 'inputs',
           render: (h, params) => {
-            return h('div', [h('pre', params.row.inputs.toString())])
+            const strInput = JSON.stringify(params.row.inputs)
+              .split(',')
+              .join(',<br/>')
+            return h(
+              'div',
+              {
+                domProps: {
+                  innerHTML: `<pre>${strInput}</pre>`
+                }
+              },
+              []
+            )
           }
         },
         {
           title: 'outputs',
-          key: 'outputs'
+          key: 'outputs',
+          render: (h, params) => {
+            const strOutput = JSON.stringify(params.row.outputs)
+              .split(',')
+              .join(',<br/>')
+            return h(
+              'div',
+              {
+                domProps: {
+                  innerHTML: `<pre>${strOutput}</pre>`
+                }
+              },
+              []
+            )
+          }
         }
       ],
-      nodeDetailData: [],
+      nodeDetailIO: [],
+      nodeDetailResponseHeader: null,
       currentFailedNodeID: '',
       timer: null,
       modelNodeDetail: {},
@@ -816,7 +851,6 @@ export default {
       this.flowDetailLeaveHandler()
     },
     flowGraphMouseenterHandler (e) {
-      console.log(123)
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
         const found = this.flowData.flowNodes.find(
@@ -830,7 +864,14 @@ export default {
         )
         if (status === 'OK') {
           this.nodeDetail = data
-          this.nodeDetailData = data.requestObjects
+          this.nodeDetailResponseHeader = JSON.parse(JSON.stringify(data))
+          delete this.nodeDetailResponseHeader.requestObjects
+          this.nodeDetailResponseHeader = JSON.stringify(
+            this.nodeDetailResponseHeader
+          )
+            .split(',')
+            .join(',<br/>')
+          this.nodeDetailIO = data.requestObjects
         }
         this.showNodeDetail = true
         this.nodeDetailFullscreen = false
