@@ -24,7 +24,7 @@ public class OperationEventsExecutor {
     public void execute() {
         List<OperationEventEntity> outstandingOperationEventEntities = operationEventRepository
                 .findAllByStatus(OperationEventEntity.STATUS_NEW);
-        // TODO
+        
         if (outstandingOperationEventEntities == null ) {
             return;
         }
