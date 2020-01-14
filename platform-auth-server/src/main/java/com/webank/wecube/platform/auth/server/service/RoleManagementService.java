@@ -12,15 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
 import com.webank.wecube.platform.auth.server.common.AuthServerException;
 import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
+import com.webank.wecube.platform.auth.server.dto.SimpleAuthorityDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
 import com.webank.wecube.platform.auth.server.entity.RoleAuthorityRsEntity;
 import com.webank.wecube.platform.auth.server.entity.SysAuthorityEntity;
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
 import com.webank.wecube.platform.auth.server.entity.UserRoleRsEntity;
 import com.webank.wecube.platform.auth.server.http.AuthenticationContextHolder;
+import com.webank.wecube.platform.auth.server.repository.AuthorityRepository;
+import com.webank.wecube.platform.auth.server.repository.RoleAuthorityRsRepository;
 import com.webank.wecube.platform.auth.server.repository.RoleRepository;
 import com.webank.wecube.platform.auth.server.repository.UserRoleRsRepository;
 
@@ -33,6 +35,12 @@ public class RoleManagementService {
 
     @Autowired
     private UserRoleRsRepository userRoleRsRepository;
+
+    @Autowired
+    private RoleAuthorityRsRepository roleAuthorityRsRepository;
+
+    @Autowired
+    private AuthorityRepository authorityRepository;
 
     public SimpleLocalRoleDto registerLocalRole(SimpleLocalRoleDto roleDto) {
         validateSimpleLocalRoleDto(roleDto);
@@ -138,24 +146,61 @@ public class RoleManagementService {
             }
         }
     }
-    
-    public List<SysAuthorityEntity> getAuthoritysByRoleId(String roleId) {
-        List<SysAuthorityEntity> authoritys = Lists.newArrayList();
-        authorityRoleRelationshipRepository.findByRoleId(roleId).forEach(authorityRole -> {
-            authoritys.add(authorityRole.getAuthority());
-        });
-        return authoritys;
+
+    public List<SimpleAuthorityDto> retrieveAllAuthoritiesByRoleId(String roleId) {
+        List<SimpleAuthorityDto> result = new ArrayList<>();
+        Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
+        if (!roleOpt.isPresent()) {
+            log.error("such role entity does not exist,role id {}", roleId);
+            return result;
+        }
+
+        SysRoleEntity role = roleOpt.get();
+        if (role.isDeleted() || !role.isActive()) {
+            log.error("such role is deleted or inactive,role id {}", roleId);
+            return result;
+        }
+
+        List<RoleAuthorityRsEntity> roleAuthorities = roleAuthorityRsRepository
+                .findAllConfiguredAuthoritiesByRoleId(role.getId());
+
+        for (RoleAuthorityRsEntity roleAuthority : roleAuthorities) {
+            Optional<SysAuthorityEntity> authorityOpt = authorityRepository.findById(roleAuthority.getAuthorityId());
+            if (!authorityOpt.isPresent()) {
+                log.error("authority entity does not exist, authority id {}", roleAuthority.getAuthorityId());
+                continue;
+            }
+
+            SysAuthorityEntity authority = authorityOpt.get();
+            if (authority.isDeleted()) {
+                log.error("such authority is deleted,authority id {} {}", authority.getId(),
+                        authority.getCode());
+                continue;
+            }
+            
+            SimpleAuthorityDto dto = new SimpleAuthorityDto();
+            dto.setActive(authority.isActive());
+            dto.setCode(authority.getCode());
+            dto.setDescription(authority.getDescription());
+            dto.setDisplayName(authority.getDisplayName());
+            dto.setId(authority.getId());
+            dto.setScope(authority.getScope());
+            
+            result.add(dto);
+        }
+
+        return result;
     }
 
-    public List<SysRoleEntity> getRolesByAuthorityId(Long authorityId) {
-        List<SysRoleEntity> roles = Lists.newArrayList();
-        authorityRoleRelationshipRepository.findByAuthorityId(authorityId).forEach(authorityRole -> {
-            roles.add(authorityRole.getRole());
-        });
-        return roles;
-    }
-
-    public void grantRoleForAuthoritys(String roleId, List<Long> authorityIds) throws Exception {
+    @Transactional
+    public void configureRoleWithAuthorities(String roleId, List<String> authorityIds) {
+        Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
+        if(!roleOpt.isPresent()){
+            log.error("such role entity does not exist,role id {}", roleId);
+            throw new AuthServerException("Such role entity does not exist.");
+        }
+        
+        
         SysRoleEntity role = roleService.getRoleByIdIfExisted(roleId);
         for (Long authorityId : authorityIds) {
             SysAuthorityEntity authorityEntity = authorityService.getAuthorityByIdIfExisted(authorityId);
@@ -164,7 +209,7 @@ public class RoleManagementService {
         }
     }
 
-    public void revokeRoleForAuthoritys(String roleId, List<Long> authorityIds) throws Exception {
+    public void revokeRoleAuthorities(String roleId, List<String> authorityIds){
         roleService.getRoleByIdIfExisted(roleId);
         for (Long authorityId : authorityIds) {
             authorityService.getAuthorityByIdIfExisted(authorityId);
