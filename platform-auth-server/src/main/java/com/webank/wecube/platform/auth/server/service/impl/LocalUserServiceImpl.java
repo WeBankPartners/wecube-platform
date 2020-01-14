@@ -44,6 +44,14 @@ public class LocalUserServiceImpl implements LocalUserService {
         if (userEntity == null) {
             return null;
         }
+        
+        if(!userEntity.isActive() || userEntity.isDeleted()){
+            return null;
+        }
+        
+        if(userEntity.isBlocked()){
+            return null;
+        }
 
         SysUser user = new SysUser();
         user.setUsername(userEntity.getUsername());
