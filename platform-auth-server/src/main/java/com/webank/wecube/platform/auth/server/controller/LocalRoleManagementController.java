@@ -21,7 +21,7 @@ import com.webank.wecube.platform.auth.server.service.RoleManagementService;
 
 @RestController
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
-public class SimpleLocalRoleManagementController {
+public class LocalRoleManagementController {
 
     @Autowired
     private RoleManagementService roleManagementService;

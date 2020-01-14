@@ -11,23 +11,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
-import com.webank.wecube.platform.auth.server.dto.SimpleAuthorityDto;
-import com.webank.wecube.platform.auth.server.service.AuthorityManagementService;
+import com.webank.wecube.platform.auth.server.dto.SimpleSubSystemDto;
+import com.webank.wecube.platform.auth.server.service.SubSystemManagementService;
 
 @RestController
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
-public class AuthorityManagementController {
+public class LocalSubSystemManagementController {
 
-    @Autowired
-    private AuthorityManagementService authorityManagementService;
+	@Autowired
+	private SubSystemManagementService subSystemManagementService;
 
-    @PostMapping("/authorities")
-    public CommonResponseDto registerLocalAuthority(@RequestBody SimpleAuthorityDto authorityDto) {
-        return okayWithData(authorityManagementService.registerLocalAuthority(authorityDto));
-    }
+	@PostMapping("/sub-systems")
+	public CommonResponseDto registerSubSystem(@RequestBody SimpleSubSystemDto subSystemDto)
+			{
+		return okayWithData(subSystemManagementService.registerSubSystem(subSystemDto));
+	}
 
-    @GetMapping("/authorities")
-    public CommonResponseDto retrieveAllLocalAuthorites() {
-        return okayWithData(authorityManagementService.retrieveAllLocalAuthorites());
-    }
+	@GetMapping("/sub-systems")
+	public CommonResponseDto retrieveAllSubSystems(){
+		return okayWithData(subSystemManagementService.retrieveAllSubSystems());
+	}
 }
