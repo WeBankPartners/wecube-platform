@@ -16,16 +16,20 @@ public class OperationEventJobsHandler {
     @Autowired
     private OperationEventsExecutor operationEventsProcessor;
     
-    @Scheduled(cron="")
+    @Scheduled(cron="*/30 * * * * ?")
     public void extractOutstandingOperationEvents(){
-        if(log.isDebugEnabled()){
-            log.debug("");
+        if(log.isInfoEnabled()){
+            log.info("scheduled execution start...");
         }
         
         try{
             operationEventsProcessor.execute();
         }catch(Exception e){
-            log.error("");
+            log.error("operation event processing errors", e);
+        }
+        
+        if(log.isInfoEnabled()){
+            log.info("scheduled execution end...");
         }
     }
     
