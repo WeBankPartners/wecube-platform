@@ -17,7 +17,7 @@ import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.entity.UserRoleRsEntity;
 import com.webank.wecube.platform.auth.server.repository.ApiRepository;
 import com.webank.wecube.platform.auth.server.repository.ApiRoleRelationshipRepository;
-import com.webank.wecube.platform.auth.server.repository.AuthorityRoleRelationshipRepository;
+import com.webank.wecube.platform.auth.server.repository.RoleAuthorityRsRepository;
 import com.webank.wecube.platform.auth.server.repository.UserRepository;
 import com.webank.wecube.platform.auth.server.repository.UserRoleRsRepository;
 
@@ -27,7 +27,7 @@ public class AuthorityRoleRelationshipService {
     private static final Logger log = LoggerFactory.getLogger(AuthorityRoleRelationshipService.class);
 
     @Autowired
-    private AuthorityRoleRelationshipRepository authorityRoleRelationshipRepository;
+    private RoleAuthorityRsRepository authorityRoleRelationshipRepository;
 
     @Autowired
     private RoleManagementService roleService;
