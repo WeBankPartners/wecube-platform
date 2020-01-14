@@ -5,32 +5,10 @@
         <Col span="20">
           <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select
-                v-model="selectedFlowInstance"
-                style="width:70%"
-                filterable
-                clearable
-              >
-                <Option
-                  v-for="item in allFlowInstances"
-                  :value="item.id"
-                  :key="item.id"
-                  :label="
-                    item.procInstName +
-                      ' ' +
-                      (item.createdTime || 'createdTime') +
-                      ' ' +
-                      (item.operator || 'operator')
-                  "
-                >
+              <Select v-model="selectedFlowInstance" style="width:70%" filterable clearable>
+                <Option v-for="item in allFlowInstances" :value="item.id" :key="item.id" :label="item.procInstName + ' ' + (item.createdTime || 'createdTime') + ' ' + (item.operator || 'operator')">
                   <span>
-                    {{
-                      item.procInstName +
-                        ' ' +
-                        (item.createdTime || 'createdTime') +
-                        ' ' +
-                        (item.operator || 'operator')
-                    }}
+                    {{ item.procInstName + ' ' + (item.createdTime || 'createdTime') + ' ' + (item.operator || 'operator') }}
                   </span>
                 </Option>
               </Select>
@@ -40,10 +18,7 @@
             </FormItem>
           </Form>
         </Col>
-        <Col
-          span="4"
-          style="text-align: right;margin-bottom:8px;padding-right:40px;float:right;"
-        >
+        <Col span="4" style="text-align: right;margin-bottom:8px;padding-right:40px;float:right;">
           <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">
             {{ $t('enquery_new_workflow_job') }}
           </Button>
@@ -54,28 +29,12 @@
       </Row>
       <Row>
         <Row id="graphcontain">
-          <Col
-            span="6"
-            style="border-right:1px solid #d3cece; text-align: center;height:100%"
-          >
+          <Col span="6" style="border-right:1px solid #d3cece; text-align: center;height:100%">
             <div class="excution-serach">
               <Form>
                 <FormItem :label-width="100" :label="$t('select_orch')">
-                  <Select
-                    label
-                    v-model="selectedFlow"
-                    :disabled="isEnqueryPage"
-                    @on-change="orchestrationSelectHandler"
-                    @on-open-change="getAllFlow"
-                    filterable
-                    clearable
-                  >
-                    <Option
-                      v-for="item in allFlows"
-                      :value="item.procDefId"
-                      :key="item.procDefId"
-                      >{{ item.procDefName + ' ' + item.createdTime }}</Option
-                    >
+                  <Select label v-model="selectedFlow" :disabled="isEnqueryPage" @on-change="orchestrationSelectHandler" @on-open-change="getAllFlow" filterable clearable>
+                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{ item.procDefName + ' ' + item.createdTime }}</Option>
                   </Select>
                 </FormItem>
               </Form>
@@ -83,29 +42,12 @@
 
             <div class="graph-container" id="flow" style="height:90%"></div>
           </Col>
-          <Col
-            span="18"
-            style="text-align: center;margin-top: 5px;text-align: center;height:100%;"
-          >
+          <Col span="18" style="text-align: center;margin-top: 5px;text-align: center;height:100%;">
             <div>
               <Form>
                 <FormItem :label-width="100" :label="$t('target_object')">
-                  <Select
-                    style="width:400px;float:left"
-                    label
-                    v-model="selectedTarget"
-                    :disabled="isEnqueryPage"
-                    @on-change="onTargetSelectHandler"
-                    @on-open-change="getTargetOptions"
-                    filterable
-                    clearable
-                  >
-                    <Option
-                      v-for="item in allTarget"
-                      :value="item.id"
-                      :key="item.id"
-                      >{{ item.key_name }}</Option
-                    >
+                  <Select style="width:400px;float:left" label v-model="selectedTarget" :disabled="isEnqueryPage" @on-change="onTargetSelectHandler" @on-open-change="getTargetOptions" filterable clearable>
+                    <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
                   </Select>
                 </FormItem>
               </Form>
@@ -119,63 +61,19 @@
         </Row>
       </Row>
       <div style="text-align: right;margin-top: 6px;margin-right:40px">
-        <Button
-          v-if="showExcution"
-          style="width:120px"
-          type="info"
-          @click="excutionFlow"
-          >{{ $t('execute') }}</Button
-        >
+        <Button v-if="showExcution" style="width:120px" type="info" @click="excutionFlow">{{ $t('execute') }}</Button>
       </div>
     </Card>
-    <Modal
-      :title="$t('select_an_operation')"
-      v-model="workflowActionModalVisible"
-      :footer-hide="true"
-      :mask-closable="false"
-      :scrollable="true"
-    >
-      <div
-        class="workflowActionModal-container"
-        style="text-align: center;margin-top: 20px;"
-      >
-        <Button type="info" @click="workFlowActionHandler('retry')">{{
-          $t('retry')
-        }}</Button>
-        <Button
-          type="info"
-          @click="workFlowActionHandler('skip')"
-          style="margin-left: 20px"
-          >{{ $t('skip') }}</Button
-        >
+    <Modal :title="$t('select_an_operation')" v-model="workflowActionModalVisible" :footer-hide="true" :mask-closable="false" :scrollable="true">
+      <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
+        <Button type="info" @click="workFlowActionHandler('retry')">{{ $t('retry') }}</Button>
+        <Button type="info" @click="workFlowActionHandler('skip')" style="margin-left: 20px">{{ $t('skip') }}</Button>
       </div>
     </Modal>
-    <Modal
-      :title="currentNodeTitle"
-      v-model="targetModalVisible"
-      :mask-closable="false"
-      :scrollable="true"
-      :mask="false"
-      class="model_target"
-      width="50"
-      @on-ok="targetModelConfirm"
-    >
-      <Table
-        border
-        ref="selection"
-        max-height="300"
-        @on-selection-change="targetModelSelectHandel"
-        :columns="targetModelColums"
-        :data="tartetModels"
-      >
+    <Modal :title="currentNodeTitle" v-model="targetModalVisible" :mask-closable="false" :scrollable="true" :mask="false" class="model_target" width="50" @on-ok="targetModelConfirm">
+      <Table border ref="selection" max-height="300" @on-selection-change="targetModelSelectHandel" :columns="targetModelColums" :data="tartetModels">
         <template slot-scope="{ row, index }" slot="action">
-          <Tooltip
-            placement="bottom"
-            theme="light"
-            @on-popper-show="getDetail(row)"
-            :delay="500"
-            max-width="400"
-          >
+          <Tooltip placement="bottom" theme="light" @on-popper-show="getDetail(row)" :delay="500" max-width="400">
             <Button type="warning" size="small">View</Button>
             <div slot="content">
               <pre><span>{{rowContent}}</span></pre>
@@ -187,18 +85,8 @@
     <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen">
       <p slot="header">
         <span>{{ nodeTitle }}</span>
-        <Icon
-          v-if="!nodeDetailFullscreen"
-          @click="nodeDetailFullscreen = true"
-          class="header-icon"
-          type="ios-expand"
-        />
-        <Icon
-          v-else
-          @click="nodeDetailFullscreen = false"
-          class="header-icon"
-          type="ios-contract"
-        />
+        <Icon v-if="!nodeDetailFullscreen" @click="nodeDetailFullscreen = true" class="header-icon" type="ios-expand" />
+        <Icon v-else @click="nodeDetailFullscreen = false" class="header-icon" type="ios-contract" />
       </p>
       <div style="overflow:auto;">
         <pre>{{ nodeDetail }}</pre>
@@ -213,19 +101,7 @@
   </div>
 </template>
 <script>
-import {
-  getAllFlow,
-  getFlowOutlineByID,
-  getTargetOptions,
-  getTreePreviewData,
-  createFlowInstance,
-  getProcessInstances,
-  getProcessInstance,
-  retryProcessInstance,
-  getModelNodeDetail,
-  getNodeBindings,
-  getNodeContext
-} from '@/api/server'
+import { getAllFlow, getFlowOutlineByID, getTargetOptions, getTreePreviewData, createFlowInstance, getProcessInstances, getProcessInstance, retryProcessInstance, getModelNodeDetail, getNodeBindings, getNodeContext } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
@@ -303,10 +179,8 @@ export default {
   },
   methods: {
     async getDetail (row) {
-      const { status, data } = await getModelNodeDetail(
-        row.entityName,
-        row.dataId
-      )
+      if (!row.entityName || !row.dataId) return
+      const { status, data } = await getModelNodeDetail(row.entityName, row.dataId)
       if (status === 'OK') {
         this.rowContent = data
       }
@@ -324,9 +198,7 @@ export default {
       this.catchNodeTableList = selection
     },
     updateNodeInfo () {
-      const currentFlow = this.flowData.flowNodes.find(
-        i => i.nodeId === this.currentFlowNodeId
-      )
+      const currentFlow = this.flowData.flowNodes.find(i => i.nodeId === this.currentFlowNodeId)
       this.modelData.forEach(i => {
         const flowNodeIndex = i.refFlowNodeIds.indexOf(currentFlow.orderedNo)
         if (flowNodeIndex > -1) {
@@ -339,10 +211,7 @@ export default {
         })
       })
     },
-    async getProcessInstances (
-      isAfterCreate = false,
-      createResponse = undefined
-    ) {
+    async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
       let { status, data } = await getProcessInstances()
       if (status === 'OK') {
         this.allFlowInstances = data.sort((a, b) => {
@@ -355,6 +224,7 @@ export default {
       }
     },
     async getNodeBindings (id) {
+      if (!id) return
       const { status, data } = await getNodeBindings(id)
       if (status === 'OK') {
         this.flowNodesBindings = data
@@ -383,7 +253,7 @@ export default {
       }
     },
     async getTargetOptions () {
-      if (!(this.flowData.rootEntity || this.flowData.entityTypeId)) return
+      if (!this.flowData.rootEntity || !this.flowData.entityTypeId) return
       let pkgName = ''
       let entityName = ''
       if (this.flowData.rootEntity) {
@@ -405,9 +275,7 @@ export default {
       this.isEnqueryPage = true
 
       this.$nextTick(async () => {
-        const found = this.allFlowInstances.find(
-          _ => _.id === this.selectedFlowInstance
-        )
+        const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
         this.getNodeBindings(found.id)
         let { status, data } = await getProcessInstance(found && found.id)
         if (status === 'OK') {
@@ -475,10 +343,7 @@ export default {
     async getModelData () {
       if (!this.selectedFlow || !this.selectedTarget) return
       this.isLoading = true
-      let { status, data } = await getTreePreviewData(
-        this.selectedFlow,
-        this.selectedTarget
-      )
+      let { status, data } = await getTreePreviewData(this.selectedFlow, this.selectedTarget)
       this.isLoading = false
       if (status === 'OK') {
         this.modelData = data.map(_ => {
@@ -494,6 +359,7 @@ export default {
       }
     },
     async getFlowOutlineData (id) {
+      if (!id) return
       let { status, data } = await getFlowOutlineByID(id)
       if (status === 'OK') {
         this.flowData = data
@@ -508,10 +374,7 @@ export default {
         const isRecord = _.refFlowNodeIds.length > 0
         const shape = isRecord ? 'ellipse' : 'ellipse'
         const fontSize = Math.abs(50 - _.displayName.length) * 0.25
-        const label =
-          (_.displayName || _.dataId) +
-          '\n' +
-          _.refFlowNodeIds.toString().replace(/,/g, '/')
+        const label = (_.displayName || _.dataId) + '\n' + _.refFlowNodeIds.toString().replace(/,/g, '/')
         return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fontsize="${fontSize}" fillcolor="white" shape="${shape}"]`
       })
       let genEdge = () => {
@@ -532,19 +395,9 @@ export default {
           .toString()
           .replace(/,/g, ';')
       }
-      let nodesToString =
-        Array.isArray(nodes) && nodes.length > 0
-          ? nodes.toString().replace(/,/g, ';') + ';'
-          : ''
+      let nodesToString = Array.isArray(nodes) && nodes.length > 0 ? nodes.toString().replace(/,/g, ';') + ';' : ''
 
-      let nodesString =
-        'digraph G { ' +
-        'bgcolor="transparent";' +
-        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8",fontsize=12];' +
-        'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' +
-        nodesToString +
-        genEdge() +
-        '}'
+      let nodesString = 'digraph G { ' + 'bgcolor="transparent";' + 'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8",fontsize=12];' + 'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' + nodesToString + genEdge() + '}'
       this.graph.graphviz.renderDot(nodesString)
       removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       removeEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
@@ -554,16 +407,9 @@ export default {
     modelGraphMouseenterHandler (e) {
       clearTimeout(this.modelDetailTimer)
       this.modelDetailTimer = setTimeout(async () => {
-        const found = this.modelData.find(
-          _ =>
-            _.packageName + '_' + _.entityName + '_' + _.dataId ===
-            e.target.parentNode.id
-        )
+        const found = this.modelData.find(_ => _.packageName + '_' + _.entityName + '_' + _.dataId === e.target.parentNode.id)
         this.nodeTitle = `${found.displayName}`
-        const { status, data } = await getModelNodeDetail(
-          found.entityName,
-          found.dataId
-        )
+        const { status, data } = await getModelNodeDetail(found.entityName, found.dataId)
         if (status === 'OK') {
           this.nodeDetail = data
         }
@@ -598,28 +444,10 @@ export default {
           .filter(i => i.status !== 'predeploy')
           .map((_, index) => {
             if (_.nodeType === 'startEvent' || _.nodeType === 'endEvent') {
-              return `${_.nodeId} [label="${_.nodeName ||
-                _.nodeType}", fontsize="10", class="flow",style="${
-                excution ? 'filled' : 'none'
-              }" color="${
-                excution ? statusColor[_.status] : '#7F8A96'
-              }" shape="circle", id="${_.nodeId}"]`
+              return `${_.nodeId} [label="${_.nodeName || _.nodeType}", fontsize="10", class="flow",style="${excution ? 'filled' : 'none'}" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
             } else {
-              const className =
-                _.status === 'Faulted' || _.status === 'Timeouted'
-                  ? 'retry'
-                  : ''
-              return `${_.nodeId} [fixedsize=false label="${(_.orderedNo
-                ? _.orderedNo + '、'
-                : '') + _.nodeName}" class="flow ${className}" style="${
-                excution ? 'filled' : 'none'
-              }" color="${
-                excution
-                  ? statusColor[_.status]
-                  : _.nodeId === this.currentFlowNodeId
-                    ? '#5DB400'
-                    : '#7F8A96'
-              }"  shape="box" id="${_.nodeId}" ]`
+              const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : ''
+              return `${_.nodeId} [fixedsize=false label="${(_.orderedNo ? _.orderedNo + '、' : '') + _.nodeName}" class="flow ${className}" style="${excution ? 'filled' : 'none'}" color="${excution ? statusColor[_.status] : _.nodeId === this.currentFlowNodeId ? '#5DB400' : '#7F8A96'}"  shape="box" id="${_.nodeId}" ]`
             }
           })
       let genEdge = () => {
@@ -630,13 +458,7 @@ export default {
             if (_.succeedingNodeIds.length > 0) {
               let current = []
               current = _.succeedingNodeIds.map(to => {
-                return (
-                  _.nodeId +
-                  ' -> ' +
-                  `${to} [color="${
-                    excution ? statusColor[_.status] : 'black'
-                  }"]`
-                )
+                return _.nodeId + ' -> ' + `${to} [color="${excution ? statusColor[_.status] : 'black'}"]`
               })
               pathAry.push(current)
             }
@@ -646,17 +468,8 @@ export default {
           .toString()
           .replace(/,/g, ';')
       }
-      let nodesToString = Array.isArray(nodes)
-        ? nodes.toString().replace(/,/g, ';') + ';'
-        : ''
-      let nodesString =
-        'digraph G {' +
-        'bgcolor="transparent";' +
-        'Node [fontname=Arial, height=".3", fontsize=12];' +
-        'Edge [fontname=Arial, color="#7f8fa6", fontsize=10];' +
-        nodesToString +
-        genEdge() +
-        '}'
+      let nodesToString = Array.isArray(nodes) ? nodes.toString().replace(/,/g, ';') + ';' : ''
+      let nodesString = 'digraph G {' + 'bgcolor="transparent";' + 'Node [fontname=Arial, height=".3", fontsize=12];' + 'Edge [fontname=Arial, color="#7f8fa6", fontsize=10];' + nodesToString + genEdge() + '}'
 
       this.flowGraph.graphviz.renderDot(nodesString)
       this.bindFlowEvent()
@@ -667,9 +480,7 @@ export default {
         this.processInstance()
         this.showExcution = false
       } else {
-        const currentTarget = this.allTarget.find(
-          _ => _.id === this.selectedTarget
-        )
+        const currentTarget = this.allTarget.find(_ => _.id === this.selectedTarget)
         let taskNodeBinds = []
         this.modelData.forEach(_ => {
           let temp = []
@@ -687,9 +498,7 @@ export default {
           entityTypeId: this.flowData.rootEntity,
           procDefId: this.flowData.procDefId,
           taskNodeBinds: taskNodeBinds.map(_ => {
-            const node = this.flowData.flowNodes.find(
-              node => node.orderedNo === _.flowOrderNo
-            )
+            const node = this.flowData.flowNodes.find(node => node.orderedNo === _.flowOrderNo)
             return {
               entityDataId: _.dataId,
               entityTypeId: this.flowData.rootEntity,
@@ -723,9 +532,7 @@ export default {
       this.timer = null
     },
     async getStatus () {
-      const found = this.allFlowInstances.find(
-        _ => _.id === this.selectedFlowInstance
-      )
+      const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
       let { status, data } = await getProcessInstance(found && found.id)
       if (status === 'OK') {
         this.flowData = {
@@ -752,9 +559,7 @@ export default {
       this.showNodeDetail = false
     },
     async workFlowActionHandler (type) {
-      const found = this.flowData.flowNodes.find(
-        _ => _.nodeId === this.currentFailedNodeID
-      )
+      const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
       if (!found) {
         return
       }
@@ -767,9 +572,7 @@ export default {
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
-          desc:
-            (type === 'retry' ? 'Retry' : 'Skip') +
-            ' action is proceed successfully'
+          desc: (type === 'retry' ? 'Retry' : 'Skip') + ' action is proceed successfully'
         })
         this.workflowActionModalVisible = false
         this.processInstance()
@@ -798,15 +601,9 @@ export default {
     flowGraphMouseenterHandler (e) {
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
-        const found = this.flowData.flowNodes.find(
-          _ => _.nodeId === e.target.parentNode.id
-        )
-        this.nodeTitle =
-          (found.orderedNo ? found.orderedNo + '、' : '') + found.nodeName
-        const { status, data } = await getNodeContext(
-          found.procInstId,
-          found.id
-        )
+        const found = this.flowData.flowNodes.find(_ => _.nodeId === e.target.parentNode.id)
+        this.nodeTitle = (found.orderedNo ? found.orderedNo + '、' : '') + found.nodeName
+        const { status, data } = await getNodeContext(found.procInstId, found.id)
         if (status === 'OK') {
           this.nodeDetail = data
         }
@@ -834,34 +631,20 @@ export default {
       this.renderFlowGraph()
     },
     highlightModel (nodeId) {
-      const routineExpression = this.flowData.flowNodes.find(
-        item => item.nodeId === nodeId
-      ).routineExpression
+      const routineExpression = this.flowData.flowNodes.find(item => item.nodeId === nodeId).routineExpression
       if (routineExpression) {
-        this.foundRefAry = routineExpression
-          .split(/[~.>()]/)
-          .filter(i => i.length > 0)
+        this.foundRefAry = routineExpression.split(/[~.>()]/).filter(i => i.length > 0)
       } else {
         this.$Message.info(this.$t('no_result'))
         this.targetModalVisible = false
         return
       }
-      this.tartetModels = JSON.parse(
-        JSON.stringify(
-          this.modelData.filter(
-            _ =>
-              this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] ===
-              _.entityName
-          )
-        )
-      )
+      this.tartetModels = JSON.parse(JSON.stringify(this.modelData.filter(_ => this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] === _.entityName)))
       this.targetModalVisible = true
       this.showNodeDetail = false
       this.$nextTick(() => {
         let objData = this.$refs.selection.objData
-        const currentFlow = this.flowData.flowNodes.find(
-          i => i.nodeId === this.currentFlowNodeId
-        )
+        const currentFlow = this.flowData.flowNodes.find(i => i.nodeId === this.currentFlowNodeId)
         this.modelData.forEach(_ => {
           const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo)
           Object.keys(objData).forEach(i => {
