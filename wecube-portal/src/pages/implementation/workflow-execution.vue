@@ -276,6 +276,7 @@ export default {
           }
         })
       })
+      this.catchNodeTableList = []
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
       let { status, data } = await getProcessInstances()
