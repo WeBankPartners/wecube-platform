@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
@@ -46,8 +45,8 @@ public class SimpleLocalRoleManagementController {
     }
 
     @DeleteMapping("/roles/{role-id}")
-    public CommonResponseDto deleteRole(@PathVariable(value = "role-id") String roleId) {
-        roleManagementService.unregisterLocalRole(roleId);
+    public CommonResponseDto unregisterLocalRoleById(@PathVariable(value = "role-id") String roleId) {
+        roleManagementService.unregisterLocalRoleById(roleId);
         return okay();
     }
     
@@ -57,16 +56,16 @@ public class SimpleLocalRoleManagementController {
     }
 
     @PostMapping("/roles/{role-id}/authorities")
-    public CommonResponseDto configureRoleWithAuthorities(@PathVariable(value = "role-id") String roleId,
+    public CommonResponseDto configureRoleWithAuthoritiesById(@PathVariable(value = "role-id") String roleId,
                                                     @RequestBody List<String> authorityIds){
-        roleManagementService.configureRoleWithAuthorities(roleId, authorityIds);
+        roleManagementService.configureRoleWithAuthoritiesById(roleId, authorityIds);
         return okay();
     }
 
     @PostMapping("/roles/{role-id}/authorities/revoke")
-    public CommonResponseDto revokeRoleAuthorities(@PathVariable(value = "role-id") String roleId,
+    public CommonResponseDto revokeRoleAuthoritiesById(@PathVariable(value = "role-id") String roleId,
                                                      @RequestBody List<String> authorityIds)  {
-        roleManagementService.revokeRoleAuthorities(roleId, authorityIds);
+        roleManagementService.revokeRoleAuthoritiesById(roleId, authorityIds);
         return okay();
     }
 }
