@@ -201,7 +201,12 @@
         />
       </p>
       <div style="overflow:auto;">
-        <pre>{{ nodeDetail }}</pre>
+        <!-- <pre>{{ nodeDetail }}</pre> -->
+        <Table
+          :columns="nodeDetailColumns"
+          tooltip="true"
+          :data="nodeDetailData"
+        ></Table>
       </div>
     </Modal>
     <div id="model_graph_detail">
@@ -281,6 +286,20 @@ export default {
           align: 'center'
         }
       ],
+      nodeDetailColumns: [
+        {
+          title: 'inputs',
+          key: 'inputs',
+          render: (h, params) => {
+            return h('div', [h('pre', params.row.inputs.toString())])
+          }
+        },
+        {
+          title: 'outputs',
+          key: 'outputs'
+        }
+      ],
+      nodeDetailData: [],
       currentFailedNodeID: '',
       timer: null,
       modelNodeDetail: {},
@@ -568,6 +587,7 @@ export default {
           this.nodeDetail = data
         }
         this.showNodeDetail = true
+        this.nodeDetailFullscreen = false
       }, 1000)
     },
     modelDetailEnterHandler (e) {
@@ -796,6 +816,7 @@ export default {
       this.flowDetailLeaveHandler()
     },
     flowGraphMouseenterHandler (e) {
+      console.log(123)
       clearTimeout(this.flowDetailTimer)
       this.flowDetailTimer = setTimeout(async () => {
         const found = this.flowData.flowNodes.find(
@@ -809,8 +830,10 @@ export default {
         )
         if (status === 'OK') {
           this.nodeDetail = data
+          this.nodeDetailData = data.requestObjects
         }
         this.showNodeDetail = true
+        this.nodeDetailFullscreen = false
       }, 1000)
     },
     flowDetailEnterHandler (e) {
