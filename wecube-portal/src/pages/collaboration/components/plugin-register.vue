@@ -95,10 +95,10 @@
             <Col span="3" offset="1">
               <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
             </Col>
-            <Col span="3" offset="1">
+            <Col span="8" offset="0">
               <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
             </Col>
-            <Col span="3" offset="5">
+            <Col span="3" offset="1">
               <strong style="font-size:15px;">
                 {{ $t('attribute_type') }}
               </strong>
