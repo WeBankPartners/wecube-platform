@@ -80,6 +80,7 @@ public class OperationEventProcStarter {
         operEventEntity.setUpdatedTime(new Date());
         operEventEntity.setProcDefId(procDefEntity.getId());
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
+        operEventEntity.setProcInstKey(procInst.getProcInstKey());
         
         operationEventRepository.save(operEventEntity);
         
