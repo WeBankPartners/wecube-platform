@@ -52,23 +52,21 @@ public class SimpleLocalRoleManagementController {
     }
     
     @GetMapping("/roles/{role-id}/authorities")
-    public CommonResponseDto retrieveAllRoleAuthoritiesByRoleId(@PathVariable(value = "role-id") String roleId) {
-        return okayWithData(authorityRoleRelationshipService.getAuthoritysByRoleId(roleId));
+    public CommonResponseDto retrieveAllAuthoritiesByRoleId(@PathVariable(value = "role-id") String roleId) {
+        return okayWithData(roleManagementService.retrieveAllAuthoritiesByRoleId(roleId));
     }
 
-    @PostMapping("/roles/{role-id}/authoritys")
-    @ResponseBody
-    public CommonResponseDto grantRoleForAuthoritys(@PathVariable(value = "role-id") String roleId,
-                                                    @RequestBody List<Long> authorityIds) throws Exception {
-        authorityRoleRelationshipService.grantRoleForAuthoritys(roleId, authorityIds);
+    @PostMapping("/roles/{role-id}/authorities")
+    public CommonResponseDto configureRoleWithAuthorities(@PathVariable(value = "role-id") String roleId,
+                                                    @RequestBody List<String> authorityIds){
+        roleManagementService.configureRoleWithAuthorities(roleId, authorityIds);
         return okay();
     }
 
-    @DeleteMapping("/roles/{role-id}/authoritys")
-    @ResponseBody
-    public CommonResponseDto revokeRoleForAuthoritys(@PathVariable(value = "role-id") String roleId,
-                                                     @RequestBody List<Long> authorityIds) throws Exception {
-        authorityRoleRelationshipService.revokeRoleForAuthoritys(roleId, authorityIds);
+    @PostMapping("/roles/{role-id}/authorities/revoke")
+    public CommonResponseDto revokeRoleAuthorities(@PathVariable(value = "role-id") String roleId,
+                                                     @RequestBody List<String> authorityIds)  {
+        roleManagementService.revokeRoleAuthorities(roleId, authorityIds);
         return okay();
     }
 }
