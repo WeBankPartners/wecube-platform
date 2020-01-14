@@ -16,5 +16,5 @@ module.exports = {
   // false: {foo: bar}
   bracketSpacing: true,
   arrowParens: 'avoid',
-  'prettier.printWidth': 100
+  printWidth: 100000
 }
