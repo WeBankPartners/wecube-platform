@@ -15,6 +15,4 @@ public interface UserRepository extends JpaRepository<SysUserEntity, String> {
 
     @Query("select t from SysUserEntity t where t.deleted = false and t.active = true and t.blocked = false")
     List<SysUserEntity> findAllActiveUsers();
-
-    SysUserEntity findByIdAndActive(String id, Boolean active);
 }
