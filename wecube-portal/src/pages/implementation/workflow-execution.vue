@@ -413,6 +413,7 @@ export default {
         if (status === 'OK') {
           this.nodeDetail = data
         }
+        this.nodeDetailFullscreen = false
         this.showNodeDetail = true
       }, 1000)
     },
@@ -607,6 +608,7 @@ export default {
         if (status === 'OK') {
           this.nodeDetail = data
         }
+        this.nodeDetailFullscreen = false
         this.showNodeDetail = true
       }, 1000)
     },
