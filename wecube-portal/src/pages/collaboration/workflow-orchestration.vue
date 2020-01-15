@@ -108,7 +108,7 @@
         </FormItem>
         <FormItem :label="$t('timeout')" prop="timeoutExpression">
           <Select clearable v-model="pluginForm.timeoutExpression">
-            <Option v-for="item in timeSelection" :value="item" :key="item">{{ item }} {{ $t('mins') }}</Option>
+            <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index">{{ item.label }} </Option>
           </Select>
         </FormItem>
         <FormItem :label="$t('description')" prop="description">
@@ -282,7 +282,40 @@ export default {
       serviceTaskBindInfos: [],
       allPlugins: [],
       filteredPlugins: [],
-      timeSelection: ['5', '10', '20', '30', '60'],
+      timeSelection: [
+        {
+          mins: '5',
+          label: '5 ' + this.$t('mins')
+        },
+        {
+          mins: '10',
+          label: '10 ' + this.$t('mins')
+        },
+        {
+          mins: '30',
+          label: '30 ' + this.$t('mins')
+        },
+        {
+          mins: '60',
+          label: '1 ' + this.$t('hours')
+        },
+        {
+          mins: '720',
+          label: '12 ' + this.$t('hours')
+        },
+        {
+          mins: '1440',
+          label: '1 ' + this.$t('days')
+        },
+        {
+          mins: '2880',
+          label: '2 ' + this.$t('days')
+        },
+        {
+          mins: '4320',
+          label: '3 ' + this.$t('days')
+        }
+      ],
       paramsTypes: [
         { value: 'INPUT', label: this.$t('input') },
         { value: 'OUTPUT', label: this.$t('output') }
