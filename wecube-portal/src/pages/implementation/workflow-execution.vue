@@ -136,14 +136,28 @@
         </template>
       </Table>
     </Modal>
-    <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen">
+    <Modal
+      v-model="showNodeDetail"
+      :fullscreen="nodeDetailFullscreen"
+      width="1000"
+      :styles="{ top: '5%' }"
+    >
       <p slot="header">
         <span>{{ nodeTitle }}</span>
         <Icon v-if="!nodeDetailFullscreen" @click="nodeDetailFullscreen = true" class="header-icon" type="ios-expand" />
         <Icon v-else @click="nodeDetailFullscreen = false" class="header-icon" type="ios-contract" />
       </p>
       <div style="overflow:auto;">
-        <pre>{{ nodeDetail }}</pre>
+        <h5>Data:</h5>
+        <div style="margin: 0 6px 6px" v-html="nodeDetailResponseHeader"></div>
+        <!-- <pre>{{ nodeDetail }}</pre> -->
+        <h5>requestObjects:</h5>
+        <Table
+          :columns="nodeDetailColumns"
+          max-height="300"
+          tooltip="true"
+          :data="nodeDetailIO"
+        ></Table>
       </div>
     </Modal>
     <div id="model_graph_detail">
@@ -223,6 +237,46 @@ export default {
           align: 'center'
         }
       ],
+      nodeDetailColumns: [
+        {
+          title: 'inputs',
+          key: 'inputs',
+          render: (h, params) => {
+            const strInput = JSON.stringify(params.row.inputs)
+              .split(',')
+              .join(',<br/>')
+            return h(
+              'div',
+              {
+                domProps: {
+                  innerHTML: `<pre>${strInput}</pre>`
+                }
+              },
+              []
+            )
+          }
+        },
+        {
+          title: 'outputs',
+          key: 'outputs',
+          render: (h, params) => {
+            const strOutput = JSON.stringify(params.row.outputs)
+              .split(',')
+              .join(',<br/>')
+            return h(
+              'div',
+              {
+                domProps: {
+                  innerHTML: `<pre>${strOutput}</pre>`
+                }
+              },
+              []
+            )
+          }
+        }
+      ],
+      nodeDetailIO: [],
+      nodeDetailResponseHeader: null,
       currentFailedNodeID: '',
       timer: null,
       modelNodeDetail: {},
@@ -491,6 +545,7 @@ export default {
         }
         this.nodeDetailFullscreen = false
         this.showNodeDetail = true
+        this.nodeDetailFullscreen = false
       }, 1000)
     },
     modelDetailEnterHandler (e) {
@@ -695,9 +750,18 @@ export default {
         const { status, data } = await getNodeContext(found.procInstId, found.id)
         if (status === 'OK') {
           this.nodeDetail = data
+          this.nodeDetailResponseHeader = JSON.parse(JSON.stringify(data))
+          delete this.nodeDetailResponseHeader.requestObjects
+          this.nodeDetailResponseHeader = JSON.stringify(
+            this.nodeDetailResponseHeader
+          )
+            .split(',')
+            .join(',<br/>')
+          this.nodeDetailIO = data.requestObjects
         }
         this.nodeDetailFullscreen = false
         this.showNodeDetail = true
+        this.nodeDetailFullscreen = false
       }, 1000)
     },
     flowDetailEnterHandler (e) {
