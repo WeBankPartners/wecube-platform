@@ -52,7 +52,7 @@
       </Card>
       <div v-else>
         <a @click="reExcute('displaySearchZone')"
-          >查询 资源实例 中满足以下条件的CI数据对象:</a
+          >{{ $t('bc_query_condition_title') }}:</a
         >
         <ul>
           <li v-for="(sp, spIndex) in searchParameters" :key="spIndex">
@@ -72,14 +72,12 @@
     >
       <div class="we-table">
         <Card v-if="displayResultTableZone">
-          <p slot="title">
-            查询结果：
-          </p>
+          <p slot="title">{{ $t('bc_search_result') }}：</p>
           <Button
             type="primary"
             :disabled="!seletedRows.length"
             @click="batchAction"
-            >批量操作</Button
+            >{{ $t('bc_batch_operation') }}</Button
           >
           <WeTable
             :tableData="tableData"
@@ -91,9 +89,10 @@
           />
         </Card>
         <a v-else @click="reExcute('displayResultTableZone')">
-          找到 {{ tableData.length }} 个资源实例,选择了其中{{
-            seletedRowsNum
-          }}执行{{ serviceId }}
+          {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{
+            $t('bc_selected')
+          }}{{ seletedRowsNum }}{{ $t('bc_item') }},{{ $t('full_word_exec')
+          }}{{ serviceId }}
         </a>
       </div>
     </section>
@@ -102,12 +101,10 @@
       style="margin-top:60px;"
     >
       <Card>
-        <p slot="title">
-          执行结果：
-        </p>
+        <p slot="title">{{ $t('bc_execution_result') }}：</p>
         <Row>
           <Col span="6" class="excute-result excute-result-search">
-            <Input v-model="businessKey" placeholder="请输入条件过滤" />
+            <Input v-model="businessKey" />
             <p class="excute-result-search-title">{{ serviceId }}</p>
             <ul v-if="filterBusinessKeySet.length">
               <li
@@ -123,7 +120,7 @@
                 <span>{{ key }}</span>
               </li>
             </ul>
-            <p v-else>暂无数据</p>
+            <p v-else>No Data</p>
           </Col>
           <Col span="17" class="excute-result excute-result-json">
             <Input
@@ -147,11 +144,11 @@
       v-model="isShowSearchConditions"
       :title="$t('bc_define_query_objects')"
     >
-      <Form :label-width="110">
+      <Form :label-width="130" label-colon>
         <FormItem
           :rules="{ required: true }"
           :show-message="false"
-          label="路径起点:"
+          :label="$t('bc_start_path')"
         >
           <Select
             v-model="selectedEntityType"
@@ -176,7 +173,7 @@
         <FormItem
           :rules="{ required: true }"
           :show-message="false"
-          label="查询路径："
+          :label="$t('bc_query_path')"
         >
           <PathExp
             :rootEntity="selectedEntityType"
@@ -184,13 +181,13 @@
             v-model="dataModelExpression"
           ></PathExp>
         </FormItem>
-        <FormItem label="目标类型：">
+        <FormItem :label="$t('bc_target_type')">
           <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
         </FormItem>
         <FormItem
           :rules="{ required: true }"
           :show-message="false"
-          label="业务主键："
+          :label="$t('bc_primary_key')"
         >
           <Select filterable v-model="currentEntityAttr">
             <Option
@@ -201,7 +198,7 @@
             >
           </Select>
         </FormItem>
-        <FormItem label="查询条件：" class="tree-style">
+        <FormItem :label="$t('bc_query_condition')" class="tree-style">
           <Row>
             <Col span="12">
               <Tree
@@ -212,7 +209,7 @@
               ></Tree>
             </Col>
             <Col span="12" class="tree-checked">
-              <span>已选数据：</span>
+              <span>{{ $t('bc_selected_data') }}：</span>
               <ul>
                 <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
                   <span>
@@ -231,7 +228,7 @@
       </div>
     </Modal>
 
-    <Modal v-model="batchActionModalVisible" title="批量操作">
+    <Modal v-model="batchActionModalVisible" :title="$t('bc_batch_operation')">
       <Form label-position="right" :label-width="150">
         <FormItem
           :label="$t('plugin')"
@@ -255,8 +252,8 @@
             />
             <span v-else>{{
               item.mappingType === 'entity'
-                ? '从CI数据对象获取'
-                : '从系统参数获取'
+                ? $t('bc_from_CI')
+                : $t('bc_from_system')
             }}</span>
           </FormItem>
         </template>
@@ -275,13 +272,15 @@
     <Modal v-model="DelConfig.isDisplay" width="360">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="ios-information-circle"></Icon>
-        <span>确认</span>
+        <span>{{ $t('confirm') }}</span>
       </p>
       <div style="text-align:center">
-        <p>将要清除当前结果，是否继续？</p>
+        <p>{{ $t('bc_warn_del') }}</p>
       </div>
       <div slot="footer">
-        <Button type="warning" size="large" long @click="del">继续</Button>
+        <Button type="warning" size="large" long @click="del">{{
+          $t('bc_continue')
+        }}</Button>
       </div>
     </Modal>
   </div>
@@ -448,7 +447,9 @@ export default {
     },
     saveSearchCondition () {
       if (!this.currentEntityAttr) {
-        this.$Message.warning('业务主键不能为空！')
+        this.$Message.warning(
+          this.$t('bc_primary_key') + this.$t('bc_warn_empty')
+        )
         return
       }
       this.isShowSearchConditions = false
@@ -513,7 +514,7 @@ export default {
           this.displaySearchZone = false
           this.displayResultTableZone = true
         } else {
-          this.$Message.warning('空数据！')
+          this.$Message.warning(this.$t('bc_warn_empty'))
         }
       }
     },
@@ -597,7 +598,6 @@ export default {
 
       const { status, data } = await batchExecution(requestBody)
       this.batchActionModalVisible = false
-      this.$Message.info('执行可能需要一点时间！')
       this.seletedRows = []
       if (status === 'OK') {
         this.excuteResult = data
