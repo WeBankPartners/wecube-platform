@@ -1,7 +1,4 @@
 SET FOREIGN_KEY_CHECKS = 0;
-
-/*Table structure for table `auth_sys_api` */
-
 CREATE TABLE `auth_sys_api` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `created_by` varchar(255) DEFAULT NULL,
@@ -127,8 +124,6 @@ CREATE TABLE `auth_sys_role` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `auth_sys_sub_system` */
-
 CREATE TABLE `auth_sys_sub_system` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `created_by` varchar(255) DEFAULT NULL,
@@ -144,9 +139,6 @@ CREATE TABLE `auth_sys_sub_system` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
-
-/*Table structure for table `auth_sys_user` */
-
 CREATE TABLE `auth_sys_user` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `created_by` varchar(255) DEFAULT NULL,
@@ -159,8 +151,6 @@ CREATE TABLE `auth_sys_user` (
   `username` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
-
-/*Table structure for table `auth_sys_user_role` */
 
 CREATE TABLE `auth_sys_user_role` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -175,6 +165,8 @@ CREATE TABLE `auth_sys_user_role` (
   KEY `FKg3oaag8htwje9luu0986eoju1` (`role_id`),
   CONSTRAINT `FKg3oaag8htwje9luu0986eoju1` FOREIGN KEY (`role_id`) REFERENCES `auth_sys_role` (`id`),
   CONSTRAINT `FKpll9es009p59gcxh1e68wp6jc` FOREIGN KEY (`user_id`) REFERENCES `auth_sys_user` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
+
+
 
 SET FOREIGN_KEY_CHECKS = 1;
