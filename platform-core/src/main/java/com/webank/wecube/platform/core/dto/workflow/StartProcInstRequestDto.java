@@ -40,4 +40,28 @@ public class StartProcInstRequestDto {
     public void setTaskNodeBinds(List<TaskNodeDefObjectBindInfoDto> taskNodeBinds) {
         this.taskNodeBinds = taskNodeBinds;
     }
+    
+    public StartProcInstRequestDto addAllTaskNodeDefObjectBindInfos(List<TaskNodeDefObjectBindInfoDto> dtos){
+        if(dtos == null){
+            return this;
+        }
+        
+        for(TaskNodeDefObjectBindInfoDto dto : dtos){
+            if(dto != null){
+                this.taskNodeBinds.add(dto);
+            }
+        }
+        
+        return this;
+    }
+    
+    public StartProcInstRequestDto addTaskNodeDefObjectBindInfos(TaskNodeDefObjectBindInfoDto ...bindInfoDtos ){
+        for(TaskNodeDefObjectBindInfoDto dto : bindInfoDtos){
+            if(dto != null){
+                this.taskNodeBinds.add(dto);
+            }
+        }
+        
+        return this;
+    }
 }
