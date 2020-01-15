@@ -49,9 +49,8 @@ public class LocalUserServiceImpl implements LocalUserService {
             ca.setAuthority(role.getName());
             ca.setAuthorityType("role");
             
+            user.addCompositeAuthority(ca);
             appendAuthorities(user, role);
-
-            
         }
 
         return user;
