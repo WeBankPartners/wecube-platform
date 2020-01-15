@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,7 +24,8 @@ public class PluginServiceStub {
     private static final Logger log = LoggerFactory.getLogger(PluginServiceStub.class);
 
     @Autowired
-    RestTemplate restTemplate;
+    @Qualifier(value = "jwtSsoRestTemplate")
+    private RestTemplate jwtSsoRestTemplate;
 
     private static final String INF_RELEASED_PACKAGE_LIST_DIR = "/v1/deploy/released-package/listCurrentDir";
     private static final String INF_RELEASED_PACKAGE_PROPERTY_KEY = "/v1/deploy/released-package/getConfigFileKey";
@@ -53,7 +55,7 @@ public class PluginServiceStub {
             PluginRequest<Map<String, Object>> request) {
         String targetUrl = asPluginServerUrl(instanceAddress, INF_RUN_SCRIPT_PATH);
         log.info(targetUrl);
-        PluginResponse<PluginRunScriptOutput> response = restTemplate.postForObject(targetUrl, request,
+        PluginResponse<PluginRunScriptOutput> response = jwtSsoRestTemplate.postForObject(targetUrl, request,
                 PluginRunScriptResponse.class);
         validatePluginResponse(response, false);
         return response.getResultData();
@@ -67,7 +69,7 @@ public class PluginServiceStub {
 
     private ResultData<Object> callPluginInterface(String targetUrl, PluginRequest<?> parameters) {
         log.info("About to call {} with parameters: {} ", targetUrl, parameters);
-        PluginResponse<Object> response = restTemplate.postForObject(targetUrl, parameters,
+        PluginResponse<Object> response = jwtSsoRestTemplate.postForObject(targetUrl, parameters,
                 DefaultPluginResponse.class);
         log.info("Plugin response: {} ", response);
         validatePluginResponse(response, false);
