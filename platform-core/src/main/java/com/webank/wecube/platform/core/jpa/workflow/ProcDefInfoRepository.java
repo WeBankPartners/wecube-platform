@@ -28,6 +28,9 @@ public interface ProcDefInfoRepository extends JpaRepository<ProcDefInfoEntity, 
     @Query("select t from ProcDefInfoEntity t " + " where t.procDefName = :procDefName and t.active = true "
             + " and t.status = 'deployed' and t.deleted = false ")
     List<ProcDefInfoEntity> findAllDeployedProcDefsByProcDefName(@Param("procDefName") String procDefName);
+    
+    @Query("select t from ProcDefInfoEntity t " + " where t.active = true and t.deleted = false and t.procDefKey = :procDefKey and t.status = :status")
+    List<ProcDefInfoEntity> findAllDeployedProcDefsByProcDefKey(@Param("procDefKey") String procDefKey, @Param("status") String status);
 
     // @Transactional
     // @Modifying
