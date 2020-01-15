@@ -3,10 +3,12 @@ package com.webank.wecube.platform.auth.server.service.impl;
 import java.util.List;
 import java.util.Optional;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.auth.server.entity.RoleAuthorityRsEntity;
+
 import com.webank.wecube.platform.auth.server.entity.SysAuthorityEntity;
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
@@ -16,6 +18,7 @@ import com.webank.wecube.platform.auth.server.model.SysUser;
 import com.webank.wecube.platform.auth.server.repository.AuthorityRepository;
 import com.webank.wecube.platform.auth.server.repository.RoleAuthorityRsRepository;
 import com.webank.wecube.platform.auth.server.repository.RoleRepository;
+
 import com.webank.wecube.platform.auth.server.repository.UserRepository;
 import com.webank.wecube.platform.auth.server.repository.UserRoleRsRepository;
 import com.webank.wecube.platform.auth.server.service.LocalUserService;
@@ -114,6 +117,7 @@ public class LocalUserServiceImpl implements LocalUserService {
             authorityObject.setAuthority(authority.getCode());
             authorityObject.setAuthorityType(CompositeAuthority.AUTHORITY_TYPE_PERMISSION);
             user.addCompositeAuthority(authorityObject);
+
         }
     }
 
