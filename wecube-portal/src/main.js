@@ -6,7 +6,6 @@ import App from './App.vue'
 import router from './router'
 
 import ViewUI from 'view-design'
-// import style
 import 'view-design/dist/styles/iview.css'
 
 import VueI18n from 'vue-i18n'
@@ -133,7 +132,6 @@ router.beforeEach((to, from, next) => {
   if (!found) {
     window.location.href = window.location.origin + '#/homepage'
     next('/homepage')
-    // next()
   } else {
     if (window.myMenus) {
       let isHasPermission = []
