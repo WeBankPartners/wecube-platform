@@ -1,44 +1,42 @@
 package com.webank.wecube.platform.core.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
-import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import com.webank.wecube.platform.core.service.user.UserManagementService;
 
 /**
  * @author howechen
  */
 @RestController
-@RequestMapping("v1/")
+@RequestMapping("/v1")
 public class UserManagementController {
-    private UserManagementServiceImpl userManagementService;
+    @Autowired
+    private UserManagementService userManagementService;
+    @Autowired
     private RoleMenuServiceImpl roleMenuService;
 
-    @Autowired
-    public UserManagementController(UserManagementServiceImpl userManagementService, RoleMenuServiceImpl roleMenuService) {
-        this.userManagementService = userManagementService;
-        this.roleMenuService = roleMenuService;
-    }
-
     @PostMapping("/users/create")
-    @ResponseBody
-    public CommonResponseDto createUser(@RequestHeader(value = "Authorization") String token,
-                                        @RequestBody Map<String, Object> requestBody) {
-        try {
-            return userManagementService.createUser(token, requestBody);
-        } catch (WecubeCoreException ex) {
-            return CommonResponseDto.error(ex.getMessage());
-        }
+    public CommonResponseDto registerUser(@RequestBody UserDto userDto) {
+        UserDto result = userManagementService.registerUser(userDto);
+        return CommonResponseDto.okayWithData(result);
 
     }
 
     @GetMapping("/users/retrieve")
-    @ResponseBody
     public CommonResponseDto retrieveUser(@RequestHeader(value = "Authorization") String token) {
         try {
             return userManagementService.retrieveUser(token);
@@ -48,7 +46,6 @@ public class UserManagementController {
     }
 
     @DeleteMapping("/users/{user-id}/delete")
-    @ResponseBody
     public CommonResponseDto deleteUser(@RequestHeader(value = "Authorization") String token,
                                         @PathVariable("user-id") Long id) {
         try {
@@ -69,7 +66,6 @@ public class UserManagementController {
     }
 
     @GetMapping("/users/{user-name}/roles")
-    @ResponseBody
     public CommonResponseDto getRolesByUsername(@RequestHeader(value = "Authorization") String token,
                                                 @PathVariable(value = "user-name") String userName) {
         try {
@@ -80,7 +76,6 @@ public class UserManagementController {
     }
 
     @GetMapping("/users/{user-name}/menus")
-    @ResponseBody
     public CommonResponseDto getMenusByUsername(@RequestHeader(value = "Authorization") String token,
                                                 @PathVariable(value = "user-name") String userName) {
         try {
