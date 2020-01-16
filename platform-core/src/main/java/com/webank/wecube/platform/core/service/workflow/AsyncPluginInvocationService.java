@@ -369,11 +369,12 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
         TaskNodeExecParamEntity callbackParameterInputEntity = null;
         if (StringUtils.isNotBlank(callbackParameter)) {
-            callbackParameterInputEntity = taskNodeExecParamRepository.findOneByRequestIdAndParamTypeAndParamNameAndValue(
-                    requestId, TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
+            callbackParameterInputEntity = taskNodeExecParamRepository
+                    .findOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
+                            TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
         }
-        
-        if(callbackParameterInputEntity != null){
+
+        if (callbackParameterInputEntity != null) {
             objectId = callbackParameterInputEntity.getObjectId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
@@ -400,7 +401,8 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
             paramEntity.setParamDataType(paramDataType);
-            paramEntity.setParamDataValue(asString(entry.getValue(), paramDataType));
+            paramEntity.setParamDataValue(
+                    trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE));
             paramEntity.setRequestId(requestId);
 
             taskNodeExecParamRepository.save(paramEntity);
