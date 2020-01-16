@@ -10,19 +10,13 @@ const req = axios.create({
 const throwError = res => {
   Vue.prototype.$Notice.warning({
     title: 'Error',
-    desc:
-      (res.data &&
-        'status:' + res.data.status + '<br/> message:' + res.data.message) ||
-      'error'
+    desc: (res.data && 'status:' + res.data.status + '<br/> message:' + res.data.message) || 'error'
   })
 }
 const throwInfo = res => {
   Vue.prototype.$Notice.info({
     title: 'Info',
-    desc:
-      (res.data &&
-        'status:' + res.data.status + '<br/> message:' + res.data.message) ||
-      'error'
+    desc: (res.data && 'status:' + res.data.status + '<br/> message:' + res.data.message) || 'error'
   })
 }
 
@@ -40,17 +34,13 @@ req.interceptors.request.use(
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization:
-                'Bearer ' +
-                token.find(t => t.tokenType === 'refreshToken').token
+              Authorization: 'Bearer ' + token.find(t => t.tokenType === 'refreshToken').token
             }
           })
           refreshRequest.then(
             res => {
               session.setItem('token', JSON.stringify(res.data.data))
-              config.headers.Authorization =
-                'Bearer ' +
-                res.data.data.find(t => t.tokenType === 'accessToken').token
+              config.headers.Authorization = 'Bearer ' + res.data.data.find(t => t.tokenType === 'accessToken').token
               refreshRequest = null
               resolve(config)
             },
@@ -66,9 +56,7 @@ req.interceptors.request.use(
           refreshRequest.then(
             res => {
               session.setItem('token', JSON.stringify(res.data.data))
-              config.headers.Authorization =
-                'Bearer ' +
-                res.data.data.find(t => t.tokenType === 'accessToken').token
+              config.headers.Authorization = 'Bearer ' + res.data.data.find(t => t.tokenType === 'accessToken').token
               refreshRequest = null
               resolve(config)
             },
