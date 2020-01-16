@@ -5,9 +5,7 @@
         <div class="search-zone">
           <Form :label-width="170" label-colon>
             <FormItem :label="$t('bc_define_query_objects')">
-              <a @click="setSearchConditions"
-                >{{ $t('bc_define_query_objects') }}...</a
-              >
+              <a @click="setSearchConditions">{{ $t('bc_define_query_objects') }}...</a>
             </FormItem>
             <FormItem :label="$t('bc_query_path')">
               <span v-if="dataModelExpression != ':'">
@@ -29,22 +27,15 @@
           </Form>
         </div>
         <div class="search-btn">
-          <Button
-            type="primary"
-            :disabled="!(!!currentPackageName && !!currentEntityName)"
-            @click="excuteSearch"
-            >{{ $t('bc_execute_query') }}</Button
-          >
-          <Button @click="clearParametes">{{
-            $t('bc_clear_condition')
+          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch">{{
+            $t('bc_execute_query')
           }}</Button>
+          <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
           <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
         </div>
       </Card>
       <div v-else>
-        <a @click="reExcute('displaySearchZone')"
-          >{{ $t('bc_query_condition_title') }}:</a
-        >
+        <a @click="reExcute('displaySearchZone')">{{ $t('bc_query_condition_title') }}:</a>
         <ul>
           <li v-for="(sp, spIndex) in searchParameters" :key="spIndex">
             <span> {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{ sp.value }}] </span>
@@ -56,12 +47,9 @@
       <div class="we-table">
         <Card v-if="displayResultTableZone">
           <p slot="title">{{ $t('bc_search_result') }}：</p>
-          <Button
-            type="primary"
-            :disabled="!seletedRows.length"
-            @click="batchAction"
-            >{{ $t('bc_batch_operation') }}</Button
-          >
+          <Button type="primary" :disabled="!seletedRows.length" @click="batchAction">{{
+            $t('bc_batch_operation')
+          }}</Button>
           <WeTable
             :tableData="tableData"
             :tableOuterActions="[]"
@@ -72,10 +60,8 @@
           />
         </Card>
         <a v-else @click="reExcute('displayResultTableZone')">
-          {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{
-            $t('bc_selected')
-          }}{{ seletedRowsNum }}{{ $t('bc_item') }},{{ $t('full_word_exec')
-          }}{{ serviceId }}
+          {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected') }}{{ seletedRowsNum
+          }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ serviceId }}
         </a>
       </div>
     </section>
@@ -116,23 +102,10 @@
         </Row>
       </Card>
     </section>
-    <Modal
-      :width="700"
-      v-model="isShowSearchConditions"
-      :title="$t('bc_define_query_objects')"
-    >
+    <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
       <Form :label-width="130" label-colon>
-        <FormItem
-          :rules="{ required: true }"
-          :show-message="false"
-          :label="$t('bc_start_path')"
-        >
-          <Select
-            v-model="selectedEntityType"
-            ref="select"
-            filterable
-            @on-change="changeEntityType"
-          >
+        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_start_path')">
+          <Select v-model="selectedEntityType" ref="select" filterable @on-change="changeEntityType">
             <OptionGroup
               :label="pluginPackage.packageName"
               v-for="(pluginPackage, index) in allEntityType"
@@ -147,11 +120,7 @@
             </OptionGroup>
           </Select>
         </FormItem>
-        <FormItem
-          :rules="{ required: true }"
-          :show-message="false"
-          :label="$t('bc_query_path')"
-        >
+        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
           <PathExp
             :rootEntity="selectedEntityType"
             :allDataModelsWithAttrs="allEntityType"
@@ -161,11 +130,7 @@
         <FormItem :label="$t('bc_target_type')">
           <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
         </FormItem>
-        <FormItem
-          :rules="{ required: true }"
-          :show-message="false"
-          :label="$t('bc_primary_key')"
-        >
+        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
           <Select filterable v-model="currentEntityAttr">
             <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
@@ -206,15 +171,8 @@
         </FormItem>
         <template v-for="(item, index) in selectedPluginParams">
           <FormItem :label="item.name" :key="index">
-            <Input
-              v-if="item.mappingType === 'constant'"
-              v-model="item.bindValue"
-            />
-            <span v-else>{{
-              item.mappingType === 'entity'
-                ? $t('bc_from_CI')
-                : $t('bc_from_system')
-            }}</span>
+            <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
+            <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
           </FormItem>
         </template>
       </Form>
@@ -234,9 +192,7 @@
         <p>{{ $t('bc_warn_del') }}</p>
       </div>
       <div slot="footer">
-        <Button type="warning" size="large" long @click="del">{{
-          $t('bc_continue')
-        }}</Button>
+        <Button type="warning" size="large" long @click="del">{{ $t('bc_continue') }}</Button>
       </div>
     </Modal>
   </div>
@@ -403,9 +359,7 @@ export default {
     },
     saveSearchCondition () {
       if (!this.currentEntityAttr) {
-        this.$Message.warning(
-          this.$t('bc_primary_key') + this.$t('bc_warn_empty')
-        )
+        this.$Message.warning(this.$t('bc_primary_key') + this.$t('bc_warn_empty'))
         return
       }
       this.isShowSearchConditions = false
@@ -578,7 +532,6 @@ export default {
   border-color: #dcdee2 !important;
 }
 textarea:focus {
-  // outline: none;
   outline: #96c5f7 solid 1px;
 }
 .tree-checked {
@@ -601,7 +554,6 @@ textarea:focus {
   .excute-result-search-title {
     margin-top: 16px;
     font-size: 16px;
-    // font-weight: 500;
   }
   ul {
     margin: 4px 0;
