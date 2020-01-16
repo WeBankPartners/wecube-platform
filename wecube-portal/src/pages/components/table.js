@@ -55,9 +55,7 @@ export default {
             }
           }
         })
-        this.showedColumns = this.tableColumns
-          .filter(_ => _.isDisplayed || _.displaySeqNo)
-          .map(column => column.title)
+        this.showedColumns = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo).map(column => column.title)
       },
       deep: true,
       immediate: true
@@ -105,9 +103,7 @@ export default {
         objData[obj]._isDisabled = false
       }
       this.selectedRows.forEach(_ => {
-        const index = this.data.findIndex(
-          el => el.weTableRowId === _.weTableRowId
-        )
+        const index = this.data.findIndex(el => el.weTableRowId === _.weTableRowId)
         objData[index]._isChecked = true
         objData[index]._isDisabled = disable
       })
@@ -137,8 +133,7 @@ export default {
         return {
           ..._,
           weTableRowId: index + 1,
-          isRowEditable:
-            _.isRowEditable && index === 0 ? _.isRowEditable : false,
+          isRowEditable: _.isRowEditable && index === 0 ? _.isRowEditable : false,
           weTableForm: { ..._ }
         }
       })
@@ -150,10 +145,7 @@ export default {
             !Array.isArray(_['weTableForm'][i])
           ) {
             _[i] = _['weTableForm'][i].codeId || _['weTableForm'][i].guid
-            _['weTableForm'][i] =
-              _['weTableForm'][i].value ||
-              _['weTableForm'][i].key_name ||
-              _['weTableForm'][i].name
+            _['weTableForm'][i] = _['weTableForm'][i].value || _['weTableForm'][i].key_name || _['weTableForm'][i].name
           } else {
             if (Array.isArray(_['weTableForm'][i]) && i !== 'nextOperations') {
               _['weTableForm'][i] = _['weTableForm'][i]
@@ -276,17 +268,12 @@ export default {
           })
         }
 
-        let columnsTitles = this.tableColumns
-          .filter(_ => _.isDisplayed || _.displaySeqNo)
-          .map(column => column.title)
+        let columnsTitles = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo).map(column => column.title)
 
         return this.tableOuterActions.map(_ => {
           if (_.actionType === 'filterColumns') {
             return (
-              <Poptip
-                placement="bottom"
-                style="float: right;margin-right: 10px"
-              >
+              <Poptip placement="bottom" style="float: right;margin-right: 10px">
                 <Tooltip content={this.$t('filter_columns')} placement="top">
                   <Button {..._} />
                 </Tooltip>
@@ -347,19 +334,7 @@ export default {
                 filterable
                 clearable
                 {...data}
-                options={
-                  item.optionKey
-                    ? this.ascOptions[this.form[item.optionKey]]
-                    : item.options
-                }
-              />
-            )
-          case 'RefSelect':
-            return (
-              <item.component
-                onInput={v => (this.form[item.inputKey] = v)}
-                value={this.form[item.inputKey]}
-                {...data}
+                options={item.optionKey ? this.ascOptions[this.form[item.optionKey]] : item.options}
               />
             )
           default:
@@ -376,11 +351,7 @@ export default {
         <Col
           span={item.span || 3}
           class={
-            index < DEFAULT_FILTER_NUMBER
-              ? ''
-              : this.isShowHiddenFilters
-                ? 'hidden-filters-show'
-                : 'hidden-filters'
+            index < DEFAULT_FILTER_NUMBER ? '' : this.isShowHiddenFilters ? 'hidden-filters-show' : 'hidden-filters'
           }
         >
           <FormItem label={item.title} prop={item.inputKey} key={item.inputKey}>
@@ -425,8 +396,7 @@ export default {
               })}
             <Col span={6}>
               <div style="display: flex; margin-bottom: 20px">
-                {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare)
-                  .length > DEFAULT_FILTER_NUMBER &&
+                {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER &&
                   (!this.isShowHiddenFilters ? (
                     <FormItem style="position: relative; bottom: -22px;">
                       <Button
@@ -458,11 +428,7 @@ export default {
                   ))}
 
                 <FormItem style="position: relative; bottom: -22px;">
-                  <Button
-                    type="primary"
-                    icon="ios-search"
-                    onClick={() => this.handleSubmit('form')}
-                  >
+                  <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
                     {this.$t('search')}
                   </Button>
                 </FormItem>
@@ -513,20 +479,14 @@ export default {
         }
         return 0
       }
-      const columns = this.tableColumns
-        .filter(_ => _.isDisplayed || _.displaySeqNo || _.children)
-        .sort(compare)
-      const tableWidth = this.$refs.table
-        ? this.$refs.table.$el.clientWidth
-        : 1000 // 获取table宽度，默认值1000
+      const columns = this.tableColumns.filter(_ => _.isDisplayed || _.displaySeqNo || _.children).sort(compare)
+      const tableWidth = this.$refs.table ? this.$refs.table.$el.clientWidth : 1000 // 获取table宽度，默认值1000
       const colLength = columns.length // 获取传入展示的column长度
       this.colWidth = Math.floor(tableWidth / colLength)
       this.columns = columns.map((_, idx) => {
         const isLast = colLength - 1 === idx
         if (_.children) {
-          const children = _.children
-            .filter(_ => _.isDisplayed || _.displaySeqNo)
-            .sort(compare)
+          const children = _.children.filter(_ => _.isDisplayed || _.displaySeqNo).sort(compare)
           return {
             ..._,
             children: children.map((j, index) => {
@@ -561,9 +521,8 @@ export default {
                   if (
                     _.visible
                       ? _.visible.key === 'nextOperations'
-                        ? !!params.row[_.visible.key].find(
-                          op => op === _.actionType
-                        ) && _.visible.value === !params.row['isRowEditable']
+                        ? !!params.row[_.visible.key].find(op => op === _.actionType) &&
+                          _.visible.value === !params.row['isRowEditable']
                         : _.visible.value === !!params.row[_.visible.key]
                       : true
                   ) {
@@ -610,11 +569,7 @@ export default {
         tooltip: true,
         // maxWidth: 500,
         minWidth: MIN_WIDTH,
-        width: isLastCol
-          ? null
-          : this.colWidth < MIN_WIDTH
-            ? MIN_WIDTH
-            : this.colWidth, // 除最后一列，都加上默认宽度，等宽
+        width: isLastCol ? null : this.colWidth < MIN_WIDTH ? MIN_WIDTH : this.colWidth, // 除最后一列，都加上默认宽度，等宽
         resizable: !isLastCol, // 除最后一列，该属性都为true
         sortable: this.isSortable ? 'custom' : false,
         render: (h, params) => {
@@ -662,15 +617,9 @@ export default {
                       params: params.row
                     }
                     : null,
-                  ciType:
-                      params.column.component === 'refSelect'
-                        ? params.column.ciType
-                        : null,
+                  ciType: params.column.component === 'refSelect' ? params.column.ciType : null,
                   ...params.column,
-                  type:
-                      params.column.component === 'DatePicker'
-                        ? 'date'
-                        : params.column.type,
+                  type: params.column.component === 'DatePicker' ? 'date' : params.column.type,
                   guid: params.row.guid ? params.row.guid : '123'
                 }
             const fun =
@@ -694,14 +643,10 @@ export default {
             let content = ''
             if (Array.isArray(params.row.weTableForm[col.key])) {
               if (params.column.inputType === 'multiSelect') {
-                content = params.row.weTableForm[col.key]
-                  .map(_ => _.value)
-                  .toString()
+                content = params.row.weTableForm[col.key].map(_ => _.value).toString()
               }
               if (params.column.inputType === 'multiRef') {
-                content = params.row.weTableForm[col.key]
-                  .map(_ => _.key_name)
-                  .toString()
+                content = params.row.weTableForm[col.key].map(_ => _.key_name).toString()
               }
             } else {
               content = params.row.weTableForm[col.key]
@@ -721,17 +666,7 @@ export default {
               <Tooltip {...d}>
                 <div class="ivu-table-cell-tooltip ivu-tooltip">
                   <div class="ivu-tooltip-rel">
-                    <span class="ivu-table-cell-tooltip-content">
-                      {content}{' '}
-                      {params.column.propertyName === 'orchestration' &&
-                        this.$route.name === 'workflowExecution' && (
-                        <orchestration
-                          onHandleSubmit={this.handleSubmit}
-                          col={params.column}
-                          row={params.row}
-                        />
-                      )}
-                    </span>
+                    <span class="ivu-table-cell-tooltip-content">{content}</span>
                   </div>
                 </div>
               </Tooltip>

@@ -36,6 +36,7 @@ import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
+import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
@@ -74,6 +75,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private TaskNodeExecRequestRepository taskNodeExecRequestRepository;
+    
+    @Autowired
+    private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
 
     public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
@@ -107,6 +111,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
             }
         }
+        
+        workflowProcInstEndEventNotifier.notify(WorkflowNotifyEvent.PROCESS_INSTANCE_END, cmd, procInstEntity);
 
     }
 
@@ -623,8 +629,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String originalStatus = taskNodeInstEntity.getStatus();
             taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.IN_PROGRESS_STATUS);
             taskNodeInstEntity.setUpdatedTime(currTime);
-            
-            if(StringUtils.isNotBlank(taskNodeInstEntity.getErrorMessage())){
+
+            if (StringUtils.isNotBlank(taskNodeInstEntity.getErrorMessage())) {
                 taskNodeInstEntity.setErrorMessage("");
             }
 
@@ -635,7 +641,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             taskNodeInstInfoRepository.save(taskNodeInstEntity);
         }
-        
+
         TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
                 .findCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
 
@@ -942,7 +948,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
             paramEntity.setParamDataType(paramDataType);
-            paramEntity.setParamDataValue(asString(entry.getValue(), paramDataType));
+            paramEntity.setParamDataValue(
+                    trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE));
             paramEntity.setRequestId(requestId);
 
             taskNodeExecParamRepository.save(paramEntity);

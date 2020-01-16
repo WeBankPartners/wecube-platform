@@ -3,39 +3,22 @@
     <Row style="margin-bottom: 10px">
       <Col span="7">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
-        <Select
-          clearable
-          v-model="selectedFlow"
-          style="width: 70%"
-          @on-open-change="getAllFlows"
-          filterable
-        >
+        <Select clearable v-model="selectedFlow" style="width: 70%" @on-open-change="getAllFlows" filterable>
           <Option
             v-for="item in allFlows"
             :value="item.procDefId"
             :key="item.procDefId"
-            :label="
-              (item.procDefName || 'Null') +
-                ' ' +
-                item.createdTime +
-                (item.status === 'draft' ? '*' : '')
-            "
+            :label="(item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')"
           >
             <span>{{
-              (item.procDefName || 'Null') +
-                ' ' +
-                item.createdTime +
-                (item.status === 'draft' ? '*' : '')
+              (item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')
             }}</span>
             <span style="float:right">
               <Button
                 @click="
                   showDeleteConfirm(
                     item.procDefId,
-                    (item.procDefName || 'Null') +
-                      ' ' +
-                      item.createdTime +
-                      (item.status === 'draft' ? '*' : '')
+                    (item.procDefName || 'Null') + ' ' + item.createdTime + (item.status === 'draft' ? '*' : '')
                   )
                 "
                 icon="ios-trash"
@@ -44,35 +27,16 @@
               ></Button>
             </span>
             <span style="float:right;margin-right: 10px">
-              <Button
-                @click="setFlowPermission(item.procDefId)"
-                icon="ios-build"
-                type="primary"
-                size="small"
-              ></Button>
+              <Button @click="setFlowPermission(item.procDefId)" icon="ios-build" type="primary" size="small"></Button>
             </span>
           </Option>
         </Select>
-        <Button
-          @click="createNewDiagram()"
-          icon="md-add"
-          type="success"
-        ></Button>
+        <Button @click="createNewDiagram()" icon="md-add" type="success"></Button>
       </Col>
       <Col span="8" offset="1">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <Select
-          @on-change="onEntitySelect"
-          v-model="currentSelectedEntity"
-          filterable
-          clearable
-          style="width: 70%"
-        >
-          <OptionGroup
-            :label="pluginPackage.packageName"
-            v-for="(pluginPackage, index) in allEntityType"
-            :key="index"
-          >
+        <Select @on-change="onEntitySelect" v-model="currentSelectedEntity" filterable clearable style="width: 70%">
+          <OptionGroup :label="pluginPackage.packageName" v-for="(pluginPackage, index) in allEntityType" :key="index">
             <Option
               v-for="item in pluginPackage.pluginPackageEntities"
               :value="pluginPackage.packageName + ':' + item.name"
@@ -119,12 +83,7 @@
       </ul>
     </div>
     <Modal v-model="pluginModalVisible" :title="$t('config_plugin')" width="40">
-      <Form
-        ref="pluginConfigForm"
-        :model="pluginForm"
-        label-position="right"
-        :label-width="150"
-      >
+      <Form ref="pluginConfigForm" :model="pluginForm" label-position="right" :label-width="150">
         <FormItem :label="$t('locate_rules')" prop="routineExpression">
           <PathExp
             v-if="pluginModalVisible"
@@ -139,24 +98,17 @@
             filterable
             clearable
             v-model="pluginForm.serviceId"
-            @on-open-change="
-              getFilteredPluginInterfaceList(pluginForm.routineExpression)
-            "
+            @on-open-change="getFilteredPluginInterfaceList(pluginForm.routineExpression)"
             @on-change="getPluginInterfaceList(false)"
           >
-            <Option
-              v-for="(item, index) in filteredPlugins"
-              :value="item.serviceName"
-              :key="index"
-              >{{ item.serviceDisplayName }}</Option
-            >
+            <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+              item.serviceDisplayName
+            }}</Option>
           </Select>
         </FormItem>
         <FormItem :label="$t('timeout')" prop="timeoutExpression">
           <Select clearable v-model="pluginForm.timeoutExpression">
-            <Option v-for="item in timeSelection" :value="item" :key="item"
-              >{{ item }} {{ $t('mins') }}</Option
-            >
+            <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index">{{ item.label }} </Option>
           </Select>
         </FormItem>
         <FormItem :label="$t('description')" prop="description">
@@ -176,12 +128,7 @@
             @on-change="onParamsNodeChange(index)"
             @on-open-change="getFlowsNodes"
           >
-            <Option
-              v-for="(i, index) in currentflowsNodes"
-              :value="i.nodeId"
-              :key="index"
-              >{{ i.nodeName }}</Option
-            >
+            <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
           </Select>
           <Select
             v-model="item.bindParamType"
@@ -189,29 +136,16 @@
             style="width:30%"
             @on-change="onParamsNodeChange(index)"
           >
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{
-              i.label
-            }}</Option>
+            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
           </Select>
-          <Select
-            v-if="item.bindType === 'context'"
-            v-model="item.bindParamName"
-            style="width:30%"
-          >
-            <Option
-              v-for="i in item.currentParamNames"
-              :value="i.name"
-              :key="i.name"
-              >{{ i.name }}</Option
-            >
+          <Select v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
+            <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
           </Select>
           <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
-          $t('confirm')
-        }}</Button>
+        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{ $t('confirm') }}</Button>
       </div>
     </Modal>
     <Modal
@@ -288,20 +222,7 @@ import {
 } from '@/api/server.js'
 
 function setCTM (node, m) {
-  var mstr =
-    'matrix(' +
-    m.a +
-    ',' +
-    m.b +
-    ',' +
-    m.c +
-    ',' +
-    m.d +
-    ',' +
-    m.e +
-    ',' +
-    m.f +
-    ')'
+  var mstr = 'matrix(' + m.a + ',' + m.b + ',' + m.c + ',' + m.d + ',' + m.e + ',' + m.f + ')'
   node.setAttribute('transform', mstr)
 }
 
@@ -361,7 +282,40 @@ export default {
       serviceTaskBindInfos: [],
       allPlugins: [],
       filteredPlugins: [],
-      timeSelection: ['5', '10', '20', '30', '60'],
+      timeSelection: [
+        {
+          mins: '5',
+          label: '5 ' + this.$t('mins')
+        },
+        {
+          mins: '10',
+          label: '10 ' + this.$t('mins')
+        },
+        {
+          mins: '30',
+          label: '30 ' + this.$t('mins')
+        },
+        {
+          mins: '60',
+          label: '1 ' + this.$t('hours')
+        },
+        {
+          mins: '720',
+          label: '12 ' + this.$t('hours')
+        },
+        {
+          mins: '1440',
+          label: '1 ' + this.$t('days')
+        },
+        {
+          mins: '2880',
+          label: '2 ' + this.$t('days')
+        },
+        {
+          mins: '4320',
+          label: '3 ' + this.$t('days')
+        }
+      ],
       paramsTypes: [
         { value: 'INPUT', label: this.$t('input') },
         { value: 'OUTPUT', label: this.$t('output') }
@@ -386,7 +340,7 @@ export default {
         if (val) {
           setTimeout(() => {
             this.selectedFlow = val
-          }, 200)
+          }, 0)
         }
       }
     }
@@ -507,10 +461,7 @@ export default {
     async getFilteredPluginInterfaceList (path) {
       const pathList = path.split(/[~)>]/)
       const last = pathList[pathList.length - 1].split(':')
-      const { status, data } = await getFilteredPluginInterfaceList(
-        last[0],
-        last[1]
-      )
+      const { status, data } = await getFilteredPluginInterfaceList(last[0], last[1])
       if (status === 'OK') {
         this.filteredPlugins = data
       }
@@ -655,14 +606,10 @@ export default {
           },
           procDefData: xmlString,
           procDefId: (_this.currentFlow && _this.currentFlow.procDefId) || '',
-          procDefKey: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ''
-            : _this.newFlowID,
+          procDefKey: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : _this.newFlowID,
           procDefName: processName,
           rootEntity: _this.currentSelectedEntity,
-          status: isDraft
-            ? (_this.currentFlow && _this.currentFlow.procDefKey) || ''
-            : '',
+          status: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : '',
           taskNodeInfos: _this.serviceTaskBindInfos
         }
 
@@ -674,6 +621,7 @@ export default {
                 desc: data.message
               })
               _this.getAllFlows(true)
+              _this.selectedFlow = data.data.procDefId
               _this.temporaryFlow = data.data.procDefId
             }
           })
@@ -684,6 +632,7 @@ export default {
                 desc: data.message
               })
               _this.getAllFlows(true)
+              _this.selectedFlow = data.data.procDefId
               _this.temporaryFlow = data.data.procDefId
             }
           })
@@ -700,9 +649,7 @@ export default {
         this.serviceTaskBindInfos.splice(index, 1)
       }
 
-      let found = this.allPlugins.find(
-        _ => _.serviceName === this.pluginForm.serviceId
-      )
+      let found = this.allPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       this.serviceTaskBindInfos.push({
@@ -726,14 +673,11 @@ export default {
         this.pluginModalVisible = true
         this.pluginForm = (this.currentFlow &&
           this.currentFlow.taskNodeInfos &&
-          this.currentFlow.taskNodeInfos.find(
-            _ => _.nodeId === this.currentNode.id
-          )) || { ...this.defaultPluginForm }
+          this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) || { ...this.defaultPluginForm }
         this.getPluginInterfaceList()
         // get flow's params infos - nodes -
         this.getFlowsNodes()
-        this.pluginForm.routineExpression &&
-          this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
       }
     },
     onParamsNodeChange (index) {
@@ -746,30 +690,19 @@ export default {
       }
       let { status, data } = await getFlowNodes(this.currentFlow.procDefId)
       if (status === 'OK') {
-        this.currentflowsNodes = data.filter(
-          _ => _.nodeId !== this.currentNode.id
-        )
-        this.currentNode.nodeDefId = data.find(
-          i => i.nodeId === this.currentNode.id
-        ).nodeDefId
+        this.currentflowsNodes = data.filter(_ => _.nodeId !== this.currentNode.id)
+        this.currentNode.nodeDefId = data.find(i => i.nodeId === this.currentNode.id).nodeDefId
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index)
         })
       }
     },
     async getParamsOptionsByNode (index) {
-      const found = this.currentflowsNodes.find(
-        _ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId
-      )
+      const found = this.currentflowsNodes.find(_ => _.nodeId === this.pluginForm.paramInfos[index].bindNodeId)
       if (!this.currentFlow || !found) return
-      let { status, data } = await getParamsInfosByFlowIdAndNodeId(
-        this.currentFlow.procDefId,
-        found.nodeDefId
-      )
+      let { status, data } = await getParamsInfosByFlowIdAndNodeId(this.currentFlow.procDefId, found.nodeDefId)
       if (status === 'OK') {
-        let res = data.filter(
-          _ => _.type === this.pluginForm.paramInfos[index].bindParamType
-        )
+        let res = data.filter(_ => _.type === this.pluginForm.paramInfos[index].bindParamType)
         this.$set(this.pluginForm.paramInfos[index], 'currentParamNames', res)
       }
     },
@@ -785,9 +718,7 @@ export default {
           menu.style.display = 'block'
           menu.style.left = x - 25 + 'px'
           menu.style.top = y - 130 + 'px'
-          _this.currentNode.id = e.target.parentNode.getAttribute(
-            'data-element-id'
-          )
+          _this.currentNode.id = e.target.parentNode.getAttribute('data-element-id')
           _this.currentNode.name =
             (e.target.previousSibling &&
               e.target.previousSibling.children[1] &&
@@ -809,11 +740,12 @@ export default {
       }
     },
     async getFlowXml (id) {
+      if (!id) return
       const { status, data } = await getFlowDetailByID(id)
       if (status === 'OK') {
         this.currentFlow = data
         const _this = this
-        this.bpmnModeler.importXML(data.procDefData, function (err) {
+        this.bpmnModeler.importXML(data ? data.procDefData : '', function (err) {
           if (err) {
             console.error(err)
           }
@@ -866,9 +798,7 @@ export default {
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization:
-                'Bearer ' +
-                token.find(t => t.tokenType === 'refreshToken').token
+              Authorization: 'Bearer ' + token.find(t => t.tokenType === 'refreshToken').token
             }
           })
           refreshRequest.then(
@@ -895,8 +825,7 @@ export default {
       let session = window.sessionStorage
       const token = JSON.parse(session.getItem('token'))
       this.headers = {
-        Authorization:
-          'Bearer ' + token.find(t => t.tokenType === 'accessToken').token
+        Authorization: 'Bearer ' + token.find(t => t.tokenType === 'accessToken').token
       }
     },
     exportProcessDefinition (isDraft) {
