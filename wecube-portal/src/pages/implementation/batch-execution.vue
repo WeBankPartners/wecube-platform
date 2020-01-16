@@ -18,17 +18,8 @@
             <FormItem :label="$t('bc_query_condition')">
               <div v-if="searchParameters.length">
                 <Row>
-                  <Col
-                    span="8"
-                    v-for="(sp, spIndex) in searchParameters"
-                    :key="spIndex"
-                    style="padding:0 8px"
-                  >
-                    <label
-                      >{{ sp.packageName }}-{{ sp.entityName }}.{{
-                        sp.description
-                      }}:</label
-                    >
+                  <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding:0 8px">
+                    <label>{{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label>
                     <Input v-model="sp.value" />
                   </Col>
                 </Row>
@@ -56,20 +47,12 @@
         >
         <ul>
           <li v-for="(sp, spIndex) in searchParameters" :key="spIndex">
-            <span>
-              {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{
-                sp.value
-              }}]
-            </span>
+            <span> {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{ sp.value }}] </span>
           </li>
         </ul>
       </div>
     </section>
-    <section
-      v-if="!displaySearchZone"
-      class="search-result-table"
-      style="margin-top:20px;"
-    >
+    <section v-if="!displaySearchZone" class="search-result-table" style="margin-top:20px;">
       <div class="we-table">
         <Card v-if="displayResultTableZone">
           <p slot="title">{{ $t('bc_search_result') }}：</p>
@@ -96,10 +79,7 @@
         </a>
       </div>
     </section>
-    <section
-      v-if="!displaySearchZone && !displayResultTableZone"
-      style="margin-top:60px;"
-    >
+    <section v-if="!displaySearchZone && !displayResultTableZone" style="margin-top:60px;">
       <Card>
         <p slot="title">{{ $t('bc_execution_result') }}：</p>
         <Row>
@@ -123,10 +103,7 @@
             <p v-else>No Data</p>
           </Col>
           <Col span="17" class="excute-result excute-result-json">
-            <Input
-              v-model="resultFilterKey"
-              style="width:300px;visibility: hidden;"
-            />
+            <Input v-model="resultFilterKey" style="width:300px;visibility: hidden;" />
             <div>
               <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
               <pre
@@ -190,31 +167,21 @@
           :label="$t('bc_primary_key')"
         >
           <Select filterable v-model="currentEntityAttr">
-            <Option
-              v-for="entityAttr in currentEntityAttrList"
-              :value="entityAttr.name"
-              :key="entityAttr.id"
-              >{{ entityAttr.name }}</Option
-            >
+            <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
+              entityAttr.name
+            }}</Option>
           </Select>
         </FormItem>
         <FormItem :label="$t('bc_query_condition')" class="tree-style">
           <Row>
             <Col span="12">
-              <Tree
-                :data="allEntityAttr"
-                @on-check-change="checkChange"
-                show-checkbox
-                multiple
-              ></Tree>
+              <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
             </Col>
             <Col span="12" class="tree-checked">
               <span>{{ $t('bc_selected_data') }}：</span>
               <ul>
                 <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
-                  <span>
-                    {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }}
-                  </span>
+                  <span> {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }} </span>
                 </li>
               </ul>
             </Col>
@@ -230,18 +197,11 @@
 
     <Modal v-model="batchActionModalVisible" :title="$t('bc_batch_operation')">
       <Form label-position="right" :label-width="150">
-        <FormItem
-          :label="$t('plugin')"
-          :rules="{ required: true }"
-          :show-message="false"
-        >
+        <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
           <Select filterable clearable v-model="serviceId">
-            <Option
-              v-for="(item, index) in filteredPlugins"
-              :value="item.serviceName"
-              :key="index"
-              >{{ item.serviceDisplayName }}</Option
-            >
+            <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+              item.serviceDisplayName
+            }}</Option>
           </Select>
         </FormItem>
         <template v-for="(item, index) in selectedPluginParams">
@@ -259,11 +219,7 @@
         </template>
       </Form>
       <div slot="footer">
-        <Button
-          type="primary"
-          @click="excuteBatchAction"
-          :disabled="!this.serviceId"
-        >
+        <Button type="primary" @click="excuteBatchAction" :disabled="!this.serviceId">
           {{ $t('confirm') }}
         </Button>
       </div>
@@ -456,10 +412,7 @@ export default {
       this.searchParameters = this.targetEntityAttr
     },
     async excuteSearch () {
-      let { status, data } = await entityView(
-        this.currentPackageName,
-        this.currentEntityName
-      )
+      let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         this.tableColumns = data.map((_, i) => {
           return {
@@ -553,10 +506,7 @@ export default {
       this.serviceId = null
     },
     async getFilteredPluginInterfaceList () {
-      const { status, data } = await getFilteredPluginInterfaceList(
-        this.currentPackageName,
-        this.currentEntityName
-      )
+      const { status, data } = await getFilteredPluginInterfaceList(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         this.filteredPlugins = data
       }
@@ -565,13 +515,9 @@ export default {
       const plugin = this.filteredPlugins.find(_ => {
         return _.serviceName === this.serviceId
       })
-      const inputParameterDefinitions = plugin.inputParameters.map(p => {
+      const inputParameterDefinitions = this.selectedPluginParams.map(p => {
         const inputParameterValue =
-          p.mappingType === 'constant'
-            ? p.dataType === 'number'
-              ? Number(p.bindValue)
-              : p.bindValue
-            : null
+          p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
         return {
           inputParameter: p,
           inputParameterValue: inputParameterValue
@@ -596,8 +542,8 @@ export default {
         resourceDatas
       }
 
-      const { status, data } = await batchExecution(requestBody)
       this.batchActionModalVisible = false
+      const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
         this.excuteResult = data
