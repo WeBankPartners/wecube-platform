@@ -675,7 +675,7 @@ export default {
           this.currentFlow.taskNodeInfos &&
           this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) || { ...this.defaultPluginForm }
         this.getPluginInterfaceList()
-        // get flow's params infos - nodes -
+        // get flow's params infos
         this.getFlowsNodes()
         this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
       }

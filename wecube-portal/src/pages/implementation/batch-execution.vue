@@ -3,17 +3,17 @@
     <section class="search">
       <Card v-if="displaySearchZone">
         <div class="search-zone">
-          <Form :label-width="110">
-            <FormItem label="查询操作对象：">
-              <a @click="setSearchConditions">定义查询...</a>
+          <Form :label-width="170" label-colon>
+            <FormItem :label="$t('bc_define_query_objects')">
+              <a @click="setSearchConditions">{{ $t('bc_define_query_objects') }}...</a>
             </FormItem>
-            <FormItem label="查询路径：">
+            <FormItem :label="$t('bc_query_path')">
               <span v-if="dataModelExpression != ':'">
                 {{ dataModelExpression }}
               </span>
-              <span v-else>(无)</span>
+              <span v-else>({{ $t('bc_empty') }})</span>
             </FormItem>
-            <FormItem label="查询条件：">
+            <FormItem :label="$t('bc_query_condition')">
               <div v-if="searchParameters.length">
                 <Row>
                   <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding:0 8px">
@@ -22,20 +22,20 @@
                   </Col>
                 </Row>
               </div>
-              <span v-else>(无)</span>
+              <span v-else>({{ $t('bc_empty') }})</span>
             </FormItem>
           </Form>
         </div>
         <div class="search-btn">
-          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch"
-            >执行查询</Button
-          >
-          <Button @click="clearParametes">清空条件</Button>
-          <Button @click="resetParametes">重置查询</Button>
+          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch">{{
+            $t('bc_execute_query')
+          }}</Button>
+          <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
+          <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
         </div>
       </Card>
       <div v-else>
-        <a @click="reExcute('displaySearchZone')">查询 资源实例 中满足以下条件的CI数据对象:</a>
+        <a @click="reExcute('displaySearchZone')">{{ $t('bc_query_condition_title') }}:</a>
         <ul>
           <li v-for="(sp, spIndex) in searchParameters" :key="spIndex">
             <span> {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{ sp.value }}] </span>
@@ -46,10 +46,10 @@
     <section v-if="!displaySearchZone" class="search-result-table" style="margin-top:20px;">
       <div class="we-table">
         <Card v-if="displayResultTableZone">
-          <p slot="title">
-            查询结果：
-          </p>
-          <Button type="primary" :disabled="!seletedRows.length" @click="batchAction">批量操作</Button>
+          <p slot="title">{{ $t('bc_search_result') }}：</p>
+          <Button type="primary" :disabled="!seletedRows.length" @click="batchAction">{{
+            $t('bc_batch_operation')
+          }}</Button>
           <WeTable
             :tableData="tableData"
             :tableOuterActions="[]"
@@ -60,18 +60,17 @@
           />
         </Card>
         <a v-else @click="reExcute('displayResultTableZone')">
-          找到 {{ tableData.length }} 个资源实例,选择了其中{{ seletedRowsNum }}执行{{ serviceId }}
+          {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected') }}{{ seletedRowsNum
+          }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ serviceId }}
         </a>
       </div>
     </section>
     <section v-if="!displaySearchZone && !displayResultTableZone" style="margin-top:60px;">
       <Card>
-        <p slot="title">
-          执行结果：
-        </p>
+        <p slot="title">{{ $t('bc_execution_result') }}：</p>
         <Row>
           <Col span="6" class="excute-result excute-result-search">
-            <Input v-model="businessKey" placeholder="请输入条件过滤" />
+            <Input v-model="businessKey" />
             <p class="excute-result-search-title">{{ serviceId }}</p>
             <ul v-if="filterBusinessKeySet.length">
               <li
@@ -87,7 +86,7 @@
                 <span>{{ key }}</span>
               </li>
             </ul>
-            <p v-else>暂无数据</p>
+            <p v-else>No Data</p>
           </Col>
           <Col span="17" class="excute-result excute-result-json">
             <Input v-model="resultFilterKey" style="width:300px;visibility: hidden;" />
@@ -103,9 +102,9 @@
         </Row>
       </Card>
     </section>
-    <Modal :width="700" v-model="isShowSearchConditions" title="定义操作对象的查询方式">
-      <Form :label-width="110">
-        <FormItem :rules="{ required: true }" :show-message="false" label="路径起点:">
+    <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
+      <Form :label-width="130" label-colon>
+        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_start_path')">
           <Select v-model="selectedEntityType" ref="select" filterable @on-change="changeEntityType">
             <OptionGroup
               :label="pluginPackage.packageName"
@@ -121,30 +120,30 @@
             </OptionGroup>
           </Select>
         </FormItem>
-        <FormItem :rules="{ required: true }" :show-message="false" label="查询路径：">
+        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
           <PathExp
             :rootEntity="selectedEntityType"
             :allDataModelsWithAttrs="allEntityType"
             v-model="dataModelExpression"
           ></PathExp>
         </FormItem>
-        <FormItem label="目标类型：">
+        <FormItem :label="$t('bc_target_type')">
           <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
         </FormItem>
-        <FormItem :rules="{ required: true }" :show-message="false" label="业务主键：">
+        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
           <Select filterable v-model="currentEntityAttr">
             <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
               entityAttr.name
             }}</Option>
           </Select>
         </FormItem>
-        <FormItem label="查询条件：" class="tree-style">
+        <FormItem :label="$t('bc_query_condition')" class="tree-style">
           <Row>
             <Col span="12">
               <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
             </Col>
             <Col span="12" class="tree-checked">
-              <span>已选数据：</span>
+              <span>{{ $t('bc_selected_data') }}：</span>
               <ul>
                 <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
                   <span> {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }} </span>
@@ -161,7 +160,7 @@
       </div>
     </Modal>
 
-    <Modal v-model="batchActionModalVisible" title="批量操作">
+    <Modal v-model="batchActionModalVisible" :title="$t('bc_batch_operation')">
       <Form label-position="right" :label-width="150">
         <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
           <Select filterable clearable v-model="serviceId">
@@ -173,7 +172,7 @@
         <template v-for="(item, index) in selectedPluginParams">
           <FormItem :label="item.name" :key="index">
             <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
-            <span v-else>{{ item.mappingType === 'entity' ? '从CI数据对象获取' : '从系统参数获取' }}</span>
+            <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
           </FormItem>
         </template>
       </Form>
@@ -187,13 +186,13 @@
     <Modal v-model="DelConfig.isDisplay" width="360">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="ios-information-circle"></Icon>
-        <span>确认</span>
+        <span>{{ $t('confirm') }}</span>
       </p>
       <div style="text-align:center">
-        <p>将要清除当前结果，是否继续？</p>
+        <p>{{ $t('bc_warn_del') }}</p>
       </div>
       <div slot="footer">
-        <Button type="warning" size="large" long @click="del">继续</Button>
+        <Button type="warning" size="large" long @click="del">{{ $t('bc_continue') }}</Button>
       </div>
     </Modal>
   </div>
@@ -360,7 +359,7 @@ export default {
     },
     saveSearchCondition () {
       if (!this.currentEntityAttr) {
-        this.$Message.warning('业务主键不能为空！')
+        this.$Message.warning(this.$t('bc_primary_key') + this.$t('bc_warn_empty'))
         return
       }
       this.isShowSearchConditions = false
@@ -422,7 +421,7 @@ export default {
           this.displaySearchZone = false
           this.displayResultTableZone = true
         } else {
-          this.$Message.warning('空数据！')
+          this.$Message.warning(this.$t('bc_warn_empty'))
         }
       }
     },
@@ -498,7 +497,6 @@ export default {
       }
 
       this.batchActionModalVisible = false
-      this.$Message.info('执行可能需要一点时间！')
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
@@ -534,7 +532,6 @@ export default {
   border-color: #dcdee2 !important;
 }
 textarea:focus {
-  // outline: none;
   outline: #96c5f7 solid 1px;
 }
 .tree-checked {
@@ -557,7 +554,6 @@ textarea:focus {
   .excute-result-search-title {
     margin-top: 16px;
     font-size: 16px;
-    // font-weight: 500;
   }
   ul {
     margin: 4px 0;

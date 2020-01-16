@@ -59,12 +59,6 @@ export default {
     allDataModelsWithAttrs: {} // 组件外层调用getDataModelByPackageName传入
   },
   watch: {
-    currentPkg: {
-      handler (val) {
-        // this.$emit("getPluginPkgDataModel", 'service-mt');
-        // console.log(this.allEntity);
-      }
-    },
     value: {
       handler (val) {
         this.restorePathExp()
@@ -256,10 +250,7 @@ export default {
     async getRefByEntity () {
       // 获取当前entity被哪些属性引用作为下拉选项
       const current = this.entityPath[this.entityPath.length - 1]
-      const { status, data } = await getRefByIdInfoByPackageNameAndEntityName(
-        current.pkg,
-        current.entity
-      )
+      const { status, data } = await getRefByIdInfoByPackageNameAndEntityName(current.pkg, current.entity)
       if (status === 'OK') {
         this.options = data
       }

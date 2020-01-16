@@ -300,8 +300,6 @@ export default {
       this.targetModalVisible = visible
       if (!visible) {
         this.updateNodeInfo()
-        // document.getElementById("graph").innerHTML = "";
-        // this.initModelGraph();
         this.renderModelGraph()
       }
     },
@@ -445,7 +443,6 @@ export default {
     formatNodesBindings () {
       this.modelData.forEach(item => {
         this.flowNodesBindings.forEach(d => {
-          // if (d.entityTypeId + ':' + d.entityDataId === item.id) {
           if (d.entityDataId === item.dataId) {
             item.refFlowNodeIds.push(d.orderedNo)
           }

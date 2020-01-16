@@ -137,8 +137,7 @@ export default {
   methods: {
     async queryData () {
       this.payload.pageable.pageSize = this.pagination.pageSize
-      this.payload.pageable.startIndex =
-        (this.pagination.currentPage - 1) * this.pagination.pageSize
+      this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
       const { status, data } = await retrieveSystemVariables(this.payload)
       if (status === 'OK') {
         this.tableData = data.contents
@@ -221,11 +220,7 @@ export default {
         })
       } else {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(
-            _.actionType === 'add' ||
-            _.actionType === 'export' ||
-            _.actionType === 'cancel'
-          )
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
         })
       }
       this.seletedRows = rows
@@ -250,11 +245,7 @@ export default {
     async saveHandler (data) {
       const setBtnsStatus = () => {
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(
-            _.actionType === 'add' ||
-            _.actionType === 'export' ||
-            _.actionType === 'cancel'
-          )
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
         })
         this.$refs.table.setAllRowsUneditable()
         this.$nextTick(() => {
@@ -345,10 +336,7 @@ export default {
               desc: message
             })
             this.outerActions.forEach(_ => {
-              _.props.disabled =
-                _.actionType === 'save' ||
-                _.actionType === 'edit' ||
-                _.actionType === 'delete'
+              _.props.disabled = _.actionType === 'save' || _.actionType === 'edit' || _.actionType === 'delete'
             })
             this.queryData()
           }
@@ -361,11 +349,7 @@ export default {
       this.$refs.table.setCheckoutStatus()
       this.outerActions &&
         this.outerActions.forEach(_ => {
-          _.props.disabled = !(
-            _.actionType === 'add' ||
-            _.actionType === 'export' ||
-            _.actionType === 'cancel'
-          )
+          _.props.disabled = !(_.actionType === 'add' || _.actionType === 'export' || _.actionType === 'cancel')
         })
     },
     async exportHandler () {
