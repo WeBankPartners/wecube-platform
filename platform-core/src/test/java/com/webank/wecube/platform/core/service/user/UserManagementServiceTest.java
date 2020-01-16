@@ -43,14 +43,14 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
         gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
 
-    @Test
-    public void createUserShouldSucceed() {
-        mockCreateUserServer(this.server);
-        Map<String, Object> createUserMap = mockCreateUserMap();
-        CommonResponseDto responseDto = userManagementService.createUser(this.token, createUserMap);
-        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
-        this.server.verify();
-    }
+//    @Test
+//    public void createUserShouldSucceed() {
+//        mockCreateUserServer(this.server);
+//        Map<String, Object> createUserMap = mockCreateUserMap();
+//        CommonResponseDto responseDto = userManagementService.createUser(this.token, createUserMap);
+//        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+//        this.server.verify();
+//    }
 
     @Test
     public void retrieveUserShouldSucceed() {

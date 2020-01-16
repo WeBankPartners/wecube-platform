@@ -29,7 +29,8 @@ public class LocalUserManagementController {
 
     @PostMapping("/users")
     public CommonResponseDto registerLocalUser(@RequestBody SimpleLocalUserDto userDto) throws Exception {
-        return okayWithData(userManagementService.registerLocalUser(userDto));
+        SimpleLocalUserDto result = userManagementService.registerLocalUser(userDto);
+        return okayWithData(result);
     }
 
     @PutMapping("/users/usernames/{username}")

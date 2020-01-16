@@ -1,19 +1,17 @@
 package com.webank.wecube.platform.core.service.user;
 
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.user.RoleDto;
-import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
-
 import java.util.List;
 import java.util.Map;
+
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.user.UserDto;
 
 /**
  * @author howechen
  */
 public interface UserManagementService {
-    CommonResponseDto createUser(String token, Map<String, Object> jsonObject);
+    UserDto registerUser(UserDto userDto);
 
     CommonResponseDto retrieveUser(String token);
 
