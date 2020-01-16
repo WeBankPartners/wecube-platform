@@ -16,17 +16,8 @@
             <FormItem label="查询条件：">
               <div v-if="searchParameters.length">
                 <Row>
-                  <Col
-                    span="8"
-                    v-for="(sp, spIndex) in searchParameters"
-                    :key="spIndex"
-                    style="padding:0 8px"
-                  >
-                    <label
-                      >{{ sp.packageName }}-{{ sp.entityName }}.{{
-                        sp.description
-                      }}:</label
-                    >
+                  <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding:0 8px">
+                    <label>{{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label>
                     <Input v-model="sp.value" />
                   </Col>
                 </Row>
@@ -36,10 +27,7 @@
           </Form>
         </div>
         <div class="search-btn">
-          <Button
-            type="primary"
-            :disabled="!(!!currentPackageName && !!currentEntityName)"
-            @click="excuteSearch"
+          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch"
             >执行查询</Button
           >
           <Button @click="clearParametes">清空条件</Button>
@@ -47,36 +35,21 @@
         </div>
       </Card>
       <div v-else>
-        <a @click="reExcute('displaySearchZone')"
-          >查询 资源实例 中满足以下条件的CI数据对象:</a
-        >
+        <a @click="reExcute('displaySearchZone')">查询 资源实例 中满足以下条件的CI数据对象:</a>
         <ul>
           <li v-for="(sp, spIndex) in searchParameters" :key="spIndex">
-            <span>
-              {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{
-                sp.value
-              }}]
-            </span>
+            <span> {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{ sp.value }}] </span>
           </li>
         </ul>
       </div>
     </section>
-    <section
-      v-if="!displaySearchZone"
-      class="search-result-table"
-      style="margin-top:20px;"
-    >
+    <section v-if="!displaySearchZone" class="search-result-table" style="margin-top:20px;">
       <div class="we-table">
         <Card v-if="displayResultTableZone">
           <p slot="title">
             查询结果：
           </p>
-          <Button
-            type="primary"
-            :disabled="!seletedRows.length"
-            @click="batchAction"
-            >批量操作</Button
-          >
+          <Button type="primary" :disabled="!seletedRows.length" @click="batchAction">批量操作</Button>
           <WeTable
             :tableData="tableData"
             :tableOuterActions="[]"
@@ -87,16 +60,11 @@
           />
         </Card>
         <a v-else @click="reExcute('displayResultTableZone')">
-          找到 {{ tableData.length }} 个资源实例,选择了其中{{
-            seletedRowsNum
-          }}执行{{ serviceId }}
+          找到 {{ tableData.length }} 个资源实例,选择了其中{{ seletedRowsNum }}执行{{ serviceId }}
         </a>
       </div>
     </section>
-    <section
-      v-if="!displaySearchZone && !displayResultTableZone"
-      style="margin-top:60px;"
-    >
+    <section v-if="!displaySearchZone && !displayResultTableZone" style="margin-top:60px;">
       <Card>
         <p slot="title">
           执行结果：
@@ -122,10 +90,7 @@
             <p v-else>暂无数据</p>
           </Col>
           <Col span="17" class="excute-result excute-result-json">
-            <Input
-              v-model="resultFilterKey"
-              style="width:300px;visibility: hidden;"
-            />
+            <Input v-model="resultFilterKey" style="width:300px;visibility: hidden;" />
             <div>
               <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
               <pre
@@ -138,23 +103,10 @@
         </Row>
       </Card>
     </section>
-    <Modal
-      :width="700"
-      v-model="isShowSearchConditions"
-      title="定义操作对象的查询方式"
-    >
+    <Modal :width="700" v-model="isShowSearchConditions" title="定义操作对象的查询方式">
       <Form :label-width="110">
-        <FormItem
-          :rules="{ required: true }"
-          :show-message="false"
-          label="路径起点:"
-        >
-          <Select
-            v-model="selectedEntityType"
-            ref="select"
-            filterable
-            @on-change="changeEntityType"
-          >
+        <FormItem :rules="{ required: true }" :show-message="false" label="路径起点:">
+          <Select v-model="selectedEntityType" ref="select" filterable @on-change="changeEntityType">
             <OptionGroup
               :label="pluginPackage.packageName"
               v-for="(pluginPackage, index) in allEntityType"
@@ -169,11 +121,7 @@
             </OptionGroup>
           </Select>
         </FormItem>
-        <FormItem
-          :rules="{ required: true }"
-          :show-message="false"
-          label="查询路径："
-        >
+        <FormItem :rules="{ required: true }" :show-message="false" label="查询路径：">
           <PathExp
             :rootEntity="selectedEntityType"
             :allDataModelsWithAttrs="allEntityType"
@@ -183,37 +131,23 @@
         <FormItem label="目标类型：">
           <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
         </FormItem>
-        <FormItem
-          :rules="{ required: true }"
-          :show-message="false"
-          label="业务主键："
-        >
+        <FormItem :rules="{ required: true }" :show-message="false" label="业务主键：">
           <Select filterable v-model="currentEntityAttr">
-            <Option
-              v-for="entityAttr in currentEntityAttrList"
-              :value="entityAttr.name"
-              :key="entityAttr.id"
-              >{{ entityAttr.name }}</Option
-            >
+            <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
+              entityAttr.name
+            }}</Option>
           </Select>
         </FormItem>
         <FormItem label="查询条件：" class="tree-style">
           <Row>
             <Col span="12">
-              <Tree
-                :data="allEntityAttr"
-                @on-check-change="checkChange"
-                show-checkbox
-                multiple
-              ></Tree>
+              <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
             </Col>
             <Col span="12" class="tree-checked">
               <span>已选数据：</span>
               <ul>
                 <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
-                  <span>
-                    {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }}
-                  </span>
+                  <span> {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }} </span>
                 </li>
               </ul>
             </Col>
@@ -229,40 +163,22 @@
 
     <Modal v-model="batchActionModalVisible" title="批量操作">
       <Form label-position="right" :label-width="150">
-        <FormItem
-          :label="$t('plugin')"
-          :rules="{ required: true }"
-          :show-message="false"
-        >
+        <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
           <Select filterable clearable v-model="serviceId">
-            <Option
-              v-for="(item, index) in filteredPlugins"
-              :value="item.serviceName"
-              :key="index"
-              >{{ item.serviceDisplayName }}</Option
-            >
+            <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+              item.serviceDisplayName
+            }}</Option>
           </Select>
         </FormItem>
         <template v-for="(item, index) in selectedPluginParams">
           <FormItem :label="item.name" :key="index">
-            <Input
-              v-if="item.mappingType === 'constant'"
-              v-model="item.bindValue"
-            />
-            <span v-else>{{
-              item.mappingType === 'entity'
-                ? '从CI数据对象获取'
-                : '从系统参数获取'
-            }}</span>
+            <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
+            <span v-else>{{ item.mappingType === 'entity' ? '从CI数据对象获取' : '从系统参数获取' }}</span>
           </FormItem>
         </template>
       </Form>
       <div slot="footer">
-        <Button
-          type="primary"
-          @click="excuteBatchAction"
-          :disabled="!this.serviceId"
-        >
+        <Button type="primary" @click="excuteBatchAction" :disabled="!this.serviceId">
           {{ $t('confirm') }}
         </Button>
       </div>
@@ -451,10 +367,7 @@ export default {
       this.searchParameters = this.targetEntityAttr
     },
     async excuteSearch () {
-      let { status, data } = await entityView(
-        this.currentPackageName,
-        this.currentEntityName
-      )
+      let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         this.tableColumns = data.map((_, i) => {
           return {
@@ -548,10 +461,7 @@ export default {
       this.serviceId = null
     },
     async getFilteredPluginInterfaceList () {
-      const { status, data } = await getFilteredPluginInterfaceList(
-        this.currentPackageName,
-        this.currentEntityName
-      )
+      const { status, data } = await getFilteredPluginInterfaceList(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         this.filteredPlugins = data
       }
@@ -560,13 +470,9 @@ export default {
       const plugin = this.filteredPlugins.find(_ => {
         return _.serviceName === this.serviceId
       })
-      const inputParameterDefinitions = plugin.inputParameters.map(p => {
+      const inputParameterDefinitions = this.selectedPluginParams.map(p => {
         const inputParameterValue =
-          p.mappingType === 'constant'
-            ? p.dataType === 'number'
-              ? Number(p.bindValue)
-              : p.bindValue
-            : null
+          p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
         return {
           inputParameter: p,
           inputParameterValue: inputParameterValue
@@ -591,9 +497,9 @@ export default {
         resourceDatas
       }
 
-      const { status, data } = await batchExecution(requestBody)
       this.batchActionModalVisible = false
       this.$Message.info('执行可能需要一点时间！')
+      const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
         this.excuteResult = data
