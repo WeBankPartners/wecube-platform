@@ -56,6 +56,8 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
                 item.getResourceServer().getPort(),
                 item.getResourceServer().getLoginUsername(),
                 password);
+        log.info(String.format("Created new data source [host:%s,port:%s,username:%s]",item.getResourceServer().getHost(),item.getResourceServer().getPort(),
+                item.getResourceServer().getLoginUsername()));
         return dataSource;
     }
 
