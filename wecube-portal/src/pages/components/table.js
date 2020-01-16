@@ -567,7 +567,6 @@ export default {
       return {
         ...col,
         tooltip: true,
-        // maxWidth: 500,
         minWidth: MIN_WIDTH,
         width: isLastCol ? null : this.colWidth < MIN_WIDTH ? MIN_WIDTH : this.colWidth, // 除最后一列，都加上默认宽度，等宽
         resizable: !isLastCol, // 除最后一列，该属性都为true
