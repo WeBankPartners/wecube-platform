@@ -56,7 +56,6 @@ export const getResourceItemType = () => req.get('/platform/resource/constants/r
 // enum
 export const getEnumCodesByCategoryId = (catTypeId, catId) =>
   req.get(`/platform/v1/cmdb/enum/category-types/${catTypeId}/categories/${catId}/codes`)
-// CI
 export const getAllPluginPkgs = () => req.get('/platform/v1/packages')
 export const getRefCiTypeFrom = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/by`)
 export const getRefCiTypeTo = id => req.get(`/platform/v1/cmdb/ci-types/${id}/references/to`)
