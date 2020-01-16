@@ -18,41 +18,25 @@
           <Col offset="1" span="6">
             <FormItem :label-width="90" :label="$t('enum_type')">
               <Select :disabled="!!category" v-model="form.catTypeId">
-                <Option
-                  v-for="item in catTypes"
-                  :value="item.value"
-                  :key="item.value"
-                  >{{ item.label }}</Option
-                >
+                <Option v-for="item in catTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
               </Select>
             </FormItem>
           </Col>
           <Col offset="1" span="5">
             <FormItem :label-width="50" :label="$t('enum_group')">
               <Select filterable clearable v-model="form.catGroupId">
-                <Option
-                  v-for="item in allCategory"
-                  :value="item.catId"
-                  :key="item.catId"
-                  >{{ item.catName }}</Option
-                >
+                <Option v-for="item in allCategory" :value="item.catId" :key="item.catId">{{ item.catName }}</Option>
               </Select>
             </FormItem>
           </Col>
           <Col offset="1" span="5">
-            <Button type="primary" @click="saveCategoryHandler">{{
-              $t('save')
-            }}</Button>
+            <Button type="primary" @click="saveCategoryHandler">{{ $t('save') }}</Button>
           </Col>
         </Row>
       </Form>
     </div>
     <div class="modalTable" style="padding:40px 10px;">
-      <baseData
-        v-if="categoryId > -1"
-        ref="enumModal"
-        :catId="categoryId"
-      ></baseData>
+      <baseData v-if="categoryId > -1" ref="enumModal" :catId="categoryId"></baseData>
     </div>
   </Modal>
 </template>
@@ -119,9 +103,7 @@ export default {
   computed: {},
   methods: {
     async saveCategoryHandler () {
-      const type = this.allEnumCategoryTypes.find(
-        _ => _.ciTypeId === this.currentCiType.ciTypeId
-      )
+      const type = this.allEnumCategoryTypes.find(_ => _.ciTypeId === this.currentCiType.ciTypeId)
       if (this.category) {
         // update
         const payload = {
@@ -143,8 +125,7 @@ export default {
         // create
         const payload = {
           catName: this.form.catName,
-          catTypeId:
-            this.form.catTypeId === 2 ? this.form.catTypeId : type.catTypeId,
+          catTypeId: this.form.catTypeId === 2 ? this.form.catTypeId : type.catTypeId,
           groupTypeId: this.form.catGroupId
         }
         const { message, data, status } = await createEnumCategory(payload)
