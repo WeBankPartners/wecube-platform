@@ -71,7 +71,7 @@ envVariables  -- 容器环境变量， 容器启动所需参数，例如envVaria
 {{DB_USER}}  -  在WeCube申请mysql数据库的用户  
 {{DB_PWD}}   -  在WeCube申请mysql数据库用户的密码  
 {{CORE_ADDR}}  -  core地址（示例：http://127.0.0.1:19090）  
-{{CMDB_URL}}  -  cmdb地址（示例：http://111.230.161.237:8080/wecmdb）  
+{{CMDB_URL}}  -  cmdb地址（示例：http://127.0.0.1:8080/wecmdb）  
 {{BASE_MOUNT_PATH}}  -  容器母机绑定路径  
 除以上的变量外，每个插件还可以自定义参数（注意不要与已有的参数名重复），步骤如下：  
 ```
