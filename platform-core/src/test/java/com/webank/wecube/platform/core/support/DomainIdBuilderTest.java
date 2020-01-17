@@ -138,8 +138,8 @@ public class DomainIdBuilderTest {
     @Test
     public void givenPluginInstanceWhenBuildIdThenReturnCorrectId() {
         PluginPackage qcloudPackage = new PluginPackage("qcloud", "v1.1");
-        PluginInstance domain = new PluginInstance(null, qcloudPackage, "qcloud", "wecube-plugins-qcloud-v1.3", "10.0.2.12", 20000);
-        String expectedId = "wecube-plugins-qcloud-v1.3__10.0.2.12__20000";
+        PluginInstance domain = new PluginInstance(null, qcloudPackage, "qcloud", "wecube-plugins-qcloud-v1.3", "127.0.0.1", 20000);
+        String expectedId = "wecube-plugins-qcloud-v1.3__127.0.0.1__20000";
         assertThat(DomainIdBuilder.buildDomainId(domain)).isEqualTo(expectedId);
     }
 
@@ -164,19 +164,19 @@ public class DomainIdBuilderTest {
 
     @Test
     public void givenResourceServerWhenBuildIdThenReturnCorrectId() {
-        ResourceServer domain = new ResourceServer(null, "containerHost", "10.0.2.12", "22", "root", "FBzGPMbCod8MXqoghHhOkA==", "docker", 1, "docker", "active", null, "Ben", null, null, null);
-        String expectedId = "10.0.2.12__docker__containerHost";
+        ResourceServer domain = new ResourceServer(null, "containerHost", "127.0.0.1", "22", "root", "FBzGPMbCod8MXqoghHhOkA==", "docker", 1, "docker", "active", null, "Ben", null, null, null);
+        String expectedId = "127.0.0.1__docker__containerHost";
         assertThat(DomainIdBuilder.buildDomainId(domain)).isEqualTo(expectedId);
     }
 
     @Test
     public void givenResourceItemWhenBuildIdThenReturnCorrectId() {
-        ResourceServer resourceServer = new ResourceServer(null, "containerHost", "10.0.2.12", "22", "root", "FBzGPMbCod8MXqoghHhOkA==", "docker", 1, "docker", "active", null, "Ben", null, null, null);
+        ResourceServer resourceServer = new ResourceServer(null, "containerHost", "127.0.0.1", "22", "root", "FBzGPMbCod8MXqoghHhOkA==", "docker", 1, "docker", "active", null, "Ben", null, null, null);
         resourceServer.initId();
-        ResourceItem domain = new ResourceItem(null, "service-mgmt-v1.8.4", "docker_container", "{\"volumeBindings\":\"/data/service-mgmt/log:/log\",\"imageName\":\"service-mgmt:v1.8.4\",\"portBindings\":\"20005:21000\",\"envVariables\":\"DB_HOST=10.0.2.12,DB_PORT=3306,DB_SCHEMA=service_mgmt,DB_USER=service_mgmt,DB_PWD=3284e2195ba5f03a,CORE_ADDR=http://111.230.161.237:19090/platform\",\"containerId\":\"4d660434213eb0e6f521416a557f8045e8337088838ecfa5aaeff40e0bf423d1\"}",
-                "10.0.2.12__docker__containerHost", resourceServer, 1, "Create docker instance for plugin[service-mgmt]", "active", "Ben", null, null, null);
+        ResourceItem domain = new ResourceItem(null, "service-mgmt-v1.8.4", "docker_container", "{\"volumeBindings\":\"/data/service-mgmt/log:/log\",\"imageName\":\"service-mgmt:v1.8.4\",\"portBindings\":\"20005:21000\",\"envVariables\":\"DB_HOST=127.0.0.1,DB_PORT=3306,DB_SCHEMA=service_mgmt,DB_USER=service_mgmt,DB_PWD=3284e2195ba5f03a,CORE_ADDR=http://111.230.161.237:19090/platform\",\"containerId\":\"4d660434213eb0e6f521416a557f8045e8337088838ecfa5aaeff40e0bf423d1\"}",
+                "127.0.0.1__docker__containerHost", resourceServer, 1, "Create docker instance for plugin[service-mgmt]", "active", "Ben", null, null, null);
 
-        String expectedRootMenuId = "10.0.2.12__docker__containerHost__docker_container__service-mgmt-v1.8.4";
+        String expectedRootMenuId = "127.0.0.1__docker__containerHost__docker_container__service-mgmt-v1.8.4";
         assertThat(DomainIdBuilder.buildDomainId(domain)).isEqualTo(expectedRootMenuId);
     }
 
