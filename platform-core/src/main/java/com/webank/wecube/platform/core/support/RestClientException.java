@@ -21,6 +21,7 @@ public class RestClientException extends RuntimeException {
     }
     
     public RestClientException(String errorStatus, String errorMessage){
+        super(errorMessage);
         this.errorStatus = errorStatus;
         this.errorMessage = errorMessage;
     }
