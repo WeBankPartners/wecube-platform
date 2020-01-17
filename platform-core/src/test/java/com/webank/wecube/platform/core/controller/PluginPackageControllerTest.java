@@ -289,7 +289,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
                 ",('31', 'cmdb__v1.2', 'Vpc Management', 'entity_3', 'DISABLED')\n" +
                 ";" +
                 "INSERT INTO plugin_instances (id, host, container_name, port, container_status, package_id, docker_instance_resource_id, instance_name, plugin_mysql_instance_resource_id, s3bucket_resource_id) VALUES\n" +
-                " ('cmdb__v1.3__cmdb__10.0.2.12__20003', '10.0.2.12', 'cmdb', 20003, 'RUNNING', 'cmdb__v1.3', NULL, 'wecmdb', NULL, NULL);\n");
+                " ('cmdb__v1.3__cmdb__127.0.0.1__20003', '127.0.0.1', 'cmdb', 20003, 'RUNNING', 'cmdb__v1.3', NULL, 'wecmdb', NULL, NULL);\n");
     }
 
     @Test
