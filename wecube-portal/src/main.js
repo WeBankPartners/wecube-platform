@@ -6,7 +6,6 @@ import App from './App.vue'
 import router from './router'
 
 import ViewUI from 'view-design'
-// import style
 import 'view-design/dist/styles/iview.css'
 
 import VueI18n from 'vue-i18n'
@@ -14,22 +13,12 @@ import locale from 'view-design/dist/locale/en-US'
 import './locale/i18n'
 
 import WeSelect from '../src/pages/components/select.vue'
-import RefSelect from './pages/components/ref-select.js'
 import WeTable from '../src/pages/components/table.js'
-import SimpleTable from '../src/pages/components/simple-table.vue'
-import AttrInput from '../src/pages/components/attr-input'
-import sequenceDiagram from '../src/pages/components/sequence-diagram.vue'
-import orchestration from '../src/pages/components/orchestration.vue'
 import indexCom from './pages/index'
 import req from './api/base'
 
 Vue.component('WeSelect', WeSelect)
-Vue.component('RefSelect', RefSelect)
 Vue.component('WeTable', WeTable)
-Vue.component('SimpleTable', SimpleTable)
-Vue.component('AttrInput', AttrInput)
-Vue.component('sequenceDiagram', sequenceDiagram)
-Vue.component('orchestration', orchestration)
 Vue.config.productionTip = false
 
 Vue.use(ViewUI, {
@@ -143,7 +132,6 @@ router.beforeEach((to, from, next) => {
   if (!found) {
     window.location.href = window.location.origin + '#/homepage'
     next('/homepage')
-    // next()
   } else {
     if (window.myMenus) {
       let isHasPermission = []
@@ -156,10 +144,7 @@ router.beforeEach((to, from, next) => {
         to.path === '/homepage'
       ) {
         /* has permission */
-        window.sessionStorage.setItem(
-          'currentPath',
-          to.path === '/404' || to.path === '/login' ? '/homepage' : to.path
-        )
+        window.sessionStorage.setItem('currentPath', to.path === '/404' || to.path === '/login' ? '/homepage' : to.path)
         next()
       } else {
         /* has no permission */

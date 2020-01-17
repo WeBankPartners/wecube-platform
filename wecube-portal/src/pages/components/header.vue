@@ -3,26 +3,18 @@
     <div class="menus">
       <Menu mode="horizontal" theme="dark">
         <div v-for="menu in menus" :key="menu.code">
-          <MenuItem
-            v-if="menu.submenus.length < 1"
-            :name="menu.title"
-            style="cursor: not-allowed;"
-          >
+          <MenuItem v-if="menu.submenus.length < 1" :name="menu.title" style="cursor: not-allowed;">
             {{ menu.title }}
           </MenuItem>
 
           <Submenu v-else :name="menu.code">
-            <template slot="title" style="font-size: 16px">{{
-              menu.title
-            }}</template>
+            <template slot="title" style="font-size: 16px">{{ menu.title }}</template>
             <router-link
               v-for="submenu in menu.submenus"
               :key="submenu.code"
               :to="submenu.active ? submenu.link || '' : ''"
             >
-              <MenuItem :disabled="!submenu.active" :name="submenu.code">{{
-                submenu.title
-              }}</MenuItem>
+              <MenuItem :disabled="!submenu.active" :name="submenu.code">{{ submenu.title }}</MenuItem>
             </router-link>
           </Submenu>
         </div>
@@ -45,21 +37,14 @@
       <div class="language">
         <Dropdown>
           <a href="javascript:void(0)">
-            <Icon
-              size="16"
-              type="ios-globe"
-              style="margin-right:5px; cursor: pointer"
-            />
+            <Icon size="16" type="ios-globe" style="margin-right:5px; cursor: pointer" />
             {{ currentLanguage }}
             <Icon type="ios-arrow-down"></Icon>
           </a>
           <DropdownMenu slot="list">
-            <DropdownItem
-              v-for="(item, key) in language"
-              :key="item.id"
-              @click.native="changeLanguage(key)"
-              >{{ item }}</DropdownItem
-            >
+            <DropdownItem v-for="(item, key) in language" :key="item.id" @click.native="changeLanguage(key)">{{
+              item
+            }}</DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </div>
@@ -130,8 +115,7 @@ export default {
               this.menus.forEach(h => {
                 if (_.category === '' + h.id) {
                   h.submenus.push({
-                    title:
-                      this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+                    title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
                     id: _.id,
                     ..._,
                     ...menuObj
@@ -143,10 +127,7 @@ export default {
               this.menus.forEach(h => {
                 if (_.category === '' + h.id) {
                   h.submenus.push({
-                    title:
-                      this.$lang === 'zh-CN'
-                        ? _.localDisplayName
-                        : _.displayName,
+                    title: this.$lang === 'zh-CN' ? _.localDisplayName : _.displayName,
                     id: _.id,
                     link: _.path,
                     ..._
@@ -192,15 +173,12 @@ export default {
           if (script[key].readyState) {
             // IE
             script[key].onreadystatechange = () => {
-              if (
-                script[key].readyState === 'complete' ||
-                script[key].readyState === 'loaded'
-              ) {
+              if (script[key].readyState === 'complete' || script[key].readyState === 'loaded') {
                 script[key].onreadystatechange = null
               }
             }
           } else {
-            // 非IE
+            // Non IE
             script[key].onload = () => {
               setTimeout(() => {
                 this.$Notice.success({
@@ -215,20 +193,9 @@ export default {
     }
   },
   async created () {
-    // let session = window.sessionStorage
-    // const currentTime = new Date().getTime()
-    // const token = JSON.parse(session.getItem('token'))
-    // const refreshToken = token
-    //   ? token.find(t => t.tokenType === 'refreshToken')
-    //   : { expiration: 0 }
-    // const expiration = refreshToken.expiration * 1 - currentTime
-    // if (!token || expiration < 0) {
-    //   this.$router.push('/login')
-    // } else {
     this.getLocalLang()
     this.getMyMenus()
     this.username = window.sessionStorage.getItem('username')
-    // }
   },
   watch: {
     $lang: function (lang) {
@@ -237,18 +204,8 @@ export default {
   },
   mounted () {
     if (window.needReLoad) {
-      // let session = window.sessionStorage
-      // const currentTime = new Date().getTime()
-      // const token = JSON.parse(session.getItem('token'))
-      // const refreshToken = token
-      //   ? token.find(t => t.tokenType === 'refreshToken')
-      //   : { expiration: 0 }
-      // const expiration = refreshToken.expiration * 1 - currentTime
-      // if (token || expiration > 0) {
-      // setTimeout(()=>{this.getAllPluginPackageResourceFiles()},5000)
       this.getAllPluginPackageResourceFiles()
       window.needReLoad = false
-      // }
     }
   }
 }
@@ -289,7 +246,6 @@ export default {
     .ivu-menu-item-active,
     .ivu-menu-item:hover {
       color: rgba(255, 255, 255, 0.7);
-      // cursor: pointer;
     }
     .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu-active,
     .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu:hover {

@@ -9,10 +9,7 @@ export const formatData = data => {
 
   exportData.forEach(_ => {
     for (let i in _['weTableForm']) {
-      if (
-        typeof _['weTableForm'][i] === 'object' &&
-        _['weTableForm'][i] !== null
-      ) {
+      if (typeof _['weTableForm'][i] === 'object' && _['weTableForm'][i] !== null) {
         _['weTableForm'][i] = _[i].value || _[i].key_name
       }
     }

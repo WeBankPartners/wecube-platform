@@ -3,12 +3,7 @@
     <Row>
       <Col span="5">
         <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
-        <Menu
-          theme="light"
-          :active-name="currentPlugin"
-          @on-select="selectPlugin"
-          style="width: 100%;z-index:10"
-        >
+        <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
           <MenuItem
             v-for="(plugin, index) in plugins"
             :name="plugin.pluginConfigName"
@@ -34,25 +29,16 @@
                     <Icon type="md-add" />
                   </Button>
                 </Option>
-                <Option
-                  v-for="item in sourceList"
-                  :value="item.id"
-                  :key="item.id"
+                <Option v-for="item in sourceList" :value="item.id" :key="item.id"
                   >{{ item.name }}-({{ item.registerName }})</Option
                 >
               </Select>
             </FormItem>
           </Row>
-          <Row
-            style="border-bottom: 1px solid #bbb7b7; margin-top: 20px"
-            v-if="selectedSource"
-          >
+          <Row style="border-bottom: 1px solid #bbb7b7; margin-top: 20px" v-if="selectedSource">
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
-                <Input
-                  v-model="registerName"
-                  :disabled="currentPluginObj.status === 'ENABLED'"
-                />
+                <Input v-model="registerName" :disabled="currentPluginObj.status === 'ENABLED'" />
               </FormItem>
             </Col>
             <Col span="12" offset="0">
@@ -70,15 +56,12 @@
                     :key="index"
                   >
                     <Option
-                      v-for="(item,
-                      index) in pluginPackage.pluginPackageEntities"
+                      v-for="(item, index) in pluginPackage.pluginPackageEntities"
                       :value="item.name"
                       :key="index"
                     >
                       {{ item.name }}
-                      <span style="display:none"
-                        >**{{ pluginPackage.packageName }}</span
-                      >
+                      <span style="display:none">**{{ pluginPackage.packageName }}</span>
                     </Option>
                   </OptionGroup>
                 </Select>
@@ -120,18 +103,11 @@
                       </FormItem>
                     </Col>
                     <Col span="21" offset="0">
-                      <Row
-                        v-for="(param, index) in inter['inputParameters']"
-                        :key="index"
-                      >
+                      <Row v-for="(param, index) in inter['inputParameters']" :key="index">
                         <Col span="5">
                           <FormItem :label-width="0">
                             <Tooltip :content="param.name" style="width: 100%">
-                              <span
-                                v-if="param.required === 'Y'"
-                                style="color:red"
-                                >*</span
-                              >
+                              <span v-if="param.required === 'Y'" style="color:red">*</span>
                               <span
                                 style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
                                 >{{ param.name }}</span
@@ -168,13 +144,7 @@
                                 >{{ item.name }}</Option
                               >
                             </Select>
-                            <span
-                              v-if="
-                                param.mappingType === 'context' ||
-                                  param.mappingType === 'constant'
-                              "
-                              >N/A</span
-                            >
+                            <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
                           </FormItem>
                         </Col>
                         <Col span="4" offset="1">
@@ -184,20 +154,10 @@
                               v-model="param.mappingType"
                               @on-change="mappingTypeChange($event, param)"
                             >
-                              <Option value="context" key="context"
-                                >context</Option
-                              >
-                              <Option
-                                value="system_variable"
-                                key="system_variable"
-                                >system_variable</Option
-                              >
-                              <Option value="entity" key="entity"
-                                >entity</Option
-                              >
-                              <Option value="constant" key="constant"
-                                >constant</Option
-                              >
+                              <Option value="context" key="context">context</Option>
+                              <Option value="system_variable" key="system_variable">system_variable</Option>
+                              <Option value="entity" key="entity">entity</Option>
+                              <Option value="constant" key="constant">constant</Option>
                             </Select>
                           </FormItem>
                         </Col>
@@ -211,18 +171,11 @@
                       </FormItem>
                     </Col>
                     <Col span="21" offset="0">
-                      <Row
-                        v-for="(outPut, index) in inter['outputParameters']"
-                        :key="index"
-                      >
+                      <Row v-for="(outPut, index) in inter['outputParameters']" :key="index">
                         <Col span="4">
                           <FormItem :label-width="0">
                             <Tooltip :content="outPut.name" style="width: 100%">
-                              <span
-                                v-if="outPut.required === 'Y'"
-                                style="color:red"
-                                >*</span
-                              >
+                              <span v-if="outPut.required === 'Y'" style="color:red">*</span>
                               <span
                                 style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
                                 >{{ outPut.name }}</span
@@ -257,23 +210,14 @@
                               :disabled="currentPluginObj.status === 'ENABLED'"
                               v-model="outPut.mappingEntityExpression"
                             ></PathExp>
-                            <span v-if="outPut.mappingType === 'context'"
-                              >N/A</span
-                            >
+                            <span v-if="outPut.mappingType === 'context'">N/A</span>
                           </FormItem>
                         </Col>
                         <Col span="4" offset="1">
                           <FormItem :label-width="0">
-                            <Select
-                              :disabled="currentPluginObj.status === 'ENABLED'"
-                              v-model="outPut.mappingType"
-                            >
-                              <Option value="context" key="context"
-                                >context</Option
-                              >
-                              <Option value="entity" key="entity"
-                                >entity</Option
-                              >
+                            <Select :disabled="currentPluginObj.status === 'ENABLED'" v-model="outPut.mappingType">
+                              <Option value="context" key="context">context</Option>
+                              <Option value="entity" key="entity">entity</Option>
                             </Select>
                           </FormItem>
                         </Col>
@@ -286,51 +230,31 @@
           </div>
           <Row style="margin:20px auto">
             <Col span="9" offset="8">
-              <Button
-                type="primary"
-                v-if="currentPluginObj.status === 'DISABLED'"
-                @click="pluginSave"
-                >{{ $t('save') }}</Button
-              >
-              <Button
-                type="primary"
-                v-if="currentPluginObj.status === 'DISABLED'"
-                @click="regist"
-                >{{ $t('regist') }}</Button
-              >
-              <Button
-                type="error"
-                v-if="currentPluginObj.status === 'DISABLED'"
-                @click="deleteRegisterSource"
-                >{{ $t('delete') }}</Button
-              >
-              <Button
-                type="error"
-                v-if="currentPluginObj.status === 'ENABLED'"
-                @click="removePlugin"
-                >{{ $t('decommission') }}</Button
-              >
+              <Button type="primary" v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
+                $t('save')
+              }}</Button>
+              <Button type="primary" v-if="currentPluginObj.status === 'DISABLED'" @click="regist">{{
+                $t('regist')
+              }}</Button>
+              <Button type="error" v-if="currentPluginObj.status === 'DISABLED'" @click="deleteRegisterSource">{{
+                $t('delete')
+              }}</Button>
+              <Button type="error" v-if="currentPluginObj.status === 'ENABLED'" @click="removePlugin">{{
+                $t('decommission')
+              }}</Button>
             </Col>
           </Row>
         </Form>
       </Col>
     </Row>
-    <Modal
-      v-model="addRegistModal"
-      :title="$t('create_regist_source')"
-      @on-ok="ok"
-      @on-cancel="cancel"
-    >
+    <Modal v-model="addRegistModal" :title="$t('create_regist_source')" @on-ok="ok" @on-cancel="cancel">
       <Form ref="formValidate" :label-width="120">
         <FormItem :label="$t('regist_name')">
           <Input v-model="addRegisterName" placeholder></Input>
         </FormItem>
         <FormItem :label="$t('copy_source')">
           <Select v-model="selectedSource" @on-change="copyRegistSource">
-            <Option
-              v-for="(item, index) in sourceList"
-              :value="item.id"
-              :key="index"
+            <Option v-for="(item, index) in sourceList" :value="item.id" :key="index"
               >{{ item.name }}({{ item.registerName }})</Option
             >
           </Select>
@@ -370,7 +294,6 @@ export default {
       targetPackage: '',
       form: {},
       allSystemVariables: []
-      // pluginInterfaces:[]
     }
   },
   components: {
@@ -378,9 +301,7 @@ export default {
   },
   computed: {
     currentEntityAttr () {
-      const allEntity = [].concat(
-        ...this.allEntityType.map(_ => _.pluginPackageEntities)
-      )
+      const allEntity = [].concat(...this.allEntityType.map(_ => _.pluginPackageEntities))
       const found = allEntity.find(i => i.name === this.selectedEntityType)
       return found ? found.attributes : []
     }
@@ -406,12 +327,9 @@ export default {
     },
     async pluginSave () {
       this.currentPluginObj.entityName = this.selectedEntityType
-      const entitys = [].concat(
-        ...this.allEntityType.map(_ => _.pluginPackageEntities)
-      )
+      const entitys = [].concat(...this.allEntityType.map(_ => _.pluginPackageEntities))
       if (this.selectedEntityType) {
-        const entityId = entitys.find(i => i.name === this.selectedEntityType)
-          .id
+        const entityId = entitys.find(i => i.name === this.selectedEntityType).id
         this.currentPluginObj.entityId = entityId
         this.currentPluginObj.targetEntity = this.selectedEntityType
         this.currentPluginObj.targetPackage = this.targetPackage
@@ -420,18 +338,14 @@ export default {
       }
 
       this.currentPluginObj.registerName = this.registerName
-      let currentPluginForSave = JSON.parse(
-        JSON.stringify(this.currentPluginObj)
-      )
+      let currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
       if (this.hasNewSource) {
         delete currentPluginForSave.id
         currentPluginForSave.interfaces.map(_ => {
           delete _.id
         })
       }
-      const { data, status, message } = await savePluginConfig(
-        currentPluginForSave
-      )
+      const { data, status, message } = await savePluginConfig(currentPluginForSave)
       const id = data.id
       if (status === 'OK') {
         this.$Notice.success({
@@ -442,12 +356,10 @@ export default {
           this.hasNewSource = false
           const { data, status } = await getAllPluginByPkgId(this.pkgId)
           if (status === 'OK') {
-            // this.hidePanal = false;
             this.plugins = data
             this.currentPluginObj.id = id
             this.selectedSource = id
           }
-          // return
         }
         this.getAllPluginByPkgId()
       }
@@ -458,17 +370,12 @@ export default {
       }
     },
     async regist () {
-      const pluginConfigDtoList = this.plugins.find(
-        plugin => plugin.pluginConfigName === this.currentPlugin
-      ).pluginConfigDtoList
-      const plugin = pluginConfigDtoList.find(
-        dto => dto.id === this.currentPluginObj.id
-      )
+      const pluginConfigDtoList = this.plugins.find(plugin => plugin.pluginConfigName === this.currentPlugin)
+        .pluginConfigDtoList
+      const plugin = pluginConfigDtoList.find(dto => dto.id === this.currentPluginObj.id)
       const saveRes = await savePluginConfig(plugin)
       if (saveRes.status === 'OK') {
-        const { status, message } = await registerPlugin(
-          this.currentPluginObj.id
-        )
+        const { status, message } = await registerPlugin(this.currentPluginObj.id)
         if (status === 'OK') {
           this.$Notice.success({
             title: 'Success',
@@ -480,9 +387,7 @@ export default {
       }
     },
     async deleteRegisterSource () {
-      const { status, message } = await deleteRegisterSource(
-        this.currentPluginObj.id
-      )
+      const { status, message } = await deleteRegisterSource(this.currentPluginObj.id)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'Success',
@@ -538,12 +443,8 @@ export default {
       this.hasNewSource = false
       this.hidePanal = true
       this.currentPlugin = val
-      let currentPluginData = this.plugins.find(
-        plugin => plugin.pluginConfigName === val
-      )
-      this.sourceList = currentPluginData
-        ? currentPluginData.pluginConfigDtoList
-        : []
+      let currentPluginData = this.plugins.find(plugin => plugin.pluginConfigName === val)
+      this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
     },
     registSourceChange (v) {
       if (!v || v === 'add') {
@@ -553,9 +454,7 @@ export default {
         return
       }
 
-      this.currentPluginObj = JSON.parse(
-        JSON.stringify(this.sourceList.find(source => source.id === v))
-      )
+      this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
       this.selectedEntityType = this.currentPluginObj.entityName
       this.registerName = this.currentPluginObj.registerName
       this.selectedEntityType = this.currentPluginObj.targetEntity
