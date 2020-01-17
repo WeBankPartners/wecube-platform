@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AuthServerRestClientProperties {
     private String host = "localhost";
     private String httpSchema = "http";
-    private int port = 80;
+    private int port = 9090;
 
     public String getHost() {
         return host;

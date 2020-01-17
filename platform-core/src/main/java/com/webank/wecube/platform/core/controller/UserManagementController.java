@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,19 +39,21 @@ public class UserManagementController {
     }
 
     @GetMapping("/users/retrieve")
-    public CommonResponseDto retrieveUser(@RequestHeader(value = "Authorization") String token) {
+    public CommonResponseDto retrieveAllUserAccounts() {
         try {
-            return userManagementService.retrieveUser(token);
+            List<UserDto> result = userManagementService.retrieveAllUserAccounts();
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
     @DeleteMapping("/users/{user-id}/delete")
-    public CommonResponseDto deleteUser(@RequestHeader(value = "Authorization") String token,
-                                        @PathVariable("user-id") Long id) {
+    public CommonResponseDto deleteUserByUserId(
+                                        @PathVariable("user-id") String userId) {
         try {
-            return userManagementService.deleteUser(token, id);
+            userManagementService.deleteUserByUserId(userId);
+            return CommonResponseDto.okay();
         } catch (WecubeCoreException e) {
             return CommonResponseDto.error(e.getMessage());
         }

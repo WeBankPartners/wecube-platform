@@ -52,22 +52,22 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 //        this.server.verify();
 //    }
 
-    @Test
-    public void retrieveUserShouldSucceed() {
-        mockRetrieveUserServer(this.server);
-        CommonResponseDto responseDto = userManagementService.retrieveUser(this.token);
-        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
-        this.server.verify();
-    }
+//    @Test
+//    public void retrieveUserShouldSucceed() {
+//        mockRetrieveUserServer(this.server);
+//        CommonResponseDto responseDto = userManagementService.retrieveUser(this.token);
+//        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+//        this.server.verify();
+//    }
 
-    @Test
-    public void deleteUserShouldSucceed() {
-        mockDeleteUserServer(this.server);
-        Long userId = 1L;
-        CommonResponseDto responseDto = userManagementService.deleteUser(this.token, userId);
-        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
-        this.server.verify();
-    }
+//    @Test
+//    public void deleteUserShouldSucceed() {
+//        mockDeleteUserServer(this.server);
+//        Long userId = 1L;
+//        CommonResponseDto responseDto = userManagementService.deleteUser(this.token, userId);
+//        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+//        this.server.verify();
+//    }
 
     @Test
     public void createRoleShouldSucceed() {

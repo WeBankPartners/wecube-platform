@@ -51,10 +51,10 @@
     	<appender-ref ref="subprocessLog" />
     </logger> 
          
-    <root level="info">
+    <root level="debug">
         <appender-ref ref="console"/>
         <!-- 
-         -->
         <appender-ref ref="rollingFile"/>
+         -->
     </root>
 </configuration>

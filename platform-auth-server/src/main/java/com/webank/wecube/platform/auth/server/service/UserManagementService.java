@@ -206,7 +206,7 @@ public class UserManagementService {
         validateSimpleLocalUserDto(userDto);
         SysUserEntity userEntity = userRepository.findNotDeletedUserByUsername(userDto.getUsername());
         if (userEntity != null) {
-            log.error("such username {} to create has already existed.", userDto.getUsername());
+            log.info("such username {} to create has already existed.", userDto.getUsername());
             throw new AuthServerException(String.format("User {%s} already exists.", userDto.getUsername()));
         }
 

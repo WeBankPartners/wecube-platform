@@ -13,9 +13,9 @@ import com.webank.wecube.platform.core.dto.user.UserDto;
 public interface UserManagementService {
     UserDto registerUser(UserDto userDto);
 
-    CommonResponseDto retrieveUser(String token);
+    List<UserDto> retrieveAllUserAccounts();
 
-    CommonResponseDto deleteUser(String token, Long id);
+    void deleteUserByUserId(String userId);
 
     CommonResponseDto createRole(String token, Map<String, Object> requestBody);
 
