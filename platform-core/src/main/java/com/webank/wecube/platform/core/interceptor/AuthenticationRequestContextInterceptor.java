@@ -7,8 +7,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -22,10 +22,12 @@ public class AuthenticationRequestContextInterceptor implements HandlerIntercept
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         Principal userPrincipal = request.getUserPrincipal();
-        if (userPrincipal != null) {
-            AuthenticatedUser currentUser = new AuthenticatedUser(userPrincipal.getName(),
-                    request.getHeader(HttpHeaders.AUTHORIZATION), extractAuthorities(userPrincipal));
-
+        if (userPrincipal != null && (userPrincipal instanceof Authentication)) {
+            Authentication auth = (Authentication)userPrincipal;
+            String authToken = (String) auth.getCredentials();
+            AuthenticatedUser currentUser = new AuthenticatedUser(auth.getName(),
+                    authToken, extractAuthorities(userPrincipal));
+            
             AuthenticationContextHolder.setAuthenticatedUser(currentUser);
 
             request.setAttribute(REQ_ATTR_KEY_CURRENT_USER, currentUser);
