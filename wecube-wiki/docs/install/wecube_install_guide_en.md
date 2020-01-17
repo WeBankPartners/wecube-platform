@@ -64,7 +64,7 @@ Make a note of the image name and TAG in the mirror list, which is needed in the
 	#wecube-core
 	wecube_server_port=9090
 	wecube_image_name={$wecube_image_name}
-	wecube_plugin_hosts=100.107.119.14,100.107.119.79
+	wecube_plugin_hosts=127.0.0.1,127.0.0.2
 	wecube_plugin_host_port=22
 	wecube_plugin_host_user={$plugin_host_user_name}
 	wecube_plugin_host_pwd={$plugin_host_password}

@@ -6,13 +6,7 @@
     </div>
     <br />
     <div class="login-form">
-      <Input
-        type="text"
-        placeholder="username"
-        v-model="username"
-        name="user"
-        @on-enter="login"
-      />
+      <Input type="text" placeholder="username" v-model="username" name="user" @on-enter="login" />
 
       <Input
         type="password"
@@ -23,13 +17,7 @@
         @on-enter="login"
         style="margin-top: 20px"
       />
-      <Button
-        type="primary"
-        long
-        @click="login"
-        :loading="loading"
-        style="margin-top: 20px"
-      >
+      <Button type="primary" long @click="login" :loading="loading" style="margin-top: 20px">
         Login
       </Button>
       <!-- <Button type="success" long>SUBMIT</Button> -->
