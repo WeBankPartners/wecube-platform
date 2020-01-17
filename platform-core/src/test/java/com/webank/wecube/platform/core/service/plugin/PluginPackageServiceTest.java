@@ -42,7 +42,7 @@ public class PluginPackageServiceTest extends DatabaseBasedTest {
         PluginPackage pluginPackage = new PluginPackage(null, "qcloud", "v1.0", PluginPackage.Status.REGISTERED, now, false);
         PluginPackage savedPluginPackage = packageRepository.save(pluginPackage);
 
-        PluginInstance instance = new PluginInstance(null, savedPluginPackage, "qcloud", "10.0.2.12", 20000, PluginInstance.CONTAINER_STATUS_RUNNING);
+        PluginInstance instance = new PluginInstance(null, savedPluginPackage, "qcloud", "127.0.0.1", 20000, PluginInstance.CONTAINER_STATUS_RUNNING);
 
         instanceRepository.save(instance);
 

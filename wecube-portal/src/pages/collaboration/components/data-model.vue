@@ -1,14 +1,9 @@
 <template>
   <div>
     <div v-if="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
-      <Button
-        size="small"
-        shape="circle"
-        type="primary"
-        icon="md-sync"
-        @click="getData(true)"
-        >{{ $t('get_dynamic_model') }}</Button
-      >
+      <Button size="small" shape="circle" type="primary" icon="md-sync" @click="getData(true)">{{
+        $t('get_dynamic_model')
+      }}</Button>
       <Button
         :disabled="isApplyBtnDisabled"
         size="small"
@@ -19,24 +14,14 @@
         >{{ $t('apply_data_model') }}</Button
       >
     </div>
-    <div
-      v-if="
-        !dataModel.dynamic &&
-          dataModel.pluginPackageEntities &&
-          dataModel.pluginPackageEntities.length === 0
-      "
-    >
+    <div v-if="!dataModel.dynamic && dataModel.pluginPackageEntities && dataModel.pluginPackageEntities.length === 0">
       {{ $t('no_data_model_provided') }}
     </div>
     <div class="graph-container" id="data-model-graph"></div>
   </div>
 </template>
 <script>
-import {
-  getPluginPkgDataModel,
-  pullDynamicDataModel,
-  applyNewDataModel
-} from '@/api/server'
+import { getPluginPkgDataModel, pullDynamicDataModel, applyNewDataModel } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'

@@ -39,7 +39,7 @@ public class PluginInstanceServiceTest extends DatabaseBasedTest {
         prepareDatabase();
 
         try {
-            pluginInstanceService.removePluginInstanceById("service-mgmt:v1.0:service-mgmt:10.0.2.12:20003");
+            pluginInstanceService.removePluginInstanceById("service-mgmt__v1.0__service-mgmt__127.0.0.1__20003");
             assertThat(true);
         } catch (Exception e) {
             assertThat(false);
@@ -61,7 +61,7 @@ public class PluginInstanceServiceTest extends DatabaseBasedTest {
                 ", ('service-mgmt__v1.1', 'service-mgmt', 'v1.1', 'UNREGISTERED', '2019-11-26 20:31:48', '0')\n" +
                 ";\n" +
                 "INSERT INTO `plugin_instances` (`id`, `host`, `container_name`, `port`, `container_status`, `package_id`, `docker_instance_resource_id`, `instance_name`, `plugin_mysql_instance_resource_id`, `s3bucket_resource_id`) VALUES " +
-                " ('service-mgmt__v1.0__service-mgmt__10.0.2.12__20003', '10.0.2.12', 'service-mgmt', 20003, 'RUNNING', 'service-mgmt__v1.0', NULL, 'wecmdb', NULL, NULL) " +
+                " ('service-mgmt__v1.0__service-mgmt__127.0.0.1__20003', '127.0.0.1', 'service-mgmt', 20003, 'RUNNING', 'service-mgmt__v1.0', NULL, 'wecmdb', NULL, NULL) " +
                 ";\n"
         );
     }
@@ -85,7 +85,7 @@ public class PluginInstanceServiceTest extends DatabaseBasedTest {
                 ", ('service-mgmt__v1.1', 'service-mgmt', 'v1.1', 'REGISTERED', '2019-11-26 20:31:48', '0')\n" +
                 ";\n" +
                 "INSERT INTO `plugin_instances` (`id`, `host`, `container_name`, `port`, `container_status`, `package_id`, `docker_instance_resource_id`, `instance_name`, `plugin_mysql_instance_resource_id`, `s3bucket_resource_id`) VALUES " +
-                " ('service-mgmt__v1.0__service-mgmt__10.0.2.12__20003', '10.0.2.12', 'service-mgmt', 20003, 'RUNNING', 'service-mgmt__v1.0', NULL, 'wecmdb', NULL, NULL) " +
+                " ('service-mgmt__v1.0__service-mgmt__127.0.0.1__20003', '127.0.0.1', 'service-mgmt', 20003, 'RUNNING', 'service-mgmt__v1.0', NULL, 'wecmdb', NULL, NULL) " +
                 ";\n"
         );
     }

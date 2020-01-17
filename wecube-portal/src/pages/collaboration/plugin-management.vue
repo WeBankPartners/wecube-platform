@@ -4,12 +4,7 @@
       <Row>
         <Card dis-hover>
           <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
-          <Button
-            type="info"
-            ghost
-            icon="ios-cloud-upload-outline"
-            @click="getHeaders"
-          >
+          <Button type="info" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
             {{ $t('upload_plugin_btn') }}
           </Button>
           <Upload
@@ -27,9 +22,7 @@
               {{ $t('upload_plugin_btn') }}
             </Button>
           </Upload>
-          <span v-if="showSuccess" style="color:#2b85e4">{{
-            $t('plugin_analysis')
-          }}</span>
+          <span v-if="showSuccess" style="color:#2b85e4">{{ $t('plugin_analysis') }}</span>
         </Card>
       </Row>
       <Row class="plugins-tree-container" style="margin-top: 20px">
@@ -37,11 +30,9 @@
           <Row slot="title">
             <Col span="12">{{ $t('plugins_list') }}</Col>
             <Col style="float: right">
-              <Checkbox
-                style="width: max-content"
-                v-model="isShowDecomissionedPackage"
-                >{{ $t('is_show_decomissioned_pkg') }}</Checkbox
-              >
+              <Checkbox style="width: max-content" v-model="isShowDecomissionedPackage">{{
+                $t('is_show_decomissioned_pkg')
+              }}</Checkbox>
             </Col>
           </Row>
           <Spin size="large" v-if="isLoadingPluginList">
@@ -56,20 +47,12 @@
               <Panel
                 :name="plugin.id + ''"
                 v-for="plugin in plugins"
-                v-if="
-                  plugin.status !== 'DECOMMISSIONED' ||
-                    isShowDecomissionedPackage
-                "
+                v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage"
                 :key="plugin.id"
               >
-                <span
-                  :class="
-                    plugin.status !== 'DECOMMISSIONED'
-                      ? ''
-                      : 'decomissionedPkgName'
-                  "
-                  >{{ plugin.name + '_' + plugin.version }}</span
-                >
+                <span :class="plugin.status !== 'DECOMMISSIONED' ? '' : 'decomissionedPkgName'">{{
+                  plugin.name + '_' + plugin.version
+                }}</span>
                 <span style="float: right; margin-right: 10px">
                   <Button
                     v-if="plugin.status !== 'DECOMMISSIONED'"
@@ -81,30 +64,15 @@
                   ></Button>
                 </span>
                 <p slot="content">
-                  <Button
-                    @click="configPlugin(plugin.id)"
-                    size="small"
-                    type="info"
-                    ghost
-                    icon="ios-checkmark-circle"
-                    >{{ $t('plugin_config_check') }}</Button
-                  >
-                  <Button
-                    @click="manageService(plugin.id)"
-                    size="small"
-                    type="info"
-                    ghost
-                    icon="ios-construct"
-                    >{{ $t('service_regist') }}</Button
-                  >
-                  <Button
-                    @click="manageRuntimePlugin(plugin.id)"
-                    size="small"
-                    type="info"
-                    ghost
-                    icon="ios-settings"
-                    >{{ $t('runtime_manage') }}</Button
-                  >
+                  <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">{{
+                    $t('plugin_config_check')
+                  }}</Button>
+                  <Button @click="manageService(plugin.id)" size="small" type="info" ghost icon="ios-construct">{{
+                    $t('service_regist')
+                  }}</Button>
+                  <Button @click="manageRuntimePlugin(plugin.id)" size="small" type="info" ghost icon="ios-settings">{{
+                    $t('runtime_manage')
+                  }}</Button>
                 </p>
               </Panel>
             </Collapse>
@@ -115,46 +83,24 @@
     <Col span="18" style="padding-left: 20px" v-if="isShowConfigPanel">
       <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
         <TabPane name="dependency" :label="$t('dependencies_analysis')">
-          <DependencyAnalysis
-            v-if="currentTab === 'dependency'"
-            :pkgId="currentPlugin.id"
-          ></DependencyAnalysis>
+          <DependencyAnalysis v-if="currentTab === 'dependency'" :pkgId="currentPlugin.id"></DependencyAnalysis>
         </TabPane>
         <TabPane name="menus" :label="$t('menu_injection')">
-          <MenuInjection
-            v-if="currentTab === 'menus'"
-            :pkgId="currentPlugin.id"
-          ></MenuInjection>
+          <MenuInjection v-if="currentTab === 'menus'" :pkgId="currentPlugin.id"></MenuInjection>
         </TabPane>
         <TabPane name="models" :label="$t('data_model')">
-          <DataModel
-            v-if="currentTab === 'models'"
-            :pkgId="currentPlugin.name"
-          ></DataModel>
+          <DataModel v-if="currentTab === 'models'" :pkgId="currentPlugin.name"></DataModel>
         </TabPane>
         <TabPane name="systemParameters" :label="$t('system_params')">
-          <SysParmas
-            v-if="currentTab === 'systemParameters'"
-            :pkgId="currentPlugin.id"
-          ></SysParmas>
+          <SysParmas v-if="currentTab === 'systemParameters'" :pkgId="currentPlugin.id"></SysParmas>
         </TabPane>
         <TabPane name="authorities" :label="$t('auth_setting')">
-          <AuthSettings
-            v-if="currentTab === 'authorities'"
-            :pkgId="currentPlugin.id"
-          ></AuthSettings>
+          <AuthSettings v-if="currentTab === 'authorities'" :pkgId="currentPlugin.id"></AuthSettings>
         </TabPane>
         <TabPane name="runtimeResources" :label="$t('runtime_resource')">
-          <RuntimesResources
-            v-if="currentTab === 'runtimeResources'"
-            :pkgId="currentPlugin.id"
-          ></RuntimesResources>
+          <RuntimesResources v-if="currentTab === 'runtimeResources'" :pkgId="currentPlugin.id"></RuntimesResources>
         </TabPane>
-        <TabPane
-          v-if="currentPlugin.status === 'UNREGISTERED'"
-          name="confirm"
-          :label="$t('confirm')"
-        >
+        <TabPane v-if="currentPlugin.status === 'UNREGISTERED'" name="confirm" :label="$t('confirm')">
           <Button type="info" @click="registPackage()">
             {{ $t('confirm_to_regist_plugin') }}
           </Button>
@@ -170,11 +116,7 @@
         ></PluginRegister>
       </Card>
     </Col>
-    <Col
-      span="18"
-      style="padding-left: 20px"
-      v-if="isShowRuntimeManagementPanel"
-    >
+    <Col span="18" style="padding-left: 20px" v-if="isShowRuntimeManagementPanel">
       <Spin size="large" fix v-if="isLoading">
         <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
         <div>{{ $t('loading') }}</div>
@@ -197,32 +139,16 @@
                         :max-tag-count="4"
                         v-model="selectHosts"
                       >
-                        <Option
-                          v-for="item in allAvailiableHosts"
-                          :value="item"
-                          :key="item"
-                          >{{ item }}</Option
-                        >
+                        <Option v-for="item in allAvailiableHosts" :value="item" :key="item">{{ item }}</Option>
                       </Select>
-                      <Button
-                        size="small"
-                        type="success"
-                        @click="getAvailablePortByHostIp"
-                        >{{ $t('port_preview') }}</Button
-                      >
+                      <Button size="small" type="success" @click="getAvailablePortByHostIp">{{
+                        $t('port_preview')
+                      }}</Button>
                       <div v-if="availiableHostsWithPort.length > 0">
-                        <p style="margin-top: 20px">
-                          {{ $t('avaliable_port') }}:
-                        </p>
+                        <p style="margin-top: 20px">{{ $t('avaliable_port') }}:</p>
 
-                        <div
-                          v-for="item in availiableHostsWithPort"
-                          :key="item.ip + item.port"
-                        >
-                          <div
-                            class="instance-item-container"
-                            style="border-bottom: 1px solid gray; padding: 10px 0"
-                          >
+                        <div v-for="item in availiableHostsWithPort" :key="item.ip + item.port">
+                          <div class="instance-item-container" style="border-bottom: 1px solid gray; padding: 10px 0">
                             <div class="instance-item">
                               <Col span="4">
                                 {{ item.ip + ':' + item.port }}
@@ -230,12 +156,7 @@
                               <Button
                                 size="small"
                                 type="success"
-                                @click="
-                                  createPluginInstanceByPackageIdAndHostIp(
-                                    item.ip,
-                                    item.port
-                                  )
-                                "
+                                @click="createPluginInstanceByPackageIdAndHostIp(item.ip, item.port)"
                                 >{{ $t('create') }}</Button
                               >
                             </div>
@@ -257,12 +178,9 @@
                               </div>
                             </Col>
                             <Col span="4" offset="1">
-                              <Button
-                                size="small"
-                                type="error"
-                                @click="removePluginInstance(item.id)"
-                                >{{ $t('ternmiante') }}</Button
-                              >
+                              <Button size="small" type="error" @click="removePluginInstance(item.id)">{{
+                                $t('ternmiante')
+                              }}</Button>
                             </Col>
                           </div>
                         </div>
@@ -309,11 +227,7 @@
                 <Row slot="content">
                   <Row>
                     <Col span="16">
-                      <Input
-                        v-model="dbQueryCommandString"
-                        type="textarea"
-                        :placeholder="$t('only_select')"
-                      />
+                      <Input v-model="dbQueryCommandString" type="textarea" :placeholder="$t('only_select')" />
                     </Col>
                     <Col span="4" offset="1">
                       <Button @click="getDBTableData">
@@ -324,10 +238,7 @@
                   <Row style="margin-top: 20px">
                     {{ $t('search_result') + ':' }}
                     <div style="width: 100%;overflow: auto">
-                      <Table
-                        :columns="dbQueryColumns"
-                        :data="dbQueryData"
-                      ></Table>
+                      <Table :columns="dbQueryColumns" :data="dbQueryData"></Table>
                     </div>
                     <Page
                       :total="dbTablePagination.total"
@@ -348,10 +259,7 @@
                   {{ $t('storage_service') }}
                 </span>
                 <Row slot="content">
-                  <Table
-                    :columns="storageServiceColumns"
-                    :data="storageServiceData"
-                  ></Table>
+                  <Table :columns="storageServiceColumns" :data="storageServiceData"></Table>
                 </Row>
               </Panel>
             </Collapse>
@@ -547,11 +455,7 @@ export default {
         desc: 'Start Launching... It will take sometime.'
       })
       this.isLoading = true
-      const { status } = await createPluginInstanceByPackageIdAndHostIp(
-        this.currentPlugin.id,
-        ip,
-        port
-      )
+      const { status } = await createPluginInstanceByPackageIdAndHostIp(this.currentPlugin.id, ip, port)
       this.isLoading = false
       if (status === 'OK') {
         this.$Notice.success({
@@ -624,9 +528,7 @@ export default {
       }
     },
     async getStorageTableData () {
-      let { status, data } = await queryStorageFilesByPackageId(
-        this.currentPlugin.id
-      )
+      let { status, data } = await queryStorageFilesByPackageId(this.currentPlugin.id)
       if (status === 'OK') {
         this.storageServiceData = data.map(_ => {
           return {
@@ -643,15 +545,10 @@ export default {
         sqlQuery: this.dbQueryCommandString,
         pageable: {
           pageSize: this.dbTablePagination.pageSize,
-          startIndex:
-            this.dbTablePagination.pageSize *
-            (this.dbTablePagination.currentPage - 1)
+          startIndex: this.dbTablePagination.pageSize * (this.dbTablePagination.currentPage - 1)
         }
       }
-      let { status, data } = await queryDataBaseByPackageId(
-        this.currentPlugin.id,
-        payload
-      )
+      let { status, data } = await queryDataBaseByPackageId(this.currentPlugin.id, payload)
       if (status === 'OK') {
         this.dbTablePagination.total = data.pageInfo.totalRows
         this.dbQueryColumns = data.headers.map(_ => {
@@ -707,18 +604,9 @@ export default {
             }
           }
         })
-        // this.getHostsForTableFilter();
       }
       this.isLoading = false
     },
-    // getHostsForTableFilter() {
-    //   this.logTableColumns[0].options = this.allInstances.map(_ => {
-    //     return {
-    //       label: _.hostIp + ":" + _.port,
-    //       value: _.id
-    //     };
-    //   });
-    // },
     async getAvailableContainerHosts () {
       const { data, status } = await getAvailableContainerHosts()
       if (status === 'OK') {
@@ -783,8 +671,7 @@ export default {
       this.logTablePagination.total = this.totalLogTableData.length
       let temp = Array.from(this.totalLogTableData)
       this.logTableData = temp.splice(
-        (this.logTablePagination.currentPage - 1) *
-          this.logTablePagination.pageSize,
+        (this.logTablePagination.currentPage - 1) * this.logTablePagination.pageSize,
         this.logTablePagination.pageSize
       )
     },
@@ -840,9 +727,7 @@ export default {
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization:
-                'Bearer ' +
-                token.find(t => t.tokenType === 'refreshToken').token
+              Authorization: 'Bearer ' + token.find(t => t.tokenType === 'refreshToken').token
             }
           })
           refreshRequest.then(
@@ -869,8 +754,7 @@ export default {
       let session = window.sessionStorage
       const token = JSON.parse(session.getItem('token'))
       this.headers = {
-        Authorization:
-          'Bearer ' + token.find(t => t.tokenType === 'accessToken').token
+        Authorization: 'Bearer ' + token.find(t => t.tokenType === 'accessToken').token
       }
     }
   },

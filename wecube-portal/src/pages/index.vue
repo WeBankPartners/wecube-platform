@@ -37,9 +37,7 @@ export default {
       console.log(this.allMenusAry)
     },
     setBreadcrumb () {
-      this.isShowBreadcrum = !(
-        this.$route.path === '/homepage' || this.$route.path === '/404'
-      )
+      this.isShowBreadcrum = !(this.$route.path === '/homepage' || this.$route.path === '/404')
       if (this.$route.path === '/coming-soon') {
         this.parentBreadcrumb = '-'
         this.childBreadcrumb = 'Coming Soon'
@@ -47,16 +45,13 @@ export default {
       }
       let currentLangKey = localStorage.getItem('lang') || navigator.language
       const menuObj = window.myMenus
-        ? []
-          .concat(...window.myMenus.map(_ => _.submenus))
-          .find(m => m.link === this.$route.path)
+        ? [].concat(...window.myMenus.map(_ => _.submenus)).find(m => m.link === this.$route.path)
         : MENUS.find(m => m.link === this.$route.path)
       if (menuObj) {
         this.allMenusAry.forEach(_ => {
           _.submenus.forEach(sub => {
             if (menuObj.code === sub.code) {
-              this.parentBreadcrumb =
-                currentLangKey === 'zh-CN' ? _.cnName : _.enName
+              this.parentBreadcrumb = currentLangKey === 'zh-CN' ? _.cnName : _.enName
             }
           })
         })
@@ -73,18 +68,6 @@ export default {
   },
   created () {
     this.setBreadcrumb()
-  },
-  mounted () {
-    // TODO: get plugins url by axios.
-    // let pluginURLs = [
-    //   {
-    //     path: "/plugin1/home",
-    //     name: "plugin1",
-    //     component: () => import("@/pages/container"),
-    //     props: { src: "dsadsadsad" }
-    //   }
-    // ];
-    // this.$router.addRoutes(pluginURLs);
   },
   watch: {
     allMenusAry: {
