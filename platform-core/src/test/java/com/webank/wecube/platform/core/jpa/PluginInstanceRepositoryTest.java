@@ -36,7 +36,7 @@ public class PluginInstanceRepositoryTest extends DatabaseBasedTest {
         String menuId = savedPluginPackageMenu.getId();
         assertThat(savedPluginPackageMenu.isActive()).isFalse();
 
-        PluginInstance pluginInstance = new PluginInstance(null, registeredPluginPackage, "wecmdb", "wecmdb-v0.2", "10.0.2.12", 20002);
+        PluginInstance pluginInstance = new PluginInstance(null, registeredPluginPackage, "wecmdb", "wecmdb-v0.2", "127.0.0.1", 20002);
         instanceRepository.save(pluginInstance);
 
         Optional<PluginPackageMenu> optionalLatestPluginPackageMenu = menuRepository.findById(menuId);
@@ -55,7 +55,7 @@ public class PluginInstanceRepositoryTest extends DatabaseBasedTest {
         assertThat(packageMenu).isNotNull();
         String menuId = packageMenu.getId();
 
-        PluginInstance pluginInstance = new PluginInstance(null, registeredPluginPackage, "wecmdb", "wecmdb-v0.2", "10.0.2.12", 20002);
+        PluginInstance pluginInstance = new PluginInstance(null, registeredPluginPackage, "wecmdb", "wecmdb-v0.2", "127.0.0.1", 20002);
         PluginInstance savedPluginInstance = instanceRepository.save(pluginInstance);
         assertThat(savedPluginInstance).isNotNull();
         assertThat(savedPluginInstance.getId()).isNotNull();
