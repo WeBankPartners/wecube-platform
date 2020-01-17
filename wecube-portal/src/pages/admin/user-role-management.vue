@@ -5,13 +5,7 @@
         <Card>
           <p slot="title">
             {{ $t('user') }}
-            <Button
-              icon="ios-add"
-              type="dashed"
-              size="small"
-              @click="openAddUserModal"
-              >{{ $t('add_user') }}</Button
-            >
+            <Button icon="ios-add" type="dashed" size="small" @click="openAddUserModal">{{ $t('add_user') }}</Button>
           </p>
           <div class="tagContainers">
             <Tag
@@ -35,13 +29,7 @@
         <Card>
           <p slot="title">
             {{ $t('role') }}
-            <Button
-              icon="ios-add"
-              type="dashed"
-              size="small"
-              @click="openAddRoleModal"
-              >{{ $t('add_role') }}</Button
-            >
+            <Button icon="ios-add" type="dashed" size="small" @click="openAddRoleModal">{{ $t('add_role') }}</Button>
           </p>
           <div class="tagContainers">
             <div class="role-item" v-for="item in roles" :key="item.id">
@@ -53,17 +41,11 @@
                 :fade="false"
                 @on-change="handleRoleClick"
               >
-                <span :title="item.displayName">{{
-                  item.name + '(' + item.displayName + ')'
-                }}</span>
+                <span :title="item.displayName">{{ item.name + '(' + item.displayName + ')' }}</span>
               </Tag>
-              <Button
-                icon="ios-build"
-                type="dashed"
-                size="small"
-                @click="openUserManageModal(item.id)"
-                >{{ $t('user') }}</Button
-              >
+              <Button icon="ios-build" type="dashed" size="small" @click="openUserManageModal(item.id)">{{
+                $t('user')
+              }}</Button>
             </div>
           </div>
         </Card>
@@ -72,28 +54,13 @@
         <Card>
           <p slot="title">{{ $t('menus') }}</p>
           <div class="tagContainers">
-            <Tree
-              :data="menus"
-              show-checkbox
-              @on-check-change="handleMenuTreeCheck"
-            ></Tree>
+            <Tree :data="menus" show-checkbox @on-check-change="handleMenuTreeCheck"></Tree>
           </div>
         </Card>
       </Col>
     </Row>
-    <Modal
-      v-model="addUserModalVisible"
-      :title="$t('add_user')"
-      @on-ok="addUser"
-      @on-cancel="cancel"
-    >
-      <Form
-        class="validation-form"
-        ref="addedUserForm"
-        :model="addedUser"
-        label-position="left"
-        :label-width="100"
-      >
+    <Modal v-model="addUserModalVisible" :title="$t('add_user')" @on-ok="addUser" @on-cancel="cancel">
+      <Form class="validation-form" ref="addedUserForm" :model="addedUser" label-position="left" :label-width="100">
         <FormItem :label="$t('username')" prop="username">
           <Input v-model="addedUser.username" />
         </FormItem>
@@ -102,39 +69,20 @@
         </FormItem>
       </Form>
     </Modal>
-    <Modal
-      v-model="addRoleModalVisible"
-      :title="$t('add_role')"
-      @on-ok="addRole"
-      @on-cancel="cancel"
-    >
-      <Form
-        class="validation-form"
-        :model="addedRole"
-        label-position="left"
-        :label-width="100"
-      >
+    <Modal v-model="addRoleModalVisible" :title="$t('add_role')" @on-ok="addRole" @on-cancel="cancel">
+      <Form class="validation-form" :model="addedRole" label-position="left" :label-width="100">
         <FormItem :label="$t('role')">
           <Input v-model="addedRole.name" :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem :label="$t('display_name')">
-          <Input
-            v-model="addedRole.displayName"
-            :placeholder="$t('please_input')"
-          />
+          <Input v-model="addedRole.displayName" :placeholder="$t('please_input')" />
         </FormItem>
         <FormItem :label="$t('email')">
           <Input v-model="addedRole.email" :placeholder="$t('please_input')" />
         </FormItem>
       </Form>
     </Modal>
-    <Modal
-      v-model="userManageModal"
-      width="700"
-      :title="$t('edit_user')"
-      @on-ok="confirmUser"
-      @on-cancel="confirmUser"
-    >
+    <Modal v-model="userManageModal" width="700" :title="$t('edit_user')" @on-ok="confirmUser" @on-cancel="confirmUser">
       <Transfer
         :titles="transferTitles"
         :list-style="transferStyle"
@@ -186,10 +134,7 @@ export default {
   methods: {
     async handleMenuTreeCheck (allChecked, currentChecked) {
       const menuCodes = allChecked.filter(i => i.category).map(_ => _.code)
-      const { status, message } = await updateRoleToMenusByRoleId(
-        this.currentRoleId,
-        menuCodes
-      )
+      const { status, message } = await updateRoleToMenusByRoleId(this.currentRoleId, menuCodes)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'success',
@@ -224,12 +169,7 @@ export default {
           let menuObj = MENUS.find(m => m.code === _.code)
           menus.push({
             ..._,
-            title:
-              _.source === 'SYSTEM'
-                ? this.$lang === 'zh-CN'
-                  ? menuObj.cnName
-                  : menuObj.enName
-                : _.displayName,
+            title: _.source === 'SYSTEM' ? (this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName) : _.displayName,
             id: _.id,
             expand: true,
             checked: false,
@@ -334,11 +274,7 @@ export default {
       if (checked) {
         let permissions = await getMenusByRoleId(id)
         if (permissions.status === 'OK') {
-          this.menusPermissionSelected(
-            this.menus,
-            permissions.data.menuList,
-            false
-          )
+          this.menusPermissionSelected(this.menus, permissions.data.menuList, false)
         }
         let { status, data } = await getUsersByRoleId(id)
         if (status === 'OK') {
@@ -358,10 +294,7 @@ export default {
     },
     async handleUserTransferChange (newTargetKeys, direction, moveKeys) {
       if (direction === 'right') {
-        let { status, message } = await grantRolesForUser(
-          moveKeys,
-          this.selectedRole
-        )
+        let { status, message } = await grantRolesForUser(moveKeys, this.selectedRole)
         if (status === 'OK') {
           this.$Notice.success({
             title: 'success',
@@ -370,10 +303,7 @@ export default {
           this.usersKeyBySelectedRole = newTargetKeys
         }
       } else {
-        let { status, message } = await revokeRolesForUser(
-          moveKeys,
-          this.selectedRole
-        )
+        let { status, message } = await revokeRolesForUser(moveKeys, this.selectedRole)
         if (status === 'OK') {
           this.$Notice.success({
             title: 'success',
