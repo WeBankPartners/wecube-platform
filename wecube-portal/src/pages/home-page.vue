@@ -58,14 +58,6 @@ export default {
 <style lang="scss" scoped>
 .wrap {
   margin-top: 100px;
-  // perspective: 1000px;
-  // perspective-origin: 50% 50%;
-  // background-image: linear-gradient(135deg,#ccc 25%,#ddd 25%,#ddd 50%, #ccc 50%, #ccc 75%,#ddd 75%,#ddd 100%);
-  // background-size: 80px 80px;
-  // border-top: solid 3px #999;
-  // border-bottom: solid 3px #999;
-  /* Background stripes animation */
-  // animation: bganim 3s linear 2s infinite;
 }
 
 @keyframes bganim {
