@@ -22,7 +22,7 @@ module.exports = {
         target: 'https://sandbox.webank.com'
       },
       '/auth': {
-        target: 'http://111.230.161.237:19110'
+        target: 'http://127.0.0.1:19110'
       }
     }
   },
