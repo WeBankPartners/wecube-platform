@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 
@@ -31,10 +31,11 @@ public class RoleManagementController {
     private RoleMenuService roleMenuService;
 
     @PostMapping("/roles/create")
-    public CommonResponseDto createRole(@RequestHeader(value = "Authorization") String token,
-                                        @RequestBody Map<String, Object> requestBody) {
+    public CommonResponseDto registerLocalRole(
+                                       @RequestBody RoleDto roleDto) {
         try {
-            return userManagementService.createRole(token, requestBody);
+            RoleDto result = userManagementService.registerLocalRole(roleDto);
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -104,11 +105,11 @@ public class RoleManagementController {
     }
 
     @PostMapping("/roles/{role-id}/menus")
-    public CommonResponseDto updateRoleToMenusByRoleId(@RequestHeader(value = "Authorization") String token,
+    public CommonResponseDto updateRoleToMenusByRoleId(
                                                        @PathVariable(value = "role-id") String roleId,
                                                        @RequestBody List<String> menuCodeList) {
         try {
-            this.roleMenuService.updateRoleToMenusByRoleId(token, roleId, menuCodeList);
+            this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
