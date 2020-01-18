@@ -2,7 +2,6 @@ package com.webank.wecube.platform.core.service.user;
 
 import java.util.List;
 
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 
@@ -18,21 +17,19 @@ public interface UserManagementService {
 
     RoleDto registerLocalRole(RoleDto role);
 
-    CommonResponseDto retrieveRole(String token);
+    List<RoleDto> retrieveAllRoles();
 
     RoleDto retrieveRoleById(String roleId);
 
-    CommonResponseDto deleteRole(String token, String id);
+    void unregisterLocalRoleById(String roleId);
 
     List<RoleDto> getGrantedRolesByUsername(String username);
 
-    CommonResponseDto getUsersByRoleId(String token, String roleId);
+    List<UserDto> getUsersByRoleId(String roleId);
 
-    CommonResponseDto grantRoleToUsers(String token, String roleId, List<Object> userIdList);
+    void grantRoleToUsers(String roleId, List<Object> userIds);
 
-    CommonResponseDto revokeRoleFromUsers(String token, String roleId, List<Object> jsonObject);
-
-    List<RoleDto> retrieveRole();
+    void revokeRoleFromUsers(String roleId, List<Object> jsonObject);
 
     List<String> getRoleIdsByUsername(String username);
 
