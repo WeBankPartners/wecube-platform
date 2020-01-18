@@ -302,8 +302,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     public List<ProcInstInfoDto> getProcessInstances(String token) {
         List<ProcInstInfoDto> result = new ArrayList<>();
-        List<String> roleIdList = this.userManagementService.getRoleIdListByUsername(token,
-                AuthenticationContextHolder.getCurrentUsername());
+        List<String> roleIdList = this.userManagementService
+                .getRoleIdsByUsername(AuthenticationContextHolder.getCurrentUsername());
         if (roleIdList.size() == 0) {
             return result;
         }
