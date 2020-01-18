@@ -265,7 +265,7 @@ public class PluginPackageService {
     void createRolesIfNotExistInSystem(PluginPackage pluginPackage) {
         Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
         if (null != pluginPackageAuthorities && pluginPackageAuthorities.size() > 0) {
-            List<RoleDto> roleDtos = userManagementService.retrieveRole();
+            List<RoleDto> roleDtos = userManagementService.retrieveAllRoles();
             Set<String> existingRoleNames = new HashSet<>();
             if (null != roleDtos && roleDtos.size() > 0) {
                 existingRoleNames = roleDtos.stream().map(roleDto -> roleDto.getName()).collect(Collectors.toSet());
