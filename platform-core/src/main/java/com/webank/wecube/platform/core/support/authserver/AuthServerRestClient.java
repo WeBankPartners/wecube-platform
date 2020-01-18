@@ -29,23 +29,7 @@ public class AuthServerRestClient implements RestClient {
 
     private static final Logger log = LoggerFactory.getLogger(AuthServerRestClient.class);
 
-    private static AuthServerRestClient INSTANCE;
-
-    private static final String URI_PATH_DELIMITER = "/";
-    private static final String URI_COMPONENTS_DELIMITER = ":";
-    private static final String URI_SCHEMA_DELIMITER = "//";
-
-    private String registerLocalUserPath = "/auth/v1/users";
-    private String retrieveAllUserAccountsPath = "/auth/v1/users";
-    private String deleteUserAccountByUserIdPath = "/auth/v1/users/{user-id}";
-    private String retrieveGrantedRolesByUsernamePath = "/auth/v1/users/{username}/roles";
-    private String retrieveRoleByIdPath = "/auth/v1/roles/{role-id}";
-    private String registerLocalRolePath = "/auth/v1/roles";
-    private String retrieveAllRolesPath = "/auth/v1/roles";
-    private String deleteLocalRoleByRoleIdPath = "/auth/v1/roles/{role-id}";
-    private String retrieveAllUsersBelongsToRoleIdPath = "/auth/v1/roles/{role-id}/users";
-    private String configureUserRolesByIdPath = "/auth/v1/roles/{role-id}/users";
-    private String revokeUserRolesByIdPath = "/roles/{role-id}/users/revoke";
+    private static AuthServerRestClient _INSTANCE;
 
     @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
@@ -56,24 +40,24 @@ public class AuthServerRestClient implements RestClient {
     private JwtSsoRestTemplate jwtSsoRestTemplate;
 
     @Autowired
-    private AuthServerRestClientProperties authServerRestClientProperties;
+    private AuthServerRestClientProperties clientProperties;
 
     @PostConstruct
     public void afterPropertiesSet() {
-        INSTANCE = this;
+        _INSTANCE = this;
         if (log.isDebugEnabled()) {
-            log.debug("auth server properties:host={},port={}", authServerRestClientProperties.getHost(),
-                    authServerRestClientProperties.getPort());
+            log.debug("auth server properties:host={},port={}", clientProperties.getHost(),
+                    clientProperties.getPort());
         }
 
     }
 
     public static AuthServerRestClient instance() {
-        if (INSTANCE == null) {
-            throw new RuntimeException(String.format("%s is NOT loaded.", AuthServerRestClient.class.getName()));
+        if (_INSTANCE == null) {
+            throw new RuntimeException(String.format("%s is NOT fully loaded.", AuthServerRestClient.class.getName()));
         }
 
-        return INSTANCE;
+        return _INSTANCE;
     }
 
     public void revokeUserRolesById(String roleId, List<Object> userIds) {
@@ -85,7 +69,7 @@ public class AuthServerRestClient implements RestClient {
             return;
         }
 
-        postForObject(revokeUserRolesByIdPath, userIds,
+        postForObject(clientProperties.getPathRevokeUserRolesById(), userIds,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
     }
@@ -99,7 +83,7 @@ public class AuthServerRestClient implements RestClient {
             return;
         }
 
-        postForObject(configureUserRolesByIdPath, userIds,
+        postForObject(clientProperties.getPathConfigureUserRolesById(), userIds,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
     }
@@ -109,7 +93,7 @@ public class AuthServerRestClient implements RestClient {
             throw new IllegalArgumentException();
         }
 
-        List<AsUserDto> asUsers = getForObject(retrieveAllUsersBelongsToRoleIdPath,
+        List<AsUserDto> asUsers = getForObject(clientProperties.getPathRetrieveAllUsersBelongsToRoleId(),
                 new ParameterizedTypeReference<AuthServerRestResponseDto<List<AsUserDto>>>() {
                 }, roleId);
 
@@ -117,7 +101,7 @@ public class AuthServerRestClient implements RestClient {
     }
 
     public List<AsRoleDto> retrieveAllRoles() {
-        List<AsRoleDto> asRoles = getForObject(retrieveAllRolesPath,
+        List<AsRoleDto> asRoles = getForObject(clientProperties.getPathRetrieveAllRoles(),
                 new ParameterizedTypeReference<AuthServerRestResponseDto<List<AsRoleDto>>>() {
                 });
         return asRoles;
@@ -128,7 +112,7 @@ public class AuthServerRestClient implements RestClient {
             throw new IllegalArgumentException();
         }
 
-        deleteObject(deleteLocalRoleByRoleIdPath, roleId);
+        deleteObject(clientProperties.getPathDeleteLocalRoleByRoleId(), roleId);
     }
 
     public AsRoleDto registerLocalRole(AsRoleDto request) {
@@ -140,7 +124,7 @@ public class AuthServerRestClient implements RestClient {
             throw new AuthServerClientException("The name of role to register cannot be empty.");
         }
 
-        AsRoleDto result = postForObject(registerLocalRolePath, request,
+        AsRoleDto result = postForObject(clientProperties.getPathRegisterLocalRole(), request,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<AsRoleDto>>() {
                 });
         return result;
@@ -151,7 +135,7 @@ public class AuthServerRestClient implements RestClient {
             return null;
         }
 
-        AsRoleDto role = getForObject(retrieveRoleByIdPath,
+        AsRoleDto role = getForObject(clientProperties.getPathRetrieveRoleById(),
                 new ParameterizedTypeReference<AuthServerRestResponseDto<AsRoleDto>>() {
                 }, roleId);
         return role;
@@ -162,28 +146,28 @@ public class AuthServerRestClient implements RestClient {
             throw new IllegalArgumentException();
         }
 
-        List<AsRoleDto> result = getForObject(retrieveGrantedRolesByUsernamePath,
+        List<AsRoleDto> result = getForObject(clientProperties.getPathRetrieveGrantedRolesByUsername(),
                 new ParameterizedTypeReference<AuthServerRestResponseDto<List<AsRoleDto>>>() {
                 }, username);
         return result;
     }
 
     public AsUserDto registerLocalUser(AsUserDto asUserDto) {
-        AsUserDto result = postForObject(registerLocalUserPath, asUserDto,
+        AsUserDto result = postForObject(clientProperties.getPathRegisterLocalUser(), asUserDto,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<AsUserDto>>() {
                 });
         return result;
     }
 
     public List<AsUserDto> retrieveAllUserAccounts() {
-        List<AsUserDto> asUsers = getForObject(retrieveAllUserAccountsPath,
+        List<AsUserDto> asUsers = getForObject(clientProperties.getPathRetrieveAllUserAccounts(),
                 new ParameterizedTypeReference<AuthServerRestResponseDto<List<AsUserDto>>>() {
                 });
         return asUsers;
     }
 
     public void deleteUserAccountByUserId(String userId) {
-        deleteObject(deleteUserAccountByUserIdPath, userId);
+        deleteObject(clientProperties.getPathDeleteUserAccountByUserId(), userId);
     }
 
     protected String buildFullUriString(String path, String httpSchema, String host, int port) {
@@ -198,8 +182,8 @@ public class AuthServerRestClient implements RestClient {
     }
 
     protected void deleteObject(String path, Object... uriVariables) throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, authServerRestClientProperties.getHttpSchema(),
-                authServerRestClientProperties.getHost(), authServerRestClientProperties.getPort());
+        String requestUri = buildFullUriString(path, clientProperties.getHttpSchema(),
+                clientProperties.getHost(), clientProperties.getPort());
 
         URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
 
@@ -221,8 +205,8 @@ public class AuthServerRestClient implements RestClient {
 
     protected <T> T getForObject(String path, ParameterizedTypeReference<AuthServerRestResponseDto<T>> responseType,
             Object... uriVariables) throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, authServerRestClientProperties.getHttpSchema(),
-                authServerRestClientProperties.getHost(), authServerRestClientProperties.getPort());
+        String requestUri = buildFullUriString(path, clientProperties.getHttpSchema(),
+                clientProperties.getHost(), clientProperties.getPort());
 
         URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
         HttpHeaders headers = new HttpHeaders();
@@ -243,8 +227,8 @@ public class AuthServerRestClient implements RestClient {
     protected <T> T postForObject(String path, Object request,
             ParameterizedTypeReference<AuthServerRestResponseDto<T>> responseType, Object... uriVariables)
             throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, authServerRestClientProperties.getHttpSchema(),
-                authServerRestClientProperties.getHost(), authServerRestClientProperties.getPort());
+        String requestUri = buildFullUriString(path, clientProperties.getHttpSchema(),
+                clientProperties.getHost(), clientProperties.getPort());
 
         URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
         ResponseEntity<AuthServerRestResponseDto<T>> responseEntity = userJwtSsoTokenRestTemplate.exchange(expandedUri,
