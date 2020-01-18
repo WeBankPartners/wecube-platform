@@ -30,21 +30,14 @@ import java.util.stream.Collectors;
 public class RoleMenuServiceImpl implements RoleMenuService {
 
     private static final Logger logger = LoggerFactory.getLogger(RoleMenuServiceImpl.class);
-    private RoleMenuRepository roleMenuRepository;
-    private MenuItemRepository menuItemRepository;
-    private PluginPackageMenuRepository pluginPackageMenuRepository;
-    private UserManagementServiceImpl userManagementService;
-
     @Autowired
-    public RoleMenuServiceImpl(RoleMenuRepository roleMenuRepository,
-                               MenuItemRepository menuItemRepository,
-                               PluginPackageMenuRepository pluginPackageMenuRepository,
-                               UserManagementServiceImpl userManagementService) {
-        this.roleMenuRepository = roleMenuRepository;
-        this.menuItemRepository = menuItemRepository;
-        this.pluginPackageMenuRepository = pluginPackageMenuRepository;
-        this.userManagementService = userManagementService;
-    }
+    private RoleMenuRepository roleMenuRepository;
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+    @Autowired
+    private PluginPackageMenuRepository pluginPackageMenuRepository;
+    @Autowired
+    private UserManagementService userManagementService;
 
     /**
      * Retrieve role_menu table by given roleId
@@ -92,9 +85,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      * @param menuCodeList given total amount of the menuCode list
      */
     @Override
-    public void updateRoleToMenusByRoleId(String token, String roleId, List<String> menuCodeList) throws WecubeCoreException {
+    public void updateRoleToMenusByRoleId(String roleId, List<String> menuCodeList) throws WecubeCoreException {
         List<RoleMenu> roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
-        RoleDto roleDto = JsonUtils.toObject(userManagementService.retrieveRoleById(token, roleId).getData(), RoleDto.class);
+        RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
         String roleName = roleDto.getName();
 
         // current menuCodeList - new menuCodeList = needToDeleteList
@@ -128,8 +121,8 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     }
 
     @Override
-    public List<RoleMenuDto> getMenusByUserName(String token, String username) {
-        List<RoleDto> roleDtoList = this.userManagementService.getRoleListByUserName(token, username);
+    public List<RoleMenuDto> getMenusByUsername(String username) {
+        List<RoleDto> roleDtoList = this.userManagementService.getGrantedRolesByUsername(username);
         return roleDtoList.stream().map(roleDto -> this.retrieveMenusByRoleId(roleDto.getId())).collect(Collectors.toList());
     }
 

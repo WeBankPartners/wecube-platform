@@ -26,6 +26,7 @@ import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.support.RestClientException;
+import com.webank.wecube.platform.core.support.authserver.AsRoleDto;
 import com.webank.wecube.platform.core.support.authserver.AsUserDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 import com.webank.wecube.platform.core.utils.JsonUtils;
@@ -36,16 +37,10 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final static Logger log = LoggerFactory.getLogger(UserManagementServiceImpl.class);
     // request URLs
     private static final String GATEWAY_PLACE_HOLDER = "gatewayUrl";
-    private static final String USER_NAME_PLACE_HOLDER = "userName";
     private static final String ROLE_ID_PLACE_HOLDER = "roleId";
-    private static final String AUTH_SERVER_ROLE_CREATE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles";
     private static final String AUTH_SERVER_ROLE_RETRIEVE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles";
-    private static final String AUTH_SERVER_ROLE_RETRIEVE_ROLE_ID_URL = "http://{" + GATEWAY_PLACE_HOLDER
-            + "}/auth/v1/roles/{" + ROLE_ID_PLACE_HOLDER + "}";
     private static final String AUTH_SERVER_ROLE_DELETE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{"
             + ROLE_ID_PLACE_HOLDER + "}";
-    private static final String AUTH_SERVER_USER2ROLE_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/users/{"
-            + USER_NAME_PLACE_HOLDER + "}/roles";
     private static final String AUTH_SERVER_ROLE2USER_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{"
             + ROLE_ID_PLACE_HOLDER + "}/users";
     private static final String AUTH_SERVER_GRANT_URL = "http://{" + GATEWAY_PLACE_HOLDER + "}/auth/v1/roles/{"
@@ -101,10 +96,10 @@ public class UserManagementServiceImpl implements UserManagementService {
                 u.setId(m.getId());
                 u.setUsername(m.getUsername());
                 u.setPassword(m.getPassword());
-                
+
                 userDtos.add(u);
             });
-            
+
             return userDtos;
         } catch (RestClientException e) {
             log.error("failed to retrieve all user accounts", e);
@@ -114,43 +109,44 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public void deleteUserByUserId(String userId) {
-        //
-        try{
+        try {
             authServerRestClient.deleteUserAccountByUserId(userId);
-        }catch (RestClientException e) {
+        } catch (RestClientException e) {
             log.error("failed to delete user account by user id", e);
             throw new WecubeCoreException("Failed to delete user account.");
         }
     }
 
     @Override
-    public CommonResponseDto createRole(String token, Map<String, Object> jsonObject) {
-        HttpHeaders httpHeaders = createHeaderWithToken(token);
-        Map<String, String> requestUrlMap = new HashMap<>();
-        requestUrlMap.put(GATEWAY_PLACE_HOLDER, applicationProperties.getGatewayUrl());
-        String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_CREATE_URL, requestUrlMap);
-        log.info(String.format("Sending POST request to: [%s] with body: [%s]", requestUrl, jsonObject));
-        ResponseEntity<String> response = RestTemplateUtils.sendPostRequestWithBody(this.restTemplate, requestUrl,
-                httpHeaders, jsonObject);
-        return RestTemplateUtils.checkResponse(response);
-    }
-
-    @Override
-    public RoleDto createRole(RoleDto roleDto) throws WecubeCoreException {
-        String token = "Bearer";
-        Map<String, Object> createRoleMap = dtoToMap(roleDto);
-        CommonResponseDto createRoleResponse = createRole(token, createRoleMap);
-        String createRoleResponseDataJsonString = JsonUtils.toJsonString(createRoleResponse.getData());
-        RoleDto resultDto;
-        try {
-            resultDto = JsonUtils.toObject(createRoleResponseDataJsonString, RoleDto.class);
-        } catch (IOException ex) {
-            String msg = String.format("Cannot transfer response's data [%s] to RoleId dto",
-                    createRoleResponseDataJsonString);
-            log.error(msg);
-            throw new WecubeCoreException(msg);
+    public RoleDto registerLocalRole(RoleDto roleDto) {
+        if (roleDto == null) {
+            throw new IllegalArgumentException();
         }
-        return resultDto;
+
+        if (StringUtils.isBlank(roleDto.getName())) {
+            throw new WecubeCoreException("The name of role to register cannot be blank.");
+        }
+
+        AsRoleDto requestDto = new AsRoleDto();
+        requestDto.setDisplayName(roleDto.getDisplayName());
+        requestDto.setEmail(roleDto.getEmail());
+        requestDto.setName(roleDto.getName());
+
+        try {
+            AsRoleDto result = authServerRestClient.registerLocalRole(requestDto);
+            RoleDto retRoleDto = new RoleDto();
+            if (result != null) {
+                retRoleDto.setDisplayName(result.getDisplayName());
+                retRoleDto.setEmail(result.getEmail());
+                retRoleDto.setId(result.getId());
+                retRoleDto.setName(result.getName());
+            }
+
+            return retRoleDto;
+        } catch (RestClientException e) {
+            log.error("Failed to register local role", e);
+            throw new WecubeCoreException(e.getErrorMessage());
+        }
     }
 
     @Override
@@ -183,16 +179,24 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto retrieveRoleById(String token, String roleId) {
-        HttpHeaders httpHeaders = createHeaderWithToken(token);
-        Map<String, String> requestUrlMap = new HashMap<>();
-        requestUrlMap.put(GATEWAY_PLACE_HOLDER, applicationProperties.getGatewayUrl());
-        requestUrlMap.put(ROLE_ID_PLACE_HOLDER, roleId);
-        String requestUrl = generateRequestUrl(AUTH_SERVER_ROLE_RETRIEVE_ROLE_ID_URL, requestUrlMap);
-        log.info(String.format("Sending GET request to: [%s]", requestUrl));
-        ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl,
-                httpHeaders);
-        return RestTemplateUtils.checkResponse(response);
+    public RoleDto retrieveRoleById(String roleId) {
+        try {
+            AsRoleDto asRole = authServerRestClient.retrieveRoleById(roleId);
+            if (asRole == null) {
+                throw new WecubeCoreException("No such role.");
+            }
+
+            RoleDto r = new RoleDto();
+            r.setDisplayName(asRole.getDisplayName());
+            r.setEmail(asRole.getEmail());
+            r.setId(asRole.getId());
+            r.setName(asRole.getName());
+
+            return r;
+        } catch (RestClientException e) {
+            log.error("retrieving role error", e);
+            throw new WecubeCoreException(e.getErrorMessage());
+        }
     }
 
     @Override
@@ -209,21 +213,33 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public CommonResponseDto getRolesByUserName(String token, String username) {
-        HttpHeaders httpHeaders = createHeaderWithToken(token);
-        Map<String, String> requestUrlMap = new HashMap<>();
-        requestUrlMap.put(GATEWAY_PLACE_HOLDER, applicationProperties.getGatewayUrl());
-        requestUrlMap.put(USER_NAME_PLACE_HOLDER, username);
-        String requestUrl = generateRequestUrl(AUTH_SERVER_USER2ROLE_URL, requestUrlMap);
-        log.info(String.format("Sending GET request to: [%s]", requestUrl));
-        ResponseEntity<String> response = RestTemplateUtils.sendGetRequestWithUrlParamMap(this.restTemplate, requestUrl,
-                httpHeaders);
-        return RestTemplateUtils.checkResponse(response);
+    public List<RoleDto> getGrantedRolesByUsername(String username) {
+        List<RoleDto> grantedRoles = new ArrayList<>();
+        if (StringUtils.isBlank(username)) {
+            return grantedRoles;
+        }
+
+        List<AsRoleDto> asRoles = authServerRestClient.retrieveGrantedRolesByUsername(username);
+        if (asRoles == null || asRoles.isEmpty()) {
+            return grantedRoles;
+        }
+
+        asRoles.forEach(ar -> {
+            RoleDto r = new RoleDto();
+            r.setDisplayName(ar.getDisplayName());
+            r.setEmail(ar.getEmail());
+            r.setId(ar.getId());
+            r.setName(ar.getName());
+
+            grantedRoles.add(r);
+        });
+
+        return grantedRoles;
     }
 
     @Override
-    public List<String> getRoleIdListByUsername(String token, String username) {
-        List<RoleDto> roleListByUserName = this.getRoleListByUserName(token, username);
+    public List<String> getRoleIdsByUsername(String username) {
+        List<RoleDto> roleListByUserName = this.getGrantedRolesByUsername(username);
         return roleListByUserName.stream().map(RoleDto::getId).collect(Collectors.toList());
     }
 
@@ -266,12 +282,6 @@ public class UserManagementServiceImpl implements UserManagementService {
         return RestTemplateUtils.checkResponse(response);
     }
 
-    @Override
-    public List<RoleDto> getRoleListByUserName(String token, String username) {
-        CommonResponseDto rolesByUserName = getRolesByUserName(token, username);
-        return extractRoleDtoListFromJsonResponse(rolesByUserName);
-    }
-
     @SuppressWarnings("unchecked")
     private Map<String, Object> dtoToMap(Object dtoObject) throws WecubeCoreException {
         Map<String, Object> resultMap = new LinkedHashMap<>();
@@ -302,18 +312,4 @@ public class UserManagementServiceImpl implements UserManagementService {
         return httpHeaders;
     }
 
-    private List<RoleDto> extractRoleDtoListFromJsonResponse(CommonResponseDto requireRolesFromUserName)
-            throws WecubeCoreException {
-        String dataJsonString = JsonUtils.toJsonString(requireRolesFromUserName.getData());
-        List<RoleDto> roleDtoList;
-        try {
-            roleDtoList = JsonUtils.toList(dataJsonString, RoleDto.class);
-        } catch (IOException e) {
-            String msg = "Cannot extract roles from the given json response";
-            this.log.error(msg, dataJsonString);
-            throw new WecubeCoreException(msg);
-        }
-        return roleDtoList;
-
-    }
 }

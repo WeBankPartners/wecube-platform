@@ -7,9 +7,9 @@ import java.util.List;
 public interface RoleMenuService {
     RoleMenuDto retrieveMenusByRoleId(String roleId);
 
-    List<RoleMenuDto> getMenusByUserName(String token, String username);
+    List<RoleMenuDto> getMenusByUsername(String username);
 
     List<String> getMenuCodeListByRoleName(String roleName);
 
-    void updateRoleToMenusByRoleId(String token, String roleId, List<String> menuCodeList);
+    void updateRoleToMenusByRoleId(String roleId, List<String> menuCodeList);
 }

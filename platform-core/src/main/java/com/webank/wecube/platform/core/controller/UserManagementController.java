@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
@@ -49,8 +49,7 @@ public class UserManagementController {
     }
 
     @DeleteMapping("/users/{user-id}/delete")
-    public CommonResponseDto deleteUserByUserId(
-                                        @PathVariable("user-id") String userId) {
+    public CommonResponseDto deleteUserByUserId(@PathVariable("user-id") String userId) {
         try {
             userManagementService.deleteUserByUserId(userId);
             return CommonResponseDto.okay();
@@ -60,34 +59,34 @@ public class UserManagementController {
     }
 
     @GetMapping("/users/roles")
-    @ResponseBody
-    public CommonResponseDto getRolesByCurrentUserName(@RequestHeader(value = "Authorization") String token) {
+    public CommonResponseDto getRolesOfCurrentUser() {
         try {
-            return userManagementService.getRolesByUserName(token, AuthenticationContextHolder.getCurrentUsername());
+            List<RoleDto> grantedRoles = userManagementService
+                    .getGrantedRolesByUsername(AuthenticationContextHolder.getCurrentUsername());
+            return CommonResponseDto.okayWithData(grantedRoles);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
-    @GetMapping("/users/{user-name}/roles")
-    public CommonResponseDto getRolesByUsername(@RequestHeader(value = "Authorization") String token,
-                                                @PathVariable(value = "user-name") String userName) {
+    @GetMapping("/users/{username}/roles")
+    public CommonResponseDto getRolesByUsername(@PathVariable(value = "username") String username) {
         try {
-            return userManagementService.getRolesByUserName(token, userName);
+            List<RoleDto> grantedRoles = userManagementService.getGrantedRolesByUsername(username);
+            return CommonResponseDto.okayWithData(grantedRoles);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
-    @GetMapping("/users/{user-name}/menus")
-    public CommonResponseDto getMenusByUsername(@RequestHeader(value = "Authorization") String token,
-                                                @PathVariable(value = "user-name") String userName) {
+    @GetMapping("/users/{username}/menus")
+    public CommonResponseDto getMenusByUsername(@PathVariable(value = "username") String username) {
         try {
-            return CommonResponseDto.okayWithData(this.roleMenuService.getMenusByUserName(token, userName));
+            List<RoleMenuDto> result = this.roleMenuService.getMenusByUsername(username);
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
-
 
 }
