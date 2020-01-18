@@ -37,7 +37,10 @@ public class AuthServerRestClient implements RestClient {
 
     private String registerLocalUserPath = "/auth/v1/users";
     private String retrieveAllUserAccountsPath = "/auth/v1/users";
-    private String deleteUserAccountByUserId = "/auth/v1/users/{user-id}";
+    private String deleteUserAccountByUserIdPath = "/auth/v1/users/{user-id}";
+    private String retrieveGrantedRolesByUsernamePath = "/auth/v1/users/{username}/roles";
+    private String retrieveRoleByIdPath = "/auth/v1/roles/{role-id}";
+    private String registerLocalRolePath = "/auth/v1/roles";
 
     @Autowired
     private UserJwtSsoTokenRestTemplate userJwtSsoTokenRestTemplate;
@@ -66,6 +69,37 @@ public class AuthServerRestClient implements RestClient {
 
         return INSTANCE;
     }
+    
+    public AsRoleDto registerLocalRole(AsRoleDto request){
+        if(request == null){
+            throw new IllegalArgumentException();
+        }
+        
+        if(StringUtils.isBlank(request.getName())){
+            throw new AuthServerClientException("The name of role to register cannot be empty.");
+        }
+        
+        AsRoleDto result = postForObject(registerLocalRolePath, request, new ParameterizedTypeReference<AuthServerRestResponseDto<AsRoleDto>>(){});
+        return result;
+    }
+    
+    public AsRoleDto retrieveRoleById(String roleId){
+        if(StringUtils.isBlank(roleId)){
+            return null;
+        }
+        
+        AsRoleDto role = getForObject(retrieveRoleByIdPath, new ParameterizedTypeReference<AuthServerRestResponseDto<AsRoleDto>>(){}, roleId);
+        return role;
+    }
+    
+    public List<AsRoleDto> retrieveGrantedRolesByUsername(String username){
+        if(StringUtils.isBlank(username)){
+            throw new IllegalArgumentException();
+        }
+        
+        List<AsRoleDto> result = getForObject(retrieveGrantedRolesByUsernamePath, new ParameterizedTypeReference<AuthServerRestResponseDto<List<AsRoleDto>>>(){}, username);
+        return result;
+    }
 
     public AsUserDto registerLocalUser(AsUserDto asUserDto) {
         AsUserDto result = postForObject(registerLocalUserPath, asUserDto,
@@ -82,7 +116,7 @@ public class AuthServerRestClient implements RestClient {
     }
 
     public void deleteUserAccountByUserId(String userId) {
-        deleteObject(deleteUserAccountByUserId, userId);
+        deleteObject(deleteUserAccountByUserIdPath, userId);
     }
 
     protected String buildFullUriString(String path, String httpSchema, String host, int port) {
