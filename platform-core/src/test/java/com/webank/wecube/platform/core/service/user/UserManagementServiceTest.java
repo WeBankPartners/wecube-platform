@@ -69,22 +69,22 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 //        this.server.verify();
 //    }
 
-    @Test
-    public void createRoleShouldSucceed() {
-        mockCreateRoleServer(this.server);
-        Map<String, Object> createUserMap = mockCreateRoleMap();
-        CommonResponseDto responseDto = userManagementService.createRole(this.token, createUserMap);
-        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
-        this.server.verify();
-    }
+//    @Test
+//    public void createRoleShouldSucceed() {
+//        mockCreateRoleServer(this.server);
+//        Map<String, Object> createUserMap = mockCreateRoleMap();
+//        CommonResponseDto responseDto = userManagementService.createRole(this.token, createUserMap);
+//        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+//        this.server.verify();
+//    }
 
-    @Test
-    public void createRoleInternalShouldSucceed() {
-        mockCreateRoleServer(this.server);
-        RoleDto createRoleDto = new RoleDto("fake administrator", "fakeAdministrator");
-        userManagementService.createRole(createRoleDto);
-        this.server.verify();
-    }
+//    @Test
+//    public void createRoleInternalShouldSucceed() {
+//        mockCreateRoleServer(this.server);
+//        RoleDto createRoleDto = new RoleDto("fake administrator", "fakeAdministrator");
+//        userManagementService.createRole(createRoleDto);
+//        this.server.verify();
+//    }
 
 
     @Test
@@ -127,14 +127,14 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
         this.server.verify();
     }
 
-    @Test
-    public void getRolesFromUserShouldSucceed() {
-        mockGetRolesFromUserServer(this.server);
-        String userName = "howe";
-        CommonResponseDto responseDto = userManagementService.getRolesByUserName(this.token, userName);
-        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
-        this.server.verify();
-    }
+//    @Test
+//    public void getRolesFromUserShouldSucceed() {
+//        mockGetRolesFromUserServer(this.server);
+//        String userName = "howe";
+//        CommonResponseDto responseDto = userManagementService.getRolesByUserName(this.token, userName);
+//        assertThat(responseDto.getStatus()).isEqualTo(CommonResponseDto.STATUS_OK);
+//        this.server.verify();
+//    }
 
     @Test
     public void getUsersFromRoleShouldSucceed() {
