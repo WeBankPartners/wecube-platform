@@ -88,13 +88,14 @@
             </ul>
             <p v-else>No Data</p>
           </Col>
-          <Col span="17" class="excute-result excute-result-json">
+          <Col span="18" class="excute-result excute-result-json">
             <Input v-model="resultFilterKey" style="width:300px;visibility: hidden;" />
             <div>
               <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
               <pre
+                style="min-height: 300px;"
                 v-if="businessKeyContent"
-              > <span v-html="JSON.stringify(businessKeyContent.result, null, 2)"></span></pre>
+              > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
               <pre v-else> <span></span></pre>
               <!-- <p>{{ JSON.stringify(businessKeyContent, null, 2) }}</p> -->
             </div>
@@ -317,6 +318,14 @@ export default {
     }
   },
   methods: {
+    formatResult (result) {
+      for (let key in result) {
+        if (result[key].length > 1) {
+          result[key] = result[key].split('\n').join('<br/>            ')
+        }
+      }
+      return JSON.stringify(result, null, 2)
+    },
     setSearchConditions () {
       this.getAllDataModels()
       if (document.querySelector('.wecube_attr-ul')) {
@@ -545,11 +554,11 @@ textarea:focus {
   display: none;
 }
 .excute-result {
-  padding: 8px;
+  padding-right: 4px;
   min-height: 300px;
 }
 .excute-result-search {
-  margin-right: 16px;
+  // margin-right: 16px;
   border-right: 1px solid #e8eaec;
   .excute-result-search-title {
     margin-top: 16px;
@@ -563,7 +572,7 @@ textarea:focus {
   border: 1px solid #e8eaec;
   word-wrap: break-word;
   word-break: break-all;
-  overflow: scroll;
+  // overflow: scroll;
 }
 .business-key {
   padding: 0 16px;
