@@ -482,7 +482,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         ProcInstInfoEntity procInstInfoEntity = new ProcInstInfoEntity();
         procInstInfoEntity.setStatus(ProcInstInfoEntity.NOT_STARTED_STATUS);
-        procInstInfoEntity.setOperator("admin");
+        procInstInfoEntity.setOperator(AuthenticationContextHolder.getCurrentUsername());
         procInstInfoEntity.setProcDefId(procDefId);
         procInstInfoEntity.setProcDefKey(procDefInfoEntity.getProcDefKey());
         procInstInfoEntity.setProcDefName(procDefInfoEntity.getProcDefName());
@@ -543,7 +543,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             String procInstKey) {
         ProcessInstance processInstance = workflowEngineService.startProcessInstance(processDefinitionId, procInstKey);
 
-        // TODO handle failure
         Optional<ProcInstInfoEntity> existProcInstInfoEntityOpt = procInstInfoRepository
                 .findById(procInstInfoEntity.getId());
 
