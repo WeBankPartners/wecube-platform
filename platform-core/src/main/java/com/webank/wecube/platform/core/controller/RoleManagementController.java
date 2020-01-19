@@ -75,7 +75,7 @@ public class RoleManagementController {
 
     @PostMapping("/roles/{role-id}/users/grant")
     public CommonResponseDto grantRoleToUsers(@PathVariable(value = "role-id") String roleId,
-            @RequestBody List<Object> userIds) {
+            @RequestBody List<String> userIds) {
         try {
             userManagementService.grantRoleToUsers(roleId, userIds);
             return CommonResponseDto.okay();
@@ -86,9 +86,9 @@ public class RoleManagementController {
 
     @DeleteMapping("/roles/{role-id}/users/revoke")
     public CommonResponseDto revokeRoleFromUsers(@PathVariable(value = "role-id") String roleId,
-            @RequestBody List<Object> requestBody) {
+            @RequestBody List<String> userIds) {
         try {
-            userManagementService.revokeRoleFromUsers(roleId, requestBody);
+            userManagementService.revokeRoleFromUsers(roleId, userIds);
             return CommonResponseDto.okay();
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
