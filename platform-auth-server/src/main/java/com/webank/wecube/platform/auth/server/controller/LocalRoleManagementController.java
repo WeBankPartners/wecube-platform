@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
+import com.webank.wecube.platform.auth.server.dto.SimpleAuthorityDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
 import com.webank.wecube.platform.auth.server.service.RoleManagementService;
 
@@ -57,15 +58,15 @@ public class LocalRoleManagementController {
 
     @PostMapping("/roles/{role-id}/authorities")
     public CommonResponseDto configureRoleWithAuthoritiesById(@PathVariable(value = "role-id") String roleId,
-                                                    @RequestBody List<String> authorityIds){
-        roleManagementService.configureRoleWithAuthoritiesById(roleId, authorityIds);
+                                                    @RequestBody List<SimpleAuthorityDto> authorityDtos){
+        roleManagementService.configureRoleWithAuthoritiesById(roleId, authorityDtos);
         return okay();
     }
 
     @PostMapping("/roles/{role-id}/authorities/revoke")
     public CommonResponseDto revokeRoleAuthoritiesById(@PathVariable(value = "role-id") String roleId,
-                                                     @RequestBody List<String> authorityIds)  {
-        roleManagementService.revokeRoleAuthoritiesById(roleId, authorityIds);
+                                                     @RequestBody List<SimpleAuthorityDto> authorityDtos)  {
+        roleManagementService.revokeRoleAuthoritiesById(roleId, authorityDtos);
         return okay();
     }
 }
