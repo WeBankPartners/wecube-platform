@@ -63,15 +63,15 @@ public class LocalUserManagementController {
 
     @PostMapping("/roles/{role-id}/users")
     public CommonResponseDto configureUserRolesById(@PathVariable(value = "role-id") String roleId,
-                                               @RequestBody List<String> userIds){
-        userManagementService.configureUserRolesById(roleId, userIds);
+                                               @RequestBody List<SimpleLocalUserDto> userDtos){
+        userManagementService.configureUserRolesById(roleId, userDtos);
         return okay();
     }
 
     @PostMapping("/roles/{role-id}/users/revoke")
     public CommonResponseDto revokeUserRolesById(@PathVariable(value = "role-id") String roleId,
-                                                @RequestBody List<String> userIds){
-        userManagementService.revokeUserRolesById(roleId, userIds);
+                                                @RequestBody List<SimpleLocalUserDto> userDtos){
+        userManagementService.revokeUserRolesById(roleId, userDtos);
         return okay();
     }
 }
