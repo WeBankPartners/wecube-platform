@@ -60,30 +60,30 @@ public class AuthServerRestClient implements RestClient {
         return _INSTANCE;
     }
 
-    public void revokeUserRolesById(String roleId, List<Object> userIds) {
+    public void revokeUserRolesById(String roleId, List<AsUserDto> userDtos) {
         if (StringUtils.isBlank(roleId)) {
             throw new IllegalArgumentException();
         }
 
-        if (userIds == null || userIds.isEmpty()) {
+        if (userDtos == null || userDtos.isEmpty()) {
             return;
         }
 
-        postForObject(clientProperties.getPathRevokeUserRolesById(), userIds,
+        postForObject(clientProperties.getPathRevokeUserRolesById(), userDtos,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
     }
 
-    public void configureUserRolesById(String roleId, List<Object> userIds) {
+    public void configureUserRolesById(String roleId, List<AsUserDto> asUsers) {
         if (StringUtils.isBlank(roleId)) {
             throw new IllegalArgumentException();
         }
 
-        if (userIds == null || userIds.isEmpty()) {
+        if (asUsers == null || asUsers.isEmpty()) {
             return;
         }
 
-        postForObject(clientProperties.getPathConfigureUserRolesById(), userIds,
+        postForObject(clientProperties.getPathConfigureUserRolesById(), asUsers,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
     }

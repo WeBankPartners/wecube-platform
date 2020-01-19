@@ -42,7 +42,7 @@ public class UserManagementService {
     private RoleRepository roleRepository;
 
     @Transactional
-    public void revokeUserRolesById(String roleId, List<String> userIds) {
+    public void revokeUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.error("revoking user roles error:such role entity does not exist, role id {}", roleId);
@@ -51,8 +51,8 @@ public class UserManagementService {
 
         SysRoleEntity role = roleOpt.get();
 
-        for (String userId : userIds) {
-            UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(userId, role.getId());
+        for (SimpleLocalUserDto userDto : userDtos) {
+            UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(userDto.getId(), role.getId());
             if (userRole == null) {
                 continue;
             }
@@ -69,7 +69,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public void configureUserRolesById(String roleId, List<String> userIds) {
+    public void configureUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.error("configuring user with roles error:such role entity does not exist, role id {}", roleId);
@@ -78,23 +78,23 @@ public class UserManagementService {
 
         SysRoleEntity role = roleOpt.get();
 
-        for (String userId : userIds) {
-            Optional<SysUserEntity> userOpt = userRepository.findById(userId);
+        for (SimpleLocalUserDto userDto : userDtos) {
+            Optional<SysUserEntity> userOpt = userRepository.findById(userDto.getId());
             if (!userOpt.isPresent()) {
-                log.error("configuring user with roles error:user entity does not exist, user id {}", userId);
+                log.error("configuring user with roles error:user entity does not exist, user id {}", userDto.getId());
                 throw new AuthServerException("Such user entity does not exist.");
             }
 
             SysUserEntity user = userOpt.get();
 
-            UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(userId, roleId);
+            UserRoleRsEntity userRole = userRoleRsRepository.findOneByUserIdAndRoleId(userDto.getId(), roleId);
             if (userRole != null) {
-                log.info("such user role configuration already exist,userId={},roleId={}", userId, roleId);
+                log.info("such user role configuration already exist,userId={},roleId={}", userDto.getId(), roleId);
                 continue;
             } else {
                 userRole = new UserRoleRsEntity();
                 userRole.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-                userRole.setUserId(userId);
+                userRole.setUserId(userDto.getId());
                 userRole.setUsername(user.getUsername());
                 userRole.setRoleId(roleId);
                 userRole.setRoleName(role.getName());

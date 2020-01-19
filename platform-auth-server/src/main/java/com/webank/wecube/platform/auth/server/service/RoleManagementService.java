@@ -192,7 +192,7 @@ public class RoleManagementService {
     }
 
     @Transactional
-    public void configureRoleWithAuthoritiesById(String roleId, List<String> authorityIds) {
+    public void configureRoleWithAuthoritiesById(String roleId, List<SimpleAuthorityDto> authorityDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.error("such role entity does not exist,role id {}", roleId);
@@ -201,11 +201,20 @@ public class RoleManagementService {
 
         SysRoleEntity role = roleOpt.get();
 
-        for (String authorityId : authorityIds) {
-            Optional<SysAuthorityEntity> authorityOpt = authorityRepository.findById(authorityId);
+        for (SimpleAuthorityDto authorityDto : authorityDtos) {
+            if (StringUtils.isBlank(authorityDto.getId())) {
+                log.error("The ID of authority to configure roles is blank.");
+                throw new AuthServerException("The ID of authority to configure roles is blank.");
+            }
+
+            log.info("configure role {} with authority {}-{}", role.getName(), authorityDto.getId(),
+                    authorityDto.getCode());
+
+            Optional<SysAuthorityEntity> authorityOpt = authorityRepository.findById(authorityDto.getId());
             if (!authorityOpt.isPresent()) {
-                log.error("such authority entity does not exist,authority id {}", authorityId);
-                throw new AuthServerException(String.format("Authority with {%s} does not exist.", authorityId));
+                log.error("such authority entity does not exist,authority id {}", authorityDto.getId());
+                throw new AuthServerException(
+                        String.format("Authority with {%s} does not exist.", authorityDto.getId()));
 
             }
 
@@ -232,7 +241,7 @@ public class RoleManagementService {
     }
 
     @Transactional
-    public void revokeRoleAuthoritiesById(String roleId, List<String> authorityIds) {
+    public void revokeRoleAuthoritiesById(String roleId, List<SimpleAuthorityDto> authorityDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.error("such role entity does not exist,role id {}", roleId);
@@ -241,9 +250,9 @@ public class RoleManagementService {
 
         SysRoleEntity role = roleOpt.get();
 
-        for (String authorityId : authorityIds) {
+        for (SimpleAuthorityDto authorityDto : authorityDtos) {
             RoleAuthorityRsEntity roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityId(role.getId(),
-                    authorityId);
+                    authorityDto.getId());
             if (roleAuthority == null) {
                 continue;
             }

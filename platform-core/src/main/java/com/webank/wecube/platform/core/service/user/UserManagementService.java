@@ -27,9 +27,9 @@ public interface UserManagementService {
 
     List<UserDto> getUsersByRoleId(String roleId);
 
-    void grantRoleToUsers(String roleId, List<Object> userIds);
+    void grantRoleToUsers(String roleId, List<String> userIds);
 
-    void revokeRoleFromUsers(String roleId, List<Object> jsonObject);
+    void revokeRoleFromUsers(String roleId, List<String> userIds);
 
     List<String> getRoleIdsByUsername(String username);
 
