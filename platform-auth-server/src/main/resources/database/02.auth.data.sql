@@ -1,3 +1,5 @@
+set names 'utf8';
+
 insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`display_name`,`name`,`email`) values 
 ('1',NULL,'2019-12-11 19:58:29',NULL,NULL,'SUPER_ADMIN','SUPER_ADMIN',NULL),
 ('2',NULL,'2019-12-11 22:05:27',NULL,NULL,'admin','admin',NULL),
