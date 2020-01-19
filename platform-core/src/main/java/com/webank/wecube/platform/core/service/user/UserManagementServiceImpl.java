@@ -248,7 +248,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public void grantRoleToUsers(String roleId, List<Object> userIds) {
+    public void grantRoleToUsers(String roleId, List<String> userIds) {
 
         if (StringUtils.isBlank(roleId)) {
             throw new WecubeCoreException("Role ID cannot be blank.");
@@ -257,9 +257,17 @@ public class UserManagementServiceImpl implements UserManagementService {
         if (userIds == null || userIds.isEmpty()) {
             return;
         }
+        
+        List<AsUserDto> asUsers = new ArrayList<>();
+        userIds.forEach(m -> {
+            AsUserDto asUser = new AsUserDto();
+            asUser.setId(m);
+            //
+            asUsers.add(asUser);
+        });
 
         try {
-            authServerRestClient.configureUserRolesById(roleId, userIds);
+            authServerRestClient.configureUserRolesById(roleId, asUsers);
         } catch (AuthServerClientException e) {
             log.error("errors to grant role to users", e);
             throw new WecubeCoreException(e.getErrorMessage());
@@ -268,7 +276,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
-    public void revokeRoleFromUsers(String roleId, List<Object> userIds) {
+    public void revokeRoleFromUsers(String roleId, List<String> userIds) {
         if (StringUtils.isBlank(roleId)) {
             throw new WecubeCoreException("Role ID cannot be blank.");
         }
@@ -276,9 +284,17 @@ public class UserManagementServiceImpl implements UserManagementService {
         if (userIds == null || userIds.isEmpty()) {
             return;
         }
+        
+        List<AsUserDto> asUsers = new ArrayList<>();
+        userIds.forEach(m -> {
+            AsUserDto asUser = new AsUserDto();
+            asUser.setId(m);
+            //
+            asUsers.add(asUser);
+        });
 
         try {
-            authServerRestClient.revokeUserRolesById(roleId, userIds);
+            authServerRestClient.revokeUserRolesById(roleId, asUsers);
         } catch (AuthServerClientException e) {
             log.error("errors to revoke role from users", e);
             throw new WecubeCoreException(e.getErrorMessage());
