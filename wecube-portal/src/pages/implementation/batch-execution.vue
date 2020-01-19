@@ -568,7 +568,7 @@ textarea:focus {
 .business-key {
   padding: 0 16px;
   cursor: pointer;
-  color: #2d8cf0;
+  color: #19be6b;
 }
 .active-key {
   background: #e5e2e2;
