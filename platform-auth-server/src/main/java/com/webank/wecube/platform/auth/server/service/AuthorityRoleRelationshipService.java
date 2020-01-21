@@ -8,18 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
-import com.webank.wecube.platform.auth.server.entity.ApiRoleRelationshipEntity;
 import com.webank.wecube.platform.auth.server.entity.AuthorityRoleRelationshipEntity;
-import com.webank.wecube.platform.auth.server.entity.SysApiEntity;
 import com.webank.wecube.platform.auth.server.entity.SysAuthorityEntity;
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
-import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
-import com.webank.wecube.platform.auth.server.entity.UserRoleRelationshipEntity;
-import com.webank.wecube.platform.auth.server.repository.ApiRepository;
-import com.webank.wecube.platform.auth.server.repository.ApiRoleRelationshipRepository;
+import com.webank.wecube.platform.auth.server.repository.AuthorityRepository;
 import com.webank.wecube.platform.auth.server.repository.AuthorityRoleRelationshipRepository;
-import com.webank.wecube.platform.auth.server.repository.UserRepository;
-import com.webank.wecube.platform.auth.server.repository.UserRoleRelationshipRepository;
 
 @Service("authorityRoleRelationshipService")
 public class AuthorityRoleRelationshipService {
@@ -33,6 +26,9 @@ public class AuthorityRoleRelationshipService {
     private RoleService roleService;
     @Autowired
     private AuthorityService authorityService;
+
+    @Autowired
+    private AuthorityRepository authorityRepository;
 
     public List<SysAuthorityEntity> getAuthoritysByRoleId(String roleId) {
         List<SysAuthorityEntity> authoritys = Lists.newArrayList();
@@ -50,23 +46,35 @@ public class AuthorityRoleRelationshipService {
         return roles;
     }
 
-    public void grantRoleForAuthoritys(String roleId, List<Long> authorityIds) throws Exception {
+    public void grantRoleForAuthoritiesByCode(String roleId, List<String> authorityCodes) throws Exception {
         SysRoleEntity role = roleService.getRoleByIdIfExisted(roleId);
-        for (Long authorityId : authorityIds) {
-            SysAuthorityEntity authorityEntity = authorityService.getAuthorityByIdIfExisted(authorityId);
-            if (null == authorityRoleRelationshipRepository.findOneByAuthorityIdAndRoleId(authorityId, roleId))
+        for (String authorityCode : authorityCodes) {
+            SysAuthorityEntity authorityEntity = authorityService.getAuthorityByCode(authorityCode);
+            if (authorityEntity == null) {
+                SysAuthorityEntity authority = new SysAuthorityEntity();
+                authority.setCode(authorityCode);
+                authorityEntity = authorityRepository.save(authority);
+            }
+
+            if (authorityRoleRelationshipRepository.findOneByAuthorityIdAndRoleId(authorityEntity.getId(),
+                    roleId) == null)
                 authorityRoleRelationshipRepository.save(new AuthorityRoleRelationshipEntity(authorityEntity, role));
         }
     }
 
-    public void revokeRoleForAuthoritys(String roleId, List<Long> authorityIds) throws Exception {
+    public void revokeRoleForAuthoritiesByCode(String roleId, List<String> authorityCodes) throws Exception {
         roleService.getRoleByIdIfExisted(roleId);
-        for (Long authorityId : authorityIds) {
-            authorityService.getAuthorityByIdIfExisted(authorityId);
+        for (String authorityCode : authorityCodes) {
+            SysAuthorityEntity authorityEntity = authorityService.getAuthorityByCode(authorityCode);
+            if (authorityEntity == null) {
+                continue;
+            }
+
             AuthorityRoleRelationshipEntity authorityRoleRelationshipEntity = authorityRoleRelationshipRepository
-                    .findOneByAuthorityIdAndRoleId(authorityId, roleId);
-            if (null != authorityRoleRelationshipEntity)
+                    .findOneByAuthorityIdAndRoleId(authorityEntity.getId(), roleId);
+            if (authorityRoleRelationshipEntity != null) {
                 authorityRoleRelationshipRepository.delete(authorityRoleRelationshipEntity);
+            }
         }
     }
 

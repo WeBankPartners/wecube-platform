@@ -14,7 +14,7 @@ import java.util.Map;
  * @author howechen
  */
 @RestController
-@RequestMapping("v1/")
+@RequestMapping("/v1")
 public class UserManagementController {
     private UserManagementServiceImpl userManagementService;
     private RoleMenuServiceImpl roleMenuService;
