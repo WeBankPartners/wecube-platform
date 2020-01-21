@@ -1,5 +1,17 @@
 package com.webank.wecube.platform.core.service.user;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.RoleMenu;
@@ -7,20 +19,11 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
+import com.webank.wecube.platform.core.http.UserJwtSsoTokenRestTemplate;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
 import com.webank.wecube.platform.core.utils.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author howechen
@@ -30,21 +33,21 @@ import java.util.stream.Collectors;
 public class RoleMenuServiceImpl implements RoleMenuService {
 
     private static final Logger logger = LoggerFactory.getLogger(RoleMenuServiceImpl.class);
-    private RoleMenuRepository roleMenuRepository;
-    private MenuItemRepository menuItemRepository;
-    private PluginPackageMenuRepository pluginPackageMenuRepository;
-    private UserManagementServiceImpl userManagementService;
-
     @Autowired
-    public RoleMenuServiceImpl(RoleMenuRepository roleMenuRepository,
-                               MenuItemRepository menuItemRepository,
-                               PluginPackageMenuRepository pluginPackageMenuRepository,
-                               UserManagementServiceImpl userManagementService) {
-        this.roleMenuRepository = roleMenuRepository;
-        this.menuItemRepository = menuItemRepository;
-        this.pluginPackageMenuRepository = pluginPackageMenuRepository;
-        this.userManagementService = userManagementService;
-    }
+    private RoleMenuRepository roleMenuRepository;
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+    @Autowired
+    private PluginPackageMenuRepository pluginPackageMenuRepository;
+    @Autowired
+    private UserManagementServiceImpl userManagementService;
+    
+    @Autowired
+    private UserJwtSsoTokenRestTemplate userJwtSsoTokenRestTemplate;
+    
+    @Autowired
+    private ApplicationProperties applicationProperties;
+
 
     /**
      * Retrieve role_menu table by given roleId
@@ -106,8 +109,18 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             logger.info(String.format("Deleting menus: [%s]", needToDeleteList));
             for (RoleMenu roleMenu : needToDeleteList) {
                 this.roleMenuRepository.deleteById(roleMenu.getId());
+                
             }
         }
+        
+        List<String> menuCodesToRevoke = new ArrayList<>();
+        for(RoleMenu rm : needToDeleteList){
+            menuCodesToRevoke.add("MENU_"+rm.getMenuCode());
+        }
+        
+        ///roles/{role-id}/authorities/revoke
+        String revokePath = String.format("auth/roles/%s/authorities/revoke", roleId);
+        userJwtSsoTokenRestTemplate.postForObject(String.format("http://%s/%s", applicationProperties.getGatewayUrl(),revokePath), menuCodesToRevoke, String.class);
 
         // new menuCodeList - current menuCodeList = needToCreateList
         List<String> needToCreateList;
@@ -124,6 +137,14 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 logger.error(ex.getMessage());
                 throw new WecubeCoreException(ex.getMessage());
             }
+            
+            List<String> menuCodesToGrant = new ArrayList<>();
+            for(RoleMenu rm : batchUpdateList){
+                menuCodesToGrant.add("MENU_"+rm.getMenuCode());
+            }
+            
+            String grantPath = String.format("auth/roles/%s/authorities/grant",roleId);
+            userJwtSsoTokenRestTemplate.postForObject(String.format("http://%s/%s", applicationProperties.getGatewayUrl(),grantPath), menuCodesToGrant, String.class);
         }
     }
 
