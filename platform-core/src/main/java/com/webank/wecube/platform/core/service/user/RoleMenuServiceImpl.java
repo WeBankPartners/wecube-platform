@@ -115,7 +115,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         
         List<String> menuCodesToRevoke = new ArrayList<>();
         for(RoleMenu rm : needToDeleteList){
-            menuCodesToRevoke.add("MENU_"+rm.getMenuCode());
+            menuCodesToRevoke.add(rm.getMenuCode());
         }
         
         ///roles/{role-id}/authorities/revoke
@@ -140,7 +140,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             
             List<String> menuCodesToGrant = new ArrayList<>();
             for(RoleMenu rm : batchUpdateList){
-                menuCodesToGrant.add("MENU_"+rm.getMenuCode());
+                menuCodesToGrant.add(rm.getMenuCode());
             }
             
             String grantPath = String.format("auth/v1/roles/%s/authorities/grant",roleId);
