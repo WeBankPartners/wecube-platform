@@ -119,7 +119,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         }
         
         ///roles/{role-id}/authorities/revoke
-        String revokePath = String.format("auth/roles/%s/authorities/revoke", roleId);
+        String revokePath = String.format("auth/v1/roles/%s/authorities/revoke", roleId);
         userJwtSsoTokenRestTemplate.postForObject(String.format("http://%s/%s", applicationProperties.getGatewayUrl(),revokePath), menuCodesToRevoke, String.class);
 
         // new menuCodeList - current menuCodeList = needToCreateList
@@ -143,7 +143,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 menuCodesToGrant.add("MENU_"+rm.getMenuCode());
             }
             
-            String grantPath = String.format("auth/roles/%s/authorities/grant",roleId);
+            String grantPath = String.format("auth/v1/roles/%s/authorities/grant",roleId);
             userJwtSsoTokenRestTemplate.postForObject(String.format("http://%s/%s", applicationProperties.getGatewayUrl(),grantPath), menuCodesToGrant, String.class);
         }
     }
