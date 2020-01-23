@@ -22,8 +22,8 @@ java -Djava.security.egd=file:/dev/urandom -jar /application/platform-core.jar  
 --wecube.core.plugin.static-resource-server-password=${STATIC_RESOURCE_SERVER_PASSWORD} \
 --wecube.core.plugin.static-resource-server-port=${STATIC_RESOURCE_SERVER_PORT} \
 --wecube.core.plugin.static-resource-server-path=${STATIC_RESOURCE_SERVER_PATH} \
---wecube.core.auth.jwt-sso-authentication-uri=${JWT_SSO_AUTH_URI} \
---wecube.core.auth.jwt-sso-access-token-uri=${JWT_SSO_TOKEN_URI} \
+--platform.auth.jwt-sso-authentication-uri=${JWT_SSO_AUTH_URI} \
+--platform.auth.jwt-sso-access-token-uri=${JWT_SSO_TOKEN_URI} \
 --wecube.core.plugin.plugin-deploy-path=${WECUBE_PLUGIN_DEPLOY_PATH} \
 ${WECUBE_CUSTOM_PARAM} \
 >>/log/wecube-core.log 
