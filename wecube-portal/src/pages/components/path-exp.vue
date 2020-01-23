@@ -87,6 +87,15 @@ export default {
         this.isLastNode = false
         this.$emit('input', this.inputVal.replace(/\s/g, ''))
       }
+    },
+    optionsHide (val) {
+      if (val && document.querySelector('.wecube_attr-ul')) {
+        // 此处的nextTick不能删，需要在该元素显示后取得宽度
+        this.$nextTick(() => {
+          document.querySelector('.wecube_attr-ul').style.width =
+            document.querySelector('.wecube_input_in textarea').clientWidth + 'px'
+        })
+      }
     }
   },
   computed: {
@@ -128,13 +137,6 @@ export default {
     this.restorePathExp()
 
     this.$emit('input', this.inputVal.replace(/\s/g, ''))
-    if (document.querySelector('.wecube_attr-ul')) {
-      // 此处的nextTick不能删，需要在该元素显示后取得宽度
-      this.$nextTick(() => {
-        document.querySelector('.wecube_attr-ul').style.width =
-          document.querySelector('.wecube_input_in textarea').clientWidth + 'px'
-      })
-    }
   },
   methods: {
     restorePathExp () {
