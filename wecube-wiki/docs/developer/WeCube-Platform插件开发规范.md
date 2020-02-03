@@ -39,7 +39,7 @@ WeCube目前支持以下几种插件：
 所以我们分别对注册描述文件、后端API服务、前端UI页面、MySql数据库提出了规范，另外每个插件必须有注册描述文件，和提供插件包。
 
 ##### 注册描述文件规范
-必须命名为register.xml, [具体示例在此](https://github.com/WeBankPartners/wecube-platform/blob/dev/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)  
+必须命名为register.xml, [具体示例在此](https://github.com/WeBankPartners/wecube-platform/blob/master/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)  
 
 ##### 后端API服务规范
 ###### 启动及打包方式规范 
@@ -71,7 +71,7 @@ envVariables  -- 容器环境变量， 容器启动所需参数，例如envVaria
 {{DB_USER}}  -  在WeCube申请mysql数据库的用户  
 {{DB_PWD}}   -  在WeCube申请mysql数据库用户的密码  
 {{CORE_ADDR}}  -  core地址（示例：http://127.0.0.1:19090）  
-{{CMDB_URL}}  -  cmdb地址（示例：http://111.230.161.237:8080/wecmdb）  
+{{CMDB_URL}}  -  cmdb地址（示例：http://127.0.0.1:8080/wecmdb）  
 {{BASE_MOUNT_PATH}}  -  容器母机绑定路径  
 除以上的变量外，每个插件还可以自定义参数（注意不要与已有的参数名重复），步骤如下：  
 ```
