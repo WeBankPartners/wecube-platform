@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.controller;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -234,7 +236,14 @@ public class WorkflowProcessDefinitionController {
     }
 
     private String assembleProcessExportFilename(ProcDefInfoExportImportDto result) {
-        return String.format("proc-%s-%s.pds", result.getProcDefName(), result.getProcDefKey());
+    	String plainFilename = String.format("proc-%s-%s.pds", result.getProcDefName(), result.getProcDefKey());
+		try {
+			String encodedFilename = URLEncoder.encode(plainFilename, "UTF-8");
+			return encodedFilename;
+		} catch (UnsupportedEncodingException e) {
+			log.error("encoding error", e);
+			return "filename.pds";
+		}
     }
 
 }
