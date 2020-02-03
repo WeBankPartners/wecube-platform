@@ -74,7 +74,6 @@ export const outerActions = [
     props: {
       type: 'warning',
       icon: 'md-undo'
-      // disabled: true
     },
     actionType: 'cancel'
   },

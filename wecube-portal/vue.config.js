@@ -1,15 +1,9 @@
 const CompressionPlugin = require('compression-webpack-plugin')
 
-let isUsingLocalCore = false
-
-const baseURL = isUsingLocalCore
-  ? 'http://127.0.0.1:8080'
-  : 'http://111.230.161.237:49090'
+const baseURL = 'http://127.0.0.1:8080'
 
 module.exports = {
   devServer: {
-    // hot: true,
-    // inline: true,
     open: true,
     port: 3000,
     proxy: {
@@ -26,7 +20,7 @@ module.exports = {
         target: 'https://sandbox.webank.com'
       },
       '/auth': {
-        target: 'http://111.230.161.237:19110'
+        target: 'http://127.0.0.1:19110'
       }
     }
   },

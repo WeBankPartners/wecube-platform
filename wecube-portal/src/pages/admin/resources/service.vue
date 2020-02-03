@@ -15,11 +15,7 @@
 </template>
 
 <script>
-import {
-  getResourceItemStatus,
-  getResourceItemType,
-  retrieveItems
-} from '@/api/server.js'
+import { getResourceItemStatus, getResourceItemType, retrieveItems } from '@/api/server.js'
 import moment from 'moment'
 
 const booleanOptions = [
@@ -176,16 +172,14 @@ export default {
   methods: {
     async queryData () {
       this.payload.pageable.pageSize = this.pagination.pageSize
-      this.payload.pageable.startIndex =
-        (this.pagination.currentPage - 1) * this.pagination.pageSize
+      this.payload.pageable.startIndex = (this.pagination.currentPage - 1) * this.pagination.pageSize
       const { status, data } = await retrieveItems(this.payload)
       if (status === 'OK') {
         this.tableData = data.contents.map(_ => {
           _.isAllocated = _.isAllocated ? 'true' : 'false'
           _.createdDate = moment(_.createdDate).format('YYYY-MM-DD hh:mm:ss')
           _.updatedDate = moment(_.updatedDate).format('YYYY-MM-DD hh:mm:ss')
-          _.port =
-            _.additionalPropertiesMap && _.additionalPropertiesMap.portBindings
+          _.port = _.additionalPropertiesMap && _.additionalPropertiesMap.portBindings
           return _
         })
         this.pagination.total = data.pageInfo.totalRows

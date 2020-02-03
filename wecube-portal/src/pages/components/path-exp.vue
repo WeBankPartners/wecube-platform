@@ -59,12 +59,6 @@ export default {
     allDataModelsWithAttrs: {} // 组件外层调用getDataModelByPackageName传入
   },
   watch: {
-    currentPkg: {
-      handler (val) {
-        // this.$emit("getPluginPkgDataModel", 'service-mt');
-        // console.log(this.allEntity);
-      }
-    },
     value: {
       handler (val) {
         this.restorePathExp()
@@ -92,6 +86,15 @@ export default {
         this.options = []
         this.isLastNode = false
         this.$emit('input', this.inputVal.replace(/\s/g, ''))
+      }
+    },
+    optionsHide (val) {
+      if (val && document.querySelector('.wecube_attr-ul')) {
+        // 此处的nextTick不能删，需要在该元素显示后取得宽度
+        this.$nextTick(() => {
+          document.querySelector('.wecube_attr-ul').style.width =
+            document.querySelector('.wecube_input_in textarea').clientWidth + 'px'
+        })
       }
     }
   },
@@ -134,10 +137,6 @@ export default {
     this.restorePathExp()
 
     this.$emit('input', this.inputVal.replace(/\s/g, ''))
-    if (document.querySelector('.wecube_attr-ul')) {
-      document.querySelector('.wecube_attr-ul').style.width =
-        document.querySelector('.wecube_input_in textarea').clientWidth + 'px'
-    }
   },
   methods: {
     restorePathExp () {
@@ -256,10 +255,7 @@ export default {
     async getRefByEntity () {
       // 获取当前entity被哪些属性引用作为下拉选项
       const current = this.entityPath[this.entityPath.length - 1]
-      const { status, data } = await getRefByIdInfoByPackageNameAndEntityName(
-        current.pkg,
-        current.entity
-      )
+      const { status, data } = await getRefByIdInfoByPackageNameAndEntityName(current.pkg, current.entity)
       if (status === 'OK') {
         this.options = data
       }

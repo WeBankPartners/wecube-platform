@@ -44,6 +44,11 @@ public class AuthorityService {
 	public void delete(Long id) {
 		authorityRepository.deleteById(id);
 	}
+	
+	public SysAuthorityEntity getAuthorityByCode(String authrityCode){
+	    SysAuthorityEntity entity = authorityRepository.findOneByCode(authrityCode);
+	    return entity;
+	}
 
 	public SysAuthorityEntity getAuthorityByIdIfExisted(Long authorityId) throws Exception {
 		Optional<SysAuthorityEntity> authorityEntityOptional = authorityRepository.findById(authorityId);

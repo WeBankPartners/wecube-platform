@@ -120,11 +120,9 @@ export default {
   'Job Priority': '任务属性',
   'Candidate Starter Configuration': '候选初学者配置',
   'Candidate Starter Groups': '候选初学者组',
-  'Specify more than one group as a comma separated list.':
-    '指定多个组（逗号分隔）。',
+  'Specify more than one group as a comma separated list.': '指定多个组（逗号分隔）。',
   'Candidate Starter Users': '候选初学者用户',
-  'Specify more than one user as a comma separated list.':
-    '指定多个用户（逗号分隔）。',
+  'Specify more than one user as a comma separated list.': '指定多个用户（逗号分隔）。',
   'History Configuration': '历史配置',
   'History Time To Live': '历史存活时间',
   'Event Type': '事件类型',
@@ -141,15 +139,10 @@ export default {
   'Parameter must have a name': '必填',
   Type: '类型',
   String: '字符串',
-  // 'Value': '值',
-  // 'Value': '值',
-  // 'Value': '值',
-
   // Errors
   'no parent for {element} in {parent}': '在 {element} 中没有父元素 {parent}',
   'no shape type specified': '未指定形状类型',
-  'flow elements must be children of pools/participants':
-    '元素必须是池/参与者的子级',
+  'flow elements must be children of pools/participants': '元素必须是池/参与者的子级',
   'out of bounds release': '越界释放',
   'more than {count} child lanes': '超过 {count} 条通道',
   'element required': '需要元素',

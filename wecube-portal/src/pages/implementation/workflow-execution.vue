@@ -6,9 +6,22 @@
           <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
               <Select v-model="selectedFlowInstance" style="width:70%" filterable clearable>
-                <Option v-for="item in allFlowInstances" :value="item.id" :key="item.id" :label="item.procInstName + ' ' + (item.createdTime || 'createdTime') + ' ' + (item.operator || 'operator')">
+                <Option
+                  v-for="item in allFlowInstances"
+                  :value="item.id"
+                  :key="item.id"
+                  :label="
+                    item.procInstName + ' ' + (item.createdTime || 'createdTime') + ' ' + (item.operator || 'operator')
+                  "
+                >
                   <span>
-                    {{ item.procInstName + ' ' + (item.createdTime || 'createdTime') + ' ' + (item.operator || 'operator') }}
+                    {{
+                      item.procInstName +
+                        ' ' +
+                        (item.createdTime || 'createdTime') +
+                        ' ' +
+                        (item.operator || 'operator')
+                    }}
                   </span>
                 </Option>
               </Select>
@@ -33,8 +46,18 @@
             <div class="excution-serach">
               <Form>
                 <FormItem :label-width="100" :label="$t('select_orch')">
-                  <Select label v-model="selectedFlow" :disabled="isEnqueryPage" @on-change="orchestrationSelectHandler" @on-open-change="getAllFlow" filterable clearable>
-                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{ item.procDefName + ' ' + item.createdTime }}</Option>
+                  <Select
+                    label
+                    v-model="selectedFlow"
+                    :disabled="isEnqueryPage"
+                    @on-change="orchestrationSelectHandler"
+                    @on-open-change="getAllFlow"
+                    filterable
+                    clearable
+                  >
+                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
+                      item.procDefName + ' ' + item.createdTime
+                    }}</Option>
                   </Select>
                 </FormItem>
               </Form>
@@ -46,7 +69,16 @@
             <div>
               <Form>
                 <FormItem :label-width="100" :label="$t('target_object')">
-                  <Select style="width:400px;float:left" label v-model="selectedTarget" :disabled="isEnqueryPage" @on-change="onTargetSelectHandler" @on-open-change="getTargetOptions" filterable clearable>
+                  <Select
+                    style="width:400px;float:left"
+                    label
+                    v-model="selectedTarget"
+                    :disabled="isEnqueryPage"
+                    @on-change="onTargetSelectHandler"
+                    @on-open-change="getTargetOptions"
+                    filterable
+                    clearable
+                  >
                     <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
                   </Select>
                 </FormItem>
@@ -64,14 +96,36 @@
         <Button v-if="showExcution" style="width:120px" type="info" @click="excutionFlow">{{ $t('execute') }}</Button>
       </div>
     </Card>
-    <Modal :title="$t('select_an_operation')" v-model="workflowActionModalVisible" :footer-hide="true" :mask-closable="false" :scrollable="true">
+    <Modal
+      :title="$t('select_an_operation')"
+      v-model="workflowActionModalVisible"
+      :footer-hide="true"
+      :mask-closable="false"
+      :scrollable="true"
+    >
       <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
         <Button type="info" @click="workFlowActionHandler('retry')">{{ $t('retry') }}</Button>
         <Button type="info" @click="workFlowActionHandler('skip')" style="margin-left: 20px">{{ $t('skip') }}</Button>
       </div>
     </Modal>
-    <Modal :title="currentNodeTitle" v-model="targetModalVisible" :mask-closable="false" :scrollable="true" :mask="false" class="model_target" width="50" @on-ok="targetModelConfirm">
-      <Table border ref="selection" max-height="300" @on-selection-change="targetModelSelectHandel" :columns="targetModelColums" :data="tartetModels">
+    <Modal
+      :title="currentNodeTitle"
+      v-model="targetModalVisible"
+      :mask-closable="false"
+      :scrollable="true"
+      :mask="false"
+      class="model_target"
+      width="50"
+      @on-ok="targetModelConfirm"
+    >
+      <Table
+        border
+        ref="selection"
+        max-height="300"
+        @on-selection-change="targetModelSelectHandel"
+        :columns="targetModelColums"
+        :data="tartetModels"
+      >
         <template slot-scope="{ row, index }" slot="action">
           <Tooltip placement="bottom" theme="light" @on-popper-show="getDetail(row)" :delay="500" max-width="400">
             <Button type="warning" size="small">View</Button>
@@ -82,14 +136,18 @@
         </template>
       </Table>
     </Modal>
-    <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen">
+    <Modal v-model="showNodeDetail" :fullscreen="nodeDetailFullscreen" width="1000" :styles="{ top: '50px' }">
       <p slot="header">
         <span>{{ nodeTitle }}</span>
-        <Icon v-if="!nodeDetailFullscreen" @click="nodeDetailFullscreen = true" class="header-icon" type="ios-expand" />
+        <Icon v-if="!nodeDetailFullscreen" @click="zoomModal" class="header-icon" type="ios-expand" />
         <Icon v-else @click="nodeDetailFullscreen = false" class="header-icon" type="ios-contract" />
       </p>
       <div style="overflow:auto;">
-        <pre>{{ nodeDetail }}</pre>
+        <h5>Data:</h5>
+        <div style="margin: 0 6px 6px" v-html="nodeDetailResponseHeader"></div>
+        <!-- <pre>{{ nodeDetail }}</pre> -->
+        <h5>requestObjects:</h5>
+        <Table :columns="nodeDetailColumns" :max-height="tableMaxHeight" tooltip="true" :data="nodeDetailIO"></Table>
       </div>
     </Modal>
     <div id="model_graph_detail">
@@ -101,7 +159,19 @@
   </div>
 </template>
 <script>
-import { getAllFlow, getFlowOutlineByID, getTargetOptions, getTreePreviewData, createFlowInstance, getProcessInstances, getProcessInstance, retryProcessInstance, getModelNodeDetail, getNodeBindings, getNodeContext } from '@/api/server'
+import {
+  getAllFlow,
+  getFlowOutlineByID,
+  getTargetOptions,
+  getTreePreviewData,
+  createFlowInstance,
+  getProcessInstances,
+  getProcessInstance,
+  retryProcessInstance,
+  getModelNodeDetail,
+  getNodeBindings,
+  getNodeContext
+} from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
@@ -111,6 +181,7 @@ export default {
     return {
       showNodeDetail: false,
       nodeDetailFullscreen: false,
+      tableMaxHeight: 250,
       nodeTitle: null,
       nodeDetail: null,
       graph: {},
@@ -157,6 +228,46 @@ export default {
           align: 'center'
         }
       ],
+      nodeDetailColumns: [
+        {
+          title: 'inputs',
+          key: 'inputs',
+          render: (h, params) => {
+            const strInput = JSON.stringify(params.row.inputs)
+              .split(',')
+              .join(',<br/>')
+            return h(
+              'div',
+              {
+                domProps: {
+                  innerHTML: `<pre>${strInput}</pre>`
+                }
+              },
+              []
+            )
+          }
+        },
+        {
+          title: 'outputs',
+          key: 'outputs',
+          render: (h, params) => {
+            const strOutput = JSON.stringify(params.row.outputs)
+              .split(',')
+              .join(',<br/>')
+            return h(
+              'div',
+              {
+                domProps: {
+                  innerHTML: `<pre>${strOutput}</pre>`
+                }
+              },
+              []
+            )
+          }
+        }
+      ],
+      nodeDetailIO: [],
+      nodeDetailResponseHeader: null,
       currentFailedNodeID: '',
       timer: null,
       modelNodeDetail: {},
@@ -189,8 +300,6 @@ export default {
       this.targetModalVisible = visible
       if (!visible) {
         this.updateNodeInfo()
-        // document.getElementById("graph").innerHTML = "";
-        // this.initModelGraph();
         this.renderModelGraph()
       }
     },
@@ -210,6 +319,7 @@ export default {
           }
         })
       })
+      this.catchNodeTableList = []
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
       let { status, data } = await getProcessInstances()
@@ -253,7 +363,7 @@ export default {
       }
     },
     async getTargetOptions () {
-      if (!this.flowData.rootEntity || !this.flowData.entityTypeId) return
+      if (!(this.flowData.rootEntity || !this.flowData.entityTypeId)) return
       let pkgName = ''
       let entityName = ''
       if (this.flowData.rootEntity) {
@@ -333,7 +443,6 @@ export default {
     formatNodesBindings () {
       this.modelData.forEach(item => {
         this.flowNodesBindings.forEach(d => {
-          // if (d.entityTypeId + ':' + d.entityDataId === item.id) {
           if (d.entityDataId === item.dataId) {
             item.refFlowNodeIds.push(d.orderedNo)
           }
@@ -397,7 +506,14 @@ export default {
       }
       let nodesToString = Array.isArray(nodes) && nodes.length > 0 ? nodes.toString().replace(/,/g, ';') + ';' : ''
 
-      let nodesString = 'digraph G { ' + 'bgcolor="transparent";' + 'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8",fontsize=12];' + 'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' + nodesToString + genEdge() + '}'
+      let nodesString =
+        'digraph G { ' +
+        'bgcolor="transparent";' +
+        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8",fontsize=12];' +
+        'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' +
+        nodesToString +
+        genEdge() +
+        '}'
       this.graph.graphviz.renderDot(nodesString)
       removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       removeEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
@@ -407,7 +523,9 @@ export default {
     modelGraphMouseenterHandler (e) {
       clearTimeout(this.modelDetailTimer)
       this.modelDetailTimer = setTimeout(async () => {
-        const found = this.modelData.find(_ => _.packageName + '_' + _.entityName + '_' + _.dataId === e.target.parentNode.id)
+        const found = this.modelData.find(
+          _ => _.packageName + '_' + _.entityName + '_' + _.dataId === e.target.parentNode.id
+        )
         this.nodeTitle = `${found.displayName}`
         const { status, data } = await getModelNodeDetail(found.entityName, found.dataId)
         if (status === 'OK') {
@@ -415,6 +533,8 @@ export default {
         }
         this.nodeDetailFullscreen = false
         this.showNodeDetail = true
+        this.nodeDetailFullscreen = false
+        this.tableMaxHeight = 250
       }, 1000)
     },
     modelDetailEnterHandler (e) {
@@ -445,10 +565,15 @@ export default {
           .filter(i => i.status !== 'predeploy')
           .map((_, index) => {
             if (_.nodeType === 'startEvent' || _.nodeType === 'endEvent') {
-              return `${_.nodeId} [label="${_.nodeName || _.nodeType}", fontsize="10", class="flow",style="${excution ? 'filled' : 'none'}" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
+              return `${_.nodeId} [label="${_.nodeName || _.nodeType}", fontsize="10", class="flow",style="${
+                excution ? 'filled' : 'none'
+              }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
             } else {
               const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : ''
-              return `${_.nodeId} [fixedsize=false label="${(_.orderedNo ? _.orderedNo + '、' : '') + _.nodeName}" class="flow ${className}" style="${excution ? 'filled' : 'none'}" color="${excution ? statusColor[_.status] : _.nodeId === this.currentFlowNodeId ? '#5DB400' : '#7F8A96'}"  shape="box" id="${_.nodeId}" ]`
+              return `${_.nodeId} [fixedsize=false label="${(_.orderedNo ? _.orderedNo + '、' : '') +
+                _.nodeName}" class="flow ${className}" style="${excution ? 'filled' : 'none'}" color="${
+                excution ? statusColor[_.status] : _.nodeId === this.currentFlowNodeId ? '#5DB400' : '#7F8A96'
+              }"  shape="box" id="${_.nodeId}" ]`
             }
           })
       let genEdge = () => {
@@ -470,7 +595,14 @@ export default {
           .replace(/,/g, ';')
       }
       let nodesToString = Array.isArray(nodes) ? nodes.toString().replace(/,/g, ';') + ';' : ''
-      let nodesString = 'digraph G {' + 'bgcolor="transparent";' + 'Node [fontname=Arial, height=".3", fontsize=12];' + 'Edge [fontname=Arial, color="#7f8fa6", fontsize=10];' + nodesToString + genEdge() + '}'
+      let nodesString =
+        'digraph G {' +
+        'bgcolor="transparent";' +
+        'Node [fontname=Arial, height=".3", fontsize=12];' +
+        'Edge [fontname=Arial, color="#7f8fa6", fontsize=10];' +
+        nodesToString +
+        genEdge() +
+        '}'
 
       this.flowGraph.graphviz.renderDot(nodesString)
       this.bindFlowEvent()
@@ -607,9 +739,17 @@ export default {
         const { status, data } = await getNodeContext(found.procInstId, found.id)
         if (status === 'OK') {
           this.nodeDetail = data
+          this.nodeDetailResponseHeader = JSON.parse(JSON.stringify(data))
+          delete this.nodeDetailResponseHeader.requestObjects
+          this.nodeDetailResponseHeader = JSON.stringify(this.nodeDetailResponseHeader)
+            .split(',')
+            .join(',<br/>')
+          this.nodeDetailIO = data.requestObjects
         }
         this.nodeDetailFullscreen = false
         this.showNodeDetail = true
+        this.nodeDetailFullscreen = false
+        this.tableMaxHeight = 250
       }, 1000)
     },
     flowDetailEnterHandler (e) {
@@ -641,7 +781,11 @@ export default {
         this.targetModalVisible = false
         return
       }
-      this.tartetModels = JSON.parse(JSON.stringify(this.modelData.filter(_ => this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] === _.entityName)))
+      this.tartetModels = JSON.parse(
+        JSON.stringify(
+          this.modelData.filter(_ => this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] === _.entityName)
+        )
+      )
       this.targetModalVisible = true
       this.showNodeDetail = false
       this.$nextTick(() => {
@@ -691,6 +835,10 @@ export default {
       }
       initEvent()
       this.renderFlowGraph(excution)
+    },
+    zoomModal () {
+      this.tableMaxHeight = document.body.scrollHeight - 410
+      this.nodeDetailFullscreen = true
     }
   }
 }
