@@ -109,6 +109,8 @@ req.interceptors.response.use(
         }
         if (filename === null || filename === undefined || filename === '') {
           filename = 'file'
+        } else {
+          filename = decodeURI(filename)
         }
         let url = window.URL.createObjectURL(new Blob([res.data]))
         let link = document.createElement('a')
