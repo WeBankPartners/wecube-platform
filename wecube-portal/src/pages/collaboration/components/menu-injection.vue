@@ -3,25 +3,13 @@
     <Col span="4" v-for="menuGroup in menus" :key="menuGroup.id">
       <List size="small">
         <h6 slot="header">{{ menuGroup.displayName }}</h6>
-        <ListItem
-          v-for="(menu, index) in menuGroup.children"
-          :key="index"
-          style="padding-right: 10px"
-        >
+        <ListItem v-for="(menu, index) in menuGroup.children" :key="index" style="padding-right: 10px">
           <Tooltip
-            :content="
-              $lang === 'zh-CN' ? menu.localDisplayName : menu.displayName
-            "
+            :content="$lang === 'zh-CN' ? menu.localDisplayName : menu.displayName"
             placement="bottom"
             style="width: 100%"
           >
-            <p
-              :class="
-                menu.source === 'SYSTEM'
-                  ? 'menu-injection_menu-item'
-                  : 'menu-injection_menu-item_new'
-              "
-            >
+            <p :class="menu.source === 'SYSTEM' ? 'menu-injection_menu-item' : 'menu-injection_menu-item_new'">
               {{ $lang === 'zh-CN' ? menu.localDisplayName : menu.displayName }}
             </p>
           </Tooltip>
@@ -80,8 +68,7 @@ export default {
               if (item.source === 'SYSTEM') {
                 const found = MENUS.find(m => m.code === item.code)
                 if (found) {
-                  item.displayName =
-                    this.$lang === 'zh-CN' ? found.cnName : found.enName
+                  item.displayName = this.$lang === 'zh-CN' ? found.cnName : found.enName
                 }
               }
               _.children.push(item)
