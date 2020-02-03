@@ -55,7 +55,7 @@ wecube:
       cas-redirect-app-addr: localhost:8080
       httpclient:
          max-total-connections: 200
-      gateway-url: 111.230.161.237:19110
+      gateway-url: 127.0.0.1:19110
       plugin:
          plugin-deploy-path: /opt
          plugin-package-bucket-name: wecube-plugin-package-bucket
@@ -64,8 +64,7 @@ wecube:
          ui-file: ui.zip
          init-db-sql: init.sql
          upgrade-db-sql: upgrade.sql
-         plugin-package-name-of-deploy: deployment-plugin-name
-         static-resource-server-ip: 192.168.0.17
+         static-resource-server-ip: 127.0.0.1
          static-resource-server-user: root
          static-resource-server-password: password
          static-resource-server-port: 22
@@ -80,8 +79,8 @@ wecube:
          passwordEncryptionSeed: defaultSeed
 platform:
    auth:
-      jwt-sso-authentication-uri: http://111.230.161.237:19110/auth/v1/api/login
-      jwt-sso-access-token-uri: http://111.230.161.237:19110/auth/v1/api/token
+      jwt-sso-authentication-uri: http://127.0.0.1:19110/auth/v1/api/login
+      jwt-sso-access-token-uri: http://127.0.0.1:19110/auth/v1/api/token
       sub-system-code: SYS_PLATFORM
       sub-system-private-key: MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAwnTN7JDXFcSoikXuNOQDtAjic1Wu6oAtCQJquCJmXrBTqB7hwS2mK6TuT8P7Jx60BQcaRL12hPLi6cOiCawuVwIDAQABAkB9NORazDARjhzPW5OzbpWL2KSmiqcjywA0at/4S/4KPPM8vwRjzEMs7pV9nSJ2M+/YOqPMBDl8iBUSLpfKf/uxAiEA52UroIvo2URlmAycaJm7+e4QqqfhEnM9wlGCJwL2jTsCIQDXIh2zwN7KQEIypmOL+uXvlZUjmx0Tj29mWOwP/fBBlQIhAI9+VLSlror1eE73GxNeqoxNznYVz2RCpLzZEO4iT0S7AiARg0Z1tpKsVjTNWLwrzf3f1gZxApSIXhnMdBqrZpmjTQIhAJhgYctlaydmggTPCqWLGub9WqEyH2HrrcabRvpWdEcV
       auth-server-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKds8XUHglF0703p8H+IPQCTE+31A6t+eyTzF+6kHEpLp7YeDu7OZCqIH6pYWmxD0TmQLobjPNA7IME93wq8HX0CAwEAAQ==
