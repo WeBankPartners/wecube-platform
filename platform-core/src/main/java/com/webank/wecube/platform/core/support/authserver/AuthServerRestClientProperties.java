@@ -18,7 +18,7 @@ public class AuthServerRestClientProperties {
     private String pathDeleteLocalRoleByRoleId = "/auth/v1/roles/{role-id}";
     private String pathRetrieveAllUsersBelongsToRoleId = "/auth/v1/roles/{role-id}/users";
     private String pathConfigureUserRolesById = "/auth/v1/roles/{role-id}/users";
-    private String pathRevokeUserRolesById = "/roles/{role-id}/users/revoke";
+    private String pathRevokeUserRolesById = "/auth/v1/roles/{role-id}/users/revoke";
 
     public String getHost() {
         return host;
