@@ -63,7 +63,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void createUserShouldSucceed() {
+    public void whenGivenUserInfo_registerUser_houldSucceed() {
         mockCreateUserServer(this.server);
         UserDto createUserMap = mockUserDto();
         UserDto result = null;
@@ -79,7 +79,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void retrieveUserShouldSucceed() {
+    public void whenRetrieveAllUserInfo_shouldSucceed() {
         mockRetrieveUserServer(this.server);
         final List<UserDto> userDtoList = userManagementService.retrieveAllUserAccounts();
         assertThat(userDtoList.size()).isEqualTo(AS_REGISTERED_USER_SIZE);
@@ -89,7 +89,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void deleteUserShouldSucceed() {
+    public void whenGivenUserId_deleteUser_shouldSucceed() {
         mockDeleteUserServer(this.server);
         try {
             userManagementService.deleteUserByUserId(USER_ID);
@@ -100,7 +100,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void createRoleShouldSucceed() {
+    public void whenGivenRoleInfo_registerLocalRole_shouldSucceed() {
         mockRegisterRoleServer(this.server);
         RoleDto registerRoleDto = mockRegisterLocalRoleDto();
         RoleDto asReturnRoleDto = null;
@@ -117,7 +117,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void retrieveRoleByRoleIdShouldSucceed() {
+    public void whenRetrieveRoleByRoleId_shouldSucceed() {
         mockRetrieveRoleByIdServer(this.server);
         final RoleDto roleDto = userManagementService.retrieveRoleById(ROLE_ID);
         assertThat(roleDto.getName()).isEqualTo(ROLE_NAME);
@@ -127,7 +127,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void retrieveAllRoleShouldSucceed() {
+    public void whenRetrieveAllRoles_shouldSucceed() {
         mockRetrieveRoleServer(this.server);
         final List<RoleDto> roleDtos = userManagementService.retrieveAllRoles();
         assertThat(roleDtos.size()).isEqualTo(AS_REGISTERED_ROLE_SIZE);
@@ -138,7 +138,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void deleteRoleShouldSucceed() {
+    public void whenGivenRoleId_deleteRole_shouldSucceed() {
         mockDeleteRoleServer(this.server);
         try {
             userManagementService.unregisterLocalRoleById(ROLE_ID);
@@ -149,7 +149,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void getRolesFromUserShouldSucceed() {
+    public void whenGivenUsername_getGrantedRoles_shouldSucceed() {
         mockGetRolesFromUserServer(this.server);
         final List<RoleDto> grantedRolesByUsername = userManagementService.getGrantedRolesByUsername(USERNAME);
         assertThat(grantedRolesByUsername).isNotNull();
@@ -161,7 +161,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void getUsersFromRoleShouldSucceed() {
+    public void whenGivenRoleId_getUsersFromRole_shouldSucceed() {
         mockGetUsersFromRoleServer(this.server);
         final List<UserDto> usersByRoleId = userManagementService.getUsersByRoleId(ROLE_ID);
         assertThat(usersByRoleId).isNotNull();
@@ -172,7 +172,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
     }
 
     @Test
-    public void grantRoleForUserShouldSucceed() {
+    public void whenGivenUserIdAndRoleId_grantRoleToUser_houldSucceed() {
         mockGrantRoleToUsersServer(this.server);
         List<String> userIdList = Collections.singletonList(USER_ID);
         try {
@@ -185,7 +185,7 @@ public class UserManagementServiceTest extends DatabaseBasedTest {
 
 
     @Test
-    public void revokeRoleFromUserShouldSucceed() {
+    public void whenGivenUserIdAndRoleId_revokeRoleFromUser_shouldSucceed() {
         mockRevokeRoleFromUsers(this.server);
         List<String> userIdList = Collections.singletonList(USER_ID);
         try {
