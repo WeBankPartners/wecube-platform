@@ -1,5 +1,17 @@
 package com.webank.wecube.platform.core.service.user;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.RoleMenu;
@@ -7,20 +19,10 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
+import com.webank.wecube.platform.core.http.UserJwtSsoTokenRestTemplate;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
-import com.webank.wecube.platform.core.utils.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author howechen
@@ -36,8 +38,17 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     private MenuItemRepository menuItemRepository;
     @Autowired
     private PluginPackageMenuRepository pluginPackageMenuRepository;
+
     @Autowired
     private UserManagementService userManagementService;
+
+    
+    @Autowired
+    private UserJwtSsoTokenRestTemplate userJwtSsoTokenRestTemplate;
+    
+    @Autowired
+    private ApplicationProperties applicationProperties;
+
 
     /**
      * Retrieve role_menu table by given roleId
@@ -99,8 +110,18 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             logger.info(String.format("Deleting menus: [%s]", needToDeleteList));
             for (RoleMenu roleMenu : needToDeleteList) {
                 this.roleMenuRepository.deleteById(roleMenu.getId());
+                
             }
         }
+        
+        List<String> menuCodesToRevoke = new ArrayList<>();
+        for(RoleMenu rm : needToDeleteList){
+            menuCodesToRevoke.add(rm.getMenuCode());
+        }
+        
+        ///roles/{role-id}/authorities/revoke
+        String revokePath = String.format("auth/v1/roles/%s/authorities/revoke", roleId);
+        userJwtSsoTokenRestTemplate.postForObject(String.format("http://%s/%s", applicationProperties.getGatewayUrl(),revokePath), menuCodesToRevoke, String.class);
 
         // new menuCodeList - current menuCodeList = needToCreateList
         List<String> needToCreateList;
@@ -117,6 +138,14 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 logger.error(ex.getMessage());
                 throw new WecubeCoreException(ex.getMessage());
             }
+            
+            List<String> menuCodesToGrant = new ArrayList<>();
+            for(RoleMenu rm : batchUpdateList){
+                menuCodesToGrant.add(rm.getMenuCode());
+            }
+            
+            String grantPath = String.format("auth/v1/roles/%s/authorities/grant",roleId);
+            userJwtSsoTokenRestTemplate.postForObject(String.format("http://%s/%s", applicationProperties.getGatewayUrl(),grantPath), menuCodesToGrant, String.class);
         }
     }
 
