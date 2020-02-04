@@ -1,23 +1,32 @@
 <template>
   <div>
-    <div v-if="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
-      <Button size="small" shape="circle" type="primary" icon="md-sync" @click="getData(true)">{{
-        $t('get_dynamic_model')
-      }}</Button>
-      <Button
-        :disabled="isApplyBtnDisabled"
-        size="small"
-        shape="circle"
-        type="primary"
-        icon="md-hammer"
-        @click="applyNewDataModel"
-        >{{ $t('apply_data_model') }}</Button
-      >
+    <!-- <div>111</div> -->
+    <div id="dataModelContainer">
+      <!-- <div class="loading" v-if="isLoading"> -->
+      <Spin v-if="isLoading" fix size="large">
+        <Icon type="ios-loading" size="18" class="demo-spin-icon-load"></Icon>
+        <div>Loading</div>
+      </Spin>
+      <!-- </div> -->
+      <div v-show="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
+        <Button size="small" shape="circle" type="primary" icon="md-sync" @click="getData(true)">{{
+          $t('get_dynamic_model')
+        }}</Button>
+        <Button
+          :disabled="isApplyBtnDisabled"
+          size="small"
+          shape="circle"
+          type="primary"
+          icon="md-hammer"
+          @click="applyNewDataModel"
+          >{{ $t('apply_data_model') }}</Button
+        >
+      </div>
+      <div v-if="!dataModel.dynamic && dataModel.pluginPackageEntities && dataModel.pluginPackageEntities.length === 0">
+        {{ $t('no_data_model_provided') }}
+      </div>
+      <div class="graph-container" id="data-model-graph"></div>
     </div>
-    <div v-if="!dataModel.dynamic && dataModel.pluginPackageEntities && dataModel.pluginPackageEntities.length === 0">
-      {{ $t('no_data_model_provided') }}
-    </div>
-    <div class="graph-container" id="data-model-graph"></div>
   </div>
 </template>
 <script>
@@ -29,6 +38,7 @@ export default {
   name: 'data-model',
   data () {
     return {
+      isLoading: false,
       data: [],
       dataModel: {},
       graph: {},
@@ -53,6 +63,7 @@ export default {
   },
   methods: {
     async getData (ispull) {
+      this.isLoading = true
       let { status, data } = this.dataModel.dynamic
         ? await pullDynamicDataModel(this.pkgId)
         : await getPluginPkgDataModel(this.pkgId)
@@ -75,6 +86,7 @@ export default {
         })
         this.initGraph()
       }
+      this.isLoading = false
     },
     async applyNewDataModel () {
       let { status } = await applyNewDataModel(this.dataModel)
@@ -140,10 +152,13 @@ export default {
     },
     renderGraph () {
       let nodesString = this.genDOT()
-      console.log('nodesString', nodesString)
       this.graph.graphviz.renderDot(nodesString)
     },
     initGraph () {
+      const graphEl = document.getElementById('data-model-graph')
+      console.log(graphEl.offsetHeight)
+      const height = graphEl.offsetHeight
+      const width = graphEl.offsetWidth - 20
       const initEvent = () => {
         let graph
         graph = d3.select(`#data-model-graph`)
@@ -151,7 +166,9 @@ export default {
         this.graph.graphviz = graph
           .graphviz()
           .zoom(true)
-          .scale(0.8)
+          .fit(true)
+          .height(height)
+          .width(width)
       }
 
       initEvent()
@@ -160,3 +177,22 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+#dataModelContainer {
+  width: 100%;
+  height: calc(100vh - 180px);
+  overflow: auto;
+  position: relative;
+}
+#data-model-graph {
+  height: calc(100vh - 220px);
+}
+.demo-spin-icon-load {
+  animation: ani-demo-spin 1s linear infinite;
+}
+.loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+</style>
