@@ -61,7 +61,6 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
     @Qualifier(value = "userJwtSsoTokenRestTemplate")
     private RestTemplate restTemplate;
     @Autowired
-
     private AuthServerRestClientProperties authServerRestClientProperties;
     private String gatewayUrl;
     private MockRestServiceServer server;
@@ -96,7 +95,7 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
     @Test
 
     public void whenGivenPackageMenus_updateMenusByRoleId_shouldSucceed() {
-        mockRetrieveRoleOneInfoServer();
+        mockRetrieveRoleWithPackageMenusServer();
         ArrayList<String> menuCodeList = Lists.newArrayList(
                 "DESIGNING_CI_INTEGRATED_QUERY_EXECUTION",
                 "CMDB_DESIGNING_ENUM_ENQUIRY",
@@ -115,7 +114,7 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
 
     @Test
     public void whenGivenSystemMenus_updateMenusByRoleId_shouldSucceed() {
-        mockRetrieveRoleOneInfoServer();
+        mockRetrieveRoleWithSystemMenusServer();
         ArrayList<String> menuCodeList = Lists.newArrayList(
                 "DESIGNING",
                 "OPERATING");
@@ -131,7 +130,7 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
 
     @Test
     public void whenGivenMixedTypeMenus_updateMenusByRoleId_shouldSucceed() {
-        mockRetrieveRoleTwoInfoServer();
+        mockRetrieveRoleWithMixedTypeMenusServer();
         ArrayList<String> menuCodeList = Lists.newArrayList(
                 "DESIGNING_CI_INTEGRATED_QUERY_EXECUTION",
                 "CMDB_DESIGNING_TEST_MENU_ONE",
@@ -186,7 +185,7 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
     }
 
 
-    private void mockRetrieveRoleOneInfoServer() {
+    private void mockRetrieveRoleWithPackageMenusServer() {
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/%s", this.gatewayUrl, ROLE_ONE)))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header("Authorization", TOKEN))
@@ -199,9 +198,51 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
                         "        \"displayName\": \"1_display_name\"\n" +
                         "    }\n" +
                         "}", MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/%s/authorities", this.gatewayUrl, ROLE_ONE)))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", TOKEN))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": null\n" +
+                        "}", MediaType.APPLICATION_JSON));
     }
 
-    private void mockRetrieveRoleTwoInfoServer() {
+    private void mockRetrieveRoleWithSystemMenusServer() {
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/%s", this.gatewayUrl, ROLE_ONE)))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(header("Authorization", TOKEN))
+                .andRespond(withSuccess("{\n" +
+                        "    \"status\": \"OK\",\n" +
+                        "    \"message\": \"Success\",\n" +
+                        "    \"data\": {\n" +
+                        "        \"id\": 1,\n" +
+                        "        \"name\": \"1\",\n" +
+                        "        \"displayName\": \"1_display_name\"\n" +
+                        "    }\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/%s/authorities/revoke", this.gatewayUrl, ROLE_ONE)))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", TOKEN))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": null\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/%s/authorities", this.gatewayUrl, ROLE_ONE)))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", TOKEN))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": null\n" +
+                        "}", MediaType.APPLICATION_JSON));
+    }
+
+    private void mockRetrieveRoleWithMixedTypeMenusServer() {
         server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/%s", this.gatewayUrl, ROLE_TWO)))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header("Authorization", TOKEN))
@@ -213,6 +254,24 @@ public class RoleMenuServiceTest extends DatabaseBasedTest {
                         "        \"name\": \"2\",\n" +
                         "        \"displayName\": \"2_display_name\"\n" +
                         "    }\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/%s/authorities/revoke", this.gatewayUrl, ROLE_TWO)))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", TOKEN))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": null\n" +
+                        "}", MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/auth/v1/roles/%s/authorities", this.gatewayUrl, ROLE_TWO)))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", TOKEN))
+                .andRespond(withSuccess("{\n" +
+                        "  \"status\": \"OK\",\n" +
+                        "  \"message\": \"success\",\n" +
+                        "  \"data\": null\n" +
                         "}", MediaType.APPLICATION_JSON));
     }
 
