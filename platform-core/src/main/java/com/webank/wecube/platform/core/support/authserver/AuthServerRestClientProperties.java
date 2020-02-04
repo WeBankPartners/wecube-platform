@@ -18,7 +18,10 @@ public class AuthServerRestClientProperties {
     private String pathDeleteLocalRoleByRoleId = "/auth/v1/roles/{role-id}";
     private String pathRetrieveAllUsersBelongsToRoleId = "/auth/v1/roles/{role-id}/users";
     private String pathConfigureUserRolesById = "/auth/v1/roles/{role-id}/users";
-    private String pathRevokeUserRolesById = "/roles/{role-id}/users/revoke";
+    private String pathRevokeUserRolesById = "/auth/v1/roles/{role-id}/users/revoke";
+    private String pathRevokeAuthoritiesFromRole = "/auth/v1/roles/{role-id}/authorities/revoke";
+    private String pathConfigureRoleAuthorities = "/auth/v1/roles/{role-id}/authorities";
+    
 
     public String getHost() {
         return host;
@@ -131,5 +134,21 @@ public class AuthServerRestClientProperties {
     public void setPathRevokeUserRolesById(String pathRevokeUserRolesById) {
         this.pathRevokeUserRolesById = pathRevokeUserRolesById;
     }
+
+	public String getPathRevokeAuthoritiesFromRole() {
+		return pathRevokeAuthoritiesFromRole;
+	}
+
+	public void setPathRevokeAuthoritiesFromRole(String pathRevokeAuthoritiesFromRole) {
+		this.pathRevokeAuthoritiesFromRole = pathRevokeAuthoritiesFromRole;
+	}
+
+	public String getPathConfigureRoleAuthorities() {
+		return pathConfigureRoleAuthorities;
+	}
+
+	public void setPathConfigureRoleAuthorities(String pathConfigureRoleAuthorities) {
+		this.pathConfigureRoleAuthorities = pathConfigureRoleAuthorities;
+	}
 
 }

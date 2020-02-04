@@ -29,240 +29,270 @@ import com.webank.wecube.platform.auth.server.repository.UserRoleRsRepository;
 @Service("roleManagementService")
 public class RoleManagementService {
 
-    private static final Logger log = LoggerFactory.getLogger(RoleManagementService.class);
-    @Autowired
-    private RoleRepository roleRepository;
+	private static final Logger log = LoggerFactory.getLogger(RoleManagementService.class);
+	@Autowired
+	private RoleRepository roleRepository;
 
-    @Autowired
-    private UserRoleRsRepository userRoleRsRepository;
+	@Autowired
+	private UserRoleRsRepository userRoleRsRepository;
 
-    @Autowired
-    private RoleAuthorityRsRepository roleAuthorityRsRepository;
+	@Autowired
+	private RoleAuthorityRsRepository roleAuthorityRsRepository;
 
-    @Autowired
-    private AuthorityRepository authorityRepository;
+	@Autowired
+	private AuthorityRepository authorityRepository;
 
-    public SimpleLocalRoleDto registerLocalRole(SimpleLocalRoleDto roleDto) {
-        validateSimpleLocalRoleDto(roleDto);
+	public SimpleLocalRoleDto registerLocalRole(SimpleLocalRoleDto roleDto) {
+		validateSimpleLocalRoleDto(roleDto);
 
-        SysRoleEntity existedRole = roleRepository.findNotDeletedRoleByName(roleDto.getName());
+		SysRoleEntity existedRole = roleRepository.findNotDeletedRoleByName(roleDto.getName());
 
-        if (existedRole != null) {
-            throw new AuthServerException(String.format("Role with name {%s} already existed.", roleDto.getName()));
-        }
+		if (existedRole != null) {
+			throw new AuthServerException(String.format("Role with name {%s} already existed.", roleDto.getName()));
+		}
 
-        SysRoleEntity role = buildSysRoleEntity(roleDto);
-        roleRepository.saveAndFlush(role);
+		SysRoleEntity role = buildSysRoleEntity(roleDto);
+		roleRepository.saveAndFlush(role);
 
-        return convertToSimpleLocalRoleDto(role);
-    }
+		return convertToSimpleLocalRoleDto(role);
+	}
 
-    private SimpleLocalRoleDto convertToSimpleLocalRoleDto(SysRoleEntity role) {
-        SimpleLocalRoleDto dto = new SimpleLocalRoleDto();
-        dto.setId(role.getId());
-        dto.setEmail(role.getEmailAddress());
-        dto.setName(role.getName());
-        dto.setDisplayName(role.getDisplayName());
+	private SimpleLocalRoleDto convertToSimpleLocalRoleDto(SysRoleEntity role) {
+		SimpleLocalRoleDto dto = new SimpleLocalRoleDto();
+		dto.setId(role.getId());
+		dto.setEmail(role.getEmailAddress());
+		dto.setName(role.getName());
+		dto.setDisplayName(role.getDisplayName());
 
-        return dto;
-    }
+		return dto;
+	}
 
-    private SysRoleEntity buildSysRoleEntity(SimpleLocalRoleDto dto) {
-        SysRoleEntity role = new SysRoleEntity();
-        role.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-        role.setDisplayName(dto.getDisplayName());
-        role.setName(dto.getName());
-        role.setEmailAddress(dto.getEmail());
+	private SysRoleEntity buildSysRoleEntity(SimpleLocalRoleDto dto) {
+		SysRoleEntity role = new SysRoleEntity();
+		role.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+		role.setDisplayName(dto.getDisplayName());
+		role.setName(dto.getName());
+		role.setEmailAddress(dto.getEmail());
 
-        return role;
-    }
+		return role;
+	}
 
-    public List<SimpleLocalRoleDto> retrieveAllLocalRoles() {
-        List<SysRoleEntity> roles = roleRepository.findAllActiveRoles();
-        List<SimpleLocalRoleDto> result = new ArrayList<>();
+	public List<SimpleLocalRoleDto> retrieveAllLocalRoles() {
+		List<SysRoleEntity> roles = roleRepository.findAllActiveRoles();
+		List<SimpleLocalRoleDto> result = new ArrayList<>();
 
-        if (roles == null || roles.isEmpty()) {
-            return result;
-        }
+		if (roles == null || roles.isEmpty()) {
+			return result;
+		}
 
-        roles.forEach(r -> {
-            result.add(convertToSimpleLocalRoleDto(r));
-        });
+		roles.forEach(r -> {
+			result.add(convertToSimpleLocalRoleDto(r));
+		});
 
-        return result;
-    }
+		return result;
+	}
 
-    @Transactional
-    public void unregisterLocalRoleById(String roleId) {
-        Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
-        if (!roleOpt.isPresent()) {
-            throw new AuthServerException("Such role does not exist.");
-        }
+	@Transactional
+	public void unregisterLocalRoleById(String roleId) {
+		Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
+		if (!roleOpt.isPresent()) {
+			throw new AuthServerException("Such role does not exist.");
+		}
 
-        SysRoleEntity role = roleOpt.get();
-        if (role.isDeleted()) {
-            throw new AuthServerException(String.format("Such role with ID {%s} has been deleted.", roleId));
-        }
+		SysRoleEntity role = roleOpt.get();
+		if (role.isDeleted()) {
+			throw new AuthServerException(String.format("Such role with ID {%s} has been deleted.", roleId));
+		}
 
-        role.setActive(false);
-        role.setDeleted(true);
-        role.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-        role.setUpdatedTime(new Date());
-        roleRepository.save(role);
+		role.setActive(false);
+		role.setDeleted(true);
+		role.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+		role.setUpdatedTime(new Date());
+		roleRepository.save(role);
 
-        List<UserRoleRsEntity> userRoles = userRoleRsRepository.findAllByRoleId(role.getId());
+		List<UserRoleRsEntity> userRoles = userRoleRsRepository.findAllByRoleId(role.getId());
 
-        if (userRoles != null) {
-            if (log.isInfoEnabled()) {
-                log.info("total {} user role relationships to delete.", userRoles.size());
-            }
-            for (UserRoleRsEntity userRole : userRoles) {
-                userRole.setActive(false);
-                userRole.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-                userRole.setDeleted(true);
-                userRole.setUpdatedTime(new Date());
-                userRoleRsRepository.save(userRole);
-            }
-        }
-    }
+		if (userRoles != null) {
+			if (log.isInfoEnabled()) {
+				log.info("total {} user role relationships to delete.", userRoles.size());
+			}
+			for (UserRoleRsEntity userRole : userRoles) {
+				userRole.setActive(false);
+				userRole.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+				userRole.setDeleted(true);
+				userRole.setUpdatedTime(new Date());
+				userRoleRsRepository.save(userRole);
+			}
+		}
+	}
 
-    public SimpleLocalRoleDto retriveLocalRoleByRoleId(String roleId) {
-        Optional<SysRoleEntity> roleEntityOptional = roleRepository.findById(roleId);
-        if (!roleEntityOptional.isPresent()) {
-            throw new AuthServerException(String.format("Role ID [%s] does not exist", roleId));
-        }
-        SysRoleEntity role = roleEntityOptional.get();
-        return convertToSimpleLocalRoleDto(role);
-    }
+	public SimpleLocalRoleDto retriveLocalRoleByRoleId(String roleId) {
+		Optional<SysRoleEntity> roleEntityOptional = roleRepository.findById(roleId);
+		if (!roleEntityOptional.isPresent()) {
+			throw new AuthServerException(String.format("Role ID [%s] does not exist", roleId));
+		}
+		SysRoleEntity role = roleEntityOptional.get();
+		return convertToSimpleLocalRoleDto(role);
+	}
 
-    private void validateSimpleLocalRoleDto(SimpleLocalRoleDto roleDto) {
-        if (StringUtils.isBlank(roleDto.getName()) || StringUtils.isBlank(roleDto.getDisplayName())) {
-            throw new AuthServerException("Role name and display name should provide.");
-        }
+	private void validateSimpleLocalRoleDto(SimpleLocalRoleDto roleDto) {
+		if (StringUtils.isBlank(roleDto.getName()) || StringUtils.isBlank(roleDto.getDisplayName())) {
+			throw new AuthServerException("Role name and display name should provide.");
+		}
 
-        if (StringUtils.isNotBlank(roleDto.getEmail())) {
-            if (!StringUtilsEx.isEmailValid(roleDto.getEmail())) {
-                throw new AuthServerException("Unexpected email address.");
-            }
-        }
-    }
+		if (StringUtils.isNotBlank(roleDto.getEmail())) {
+			if (!StringUtilsEx.isEmailValid(roleDto.getEmail())) {
+				throw new AuthServerException("Unexpected email address.");
+			}
+		}
+	}
 
-    public List<SimpleAuthorityDto> retrieveAllAuthoritiesByRoleId(String roleId) {
-        List<SimpleAuthorityDto> result = new ArrayList<>();
-        Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
-        if (!roleOpt.isPresent()) {
-            log.error("such role entity does not exist,role id {}", roleId);
-            return result;
-        }
+	public List<SimpleAuthorityDto> retrieveAllAuthoritiesByRoleId(String roleId) {
+		List<SimpleAuthorityDto> result = new ArrayList<>();
+		Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
+		if (!roleOpt.isPresent()) {
+			log.error("such role entity does not exist,role id {}", roleId);
+			return result;
+		}
 
-        SysRoleEntity role = roleOpt.get();
-        if (role.isDeleted() || !role.isActive()) {
-            log.error("such role is deleted or inactive,role id {}", roleId);
-            return result;
-        }
+		SysRoleEntity role = roleOpt.get();
+		if (role.isDeleted() || !role.isActive()) {
+			log.error("such role is deleted or inactive,role id {}", roleId);
+			return result;
+		}
 
-        List<RoleAuthorityRsEntity> roleAuthorities = roleAuthorityRsRepository
-                .findAllConfiguredAuthoritiesByRoleId(role.getId());
+		List<RoleAuthorityRsEntity> roleAuthorities = roleAuthorityRsRepository
+				.findAllConfiguredAuthoritiesByRoleId(role.getId());
 
-        for (RoleAuthorityRsEntity roleAuthority : roleAuthorities) {
-            Optional<SysAuthorityEntity> authorityOpt = authorityRepository.findById(roleAuthority.getAuthorityId());
-            if (!authorityOpt.isPresent()) {
-                log.error("authority entity does not exist, authority id {}", roleAuthority.getAuthorityId());
-                continue;
-            }
+		for (RoleAuthorityRsEntity roleAuthority : roleAuthorities) {
+			Optional<SysAuthorityEntity> authorityOpt = authorityRepository.findById(roleAuthority.getAuthorityId());
+			if (!authorityOpt.isPresent()) {
+				log.error("authority entity does not exist, authority id {}", roleAuthority.getAuthorityId());
+				continue;
+			}
 
-            SysAuthorityEntity authority = authorityOpt.get();
-            if (authority.isDeleted()) {
-                log.error("such authority is deleted,authority:{} {}", authority.getId(), authority.getCode());
-                continue;
-            }
+			SysAuthorityEntity authority = authorityOpt.get();
+			if (authority.isDeleted()) {
+				log.error("such authority is deleted,authority:{} {}", authority.getId(), authority.getCode());
+				continue;
+			}
 
-            SimpleAuthorityDto dto = new SimpleAuthorityDto();
-            dto.setActive(authority.isActive());
-            dto.setCode(authority.getCode());
-            dto.setDescription(authority.getDescription());
-            dto.setDisplayName(authority.getDisplayName());
-            dto.setId(authority.getId());
-            dto.setScope(authority.getScope());
+			SimpleAuthorityDto dto = new SimpleAuthorityDto();
+			dto.setActive(authority.isActive());
+			dto.setCode(authority.getCode());
+			dto.setDescription(authority.getDescription());
+			dto.setDisplayName(authority.getDisplayName());
+			dto.setId(authority.getId());
+			dto.setScope(authority.getScope());
 
-            result.add(dto);
-        }
+			result.add(dto);
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    @Transactional
-    public void configureRoleWithAuthoritiesById(String roleId, List<SimpleAuthorityDto> authorityDtos) {
-        Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
-        if (!roleOpt.isPresent()) {
-            log.error("such role entity does not exist,role id {}", roleId);
-            throw new AuthServerException("Such role entity does not exist.");
-        }
+	@Transactional
+	public void configureRoleWithAuthoritiesById(String roleId, List<SimpleAuthorityDto> authorityDtos) {
+		Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
+		if (!roleOpt.isPresent()) {
+			log.error("such role entity does not exist,role id {}", roleId);
+			throw new AuthServerException("Such role entity does not exist.");
+		}
 
-        SysRoleEntity role = roleOpt.get();
+		SysRoleEntity role = roleOpt.get();
 
-        for (SimpleAuthorityDto authorityDto : authorityDtos) {
-            if (StringUtils.isBlank(authorityDto.getId())) {
-                log.error("The ID of authority to configure roles is blank.");
-                throw new AuthServerException("The ID of authority to configure roles is blank.");
-            }
+		for (SimpleAuthorityDto authorityDto : authorityDtos) {
+			if (StringUtils.isBlank(authorityDto.getId()) && StringUtils.isBlank(authorityDto.getCode())) {
+				log.error("The ID and code of authority to configure is blank.");
+				throw new AuthServerException("The ID and code of authority to configure is blank.");
+			}
 
-            log.info("configure role {} with authority {}-{}", role.getName(), authorityDto.getId(),
-                    authorityDto.getCode());
+			log.info("configure role {} with authority {}-{}", role.getName(), authorityDto.getId(),
+					authorityDto.getCode());
 
-            Optional<SysAuthorityEntity> authorityOpt = authorityRepository.findById(authorityDto.getId());
-            if (!authorityOpt.isPresent()) {
-                log.error("such authority entity does not exist,authority id {}", authorityDto.getId());
-                throw new AuthServerException(
-                        String.format("Authority with {%s} does not exist.", authorityDto.getId()));
+			SysAuthorityEntity authority = null;
+			if (StringUtils.isNoneBlank(authorityDto.getId())) {
+				Optional<SysAuthorityEntity> authorityOpt = authorityRepository.findById(authorityDto.getId());
+				if (!authorityOpt.isPresent()) {
+					log.error("such authority entity does not exist,authority id {}", authorityDto.getId());
+					throw new AuthServerException(
+							String.format("Authority with {%s} does not exist.", authorityDto.getId()));
 
-            }
+				}
 
-            SysAuthorityEntity authority = authorityOpt.get();
+				authority = authorityOpt.get();
+			} else {
+				authority = authorityRepository.findNotDeletedOneByCode(authorityDto.getCode());
+				if (authority == null) {
+					authority = new SysAuthorityEntity();
+					authority.setActive(true);
+					authority.setCode(authorityDto.getCode());
+					authority.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+					authority.setDeleted(false);
+					authority.setScope(StringUtils.isBlank(authorityDto.getScope()) ? SysAuthorityEntity.SCOPE_GLOBAL
+							: authorityDto.getScope());
+					authority.setDescription(authorityDto.getDescription());
+					authority.setDisplayName(StringUtils.isBlank(authorityDto.getDisplayName()) ? authorityDto.getCode()
+							: authorityDto.getDisplayName());
 
-            RoleAuthorityRsEntity roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityId(role.getId(),
-                    authority.getId());
+					authorityRepository.save(authority);
+				}
+			}
 
-            if (roleAuthority != null) {
-                continue;
-            }
+			RoleAuthorityRsEntity roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityId(role.getId(),
+					authority.getId());
 
-            roleAuthority = new RoleAuthorityRsEntity();
-            roleAuthority.setActive(true);
-            roleAuthority.setAuthorityCode(authority.getCode());
-            roleAuthority.setAuthorityId(authority.getId());
-            roleAuthority.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
-            roleAuthority.setDeleted(false);
-            roleAuthority.setRoleId(role.getId());
-            roleAuthority.setRoleName(role.getName());
+			if (roleAuthority != null) {
+				continue;
+			}
 
-            roleAuthorityRsRepository.save(roleAuthority);
-        }
-    }
+			roleAuthority = new RoleAuthorityRsEntity();
+			roleAuthority.setActive(true);
+			roleAuthority.setAuthorityCode(authority.getCode());
+			roleAuthority.setAuthorityId(authority.getId());
+			roleAuthority.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+			roleAuthority.setDeleted(false);
+			roleAuthority.setRoleId(role.getId());
+			roleAuthority.setRoleName(role.getName());
 
-    @Transactional
-    public void revokeRoleAuthoritiesById(String roleId, List<SimpleAuthorityDto> authorityDtos) {
-        Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
-        if (!roleOpt.isPresent()) {
-            log.error("such role entity does not exist,role id {}", roleId);
-            throw new AuthServerException("Such role entity does not exist.");
-        }
+			roleAuthorityRsRepository.save(roleAuthority);
+		}
+	}
 
-        SysRoleEntity role = roleOpt.get();
+	@Transactional
+	public void revokeRoleAuthoritiesById(String roleId, List<SimpleAuthorityDto> authorityDtos) {
+		Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
+		if (!roleOpt.isPresent()) {
+			log.error("such role entity does not exist,role id {}", roleId);
+			throw new AuthServerException("Such role entity does not exist.");
+		}
 
-        for (SimpleAuthorityDto authorityDto : authorityDtos) {
-            RoleAuthorityRsEntity roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityId(role.getId(),
-                    authorityDto.getId());
-            if (roleAuthority == null) {
-                continue;
-            }
+		SysRoleEntity role = roleOpt.get();
 
-            roleAuthority.setActive(false);
-            roleAuthority.setDeleted(true);
-            roleAuthority.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-            roleAuthority.setUpdatedTime(new Date());
+		for (SimpleAuthorityDto authorityDto : authorityDtos) {
+			if (StringUtils.isBlank(authorityDto.getId()) && StringUtils.isBlank(authorityDto.getCode())) {
+				continue;
+			}
 
-            roleAuthorityRsRepository.save(roleAuthority);
-        }
-    }
+			RoleAuthorityRsEntity roleAuthority = null;
+			if (StringUtils.isBlank(authorityDto.getId())) {
+				roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityCode(role.getId(),
+						authorityDto.getCode());
+			} else {
+				roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityId(role.getId(),
+						authorityDto.getId());
+			}
+
+			if (roleAuthority == null) {
+				continue;
+			}
+
+			roleAuthority.setActive(false);
+			roleAuthority.setDeleted(true);
+			roleAuthority.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+			roleAuthority.setUpdatedTime(new Date());
+
+			roleAuthorityRsRepository.save(roleAuthority);
+		}
+	}
 }

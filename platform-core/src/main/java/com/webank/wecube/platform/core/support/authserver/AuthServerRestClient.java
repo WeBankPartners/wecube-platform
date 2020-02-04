@@ -35,6 +35,34 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
 
         return _INSTANCE;
     }
+    
+    public void revokeAuthoritiesFromRole(String roleId, List<AsAuthorityDto> authorities) {
+    	if (StringUtils.isBlank(roleId)) {
+            throw new IllegalArgumentException();
+        }
+    	
+    	if (authorities == null || authorities.isEmpty()) {
+            return;
+        }
+    	
+    	postForObject(clientProperties.getPathRevokeAuthoritiesFromRole(), authorities,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
+                }, roleId);
+    }
+    
+    public void configureRoleAuthorities(String roleId, List<AsAuthorityDto> authorities) {
+    	if (StringUtils.isBlank(roleId)) {
+            throw new IllegalArgumentException();
+        }
+    	
+    	if (authorities == null || authorities.isEmpty()) {
+            return;
+        }
+    	
+    	postForObject(clientProperties.getPathConfigureRoleAuthorities(), authorities,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
+                }, roleId);
+    }
 
     public void revokeUserRolesById(String roleId, List<AsUserDto> userDtos) {
         if (StringUtils.isBlank(roleId)) {
