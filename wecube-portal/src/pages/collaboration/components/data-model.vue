@@ -4,7 +4,7 @@
     <div id="dataModelContainer">
       <!-- <div class="loading" v-if="isLoading"> -->
       <Spin v-if="isLoading" fix size="large">
-        <Icon type="ios-loading" size="18" class="demo-spin-icon-load"></Icon>
+        <Icon type="ios-loading" size="44" class="demo-spin-icon-load"></Icon>
         <div>Loading</div>
       </Spin>
       <!-- </div> -->
