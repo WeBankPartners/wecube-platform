@@ -39,7 +39,7 @@ WeCube目前支持以下几种插件：
 所以我们分别对注册描述文件、后端API服务、前端UI页面、MySql数据库提出了规范，另外每个插件必须有注册描述文件，和提供插件包。
 
 ##### 注册描述文件规范
-必须命名为register.xml, [具体示例在此](https://github.com/WeBankPartners/wecube-platform/blob/dev/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)  
+必须命名为register.xml, [具体示例在此](https://github.com/WeBankPartners/wecube-platform/blob/master/wecube-wiki/docs/developer/wecube_developer_package_XML_guide.md)  
 
 ##### 后端API服务规范
 ###### 启动及打包方式规范 

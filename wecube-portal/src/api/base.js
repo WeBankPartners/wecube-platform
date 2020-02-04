@@ -13,12 +13,15 @@ const throwError = res => {
     desc: (res.data && 'status:' + res.data.status + '<br/> message:' + res.data.message) || 'error'
   })
 }
-const throwInfo = res => {
-  Vue.prototype.$Notice.info({
-    title: 'Info',
-    desc: (res.data && 'status:' + res.data.status + '<br/> message:' + res.data.message) || 'error'
-  })
-}
+// const throwInfo = res => {
+//   Vue.prototype.$Notice.info({
+//     title: 'Info',
+//     desc:
+//       (res.data &&
+//         'status:' + res.data.status + '<br/> message:' + res.data.message) ||
+//       'error'
+//   })
+// }
 
 let refreshRequest = null
 
@@ -106,6 +109,8 @@ req.interceptors.response.use(
         }
         if (filename === null || filename === undefined || filename === '') {
           filename = 'file'
+        } else {
+          filename = decodeURI(filename)
         }
         let url = window.URL.createObjectURL(new Blob([res.data]))
         let link = document.createElement('a')
@@ -133,7 +138,7 @@ req.interceptors.response.use(
     const { response } = err
     if (response.status === 401) {
       window.location.href = window.location.origin + '/#/login'
-      throwInfo(response)
+      // throwInfo(response)
       return response
     }
 

@@ -445,7 +445,14 @@ public class PluginInstanceService {
 
     private ResourceItemDto createPluginDockerInstance(PluginPackage pluginPackage, String hostIp,
             CreateInstanceDto createContainerParameters) throws Exception {
-        ResourceServer hostInfo = resourceServerRepository.findByHost(hostIp).get(0);
+        ResourceServer hostInfo = null;
+        List<ResourceServer> hostInfos = resourceServerRepository.findByHostAndType(hostIp,
+                ResourceServerType.DOCKER.getCode());
+        if (hostInfos.size() == 0) {
+            logger.info(String.format("Can not found docker resource server by IP[%s]", hostIp));
+            throw new WecubeCoreException(String.format("Can not found docker resource server by IP[%s]", hostIp));
+        }
+        hostInfo = hostInfos.get(0);
 
         // download package from MinIO
         String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
