@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.RoleMenu;
@@ -19,10 +18,11 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
-import com.webank.wecube.platform.core.http.UserJwtSsoTokenRestTemplate;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
+import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
+import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 
 /**
  * @author howechen
@@ -42,12 +42,8 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     @Autowired
     private UserManagementService userManagementService;
 
-    
     @Autowired
-    private UserJwtSsoTokenRestTemplate userJwtSsoTokenRestTemplate;
-    
-    @Autowired
-    private ApplicationProperties applicationProperties;
+    private AuthServerRestClient authServerRestClient;
 
 
     /**
@@ -114,14 +110,14 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             }
         }
         
-        List<String> menuCodesToRevoke = new ArrayList<>();
+        List<AsAuthorityDto> authoritiesToRevoke = new ArrayList<>();
         for(RoleMenu rm : needToDeleteList){
-            menuCodesToRevoke.add(rm.getMenuCode());
+        	AsAuthorityDto authorityToRevoke = new AsAuthorityDto();
+        	authorityToRevoke.setCode(rm.getMenuCode());
+        	authoritiesToRevoke.add(authorityToRevoke);
         }
         
-        ///roles/{role-id}/authorities/revoke
-        String revokePath = String.format("auth/v1/roles/%s/authorities/revoke", roleId);
-        userJwtSsoTokenRestTemplate.postForObject(String.format("http://%s/%s", applicationProperties.getGatewayUrl(),revokePath), menuCodesToRevoke, String.class);
+        authServerRestClient.revokeAuthoritiesFromRole(roleId, authoritiesToRevoke);
 
         // new menuCodeList - current menuCodeList = needToCreateList
         List<String> needToCreateList;
@@ -139,13 +135,14 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 throw new WecubeCoreException(ex.getMessage());
             }
             
-            List<String> menuCodesToGrant = new ArrayList<>();
+            List<AsAuthorityDto> authoritiesToGrant = new ArrayList<>();
             for(RoleMenu rm : batchUpdateList){
-                menuCodesToGrant.add(rm.getMenuCode());
+            	AsAuthorityDto authorityToGrant = new AsAuthorityDto();
+            	authorityToGrant.setCode(rm.getMenuCode());
+            	authoritiesToGrant.add(authorityToGrant);
             }
             
-            String grantPath = String.format("auth/v1/roles/%s/authorities/grant",roleId);
-            userJwtSsoTokenRestTemplate.postForObject(String.format("http://%s/%s", applicationProperties.getGatewayUrl(),grantPath), menuCodesToGrant, String.class);
+            authServerRestClient.configureRoleAuthorities(roleId, authoritiesToGrant);
         }
     }
 
