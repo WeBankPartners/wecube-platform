@@ -17,4 +17,9 @@ public interface RoleAuthorityRsRepository extends JpaRepository<RoleAuthorityRs
             + " where t.roleId = :roleId and t.authorityId = :authorityId and t.deleted = false")
     RoleAuthorityRsEntity findOneByRoleIdAndAuthorityId(@Param("roleId") String roleId,
             @Param("authorityId") String authorityId);
+    
+    @Query("select t from RoleAuthorityRsEntity t "
+            + " where t.roleId = :roleId and t.authorityCode = :authorityCode and t.deleted = false")
+    RoleAuthorityRsEntity findOneByRoleIdAndAuthorityCode(@Param("roleId") String roleId,
+            @Param("authorityCode") String authorityCode);
 }
