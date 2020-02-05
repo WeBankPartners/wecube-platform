@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import axios from 'axios'
-const baseURL = 'wecubeRequest'
+const baseURL = ''
 const req = axios.create({
   withCredentials: true,
   baseURL,
