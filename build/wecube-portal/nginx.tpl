@@ -32,7 +32,7 @@ http {
         location / {
                 root /root/app;
         }
-        location /wecube123/ {
+        location /wecubeRequest/ {
                 proxy_pass http://core/;
         }
    }
