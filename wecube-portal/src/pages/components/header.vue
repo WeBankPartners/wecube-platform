@@ -72,7 +72,7 @@ export default {
   },
   methods: {
     logout () {
-      window.location.href = window.location.origin + '/#/login'
+      window.location.href = window.location.origin + window.location.pathname + '/#/login'
     },
     changeLanguage (lan) {
       Vue.config.lang = lan
