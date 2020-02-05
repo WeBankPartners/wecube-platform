@@ -15,7 +15,7 @@
             :on-success="onSuccess"
             :on-progress="onProgress"
             :on-error="onError"
-            action="platform/v1/packages"
+            action="wecubeRequest/platform/v1/packages"
             :headers="headers"
           >
             <Button style="display:none" icon="ios-cloud-upload-outline">
