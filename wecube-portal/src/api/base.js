@@ -50,7 +50,7 @@ req.interceptors.request.use(
             // eslint-disable-next-line handle-callback-err
             err => {
               refreshRequest = null
-              window.location.href = window.location.origin + '/#/login'
+              window.location.href = window.location.origin + window.location.pathname + '#/login'
               session.removeItem('token')
             }
           )
@@ -66,7 +66,7 @@ req.interceptors.request.use(
             // eslint-disable-next-line handle-callback-err
             err => {
               refreshRequest = null
-              window.location.href = window.location.origin + '/#/login'
+              window.location.href =  window.location.origin + window.location.pathname + '#/login'
               session.removeItem('token')
             }
           )
@@ -135,7 +135,7 @@ req.interceptors.response.use(
   err => {
     const { response } = err
     if (response.status === 401) {
-      window.location.href = window.location.origin + '/#/login'
+      window.location.href =  window.location.origin + window.location.pathname + '#/login'
       // throwInfo(response)
       return response
     }
