@@ -32,9 +32,7 @@ WeCube是一套开源的，一站式IT架构管理和运维管理工具，主要
 ## 设计理念
 
 
-<div style="align: center">
-<img src="wecube-wiki/images/wecube_concept.png"/>
-</div>
+<div align=center><img src="wecube-wiki/images/wecube_concept.png" width="600"/></div> 
 
 WeCube的设计理念与IT系统生命周期管理基本一致。可以通过“六个维度和一个核心”来阐述。  
 
