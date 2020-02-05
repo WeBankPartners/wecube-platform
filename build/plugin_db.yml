@@ -1,0 +1,19 @@
+version: '2'
+services:
+  wecube-plugin-mysql:
+    image: ccr.ccs.tencentyun.com/webankpartners/mysql:5.6
+    restart: always
+    command: [
+            '--character-set-server=utf8mb4',
+            '--collation-server=utf8mb4_unicode_ci',
+            '--default-time-zone=+8:00',
+            '--max_allowed_packet=4M'
+    ]
+    volumes:
+      - /etc/localtime:/etc/localtime
+    environment:
+      - MYSQL_ROOT_PASSWORD=Abcd1234
+    ports:
+      - 3306:3306
+    volumes:
+      - /data/wecube-plugin/db:/var/lib/mysql
