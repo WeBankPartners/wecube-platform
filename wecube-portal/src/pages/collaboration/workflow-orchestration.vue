@@ -849,6 +849,7 @@ export default {
 
         this.getAllFlows(true)
         this.selectedFlow = response.data.procDefId
+        this.temporaryFlow = response.data.procDefId
       } else {
         this.$Notice.warning({
           title: 'Warning',
