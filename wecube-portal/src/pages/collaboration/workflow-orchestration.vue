@@ -60,7 +60,7 @@
         name="uploadFile"
         :on-success="onImportProcessDefinitionSuccess"
         :on-error="onImportProcessDefinitionError"
-        action="platform/v1/process/definitions/import"
+        action="wecubeRequest/platform/v1/process/definitions/import"
         :headers="headers"
       >
         <Button style="display:none">{{ $t('import_flow') }}</Button>
