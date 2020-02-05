@@ -90,7 +90,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
     protected void doHandleAsyncInvocationResult(String resultCode, String resultMessage, List<Object> resultData,
             PluginInterfaceInvocationContext ctx) {
-        if (!PluginAsyncInvocationResultDto.RESULT_CODE_OK.equalsIgnoreCase(resultCode)) {
+        if (PluginAsyncInvocationResultDto.RESULT_CODE_FAIL.equalsIgnoreCase(resultCode)) {
             handleErrorInvocationResult(resultMessage, ctx);
             return;
         }
@@ -126,7 +126,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         try {
             handleResultData(ctx, resultData);
-            result.setResultCode(RESULT_CODE_OK);
+            result.setResultCode(Integer.parseInt(resultCode));
             pluginInvocationResultService.responsePluginInterfaceInvocation(result);
             handlePluginInterfaceInvocationSuccess(ctx);
 
