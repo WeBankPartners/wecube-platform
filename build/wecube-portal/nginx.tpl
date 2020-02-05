@@ -27,7 +27,7 @@ http {
         keepalive_timeout 999999999s;
         rewrite_log on;
 
-        rewrite ^/wecube(.*) /$1;
+        rewrite ^/wecube/(.*) /$1;
 
         location / {
                 root /root/app;
