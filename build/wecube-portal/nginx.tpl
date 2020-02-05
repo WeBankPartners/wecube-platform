@@ -27,13 +27,31 @@ http {
         keepalive_timeout 999999999s;
         rewrite_log on;
 
-        rewrite ^/wecube/(.*) /$1;
+        rewrite ^/wecube(.*) /$1;
 
         location / {
                 root /root/app;
         }
         location /wecubeRequest/ {
                 proxy_pass http://core/;
+        }
+        location /service-mgmt {
+                proxy_pass http://core;
+        }
+        location /wecmdb {
+                proxy_pass http://core;
+        }
+        location /wecube-monitor {
+                proxy_pass http://core;
+        }
+        location /artifacts {
+                proxy_pass http://core;
+        }
+        location /saltstack {
+                proxy_pass http://core;
+        }
+        location /qcloud {
+                proxy_pass http://core;
         }
    }
 }
