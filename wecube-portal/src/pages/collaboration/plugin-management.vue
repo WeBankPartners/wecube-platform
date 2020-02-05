@@ -15,7 +15,7 @@
             :on-success="onSuccess"
             :on-progress="onProgress"
             :on-error="onError"
-            action="wecubeRequest/platform/v1/packages"
+            action="platform/v1/packages"
             :headers="headers"
           >
             <Button style="display:none" icon="ios-cloud-upload-outline">
@@ -725,7 +725,7 @@ export default {
         const accessToken = token.find(t => t.tokenType === 'accessToken')
         const expiration = accessToken.expiration * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get('/wecubeRequest/auth/v1/api/token', {
+          refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
               Authorization: 'Bearer ' + token.find(t => t.tokenType === 'refreshToken').token
             }
