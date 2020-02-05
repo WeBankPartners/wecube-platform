@@ -71,19 +71,18 @@ deploy_demo:
 
 	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
-	
+
 	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 
-	docker tag  wecube-db:dev ${remote_docker_image_registry}wecube-db:${date}-$(version)
-	docker push ${remote_docker_image_registry}wecube-db:${date}-$(version)
+	docker tag  wecube-db:dev ${remote_docker_image_registry}/wecube-db:${date}-$(version)
+	docker push ${remote_docker_image_registry}/wecube-db:${date}-$(version)
 
-	docker-compose -f plugin_db.yml -H $(plugin_host) up -d
-	sed "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" wecube_core_mysql.tpl > wecube_core_mysql.yml
+	docker-compose -f build/plugin_db.yml -H $(plugin_host) up -d
+	sed "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" build/wecube_core_mysql.tpl > wecube_core_mysql.yml
 	docker-compose -f wecube_core_mysql.yml -H $(target_host) up -d
-	sleep 120
-	sh deploy_generate_compose.sh $(env_config) $(date)-$(version)
-	sed -i "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" docker-compose.yml  
-	sed -i "s~{{WECUBE_APP_IMAGE_VER}}~wecube-db:${date}-$(version)~g" docker-compose.yml  
+	sleep 90
+	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
+	sed -i "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" docker-compose.yml
+	sed -i "s~{{WECUBE_APP_IMAGE_VER}}~wecube-db:${date}-$(version)~g" docker-compose.yml
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
-	
