@@ -1,6 +1,6 @@
 user  root;
 worker_processes  1;
-error_log  /var/log/nginx/error.log warn;
+error_log  /var/log/nginx/error.log info;
 pid        /var/run/nginx.pid;
 events {
   worker_connections  1024;
@@ -22,38 +22,19 @@ http {
   server {
         listen  8080;
         server_name     localhost;
-	client_max_body_size 9999999m;
+        client_max_body_size 9999999m;
         client_header_timeout 99999999999s;
-	keepalive_timeout 999999999s;
+        keepalive_timeout 999999999s;
+        rewrite_log on;
 
-	location / {
+        rewrite ^/wecube/(.*) /$1;
+
+        location / {
                 root /root/app;
         }
-	location /platform {
-		proxy_pass http://core;
-		proxy_set_header Host ${PUBLIC_DOMAIN};
-	}
-	location /auth {
-		proxy_pass http://core;
-	}
-	location /service-mgmt {
-		proxy_pass http://core;
-	}
-	location /wecmdb {
-		proxy_pass http://core;
-	}
-	location /wecube-monitor {
-		proxy_pass http://core;
-	}
-        location /artifacts {
-		proxy_pass http://core;
-	}
-	location /saltstack {
-		proxy_pass http://core;
-	}
-	location /qcloud {
-		proxy_pass http://core;
-	}
+        location /wecube123/ {
+                proxy_pass http://core/;
+        }
    }
 }
 
