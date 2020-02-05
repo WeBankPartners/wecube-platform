@@ -32,7 +32,7 @@ In the process of finding the solutions for these pain points, we have come up w
 
 
 ## Design Concept
-![WeCube Design Concept](wecube-wiki/images/wecube_design_en.png)
+![WeCube Design Concept](wecube-wiki/images/wecube_concept.png) 
 
 WeCube's design concept basically matches the lifecycle of IT system management and can be elaborated as "6 aspects with 1 core".
  
