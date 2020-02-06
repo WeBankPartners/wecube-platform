@@ -14,7 +14,7 @@ spring:
 #    password: db-password
    jpa:
       database: mysql
-      show-sql: true
+      show-sql: false
       hibernate:
          ddl-auto: update
          use-new-id-generator-mappings: false
@@ -79,8 +79,8 @@ wecube:
          passwordEncryptionSeed: defaultSeed
 platform:
    auth:
-      jwt-sso-authentication-uri: http://127.0.0.1:19110/auth/v1/api/login
-      jwt-sso-access-token-uri: http://127.0.0.1:19110/auth/v1/api/token
+      jwt-sso-authentication-uri: http://localhost:9090/auth/v1/api/login
+      jwt-sso-access-token-uri: http://localhost:9090/auth/v1/api/token
       sub-system-code: SYS_PLATFORM
       sub-system-private-key: MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAwnTN7JDXFcSoikXuNOQDtAjic1Wu6oAtCQJquCJmXrBTqB7hwS2mK6TuT8P7Jx60BQcaRL12hPLi6cOiCawuVwIDAQABAkB9NORazDARjhzPW5OzbpWL2KSmiqcjywA0at/4S/4KPPM8vwRjzEMs7pV9nSJ2M+/YOqPMBDl8iBUSLpfKf/uxAiEA52UroIvo2URlmAycaJm7+e4QqqfhEnM9wlGCJwL2jTsCIQDXIh2zwN7KQEIypmOL+uXvlZUjmx0Tj29mWOwP/fBBlQIhAI9+VLSlror1eE73GxNeqoxNznYVz2RCpLzZEO4iT0S7AiARg0Z1tpKsVjTNWLwrzf3f1gZxApSIXhnMdBqrZpmjTQIhAJhgYctlaydmggTPCqWLGub9WqEyH2HrrcabRvpWdEcV
       auth-server-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKds8XUHglF0703p8H+IPQCTE+31A6t+eyTzF+6kHEpLp7YeDu7OZCqIH6pYWmxD0TmQLobjPNA7IME93wq8HX0CAwEAAQ==

@@ -1,45 +1,36 @@
 package com.webank.wecube.platform.core.service.user;
 
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.user.RoleDto;
-import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
-
 import java.util.List;
-import java.util.Map;
+
+import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.user.UserDto;
 
 /**
  * @author howechen
  */
 public interface UserManagementService {
-    CommonResponseDto createUser(String token, Map<String, Object> jsonObject);
+    UserDto registerUser(UserDto userDto);
 
-    CommonResponseDto retrieveUser(String token);
+    List<UserDto> retrieveAllUserAccounts();
 
-    CommonResponseDto deleteUser(String token, Long id);
+    void deleteUserByUserId(String userId);
 
-    CommonResponseDto createRole(String token, Map<String, Object> requestBody);
+    RoleDto registerLocalRole(RoleDto role);
 
-    CommonResponseDto retrieveRole(String token);
+    List<RoleDto> retrieveAllRoles();
 
-    CommonResponseDto retrieveRoleById(String token, String roleId);
+    RoleDto retrieveRoleById(String roleId);
 
-    CommonResponseDto deleteRole(String token, String id);
+    void unregisterLocalRoleById(String roleId);
 
-    CommonResponseDto getRolesByUserName(String token, String username);
+    List<RoleDto> getGrantedRolesByUsername(String username);
 
-    CommonResponseDto getUsersByRoleId(String token, String roleId);
+    List<UserDto> getUsersByRoleId(String roleId);
 
-    CommonResponseDto grantRoleToUsers(String token, String roleId, List<Object> userIdList);
+    void grantRoleToUsers(String roleId, List<String> userIds);
 
-    CommonResponseDto revokeRoleFromUsers(String token, String roleId, List<Object> jsonObject);
+    void revokeRoleFromUsers(String roleId, List<String> userIds);
 
-    RoleDto createRole(RoleDto roleDto);
+    List<String> getRoleIdsByUsername(String username);
 
-    List<RoleDto> retrieveRole();
-
-    List<String> getRoleIdListByUsername(String token, String username);
-
-    List<RoleDto> getRoleListByUserName(String token, String username);
 }
