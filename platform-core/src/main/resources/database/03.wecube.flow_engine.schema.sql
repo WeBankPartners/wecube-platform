@@ -1263,6 +1263,24 @@ CREATE TABLE `blob_data` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+/*Table structure for table `core_re_proc_def` */
+
+CREATE TABLE `core_re_proc_def` (
+  `ID` varchar(30) NOT NULL,
+  `PROC_DEF_KEY` varchar(255) DEFAULT NULL,
+  `PROC_NAME` varchar(255) DEFAULT NULL,
+  `VERSION` int(11) DEFAULT NULL,
+  `BIND_CITYPE_ID` int(11) DEFAULT NULL,
+  `ACTIVE` int(1) NOT NULL,
+  `CREATE_TIME` datetime DEFAULT NULL,
+  `CREATE_BY` varchar(255) DEFAULT NULL,
+  `UPDATE_TIME` datetime DEFAULT NULL,
+  `UPDATE_BY` varchar(255) DEFAULT NULL,
+  `PROC_DATA` longtext,
+  `PROC_STATUS` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 /*Table structure for table `core_re_proc_def_info` */
 
 CREATE TABLE `core_re_proc_def_info` (
@@ -1281,10 +1299,32 @@ CREATE TABLE `core_re_proc_def_info` (
   `proc_def_name` varchar(255) DEFAULT NULL,
   `proc_def_ver` int(11) DEFAULT NULL,
   `root_entity` varchar(255) DEFAULT NULL,
-  `is_deleted` bit(1) DEFAULT NULL,
-  `owner` varchar(255) DEFAULT NULL,
-  `owner_grp` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `core_re_proc_task_service` */
+
+CREATE TABLE `core_re_proc_task_service` (
+  `ID` varchar(30) NOT NULL,
+  `PROC_DEF_KEY` varchar(255) DEFAULT NULL,
+  `VERSION` int(11) DEFAULT NULL,
+  `PROC_DEF_ID` varchar(255) DEFAULT NULL,
+  `TASK_NODE_ID` varchar(255) DEFAULT NULL,
+  `TASK_NODE_NAME` varchar(255) DEFAULT NULL,
+  `BIND_SERVICE_ID` varchar(255) DEFAULT NULL,
+  `BIND_SERVICE_NAME` varchar(255) DEFAULT NULL,
+  `BIND_CI_ROUTINE_EXP` varchar(800) DEFAULT NULL,
+  `BIND_CI_ROUTINE_RAW` text,
+  `DESCRIPTION` varchar(255) DEFAULT NULL,
+  `ACTIVE` int(1) DEFAULT NULL,
+  `CREATE_TIME` datetime DEFAULT NULL,
+  `CREATE_BY` varchar(255) DEFAULT NULL,
+  `UPDATE_TIME` datetime DEFAULT NULL,
+  `UPDATE_BY` varchar(255) DEFAULT NULL,
+  `TIMEOUT_EXPR` varchar(45) DEFAULT NULL,
+  `TASK_NODE_TYPE` varchar(45) DEFAULT NULL,
+  `CORE_PROC_DEF_ID` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `core_re_task_node_def_info` */
@@ -1302,8 +1342,6 @@ CREATE TABLE `core_re_task_node_def_info` (
   `node_id` varchar(255) DEFAULT NULL,
   `node_name` varchar(255) DEFAULT NULL,
   `node_type` varchar(255) DEFAULT NULL,
-  `ordered_no` varchar(255) DEFAULT NULL,
-  `prev_node_ids` varchar(255) DEFAULT NULL,
   `proc_def_id` varchar(255) DEFAULT NULL,
   `proc_def_kernel_id` varchar(255) DEFAULT NULL,
   `proc_def_key` varchar(255) DEFAULT NULL,
@@ -1312,9 +1350,8 @@ CREATE TABLE `core_re_task_node_def_info` (
   `routine_raw` varchar(255) DEFAULT NULL,
   `service_id` varchar(255) DEFAULT NULL,
   `service_name` varchar(255) DEFAULT NULL,
-  `succeed_node_ids` varchar(255) DEFAULT NULL,
   `timeout_exp` varchar(255) DEFAULT NULL,
-  `task_category` varchar(255) DEFAULT NULL,
+  `ordered_no` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -1329,15 +1366,12 @@ CREATE TABLE `core_re_task_node_param` (
   `active` bit(1) DEFAULT NULL,
   `rev` int(11) DEFAULT NULL,
   `status` varchar(255) DEFAULT NULL,
-  `bind_node_id` varchar(255) DEFAULT NULL,
-  `bind_param_name` varchar(255) DEFAULT NULL,
-  `bind_param_type` varchar(255) DEFAULT NULL,
   `node_id` varchar(255) DEFAULT NULL,
+  `param_exp` varchar(255) DEFAULT NULL,
   `param_name` varchar(255) DEFAULT NULL,
   `proc_def_id` varchar(255) DEFAULT NULL,
+  `task_node_id` varchar(255) DEFAULT NULL,
   `task_node_def_id` varchar(255) DEFAULT NULL,
-  `bind_type` varchar(255) DEFAULT NULL,
-  `bind_val` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -1350,15 +1384,13 @@ CREATE TABLE `core_ru_proc_exec_binding` (
   `updated_by` varchar(255) DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
   `bind_type` varchar(255) DEFAULT NULL,
-  `entity_id` varchar(255) DEFAULT NULL,
   `node_def_id` varchar(255) DEFAULT NULL,
+  `object_id` varchar(255) DEFAULT NULL,
   `proc_def_id` varchar(255) DEFAULT NULL,
   `proc_inst_id` int(11) DEFAULT NULL,
   `task_node_inst_id` int(11) DEFAULT NULL,
-  `entity_data_id` varchar(255) DEFAULT NULL,
-  `entity_type_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=675 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `core_ru_proc_inst_info` */
 
@@ -1378,18 +1410,78 @@ CREATE TABLE `core_ru_proc_inst_info` (
   `proc_inst_kernel_id` varchar(255) DEFAULT NULL,
   `proc_inst_key` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8;
-
-/*Table structure for table `core_ru_proc_role_binding` */
-
-CREATE TABLE `core_ru_proc_role_binding` (
-  `id` varchar(255) NOT NULL,
-  `proc_id` varchar(255) NOT NULL,
-  `role_id` varchar(255) NOT NULL,
-  `permission` varchar(255) NOT NULL,
-  `role_name` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `core_ru_process_task` */
+
+CREATE TABLE `core_ru_process_task` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `OPERATOR` varchar(255) DEFAULT NULL,
+  `OPERATOR_GROUP` varchar(255) DEFAULT NULL,
+  `DEF_ID` varchar(255) DEFAULT NULL,
+  `DEF_KEY` varchar(255) DEFAULT NULL,
+  `DEF_VER` int(11) DEFAULT NULL,
+  `INST_ID` varchar(255) DEFAULT NULL,
+  `INST_KEY` varchar(255) DEFAULT NULL,
+  `CI_TYPE_ID` int(11) DEFAULT NULL,
+  `CI_DATA_ID` varchar(255) DEFAULT NULL,
+  `STATUS` varchar(255) DEFAULT NULL,
+  `START_TIME` datetime DEFAULT NULL,
+  `END_TIME` datetime DEFAULT NULL,
+  `CREATE_TIME` datetime DEFAULT NULL,
+  `UPDATE_TIME` datetime DEFAULT NULL,
+  `CREATE_BY` varchar(255) DEFAULT NULL,
+  `UPDATE_BY` varchar(255) DEFAULT NULL,
+  `TRANSACTION_ID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `FK_TRANS` (`TRANSACTION_ID`),
+  CONSTRAINT `FK_TRANS` FOREIGN KEY (`TRANSACTION_ID`) REFERENCES `core_ru_process_transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FKlo2hepgkrhpsq52vqjndrm0xu` FOREIGN KEY (`TRANSACTION_ID`) REFERENCES `core_ru_process_transaction` (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=150 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `core_ru_process_transaction` */
+
+CREATE TABLE `core_ru_process_transaction` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `NAME` varchar(255) DEFAULT NULL,
+  `ALIAS_NAME` varchar(255) DEFAULT NULL,
+  `OPERATOR` varchar(255) DEFAULT NULL,
+  `OPERATOR_GROUP` varchar(255) DEFAULT NULL,
+  `STATUS` varchar(255) DEFAULT NULL,
+  `START_TIME` datetime DEFAULT NULL,
+  `END_TIME` datetime DEFAULT NULL,
+  `CREATE_TIME` datetime DEFAULT NULL,
+  `CREATE_BY` varchar(255) DEFAULT NULL,
+  `UPDATE_TIME` datetime DEFAULT NULL,
+  `UPDATE_BY` varchar(255) DEFAULT NULL,
+  `ATTACH` varchar(500) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+
+/*Table structure for table `core_ru_task_node_exec_log` */
+
+CREATE TABLE `core_ru_task_node_exec_log` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `INST_ID` varchar(60) DEFAULT NULL,
+  `INST_KEY` varchar(60) DEFAULT NULL,
+  `EXEC_ID` varchar(60) DEFAULT NULL,
+  `NODE_ID` varchar(60) DEFAULT NULL,
+  `SERV_NAME` varchar(255) DEFAULT NULL,
+  `ROOT_CI_TYPE` int(11) DEFAULT NULL,
+  `NODE_STATUS` varchar(30) DEFAULT NULL,
+  `ERR_CODE` varchar(10) DEFAULT NULL,
+  `ERR_MSG` varchar(255) DEFAULT NULL,
+  `PRE_STATUS` varchar(60) DEFAULT NULL,
+  `POST_STATUS` varchar(60) DEFAULT NULL,
+  `CREATED_BY` varchar(60) DEFAULT NULL,
+  `CREATED_TIME` datetime DEFAULT NULL,
+  `UPDATED_BY` varchar(60) DEFAULT NULL,
+  `UPDATED_TIME` datetime DEFAULT NULL,
+  `REQ_DATA` text,
+  `RESP_DATA` text,
+  `REQ_URL` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=171 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `core_ru_task_node_exec_param` */
 
@@ -1399,42 +1491,30 @@ CREATE TABLE `core_ru_task_node_exec_param` (
   `created_time` datetime DEFAULT NULL,
   `updated_by` varchar(255) DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `obj_id` varchar(255) DEFAULT NULL,
-  `param_data_type` varchar(255) DEFAULT NULL,
-  `param_data_value` varchar(10255) DEFAULT NULL,
+  `data_type` varchar(255) DEFAULT NULL,
+  `data_value` varchar(255) DEFAULT NULL,
+  `object_id` varchar(255) DEFAULT NULL,
+  `ordered_no` int(11) DEFAULT NULL,
   `param_name` varchar(255) DEFAULT NULL,
   `param_type` varchar(255) DEFAULT NULL,
-  `req_id` varchar(255) DEFAULT NULL,
-  `root_entity_id` varchar(255) DEFAULT NULL,
-  `entity_data_id` varchar(255) DEFAULT NULL,
-  `entity_type_id` varchar(255) DEFAULT NULL,
+  `proc_inst_id` int(11) DEFAULT NULL,
+  `task_node_inst_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=33450 DEFAULT CHARSET=utf8;
-
-/*Table structure for table `core_ru_task_node_exec_req` */
-
-CREATE TABLE `core_ru_task_node_exec_req` (
-  `req_id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
-  `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
-  `updated_time` datetime DEFAULT NULL,
-  `is_completed` bit(1) DEFAULT NULL,
-  `is_current` bit(1) DEFAULT NULL,
-  `err_code` varchar(255) DEFAULT NULL,
-  `err_msg` varchar(255) DEFAULT NULL,
-  `node_inst_id` int(11) DEFAULT NULL,
-  `req_url` varchar(255) DEFAULT NULL,
-  `execution_id` varchar(255) DEFAULT NULL,
-  `node_id` varchar(255) DEFAULT NULL,
-  `node_name` varchar(255) DEFAULT NULL,
-  `proc_def_kernel_id` varchar(255) DEFAULT NULL,
-  `proc_def_kernel_key` varchar(255) DEFAULT NULL,
-  `proc_def_ver` int(11) DEFAULT NULL,
-  `proc_inst_kernel_id` varchar(255) DEFAULT NULL,
-  `proc_inst_kernel_key` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`req_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Table structure for table `core_ru_task_node_exec_var` */
+
+CREATE TABLE `core_ru_task_node_exec_var` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `CI_TYPE_ID` int(11) DEFAULT NULL,
+  `CI_GUID` varchar(50) DEFAULT NULL,
+  `CONFIRMED` char(1) DEFAULT NULL,
+  `EXEC_LOG_ID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `FK_EXEC_LOG_ID` (`EXEC_LOG_ID`),
+  CONSTRAINT `FK8u5dv1131gctyvdroy68yti0i` FOREIGN KEY (`EXEC_LOG_ID`) REFERENCES `core_ru_task_node_exec_log` (`ID`),
+  CONSTRAINT `FK_EXEC_LOG_ID` FOREIGN KEY (`EXEC_LOG_ID`) REFERENCES `core_ru_task_node_exec_log` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=174 DEFAULT CHARSET=utf8;
 
 /*Table structure for table `core_ru_task_node_inst_info` */
 
@@ -1448,17 +1528,16 @@ CREATE TABLE `core_ru_task_node_inst_info` (
   `oper_grp` varchar(255) DEFAULT NULL,
   `rev` int(11) DEFAULT NULL,
   `status` varchar(255) DEFAULT NULL,
+  `err_url` varchar(255) DEFAULT NULL,
   `node_def_id` varchar(255) DEFAULT NULL,
   `node_id` varchar(255) DEFAULT NULL,
   `node_name` varchar(255) DEFAULT NULL,
-  `node_type` varchar(255) DEFAULT NULL,
-  `ordered_no` varchar(255) DEFAULT NULL,
   `proc_def_id` varchar(255) DEFAULT NULL,
   `proc_def_key` varchar(255) DEFAULT NULL,
   `proc_inst_id` int(11) DEFAULT NULL,
   `proc_inst_key` varchar(255) DEFAULT NULL,
-  `err_msg` varchar(255) DEFAULT NULL,
+  `req_url` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=712 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS = 1;
