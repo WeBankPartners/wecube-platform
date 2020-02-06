@@ -11,10 +11,14 @@ http {
   log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
                     '$status $body_bytes_sent "$http_referer" '
                     '"$http_user_agent" "$http_x_forwarded_for"';
+  proxy_buffer_size  128k;
+  proxy_buffers   32 32k;
+  proxy_busy_buffers_size 128k;
   access_log  /var/log/nginx/access.log  main;
   sendfile        on;
   keepalive_timeout  65;
   root   /root/app;
+  
   upstream core {
         server ${GATEWAY_HOST}:${GATEWAY_PORT};
   }
