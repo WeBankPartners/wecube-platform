@@ -54,6 +54,9 @@ public class BpmnProcessModelCustomizer {
 
     public static final String FORMAL_EXPR_TYPE = "bpmn:tFormalExpression";
 
+    private static final String CONDITION_EXPR_RETCODE_OK = "${retCode_%s == 0}";
+    private static final String CONDITION_EXPR_RETCODE_NOT_OK = "${retCode_%s == 1}";
+
     private String resourceName;
 
     private String originalProcessXml;
@@ -395,27 +398,40 @@ public class BpmnProcessModelCustomizer {
     protected void supplementSubProcess(SubProcess subProc) {
         String subProcId = subProc.getId();
 
-        String userTaskId = "exceptSubUT-"+subProcId;
+        String userTaskId = "exceptSubUT-" + subProcId;
         String srvBeanServiceTaskId = String.format("srvBeanST-%s", subProcId);
         String actRetryExpr = String.format("${ act_%s == 'retry' }", subProcId);
         String actSkipExpr = String.format("${ act_%s == 'skip' }", subProcId);
+        String catchEventId = subProcId + "_ice1";
+        String signalId = subProcId + "_sig1";
+        String retCodeOkExpr = String.format("${retCode_%s != 1}",catchEventId);
+        String retCodeNotOkExpr = String.format("${retCode_%s == 1}",catchEventId);
 
         StartEventBuilder b = subProc.builder().embeddedSubProcess().startEvent(subProcId + "_startEvent1")
                 .name("St1_" + subProcId);
-        EndEventBuilder eb = b.serviceTask(srvBeanServiceTaskId).name("T1_" + subProcId).eventBasedGateway()
-                .name("EGW1_" + subProcId).intermediateCatchEvent(subProcId + "_ice1").name("ICE1_" + subProcId)
-                .signal(subProcId + "_sig1").exclusiveGateway().gatewayDirection(GatewayDirection.Diverging)
-                .condition("con1", CONDITION_EXPR_OK).endEvent(subProcId + "_endEvent1").name("End1_" + subProcId)
-                .moveToLastGateway().condition("con2", CONDITION_EXPR_NOT_OK).serviceTask("srvFailBeanST-"+subProcId)
-                .name("SRV-FAIL-HANDLER_" + subProcId).camundaDelegateExpression("${srvFailBean}").userTask(userTaskId)
-                .name("EXCEPTION-HANDLER_" + subProcId).condition("con4", actRetryExpr).connectTo(srvBeanServiceTaskId)
-                .moveToActivity(userTaskId).condition("con3", actSkipExpr).endEvent().name("End2_" + subProcId);
+        EndEventBuilder eb = b.serviceTask(srvBeanServiceTaskId).name("T1_" + subProcId) //
+                .eventBasedGateway().name("EGW1_" + subProcId) //
+                .intermediateCatchEvent(catchEventId).name("ICE1_" + subProcId) //
+                .signal(signalId) //
+                .exclusiveGateway().gatewayDirection(GatewayDirection.Diverging) //
+                .condition("con1", retCodeOkExpr) //
+                .endEvent(subProcId + "_endEvent1").name("End1_" + subProcId) //
+                .moveToLastGateway() //
+                .condition("con2", retCodeNotOkExpr) //
+                .serviceTask("srvFailBeanST-" + subProcId) //
+                .name("SRV-FAIL-HANDLER_" + subProcId).camundaDelegateExpression("${srvFailBean}") //
+                .userTask(userTaskId).name("EXCEPTION-HANDLER_" + subProcId) //
+                .condition("con4", actRetryExpr) //
+                .connectTo(srvBeanServiceTaskId) //
+                .moveToActivity(userTaskId) //
+                .condition("con3", actSkipExpr) //
+                .endEvent().name("End2_" + subProcId);
 
         String subProcessTimeoutExpr = getSubProcessTimeoutExpression(subProc);
         if (StringUtils.isNotBlank(subProcessTimeoutExpr)) {
             AbstractFlowNodeBuilder<?, ?> ab = eb.moveToLastGateway().moveToLastGateway()
                     .intermediateCatchEvent(subProcId + "_time1").timerWithDuration(subProcessTimeoutExpr)
-                    .serviceTask("srvTimeOutBeanST-"+subProcId).name("SRV-TIMEOUT-HANDLER_" + subProcId)
+                    .serviceTask("srvTimeOutBeanST-" + subProcId).name("SRV-TIMEOUT-HANDLER_" + subProcId)
                     .camundaDelegateExpression("${srvTimeoutBean}").connectTo(userTaskId);
             ab.done();
         } else {
