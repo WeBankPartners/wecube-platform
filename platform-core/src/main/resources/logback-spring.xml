@@ -29,32 +29,11 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
-    
-    <appender name="subprocessLog"
-        class="ch.qos.logback.core.rolling.RollingFileAppender">
-        
-        <File>logs/subproc-trace.log</File>
-        <rollingPolicy
-            class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>logs/subproc-trace.log-%d{yyyyMMdd}.log
-            </FileNamePattern>
-            <MaxHistory>2</MaxHistory>
-        </rollingPolicy>
-        <encoder>
-            <Pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %msg%n]]>
-            </Pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
-    <logger name="com.gl.wecube.cds.workflow.listener" level="debug" additivity="true">
-    	<appender-ref ref="subprocessLog" />
-    </logger> 
          
-    <root level="info">
+    <root level="debug">
         <appender-ref ref="console"/>
         <!-- 
-         -->
         <appender-ref ref="rollingFile"/>
+         -->
     </root>
 </configuration>

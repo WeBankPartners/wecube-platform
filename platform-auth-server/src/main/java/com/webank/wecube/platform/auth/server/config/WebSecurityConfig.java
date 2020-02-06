@@ -19,5 +19,6 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 @EnableWebSecurity(debug = false)
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class WebSecurityConfig extends AuthSecurityConfigurerAdapter {
-
+    
+    
 }

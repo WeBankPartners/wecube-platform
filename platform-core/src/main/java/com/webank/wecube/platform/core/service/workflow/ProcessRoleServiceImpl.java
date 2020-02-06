@@ -178,7 +178,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
         for (String roleId : roleIdList) {
 
-            RoleDto roleDto = JsonUtils.toObject(userManagementService.retrieveRoleById(token, roleId).getData(), RoleDto.class);
+            RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
             String roleName = roleDto.getName();
             // find current stored data
             Optional<ProcRoleBindingEntity> byProcIdAndRoleIdAndPermission = this.procRoleBindingRepository

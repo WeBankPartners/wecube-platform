@@ -87,7 +87,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
         log.info("process definition saved with id:{}", savedProcDefInfoDraftEntity.getId());
         String currentUsername = AuthenticationContextHolder.getCurrentUsername();
-        List<String> roleIds = userManagementService.getRoleIdListByUsername(token, currentUsername);
+        List<String> roleIds = userManagementService.getRoleIdsByUsername(currentUsername);
         Map<String, List<String>> roleBinds = new HashMap<>();
         roleBinds.put(ProcRoleBindingEntity.permissionEnum.MGMT.name(), roleIds);
 

@@ -205,14 +205,22 @@ public class WorkflowEngineService {
         }
 
         if (signalEventSubscription == null) {
-            log.error("such subscription have not found for event={}", event);
+            log.warn("such subscription have not found for event:{} {} {}", procInstId, procInstKey, executionId);
             return;
         }
 
         String eventName = signalEventSubscription.getEventName();
         Map<String, Object> boundVariables = new HashMap<String, Object>();
 
-        boundVariables.put(WorkflowConstants.VAR_KEY_SERVICE_OK, successful);
+        String varName = null;
+        if (StringUtils.isBlank(executionId)) {
+            varName = WorkflowConstants.VAR_KEY_SERVICE_OK;
+            boundVariables.put(varName, event.getResult());
+        } else {
+            varName = String.format("retCode_%s", executionId);
+            boundVariables.put(varName, event.getResult());
+        }
+        log.info("put {}, {}", varName, event.getResult());
         log.info("delivered signal event for {} {} {}", eventName, signalEventSubscription.getExecutionId(),
                 successful);
 

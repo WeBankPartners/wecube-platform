@@ -1,13 +1,5 @@
 package com.webank.wecube.platform.auth.server.config;
 
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedAuthenticationFilter;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedLoginFilter;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedRefreshTokenFilter;
-import com.webank.wecube.platform.auth.server.filter.JwtSsoBasedSecurityContextRepository;
-import com.webank.wecube.platform.auth.server.handler.Http401AuthenticationEntryPoint;
-import com.webank.wecube.platform.auth.server.handler.Http403AccessDeniedHandler;
-import com.webank.wecube.platform.auth.server.handler.JwtSsoBasedAuthenticationFailureHandler;
-import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +14,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.webank.wecube.platform.auth.server.http.AuthenticationRequestContextInterceptor;
+import com.webank.wecube.platform.auth.server.http.filter.JwtSsoBasedAuthenticationFilter;
+import com.webank.wecube.platform.auth.server.http.filter.JwtSsoBasedLoginFilter;
+import com.webank.wecube.platform.auth.server.http.filter.JwtSsoBasedRefreshTokenFilter;
+import com.webank.wecube.platform.auth.server.http.filter.JwtSsoBasedSecurityContextRepository;
+import com.webank.wecube.platform.auth.server.http.handler.Http401AuthenticationEntryPoint;
+import com.webank.wecube.platform.auth.server.http.handler.Http403AccessDeniedHandler;
+import com.webank.wecube.platform.auth.server.http.handler.JwtSsoBasedAuthenticationFailureHandler;
+import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 
 /**
  * 
@@ -29,32 +33,26 @@ import org.springframework.security.web.context.SecurityContextPersistenceFilter
  *
  */
 @EnableConfigurationProperties({ AuthServerProperties.class })
-public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
-    private static final String[] AUTH_WHITELIST = { //
-//            "/v1/api/login", //
-            "/v1/users/**", // for dev only
-            "/v1/roles/**", // for dev only
-            "/v1/api/ping", //
-            "/v2/api-docs", //
-            "/error", //
-            "/swagger-resources", //
-            "/swagger-resources/**", //
-            "/configuration/ui", //
-            "/configuration/security", //
-            "/swagger-ui.html", //
-            "/webjars/**" //
-    };
+public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     protected Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     protected LocalUserDetailsService userDetailsService;
-    
+
     @Autowired
     protected AuthServerProperties authServerProperties;
 
+    @Autowired
+    protected AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
+
     protected String[] getAuthWhiteList() {
-        return AUTH_WHITELIST;
+        return new String[]{};
+    }
+
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authenticationRequestContextInterceptor).excludePathPatterns("/v1/api/login",
+                "/v1/api/token");
     }
 
     protected void configure(HttpSecurity http) throws Exception {

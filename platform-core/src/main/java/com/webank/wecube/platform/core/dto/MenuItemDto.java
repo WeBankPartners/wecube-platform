@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.dto;
 
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class MenuItemDto implements Comparable<MenuItemDto> {
 
@@ -136,5 +137,12 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     @Override
     public int compareTo(MenuItemDto o) {
         return this.getMenuOrder().compareTo(o.getMenuOrder());
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("code", code)
+                .toString();
     }
 }

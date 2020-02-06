@@ -1,14 +1,24 @@
 package com.webank.wecube.platform.core.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
+import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
-import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
+import com.webank.wecube.platform.core.service.user.UserManagementService;
 
 /**
  * @author howechen
@@ -16,79 +26,67 @@ import java.util.Map;
 @RestController
 @RequestMapping("/v1")
 public class UserManagementController {
-    private UserManagementServiceImpl userManagementService;
+    @Autowired
+    private UserManagementService userManagementService;
+    @Autowired
     private RoleMenuServiceImpl roleMenuService;
 
-    @Autowired
-    public UserManagementController(UserManagementServiceImpl userManagementService, RoleMenuServiceImpl roleMenuService) {
-        this.userManagementService = userManagementService;
-        this.roleMenuService = roleMenuService;
-    }
-
     @PostMapping("/users/create")
-    @ResponseBody
-    public CommonResponseDto createUser(@RequestHeader(value = "Authorization") String token,
-                                        @RequestBody Map<String, Object> requestBody) {
-        try {
-            return userManagementService.createUser(token, requestBody);
-        } catch (WecubeCoreException ex) {
-            return CommonResponseDto.error(ex.getMessage());
-        }
+    public CommonResponseDto registerUser(@RequestBody UserDto userDto) {
+        UserDto result = userManagementService.registerUser(userDto);
+        return CommonResponseDto.okayWithData(result);
 
     }
 
     @GetMapping("/users/retrieve")
-    @ResponseBody
-    public CommonResponseDto retrieveUser(@RequestHeader(value = "Authorization") String token) {
+    public CommonResponseDto retrieveAllUserAccounts() {
         try {
-            return userManagementService.retrieveUser(token);
+            List<UserDto> result = userManagementService.retrieveAllUserAccounts();
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
     @DeleteMapping("/users/{user-id}/delete")
-    @ResponseBody
-    public CommonResponseDto deleteUser(@RequestHeader(value = "Authorization") String token,
-                                        @PathVariable("user-id") Long id) {
+    public CommonResponseDto deleteUserByUserId(@PathVariable("user-id") String userId) {
         try {
-            return userManagementService.deleteUser(token, id);
+            userManagementService.deleteUserByUserId(userId);
+            return CommonResponseDto.okay();
         } catch (WecubeCoreException e) {
             return CommonResponseDto.error(e.getMessage());
         }
     }
 
     @GetMapping("/users/roles")
-    @ResponseBody
-    public CommonResponseDto getRolesByCurrentUserName(@RequestHeader(value = "Authorization") String token) {
+    public CommonResponseDto getRolesOfCurrentUser() {
         try {
-            return userManagementService.getRolesByUserName(token, AuthenticationContextHolder.getCurrentUsername());
+            List<RoleDto> grantedRoles = userManagementService
+                    .getGrantedRolesByUsername(AuthenticationContextHolder.getCurrentUsername());
+            return CommonResponseDto.okayWithData(grantedRoles);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
-    @GetMapping("/users/{user-name}/roles")
-    @ResponseBody
-    public CommonResponseDto getRolesByUsername(@RequestHeader(value = "Authorization") String token,
-                                                @PathVariable(value = "user-name") String userName) {
+    @GetMapping("/users/{username}/roles")
+    public CommonResponseDto getRolesByUsername(@PathVariable(value = "username") String username) {
         try {
-            return userManagementService.getRolesByUserName(token, userName);
+            List<RoleDto> grantedRoles = userManagementService.getGrantedRolesByUsername(username);
+            return CommonResponseDto.okayWithData(grantedRoles);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
-    @GetMapping("/users/{user-name}/menus")
-    @ResponseBody
-    public CommonResponseDto getMenusByUsername(@RequestHeader(value = "Authorization") String token,
-                                                @PathVariable(value = "user-name") String userName) {
+    @GetMapping("/users/{username}/menus")
+    public CommonResponseDto getMenusByUsername(@PathVariable(value = "username") String username) {
         try {
-            return CommonResponseDto.okayWithData(this.roleMenuService.getMenusByUserName(token, userName));
+            List<RoleMenuDto> result = this.roleMenuService.getMenusByUsername(username);
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
-
 
 }

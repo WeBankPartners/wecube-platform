@@ -21,7 +21,7 @@ import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 
-public abstract class AbstractPluginInvocationService extends AbstractWorkflowService{
+public abstract class AbstractPluginInvocationService extends AbstractWorkflowService {
 
     protected static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
 
@@ -30,10 +30,10 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     protected static final String DATA_TYPE_STRING = "string";
     protected static final String DATA_TYPE_NUMBER = "number";
-    
+
     protected static final String DEFAULT_VALUE_DATA_TYPE_STRING = "";
     protected static final int DEFAULT_VALUE_DATA_TYPE_NUMBER = 0;
-    
+
     protected static final int MAX_PARAM_VAL_SIZE = 3000;
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -58,25 +58,26 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     @Autowired
     protected ExpressionService expressionService;
-    
-    
-    protected TaskNodeInstInfoEntity findExactTaskNodeInstInfoEntityWithNodeId(List<TaskNodeInstInfoEntity> nodeInstEntities, String nodeId){
-        for(TaskNodeInstInfoEntity nodeInst: nodeInstEntities){
-            if(nodeId.equalsIgnoreCase(nodeInst.getNodeId())){
+
+    protected TaskNodeInstInfoEntity findExactTaskNodeInstInfoEntityWithNodeId(
+            List<TaskNodeInstInfoEntity> nodeInstEntities, String nodeId) {
+        for (TaskNodeInstInfoEntity nodeInst : nodeInstEntities) {
+            if (nodeId.equalsIgnoreCase(nodeInst.getNodeId())) {
                 return nodeInst;
             }
         }
-        
+
         return null;
     }
-    
-    protected TaskNodeDefInfoEntity findExactTaskNodeDefInfoEntityWithNodeId(List<TaskNodeDefInfoEntity> nodeDefEntities, String nodeId){
-        for(TaskNodeDefInfoEntity nodeDef : nodeDefEntities){
-            if(nodeId.equalsIgnoreCase(nodeDef.getNodeId())){
+
+    protected TaskNodeDefInfoEntity findExactTaskNodeDefInfoEntityWithNodeId(
+            List<TaskNodeDefInfoEntity> nodeDefEntities, String nodeId) {
+        for (TaskNodeDefInfoEntity nodeDef : nodeDefEntities) {
+            if (nodeId.equalsIgnoreCase(nodeDef.getNodeId())) {
                 return nodeDef;
             }
         }
-        
+
         return null;
     }
 
@@ -107,12 +108,12 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         return val.toString();
 
     }
-    
-    protected String trimExceedParamValue(String val, int size){
-        if(val.length() > size){
+
+    protected String trimExceedParamValue(String val, int size) {
+        if (val.length() > size) {
             return val.substring(0, size);
         }
-        
+
         return val;
     }
 
@@ -144,7 +145,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
                 isFirst = false;
             }
 
-            sb.append(dv==null?"":dv);
+            sb.append(dv == null ? "" : dv);
         }
 
         sb.append("]");

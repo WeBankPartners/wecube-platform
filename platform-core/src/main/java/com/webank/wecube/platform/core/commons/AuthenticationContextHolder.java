@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.commons;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,12 +50,28 @@ public final class AuthenticationContextHolder {
 
     public static class AuthenticatedUser {
         private final String username;
-        private String token;
-        private Set<String> grantedAuthorities = new HashSet<String>();
+        private final String token;
+        private final Set<String> grantedAuthorities = new HashSet<String>();
 
         public AuthenticatedUser(String username) {
+            this(username, null);
+        }
+
+        public AuthenticatedUser(String username, String token) {
+            this(username, token, null);
+        }
+
+        public AuthenticatedUser(String username, String token, Collection<String> authorities) {
             super();
             this.username = username;
+            this.token = token;
+            if (authorities != null) {
+                for (String a : authorities) {
+                    if (a != null) {
+                        this.grantedAuthorities.add(a);
+                    }
+                }
+            }
         }
 
         public String getUsername() {
@@ -65,23 +82,10 @@ public final class AuthenticationContextHolder {
             return Collections.unmodifiableSet(this.grantedAuthorities);
         }
 
-        public AuthenticatedUser withAuthorities(String... authorities) {
-            for (String a : authorities) {
-                if (!grantedAuthorities.contains(a)) {
-                    grantedAuthorities.add(a);
-                }
-            }
-
-            return this;
-        }
-
         public String getToken() {
             return token;
         }
 
-        public void setToken(String token) {
-            this.token = token;
-        }
     }
 
 }
