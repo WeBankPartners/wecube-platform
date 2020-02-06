@@ -81,7 +81,8 @@ export default {
     },
     getLocalLang () {
       let currentLangKey = localStorage.getItem('lang') || navigator.language
-      this.currentLanguage = this.language[currentLangKey]
+      const lang = this.language[currentLangKey] || 'English'
+      this.currentLanguage = lang
     },
     async getMyMenus () {
       let { status, data } = await getMyMenus()
@@ -199,7 +200,7 @@ export default {
   },
   watch: {
     $lang: function (lang) {
-      this.$router.go(0)
+      window.location.reload()
     }
   },
   mounted () {
