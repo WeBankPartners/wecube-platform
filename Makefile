@@ -28,6 +28,7 @@ image:
 	docker build -t platform-gateway:$(version) -f build/platform-gateway/Dockerfile .
 	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
 	docker build -t platform-auth-server:$(version) -f build/platform-auth-server/Dockerfile .
+	sh build/db/build-image.sh
 
 push:
 	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
@@ -58,4 +59,30 @@ deploy:
 	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	
 	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
+	docker-compose -f docker-compose.yml -H $(target_host) up -d
+	
+plugin_host="tcp://10.0.0.2:2375"
+deploy_demo:
+	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
+	docker push $(remote_docker_image_registry)/platform-core:$(date)-$(version)
+
+	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker push $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
+
+	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker push $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
+
+	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
+
+	docker tag  wecube-db:dev ${remote_docker_image_registry}/wecube-db:${date}-$(version)
+	docker push ${remote_docker_image_registry}/wecube-db:${date}-$(version)
+
+	docker-compose -f build/plugin_db.yml -H $(plugin_host) up -d
+	sed "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" build/wecube_core_mysql.tpl > wecube_core_mysql.yml
+	docker-compose -f wecube_core_mysql.yml -H $(target_host) up -d
+	sleep 90
+	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
+	sed -i "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" docker-compose.yml
+	sed -i "s~{{WECUBE_APP_IMAGE_VER}}~wecube-db:${date}-$(version)~g" docker-compose.yml
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
