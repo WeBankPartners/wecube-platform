@@ -72,7 +72,25 @@ public class SysUser implements UserDetails{
     }
 
     public SysUser addCompositeAuthority(CompositeAuthority compositeAuthority) {
+        if(compositeAuthority == null){
+            return this;
+        }
+        
+        if(contains(compositeAuthority)){
+            return this;
+        }
+        
         this.compositeAuthorities.add(compositeAuthority);
         return this;
+    }
+    
+    private boolean contains(CompositeAuthority compositeAuthority){
+        for(CompositeAuthority a : this.compositeAuthorities){
+            if((a.equals(compositeAuthority))){
+                return true;
+            }
+        }
+        
+        return false;
     }
 }
