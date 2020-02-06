@@ -14,10 +14,30 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 @EnableWebSecurity(debug = true)
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class DevWebSecurityConfig extends AuthSecurityConfigurerAdapter {
+    private static final String[] AUTH_WHITELIST = { //
+            // "/v1/api/login", //
+//            "/v1/users/**", // for dev only
+//            "/v1/roles/**", // for dev only
+            "/v1/api/ping", //
+            "/v2/api-docs", //
+            "/error", //
+            "/swagger-resources", //
+            "/swagger-resources/**", //
+            "/configuration/ui", //
+            "/configuration/security", //
+            "/swagger-ui.html", //
+            "/webjars/**" //
+    };
 
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
         warnNotLoadingProdSecurityConfigurationNotice();
     }
 
+    @Override
+    protected String[] getAuthWhiteList() {
+        return AUTH_WHITELIST;
+    }
+
+    
 }

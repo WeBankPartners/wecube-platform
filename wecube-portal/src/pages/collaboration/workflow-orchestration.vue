@@ -316,10 +316,7 @@ export default {
           label: '3 ' + this.$t('days')
         }
       ],
-      paramsTypes: [
-        { value: 'INPUT', label: this.$t('input') },
-        { value: 'OUTPUT', label: this.$t('output') }
-      ],
+      paramsTypes: [{ value: 'INPUT', label: this.$t('input') }, { value: 'OUTPUT', label: this.$t('output') }],
       currentflowsNodes: [],
       currentFlow: null
     }

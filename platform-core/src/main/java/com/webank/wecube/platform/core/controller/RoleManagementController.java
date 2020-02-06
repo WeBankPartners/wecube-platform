@@ -1,14 +1,23 @@
 package com.webank.wecube.platform.core.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
-import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
+import com.webank.wecube.platform.core.dto.user.UserDto;
+import com.webank.wecube.platform.core.service.user.RoleMenuService;
+import com.webank.wecube.platform.core.service.user.UserManagementService;
 
 /**
  * @author howechen
@@ -17,21 +26,16 @@ import java.util.Map;
 @RequestMapping("/v1")
 public class RoleManagementController {
 
-    private UserManagementServiceImpl userManagementService;
-    private RoleMenuServiceImpl roleMenuService;
-
     @Autowired
-    public RoleManagementController(UserManagementServiceImpl userManagementService, RoleMenuServiceImpl roleMenuService) {
-        this.userManagementService = userManagementService;
-        this.roleMenuService = roleMenuService;
-    }
+    private UserManagementService userManagementService;
+    @Autowired
+    private RoleMenuService roleMenuService;
 
     @PostMapping("/roles/create")
-    @ResponseBody
-    public CommonResponseDto createRole(@RequestHeader(value = "Authorization") String token,
-                                        @RequestBody Map<String, Object> requestBody) {
+    public CommonResponseDto registerLocalRole(@RequestBody RoleDto roleDto) {
         try {
-            return userManagementService.createRole(token, requestBody);
+            RoleDto result = userManagementService.registerLocalRole(roleDto);
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -39,32 +43,30 @@ public class RoleManagementController {
     }
 
     @GetMapping("/roles/retrieve")
-    @ResponseBody
-    public CommonResponseDto retrieveRole(@RequestHeader(value = "Authorization") String token) {
+    public CommonResponseDto retrieveAllRoles() {
         try {
-            return userManagementService.retrieveRole(token);
+            List<RoleDto> result = userManagementService.retrieveAllRoles();
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
     @DeleteMapping("/roles/{role-id}/delete")
-    @ResponseBody
-    public CommonResponseDto deleteRole(@RequestHeader(value = "Authorization") String token,
-                                        @PathVariable("role-id") String roleName) {
+    public CommonResponseDto unregisterLocalRoleById(@PathVariable("role-id") String roleId) {
         try {
-            return userManagementService.deleteRole(token, roleName);
+            userManagementService.unregisterLocalRoleById(roleId);
+            return CommonResponseDto.okay();
         } catch (WecubeCoreException e) {
             return CommonResponseDto.error(e.getMessage());
         }
     }
 
     @GetMapping("/roles/{role-id}/users")
-    @ResponseBody
-    public CommonResponseDto getUsersByRoleId(@RequestHeader(value = "Authorization") String token,
-                                              @PathVariable(value = "role-id") String roleId) {
+    public CommonResponseDto getUsersByRoleId(@PathVariable(value = "role-id") String roleId) {
         try {
-            return userManagementService.getUsersByRoleId(token, roleId);
+            List<UserDto> users = userManagementService.getUsersByRoleId(roleId);
+            return CommonResponseDto.okayWithData(users);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -72,34 +74,32 @@ public class RoleManagementController {
     }
 
     @PostMapping("/roles/{role-id}/users/grant")
-    @ResponseBody
-    public CommonResponseDto grantRoleToUsers(@RequestHeader(value = "Authorization") String token,
-                                              @PathVariable(value = "role-id") String roleId,
-                                              @RequestBody List<Object> userIdList) {
+    public CommonResponseDto grantRoleToUsers(@PathVariable(value = "role-id") String roleId,
+            @RequestBody List<String> userIds) {
         try {
-            return userManagementService.grantRoleToUsers(token, roleId, userIdList);
+            userManagementService.grantRoleToUsers(roleId, userIds);
+            return CommonResponseDto.okay();
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
     @DeleteMapping("/roles/{role-id}/users/revoke")
-    @ResponseBody
-    public CommonResponseDto revokeRoleFromUsers(@RequestHeader(value = "Authorization") String token,
-                                                 @PathVariable(value = "role-id") String roleId,
-                                                 @RequestBody List<Object> requestBody) {
+    public CommonResponseDto revokeRoleFromUsers(@PathVariable(value = "role-id") String roleId,
+            @RequestBody List<String> userIds) {
         try {
-            return userManagementService.revokeRoleFromUsers(token, roleId, requestBody);
+            userManagementService.revokeRoleFromUsers(roleId, userIds);
+            return CommonResponseDto.okay();
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
 
     @GetMapping("/roles/{role-id}/menus")
-    @ResponseBody
     public CommonResponseDto retrieveMenusByRoleId(@PathVariable(value = "role-id") String roleId) {
         try {
-            return CommonResponseDto.okayWithData(this.roleMenuService.retrieveMenusByRoleId(roleId));
+            RoleMenuDto result = this.roleMenuService.retrieveMenusByRoleId(roleId);
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -107,16 +107,14 @@ public class RoleManagementController {
     }
 
     @PostMapping("/roles/{role-id}/menus")
-    @ResponseBody
-    public CommonResponseDto updateRoleToMenusByRoleId(@RequestHeader(value = "Authorization") String token,
-                                                       @PathVariable(value = "role-id") String roleId,
-                                                       @RequestBody List<String> menuCodeList) {
+    public CommonResponseDto updateRoleToMenusByRoleId(@PathVariable(value = "role-id") String roleId,
+            @RequestBody List<String> menuCodeList) {
         try {
-            this.roleMenuService.updateRoleToMenusByRoleId(token, roleId, menuCodeList);
+            this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList);
+            return CommonResponseDto.okay();
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
-        return CommonResponseDto.okay();
 
     }
 }

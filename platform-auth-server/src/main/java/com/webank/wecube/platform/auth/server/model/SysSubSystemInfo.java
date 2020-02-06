@@ -6,7 +6,7 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 
 public class SysSubSystemInfo {
-    private Long id;
+    private String id;
 
     private String name;
 
@@ -20,13 +20,13 @@ public class SysSubSystemInfo {
 
     private Boolean blocked;
 
-    private Collection<? extends GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    private Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -82,8 +82,24 @@ public class SysSubSystemInfo {
         return authorities;
     }
 
-    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
+    public void setAuthorities(Collection<GrantedAuthority> authorities) {
         this.authorities = authorities;
     }
+    
+    public SysSubSystemInfo addAuthorities(Collection<GrantedAuthority> authorities) {
+        if(authorities == null){
+            return this;
+        }
+        
+        authorities.forEach( e -> {
+            if(e != null){
+                this.authorities.add(e);
+            }
+        });
+        
+        return this;
+    }
+    
+    
 
 }
