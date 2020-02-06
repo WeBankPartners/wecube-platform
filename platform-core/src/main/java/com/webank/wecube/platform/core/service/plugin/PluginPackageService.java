@@ -42,7 +42,8 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status
 @Service
 @Transactional
 public class PluginPackageService {
-    public static final Set<String> ACCEPTED_FILES = Sets.newHashSet("register.xml", "image.tar", "ui.zip", "init.sql", "upgrade.sql");
+    public static final Set<String> ACCEPTED_FILES = Sets.newHashSet("register.xml", "image.tar", "ui.zip", "init.sql",
+            "upgrade.sql");
     public final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -123,7 +124,8 @@ public class PluginPackageService {
 
         new PluginConfigXmlValidator().validate(new FileInputStream(registerXmlFile));
 
-        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile)).parsePluginPackage();
+        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile))
+                .parsePluginPackage();
         PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
 
         pluginPackageValidator.validate(pluginPackage);
@@ -167,9 +169,11 @@ public class PluginPackageService {
 
         File pluginInitSqlFile = new File(localFilePath + File.separator + pluginProperties.getInitDbSql());
         if (pluginInitSqlFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginProperties.getInitDbSql();
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginProperties.getInitDbSql();
             log.info("Uploading init sql {} to MinIO {}", pluginInitSqlFile.getAbsolutePath(), keyName);
-            String initSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginInitSqlFile);
+            String initSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginInitSqlFile);
             log.info("Init sql {} has been uploaded to MinIO {}", pluginProperties.getInitDbSql(), initSqlUrl);
         } else {
             log.info("Init sql {} is not included in package.", pluginProperties.getInitDbSql());
@@ -177,9 +181,11 @@ public class PluginPackageService {
 
         File pluginUpgradeSqlFile = new File(localFilePath + File.separator + pluginProperties.getUpgradeDbSql());
         if (pluginUpgradeSqlFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/" + pluginProperties.getUpgradeDbSql();
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginProperties.getUpgradeDbSql();
             log.info("Uploading upgrade sql {} to MinIO {}", pluginUpgradeSqlFile.getAbsolutePath(), keyName);
-            String upgradeSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName, pluginUpgradeSqlFile);
+            String upgradeSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginUpgradeSqlFile);
             log.info("Upgrade sql {} has been uploaded to MinIO {}", pluginProperties.getUpgradeDbSql(), upgradeSqlUrl);
         } else {
             log.info("Upgrade sql {} is not included in package.", pluginProperties.getUpgradeDbSql());
@@ -188,11 +194,13 @@ public class PluginPackageService {
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
 
         if (null != pluginPackage.getSystemVariables() && pluginPackage.getSystemVariables().size() > 0) {
-            pluginPackage.getSystemVariables().stream().forEach(systemVariable -> systemVariable.setSource(savedPluginPackage.getId()));
+            pluginPackage.getSystemVariables().stream()
+                    .forEach(systemVariable -> systemVariable.setSource(savedPluginPackage.getId()));
             systemVariableRepository.saveAll(pluginPackage.getSystemVariables());
         }
 
-        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService.register(pluginPackageDto.getPluginPackageDataModelDto());
+        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService
+                .register(pluginPackageDto.getPluginPackageDataModelDto());
 
         savedPluginPackage.setPluginPackageDataModel(PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto));
         if (pluginPackageResourceFilesOptional.isPresent()) {
@@ -240,8 +248,9 @@ public class PluginPackageService {
 
     private void updateSystemVariableStatus(PluginPackage pluginPackage) {
         List<SystemVariable> systemVariables = systemVariableRepository.findAllByScope(pluginPackage.getName());
-        systemVariables.forEach(systemVariable->{
-            if (SystemVariable.ACTIVE.equals(systemVariable.getStatus())&& !pluginPackage.getId().equals(systemVariable.getSource())) {
+        systemVariables.forEach(systemVariable -> {
+            if (SystemVariable.ACTIVE.equals(systemVariable.getStatus())
+                    && !pluginPackage.getId().equals(systemVariable.getSource())) {
                 systemVariable.deactivate();
             }
             if (SystemVariable.INACTIVE.equals(systemVariable.getStatus())
@@ -249,22 +258,29 @@ public class PluginPackageService {
                 systemVariable.activate();
             }
         });
-        
+
         systemVariableRepository.saveAll(systemVariables);
     }
 
     void createRolesIfNotExistInSystem(PluginPackage pluginPackage) {
         Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
         if (null != pluginPackageAuthorities && pluginPackageAuthorities.size() > 0) {
-            List<RoleDto> roleDtos = userManagementService.retrieveRole();
+            List<RoleDto> roleDtos = userManagementService.retrieveAllRoles();
             Set<String> existingRoleNames = new HashSet<>();
             if (null != roleDtos && roleDtos.size() > 0) {
                 existingRoleNames = roleDtos.stream().map(roleDto -> roleDto.getName()).collect(Collectors.toSet());
             }
-            Set<String> roleNamesInPlugin = pluginPackageAuthorities.stream().map(authority -> authority.getRoleName()).collect(Collectors.toSet());
-            Set<String> roleNamesDefinedInPluginButNotExistInSystem = Sets.difference(roleNamesInPlugin, existingRoleNames);
+            Set<String> roleNamesInPlugin = pluginPackageAuthorities.stream().map(authority -> authority.getRoleName())
+                    .collect(Collectors.toSet());
+            Set<String> roleNamesDefinedInPluginButNotExistInSystem = Sets.difference(roleNamesInPlugin,
+                    existingRoleNames);
             if (!roleNamesDefinedInPluginButNotExistInSystem.isEmpty()) {
-                roleNamesDefinedInPluginButNotExistInSystem.forEach(it->userManagementService.createRole(new RoleDto(it, it)));
+                roleNamesDefinedInPluginButNotExistInSystem.forEach(it -> {
+                    RoleDto rd = new RoleDto();
+                    rd.setName(it);
+                    rd.setDisplayName(it);
+                    userManagementService.registerLocalRole(rd);
+                });
             }
         }
     }
@@ -280,12 +296,16 @@ public class PluginPackageService {
     }
 
     private void ensureNoMoreThanTwoActivePackages(PluginPackage pluginPackage) {
-        Optional<List<PluginPackage>> allByNameAndStatus = pluginPackageRepository.findAllActiveByNameOrderByUploadTimestampAsc(pluginPackage.getName());
+        Optional<List<PluginPackage>> allByNameAndStatus = pluginPackageRepository
+                .findAllActiveByNameOrderByUploadTimestampAsc(pluginPackage.getName());
         if (allByNameAndStatus.isPresent()) {
             List<PluginPackage> pluginPackages = allByNameAndStatus.get();
             if (pluginPackages.size() > 1) {
-                String activePackagesString = pluginPackages.stream().map(it -> String.join(":", it.getName(), it.getVersion(), it.getStatus().name())).collect(Collectors.joining(","));
-                throw new WecubeCoreException(String.format("Not allowed to register more packages. Current active packages: [%s]", activePackagesString));
+                String activePackagesString = pluginPackages.stream()
+                        .map(it -> String.join(":", it.getName(), it.getVersion(), it.getStatus().name()))
+                        .collect(Collectors.joining(","));
+                throw new WecubeCoreException(String.format(
+                        "Not allowed to register more packages. Current active packages: [%s]", activePackagesString));
             }
         }
     }
@@ -309,15 +329,16 @@ public class PluginPackageService {
     }
 
     private void deactivateSystemVariables(PluginPackage pluginPackage) {
-        Optional<List<SystemVariable>> systemVariablesOptional = systemVariableRepository.findBySource(pluginPackage.getId());
+        Optional<List<SystemVariable>> systemVariablesOptional = systemVariableRepository
+                .findBySource(pluginPackage.getId());
         if (systemVariablesOptional.isPresent()) {
             List<SystemVariable> systemVariablesFromDb = systemVariablesOptional.get();
             if (systemVariablesFromDb.size() > 0) {
-                Set<SystemVariable> systemVariables = systemVariablesFromDb
-                        .stream()
-                        .filter(systemVariable -> SystemVariable.ACTIVE.equals(systemVariable.getStatus()) && pluginPackage.getId().equals(systemVariable.getSource()) && pluginPackage.getName().equals(systemVariable.getScope()))
-                        .map(systemVariable -> systemVariable.deactivate())
-                        .collect(Collectors.toSet());
+                Set<SystemVariable> systemVariables = systemVariablesFromDb.stream()
+                        .filter(systemVariable -> SystemVariable.ACTIVE.equals(systemVariable.getStatus())
+                                && pluginPackage.getId().equals(systemVariable.getSource())
+                                && pluginPackage.getName().equals(systemVariable.getScope()))
+                        .map(systemVariable -> systemVariable.deactivate()).collect(Collectors.toSet());
                 systemVariableRepository.saveAll(systemVariables);
             }
         }
@@ -349,7 +370,9 @@ public class PluginPackageService {
     private void ensureNoPluginInstanceIsRunningForPluginPackage(String pluginPackageId) {
         List<PluginInstance> pluginInstances = instanceService.getAvailableInstancesByPackageId(pluginPackageId);
         if (null != pluginInstances && pluginInstances.size() > 0) {
-            throw new WecubeCoreException(String.format("Decommission plugin package [%s] failure. There are still %d plugin instance%s running", pluginPackageId, pluginInstances.size(), pluginInstances.size() > 1 ? "es" : ""));
+            throw new WecubeCoreException(String.format(
+                    "Decommission plugin package [%s] failure. There are still %d plugin instance%s running",
+                    pluginPackageId, pluginInstances.size(), pluginInstances.size() > 1 ? "es" : ""));
         }
     }
 
@@ -375,7 +398,7 @@ public class PluginPackageService {
                 }
 
                 try (BufferedInputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-                     OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
+                        OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
                     byte[] buf = new byte[2048];
                     int len;
                     while ((len = inputStream.read(buf)) > 0) {
@@ -391,7 +414,7 @@ public class PluginPackageService {
     }
 
     private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
-                                                                                     String sourceZipFile, String sourceZipFileName) throws Exception {
+            String sourceZipFile, String sourceZipFileName) throws Exception {
         Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
@@ -399,7 +422,7 @@ public class PluginPackageService {
             if (entries.hasMoreElements()) {
                 pluginPackageResourceFiles = newLinkedHashSet();
             }
-            for (; entries.hasMoreElements(); ) {
+            for (; entries.hasMoreElements();) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 if (!entry.isDirectory()) {
                     String zipEntryName = entry.getName();
@@ -541,7 +564,7 @@ public class PluginPackageService {
     }
 
     private void updateDependencyDto(PluginPackageDependency pluginPackageDependency,
-                                     PluginPackageDependencyDto pluginPackageDependencyDto) {
+            PluginPackageDependencyDto pluginPackageDependencyDto) {
         // create new dependencyDto according to input dependency
         String dependencyName = pluginPackageDependency.getDependencyPackageName();
         String dependencyVersion = pluginPackageDependency.getDependencyPackageVersion();
