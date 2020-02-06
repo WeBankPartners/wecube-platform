@@ -156,7 +156,7 @@ public class HttpClientConfig {
     }
     
     @Bean("userJwtSsoTokenRestTemplate")
-    public RestTemplate userJwtSsoTokenRestTemplate() {
+    public UserJwtSsoTokenRestTemplate userJwtSsoTokenRestTemplate() {
         return new UserJwtSsoTokenRestTemplate();
     }
     
