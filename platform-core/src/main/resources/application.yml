@@ -56,6 +56,9 @@ wecube:
       httpclient:
          max-total-connections: 200
       gateway-url: 127.0.0.1:19110
+      authserver:
+        host: 127.0.0.1
+        port: 19110
       plugin:
          plugin-deploy-path: /opt
          plugin-package-bucket-name: wecube-plugin-package-bucket
