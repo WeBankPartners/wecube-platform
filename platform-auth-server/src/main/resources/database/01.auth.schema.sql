@@ -1,8 +1,5 @@
 SET FOREIGN_KEY_CHECKS=0;
 
--- ----------------------------
--- Table structure for auth_sys_api
--- ----------------------------
 CREATE TABLE `auth_sys_api` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -16,9 +13,6 @@ CREATE TABLE `auth_sys_api` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for auth_sys_authority
--- ----------------------------
 CREATE TABLE `auth_sys_authority` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -34,9 +28,6 @@ CREATE TABLE `auth_sys_authority` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for auth_sys_role
--- ----------------------------
 CREATE TABLE `auth_sys_role` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -52,9 +43,6 @@ CREATE TABLE `auth_sys_role` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for auth_sys_role_authority
--- ----------------------------
 CREATE TABLE `auth_sys_role_authority` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -70,9 +58,6 @@ CREATE TABLE `auth_sys_role_authority` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for auth_sys_sub_system
--- ----------------------------
 CREATE TABLE `auth_sys_sub_system` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -89,9 +74,6 @@ CREATE TABLE `auth_sys_sub_system` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for auth_sys_sub_system_authority
--- ----------------------------
 CREATE TABLE `auth_sys_sub_system_authority` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -107,9 +89,6 @@ CREATE TABLE `auth_sys_sub_system_authority` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for auth_sys_user
--- ----------------------------
 CREATE TABLE `auth_sys_user` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -131,9 +110,6 @@ CREATE TABLE `auth_sys_user` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Table structure for auth_sys_user_role
--- ----------------------------
 CREATE TABLE `auth_sys_user_role` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
