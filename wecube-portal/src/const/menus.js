@@ -66,7 +66,7 @@ export const MENUS = [
   },
   {
     code: 'IMPLEMENTATION_WORKFLOW_EXECUTION',
-    cnName: '编排任务执行',
+    cnName: '编排执行',
     enName: 'Workflow Execution',
     link: '/implementation/workflow-execution'
   },
