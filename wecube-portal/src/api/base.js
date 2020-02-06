@@ -13,16 +13,6 @@ const throwError = res => {
     desc: (res.data && 'status:' + res.data.status + '<br/> message:' + res.data.message) || 'error'
   })
 }
-// const throwInfo = res => {
-//   Vue.prototype.$Notice.info({
-//     title: 'Info',
-//     desc:
-//       (res.data &&
-//         'status:' + res.data.status + '<br/> message:' + res.data.message) ||
-//       'error'
-//   })
-// }
-
 let refreshRequest = null
 
 req.interceptors.request.use(
@@ -50,7 +40,7 @@ req.interceptors.request.use(
             // eslint-disable-next-line handle-callback-err
             err => {
               refreshRequest = null
-              window.location.href = window.location.origin + '/#/login'
+              window.location.href = window.location.origin + window.location.pathname + '#/login'
               session.removeItem('token')
             }
           )
@@ -66,7 +56,7 @@ req.interceptors.request.use(
             // eslint-disable-next-line handle-callback-err
             err => {
               refreshRequest = null
-              window.location.href = window.location.origin + '/#/login'
+              window.location.href = window.location.origin + window.location.pathname + '#/login'
               session.removeItem('token')
             }
           )
@@ -137,7 +127,7 @@ req.interceptors.response.use(
   err => {
     const { response } = err
     if (response.status === 401) {
-      window.location.href = window.location.origin + '/#/login'
+      window.location.href = window.location.origin + window.location.pathname + '#/login'
       // throwInfo(response)
       return response
     }

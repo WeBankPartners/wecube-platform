@@ -61,3 +61,6 @@ sed -i "s~{{AUTH_CUSTOM_PARAM}}~$auth_custom_param~g" docker-compose.yml
 sed -i "s~{{PUBLIC_DOMAIN}}~$public_domain~g" docker-compose.yml
 sed -i "s~{{JWT_SSO_AUTH_URI}}~$jwt_sso_auth_uri~g" docker-compose.yml
 sed -i "s~{{JWT_SSO_TOKEN_URI}}~$jwt_sso_token_uri~g" docker-compose.yml
+sed -i "s~{{WECUBE_PLUGIN_DEPLOY_PATH}}~$wecube_plugin_deploy_path~g" docker-compose.yml
+sed -i "s~{{WECUBE_CUSTOM_PARAM}}~$wecube_custom_param~g" docker-compose.yml
+
