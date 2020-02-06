@@ -6,10 +6,10 @@ logging:
    config: classpath:logback-spring.xml
 spring:
    datasource:
-#      url: jdbc:mysql://localhost:port/db?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
+#      url: jdbc:mysql://127.0.0.1:3306/weauth?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
 #      username: root
 #      ***REMOVED***
-#      url: ***REMOVED***
+#      url: jdbc:mysql://127.0.0.1:3306/wecube_dev?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
 #      username: wecube
 #      password: password
 #      driver-class-name: com.mysql.cj.jdbc.Driver
