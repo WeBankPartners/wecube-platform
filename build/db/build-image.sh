@@ -1,4 +1,9 @@
 #!/bin/bash
+
+VERSION=$1
+if [ -z $VERSION ];then
+    VERSION="dev"
+fi
 cd `dirname $0`
 
 set -ex
@@ -34,5 +39,5 @@ cd ../
 
 echo "create database auth charset = utf8;" >> ./database/000000_create_database.sql
 
-docker build -t wecube-db:dev .
+docker build -t wecube-db:$VERSION .
 rm -rf database
