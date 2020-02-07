@@ -67,6 +67,7 @@ export default {
       let { status, data } = this.dataModel.dynamic
         ? await pullDynamicDataModel(this.pkgId)
         : await getPluginPkgDataModel(this.pkgId)
+      this.isLoading = false
       if (status === 'OK') {
         if (this.dataModel.dynamic) {
           this.isApplyBtnDisabled = false
@@ -86,7 +87,6 @@ export default {
         })
         this.initGraph()
       }
-      this.isLoading = false
     },
     async applyNewDataModel () {
       let { status } = await applyNewDataModel(this.dataModel)
