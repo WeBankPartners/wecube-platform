@@ -1,5 +1,3 @@
-set names 'utf8';
-
 SET FOREIGN_KEY_CHECKS=0;
 insert  into `auth_sys_authority`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`code`,`description`,`display_name`,`scope`) values 
 ('2c9280827019695c017019c28b0f001e','umadmin','2020-02-06 17:09:04',NULL,NULL,'','\0','IMPLEMENTATION_WORKFLOW_EXECUTION',NULL,'IMPLEMENTATION_WORKFLOW_EXECUTION','GLOBAL'),
