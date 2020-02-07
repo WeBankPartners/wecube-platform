@@ -9,6 +9,7 @@ TEXT='use wecube;'
 cd database
 for i in `ls -1 ./*.wecube.*.sql`; do
      CONTENTS=`cat $i`
+     echo "SET NAMES utf8;" > $i
      echo $TEXT > $i  
      echo $CONTENTS >> $i
 done
@@ -25,6 +26,7 @@ TEXT='use auth;'
 cd database
 for i in `ls -1 ./*.auth.*.sql`; do
      CONTENTS=`cat $i`
+     echo "SET NAMES utf8;" > $i
      echo $TEXT > $i  
      echo $CONTENTS >> $i
 done
