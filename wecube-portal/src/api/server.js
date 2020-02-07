@@ -110,7 +110,7 @@ export const getUsersByRoleId = roleId => req.get(`/platform/v1/roles/${roleId}/
 export const grantRolesForUser = (data, roleId) => req.post(`/platform/v1/roles/${roleId}/users/grant`, data)
 export const revokeRolesForUser = (data, roleId) => req.delete(`/platform/v1/roles/${roleId}/users/revoke`, { data })
 export const getAllMenusList = () => req.get('/platform/v1/all-menus')
-export const getMenusByUserName = name => req.get(`platform/v1//users/${name}/menus`)
+export const getMenusByUserName = name => req.get(`platform/v1/users/${name}/menus`)
 export const getMenusByRoleId = id => req.get(`platform/v1/roles/${id}/menus`)
 export const updateRoleToMenusByRoleId = (roleId, data) => req.post(`platform/v1/roles/${roleId}/menus`, data)
 export const getFilteredPluginInterfaceList = (packageName, entityName) =>
