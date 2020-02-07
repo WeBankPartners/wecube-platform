@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import axios from 'axios'
+import exportFile from '@/const/export-file'
 const baseURL = ''
 const req = axios.create({
   withCredentials: true,
@@ -87,34 +88,16 @@ req.interceptors.response.use(
           duration: 0
         })
       }
-
-      if (res.headers['content-type'] === 'application/octet-stream') {
-        let contentDispositionHeader = res.headers['content-disposition']
-        let filename = 'file'
-        if (contentDispositionHeader) {
-          filename = contentDispositionHeader
-            .split(';')
-            .find(x => ~x.indexOf('filename'))
-            .split('=')[1]
-        }
-        if (filename === null || filename === undefined || filename === '') {
-          filename = 'file'
-        } else {
-          filename = decodeURI(filename)
-        }
-        let url = window.URL.createObjectURL(new Blob([res.data]))
-        let link = document.createElement('a')
-        link.style.display = 'none'
-        link.href = url
-        link.setAttribute('download', filename)
-        document.body.appendChild(link)
-        link.click()
+      if (
+        res.headers['content-type'] === 'application/octet-stream' &&
+        res.request.responseURL.includes('/platform/')
+      ) {
+        exportFile(res)
         Vue.prototype.$Notice.info({
           title: 'Success',
           desc: '',
           duration: 0
         })
-
         return
       }
       return res.data instanceof Array ? res.data : { ...res.data }
