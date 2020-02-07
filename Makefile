@@ -28,7 +28,7 @@ image:
 	docker build -t platform-gateway:$(version) -f build/platform-gateway/Dockerfile .
 	docker build -t wecube-portal:$(version) -f build/wecube-portal/Dockerfile .
 	docker build -t platform-auth-server:$(version) -f build/platform-auth-server/Dockerfile .
-	sh build/db/build-image.sh
+	sh build/db/build-image.sh $(version)
 
 push:
 	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
@@ -42,6 +42,9 @@ push:
 
 	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
+
+	docker tag  wecube-db:$(version) ${remote_docker_image_registry}/wecube-db:${date}-$(version)
+	docker push ${remote_docker_image_registry}/wecube-db:${date}-$(version)
 
 env_config=smoke_branch.cfg
 target_host="tcp://10.0.0.1:2375"
@@ -75,7 +78,7 @@ deploy_demo:
 	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 
-	docker tag  wecube-db:dev ${remote_docker_image_registry}/wecube-db:${date}-$(version)
+	docker tag  wecube-db:$VERSION ${remote_docker_image_registry}/wecube-db:${date}-$(version)
 	docker push ${remote_docker_image_registry}/wecube-db:${date}-$(version)
 
 	docker-compose -f build/plugin_db.yml -H $(plugin_host) up -d
