@@ -386,8 +386,9 @@ export default {
 
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
+        if (!(found && found.id)) return
         this.getNodeBindings(found.id)
-        let { status, data } = await getProcessInstance(found && found.id)
+        let { status, data } = await getProcessInstance(found.id)
         if (status === 'OK') {
           this.flowData = {
             ...data,
@@ -666,7 +667,8 @@ export default {
     },
     async getStatus () {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
-      let { status, data } = await getProcessInstance(found && found.id)
+      if (!(found && found.id)) return
+      let { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
         this.flowData = {
           ...data,
