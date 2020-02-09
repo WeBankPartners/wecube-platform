@@ -30,8 +30,8 @@ WeCube是一套开源的，一站式IT架构管理和运维管理工具，主要
 
 ## 在线体验
 
-用户名:umadmin  
-密码:umadmin  
+用户名:admin  	  
+密码:admin    
 [点此体验演示环境](http://119.28.109.23:8090/#/homepage)
 
 
