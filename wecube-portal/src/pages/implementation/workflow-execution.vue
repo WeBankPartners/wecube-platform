@@ -383,10 +383,10 @@ export default {
       this.timer = null
       if (!this.selectedFlowInstance) return
       this.isEnqueryPage = true
-
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
         if (!(found && found.id)) return
+        this.processInstance()
         this.getNodeBindings(found.id)
         let { status, data } = await getProcessInstance(found.id)
         if (status === 'OK') {
