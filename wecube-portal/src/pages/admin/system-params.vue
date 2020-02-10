@@ -167,6 +167,8 @@ export default {
       this.$set(this.tableColumns[statusIndex], 'options', options)
     },
     handleSubmit (data) {
+      this.pagination.pageSize = 10
+      this.pagination.currentPage = 1
       this.payload.filters = data
       this.queryData()
     },
