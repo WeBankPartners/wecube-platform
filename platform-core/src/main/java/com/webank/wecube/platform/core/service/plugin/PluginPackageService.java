@@ -18,6 +18,7 @@ import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.ScpService;
+import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.utils.SystemUtils;
@@ -91,6 +92,9 @@ public class PluginPackageService {
 
     @Autowired
     private SystemVariableRepository systemVariableRepository;
+
+    @Autowired
+    private RoleMenuService roleMenuService;
 
     @Transactional
     public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
@@ -237,6 +241,8 @@ public class PluginPackageService {
 
         createRolesIfNotExistInSystem(pluginPackage);
 
+        bindRoleToMenu(pluginPackage);
+
         updateSystemVariableStatus(pluginPackage);
 
         deployPluginUiResourcesIfRequired(pluginPackage);
@@ -283,6 +289,15 @@ public class PluginPackageService {
                 });
             }
         }
+    }
+
+    void bindRoleToMenu(PluginPackage pluginPackage) {
+        final Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
+        pluginPackageAuthorities.forEach(pluginPackageAuthority -> {
+            final String roleName = pluginPackageAuthority.getRoleName();
+            final String menuCode = pluginPackageAuthority.getMenuCode();
+            this.roleMenuService.createRoleMenuBinding(roleName, menuCode);
+        });
     }
 
     private void ensurePluginPackageIsAllowedToRegister(PluginPackage pluginPackage) {
@@ -398,7 +413,7 @@ public class PluginPackageService {
                 }
 
                 try (BufferedInputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-                        OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
+                     OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
                     byte[] buf = new byte[2048];
                     int len;
                     while ((len = inputStream.read(buf)) > 0) {
@@ -414,7 +429,7 @@ public class PluginPackageService {
     }
 
     private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
-            String sourceZipFile, String sourceZipFileName) throws Exception {
+                                                                                     String sourceZipFile, String sourceZipFileName) throws Exception {
         Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
@@ -422,7 +437,7 @@ public class PluginPackageService {
             if (entries.hasMoreElements()) {
                 pluginPackageResourceFiles = newLinkedHashSet();
             }
-            for (; entries.hasMoreElements();) {
+            for (; entries.hasMoreElements(); ) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 if (!entry.isDirectory()) {
                     String zipEntryName = entry.getName();
@@ -564,7 +579,7 @@ public class PluginPackageService {
     }
 
     private void updateDependencyDto(PluginPackageDependency pluginPackageDependency,
-            PluginPackageDependencyDto pluginPackageDependencyDto) {
+                                     PluginPackageDependencyDto pluginPackageDependencyDto) {
         // create new dependencyDto according to input dependency
         String dependencyName = pluginPackageDependency.getDependencyPackageName();
         String dependencyVersion = pluginPackageDependency.getDependencyPackageVersion();
