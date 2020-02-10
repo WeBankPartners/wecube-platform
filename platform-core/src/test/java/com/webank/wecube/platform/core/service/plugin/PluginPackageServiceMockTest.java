@@ -4,9 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
-import com.webank.wecube.platform.core.jpa.MenuItemRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
@@ -23,10 +22,6 @@ import static org.mockito.Mockito.*;
 public class PluginPackageServiceMockTest {
     @Mock
     private UserManagementService userManagementService;
-    @Mock
-    private MenuItemRepository menuItemRepository;
-    @Mock
-    private PluginPackageMenuRepository pluginPackageMenuRepository;
     @Mock
     private RoleMenuService roleMenuService = new RoleMenuServiceImpl();
     @InjectMocks
@@ -71,7 +66,9 @@ public class PluginPackageServiceMockTest {
         pluginPackage.initId();
         PluginPackageAuthority authority = new PluginPackageAuthority(null, pluginPackage, MOCK_ROLE_NAME, MOCK_MENU_CODE);
         authority.initId();
+        PluginPackageMenu pluginPackageMenu = new PluginPackageMenu(pluginPackage, MOCK_MENU_CODE, "", "", "");
         pluginPackage.setPluginPackageAuthorities(Sets.newHashSet(authority));
+        pluginPackage.setPluginPackageMenus(Sets.newHashSet(pluginPackageMenu));
 
         // action
         pluginPackageService.bindRoleToMenu(pluginPackage);
