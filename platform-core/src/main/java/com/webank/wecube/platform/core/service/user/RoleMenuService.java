@@ -12,4 +12,6 @@ public interface RoleMenuService {
     List<String> getMenuCodeListByRoleName(String roleName);
 
     void updateRoleToMenusByRoleId(String roleId, List<String> menuCodeList);
+
+    void createRoleMenuBinding(String roleName, String menuCode);
 }

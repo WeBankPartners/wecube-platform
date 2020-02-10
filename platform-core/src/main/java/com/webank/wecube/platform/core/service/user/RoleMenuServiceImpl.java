@@ -1,16 +1,5 @@
 package com.webank.wecube.platform.core.service.user;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.RoleMenu;
@@ -23,6 +12,16 @@ import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author howechen
@@ -63,7 +62,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             throw new WecubeCoreException(ex.getMessage());
         }
 
-        List<MenuItemDto> menuCodeList = new ArrayList<>();
+        List<MenuItemDto> menuList = new ArrayList<>();
         roleMenuList.forEach(roleMenu -> {
             String menuCode = roleMenu.getMenuCode();
             // sys menu
@@ -71,18 +70,18 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             // use {if sysMenu is null} to judge if this is a sys menu or package menu
             if (null != sysMenu) {
                 logger.info(String.format("System menu was found. The menu code is: [%s]", menuCode));
-                menuCodeList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
+                menuList.add(MenuItemDto.fromSystemMenuItem(sysMenu));
             } else {
                 // package menu
                 Optional<List<PluginPackageMenu>> allActivatePackageMenuByCode = this.pluginPackageMenuRepository.findAllActiveMenuByCode(menuCode);
                 allActivatePackageMenuByCode.ifPresent(pluginPackageMenus -> {
                     logger.info(String.format("Plugin package menu was found. The menu code is: [%s]", menuCode));
-                    pluginPackageMenus.forEach(pluginPackageMenu -> menuCodeList.add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu)));
+                    pluginPackageMenus.forEach(pluginPackageMenu -> menuList.add(this.transferPackageMenuToMenuItemDto(pluginPackageMenu)));
                 });
             }
 
         });
-        return new RoleMenuDto(roleId, menuCodeList);
+        return new RoleMenuDto(roleId, menuList);
     }
 
     /**
@@ -106,17 +105,17 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             logger.info(String.format("Deleting menus: [%s]", needToDeleteList));
             for (RoleMenu roleMenu : needToDeleteList) {
                 this.roleMenuRepository.deleteById(roleMenu.getId());
-                
+
             }
         }
-        
+
         List<AsAuthorityDto> authoritiesToRevoke = new ArrayList<>();
-        for(RoleMenu rm : needToDeleteList){
-        	AsAuthorityDto authorityToRevoke = new AsAuthorityDto();
-        	authorityToRevoke.setCode(rm.getMenuCode());
-        	authoritiesToRevoke.add(authorityToRevoke);
+        for (RoleMenu rm : needToDeleteList) {
+            AsAuthorityDto authorityToRevoke = new AsAuthorityDto();
+            authorityToRevoke.setCode(rm.getMenuCode());
+            authoritiesToRevoke.add(authorityToRevoke);
         }
-        
+
         authServerRestClient.revokeAuthoritiesFromRole(roleId, authoritiesToRevoke);
 
         // new menuCodeList - current menuCodeList = needToCreateList
@@ -134,15 +133,31 @@ public class RoleMenuServiceImpl implements RoleMenuService {
                 logger.error(ex.getMessage());
                 throw new WecubeCoreException(ex.getMessage());
             }
-            
+
             List<AsAuthorityDto> authoritiesToGrant = new ArrayList<>();
-            for(RoleMenu rm : batchUpdateList){
-            	AsAuthorityDto authorityToGrant = new AsAuthorityDto();
-            	authorityToGrant.setCode(rm.getMenuCode());
-            	authoritiesToGrant.add(authorityToGrant);
+            for (RoleMenu rm : batchUpdateList) {
+                AsAuthorityDto authorityToGrant = new AsAuthorityDto();
+                authorityToGrant.setCode(rm.getMenuCode());
+                authoritiesToGrant.add(authorityToGrant);
             }
-            
+
             authServerRestClient.configureRoleAuthorities(roleId, authoritiesToGrant);
+        }
+    }
+
+    @Override
+    public void createRoleMenuBinding(String roleName, String menuCode) throws WecubeCoreException {
+        final Boolean isSysMenuExists = this.menuItemRepository.existsByCode(menuCode);
+        final Boolean isPkgMenuExists = this.pluginPackageMenuRepository.existsAllActiveMenuByCode(menuCode);
+        if (!isSysMenuExists && !isPkgMenuExists) {
+            String msg = String.format("The given menu code: [%s] doesn't exists in both system and other packages.", menuCode);
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        final Boolean isRoleMenuBindingExists = this.roleMenuRepository.existsAllByRoleNameAndMenuCode(roleName, menuCode);
+        if (!isRoleMenuBindingExists) {
+            logger.info("Saving roleMenuBinding, role ID: [{}], menu code: [{}]", roleName, menuCode);
+            this.roleMenuRepository.save(new RoleMenu(roleName, menuCode));
         }
     }
 
@@ -173,4 +188,6 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         }
         return MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
     }
+
+
 }
