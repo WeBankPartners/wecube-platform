@@ -15,4 +15,6 @@ public interface RoleMenuRepository extends CrudRepository<RoleMenu, String> {
 
     Optional<List<RoleMenu>> findAllByRoleName(String roleName);
 
+    Boolean existsAllByRoleNameAndMenuCode(String roleName, String menuCode);
+
 }
