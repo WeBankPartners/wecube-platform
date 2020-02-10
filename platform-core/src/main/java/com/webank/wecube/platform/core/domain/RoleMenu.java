@@ -27,6 +27,11 @@ public class RoleMenu {
         this.menuCode = menuCode;
     }
 
+    public RoleMenu(String roleName, String menuCode) {
+        this.roleName = roleName;
+        this.menuCode = menuCode;
+    }
+
     public RoleMenu() {
     }
 
