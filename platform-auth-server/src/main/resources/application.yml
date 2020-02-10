@@ -30,7 +30,7 @@ platform:
          public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKds8XUHglF0703p8H+IPQCTE+31A6t+eyTzF+6kHEpLp7YeDu7OZCqIH6pYWmxD0TmQLobjPNA7IME93wq8HX0CAwEAAQ==
          jwt-token:
             user-refresh-token: 30
-            user-access-token: 5
+            user-access-token: 10
             sub-system-refresh-token: 432000
             sub-system-access-token: 432000
    

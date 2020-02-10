@@ -78,7 +78,7 @@ deploy_demo:
 	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
 
-	docker tag  wecube-db:$VERSION ${remote_docker_image_registry}/wecube-db:${date}-$(version)
+	docker tag  wecube-db:$(version) ${remote_docker_image_registry}/wecube-db:${date}-$(version)
 	docker push ${remote_docker_image_registry}/wecube-db:${date}-$(version)
 
 	docker-compose -f build/plugin_db.yml -H $(plugin_host) up -d
