@@ -146,15 +146,8 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     }
 
     @Override
-    public void createRoleMenuBinding(String roleName, String menuCode) throws WecubeCoreException {
-        final Boolean isSysMenuExists = this.menuItemRepository.existsByCode(menuCode);
-        final Boolean isPkgMenuExists = this.pluginPackageMenuRepository.existsAllActiveMenuByCode(menuCode);
-        if (!isSysMenuExists && !isPkgMenuExists) {
-            String msg = String.format("The given menu code: [%s] doesn't exists in both system and other packages.", menuCode);
-            logger.error(msg);
-            throw new WecubeCoreException(msg);
-        }
-        final Boolean isRoleMenuBindingExists = this.roleMenuRepository.existsAllByRoleNameAndMenuCode(roleName, menuCode);
+    public void createRoleMenuBinding(String roleName, String menuCode) {
+        final Boolean isRoleMenuBindingExists = this.roleMenuRepository.existsRoleMenuByRoleNameAndMenuCode(roleName, menuCode);
         if (!isRoleMenuBindingExists) {
             logger.info("Saving roleMenuBinding, role ID: [{}], menu code: [{}]", roleName, menuCode);
             this.roleMenuRepository.save(new RoleMenu(roleName, menuCode));

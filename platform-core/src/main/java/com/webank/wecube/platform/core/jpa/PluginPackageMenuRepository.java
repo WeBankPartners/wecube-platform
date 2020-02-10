@@ -1,20 +1,16 @@
 package com.webank.wecube.platform.core.jpa;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 public interface PluginPackageMenuRepository extends CrudRepository<PluginPackageMenu, String> {
     Optional<List<PluginPackageMenu>> findAllByPluginPackage_StatusIn(Collection<PluginPackage.Status> statuses);
 
     Optional<List<PluginPackageMenu>> findAllByCodeAndPluginPackage_StatusIn(String menuCode, Collection<PluginPackage.Status> statuses);
-
-    Boolean existsAllByCodeAndPluginPackage_StatusIn(String menuCode, Collection<PluginPackage.Status> statuses);
 
     Optional<List<PluginPackageMenu>> findAllByActiveAndPluginPackage_IdAndPluginPackage_StatusIn(boolean active, String pluginPackageId, Collection<PluginPackage.Status> statuses);
 
@@ -24,10 +20,6 @@ public interface PluginPackageMenuRepository extends CrudRepository<PluginPackag
 
     default Optional<List<PluginPackageMenu>> findAllActiveMenuByCode(String menuCode) {
         return findAllByCodeAndPluginPackage_StatusIn(menuCode, PluginPackage.ACTIVE_STATUS);
-    }
-
-    default Boolean existsAllActiveMenuByCode(String menuCode) {
-        return existsAllByCodeAndPluginPackage_StatusIn(menuCode, PluginPackage.ACTIVE_STATUS);
     }
 
     default Optional<List<PluginPackageMenu>> findAllPluginPackageMenusForAllActivePackages() {
