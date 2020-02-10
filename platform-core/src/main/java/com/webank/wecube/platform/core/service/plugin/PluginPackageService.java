@@ -247,19 +247,26 @@ public class PluginPackageService {
     }
 
     private void updateSystemVariableStatus(PluginPackage pluginPackage) {
-        List<SystemVariable> systemVariables = systemVariableRepository.findAllByScope(pluginPackage.getName());
-        systemVariables.forEach(systemVariable -> {
-            if (SystemVariable.ACTIVE.equals(systemVariable.getStatus())
-                    && !pluginPackage.getId().equals(systemVariable.getSource())) {
-                systemVariable.deactivate();
+        List<SystemVariable> globalSystemVariables = systemVariableRepository.findAllByScopeAndSource("global",
+                pluginPackage.getId());
+        globalSystemVariables.forEach(globalSystemVariable -> {
+            globalSystemVariable.activate();
+        });
+        systemVariableRepository.saveAll(globalSystemVariables);
+
+        List<SystemVariable> pluginSystemVariables = systemVariableRepository.findAllByScope(pluginPackage.getName());
+        pluginSystemVariables.forEach(pluginSystemVariable -> {
+            if (SystemVariable.ACTIVE.equals(pluginSystemVariable.getStatus())
+                    && !pluginPackage.getId().equals(pluginSystemVariable.getSource())) {
+                pluginSystemVariable.deactivate();
             }
-            if (SystemVariable.INACTIVE.equals(systemVariable.getStatus())
-                    && pluginPackage.getId().equals(systemVariable.getSource())) {
-                systemVariable.activate();
+            if (SystemVariable.INACTIVE.equals(pluginSystemVariable.getStatus())
+                    && pluginPackage.getId().equals(pluginSystemVariable.getSource())) {
+                pluginSystemVariable.activate();
             }
         });
 
-        systemVariableRepository.saveAll(systemVariables);
+        systemVariableRepository.saveAll(pluginSystemVariables);
     }
 
     void createRolesIfNotExistInSystem(PluginPackage pluginPackage) {
