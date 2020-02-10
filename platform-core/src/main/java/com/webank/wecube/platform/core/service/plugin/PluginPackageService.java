@@ -298,11 +298,17 @@ public class PluginPackageService {
         }
     }
 
-    void bindRoleToMenu(PluginPackage pluginPackage) {
+    void bindRoleToMenu(PluginPackage pluginPackage) throws WecubeCoreException {
         final Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
+        final List<String> selfPkgMenuCodeList = pluginPackage.getPluginPackageMenus().stream().map(PluginPackageMenu::getCode).collect(Collectors.toList());
         pluginPackageAuthorities.forEach(pluginPackageAuthority -> {
             final String roleName = pluginPackageAuthority.getRoleName();
             final String menuCode = pluginPackageAuthority.getMenuCode();
+            if (!selfPkgMenuCodeList.contains(menuCode)) {
+                String msg = String.format("The declared menu code: [%s] in <authorities> field doesn't declared in <menus> field of register.xml", menuCode);
+                log.error(msg);
+                throw new WecubeCoreException(msg);
+            }
             this.roleMenuService.createRoleMenuBinding(roleName, menuCode);
         });
     }
