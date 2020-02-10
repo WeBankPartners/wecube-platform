@@ -1,16 +1,5 @@
 package com.webank.wecube.platform.core.service.user;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.RoleMenu;
@@ -23,6 +12,16 @@ import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author howechen
@@ -148,15 +147,18 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     @Override
     public void createRoleMenuBinding(String roleName, String menuCode) throws WecubeCoreException {
-        final Boolean sysMenuExists = this.menuItemRepository.existsByCode(menuCode);
-        final Boolean pkgMenuExists = this.pluginPackageMenuRepository.existsAllActiveMenuByCode(menuCode);
-        if (!sysMenuExists && !pkgMenuExists) {
+        final Boolean isSysMenuExists = this.menuItemRepository.existsByCode(menuCode);
+        final Boolean isPkgMenuExists = this.pluginPackageMenuRepository.existsAllActiveMenuByCode(menuCode);
+        if (!isSysMenuExists && !isPkgMenuExists) {
             String msg = String.format("The given menu code: [%s] doesn't exists in both system and other packages.", menuCode);
             logger.error(msg);
             throw new WecubeCoreException(msg);
         }
-        logger.info("Saving roleMenuBinding, role ID: [{}], menu code: [{}]", roleName, menuCode);
-        this.roleMenuRepository.save(new RoleMenu(roleName, menuCode));
+        final Boolean isRoleMenuBindingExists = this.roleMenuRepository.existsAllByRoleNameAndMenuCode(roleName, menuCode);
+        if (!isRoleMenuBindingExists) {
+            logger.info("Saving roleMenuBinding, role ID: [{}], menu code: [{}]", roleName, menuCode);
+            this.roleMenuRepository.save(new RoleMenu(roleName, menuCode));
+        }
     }
 
     @Override
