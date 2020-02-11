@@ -67,15 +67,15 @@ public class LocalRoleManagementController {
 	@PostMapping("/roles/authorities-grant")
 	public CommonResponseDto configureRoleWithAuthorities(
 			@RequestBody RoleAuthoritiesDto roleAuthoritiesGrantDto) {
-		//TODO
-		return null;
+		roleManagementService.configureRoleWithAuthorities(roleAuthoritiesGrantDto);
+		return okay();
 	}
 	
 	@PostMapping("/roles/authorities-revocation")
 	public CommonResponseDto revokeRoleWithAuthorities(
 			@RequestBody RoleAuthoritiesDto roleAuthoritiesRevocationDto) {
-		//TODO
-		return null;
+		roleManagementService.revokeRoleAuthorities(roleAuthoritiesRevocationDto);
+		return okay();
 	}
 
 	@PostMapping("/roles/{role-id}/authorities/revoke")

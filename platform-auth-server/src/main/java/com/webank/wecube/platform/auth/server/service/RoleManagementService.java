@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.webank.wecube.platform.auth.server.common.AuthServerException;
 import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
+import com.webank.wecube.platform.auth.server.dto.RoleAuthoritiesDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleAuthorityDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
 import com.webank.wecube.platform.auth.server.entity.RoleAuthorityRsEntity;
@@ -192,6 +193,84 @@ public class RoleManagementService {
 	}
 
 	@Transactional
+	public void configureRoleWithAuthorities(RoleAuthoritiesDto grantDto) {
+		SysRoleEntity role = null;
+
+		if (StringUtils.isNotBlank(grantDto.getRoleId())) {
+			Optional<SysRoleEntity> roleOpt = roleRepository.findById(grantDto.getRoleId());
+			if (roleOpt.isPresent()) {
+				role = roleOpt.get();
+			}
+		}
+		
+		if( role == null  && StringUtils.isNotBlank(grantDto.getRoleName()) ) {
+			role = roleRepository.findNotDeletedRoleByName(grantDto.getRoleName());
+		}
+		
+		if (role == null) {
+			log.error("such role entity does not exist,role id {}, role name {} ", grantDto.getRoleId(), grantDto.getRoleName());
+			throw new AuthServerException("Such role entity does not exist.");
+		}
+
+		for (SimpleAuthorityDto authorityDto : grantDto.getAuthorities()) {
+			if (StringUtils.isBlank(authorityDto.getId()) && StringUtils.isBlank(authorityDto.getCode())) {
+				log.error("The ID and code of authority to configure is blank.");
+				throw new AuthServerException("The ID and code of authority to configure is blank.");
+			}
+
+			log.info("configure role {} with authority {}-{}", role.getName(), authorityDto.getId(),
+					authorityDto.getCode());
+
+			SysAuthorityEntity authority = null;
+			if (StringUtils.isNoneBlank(authorityDto.getId())) {
+				Optional<SysAuthorityEntity> authorityOpt = authorityRepository.findById(authorityDto.getId());
+				if (!authorityOpt.isPresent()) {
+					log.error("such authority entity does not exist,authority id {}", authorityDto.getId());
+					throw new AuthServerException(
+							String.format("Authority with {%s} does not exist.", authorityDto.getId()));
+
+				}
+
+				authority = authorityOpt.get();
+			} else {
+				authority = authorityRepository.findNotDeletedOneByCode(authorityDto.getCode());
+				if (authority == null) {
+					authority = new SysAuthorityEntity();
+					authority.setActive(true);
+					authority.setCode(authorityDto.getCode());
+					authority.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+					authority.setDeleted(false);
+					authority.setScope(StringUtils.isBlank(authorityDto.getScope()) ? SysAuthorityEntity.SCOPE_GLOBAL
+							: authorityDto.getScope());
+					authority.setDescription(authorityDto.getDescription());
+					authority.setDisplayName(StringUtils.isBlank(authorityDto.getDisplayName()) ? authorityDto.getCode()
+							: authorityDto.getDisplayName());
+
+					authorityRepository.save(authority);
+				}
+			}
+
+			RoleAuthorityRsEntity roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityId(role.getId(),
+					authority.getId());
+
+			if (roleAuthority != null) {
+				continue;
+			}
+
+			roleAuthority = new RoleAuthorityRsEntity();
+			roleAuthority.setActive(true);
+			roleAuthority.setAuthorityCode(authority.getCode());
+			roleAuthority.setAuthorityId(authority.getId());
+			roleAuthority.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+			roleAuthority.setDeleted(false);
+			roleAuthority.setRoleId(role.getId());
+			roleAuthority.setRoleName(role.getName());
+
+			roleAuthorityRsRepository.save(roleAuthority);
+		}
+	}
+
+	@Transactional
 	public void configureRoleWithAuthoritiesById(String roleId, List<SimpleAuthorityDto> authorityDtos) {
 		Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
 		if (!roleOpt.isPresent()) {
@@ -254,6 +333,56 @@ public class RoleManagementService {
 			roleAuthority.setDeleted(false);
 			roleAuthority.setRoleId(role.getId());
 			roleAuthority.setRoleName(role.getName());
+
+			roleAuthorityRsRepository.save(roleAuthority);
+		}
+	}
+	
+	@Transactional
+	public void revokeRoleAuthorities(RoleAuthoritiesDto revocationDto) {
+		
+		SysRoleEntity role = null;
+
+		if (StringUtils.isNotBlank(revocationDto.getRoleId())) {
+			Optional<SysRoleEntity> roleOpt = roleRepository.findById(revocationDto.getRoleId());
+			if (roleOpt.isPresent()) {
+				role = roleOpt.get();
+			}
+		}
+		
+		if( role == null  && StringUtils.isNotBlank(revocationDto.getRoleName()) ) {
+			role = roleRepository.findNotDeletedRoleByName(revocationDto.getRoleName());
+		}
+		
+		if (role == null) {
+			log.error("such role entity does not exist,role id {}, role name {} ", revocationDto.getRoleId(), revocationDto.getRoleName());
+			throw new AuthServerException("Such role entity does not exist.");
+		}
+		
+		
+
+		for (SimpleAuthorityDto authorityDto : revocationDto.getAuthorities()) {
+			if (StringUtils.isBlank(authorityDto.getId()) && StringUtils.isBlank(authorityDto.getCode())) {
+				continue;
+			}
+
+			RoleAuthorityRsEntity roleAuthority = null;
+			if (StringUtils.isBlank(authorityDto.getId())) {
+				roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityCode(role.getId(),
+						authorityDto.getCode());
+			} else {
+				roleAuthority = roleAuthorityRsRepository.findOneByRoleIdAndAuthorityId(role.getId(),
+						authorityDto.getId());
+			}
+
+			if (roleAuthority == null) {
+				continue;
+			}
+
+			roleAuthority.setActive(false);
+			roleAuthority.setDeleted(true);
+			roleAuthority.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+			roleAuthority.setUpdatedTime(new Date());
 
 			roleAuthorityRsRepository.save(roleAuthority);
 		}
