@@ -21,7 +21,9 @@ public class AuthServerRestClientProperties {
     private String pathRevokeUserRolesById = "/auth/v1/roles/{role-id}/users/revoke";
     private String pathRevokeAuthoritiesFromRole = "/auth/v1/roles/{role-id}/authorities/revoke";
     private String pathConfigureRoleAuthorities = "/auth/v1/roles/{role-id}/authorities";
-    
+    private String pathConfigureRoleAuthoritiesWithRoleName = "/auth/v1/roles/authorities-grant";
+    private String pathRevokeRoleAuthoritiesWithRoleName = "/auth/v1/roles/authorities-revocation";
+
 
     public String getHost() {
         return host;
@@ -135,20 +137,35 @@ public class AuthServerRestClientProperties {
         this.pathRevokeUserRolesById = pathRevokeUserRolesById;
     }
 
-	public String getPathRevokeAuthoritiesFromRole() {
-		return pathRevokeAuthoritiesFromRole;
-	}
+    public String getPathRevokeAuthoritiesFromRole() {
+        return pathRevokeAuthoritiesFromRole;
+    }
 
-	public void setPathRevokeAuthoritiesFromRole(String pathRevokeAuthoritiesFromRole) {
-		this.pathRevokeAuthoritiesFromRole = pathRevokeAuthoritiesFromRole;
-	}
+    public void setPathRevokeAuthoritiesFromRole(String pathRevokeAuthoritiesFromRole) {
+        this.pathRevokeAuthoritiesFromRole = pathRevokeAuthoritiesFromRole;
+    }
 
-	public String getPathConfigureRoleAuthorities() {
-		return pathConfigureRoleAuthorities;
-	}
+    public String getPathConfigureRoleAuthorities() {
+        return pathConfigureRoleAuthorities;
+    }
 
-	public void setPathConfigureRoleAuthorities(String pathConfigureRoleAuthorities) {
-		this.pathConfigureRoleAuthorities = pathConfigureRoleAuthorities;
-	}
+    public void setPathConfigureRoleAuthorities(String pathConfigureRoleAuthorities) {
+        this.pathConfigureRoleAuthorities = pathConfigureRoleAuthorities;
+    }
 
+    public String getPathConfigureRoleAuthoritiesWithRoleName() {
+        return pathConfigureRoleAuthoritiesWithRoleName;
+    }
+
+    public void setPathConfigureRoleAuthoritiesWithRoleName(String pathConfigureRoleAuthoritiesWithRoleName) {
+        this.pathConfigureRoleAuthoritiesWithRoleName = pathConfigureRoleAuthoritiesWithRoleName;
+    }
+
+    public String getPathRevokeRoleAuthoritiesWithRoleName() {
+        return pathRevokeRoleAuthoritiesWithRoleName;
+    }
+
+    public void setPathRevokeRoleAuthoritiesWithRoleName(String pathRevokeRoleAuthoritiesWithRoleName) {
+        this.pathRevokeRoleAuthoritiesWithRoleName = pathRevokeRoleAuthoritiesWithRoleName;
+    }
 }
