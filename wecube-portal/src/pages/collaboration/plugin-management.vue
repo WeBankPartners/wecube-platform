@@ -739,7 +739,7 @@ export default {
             // eslint-disable-next-line handle-callback-err
             err => {
               refreshRequest = null
-              window.location.href = window.location.origin + '/#/login'
+              window.location.href = window.location.origin + window.location.pathname + '#/login'
             }
           )
         } else {
@@ -747,7 +747,7 @@ export default {
           this.$refs.uploadButton.handleClick()
         }
       } else {
-        window.location.href = window.location.origin + '/#/login'
+        window.location.href = window.location.origin + window.location.pathname + '#/login'
       }
     },
     setUploadActionHeader () {
