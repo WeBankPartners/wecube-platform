@@ -308,7 +308,6 @@ public class PluginPackageService {
     void bindRoleToMenuWithAuthority(PluginPackage pluginPackage) throws WecubeCoreException {
         final Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
         final List<String> selfPkgMenuCodeList = pluginPackage.getPluginPackageMenus().stream().map(PluginPackageMenu::getCode).collect(Collectors.toList());
-        final List<RoleDto> allRoleDtoList = this.userManagementService.retrieveAllRoles();
         if (null != pluginPackageAuthorities && pluginPackageAuthorities.size() > 0) {
             pluginPackageAuthorities.forEach(pluginPackageAuthority -> {
                 final String roleName = pluginPackageAuthority.getRoleName();
