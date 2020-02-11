@@ -21,6 +21,9 @@ import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.support.S3Client;
+import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
+import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
+import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -95,6 +98,9 @@ public class PluginPackageService {
 
     @Autowired
     private RoleMenuService roleMenuService;
+
+    @Autowired
+    private AuthServerRestClient authServerRestClient;
 
     @Transactional
     public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
@@ -241,7 +247,7 @@ public class PluginPackageService {
 
         createRolesIfNotExistInSystem(pluginPackage);
 
-        bindRoleToMenu(pluginPackage);
+        bindRoleToMenuWithAuthority(pluginPackage);
 
         updateSystemVariableStatus(pluginPackage);
 
@@ -251,6 +257,7 @@ public class PluginPackageService {
 
         return pluginPackageRepository.save(pluginPackage);
     }
+
 
     private void updateSystemVariableStatus(PluginPackage pluginPackage) {
         List<SystemVariable> globalSystemVariables = systemVariableRepository.findAllByScopeAndSource("global",
@@ -298,19 +305,31 @@ public class PluginPackageService {
         }
     }
 
-    void bindRoleToMenu(PluginPackage pluginPackage) throws WecubeCoreException {
+    void bindRoleToMenuWithAuthority(PluginPackage pluginPackage) throws WecubeCoreException {
         final Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
         final List<String> selfPkgMenuCodeList = pluginPackage.getPluginPackageMenus().stream().map(PluginPackageMenu::getCode).collect(Collectors.toList());
-        pluginPackageAuthorities.forEach(pluginPackageAuthority -> {
-            final String roleName = pluginPackageAuthority.getRoleName();
-            final String menuCode = pluginPackageAuthority.getMenuCode();
-            if (!selfPkgMenuCodeList.contains(menuCode)) {
-                String msg = String.format("The declared menu code: [%s] in <authorities> field doesn't declared in <menus> field of register.xml", menuCode);
-                log.error(msg);
-                throw new WecubeCoreException(msg);
-            }
-            this.roleMenuService.createRoleMenuBinding(roleName, menuCode);
-        });
+        if (null != pluginPackageAuthorities && pluginPackageAuthorities.size() > 0) {
+            pluginPackageAuthorities.forEach(pluginPackageAuthority -> {
+                final String roleName = pluginPackageAuthority.getRoleName();
+                final String menuCode = pluginPackageAuthority.getMenuCode();
+
+                // create role menu binding
+                if (!selfPkgMenuCodeList.contains(menuCode)) {
+                    String msg = String.format("The declared menu code: [%s] in <authorities> field doesn't declared in <menus> field of register.xml", menuCode);
+                    log.error(msg);
+                    throw new WecubeCoreException(msg);
+                }
+                this.roleMenuService.createRoleMenuBinding(roleName, menuCode);
+
+                // grant authority to role and send request to auth server
+                AsAuthorityDto grantAuthority = new AsAuthorityDto();
+                grantAuthority.setCode(menuCode);
+                AsRoleAuthoritiesDto grantAuthorityToRole = new AsRoleAuthoritiesDto();
+                grantAuthorityToRole.setRoleName(roleName);
+                grantAuthorityToRole.setAuthorities(Collections.singletonList(grantAuthority));
+                this.authServerRestClient.configureRoleAuthoritiesWithRoleName(grantAuthorityToRole);
+            });
+        }
     }
 
     private void ensurePluginPackageIsAllowedToRegister(PluginPackage pluginPackage) {
