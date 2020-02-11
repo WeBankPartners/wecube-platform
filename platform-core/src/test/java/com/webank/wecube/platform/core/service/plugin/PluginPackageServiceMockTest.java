@@ -9,6 +9,7 @@ import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
+import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -20,6 +21,8 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PluginPackageServiceMockTest {
+    @Mock
+    private AuthServerRestClient authServerRestClient;
     @Mock
     private UserManagementService userManagementService;
     @Mock
