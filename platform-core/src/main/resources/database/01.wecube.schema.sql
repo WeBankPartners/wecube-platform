@@ -256,7 +256,6 @@ CREATE TABLE `plugin_mysql_instances` (
 DROP TABLE if EXISTS role_menu;
 CREATE TABLE `role_menu` (
     `id`      VARCHAR(255) PRIMARY KEY,
-    `role_id` VARCHAR(64) NOT NULL,
     `role_name` VARCHAR(64) NOT NULL,
     `menu_code` VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
