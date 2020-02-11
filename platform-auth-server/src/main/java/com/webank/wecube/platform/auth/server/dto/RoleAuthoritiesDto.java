@@ -3,7 +3,7 @@ package com.webank.wecube.platform.auth.server.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RoleAuthoritiesGrantDto {
+public class RoleAuthoritiesDto {
 
 	private String roleId;
 	private String roleName;
@@ -34,7 +34,7 @@ public class RoleAuthoritiesGrantDto {
 		this.authorities = authorities;
 	}
 
-	public RoleAuthoritiesGrantDto addAuthorities(SimpleAuthorityDto... authorities) {
+	public RoleAuthoritiesDto addAuthorities(SimpleAuthorityDto... authorities) {
 		for (SimpleAuthorityDto d : authorities) {
 			this.authorities.add(d);
 		}
