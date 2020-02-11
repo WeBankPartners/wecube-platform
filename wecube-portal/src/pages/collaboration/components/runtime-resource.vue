@@ -41,8 +41,7 @@ export default {
   },
   props: {
     pkgId: {
-      required: true,
-      type: Number
+      required: true
     }
   },
   created () {
