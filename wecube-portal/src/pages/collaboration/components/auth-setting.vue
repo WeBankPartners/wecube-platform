@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div v-show="data.roles.length > 0" class="graph-container" id="auth-setting-graph">aaa</div>
-    <span v-show="data.roles.length === 0">{{ $t('no_auth_provided') }}</span>
+    <div v-show="!!data" class="graph-container" id="auth-setting-graph"></div>
+    <span v-show="!data">{{ $t('no_auth_provided') }}</span>
   </div>
 </template>
 <script>
