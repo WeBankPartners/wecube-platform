@@ -13,7 +13,6 @@ import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
-import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.assertj.core.util.Sets;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.*;
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter.MAPPING_TYPE_CMDB_CI_TYPE;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -435,51 +432,51 @@ public class PluginPackageDataModelServiceTest extends DatabaseBasedTest {
         return pluginPackageEntityDtoList;
     }
 
-    @Test
-    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeStillREGISTERED() {
-        mockSimpleDataModel();
-
-        String packageName = "package_1";
-        Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
-        assertThat(latestDataModelByPackageName.isPresent()).isTrue();
-
-        Optional<PluginPackage> latestVersionByName = pluginPackageRepository.findLatestVersionByName(packageName);
-        assertThat(latestVersionByName.isPresent()).isTrue();
-        assertThat(latestVersionByName.get().getId()).isNotNull();
-
-        PluginPackage pluginPackage = pluginPackageService.registerPluginPackage(latestVersionByName.get().getId());
-        assertThat(pluginPackage.getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
-
-
-        PluginPackageDataModel dataModel = latestDataModelByPackageName.get();
-        PluginPackageDataModelDto pluginPackageDataModelDto = dataModelService.packageView(dataModel.getPackageName());
-
-        // clean all the IDs so that no key violation.
-        pluginPackageDataModelDto.setId(null);
-        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.setId(null));
-        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.getAttributes().forEach(attribute -> attribute.setId(null)));
-
-        PluginPackageEntityDto entity = pluginPackageDataModelDto.getPluginPackageEntities().iterator().next();
-        String entityName = entity.getName();
-        PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
-        pluginPackageAttributeDto.setPackageName(packageName);
-        pluginPackageAttributeDto.setEntityName(entityName);
-        pluginPackageAttributeDto.setName("dynamicAttribute");
-        pluginPackageAttributeDto.setDataType(DataModelDataType.String.getCode());
-        pluginPackageAttributeDto.setDescription("Dynamic attribute for test");
-
-        entity.getAttributes().add(pluginPackageAttributeDto);
-
-        PluginPackageDataModelDto registeredNewDataModelDto = dataModelService.register(pluginPackageDataModelDto, true);
-        Optional<PluginPackage> latestPluginPackageByName = pluginPackageRepository.findLatestVersionByName(packageName);
-        assertThat(latestPluginPackageByName.isPresent()).isTrue();
-        assertThat(latestPluginPackageByName.get().getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
-
-        assertThat(registeredNewDataModelDto.getPluginPackageEntities()).hasSize(1);
-        assertThat(registeredNewDataModelDto.getPluginPackageEntities().iterator().next().getAttributes()).hasSize(2);
-        assertThat(registeredNewDataModelDto.getPluginPackageEntities().iterator().next().getAttributes()).containsAnyOf(pluginPackageAttributeDto);
-
-    }
+//    @Test
+//    public void givenDynamicDataModelConfirmedWhenRegisterThenPluginPackageShouldBeStillREGISTERED() {
+//        mockSimpleDataModel();
+//
+//        String packageName = "package_1";
+//        Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
+//        assertThat(latestDataModelByPackageName.isPresent()).isTrue();
+//
+//        Optional<PluginPackage> latestVersionByName = pluginPackageRepository.findLatestVersionByName(packageName);
+//        assertThat(latestVersionByName.isPresent()).isTrue();
+//        assertThat(latestVersionByName.get().getId()).isNotNull();
+//
+//        PluginPackage pluginPackage = pluginPackageService.registerPluginPackage(latestVersionByName.get().getId());
+//        assertThat(pluginPackage.getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
+//
+//
+//        PluginPackageDataModel dataModel = latestDataModelByPackageName.get();
+//        PluginPackageDataModelDto pluginPackageDataModelDto = dataModelService.packageView(dataModel.getPackageName());
+//
+//        // clean all the IDs so that no key violation.
+//        pluginPackageDataModelDto.setId(null);
+//        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.setId(null));
+//        pluginPackageDataModelDto.getPluginPackageEntities().forEach(entity -> entity.getAttributes().forEach(attribute -> attribute.setId(null)));
+//
+//        PluginPackageEntityDto entity = pluginPackageDataModelDto.getPluginPackageEntities().iterator().next();
+//        String entityName = entity.getName();
+//        PluginPackageAttributeDto pluginPackageAttributeDto = new PluginPackageAttributeDto();
+//        pluginPackageAttributeDto.setPackageName(packageName);
+//        pluginPackageAttributeDto.setEntityName(entityName);
+//        pluginPackageAttributeDto.setName("dynamicAttribute");
+//        pluginPackageAttributeDto.setDataType(DataModelDataType.String.getCode());
+//        pluginPackageAttributeDto.setDescription("Dynamic attribute for test");
+//
+//        entity.getAttributes().add(pluginPackageAttributeDto);
+//
+//        PluginPackageDataModelDto registeredNewDataModelDto = dataModelService.register(pluginPackageDataModelDto, true);
+//        Optional<PluginPackage> latestPluginPackageByName = pluginPackageRepository.findLatestVersionByName(packageName);
+//        assertThat(latestPluginPackageByName.isPresent()).isTrue();
+//        assertThat(latestPluginPackageByName.get().getStatus()).isEqualTo(PluginPackage.Status.REGISTERED);
+//
+//        assertThat(registeredNewDataModelDto.getPluginPackageEntities()).hasSize(1);
+//        assertThat(registeredNewDataModelDto.getPluginPackageEntities().iterator().next().getAttributes()).hasSize(2);
+//        assertThat(registeredNewDataModelDto.getPluginPackageEntities().iterator().next().getAttributes()).containsAnyOf(pluginPackageAttributeDto);
+//
+//    }
 
     private void mockSimpleDataModel() {
         String sqlStr =

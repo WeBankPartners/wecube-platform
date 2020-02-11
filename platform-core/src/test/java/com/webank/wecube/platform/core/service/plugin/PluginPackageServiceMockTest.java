@@ -71,7 +71,7 @@ public class PluginPackageServiceMockTest {
         pluginPackage.setPluginPackageMenus(Sets.newHashSet(pluginPackageMenu));
 
         // action
-        pluginPackageService.bindRoleToMenu(pluginPackage);
+        pluginPackageService.bindRoleToMenuWithAuthority(pluginPackage);
 
         // assertion
         verify(roleMenuService, times(1)).createRoleMenuBinding(MOCK_ROLE_NAME, MOCK_MENU_CODE);
