@@ -4,7 +4,10 @@ import com.webank.wecube.platform.core.handler.GlobalExceptionHandler;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.support.FakeS3Client;
 import org.apache.commons.io.FileUtils;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -182,39 +185,39 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
         }
     }
 
-    @Test
-    public void givenPluginPackageIsUNREGISTEREDWhenRegisterThenReturnSuccessful() {
-        mockMultipleVersionPluginPackage();
+//    @Test
+//    public void givenPluginPackageIsUNREGISTEREDWhenRegisterThenReturnSuccessful() {
+//        mockMultipleVersionPluginPackage();
+//
+//        try {
+//            String packageId = "cmdb__v1.0";
+//            mvc.perform(post("/v1/packages/register/" + packageId))
+//                    .andExpect(status().isOk())
+//                    .andExpect(jsonPath("$.status", is("OK")))
+//                    .andExpect(jsonPath("$.message", is("Success")))
+//                    .andDo(print())
+//                    .andReturn().getResponse();
+//        } catch (Exception e) {
+//            fail("Failed to decommission plugin package in PluginPackageController: " + e.getMessage());
+//        }
+//    }
 
-        try {
-            String packageId = "cmdb__v1.0";
-            mvc.perform(post("/v1/packages/register/" + packageId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
-                    .andDo(print())
-                    .andReturn().getResponse();
-        } catch (Exception e) {
-            fail("Failed to decommission plugin package in PluginPackageController: " + e.getMessage());
-        }
-    }
-
-    @Test
-    public void givenPluginPackageIsRUNNINGWhenRegisterThenReturnError() {
-        mockMultipleVersionPluginPackage();
-
-        try {
-            String packageId = "cmdb__v1.0";
-            mvc.perform(post("/v1/packages/register/" + packageId))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is("OK")))
-                    .andExpect(jsonPath("$.message", is("Success")))
-                    .andDo(print())
-                    .andReturn().getResponse();
-        } catch (Exception e) {
-            fail("Failed to decommission plugin package in PluginPackageController: " + e.getMessage());
-        }
-    }
+//    @Test
+//    public void givenPluginPackageIsRUNNINGWhenRegisterThenReturnError() {
+//        mockMultipleVersionPluginPackage();
+//
+//        try {
+//            String packageId = "cmdb__v1.0";
+//            mvc.perform(post("/v1/packages/register/" + packageId))
+//                    .andExpect(status().isOk())
+//                    .andExpect(jsonPath("$.status", is("OK")))
+//                    .andExpect(jsonPath("$.message", is("Success")))
+//                    .andDo(print())
+//                    .andReturn().getResponse();
+//        } catch (Exception e) {
+//            fail("Failed to decommission plugin package in PluginPackageController: " + e.getMessage());
+//        }
+//    }
 
     @Test
     public void givenNoConnectedReferenceWhenDecommissionThenReturnSuccessful() {
