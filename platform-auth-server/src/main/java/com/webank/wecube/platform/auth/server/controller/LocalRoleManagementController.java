@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
+import com.webank.wecube.platform.auth.server.dto.RoleAuthoritiesGrantDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleAuthorityDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
 import com.webank.wecube.platform.auth.server.service.RoleManagementService;
@@ -24,49 +25,56 @@ import com.webank.wecube.platform.auth.server.service.RoleManagementService;
 @RequestMapping(ApplicationConstants.ApiInfo.PREFIX_DEFAULT)
 public class LocalRoleManagementController {
 
-    @Autowired
-    private RoleManagementService roleManagementService;
+	@Autowired
+	private RoleManagementService roleManagementService;
 
-    @PostMapping("/roles")
-    public CommonResponseDto registerLocalRole(@RequestBody SimpleLocalRoleDto roleDto) {
-        SimpleLocalRoleDto result = roleManagementService.registerLocalRole(roleDto);
-        return okayWithData(result);
-    }
+	@PostMapping("/roles")
+	public CommonResponseDto registerLocalRole(@RequestBody SimpleLocalRoleDto roleDto) {
+		SimpleLocalRoleDto result = roleManagementService.registerLocalRole(roleDto);
+		return okayWithData(result);
+	}
 
-    @GetMapping("/roles")
-    public CommonResponseDto retrieveAllLocalRoles() {
-        List<SimpleLocalRoleDto> result = roleManagementService.retrieveAllLocalRoles();
-        return okayWithData(result);
-    }
+	@GetMapping("/roles")
+	public CommonResponseDto retrieveAllLocalRoles() {
+		List<SimpleLocalRoleDto> result = roleManagementService.retrieveAllLocalRoles();
+		return okayWithData(result);
+	}
 
-    @GetMapping("/roles/{role-id}")
-    public CommonResponseDto retrieveRoleInfo(@PathVariable(value = "role-id") String roleId) {
-        SimpleLocalRoleDto result = roleManagementService.retriveLocalRoleByRoleId(roleId);
-        return okayWithData(result);
-    }
+	@GetMapping("/roles/{role-id}")
+	public CommonResponseDto retrieveRoleInfo(@PathVariable(value = "role-id") String roleId) {
+		SimpleLocalRoleDto result = roleManagementService.retriveLocalRoleByRoleId(roleId);
+		return okayWithData(result);
+	}
 
-    @DeleteMapping("/roles/{role-id}")
-    public CommonResponseDto unregisterLocalRoleById(@PathVariable(value = "role-id") String roleId) {
-        roleManagementService.unregisterLocalRoleById(roleId);
-        return okay();
-    }
-    
-    @GetMapping("/roles/{role-id}/authorities")
-    public CommonResponseDto retrieveAllAuthoritiesByRoleId(@PathVariable(value = "role-id") String roleId) {
-        return okayWithData(roleManagementService.retrieveAllAuthoritiesByRoleId(roleId));
-    }
+	@DeleteMapping("/roles/{role-id}")
+	public CommonResponseDto unregisterLocalRoleById(@PathVariable(value = "role-id") String roleId) {
+		roleManagementService.unregisterLocalRoleById(roleId);
+		return okay();
+	}
 
-    @PostMapping("/roles/{role-id}/authorities")
-    public CommonResponseDto configureRoleWithAuthoritiesById(@PathVariable(value = "role-id") String roleId,
-                                                    @RequestBody List<SimpleAuthorityDto> authorityDtos){
-        roleManagementService.configureRoleWithAuthoritiesById(roleId, authorityDtos);
-        return okay();
-    }
+	@GetMapping("/roles/{role-id}/authorities")
+	public CommonResponseDto retrieveAllAuthoritiesByRoleId(@PathVariable(value = "role-id") String roleId) {
+		return okayWithData(roleManagementService.retrieveAllAuthoritiesByRoleId(roleId));
+	}
 
-    @PostMapping("/roles/{role-id}/authorities/revoke")
-    public CommonResponseDto revokeRoleAuthoritiesById(@PathVariable(value = "role-id") String roleId,
-                                                     @RequestBody List<SimpleAuthorityDto> authorityDtos)  {
-        roleManagementService.revokeRoleAuthoritiesById(roleId, authorityDtos);
-        return okay();
-    }
+	@PostMapping("/roles/{role-id}/authorities")
+	public CommonResponseDto configureRoleWithAuthoritiesById(@PathVariable(value = "role-id") String roleId,
+			@RequestBody List<SimpleAuthorityDto> authorityDtos) {
+		roleManagementService.configureRoleWithAuthoritiesById(roleId, authorityDtos);
+		return okay();
+	}
+
+	@PostMapping("/roles/authorities-grants")
+	public CommonResponseDto configureRoleWithAuthoritiesByName(
+			@RequestBody RoleAuthoritiesGrantDto roleAuthoritiesGrantDto) {
+		//TODO
+		return null;
+	}
+
+	@PostMapping("/roles/{role-id}/authorities/revoke")
+	public CommonResponseDto revokeRoleAuthoritiesById(@PathVariable(value = "role-id") String roleId,
+			@RequestBody List<SimpleAuthorityDto> authorityDtos) {
+		roleManagementService.revokeRoleAuthoritiesById(roleId, authorityDtos);
+		return okay();
+	}
 }
