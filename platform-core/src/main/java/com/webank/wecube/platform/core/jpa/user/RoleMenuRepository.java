@@ -11,8 +11,6 @@ import java.util.Optional;
  */
 public interface RoleMenuRepository extends CrudRepository<RoleMenu, String> {
 
-    List<RoleMenu> findAllByRoleId(String roleId);
-
     Optional<List<RoleMenu>> findAllByRoleName(String roleName);
 
     Boolean existsRoleMenuByRoleNameAndMenuCode(String roleName, String menuCode);

@@ -12,6 +12,7 @@ import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,10 +54,16 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      */
     @Override
     public RoleMenuDto retrieveMenusByRoleId(String roleId) throws WecubeCoreException {
-        logger.info(String.format("Fetching all menus by role ID: [%s]", roleId));
-        List<RoleMenu> roleMenuList;
+
+        String roleName = roleIdValidation(roleId);
+
+        logger.info(String.format("Fetching all menus by role name: [%s]", roleName));
+        List<RoleMenu> roleMenuList = new ArrayList<>();
         try {
-            roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
+            final Optional<List<RoleMenu>> foundByRoleName = this.roleMenuRepository.findAllByRoleName(roleName);
+            if (foundByRoleName.isPresent()) {
+                roleMenuList = foundByRoleName.get();
+            }
         } catch (Exception ex) {
             logger.error(ex.getMessage());
             throw new WecubeCoreException(ex.getMessage());
@@ -92,9 +99,14 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      */
     @Override
     public void updateRoleToMenusByRoleId(String roleId, List<String> menuCodeList) throws WecubeCoreException {
-        List<RoleMenu> roleMenuList = this.roleMenuRepository.findAllByRoleId(roleId);
-        RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
-        String roleName = roleDto.getName();
+
+        String roleName = roleIdValidation(roleId);
+
+        List<RoleMenu> roleMenuList = new ArrayList<>();
+        final Optional<List<RoleMenu>> roleMenuListOpt = this.roleMenuRepository.findAllByRoleName(roleName);
+        if (roleMenuListOpt.isPresent()) {
+            roleMenuList = roleMenuListOpt.get();
+        }
 
         // current menuCodeList - new menuCodeList = needToDeleteList
         List<RoleMenu> needToDeleteList = roleMenuList.stream().filter(roleMenu -> {
@@ -126,7 +138,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         if (!needToCreateList.isEmpty()) {
             logger.info(String.format("Creating menus: [%s]", needToCreateList));
             List<RoleMenu> batchUpdateList = new ArrayList<>();
-            needToCreateList.forEach(menuCode -> batchUpdateList.add(new RoleMenu(roleId, roleName, menuCode)));
+            needToCreateList.forEach(menuCode -> batchUpdateList.add(new RoleMenu(roleName, menuCode)));
             try {
                 this.roleMenuRepository.saveAll(batchUpdateList);
             } catch (Exception ex) {
@@ -143,6 +155,17 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
             authServerRestClient.configureRoleAuthorities(roleId, authoritiesToGrant);
         }
+    }
+
+    private String roleIdValidation(String roleId) throws WecubeCoreException {
+        String roleName = this.userManagementService.retrieveRoleById(roleId).getName();
+
+        if (StringUtils.isEmpty(roleName)) {
+            String msg = String.format("Cannot validate role id: [%s] from auth server.", roleId);
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return roleName;
     }
 
     @Override
