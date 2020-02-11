@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
-import com.webank.wecube.platform.auth.server.dto.RoleAuthoritiesGrantDto;
+import com.webank.wecube.platform.auth.server.dto.RoleAuthoritiesDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleAuthorityDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
 import com.webank.wecube.platform.auth.server.service.RoleManagementService;
@@ -64,9 +64,16 @@ public class LocalRoleManagementController {
 		return okay();
 	}
 
-	@PostMapping("/roles/authorities-grants")
-	public CommonResponseDto configureRoleWithAuthoritiesByName(
-			@RequestBody RoleAuthoritiesGrantDto roleAuthoritiesGrantDto) {
+	@PostMapping("/roles/authorities-grant")
+	public CommonResponseDto configureRoleWithAuthorities(
+			@RequestBody RoleAuthoritiesDto roleAuthoritiesGrantDto) {
+		//TODO
+		return null;
+	}
+	
+	@PostMapping("/roles/authorities-revocation")
+	public CommonResponseDto revokeRoleWithAuthorities(
+			@RequestBody RoleAuthoritiesDto roleAuthoritiesRevocationDto) {
 		//TODO
 		return null;
 	}
