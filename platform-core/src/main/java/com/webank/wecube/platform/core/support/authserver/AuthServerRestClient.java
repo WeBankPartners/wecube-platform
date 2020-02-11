@@ -1,9 +1,5 @@
 package com.webank.wecube.platform.core.support.authserver;
 
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +7,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.util.List;
+
 @Service
-@EnableConfigurationProperties({ AuthServerRestClientProperties.class })
+@EnableConfigurationProperties({AuthServerRestClientProperties.class})
 public class AuthServerRestClient extends AbstractAuthServerRestClient {
 
     private static final Logger log = LoggerFactory.getLogger(AuthServerRestClient.class);
@@ -35,33 +34,47 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
 
         return _INSTANCE;
     }
-    
+
     public void revokeAuthoritiesFromRole(String roleId, List<AsAuthorityDto> authorities) {
-    	if (StringUtils.isBlank(roleId)) {
+        if (StringUtils.isBlank(roleId)) {
             throw new IllegalArgumentException();
         }
-    	
-    	if (authorities == null || authorities.isEmpty()) {
+
+        if (authorities == null || authorities.isEmpty()) {
             return;
         }
-    	
-    	postForObject(clientProperties.getPathRevokeAuthoritiesFromRole(), authorities,
+
+        postForObject(clientProperties.getPathRevokeAuthoritiesFromRole(), authorities,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
     }
-    
+
     public void configureRoleAuthorities(String roleId, List<AsAuthorityDto> authorities) {
-    	if (StringUtils.isBlank(roleId)) {
+        if (StringUtils.isBlank(roleId)) {
             throw new IllegalArgumentException();
         }
-    	
-    	if (authorities == null || authorities.isEmpty()) {
+
+        if (authorities == null || authorities.isEmpty()) {
             return;
         }
-    	
-    	postForObject(clientProperties.getPathConfigureRoleAuthorities(), authorities,
+
+        postForObject(clientProperties.getPathConfigureRoleAuthorities(), authorities,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
                 }, roleId);
+    }
+
+    public void configureRoleAuthoritiesWithRoleName(AsRoleAuthoritiesDto asRoleAuthoritiesDto) {
+
+        postForObject(clientProperties.getPathConfigureRoleAuthoritiesWithRoleName(), asRoleAuthoritiesDto,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
+                });
+    }
+
+    public void revokeRoleAuthoritiesWithRoleName(AsRoleAuthoritiesDto asRoleAuthoritiesDto) {
+
+        postForObject(clientProperties.getPathRevokeRoleAuthoritiesWithRoleName(), asRoleAuthoritiesDto,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
+                });
     }
 
     public void revokeUserRolesById(String roleId, List<AsUserDto> userDtos) {
@@ -179,5 +192,5 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
         return log;
     }
 
-    
+
 }
