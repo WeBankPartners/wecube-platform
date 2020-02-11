@@ -1,6 +1,8 @@
 <template>
-  <div v-if="data.length > 0" class="graph-container" id="auth-setting-graph"></div>
-  <span v-else>{{ $t('no_auth_provided') }}</span>
+  <div>
+    <div v-show="data.roles.length > 0" class="graph-container" id="auth-setting-graph">aaa</div>
+    <span v-show="data.roles.length === 0">{{ $t('no_auth_provided') }}</span>
+  </div>
 </template>
 <script>
 import { getAuthSettings } from '@/api/server'
@@ -24,8 +26,7 @@ export default {
   },
   props: {
     pkgId: {
-      required: true,
-      type: Number
+      required: true
     }
   },
   created () {
@@ -78,6 +79,7 @@ export default {
                           }` +
         genEdge() +
         `}`
+
       this.graph.graphviz.renderDot(nodesString)
     },
     initGraph () {
