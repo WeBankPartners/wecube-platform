@@ -279,6 +279,13 @@ export default {
       catchNodeTableList: []
     }
   },
+  watch: {
+    targetModalVisible: function (val) {
+      if (!val) {
+        this.catchNodeTableList = []
+      }
+    }
+  },
   mounted () {
     this.getProcessInstances()
     this.getAllFlow()
@@ -799,6 +806,7 @@ export default {
           Object.keys(objData).forEach(i => {
             if (_.id === objData[i].id && flowNodeIndex > -1) {
               objData[i]._isChecked = true
+              this.catchNodeTableList.push(objData[i])
             }
           })
         })
