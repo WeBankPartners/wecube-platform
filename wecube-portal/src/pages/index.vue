@@ -63,7 +63,7 @@ export default {
     },
     homePageClickHandler () {
       window.needReLoad = false
-      this.$router.push('homepage')
+      this.$router.push('/homepage')
     }
   },
   created () {
