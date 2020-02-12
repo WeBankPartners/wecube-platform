@@ -16,6 +16,7 @@ import WeSelect from '../src/pages/components/select.vue'
 import WeTable from '../src/pages/components/table.js'
 import indexCom from './pages/index'
 import req from './api/base'
+import { getChildRouters } from './pages/util/router.js'
 
 Vue.component('WeSelect', WeSelect)
 Vue.component('WeTable', WeTable)
@@ -64,6 +65,8 @@ WatchRouter.on('change', path => {
   window.location.href = window.location.origin + '/#' + path
 })
 
+window.childRouters = []
+
 window.addRoutes = (route, name) => {
   console.log(route, name)
   window.routers = window.routers.concat(route)
@@ -80,6 +83,17 @@ window.addRoutes = (route, name) => {
   if (window.sessionStorage.currentPath) {
     WatchRouter.emit('change', [window.sessionStorage.currentPath])
   }
+}
+window.addRoutersWithoutPermission = routes => {
+  window.childRouters = window.childRouters.concat(
+    routes.map(r => {
+      return {
+        ...r,
+        link: r.path,
+        active: true
+      }
+    })
+  )
 }
 window.component = (name, comp) => {
   Vue.component(name, comp)
@@ -108,25 +122,6 @@ const findPath = (routes, path) => {
   return found
 }
 
-let childRouters = []
-
-const getChildRouters = routes => {
-  if (window.myMenus) {
-    const allLinks = [].concat(...window.myMenus.map(_ => _.submenus))
-    allLinks.forEach(_ => {
-      const found = routes.find(i => i.path === _.link || i.redirect === _.link)
-      if (found && found.children) {
-        found.children.forEach(child => {
-          childRouters.push({
-            link: `${found.path}/${child.path}`,
-            active: _.active
-          })
-        })
-      }
-    })
-  }
-}
-
 router.beforeEach((to, from, next) => {
   const found = findPath(router.options.routes, to.path)
   if (!found) {
@@ -135,7 +130,7 @@ router.beforeEach((to, from, next) => {
   } else {
     if (window.myMenus) {
       let isHasPermission = []
-        .concat(...window.myMenus.map(_ => _.submenus), childRouters)
+        .concat(...window.myMenus.map(_ => _.submenus), window.childRouters)
         .find(_ => _.link === to.path)
       if (
         (isHasPermission && isHasPermission.active) ||
