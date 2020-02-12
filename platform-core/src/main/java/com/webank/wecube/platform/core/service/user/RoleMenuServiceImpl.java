@@ -172,7 +172,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
     public void createRoleMenuBinding(String roleName, String menuCode) {
         final Boolean isRoleMenuBindingExists = this.roleMenuRepository.existsRoleMenuByRoleNameAndMenuCode(roleName, menuCode);
         if (!isRoleMenuBindingExists) {
-            logger.info("Saving roleMenuBinding, role ID: [{}], menu code: [{}]", roleName, menuCode);
+            logger.info("Saving roleMenuBinding, role name: [{}], menu code: [{}]", roleName, menuCode);
             this.roleMenuRepository.save(new RoleMenu(roleName, menuCode));
         }
     }
