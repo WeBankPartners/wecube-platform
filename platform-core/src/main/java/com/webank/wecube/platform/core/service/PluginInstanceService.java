@@ -113,7 +113,8 @@ public class PluginInstanceService {
         if (!(StringUtils.isValidIp(hostIp))) {
             throw new RuntimeException("Invalid host ip");
         }
-        ResourceServer resourceServer = resourceServerRepository.findByHost(hostIp).get(0);
+        ResourceServer resourceServer = resourceServerRepository
+                .findByHostAndType(hostIp, ResourceServerType.DOCKER.getCode()).get(0);
         if (null == resourceServer)
             throw new WecubeCoreException(String.format("Host IP [%s] is not found", hostIp));
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
@@ -143,8 +144,8 @@ public class PluginInstanceService {
     }
 
     public List<PluginInstance> getAvailableInstancesByPackageId(String packageId) {
-        return pluginInstanceRepository.findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING,
-                packageId);
+        return pluginInstanceRepository
+                .findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING, packageId);
     }
 
     public PluginInstance getRunningPluginInstance(String pluginName) {
