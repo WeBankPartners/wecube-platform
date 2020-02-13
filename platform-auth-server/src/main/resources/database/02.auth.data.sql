@@ -19,7 +19,7 @@ insert  into `auth_sys_authority`(`id`,`created_by`,`created_time`,`updated_by`,
 ('2c9280827019695c017019c2a87f003e','umadmin','2020-02-06 17:09:12',NULL,NULL,'','\0','MENU_ADMIN_PERMISSION_MANAGEMENT',NULL,'MENU_ADMIN_PERMISSION_MANAGEMENT','GLOBAL');
 
 insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) values 
-('2c9280827019695c017019ac974f001c','system','2019-12-09 17:19:22',NULL,NULL,'','\0','系统管理员','系统管理员',NULL,'admin'),
+('2c9280827019695c017019ac974f001c','system','2019-12-09 17:19:22',NULL,NULL,'','\0','系统管理员','系统管理员',NULL,'SUPER_ADMIN'),
 ('2c9280836f78a84b016f794c3a270000','system','2020-01-06 13:20:36',NULL,NULL,'','\0','CMDB管理员','CMDB管理员',NULL,'CMDB_ADMIN'),
 ('2c9280836f78a84b016f794cd6dd0001','system','2020-01-06 13:21:16',NULL,NULL,'','\0','监控管理员','监控管理员',NULL,'MONITOR_ADMIN'),
 ('2c9280836f78a84b016f794d6bb50002','system','2020-01-06 13:21:54',NULL,NULL,'','\0','生产运维','生产运维',NULL,'PRD_OPS'),
