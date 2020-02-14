@@ -35,7 +35,14 @@
       </Col>
       <Col span="8" offset="1">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <Select @on-change="onEntitySelect" v-model="currentSelectedEntity" filterable clearable style="width: 70%">
+        <Select
+          @on-change="onEntitySelect"
+          v-model="currentSelectedEntity"
+          ref="currentSelectedEntity"
+          filterable
+          clearable
+          style="width: 70%"
+        >
           <OptionGroup :label="pluginPackage.packageName" v-for="(pluginPackage, index) in allEntityType" :key="index">
             <Option
               v-for="item in pluginPackage.pluginPackageEntities"
@@ -327,6 +334,7 @@ export default {
   watch: {
     selectedFlow: {
       handler (val, oldVal) {
+        this.$refs['currentSelectedEntity'].clearSingleSelect()
         if (val) {
           this.getFlowXml(val)
           this.getPermissionByProcess(val)
