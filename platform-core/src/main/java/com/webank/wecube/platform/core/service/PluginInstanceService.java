@@ -413,6 +413,7 @@ public class PluginInstanceService {
                 mysqlServer.getId(), String.format("Create MySQL database for plugin[%s]", mysqlInfo.getSchemaName()));
         mysqlServer.setResourceItemDtos(null);
         createMysqlDto.setResourceServer(mysqlServer);
+        createMysqlDto.setIsAllocated(true);
         logger.info("Mysql Database schema creating...");
         if (logger.isDebugEnabled())
             logger.info("Request parameters= " + createMysqlDto);
@@ -440,6 +441,7 @@ public class PluginInstanceService {
                 ResourceItemType.S3_BUCKET.getCode(), null, s3Server.getId(),
                 String.format("Create S3 bucket for plugin[%s]", s3Info.getBucketName()));
         createS3BucketDto.setResourceServer(s3Server);
+        createS3BucketDto.setIsAllocated(true);
         logger.info("S3 bucket creating...");
         if (logger.isDebugEnabled())
             logger.info("Request parameters= " + createS3BucketDto);
@@ -500,6 +502,7 @@ public class PluginInstanceService {
                 ResourceItemType.DOCKER_CONTAINER.getCode(),
                 buildAdditionalPropertiesForDocker(createContainerParameters), hostInfo.getId(),
                 String.format("Create docker instance for plugin[%s]", pluginPackage.getName()));
+        createDockerInstanceDto.setIsAllocated(true);
         logger.info("Container creating...");
         logger.info("Request parameters= " + createDockerInstanceDto.toString());
 
