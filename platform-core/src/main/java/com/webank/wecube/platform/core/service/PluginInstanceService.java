@@ -248,8 +248,8 @@ public class PluginInstanceService {
             return null;
         }
         if (s3InfoSet.size() > 1) {
-            logger.error(String.format("Apply [%d] s3 bucket is not allow", s3InfoSet.size()));
-            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
+            logger.error(String.format("Apply [%d] s3 buckets is not allow", s3InfoSet.size()));
+            throw new WecubeCoreException(String.format("Apply [%d] s3 buckets is not allow", s3InfoSet.size()));
         }
 
         List<ResourceItem> s3BucketsItems = resourceItemRepository
@@ -314,8 +314,7 @@ public class PluginInstanceService {
             instance.setDockerInstanceResourceId(dockerResourceDto.getId());
         } catch (Exception e) {
             logger.error("Creating docker container instance meet error: ", e.getMessage());
-            e.printStackTrace();
-            throw new WecubeCoreException("Creating docker container instance meet error: " + e.getMessage());
+            throw new WecubeCoreException("Creating docker container instance meet error: " + e.getMessage(), e);
         }
 
         instance.setContainerName(dockerInfo.getContainerName());
@@ -398,7 +397,11 @@ public class PluginInstanceService {
 
     public PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo) {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.MYSQL);
-        ResourceServerDto mysqlServer = resourceManagementService.retrieveServers(queryRequest).getContents().get(0);
+        List<ResourceServerDto> mysqlServers = resourceManagementService.retrieveServers(queryRequest).getContents();
+        if (mysqlServers.size() == 0) {
+            throw new WecubeCoreException("Can not found available resource server for creating mysql database");
+        }
+        ResourceServerDto mysqlServer = mysqlServers.get(0);
 
         String dbPassword = genRandomPassword();
         String dbUser = mysqlInfo.getSchemaName();
@@ -428,8 +431,11 @@ public class PluginInstanceService {
 
     private String createPluginS3Bucket(PluginPackageRuntimeResourcesS3 s3Info) {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.S3);
-        ResourceServerDto s3Server = resourceManagementService.retrieveServers(queryRequest).getContents().get(0);
-
+        List<ResourceServerDto> s3Servers = resourceManagementService.retrieveServers(queryRequest).getContents();
+        if (s3Servers.size() == 0) {
+            throw new WecubeCoreException("Can not found available resource server for creating s3 bucket");
+        }
+        ResourceServerDto s3Server = s3Servers.get(0);
         ResourceItemDto createS3BucketDto = new ResourceItemDto(s3Info.getBucketName(),
                 ResourceItemType.S3_BUCKET.getCode(), null, s3Server.getId(),
                 String.format("Create S3 bucket for plugin[%s]", s3Info.getBucketName()));
@@ -472,7 +478,8 @@ public class PluginInstanceService {
                             resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName()),
                     tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {
-            throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage());
+            logger.error("Put file to remote host meet error: {}", e.getMessage());
+            throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage(), e);
         }
 
         // load image at remote host
@@ -486,7 +493,7 @@ public class PluginInstanceService {
                     Integer.valueOf(hostInfo.getPort()), loadCmd);
         } catch (Exception e) {
             logger.error("Run command [{}] meet error: {}", loadCmd, e.getMessage());
-            throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
+            throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()), e);
         }
 
         ResourceItemDto createDockerInstanceDto = new ResourceItemDto(createContainerParameters.getContainerName(),
@@ -504,13 +511,12 @@ public class PluginInstanceService {
     }
 
     public void removePluginInstanceById(String instanceId) throws Exception {
-        logger.info("Remove instanceId is " + instanceId);
+        logger.info("Removing instanceId: " + instanceId);
         Optional<PluginInstance> instanceOptional = pluginInstanceRepository.findById(instanceId);
         PluginInstance instance = instanceOptional.get();
         ResourceItemDto removeDockerInstanceDto = new ResourceItemDto();
         removeDockerInstanceDto.setName(instance.getContainerName());
         removeDockerInstanceDto.setId(instance.getDockerInstanceResourceId());
-        logger.info("removeDockerInstanceDto = " + removeDockerInstanceDto.toString());
         resourceManagementService.deleteItems(Lists.newArrayList(removeDockerInstanceDto));
         pluginInstanceRepository.deleteById(instanceId);
     }
