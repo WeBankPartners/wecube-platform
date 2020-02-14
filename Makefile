@@ -47,21 +47,21 @@ push:
 	docker push ${remote_docker_image_registry}/wecube-db:${date}-$(version)
 
 pushToDockerhub:
-    docker tag  platform-core:$(version) webankpartners/platform-core:$(date)-$(version)
-    docker push webankpartners/platform-core:$(date)-$(version)
+	docker tag  platform-core:$(version) webankpartners/platform-core:$(date)-$(version)
+	docker push webankpartners/platform-core:$(date)-$(version)
 
-    docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(date)-$(version)
-    docker push webankpartners/platform-gateway:$(date)-$(version)
+	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(date)-$(version)
+	docker push webankpartners/platform-gateway:$(date)-$(version)
 
-    docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(date)-$(version)
-    docker push webankpartners/wecube-portal:$(date)-$(version)
+	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(date)-$(version)
+	docker push webankpartners/wecube-portal:$(date)-$(version)
 
-    docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(date)-$(version)
-    docker push webankpartners/platform-auth-server:$(date)-$(version)
+	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(date)-$(version)
+	docker push webankpartners/platform-auth-server:$(date)-$(version)
     
-    docker tag  wecube-db:$(version) webankpartners/wecube-db:${date}-$(version)
-    docker push webankpartners/wecube-db:${date}-$(version)
-    
+	docker tag  wecube-db:$(version) webankpartners/wecube-db:${date}-$(version)
+	docker push webankpartners/wecube-db:${date}-$(version)
+
 env_config=smoke_branch.cfg
 target_host="tcp://10.0.0.1:2375"
 deploy:
