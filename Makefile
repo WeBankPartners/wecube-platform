@@ -48,24 +48,24 @@ push:
 
 tencent_cloud_release_version=version-tag
 releaseToTencentCloud:
-    docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
-    docker push webankpartners/platform-core:$(release_version)
+	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
+	docker push webankpartners/platform-core:$(release_version)
 
-    docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(release_version)
-    docker push webankpartners/platform-gateway:$(release_version)
+	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(release_version)
+	docker push webankpartners/platform-gateway:$(release_version)
 
-    docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(release_version)
-    docker push webankpartners/wecube-portal:$(release_version)
+	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(release_version)
+	docker push webankpartners/wecube-portal:$(release_version)
 
-    docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(release_version)
-    docker push webankpartners/platform-auth-server:$(release_version)
+	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(release_version)
+	docker push webankpartners/platform-auth-server:$(release_version)
     
-    docker tag  wecube-db:$(version) webankpartners/wecube-db:$(release_version)
-    docker push webankpartners/wecube-db:$(release_version)
+	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(release_version)
+	docker push webankpartners/wecube-db:$(release_version)
     
 release_version=version-tag
 release:
-    git tag $(release_version) && git push origin $(release_version)
+	git tag $(release_version) && git push origin $(release_version)
 	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
 	docker push webankpartners/platform-core:$(release_version)
 
