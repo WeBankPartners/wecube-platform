@@ -190,18 +190,6 @@
                         </Col>
                         <Col span="10" offset="0">
                           <FormItem :label-width="0">
-                            <!-- <Select
-                          v-if="outPut.mappingType === 'entity'"
-                          v-model="outPut.mappingEntityExpression"
-                          :disabled="currentPluginObj.status === 'ENABLED'"
-                        >
-                          <Option
-                            v-for="attr in currentEntityAttr"
-                            :key="attr.name"
-                            :value="attr.name"
-                            :label="attr.name"
-                          ></Option>
-                            </Select>-->
                             <PathExp
                               v-if="outPut.mappingType === 'entity'"
                               :rootPkg="pkgName"
@@ -370,10 +358,11 @@ export default {
       }
     },
     async regist () {
-      const pluginConfigDtoList = this.plugins.find(plugin => plugin.pluginConfigName === this.currentPlugin)
-        .pluginConfigDtoList
-      const plugin = pluginConfigDtoList.find(dto => dto.id === this.currentPluginObj.id)
-      const saveRes = await savePluginConfig(plugin)
+      // const pluginConfigDtoList = this.plugins.find(plugin => plugin.pluginConfigName === this.currentPlugin)
+      //   .pluginConfigDtoList
+      // const plugin = pluginConfigDtoList.find(dto => dto.id === this.currentPluginObj.id)
+      // const saveRes = await savePluginConfig(plugin)
+      const saveRes = await savePluginConfig(this.currentPluginObj)
       if (saveRes.status === 'OK') {
         const { status, message } = await registerPlugin(this.currentPluginObj.id)
         if (status === 'OK') {
