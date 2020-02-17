@@ -202,7 +202,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         parsePluginInstance(ctx);
 
         buildTaskNodeExecRequestEntity(ctx);
-        List<Map<String, Object>> pluginParameters = calculateInputParameters(inputParamObjs, ctx.getRequestId(), procInstEntity.getOperator());
+        List<Map<String, Object>> pluginParameters = calculateInputParameters(inputParamObjs, ctx.getRequestId(),
+                procInstEntity.getOperator());
 
         PluginInvocationOperation operation = new PluginInvocationOperation() //
                 .withCallback(this::handlePluginInterfaceInvocationResult) //
@@ -720,8 +721,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return procInstEntity;
     }
 
-    private List<Map<String, Object>> calculateInputParameters(List<InputParamObject> inputParamObjs,
-            String requestId, String operator) {
+    private List<Map<String, Object>> calculateInputParameters(List<InputParamObject> inputParamObjs, String requestId,
+            String operator) {
         List<Map<String, Object>> pluginParameters = new ArrayList<Map<String, Object>>();
 
         int objectId = 0;
@@ -748,7 +749,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setEntityTypeId(entityTypeId);
 
             taskNodeExecParamRepository.save(p);
-            
+
             inputMap.put(INPUT_PARAMETER_KEY_OPERATOR, operator);
 
             for (InputParamAttr attr : ipo.getAttrs()) {
@@ -758,7 +759,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
                 e.setParamDataType(attr.getType());
                 e.setObjectId(sObjectId);
-                e.setParamDataValue(attr.getValuesAsString());
+                e.setParamDataValue(attr.getExpectedValue() == null ? null : attr.getExpectedValue().toString());
                 e.setEntityDataId(entityDataId);
                 e.setEntityTypeId(entityTypeId);
 
