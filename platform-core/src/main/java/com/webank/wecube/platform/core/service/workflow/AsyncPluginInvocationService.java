@@ -91,7 +91,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
     protected void doHandleAsyncInvocationResult(String resultCode, String resultMessage, List<Object> resultData,
             PluginInterfaceInvocationContext ctx) {
         if (PluginAsyncInvocationResultDto.RESULT_CODE_FAIL.equalsIgnoreCase(resultCode)) {
-            handleErrorInvocationResult(resultMessage, ctx);
+            handleErrorInvocationResult(resultMessage, resultData, ctx);
             return;
         }
 
@@ -325,6 +325,14 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             return;
         }
 
+        String errorCodeOfSingleRecord = (String) outputParameterMap.get(PLUGIN_RESULT_CODE_PARTIALLY_KEY);
+        if (StringUtils.isNotBlank(errorCodeOfSingleRecord)
+                && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
+            log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
+                    CALLBACK_PARAMETER_KEY, nodeEntityId);
+            return;
+        }
+
         for (PluginConfigInterfaceParameter pciParam : outputParameters) {
             String paramName = pciParam.getName();
             String paramExpr = pciParam.getMappingEntityExpression();
@@ -409,14 +417,20 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         }
     }
 
-    private void handleErrorInvocationResult(String errorMsg, PluginInterfaceInvocationContext ctx) {
+    private void handleErrorInvocationResult(String errorMsg, List<Object> resultData,
+            PluginInterfaceInvocationContext ctx) {
+
+        if (resultData != null) {
+            handleResultData(ctx, resultData);
+        }
+
         PluginInvocationResult result = new PluginInvocationResult()
                 .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
 
         log.error("system errors:{}", errorMsg);
         result.setResultCode(RESULT_CODE_ERR);
         pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-        handlePluginAsyncInvocationFailure(ctx, "400", "system errors:" + trimWithMaxLength(errorMsg));
+        handlePluginAsyncInvocationFailure(ctx, "500", "system errors:" + trimWithMaxLength(errorMsg));
 
         return;
     }

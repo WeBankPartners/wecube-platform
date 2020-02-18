@@ -1,5 +1,12 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import static com.webank.wecube.platform.core.utils.Constants.ASYNC_SERVICE_SYMBOL;
+import static com.webank.wecube.platform.core.utils.Constants.FIELD_REQUIRED;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONSTANT;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONTEXT;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_ENTITY;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTEM_VARIABLE;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,8 +49,7 @@ import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
-import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
-import static com.webank.wecube.platform.core.utils.Constants.*;
+import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
 
 /**
  * 
@@ -52,8 +58,9 @@ import static com.webank.wecube.platform.core.utils.Constants.*;
  */
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
+
     @Autowired
-    private PluginServiceStub pluginServiceStub;
+    private PluginInvocationRestClient pluginInvocationRestClient;
 
     @Autowired
     private PluginInvocationProcessor pluginInvocationProcessor;
@@ -75,7 +82,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private TaskNodeExecRequestRepository taskNodeExecRequestRepository;
-    
+
     @Autowired
     private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
 
@@ -111,7 +118,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.info("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
             }
         }
-        
+
         workflowProcInstEndEventNotifier.notify(WorkflowNotifyEvent.PROCESS_INSTANCE_END, cmd, procInstEntity);
 
     }
@@ -195,11 +202,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         parsePluginInstance(ctx);
 
         buildTaskNodeExecRequestEntity(ctx);
-        List<Map<String, Object>> pluginParameters = calculateInputParameters(inputParamObjs, ctx.getRequestId());
+        List<Map<String, Object>> pluginParameters = calculateInputParameters(inputParamObjs, ctx.getRequestId(),
+                procInstEntity.getOperator());
 
         PluginInvocationOperation operation = new PluginInvocationOperation() //
                 .withCallback(this::handlePluginInterfaceInvocationResult) //
-                .withPluginServiceStub(this.pluginServiceStub) //
+                .withPluginInvocationRestClient(this.pluginInvocationRestClient) //
                 .withPluginParameters(pluginParameters) //
                 .withInstanceHost(ctx.getInstanceHost()) //
                 .withInterfacePath(ctx.getInterfacePath()) //
@@ -713,8 +721,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return procInstEntity;
     }
 
-    private List<Map<String, Object>> calculateInputParameters(List<InputParamObject> inputParamObjs,
-            String requestId) {
+    private List<Map<String, Object>> calculateInputParameters(List<InputParamObject> inputParamObjs, String requestId,
+            String operator) {
         List<Map<String, Object>> pluginParameters = new ArrayList<Map<String, Object>>();
 
         int objectId = 0;
@@ -741,8 +749,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             p.setEntityTypeId(entityTypeId);
 
             taskNodeExecParamRepository.save(p);
-            // TODO
-            inputMap.put("operator", "umadmin");
+
+            inputMap.put(INPUT_PARAMETER_KEY_OPERATOR, operator);
 
             for (InputParamAttr attr : ipo.getAttrs()) {
                 TaskNodeExecParamEntity e = new TaskNodeExecParamEntity();
@@ -751,7 +759,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
                 e.setParamDataType(attr.getType());
                 e.setObjectId(sObjectId);
-                e.setParamDataValue(attr.getValuesAsString());
+                e.setParamDataValue(attr.getExpectedValue() == null ? null : attr.getExpectedValue().toString());
                 e.setEntityDataId(entityDataId);
                 e.setEntityTypeId(entityTypeId);
 
@@ -826,6 +834,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     private void handleErrorInvocationResult(PluginInterfaceInvocationResult pluginInvocationResult,
             PluginInterfaceInvocationContext ctx) {
+
+        if (pluginInvocationResult.getResultData() != null && !pluginInvocationResult.getResultData().isEmpty()) {
+            log.info("plugin invocation partially succeeded.{} {}", ctx.getRequestId(), ctx.getInterfacePath());
+            handleResultData(pluginInvocationResult, ctx, pluginInvocationResult.getResultData());
+        }
+
         PluginInvocationResult result = new PluginInvocationResult()
                 .parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
 
@@ -975,6 +989,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         if (StringUtils.isBlank(nodeEntityId)) {
             log.info("none entity ID found in output for request {}", ctx.getRequestId());
+            return;
+        }
+
+        String errorCodeOfSingleRecord = (String) outputParameterMap.get(PLUGIN_RESULT_CODE_PARTIALLY_KEY);
+        if (StringUtils.isNotBlank(errorCodeOfSingleRecord)
+                && PLUGIN_RESULT_CODE_PARTIALLY_FAIL.equalsIgnoreCase(errorCodeOfSingleRecord)) {
+            log.info("such request is partially failed for request:{} and {}:{}", ctx.getRequestId(),
+                    CALLBACK_PARAMETER_KEY, nodeEntityId);
             return;
         }
 
