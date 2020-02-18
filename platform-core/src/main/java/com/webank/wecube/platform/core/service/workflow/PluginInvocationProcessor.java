@@ -17,7 +17,8 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
-import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
+import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient;
+import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 
 /**
@@ -30,7 +31,6 @@ public class PluginInvocationProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(PluginInvocationProcessor.class);
 
-    //TODO fixed number of pooled threads would be better here
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
     public void process(PluginInvocationOperation operation) {
@@ -46,7 +46,7 @@ public class PluginInvocationProcessor {
     }
 
     public static class PluginInvocationOperation implements PluginOperation {
-        private PluginServiceStub pluginServiceStub;
+        private PluginInvocationRestClient pluginInvocationRestClient;
         private BiConsumer<PluginInterfaceInvocationResult, PluginInterfaceInvocationContext> callback;
         private List<Map<String, Object>> pluginParameters;
         private String interfacePath;
@@ -71,14 +71,6 @@ public class PluginInvocationProcessor {
         public void setPluginInterfaceInvocationContext(
                 PluginInterfaceInvocationContext pluginInterfaceInvocationContext) {
             this.pluginInterfaceInvocationContext = pluginInterfaceInvocationContext;
-        }
-
-        public PluginServiceStub getPluginServiceStub() {
-            return pluginServiceStub;
-        }
-
-        public void setPluginServiceStub(PluginServiceStub pluginServiceStub) {
-            this.pluginServiceStub = pluginServiceStub;
         }
 
         public BiConsumer<PluginInterfaceInvocationResult, PluginInterfaceInvocationContext> getCallback() {
@@ -135,8 +127,8 @@ public class PluginInvocationProcessor {
             return this;
         }
 
-        public PluginInvocationOperation withPluginServiceStub(PluginServiceStub pluginServiceStub) {
-            this.pluginServiceStub = pluginServiceStub;
+        public PluginInvocationOperation withPluginInvocationRestClient(PluginInvocationRestClient restClient) {
+            this.pluginInvocationRestClient = restClient;
             return this;
         }
 
@@ -156,21 +148,53 @@ public class PluginInvocationProcessor {
                 log.debug("call {} {} - {}", getInstanceHost(), getInterfacePath(), Thread.currentThread().getName());
             }
 
-            ResultData<Object> responseData = null;
+            PluginResponse<Object> response = null;
 
             try {
-                responseData = getPluginServiceStub().callPluginInterface(getInstanceHost(), getInterfacePath(),
+                response = getPluginInvocationRestClient().callPluginService(getInstanceHost(), getInterfacePath(),
                         getPluginParameters(), this.requestId);
             } catch (Exception e) {
                 log.error("errors while operating {} {}", getInstanceHost(), getInterfacePath(), e);
                 PluginInterfaceInvocationResult errResult = new PluginInterfaceInvocationResult();
                 errResult.setErrMsg(e.getMessage());
                 errResult.setSuccess(false);
+                errResult.setResultData(null);
+                errResult.setResultCode(PluginResponse.RESULT_CODE_FAIL);
 
                 handleResult(errResult);
 
                 return;
             }
+            
+            if(response == null){
+                log.error("Plugin call failure due to no response.");
+                PluginInterfaceInvocationResult errResult = new PluginInterfaceInvocationResult();
+                errResult.setErrMsg("Plugin call failure due to no response.");
+                errResult.setSuccess(false);
+                errResult.setResultData(null);
+                errResult.setResultCode(PluginResponse.RESULT_CODE_FAIL);
+
+                handleResult(errResult);
+
+                return;
+            }
+            
+            ResultData<Object> responseData = response.getResultData();
+            String resultCode = response.getResultCode();
+            
+            if(PluginResponse.RESULT_CODE_FAIL.equalsIgnoreCase(resultCode)){
+                log.error("Plugin service processing failed with code:{}", response.getResultCode());
+                PluginInterfaceInvocationResult errResult = new PluginInterfaceInvocationResult();
+                errResult.setErrMsg(response.getResultMessage());
+                errResult.setSuccess(false);
+                errResult.setResultData(responseData == null ? null : responseData.getOutputs());
+                errResult.setResultCode(PluginResponse.RESULT_CODE_FAIL);
+
+                handleResult(errResult);
+
+                return;
+            }
+            
 
             if (responseData == null) {
                 log.error("response data is null, {} {}", getInstanceHost(), getInterfacePath());
@@ -178,6 +202,7 @@ public class PluginInvocationProcessor {
                 nullResult.setErrMsg("response data is null.");
                 nullResult.setSuccess(true);
                 nullResult.setResultData(null);
+                nullResult.setResultCode(resultCode);
                 handleResult(nullResult);
 
                 return;
@@ -186,8 +211,10 @@ public class PluginInvocationProcessor {
             List<Object> resultData = responseData.getOutputs();
 
             PluginInterfaceInvocationResult result = new PluginInterfaceInvocationResult();
+            result.setErrMsg(response.getResultMessage());
             result.setResultData(resultData);
             result.setSuccess(true);
+            result.setResultCode(resultCode);
 
             handleResult(result);
 
@@ -197,6 +224,14 @@ public class PluginInvocationProcessor {
             if (getCallback() != null) {
                 getCallback().accept(result, pluginInterfaceInvocationContext);
             }
+        }
+
+        public PluginInvocationRestClient getPluginInvocationRestClient() {
+            return pluginInvocationRestClient;
+        }
+
+        public void setPluginInvocationRestClient(PluginInvocationRestClient pluginInvocationRestClient) {
+            this.pluginInvocationRestClient = pluginInvocationRestClient;
         }
 
     }
@@ -352,6 +387,7 @@ public class PluginInvocationProcessor {
         private List<Object> resultData;
         private boolean success;
         private String errMsg;
+        private String resultCode;
         private Exception error;
 
         public List<Object> getResultData() {
@@ -390,6 +426,13 @@ public class PluginInvocationProcessor {
             return !(error == null);
         }
 
+        public String getResultCode() {
+            return resultCode;
+        }
+
+        public void setResultCode(String resultCode) {
+            this.resultCode = resultCode;
+        }
     }
 
 }
