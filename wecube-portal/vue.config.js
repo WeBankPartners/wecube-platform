@@ -7,20 +7,8 @@ module.exports = {
     open: true,
     port: 3000,
     proxy: {
-      '/platform': {
+      '/': {
         target: baseURL
-      },
-      '/wecmdb': {
-        target: baseURL
-      },
-      'ui-resources': {
-        target: baseURL
-      },
-      'wecube-monitor': {
-        target: 'https://sandbox.webank.com'
-      },
-      '/auth': {
-        target: 'http://127.0.0.1:19110'
       }
     }
   },
