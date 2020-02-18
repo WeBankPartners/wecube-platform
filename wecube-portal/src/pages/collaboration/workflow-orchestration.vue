@@ -699,7 +699,8 @@ export default {
       let { status, data } = await getFlowNodes(this.currentFlow.procDefId)
       if (status === 'OK') {
         this.currentflowsNodes = data.filter(_ => _.nodeId !== this.currentNode.id)
-        this.currentNode.nodeDefId = data.find(i => i.nodeId === this.currentNode.id).nodeDefId
+        const found = data.find(i => i.nodeId === this.currentNode.id)
+        this.currentNode.nodeDefId = found ? found.nodeDefId : ''
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index)
         })
@@ -715,24 +716,26 @@ export default {
       }
     },
     bindRightClick () {
-      var menu = document.getElementById('right_click_menu')
-      var elements = document.getElementsByClassName('djs-element djs-shape')
+      let menu = document.getElementById('right_click_menu')
+      let elements = document.getElementsByClassName('djs-element djs-shape')
       const _this = this
-      for (var i = 0; i < elements.length; i++) {
+      for (let i = 0; i < elements.length; i++) {
         elements[i].oncontextmenu = function (e) {
           e = e || window.event
-          var x = e.clientX
-          var y = e.clientY
+          let x = e.clientX
+          let y = e.clientY
           menu.style.display = 'block'
           menu.style.left = x - 25 + 'px'
           menu.style.top = y - 130 + 'px'
           _this.currentNode.id = e.target.parentNode.getAttribute('data-element-id')
-          _this.currentNode.name =
-            (e.target.previousSibling &&
-              e.target.previousSibling.children[1] &&
-              e.target.previousSibling.children[1].children[0] &&
-              e.target.previousSibling.children[1].children[0].innerHTML) ||
-            ''
+          let nodeName = ''
+          const previousSibling = e.target.previousSibling
+          if (previousSibling && previousSibling.children[1] && previousSibling.children[1].children) {
+            for (let i = 0; i < previousSibling.children[1].children.length; i++) {
+              nodeName += previousSibling.children[1].children[i].innerHTML || ''
+            }
+          }
+          _this.currentNode.name = nodeName
           return false
         }
       }
