@@ -373,19 +373,19 @@ export default {
         this.renderModelGraph()
       }
     },
-    async getTargetOptions () {
-      // if (!(this.flowData.rootEntity || !this.flowData.entityTypeId)) return
-      if (!this.flowData.rootEntity && !this.flowData.entityTypeId) return
-      let pkgName = ''
-      let entityName = ''
+    getTargetOptions () {
       if (this.flowData.rootEntity) {
-        pkgName = this.flowData.rootEntity.split(':')[0]
-        entityName = this.flowData.rootEntity.split(':')[1]
-      } else {
-        pkgName = this.flowData.entityTypeId.split(':')[0]
-        entityName = this.flowData.entityTypeId.split(':')[1]
+        this.getTargetData('rootEntity')
+        return
       }
-      let { status, data } = await getTargetOptions(pkgName, entityName)
+      if (this.flowData.entityTypeId) {
+        this.getTargetData('entityTypeId')
+      }
+    },
+    async getTargetData (flowDataKey) {
+      const pkgName = this.flowData[flowDataKey].split(':')[0]
+      const entityName = this.flowData[flowDataKey].split(':')[1]
+      const { status, data } = await getTargetOptions(pkgName, entityName)
       if (status === 'OK') {
         this.allTarget = data
       }
