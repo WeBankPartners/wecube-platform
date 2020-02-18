@@ -292,7 +292,9 @@ export default {
     this.createHandler()
   },
   destroyed () {
+    console.log('destroyed', 'start clearInterval', this.timer)
     clearInterval(this.timer)
+    console.log('destroyed', 'end clearInterval', this.timer)
     this.timer = null
   },
   methods: {
@@ -386,8 +388,9 @@ export default {
       }
     },
     queryHandler () {
-      clearInterval(this.timer)
-      this.timer = null
+      console.log('queryHandler', 'start clearInterval', this.timer)
+      this.stop()
+      console.log('queryHandler', 'end clearInterval', this.timer)
       if (!this.selectedFlowInstance) return
       this.isEnqueryPage = true
       this.$nextTick(async () => {
@@ -418,8 +421,9 @@ export default {
     },
     queryHistory () {
       this.selectedTarget = null
-      clearInterval(this.timer)
-      this.timer = null
+      console.log('queryHistory', 'start clearInterval', this.timer)
+      this.stop()
+      console.log('queryHistory', 'end clearInterval', this.timer)
       this.isEnqueryPage = true
       this.showExcution = false
       this.selectedFlow = ''
@@ -432,8 +436,9 @@ export default {
     },
     createHandler () {
       this.selectedTarget = null
-      clearInterval(this.timer)
-      this.timer = null
+      console.log('createHandler', 'start clearInterval', this.timer)
+      this.stop()
+      console.log('createHandler', 'end clearInterval', this.timer)
       this.isEnqueryPage = false
       this.selectedFlowInstance = ''
       this.selectedFlow = ''
@@ -662,16 +667,18 @@ export default {
         this.getStatus()
       }
       if (this.timer != null) {
-        clearInterval(this.timer)
-        this.timer = null
+        this.stop()
       }
       this.timer = setInterval(() => {
         this.getStatus()
       }, 5000)
+      console.log('TIMER ', this.timer)
     },
     stop () {
+      console.log('stop', 'start clearInterval', this.timer)
       clearInterval(this.timer)
       this.timer = null
+      console.log('stop', 'end clearInterval', this.timer)
     },
     async getStatus () {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -692,8 +699,10 @@ export default {
       }
     },
     processInstance () {
+      console.log('processInstance', 'start set timer', this.timer)
       this.timer = null
       this.start()
+      console.log('processInstance', 'end set timer', this.timer)
     },
     retryHandler (e) {
       this.currentFailedNodeID = e.target.parentNode.getAttribute('id')
