@@ -298,7 +298,6 @@ export default {
     console.log('destroyed', 'start clearInterval', this.timer)
     clearInterval(this.timer)
     console.log('destroyed', 'end clearInterval', this.timer)
-    this.timer = null
   },
   methods: {
     async getDetail (row) {
@@ -375,7 +374,8 @@ export default {
       }
     },
     async getTargetOptions () {
-      if (!(this.flowData.rootEntity || !this.flowData.entityTypeId)) return
+      // if (!(this.flowData.rootEntity || !this.flowData.entityTypeId)) return
+      if (!this.flowData.rootEntity && !this.flowData.entityTypeId) return
       let pkgName = ''
       let entityName = ''
       if (this.flowData.rootEntity) {
@@ -671,7 +671,7 @@ export default {
       if (this.timer === null) {
         this.getStatus()
       }
-      if (this.timer != null) {
+      if (this.timer !== null) {
         this.stop()
       }
       this.timer = setInterval(() => {
@@ -682,7 +682,6 @@ export default {
     stop () {
       console.log('stop', 'start clearInterval', this.timer)
       clearInterval(this.timer)
-      this.timer = null
       console.log('stop', 'end clearInterval', this.timer)
     },
     async getStatus () {
@@ -705,7 +704,6 @@ export default {
     },
     processInstance () {
       console.log('processInstance', 'start set timer', this.timer)
-      this.timer = null
       this.start()
       console.log('processInstance', 'end set timer', this.timer)
     },
