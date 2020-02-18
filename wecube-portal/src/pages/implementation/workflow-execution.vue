@@ -93,7 +93,9 @@
         </Row>
       </Row>
       <div style="text-align: right;margin-top: 6px;margin-right:40px">
-        <Button v-if="showExcution" style="width:120px" type="info" @click="excutionFlow">{{ $t('execute') }}</Button>
+        <Button v-if="showExcution" :disabled="isExecuteActive" style="width:120px" type="info" @click="excutionFlow">{{
+          $t('execute')
+        }}</Button>
       </div>
     </Card>
     <Modal
@@ -199,6 +201,7 @@ export default {
       selectedFlow: '',
       selectedTarget: '',
       showExcution: true,
+      isExecuteActive: false,
       isEnqueryPage: false,
       workflowActionModalVisible: false,
       targetModalVisible: false,
@@ -627,6 +630,7 @@ export default {
         this.processInstance()
         this.showExcution = false
       } else {
+        this.isExecuteActive = true
         const currentTarget = this.allTarget.find(_ => _.id === this.selectedTarget)
         let taskNodeBinds = []
         this.modelData.forEach(_ => {
@@ -657,6 +661,7 @@ export default {
         let { status, data } = await createFlowInstance(payload)
         if (status === 'OK') {
           this.getProcessInstances(true, data)
+          this.isExecuteActive = false
           this.showExcution = false
           this.isEnqueryPage = true
         }
