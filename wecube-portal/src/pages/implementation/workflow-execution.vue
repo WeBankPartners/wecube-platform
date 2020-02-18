@@ -93,7 +93,9 @@
         </Row>
       </Row>
       <div style="text-align: right;margin-top: 6px;margin-right:40px">
-        <Button v-if="showExcution" style="width:120px" type="info" @click="excutionFlow">{{ $t('execute') }}</Button>
+        <Button v-if="showExcution" :disabled="isExecuteActive" style="width:120px" type="info" @click="excutionFlow">{{
+          $t('execute')
+        }}</Button>
       </div>
     </Card>
     <Modal
@@ -199,6 +201,7 @@ export default {
       selectedFlow: '',
       selectedTarget: '',
       showExcution: true,
+      isExecuteActive: false,
       isEnqueryPage: false,
       workflowActionModalVisible: false,
       targetModalVisible: false,
@@ -295,7 +298,6 @@ export default {
     console.log('destroyed', 'start clearInterval', this.timer)
     clearInterval(this.timer)
     console.log('destroyed', 'end clearInterval', this.timer)
-    this.timer = null
   },
   methods: {
     async getDetail (row) {
@@ -372,7 +374,8 @@ export default {
       }
     },
     async getTargetOptions () {
-      if (!(this.flowData.rootEntity || !this.flowData.entityTypeId)) return
+      // if (!(this.flowData.rootEntity || !this.flowData.entityTypeId)) return
+      if (!this.flowData.rootEntity && !this.flowData.entityTypeId) return
       let pkgName = ''
       let entityName = ''
       if (this.flowData.rootEntity) {
@@ -627,6 +630,7 @@ export default {
         this.processInstance()
         this.showExcution = false
       } else {
+        this.isExecuteActive = true
         const currentTarget = this.allTarget.find(_ => _.id === this.selectedTarget)
         let taskNodeBinds = []
         this.modelData.forEach(_ => {
@@ -657,6 +661,7 @@ export default {
         let { status, data } = await createFlowInstance(payload)
         if (status === 'OK') {
           this.getProcessInstances(true, data)
+          this.isExecuteActive = false
           this.showExcution = false
           this.isEnqueryPage = true
         }
@@ -666,7 +671,7 @@ export default {
       if (this.timer === null) {
         this.getStatus()
       }
-      if (this.timer != null) {
+      if (this.timer !== null) {
         this.stop()
       }
       this.timer = setInterval(() => {
@@ -677,7 +682,6 @@ export default {
     stop () {
       console.log('stop', 'start clearInterval', this.timer)
       clearInterval(this.timer)
-      this.timer = null
       console.log('stop', 'end clearInterval', this.timer)
     },
     async getStatus () {
@@ -700,7 +704,6 @@ export default {
     },
     processInstance () {
       console.log('processInstance', 'start set timer', this.timer)
-      this.timer = null
       this.start()
       console.log('processInstance', 'end set timer', this.timer)
     },
