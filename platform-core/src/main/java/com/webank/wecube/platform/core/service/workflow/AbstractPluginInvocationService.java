@@ -24,9 +24,14 @@ import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 public abstract class AbstractPluginInvocationService extends AbstractWorkflowService {
 
     protected static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
+    protected static final String INPUT_PARAMETER_KEY_OPERATOR = "operator";
 
     protected static final int RESULT_CODE_OK = 0;
     protected static final int RESULT_CODE_ERR = 1;
+    
+    protected static final String PLUGIN_RESULT_CODE_FAIL = "1";
+    protected static final String PLUGIN_RESULT_CODE_PARTIALLY_FAIL = "1";
+    protected static final String PLUGIN_RESULT_CODE_PARTIALLY_KEY = "errorCode";
 
     protected static final String DATA_TYPE_STRING = "string";
     protected static final String DATA_TYPE_NUMBER = "number";
