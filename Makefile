@@ -1,7 +1,7 @@
 current_dir:=$(shell pwd)
 date:=$(shell date +%Y%m%d%H%M%S)
 version:=$(shell bash  ./build/version.sh)
-remote_docker_image_registry=ccr.ccs.tencentyun.com/webankpartners
+tencent_cloud_docker_image_registry=ccr.ccs.tencentyun.com/webankpartners
 
 clean:
 	rm -rf $(current_dir)/platform-auth-client/target
@@ -31,55 +31,90 @@ image:
 	sh build/db/build-image.sh $(version)
 
 push:
-	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-core:$(date)-$(version)
+	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
 
-	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
 
-	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
 
-	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
 
-	docker tag  wecube-db:$(version) ${remote_docker_image_registry}/wecube-db:${date}-$(version)
-	docker push ${remote_docker_image_registry}/wecube-db:${date}-$(version)
+	docker tag  wecube-db:$(version) ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
+	docker push ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
+
+tencent_cloud_release_version=version-tag
+releaseToTencentCloud:
+	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
+	docker push webankpartners/platform-core:$(release_version)
+
+	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(release_version)
+	docker push webankpartners/platform-gateway:$(release_version)
+
+	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(release_version)
+	docker push webankpartners/wecube-portal:$(release_version)
+
+	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(release_version)
+	docker push webankpartners/platform-auth-server:$(release_version)
+    
+	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(release_version)
+	docker push webankpartners/wecube-db:$(release_version)
+    
+release_version=version-tag
+release:
+	git tag $(release_version) && git push origin $(release_version)
+	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
+	docker push webankpartners/platform-core:$(release_version)
+
+	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(release_version)
+	docker push webankpartners/platform-gateway:$(release_version)
+
+	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(release_version)
+	docker push webankpartners/wecube-portal:$(release_version)
+
+	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(release_version)
+	docker push webankpartners/platform-auth-server:$(release_version)
+    
+	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(release_version)
+	docker push webankpartners/wecube-db:$(release_version)
 
 env_config=smoke_branch.cfg
 target_host="tcp://10.0.0.1:2375"
 deploy:
-	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-core:$(date)-$(version)
+	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
 
-	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
 
-	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
 	
-	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
 	
 	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
-	
+
 plugin_host="tcp://10.0.0.2:2375"
 deploy_demo:
-	docker tag  platform-core:$(version) $(remote_docker_image_registry)/platform-core:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-core:$(date)-$(version)
+	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
 
-	docker tag  platform-gateway:$(version) $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
 
-	docker tag  wecube-portal:$(version) $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
 
-	docker tag  platform-auth-server:$(version) $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
-	docker push $(remote_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
+	docker push $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
 
-	docker tag  wecube-db:$(version) ${remote_docker_image_registry}/wecube-db:${date}-$(version)
-	docker push ${remote_docker_image_registry}/wecube-db:${date}-$(version)
+	docker tag  wecube-db:$(version) ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
+	docker push ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
 
 	docker-compose -f build/plugin_db.yml -H $(plugin_host) up -d
 	sed "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" build/wecube_core_mysql.tpl > wecube_core_mysql.yml
