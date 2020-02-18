@@ -46,24 +46,24 @@ push:
 	docker tag  wecube-db:$(version) ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
 	docker push ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
 
-tencent_cloud_release_version=version-tag
+tencent_cloud_release_version=tencent-cloud-release-version
 releaseToTencentCloud:
-	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
-	docker push webankpartners/platform-core:$(release_version)
+	docker tag  platform-core:$(version) webankpartners/platform-core:$(tencent_cloud_release_version)
+	docker push webankpartners/platform-core:$(tencent_cloud_release_version)
 
-	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(release_version)
-	docker push webankpartners/platform-gateway:$(release_version)
+	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(tencent_cloud_release_version)
+	docker push webankpartners/platform-gateway:$(tencent_cloud_release_version)
 
-	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(release_version)
-	docker push webankpartners/wecube-portal:$(release_version)
+	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(tencent_cloud_release_version)
+	docker push webankpartners/wecube-portal:$(tencent_cloud_release_version)
 
-	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(release_version)
-	docker push webankpartners/platform-auth-server:$(release_version)
+	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(tencent_cloud_release_version)
+	docker push webankpartners/platform-auth-server:$(tencent_cloud_release_version)
     
-	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(release_version)
-	docker push webankpartners/wecube-db:$(release_version)
+	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(tencent_cloud_release_version)
+	docker push webankpartners/wecube-db:$(tencent_cloud_release_version)
     
-release_version=version-tag
+release_version=release-version
 release:
 	git tag $(release_version) && git push origin $(release_version)
 	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
