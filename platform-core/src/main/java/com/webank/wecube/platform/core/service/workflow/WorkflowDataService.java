@@ -84,24 +84,6 @@ public class WorkflowDataService {
             return result;
         }
 
-        Optional<TaskNodeDefInfoEntity> nodeDefEntityOpt = taskNodeDefInfoRepository
-                .findById(nodeEntity.getNodeDefId());
-        if (!nodeDefEntityOpt.isPresent()) {
-            throw new WecubeCoreException("Invalid node definition ID:" + nodeEntity.getNodeDefId());
-        }
-        TaskNodeDefInfoEntity nodeDefEntity = nodeDefEntityOpt.get();
-        String serviceId = nodeDefEntity.getServiceId();
-
-        Set<PluginConfigInterfaceParameter> inputParameters = null;
-        Set<PluginConfigInterfaceParameter> outputParameters = null;
-        try {
-            PluginConfigInterface pci = pluginConfigService.getPluginConfigInterfaceByServiceName(serviceId);
-            inputParameters = pci.getInputParameters();
-            outputParameters = pci.getOutputParameters();
-        } catch (Exception e) {
-            log.warn("errors to fetch plugin interface information with service ID {}", serviceId);
-        }
-
         result.setRequestId(requestEntity.getRequestId());
         result.setErrorCode(requestEntity.getErrorCode());
         if (StringUtils.isNotBlank(result.getErrorMessage())) {
@@ -117,41 +99,33 @@ public class WorkflowDataService {
                 .findAllByRequestIdAndParamType(requestEntity.getRequestId(),
                         TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
 
-        List<RequestObjectDto> requestObjects = calculateRequestObjectDtos(requestParamEntities, responseParamEntities,
-                inputParameters, outputParameters);
+        List<RequestObjectDto> requestObjects = calculateRequestObjectDtos(requestParamEntities, responseParamEntities);
 
         requestObjects.forEach(result::addRequestObjects);
 
         return result;
     }
 
-    private boolean isSensitiveData(String paramName, Set<PluginConfigInterfaceParameter> parameters) {
-        if (parameters == null || parameters.isEmpty()) {
+    private boolean isSensitiveData(TaskNodeExecParamEntity respParamEntity) {
+        if (respParamEntity == null) {
             return false;
         }
 
-        PluginConfigInterfaceParameter metParameter = null;
-        for (PluginConfigInterfaceParameter p : parameters) {
-            if (paramName.equals(p.getName())) {
-                metParameter = p;
-                break;
-            }
-        }
-
-        if (metParameter == null) {
+        if (respParamEntity.getSensitive() == null) {
             return false;
         }
 
-        if ("Y".equalsIgnoreCase(metParameter.getSensitiveData())) {
+        if (Boolean.TRUE.equals(respParamEntity.getSensitive())) {
             return true;
+
         }
 
         return false;
+
     }
 
     private Map<String, Map<String, String>> calculateRespParamsByObjectId(
-            List<TaskNodeExecParamEntity> requestParamEntities, List<TaskNodeExecParamEntity> responseParamEntities,
-            Set<PluginConfigInterfaceParameter> inputParameters, Set<PluginConfigInterfaceParameter> outputParameters) {
+            List<TaskNodeExecParamEntity> requestParamEntities, List<TaskNodeExecParamEntity> responseParamEntities) {
         Map<String, Map<String, String>> respParamsByObjectId = new HashMap<String, Map<String, String>>();
         if (responseParamEntities != null) {
             for (TaskNodeExecParamEntity respParamEntity : responseParamEntities) {
@@ -160,7 +134,7 @@ public class WorkflowDataService {
                     respParamsMap = new HashMap<String, String>();
                     respParamsByObjectId.put(respParamEntity.getObjectId(), respParamsMap);
                 }
-                if (isSensitiveData(respParamEntity.getParamName(), outputParameters)) {
+                if (isSensitiveData(respParamEntity)) {
                     respParamsMap.put(respParamEntity.getParamName(), "***MASK***");
                 } else {
                     respParamsMap.put(respParamEntity.getParamName(), respParamEntity.getParamDataValue());
@@ -173,8 +147,7 @@ public class WorkflowDataService {
     }
 
     private Map<String, RequestObjectDto> calculateRequestObjects(List<TaskNodeExecParamEntity> requestParamEntities,
-            List<TaskNodeExecParamEntity> responseParamEntities, Set<PluginConfigInterfaceParameter> inputParameters,
-            Set<PluginConfigInterfaceParameter> outputParameters) {
+            List<TaskNodeExecParamEntity> responseParamEntities) {
         Map<String, RequestObjectDto> objs = new HashMap<>();
         for (TaskNodeExecParamEntity rp : requestParamEntities) {
             RequestObjectDto ro = objs.get(rp.getObjectId());
@@ -183,7 +156,7 @@ public class WorkflowDataService {
                 objs.put(rp.getObjectId(), ro);
             }
 
-            if (isSensitiveData(rp.getParamName(), inputParameters)) {
+            if (isSensitiveData(rp)) {
                 ro.addInput(rp.getParamName(), "***MASK***");
             } else {
                 ro.addInput(rp.getParamName(), rp.getParamDataValue());
@@ -194,8 +167,7 @@ public class WorkflowDataService {
     }
 
     private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
-            List<TaskNodeExecParamEntity> responseParamEntities, Set<PluginConfigInterfaceParameter> inputParameters,
-            Set<PluginConfigInterfaceParameter> outputParameters) {
+            List<TaskNodeExecParamEntity> responseParamEntities) {
         List<RequestObjectDto> requestObjects = new ArrayList<>();
 
         if (requestParamEntities == null) {
@@ -203,10 +175,9 @@ public class WorkflowDataService {
         }
 
         Map<String, Map<String, String>> respParamsByObjectId = calculateRespParamsByObjectId(requestParamEntities,
-                responseParamEntities, inputParameters, outputParameters);
+                responseParamEntities);
 
-        Map<String, RequestObjectDto> objs = calculateRequestObjects(requestParamEntities, responseParamEntities,
-                inputParameters, outputParameters);
+        Map<String, RequestObjectDto> objs = calculateRequestObjects(requestParamEntities, responseParamEntities);
 
         for (String objectId : objs.keySet()) {
             RequestObjectDto obj = objs.get(objectId);
