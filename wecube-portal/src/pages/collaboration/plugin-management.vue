@@ -588,6 +588,7 @@ export default {
           desc: message
         })
       }
+      this.isLoading = false
       this.getAvailableInstancesByPackageId(this.currentPlugin.id)
     },
     async getAvailableInstancesByPackageId (id) {
