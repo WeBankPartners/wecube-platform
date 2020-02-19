@@ -88,7 +88,7 @@
             </Col>
           </Row>
           <div id="paramsContainer">
-            <Collapse simple>
+            <Collapse v-model="activePanel" simple>
               <Panel
                 v-for="(inter, index) in currentPluginObj.interfaces"
                 :key="index + inter.action"
@@ -266,6 +266,7 @@ import {
 export default {
   data () {
     return {
+      activePanel: null,
       allDataModelsWithAttrs: {},
       currentPlugin: '',
       plugins: [],
@@ -436,6 +437,7 @@ export default {
       this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
     },
     registSourceChange (v) {
+      this.activePanel = []
       if (!v || v === 'add') {
         this.registerName = ''
         this.selectedEntityType = ''
@@ -443,12 +445,15 @@ export default {
         return
       }
 
-      this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
-      this.selectedEntityType = this.currentPluginObj.entityName
-      this.registerName = this.currentPluginObj.registerName
-      this.selectedEntityType = this.currentPluginObj.targetEntity
-      this.targetPackage = this.currentPluginObj.targetPackage
-      this.hasNewSource = false
+      this.currentPluginObj = {}
+      this.$nextTick(() => {
+        this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
+        this.selectedEntityType = this.currentPluginObj.entityName
+        this.registerName = this.currentPluginObj.registerName
+        this.selectedEntityType = this.currentPluginObj.targetEntity
+        this.targetPackage = this.currentPluginObj.targetPackage
+        this.hasNewSource = false
+      })
     },
     copyRegistSource (v) {
       this.registSourceChange(v)

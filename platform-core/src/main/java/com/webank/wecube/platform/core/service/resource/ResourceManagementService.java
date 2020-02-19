@@ -158,7 +158,7 @@ public class ResourceManagementService {
     public void deleteItems(List<ResourceItemDto> resourceItems) {
         validateIfItemsAreExists(resourceItems);
         Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
-        validateIfItemAllocated(enrichedItems);
+//        validateIfItemAllocated(enrichedItems);
         resourceImplementationService.deleteItems(enrichedItems);
         resourceItemRepository.deleteAll(enrichedItems);
     }
