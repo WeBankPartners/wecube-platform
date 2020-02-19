@@ -7,8 +7,16 @@ import com.webank.wecube.platform.core.dto.workflow.FlowNodeDefDto;
 import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
 import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
+import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
+import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
@@ -20,7 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,7 +42,10 @@ public class WorkflowDataService {
     private WorkflowProcDefService workflowProcDefService;
 
     @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepo;
+    private TaskNodeDefInfoRepository taskNodeDefInfoRepository;
+
+    @Autowired
+    private TaskNodeInstInfoRepository taskNodeInstInfoRepository;
 
     @Autowired
     private ExpressionService expressionService;
@@ -40,9 +53,179 @@ public class WorkflowDataService {
     @Autowired
     private PluginConfigService pluginConfigService;
 
+    @Autowired
+    protected TaskNodeExecParamRepository taskNodeExecParamRepository;
+
+    @Autowired
+    protected TaskNodeExecRequestRepository taskNodeExecRequestRepository;
+
+    public TaskNodeExecContextDto getTaskNodeContextInfo(Integer procInstId, Integer nodeInstId) {
+        Optional<TaskNodeInstInfoEntity> nodeEntityOpt = taskNodeInstInfoRepository.findById(nodeInstId);
+        if (!nodeEntityOpt.isPresent()) {
+            throw new WecubeCoreException("Invalid node instance id:" + nodeInstId);
+        }
+
+        TaskNodeInstInfoEntity nodeEntity = nodeEntityOpt.get();
+
+        TaskNodeExecContextDto result = new TaskNodeExecContextDto();
+        result.setNodeDefId(nodeEntity.getNodeDefId());
+        result.setNodeId(nodeEntity.getNodeId());
+        result.setNodeInstId(nodeEntity.getId());
+        result.setNodeName(nodeEntity.getNodeName());
+        result.setNodeType(nodeEntity.getNodeType());
+        if (StringUtils.isNotBlank(nodeEntity.getErrorMessage())) {
+            result.setErrorMessage(nodeEntity.getErrorMessage());
+        }
+
+        TaskNodeExecRequestEntity requestEntity = taskNodeExecRequestRepository
+                .findCurrentEntityByNodeInstId(nodeEntity.getId());
+
+        if (requestEntity == null) {
+            return result;
+        }
+
+        Optional<TaskNodeDefInfoEntity> nodeDefEntityOpt = taskNodeDefInfoRepository
+                .findById(nodeEntity.getNodeDefId());
+        if (!nodeDefEntityOpt.isPresent()) {
+            throw new WecubeCoreException("Invalid node definition ID:" + nodeEntity.getNodeDefId());
+        }
+        TaskNodeDefInfoEntity nodeDefEntity = nodeDefEntityOpt.get();
+        String serviceId = nodeDefEntity.getServiceId();
+
+        Set<PluginConfigInterfaceParameter> inputParameters = null;
+        Set<PluginConfigInterfaceParameter> outputParameters = null;
+        try {
+            PluginConfigInterface pci = pluginConfigService.getPluginConfigInterfaceByServiceName(serviceId);
+            inputParameters = pci.getInputParameters();
+            outputParameters = pci.getOutputParameters();
+        } catch (Exception e) {
+            log.warn("errors to fetch plugin interface information with service ID {}", serviceId);
+        }
+
+        result.setRequestId(requestEntity.getRequestId());
+        result.setErrorCode(requestEntity.getErrorCode());
+        if (StringUtils.isNotBlank(result.getErrorMessage())) {
+            result.setErrorMessage(result.getErrorMessage() + "|" + requestEntity.getErrorMessage());
+        } else {
+            result.setErrorMessage(requestEntity.getErrorMessage());
+        }
+
+        List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
+                requestEntity.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
+
+        List<TaskNodeExecParamEntity> responseParamEntities = taskNodeExecParamRepository
+                .findAllByRequestIdAndParamType(requestEntity.getRequestId(),
+                        TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
+
+        List<RequestObjectDto> requestObjects = calculateRequestObjectDtos(requestParamEntities, responseParamEntities,
+                inputParameters, outputParameters);
+
+        requestObjects.forEach(result::addRequestObjects);
+
+        return result;
+    }
+
+    private boolean isSensitiveData(String paramName, Set<PluginConfigInterfaceParameter> parameters) {
+        if (parameters == null || parameters.isEmpty()) {
+            return false;
+        }
+
+        PluginConfigInterfaceParameter metParameter = null;
+        for (PluginConfigInterfaceParameter p : parameters) {
+            if (paramName.equals(p.getName())) {
+                metParameter = p;
+                break;
+            }
+        }
+
+        if (metParameter == null) {
+            return false;
+        }
+
+        if ("Y".equalsIgnoreCase(metParameter.getSensitiveData())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private Map<String, Map<String, String>> calculateRespParamsByObjectId(
+            List<TaskNodeExecParamEntity> requestParamEntities, List<TaskNodeExecParamEntity> responseParamEntities,
+            Set<PluginConfigInterfaceParameter> inputParameters, Set<PluginConfigInterfaceParameter> outputParameters) {
+        Map<String, Map<String, String>> respParamsByObjectId = new HashMap<String, Map<String, String>>();
+        if (responseParamEntities != null) {
+            for (TaskNodeExecParamEntity respParamEntity : responseParamEntities) {
+                Map<String, String> respParamsMap = respParamsByObjectId.get(respParamEntity.getObjectId());
+                if (respParamsMap == null) {
+                    respParamsMap = new HashMap<String, String>();
+                    respParamsByObjectId.put(respParamEntity.getObjectId(), respParamsMap);
+                }
+                if (isSensitiveData(respParamEntity.getParamName(), outputParameters)) {
+                    respParamsMap.put(respParamEntity.getParamName(), "***MASK***");
+                } else {
+                    respParamsMap.put(respParamEntity.getParamName(), respParamEntity.getParamDataValue());
+                }
+
+            }
+        }
+
+        return respParamsByObjectId;
+    }
+
+    private Map<String, RequestObjectDto> calculateRequestObjects(List<TaskNodeExecParamEntity> requestParamEntities,
+            List<TaskNodeExecParamEntity> responseParamEntities, Set<PluginConfigInterfaceParameter> inputParameters,
+            Set<PluginConfigInterfaceParameter> outputParameters) {
+        Map<String, RequestObjectDto> objs = new HashMap<>();
+        for (TaskNodeExecParamEntity rp : requestParamEntities) {
+            RequestObjectDto ro = objs.get(rp.getObjectId());
+            if (ro == null) {
+                ro = new RequestObjectDto();
+                objs.put(rp.getObjectId(), ro);
+            }
+
+            if (isSensitiveData(rp.getParamName(), inputParameters)) {
+                ro.addInput(rp.getParamName(), "***MASK***");
+            } else {
+                ro.addInput(rp.getParamName(), rp.getParamDataValue());
+            }
+        }
+
+        return objs;
+    }
+
+    private List<RequestObjectDto> calculateRequestObjectDtos(List<TaskNodeExecParamEntity> requestParamEntities,
+            List<TaskNodeExecParamEntity> responseParamEntities, Set<PluginConfigInterfaceParameter> inputParameters,
+            Set<PluginConfigInterfaceParameter> outputParameters) {
+        List<RequestObjectDto> requestObjects = new ArrayList<>();
+
+        if (requestParamEntities == null) {
+            return requestObjects;
+        }
+
+        Map<String, Map<String, String>> respParamsByObjectId = calculateRespParamsByObjectId(requestParamEntities,
+                responseParamEntities, inputParameters, outputParameters);
+
+        Map<String, RequestObjectDto> objs = calculateRequestObjects(requestParamEntities, responseParamEntities,
+                inputParameters, outputParameters);
+
+        for (String objectId : objs.keySet()) {
+            RequestObjectDto obj = objs.get(objectId);
+            Map<String, String> respParamsMap = respParamsByObjectId.get(objectId);
+            if (respParamsMap != null) {
+                respParamsMap.forEach((k, v) -> {
+                    obj.addOutput(k, v);
+                });
+            }
+
+            requestObjects.add(obj);
+        }
+
+        return requestObjects;
+    }
+
     public List<InterfaceParameterDto> getTaskNodeParameters(String procDefId, String nodeDefId) {
         List<InterfaceParameterDto> result = new ArrayList<>();
-        Optional<TaskNodeDefInfoEntity> entityOptional = taskNodeDefInfoRepo.findById(nodeDefId);
+        Optional<TaskNodeDefInfoEntity> entityOptional = taskNodeDefInfoRepository.findById(nodeDefId);
         if (!entityOptional.isPresent()) {
             return result;
         }
@@ -114,7 +297,8 @@ public class WorkflowDataService {
             try {
                 nodes = expressionService.getPreviewTree(expr);
             } catch (Exception e) {
-                log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId, e);
+                log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId,
+                        e);
                 throw new WecubeCoreException(e.getMessage());
             }
 
