@@ -131,8 +131,13 @@
                     </Col>
                     <Col span="3" offset="0">
                       <FormItem :label-width="0">
-                        <Select v-model="sensiveTag" size="small" style="width:50px">
-                          <Option v-for="item in sensiveData" :value="item.value" :key="item.value">{{
+                        <Select
+                          v-model="param.sensitiveData"
+                          size="small"
+                          style="width:50px"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                        >
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                             item.label
                           }}</Option>
                         </Select>
@@ -209,8 +214,13 @@
                     </Col>
                     <Col span="3" offset="0">
                       <FormItem :label-width="0">
-                        <Select v-model="sensiveTag" size="small" style="width:50px">
-                          <Option v-for="item in sensiveData" :value="item.value" :key="item.value">{{
+                        <Select
+                          v-model="outPut.sensitiveData"
+                          size="small"
+                          style="width:50px"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                        >
+                          <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
                             item.label
                           }}</Option>
                         </Select>
@@ -314,12 +324,7 @@ export default {
       targetPackage: '',
       form: {},
       allSystemVariables: [],
-      sensiveTag: 'NULL',
-      sensiveData: [
-        {
-          value: 'NULL',
-          label: 'NULL'
-        },
+      sensitiveData: [
         {
           value: 'Y',
           label: 'Y'
@@ -380,7 +385,9 @@ export default {
           delete _.id
         })
       }
+      console.log(currentPluginForSave)
       const { data, status, message } = await savePluginConfig(currentPluginForSave)
+
       const id = data.id
       if (status === 'OK') {
         this.$Notice.success({
@@ -483,21 +490,22 @@ export default {
       this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
     },
     registSourceChange (v) {
+      this.currentPluginObj = {}
       if (!v || v === 'add') {
         this.registerName = ''
         this.selectedEntityType = ''
-        this.currentPluginObj = {}
+
         return
       }
-
-      this.currentPluginObj = {}
       this.$nextTick(() => {
+        console.log(this.sourceList)
         this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
         this.selectedEntityType = this.currentPluginObj.entityName
         this.registerName = this.currentPluginObj.registerName
         this.selectedEntityType = this.currentPluginObj.targetEntity
         this.targetPackage = this.currentPluginObj.targetPackage
         this.hasNewSource = false
+        console.log(this.currentPluginObj)
       })
     },
     copyRegistSource (v) {
