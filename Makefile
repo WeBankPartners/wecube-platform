@@ -65,7 +65,6 @@ releaseToTencentCloud:
     
 release_version=release-version
 release:
-	git tag $(release_version) && git push origin $(release_version)
 	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
 	docker push webankpartners/platform-core:$(release_version)
 
