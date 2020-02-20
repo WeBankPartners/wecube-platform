@@ -20,8 +20,8 @@ build:
 	mkdir -p repository
 	docker run --rm --name $(build_name)  -e SASS_BINARY_SITE=https://npm.taobao.org/mirrors/node-sass -v /data/wecube_repository:/usr/src/mymaven/repository -v $(current_dir)/build/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
 	docker run --rm --name $(build_name)_node  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm --registry https://registry.npm.taobao.org install --unsafe-perm
-	docker run --rm --name $(build_name)_node  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm rebuild node-sass
-	docker run --rm --name $(build_name)_node  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm run build
+	docker run --rm --name $(build_name)_node1  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm rebuild node-sass
+	docker run --rm --name $(build_name)_node2  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm run build
 
 image:
 	docker build -t platform-core:$(version) -f build/platform-core/Dockerfile .
