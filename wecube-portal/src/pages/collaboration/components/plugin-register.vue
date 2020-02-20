@@ -424,9 +424,6 @@ export default {
       const { data, status } = await getAllPluginByPkgId(this.pkgId)
       if (status === 'OK') {
         this.plugins = data
-        if (data.length === 1) {
-          this.selectPlugin(data[0].name || '')
-        }
       }
     },
     selectPlugin (val) {
