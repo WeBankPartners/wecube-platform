@@ -120,6 +120,7 @@
       width="50"
       @on-ok="targetModelConfirm"
     >
+      <Input v-model="tableFilterParam" placeholder="displayName filter" style="width: 300px;margin-bottom:8px;" />
       <Table
         border
         ref="selection"
@@ -218,7 +219,9 @@ export default {
       isEnqueryPage: false,
       workflowActionModalVisible: false,
       targetModalVisible: false,
+      tableFilterParam: null,
       tartetModels: [],
+      catchTartetModels: [],
       targetModelColums: [
         {
           type: 'selection',
@@ -297,9 +300,22 @@ export default {
   },
   watch: {
     targetModalVisible: function (val) {
+      this.tableFilterParam = null
       if (!val) {
         this.catchNodeTableList = []
       }
+    },
+    tableFilterParam: function (filter) {
+      this.tartetModels = this.catchTartetModels.filter(item => {
+        return item.displayName.includes(filter)
+      })
+      this.tartetModels.forEach(tm => {
+        this.catchNodeTableList.forEach(cn => {
+          if (tm.id === cn.id) {
+            tm._checked = true
+          }
+        })
+      })
     },
     nodeDetailFullscreen: function (tag) {
       tag ? (this.fullscreenModalContentStyle = {}) : (this.fullscreenModalContentStyle['max-height'] = '400px')
@@ -802,6 +818,7 @@ export default {
       this.renderFlowGraph()
     },
     highlightModel (nodeId) {
+      this.catchTartetModels = []
       const routineExpression = this.flowData.flowNodes.find(item => item.nodeId === nodeId).routineExpression
       if (routineExpression) {
         this.foundRefAry = routineExpression.split(/[~.>()]/).filter(i => i.length > 0)
@@ -815,6 +832,7 @@ export default {
           this.modelData.filter(_ => this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] === _.entityName)
         )
       )
+      this.catchTartetModels = JSON.parse(JSON.stringify(this.tartetModels))
       this.targetModalVisible = true
       this.showNodeDetail = false
       this.$nextTick(() => {
