@@ -75,8 +75,11 @@
             <Col span="3" offset="0">
               <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
             </Col>
-            <Col span="3" offset="1">
+            <Col span="3" offset="0">
               <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
+            </Col>
+            <Col span="3" offset="0">
+              <strong style="font-size:15px;">敏感</strong>
             </Col>
             <Col span="8" offset="0">
               <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
@@ -121,9 +124,18 @@
                         </Tooltip>
                       </FormItem>
                     </Col>
-                    <Col span="3">
+                    <Col span="2" offset="0">
                       <FormItem :label-width="0">
                         <span>{{ param.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="3" offset="0">
+                      <FormItem :label-width="0">
+                        <Select v-model="sensiveTag" size="small" style="width:50px">
+                          <Option v-for="item in sensiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
                       </FormItem>
                     </Col>
                     <Col span="10" offset="0">
@@ -153,9 +165,10 @@
                         <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
                       </FormItem>
                     </Col>
-                    <Col span="4" offset="1">
+                    <Col span="3" offset="1">
                       <FormItem :label-width="0">
                         <Select
+                          size="small"
                           :disabled="currentPluginObj.status === 'ENABLED'"
                           v-model="param.mappingType"
                           @on-change="mappingTypeChange($event, param)"
@@ -178,7 +191,7 @@
                 </Col>
                 <Col span="21" offset="0">
                   <Row v-for="(outPut, index) in inter['outputParameters']" :key="index">
-                    <Col span="4">
+                    <Col span="5">
                       <FormItem :label-width="0">
                         <Tooltip :content="outPut.name" style="width: 100%">
                           <span v-if="outPut.required === 'Y'" style="color:red">*</span>
@@ -189,9 +202,18 @@
                         </Tooltip>
                       </FormItem>
                     </Col>
-                    <Col span="3" offset="1">
+                    <Col span="2" offset="0">
                       <FormItem :label-width="0">
                         <span>{{ outPut.dataType }}</span>
+                      </FormItem>
+                    </Col>
+                    <Col span="3" offset="0">
+                      <FormItem :label-width="0">
+                        <Select v-model="sensiveTag" size="small" style="width:50px">
+                          <Option v-for="item in sensiveData" :value="item.value" :key="item.value">{{
+                            item.label
+                          }}</Option>
+                        </Select>
                       </FormItem>
                     </Col>
                     <Col span="10" offset="0">
@@ -207,9 +229,13 @@
                         <span v-if="outPut.mappingType === 'context'">N/A</span>
                       </FormItem>
                     </Col>
-                    <Col span="4" offset="1">
+                    <Col span="3" offset="1">
                       <FormItem :label-width="0">
-                        <Select :disabled="currentPluginObj.status === 'ENABLED'" v-model="outPut.mappingType">
+                        <Select
+                          size="small"
+                          :disabled="currentPluginObj.status === 'ENABLED'"
+                          v-model="outPut.mappingType"
+                        >
                           <Option value="context" key="context">context</Option>
                           <Option value="entity" key="entity">entity</Option>
                         </Select>
@@ -287,7 +313,22 @@ export default {
       selectedEntityType: '',
       targetPackage: '',
       form: {},
-      allSystemVariables: []
+      allSystemVariables: [],
+      sensiveTag: 'NULL',
+      sensiveData: [
+        {
+          value: 'NULL',
+          label: 'NULL'
+        },
+        {
+          value: 'Y',
+          label: 'Y'
+        },
+        {
+          value: 'N',
+          label: 'N'
+        }
+      ]
     }
   },
   components: {
