@@ -90,11 +90,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
     protected void doHandleAsyncInvocationResult(String resultCode, String resultMessage, List<Object> resultData,
             PluginInterfaceInvocationContext ctx) {
-        if (PluginAsyncInvocationResultDto.RESULT_CODE_FAIL.equalsIgnoreCase(resultCode)) {
-            handleErrorInvocationResult(resultMessage, resultData, ctx);
-            return;
-        }
-
+        
         Optional<TaskNodeDefInfoEntity> nodeDefEntityOpt = taskNodeDefInfoRepository
                 .findById(ctx.getTaskNodeInstEntity().getNodeDefId());
         if (!nodeDefEntityOpt.isPresent()) {
@@ -115,6 +111,11 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         ctx.withPluginConfigInterface(pluginConfigInterface)//
                 .withTaskNodeDefEntity(nodeDefEntity);
+        
+        if (PluginAsyncInvocationResultDto.RESULT_CODE_FAIL.equalsIgnoreCase(resultCode)) {
+            handleErrorInvocationResult(resultMessage, resultData, ctx);
+            return;
+        }
 
         if (resultData == null) {
             handleNullResultData(ctx);
