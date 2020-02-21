@@ -216,7 +216,7 @@
               </Panel>
             </Collapse>
           </div>
-          <Row style="margin:20px auto">
+          <Row v-if="currentPluginObjKeysLength > 1" style="margin:20px auto">
             <Col span="9" offset="8">
               <Button type="primary" v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
                 $t('save')
@@ -293,6 +293,9 @@ export default {
       const allEntity = [].concat(...this.allEntityType.map(_ => _.pluginPackageEntities))
       const found = allEntity.find(i => i.name === this.selectedEntityType)
       return found ? found.attributes : []
+    },
+    currentPluginObjKeysLength () {
+      return Object.keys(this.currentPluginObj).length
     }
   },
   props: {
@@ -430,6 +433,7 @@ export default {
       this.hasNewSource = false
       this.hidePanal = true
       this.currentPlugin = val
+      this.currentPluginObj = {}
       let currentPluginData = this.plugins.find(plugin => plugin.pluginConfigName === val)
       this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
     },
@@ -444,7 +448,7 @@ export default {
 
       this.currentPluginObj = {}
       this.$nextTick(() => {
-        this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
+        this.currentPluginObj = { ...this.sourceList.find(source => source.id === v) }
         this.selectedEntityType = this.currentPluginObj.entityName
         this.registerName = this.currentPluginObj.registerName
         this.selectedEntityType = this.currentPluginObj.targetEntity

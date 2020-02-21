@@ -4,8 +4,8 @@
     <div id="dataModelContainer">
       <!-- <div class="loading" v-if="isLoading"> -->
       <Spin v-if="isLoading" fix size="large">
-        <Icon type="ios-loading" size="44" class="demo-spin-icon-load"></Icon>
-        <div>Loading</div>
+        <Icon type="ios-loading" size="54" class="demo-spin-icon-load"></Icon>
+        <!-- <div>Loading</div> -->
       </Spin>
       <!-- </div> -->
       <div v-show="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
@@ -89,7 +89,9 @@ export default {
       }
     },
     async applyNewDataModel () {
+      this.isLoading = true
       let { status } = await applyNewDataModel(this.dataModel)
+      this.isLoading = false
       if (status === 'OK') {
         if (this.dataModel.dynamic) {
           this.isApplyBtnDisabled = true
