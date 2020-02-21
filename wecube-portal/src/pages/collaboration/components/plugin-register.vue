@@ -448,7 +448,7 @@ export default {
 
       this.currentPluginObj = {}
       this.$nextTick(() => {
-        this.currentPluginObj = { ...this.sourceList.find(source => source.id === v) }
+        this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
         this.selectedEntityType = this.currentPluginObj.entityName
         this.registerName = this.currentPluginObj.registerName
         this.selectedEntityType = this.currentPluginObj.targetEntity
