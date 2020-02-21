@@ -53,7 +53,7 @@
           </OptionGroup>
         </Select>
       </Col>
-      <Button type="info" @click="saveDiagram(false)">
+      <Button type="info" :disabled="isSaving" @click="saveDiagram(false)">
         {{ $t('save_flow') }}
       </Button>
       <Button type="info" @click="exportProcessDefinition(false)">
@@ -159,6 +159,7 @@
       v-model="flowRoleManageModal"
       width="700"
       :title="$t('edit_role')"
+      :mask-closable="false"
       @on-ok="confirmRole"
       @on-cancel="confirmRole"
     >
@@ -239,6 +240,7 @@ export default {
   },
   data () {
     return {
+      isSaving: false,
       headers: {},
       mgmtRolesKeyToFlow: [],
       useRolesKeyToFlow: [],
@@ -621,8 +623,8 @@ export default {
           taskNodeInfos: _this.serviceTaskBindInfos
         }
 
-        isDraft
-          ? saveFlowDraft(payload).then(data => {
+        if (isDraft) {
+          saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
               _this.$Notice.success({
                 title: 'Success',
@@ -633,7 +635,10 @@ export default {
               _this.temporaryFlow = data.data.procDefId
             }
           })
-          : saveFlow(payload).then(data => {
+        } else {
+          _this.isSaving = true
+          saveFlow(payload).then(data => {
+            _this.isSaving = false
             if (data && data.status === 'OK') {
               _this.$Notice.success({
                 title: 'Success',
@@ -644,6 +649,7 @@ export default {
               _this.temporaryFlow = data.data.procDefId
             }
           })
+        }
       })
     },
     savePluginConfig (ref) {
