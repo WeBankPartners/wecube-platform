@@ -79,7 +79,7 @@
               <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
             </Col>
             <Col span="3" offset="0">
-              <strong style="font-size:15px;">敏感</strong>
+              <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
             </Col>
             <Col span="8" offset="0">
               <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
@@ -385,7 +385,6 @@ export default {
           delete _.id
         })
       }
-      console.log(currentPluginForSave)
       const { data, status, message } = await savePluginConfig(currentPluginForSave)
 
       const id = data.id
@@ -412,10 +411,6 @@ export default {
       }
     },
     async regist () {
-      // const pluginConfigDtoList = this.plugins.find(plugin => plugin.pluginConfigName === this.currentPlugin)
-      //   .pluginConfigDtoList
-      // const plugin = pluginConfigDtoList.find(dto => dto.id === this.currentPluginObj.id)
-      // const saveRes = await savePluginConfig(plugin)
       const saveRes = await savePluginConfig(this.currentPluginObj)
       if (saveRes.status === 'OK') {
         const { status, message } = await registerPlugin(this.currentPluginObj.id)
@@ -497,15 +492,15 @@ export default {
 
         return
       }
+      const currentPluginData = this.plugins.find(plugin => plugin.pluginConfigName === this.currentPlugin)
+      this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
       this.$nextTick(() => {
-        console.log(this.sourceList)
         this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
         this.selectedEntityType = this.currentPluginObj.entityName
         this.registerName = this.currentPluginObj.registerName
         this.selectedEntityType = this.currentPluginObj.targetEntity
         this.targetPackage = this.currentPluginObj.targetPackage
         this.hasNewSource = false
-        console.log(this.currentPluginObj)
       })
     },
     copyRegistSource (v) {
