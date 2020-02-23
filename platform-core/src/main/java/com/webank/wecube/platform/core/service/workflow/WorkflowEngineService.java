@@ -1,5 +1,9 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,6 +25,7 @@ import org.camunda.bpm.engine.runtime.EventSubscriptionQuery;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstanceQuery;
 import org.camunda.bpm.engine.task.Task;
+import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.FlowNode;
 import org.camunda.bpm.model.bpmn.instance.StartEvent;
@@ -484,6 +489,61 @@ public class WorkflowEngineService {
         ProcessDefinition processDef = processDefs.get(0);
 
         return processDef;
+    }
+    
+    public ProcDefOutline readProcDefOutlineFromXmlData(String xmlData){
+        BpmnModelInstance bpmnModel = readModelFromXmlData(xmlData); 
+
+        ProcDefOutline pdo = new ProcDefOutline();
+        
+        
+        Collection<org.camunda.bpm.model.bpmn.instance.Process> processes = bpmnModel
+                .getModelElementsByType(org.camunda.bpm.model.bpmn.instance.Process.class);
+
+        org.camunda.bpm.model.bpmn.instance.Process process = processes.iterator().next();
+        
+//        pdo.setProcDefKey(process.getKey());
+        pdo.setProcDefName(process.getName());
+
+        Collection<StartEvent> startEvents = process.getChildElementsByType(StartEvent.class);
+
+        StartEvent startEvent = startEvents.iterator().next();
+
+        populateFlowNodes(pdo, startEvent);
+
+        return pdo;
+    }
+    
+    protected BpmnModelInstance readModelFromXmlData(String xmlData){
+        if(StringUtils.isBlank(xmlData)){
+            throw new WecubeCoreException("XML data to parse cannot be blank.");
+        }
+        
+        InputStream is = null;
+        BpmnModelInstance procModelInstance = null;
+        try {
+            is = new ByteArrayInputStream(xmlData.getBytes(encoding));
+            procModelInstance = Bpmn.readModelFromStream(is);
+        } catch (UnsupportedEncodingException e1) {
+            log.error("errors while reading model", e1);
+            procModelInstance = null;
+            throw new WecubeCoreException("failed to read xml process content");
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    log.error("errors while closing", e);
+                }
+            }
+        }
+        
+        if(procModelInstance == null){
+            log.error("failed to read model instance.");
+            throw new WecubeCoreException("Failed to read model instance.");
+        }
+        
+        return procModelInstance;
     }
 
     public ProcDefOutline getProcDefOutline(ProcessDefinition procDef) {
