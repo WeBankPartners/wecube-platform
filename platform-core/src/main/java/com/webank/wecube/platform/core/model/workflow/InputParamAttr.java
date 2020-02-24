@@ -15,6 +15,7 @@ public class InputParamAttr {
     private String type; // string, number
     private String mapType; // entity, context, constant
     private List<Object> values = new ArrayList<>();
+    private boolean sensitive;
 
     public String getName() {
         return name;
@@ -132,6 +133,14 @@ public class InputParamAttr {
         }
 
         return sb.toString();
+    }
+
+    public boolean isSensitive() {
+        return sensitive;
+    }
+
+    public void setSensitive(boolean sensitive) {
+        this.sensitive = sensitive;
     }
 
 }
