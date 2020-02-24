@@ -129,10 +129,17 @@
         :data="tartetModels"
       >
         <template slot-scope="{ row, index }" slot="action">
-          <Tooltip placement="bottom" theme="light" @on-popper-show="getDetail(row)" :delay="500" max-width="400">
+          <Tooltip
+            placement="bottom"
+            theme="light"
+            trigger="click"
+            @on-popper-show="getDetail(row)"
+            :delay="500"
+            max-width="500"
+          >
             <Button type="warning" size="small">View</Button>
             <div slot="content">
-              <pre><span>{{rowContent}}</span></pre>
+              <pre style="max-height: 500px;"><span>{{rowContent}}</span></pre>
             </div>
           </Tooltip>
         </template>
@@ -144,13 +151,17 @@
         <Icon v-if="!nodeDetailFullscreen" @click="zoomModal" class="header-icon" type="ios-expand" />
         <Icon v-else @click="nodeDetailFullscreen = false" class="header-icon" type="ios-contract" />
       </p>
-      <div style="overflow:auto;">
+      <div v-if="!isTargetNodeDetail" :style="[{ overflow: 'auto' }, fullscreenModalContentStyle]">
         <h5>Data:</h5>
         <div style="margin: 0 6px 6px" v-html="nodeDetailResponseHeader"></div>
-        <!-- <pre>{{ nodeDetail }}</pre> -->
         <h5>requestObjects:</h5>
         <Table :columns="nodeDetailColumns" :max-height="tableMaxHeight" tooltip="true" :data="nodeDetailIO"></Table>
       </div>
+      <div
+        v-else
+        :style="[{ overflow: 'auto', margin: '0 6px 6px' }, fullscreenModalContentStyle]"
+        v-html="nodeDetail"
+      ></div>
     </Modal>
     <div id="model_graph_detail">
       <highlight-code lang="json">{{ modelNodeDetail }}</highlight-code>
@@ -182,7 +193,9 @@ export default {
   data () {
     return {
       showNodeDetail: false,
+      isTargetNodeDetail: false,
       nodeDetailFullscreen: false,
+      fullscreenModalContentStyle: { 'max-height': '400px' },
       tableMaxHeight: 250,
       nodeTitle: null,
       nodeDetail: null,
@@ -287,6 +300,9 @@ export default {
       if (!val) {
         this.catchNodeTableList = []
       }
+    },
+    nodeDetailFullscreen: function (tag) {
+      tag ? (this.fullscreenModalContentStyle = {}) : (this.fullscreenModalContentStyle['max-height'] = '400px')
     }
   },
   mounted () {
@@ -295,9 +311,7 @@ export default {
     this.createHandler()
   },
   destroyed () {
-    console.log('destroyed', 'start clearInterval', this.timer)
     clearInterval(this.timer)
-    console.log('destroyed', 'end clearInterval', this.timer)
   },
   methods: {
     async getDetail (row) {
@@ -391,9 +405,7 @@ export default {
       }
     },
     queryHandler () {
-      console.log('queryHandler', 'start clearInterval', this.timer)
       this.stop()
-      console.log('queryHandler', 'end clearInterval', this.timer)
       if (!this.selectedFlowInstance) return
       this.isEnqueryPage = true
       this.$nextTick(async () => {
@@ -424,9 +436,7 @@ export default {
     },
     queryHistory () {
       this.selectedTarget = null
-      console.log('queryHistory', 'start clearInterval', this.timer)
       this.stop()
-      console.log('queryHistory', 'end clearInterval', this.timer)
       this.isEnqueryPage = true
       this.showExcution = false
       this.selectedFlow = ''
@@ -439,9 +449,7 @@ export default {
     },
     createHandler () {
       this.selectedTarget = null
-      console.log('createHandler', 'start clearInterval', this.timer)
       this.stop()
-      console.log('createHandler', 'end clearInterval', this.timer)
       this.isEnqueryPage = false
       this.selectedFlowInstance = ''
       this.selectedFlow = ''
@@ -546,8 +554,11 @@ export default {
         this.nodeTitle = `${found.displayName}`
         const { status, data } = await getModelNodeDetail(found.entityName, found.dataId)
         if (status === 'OK') {
-          this.nodeDetail = data
+          this.nodeDetail = JSON.stringify(data)
+            .split(',')
+            .join(',<br/>')
         }
+        this.isTargetNodeDetail = true
         this.nodeDetailFullscreen = false
         this.showNodeDetail = true
         this.nodeDetailFullscreen = false
@@ -677,12 +688,9 @@ export default {
       this.timer = setInterval(() => {
         this.getStatus()
       }, 5000)
-      console.log('TIMER ', this.timer)
     },
     stop () {
-      console.log('stop', 'start clearInterval', this.timer)
       clearInterval(this.timer)
-      console.log('stop', 'end clearInterval', this.timer)
     },
     async getStatus () {
       const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
@@ -703,9 +711,7 @@ export default {
       }
     },
     processInstance () {
-      console.log('processInstance', 'start set timer', this.timer)
       this.start()
-      console.log('processInstance', 'end set timer', this.timer)
     },
     retryHandler (e) {
       this.currentFailedNodeID = e.target.parentNode.getAttribute('id')
@@ -769,6 +775,7 @@ export default {
           this.nodeDetailIO = data.requestObjects
         }
         this.nodeDetailFullscreen = false
+        this.isTargetNodeDetail = false
         this.showNodeDetail = true
         this.nodeDetailFullscreen = false
         this.tableMaxHeight = 250

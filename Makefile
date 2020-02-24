@@ -20,8 +20,8 @@ build:
 	mkdir -p repository
 	docker run --rm --name $(build_name)  -e SASS_BINARY_SITE=https://npm.taobao.org/mirrors/node-sass -v /data/wecube_repository:/usr/src/mymaven/repository -v $(current_dir)/build/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
 	docker run --rm --name $(build_name)_node  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm --registry https://registry.npm.taobao.org install --unsafe-perm
-	docker run --rm --name $(build_name)_node  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm rebuild node-sass
-	docker run --rm --name $(build_name)_node  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm run build
+	docker run --rm --name $(build_name)_node1  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm rebuild node-sass
+	docker run --rm --name $(build_name)_node2  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm run build
 
 image:
 	docker build -t platform-core:$(version) -f build/platform-core/Dockerfile .
@@ -46,26 +46,25 @@ push:
 	docker tag  wecube-db:$(version) ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
 	docker push ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
 
-tencent_cloud_release_version=version-tag
+tencent_cloud_release_version=tencent-cloud-release-version
 releaseToTencentCloud:
-	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
-	docker push webankpartners/platform-core:$(release_version)
+	docker tag  platform-core:$(version) webankpartners/platform-core:$(tencent_cloud_release_version)
+	docker push webankpartners/platform-core:$(tencent_cloud_release_version)
 
-	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(release_version)
-	docker push webankpartners/platform-gateway:$(release_version)
+	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(tencent_cloud_release_version)
+	docker push webankpartners/platform-gateway:$(tencent_cloud_release_version)
 
-	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(release_version)
-	docker push webankpartners/wecube-portal:$(release_version)
+	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(tencent_cloud_release_version)
+	docker push webankpartners/wecube-portal:$(tencent_cloud_release_version)
 
-	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(release_version)
-	docker push webankpartners/platform-auth-server:$(release_version)
+	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(tencent_cloud_release_version)
+	docker push webankpartners/platform-auth-server:$(tencent_cloud_release_version)
     
-	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(release_version)
-	docker push webankpartners/wecube-db:$(release_version)
+	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(tencent_cloud_release_version)
+	docker push webankpartners/wecube-db:$(tencent_cloud_release_version)
     
-release_version=version-tag
+release_version=release-version
 release:
-	git tag $(release_version) && git push origin $(release_version)
 	docker tag  platform-core:$(version) webankpartners/platform-core:$(release_version)
 	docker push webankpartners/platform-core:$(release_version)
 

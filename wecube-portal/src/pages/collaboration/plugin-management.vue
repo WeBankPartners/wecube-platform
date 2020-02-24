@@ -101,7 +101,7 @@
           <RuntimesResources v-if="currentTab === 'runtimeResources'" :pkgId="currentPlugin.id"></RuntimesResources>
         </TabPane>
         <TabPane v-if="currentPlugin.status === 'UNREGISTERED'" name="confirm" :label="$t('confirm')">
-          <Button type="info" @click="registPackage()">
+          <Button type="info" :disabled="isRegisted" @click="registPackage()">
             {{ $t('confirm_to_regist_plugin') }}
           </Button>
         </TabPane>
@@ -314,6 +314,7 @@ export default {
   },
   data () {
     return {
+      isRegisted: false,
       headers: {},
       showSuccess: false,
       isLoading: false,
@@ -467,7 +468,9 @@ export default {
     },
 
     async registPackage () {
+      this.isRegisted = true
       let { status } = await registPluginPackage(this.currentPlugin.id)
+      this.isRegisted = false
       if (status === 'OK') {
         this.$set(this.currentPlugin, 'status', 'REGISTERED')
         this.$Notice.success({
@@ -588,6 +591,7 @@ export default {
           desc: message
         })
       }
+      this.isLoading = false
       this.getAvailableInstancesByPackageId(this.currentPlugin.id)
     },
     async getAvailableInstancesByPackageId (id) {
