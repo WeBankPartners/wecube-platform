@@ -153,7 +153,8 @@ CREATE TABLE `plugin_config_interface_parameters` (
     `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
     `mapping_entity_expression` varchar(1024) NULL DEFAULT NULL,
     `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
-    `required` varchar(5)
+    `required` varchar(5),
+    `sensitive_data` varchar(5)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 
