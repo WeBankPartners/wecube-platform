@@ -1,6 +1,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 /*Table structure for table `act_ge_bytearray` */
 
+drop table if exists `act_ge_bytearray`;
 CREATE TABLE `act_ge_bytearray` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -23,6 +24,7 @@ CREATE TABLE `act_ge_bytearray` (
 
 /*Table structure for table `act_ge_property` */
 
+drop table if exists `act_ge_property`;
 CREATE TABLE `act_ge_property` (
   `NAME_` varchar(64) COLLATE utf8_bin NOT NULL,
   `VALUE_` varchar(300) COLLATE utf8_bin DEFAULT NULL,
@@ -32,6 +34,7 @@ CREATE TABLE `act_ge_property` (
 
 /*Table structure for table `act_ge_schema_log` */
 
+drop table if exists `act_ge_schema_log`;
 CREATE TABLE `act_ge_schema_log` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TIMESTAMP_` datetime(3) DEFAULT NULL,
@@ -41,6 +44,7 @@ CREATE TABLE `act_ge_schema_log` (
 
 /*Table structure for table `act_hi_actinst` */
 
+drop table if exists `act_hi_actinst`;
 CREATE TABLE `act_hi_actinst` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PARENT_ACT_INST_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -78,6 +82,7 @@ CREATE TABLE `act_hi_actinst` (
 
 /*Table structure for table `act_hi_attachment` */
 
+drop table if exists `act_hi_attachment`;
 CREATE TABLE `act_hi_attachment` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -103,6 +108,7 @@ CREATE TABLE `act_hi_attachment` (
 
 /*Table structure for table `act_hi_batch` */
 
+drop table if exists `act_hi_batch`;
 CREATE TABLE `act_hi_batch` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -123,6 +129,7 @@ CREATE TABLE `act_hi_batch` (
 
 /*Table structure for table `act_hi_caseactinst` */
 
+drop table if exists `act_hi_caseactinst`;
 CREATE TABLE `act_hi_caseactinst` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PARENT_ACT_INST_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -150,6 +157,7 @@ CREATE TABLE `act_hi_caseactinst` (
 
 /*Table structure for table `act_hi_caseinst` */
 
+drop table if exists `act_hi_caseinst`;
 CREATE TABLE `act_hi_caseinst` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `CASE_INST_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -172,6 +180,7 @@ CREATE TABLE `act_hi_caseinst` (
 
 /*Table structure for table `act_hi_comment` */
 
+drop table if exists `act_hi_comment`;
 CREATE TABLE `act_hi_comment` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -194,6 +203,7 @@ CREATE TABLE `act_hi_comment` (
 
 /*Table structure for table `act_hi_dec_in` */
 
+drop table if exists `act_hi_dec_in`;
 CREATE TABLE `act_hi_dec_in` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEC_INST_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -218,6 +228,7 @@ CREATE TABLE `act_hi_dec_in` (
 
 /*Table structure for table `act_hi_dec_out` */
 
+drop table if exists `act_hi_dec_out`;
 CREATE TABLE `act_hi_dec_out` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEC_INST_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -245,6 +256,7 @@ CREATE TABLE `act_hi_dec_out` (
 
 /*Table structure for table `act_hi_decinst` */
 
+drop table if exists `act_hi_decinst`;
 CREATE TABLE `act_hi_decinst` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEC_DEF_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -285,6 +297,7 @@ CREATE TABLE `act_hi_decinst` (
 
 /*Table structure for table `act_hi_detail` */
 
+drop table if exists `act_hi_detail`;
 CREATE TABLE `act_hi_detail` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TYPE_` varchar(255) COLLATE utf8_bin NOT NULL,
@@ -331,6 +344,7 @@ CREATE TABLE `act_hi_detail` (
 
 /*Table structure for table `act_hi_ext_task_log` */
 
+drop table if exists `act_hi_ext_task_log`;
 CREATE TABLE `act_hi_ext_task_log` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TIMESTAMP_` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -363,6 +377,7 @@ CREATE TABLE `act_hi_ext_task_log` (
 
 /*Table structure for table `act_hi_identitylink` */
 
+drop table if exists `act_hi_identitylink`;
 CREATE TABLE `act_hi_identitylink` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TIMESTAMP_` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -390,6 +405,7 @@ CREATE TABLE `act_hi_identitylink` (
 
 /*Table structure for table `act_hi_incident` */
 
+drop table if exists `act_hi_incident`;
 CREATE TABLE `act_hi_incident` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PROC_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -419,6 +435,7 @@ CREATE TABLE `act_hi_incident` (
 
 /*Table structure for table `act_hi_job_log` */
 
+drop table if exists `act_hi_job_log`;
 CREATE TABLE `act_hi_job_log` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TIMESTAMP_` datetime(3) NOT NULL,
@@ -455,6 +472,7 @@ CREATE TABLE `act_hi_job_log` (
 
 /*Table structure for table `act_hi_op_log` */
 
+drop table if exists `act_hi_op_log`;
 CREATE TABLE `act_hi_op_log` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `DEPLOYMENT_ID_` varchar(64) COLLATE utf8_bin DEFAULT NULL,
@@ -496,6 +514,7 @@ CREATE TABLE `act_hi_op_log` (
 
 /*Table structure for table `act_hi_procinst` */
 
+drop table if exists `act_hi_procinst`;
 CREATE TABLE `act_hi_procinst` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PROC_INST_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -530,6 +549,7 @@ CREATE TABLE `act_hi_procinst` (
 
 /*Table structure for table `act_hi_taskinst` */
 
+drop table if exists `act_hi_taskinst`;
 CREATE TABLE `act_hi_taskinst` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TASK_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -570,6 +590,7 @@ CREATE TABLE `act_hi_taskinst` (
 
 /*Table structure for table `act_hi_varinst` */
 
+drop table if exists `act_hi_varinst`;
 CREATE TABLE `act_hi_varinst` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `PROC_DEF_KEY_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -608,6 +629,7 @@ CREATE TABLE `act_hi_varinst` (
 
 /*Table structure for table `act_id_group` */
 
+drop table if exists `act_id_group`;
 CREATE TABLE `act_id_group` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -618,6 +640,7 @@ CREATE TABLE `act_id_group` (
 
 /*Table structure for table `act_id_info` */
 
+drop table if exists `act_id_info`;
 CREATE TABLE `act_id_info` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -632,6 +655,7 @@ CREATE TABLE `act_id_info` (
 
 /*Table structure for table `act_id_membership` */
 
+drop table if exists `act_id_membership`;
 CREATE TABLE `act_id_membership` (
   `USER_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `GROUP_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -643,6 +667,7 @@ CREATE TABLE `act_id_membership` (
 
 /*Table structure for table `act_id_tenant` */
 
+drop table if exists `act_id_tenant`;
 CREATE TABLE `act_id_tenant` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -652,6 +677,7 @@ CREATE TABLE `act_id_tenant` (
 
 /*Table structure for table `act_id_tenant_member` */
 
+drop table if exists `act_id_tenant_member`;
 CREATE TABLE `act_id_tenant_member` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `TENANT_ID_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -669,6 +695,7 @@ CREATE TABLE `act_id_tenant_member` (
 
 /*Table structure for table `act_id_user` */
 
+drop table if exists `act_id_user`;
 CREATE TABLE `act_id_user` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -685,6 +712,7 @@ CREATE TABLE `act_id_user` (
 
 /*Table structure for table `act_re_case_def` */
 
+drop table if exists `act_re_case_def`;
 CREATE TABLE `act_re_case_def` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -703,6 +731,7 @@ CREATE TABLE `act_re_case_def` (
 
 /*Table structure for table `act_re_decision_def` */
 
+drop table if exists `act_re_decision_def`;
 CREATE TABLE `act_re_decision_def` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -726,6 +755,7 @@ CREATE TABLE `act_re_decision_def` (
 
 /*Table structure for table `act_re_decision_req_def` */
 
+drop table if exists `act_re_decision_req_def`;
 CREATE TABLE `act_re_decision_req_def` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -743,6 +773,7 @@ CREATE TABLE `act_re_decision_req_def` (
 
 /*Table structure for table `act_re_deployment` */
 
+drop table if exists `act_re_deployment`;
 CREATE TABLE `act_re_deployment` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `NAME_` varchar(255) COLLATE utf8_bin DEFAULT NULL,
@@ -756,6 +787,7 @@ CREATE TABLE `act_re_deployment` (
 
 /*Table structure for table `act_re_procdef` */
 
+drop table if exists `act_re_procdef`;
 CREATE TABLE `act_re_procdef` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -780,6 +812,7 @@ CREATE TABLE `act_re_procdef` (
 
 /*Table structure for table `act_ru_authorization` */
 
+drop table if exists `act_ru_authorization`;
 CREATE TABLE `act_ru_authorization` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
@@ -798,6 +831,7 @@ CREATE TABLE `act_ru_authorization` (
 
 /*Table structure for table `act_ru_batch` */
 
+drop table if exists `act_ru_batch`;
 CREATE TABLE `act_ru_batch` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
@@ -824,6 +858,7 @@ CREATE TABLE `act_ru_batch` (
 
 /*Table structure for table `act_ru_case_execution` */
 
+drop table if exists `act_ru_case_execution`;
 CREATE TABLE `act_ru_case_execution` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -851,6 +886,7 @@ CREATE TABLE `act_ru_case_execution` (
 
 /*Table structure for table `act_ru_case_sentry_part` */
 
+drop table if exists `act_ru_case_sentry_part`;
 CREATE TABLE `act_ru_case_sentry_part` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -874,6 +910,7 @@ CREATE TABLE `act_ru_case_sentry_part` (
 
 /*Table structure for table `act_ru_event_subscr` */
 
+drop table if exists `act_ru_event_subscr`;
 CREATE TABLE `act_ru_event_subscr` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -895,6 +932,7 @@ CREATE TABLE `act_ru_event_subscr` (
 
 /*Table structure for table `act_ru_execution` */
 
+drop table if exists `act_ru_execution`;
 CREATE TABLE `act_ru_execution` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -932,6 +970,7 @@ CREATE TABLE `act_ru_execution` (
 
 /*Table structure for table `act_ru_ext_task` */
 
+drop table if exists `act_ru_ext_task`;
 CREATE TABLE `act_ru_ext_task` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
@@ -962,6 +1001,7 @@ CREATE TABLE `act_ru_ext_task` (
 
 /*Table structure for table `act_ru_filter` */
 
+drop table if exists `act_ru_filter`;
 CREATE TABLE `act_ru_filter` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
@@ -975,6 +1015,7 @@ CREATE TABLE `act_ru_filter` (
 
 /*Table structure for table `act_ru_identitylink` */
 
+drop table if exists `act_ru_identitylink`;
 CREATE TABLE `act_ru_identitylink` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -995,6 +1036,7 @@ CREATE TABLE `act_ru_identitylink` (
 
 /*Table structure for table `act_ru_incident` */
 
+drop table if exists `act_ru_incident`;
 CREATE TABLE `act_ru_incident` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) NOT NULL,
@@ -1029,6 +1071,7 @@ CREATE TABLE `act_ru_incident` (
 
 /*Table structure for table `act_ru_job` */
 
+drop table if exists `act_ru_job`;
 CREATE TABLE `act_ru_job` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -1067,6 +1110,7 @@ CREATE TABLE `act_ru_job` (
 
 /*Table structure for table `act_ru_jobdef` */
 
+drop table if exists `act_ru_jobdef`;
 CREATE TABLE `act_ru_jobdef` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -1085,6 +1129,7 @@ CREATE TABLE `act_ru_jobdef` (
 
 /*Table structure for table `act_ru_meter_log` */
 
+drop table if exists `act_ru_meter_log`;
 CREATE TABLE `act_ru_meter_log` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `NAME_` varchar(64) COLLATE utf8_bin NOT NULL,
@@ -1102,6 +1147,7 @@ CREATE TABLE `act_ru_meter_log` (
 
 /*Table structure for table `act_ru_procinst_status` */
 
+drop table if exists `act_ru_procinst_status`;
 CREATE TABLE `act_ru_procinst_status` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -1121,6 +1167,7 @@ CREATE TABLE `act_ru_procinst_status` (
 
 /*Table structure for table `act_ru_srvnode_status` */
 
+drop table if exists `act_ru_srvnode_status`;
 CREATE TABLE `act_ru_srvnode_status` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -1142,6 +1189,7 @@ CREATE TABLE `act_ru_srvnode_status` (
 
 /*Table structure for table `act_ru_task` */
 
+drop table if exists `act_ru_task`;
 CREATE TABLE `act_ru_task` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -1182,6 +1230,7 @@ CREATE TABLE `act_ru_task` (
 
 /*Table structure for table `act_ru_variable` */
 
+drop table if exists `act_ru_variable`;
 CREATE TABLE `act_ru_variable` (
   `ID_` varchar(64) COLLATE utf8_bin NOT NULL,
   `REV_` int(11) DEFAULT NULL,
@@ -1219,6 +1268,7 @@ CREATE TABLE `act_ru_variable` (
 
 /*Table structure for table `batch_execution_jobs` */
 
+drop table if exists `batch_execution_jobs`;
 CREATE TABLE `batch_execution_jobs` (
   `id` varchar(255) NOT NULL,
   `complete_timestamp` datetime DEFAULT NULL,
@@ -1229,6 +1279,7 @@ CREATE TABLE `batch_execution_jobs` (
 
 /*Table structure for table `batch_job` */
 
+drop table if exists `batch_job`;
 CREATE TABLE `batch_job` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `script_url` varchar(500) DEFAULT NULL,
@@ -1239,6 +1290,7 @@ CREATE TABLE `batch_job` (
 
 /*Table structure for table `batch_job_host` */
 
+drop table if exists `batch_job_host`;
 CREATE TABLE `batch_job_host` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `batch_job_id` int(11) NOT NULL,
@@ -1255,6 +1307,7 @@ CREATE TABLE `batch_job_host` (
 
 /*Table structure for table `blob_data` */
 
+drop table if exists `blob_data`;
 CREATE TABLE `blob_data` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` varchar(100) NOT NULL,
@@ -1263,26 +1316,10 @@ CREATE TABLE `blob_data` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `core_re_proc_def` */
-
-CREATE TABLE `core_re_proc_def` (
-  `ID` varchar(30) NOT NULL,
-  `PROC_DEF_KEY` varchar(255) DEFAULT NULL,
-  `PROC_NAME` varchar(255) DEFAULT NULL,
-  `VERSION` int(11) DEFAULT NULL,
-  `BIND_CITYPE_ID` int(11) DEFAULT NULL,
-  `ACTIVE` int(1) NOT NULL,
-  `CREATE_TIME` datetime DEFAULT NULL,
-  `CREATE_BY` varchar(255) DEFAULT NULL,
-  `UPDATE_TIME` datetime DEFAULT NULL,
-  `UPDATE_BY` varchar(255) DEFAULT NULL,
-  `PROC_DATA` longtext,
-  `PROC_STATUS` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `core_re_proc_def_info` */
 
+drop table if exists `core_re_proc_def_info`;
 CREATE TABLE `core_re_proc_def_info` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -1302,33 +1339,9 @@ CREATE TABLE `core_re_proc_def_info` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `core_re_proc_task_service` */
-
-CREATE TABLE `core_re_proc_task_service` (
-  `ID` varchar(30) NOT NULL,
-  `PROC_DEF_KEY` varchar(255) DEFAULT NULL,
-  `VERSION` int(11) DEFAULT NULL,
-  `PROC_DEF_ID` varchar(255) DEFAULT NULL,
-  `TASK_NODE_ID` varchar(255) DEFAULT NULL,
-  `TASK_NODE_NAME` varchar(255) DEFAULT NULL,
-  `BIND_SERVICE_ID` varchar(255) DEFAULT NULL,
-  `BIND_SERVICE_NAME` varchar(255) DEFAULT NULL,
-  `BIND_CI_ROUTINE_EXP` varchar(800) DEFAULT NULL,
-  `BIND_CI_ROUTINE_RAW` text,
-  `DESCRIPTION` varchar(255) DEFAULT NULL,
-  `ACTIVE` int(1) DEFAULT NULL,
-  `CREATE_TIME` datetime DEFAULT NULL,
-  `CREATE_BY` varchar(255) DEFAULT NULL,
-  `UPDATE_TIME` datetime DEFAULT NULL,
-  `UPDATE_BY` varchar(255) DEFAULT NULL,
-  `TIMEOUT_EXPR` varchar(45) DEFAULT NULL,
-  `TASK_NODE_TYPE` varchar(45) DEFAULT NULL,
-  `CORE_PROC_DEF_ID` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`ID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 /*Table structure for table `core_re_task_node_def_info` */
 
+drop table if exists `core_re_task_node_def_info`;
 CREATE TABLE `core_re_task_node_def_info` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -1357,6 +1370,7 @@ CREATE TABLE `core_re_task_node_def_info` (
 
 /*Table structure for table `core_re_task_node_param` */
 
+drop table if exists `core_re_task_node_param`;
 CREATE TABLE `core_re_task_node_param` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
@@ -1377,6 +1391,7 @@ CREATE TABLE `core_re_task_node_param` (
 
 /*Table structure for table `core_ru_proc_exec_binding` */
 
+drop table if exists `core_ru_proc_exec_binding`;
 CREATE TABLE `core_ru_proc_exec_binding` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_by` varchar(255) DEFAULT NULL,
@@ -1394,6 +1409,7 @@ CREATE TABLE `core_ru_proc_exec_binding` (
 
 /*Table structure for table `core_ru_proc_inst_info` */
 
+drop table if exists `core_ru_proc_inst_info`;
 CREATE TABLE `core_ru_proc_inst_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_by` varchar(255) DEFAULT NULL,
@@ -1412,79 +1428,9 @@ CREATE TABLE `core_ru_proc_inst_info` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `core_ru_process_task` */
-
-CREATE TABLE `core_ru_process_task` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT,
-  `OPERATOR` varchar(255) DEFAULT NULL,
-  `OPERATOR_GROUP` varchar(255) DEFAULT NULL,
-  `DEF_ID` varchar(255) DEFAULT NULL,
-  `DEF_KEY` varchar(255) DEFAULT NULL,
-  `DEF_VER` int(11) DEFAULT NULL,
-  `INST_ID` varchar(255) DEFAULT NULL,
-  `INST_KEY` varchar(255) DEFAULT NULL,
-  `CI_TYPE_ID` int(11) DEFAULT NULL,
-  `CI_DATA_ID` varchar(255) DEFAULT NULL,
-  `STATUS` varchar(255) DEFAULT NULL,
-  `START_TIME` datetime DEFAULT NULL,
-  `END_TIME` datetime DEFAULT NULL,
-  `CREATE_TIME` datetime DEFAULT NULL,
-  `UPDATE_TIME` datetime DEFAULT NULL,
-  `CREATE_BY` varchar(255) DEFAULT NULL,
-  `UPDATE_BY` varchar(255) DEFAULT NULL,
-  `TRANSACTION_ID` int(11) DEFAULT NULL,
-  PRIMARY KEY (`ID`),
-  KEY `FK_TRANS` (`TRANSACTION_ID`),
-  CONSTRAINT `FK_TRANS` FOREIGN KEY (`TRANSACTION_ID`) REFERENCES `core_ru_process_transaction` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `FKlo2hepgkrhpsq52vqjndrm0xu` FOREIGN KEY (`TRANSACTION_ID`) REFERENCES `core_ru_process_transaction` (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=150 DEFAULT CHARSET=utf8;
-
-/*Table structure for table `core_ru_process_transaction` */
-
-CREATE TABLE `core_ru_process_transaction` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT,
-  `NAME` varchar(255) DEFAULT NULL,
-  `ALIAS_NAME` varchar(255) DEFAULT NULL,
-  `OPERATOR` varchar(255) DEFAULT NULL,
-  `OPERATOR_GROUP` varchar(255) DEFAULT NULL,
-  `STATUS` varchar(255) DEFAULT NULL,
-  `START_TIME` datetime DEFAULT NULL,
-  `END_TIME` datetime DEFAULT NULL,
-  `CREATE_TIME` datetime DEFAULT NULL,
-  `CREATE_BY` varchar(255) DEFAULT NULL,
-  `UPDATE_TIME` datetime DEFAULT NULL,
-  `UPDATE_BY` varchar(255) DEFAULT NULL,
-  `ATTACH` varchar(500) DEFAULT NULL,
-  PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
-
-/*Table structure for table `core_ru_task_node_exec_log` */
-
-CREATE TABLE `core_ru_task_node_exec_log` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT,
-  `INST_ID` varchar(60) DEFAULT NULL,
-  `INST_KEY` varchar(60) DEFAULT NULL,
-  `EXEC_ID` varchar(60) DEFAULT NULL,
-  `NODE_ID` varchar(60) DEFAULT NULL,
-  `SERV_NAME` varchar(255) DEFAULT NULL,
-  `ROOT_CI_TYPE` int(11) DEFAULT NULL,
-  `NODE_STATUS` varchar(30) DEFAULT NULL,
-  `ERR_CODE` varchar(10) DEFAULT NULL,
-  `ERR_MSG` varchar(255) DEFAULT NULL,
-  `PRE_STATUS` varchar(60) DEFAULT NULL,
-  `POST_STATUS` varchar(60) DEFAULT NULL,
-  `CREATED_BY` varchar(60) DEFAULT NULL,
-  `CREATED_TIME` datetime DEFAULT NULL,
-  `UPDATED_BY` varchar(60) DEFAULT NULL,
-  `UPDATED_TIME` datetime DEFAULT NULL,
-  `REQ_DATA` text,
-  `RESP_DATA` text,
-  `REQ_URL` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=171 DEFAULT CHARSET=utf8;
-
 /*Table structure for table `core_ru_task_node_exec_param` */
 
+drop table if exists `core_ru_task_node_exec_param`;
 CREATE TABLE `core_ru_task_node_exec_param` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_by` varchar(255) DEFAULT NULL,
@@ -1499,25 +1445,13 @@ CREATE TABLE `core_ru_task_node_exec_param` (
   `param_type` varchar(255) DEFAULT NULL,
   `proc_inst_id` int(11) DEFAULT NULL,
   `task_node_inst_id` int(11) DEFAULT NULL,
+  `is_sensitive` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Table structure for table `core_ru_task_node_exec_var` */
-
-CREATE TABLE `core_ru_task_node_exec_var` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT,
-  `CI_TYPE_ID` int(11) DEFAULT NULL,
-  `CI_GUID` varchar(50) DEFAULT NULL,
-  `CONFIRMED` char(1) DEFAULT NULL,
-  `EXEC_LOG_ID` int(11) DEFAULT NULL,
-  PRIMARY KEY (`ID`),
-  KEY `FK_EXEC_LOG_ID` (`EXEC_LOG_ID`),
-  CONSTRAINT `FK8u5dv1131gctyvdroy68yti0i` FOREIGN KEY (`EXEC_LOG_ID`) REFERENCES `core_ru_task_node_exec_log` (`ID`),
-  CONSTRAINT `FK_EXEC_LOG_ID` FOREIGN KEY (`EXEC_LOG_ID`) REFERENCES `core_ru_task_node_exec_log` (`ID`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=174 DEFAULT CHARSET=utf8;
-
 /*Table structure for table `core_ru_task_node_inst_info` */
 
+drop table if exists `core_ru_task_node_inst_info`;
 CREATE TABLE `core_ru_task_node_inst_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `created_by` varchar(255) DEFAULT NULL,

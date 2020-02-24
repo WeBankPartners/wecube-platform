@@ -1,11 +1,15 @@
 package com.webank.wecube.platform.auth.server.encryption;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.RestTemplate;
 
+import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.common.util.StringUtilsEx;
+import com.webank.wecube.platform.auth.server.dto.CredentialDto;
 
 public class EncryptionUtilsTest {
 
@@ -46,6 +50,28 @@ public class EncryptionUtilsTest {
         Assert.assertEquals(password, plainPassword);
         
         
+    }
+    
+    @Ignore
+    @Test
+    public void testLoginWithSubSystemCode() {
+    	String loginEndPoint = "http://{auth-server-host}:{auth-server-port}/auth/v1/api/login";
+    	String subSystemCode = "SUB_SYSTEM_CODE_A";
+    	String nonce = "123";//random number here
+    	String plainPassword = String.format("%s:%s", subSystemCode, nonce);
+    	String cipherPassword = EncryptionUtils.encryptByPrivateKeyAsString(plainPassword.getBytes(EncryptionUtils.UTF8),
+                privateKey);
+    	
+    	CredentialDto credential = new CredentialDto();
+    	credential.setClientType(ApplicationConstants.ClientType.SUB_SYSTEM);
+    	credential.setNonce(nonce);
+    	credential.setPassword(cipherPassword);
+    	credential.setUsername(subSystemCode);
+
+    
+    	RestTemplate restClient = new RestTemplate();
+    	String responseBody = restClient.postForObject(loginEndPoint, credential, String.class);
+    	log.info("RESULT:/n{}", responseBody);
     }
 
     @Test
