@@ -54,9 +54,6 @@ public class BpmnProcessModelCustomizer {
 
     public static final String FORMAL_EXPR_TYPE = "bpmn:tFormalExpression";
 
-    private static final String CONDITION_EXPR_RETCODE_OK = "${retCode_%s == 0}";
-    private static final String CONDITION_EXPR_RETCODE_NOT_OK = "${retCode_%s == 1}";
-
     private String resourceName;
 
     private String originalProcessXml;
