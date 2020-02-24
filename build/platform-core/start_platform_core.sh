@@ -1,6 +1,6 @@
 #!/bin/sh
 mkdir -p /log
-java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=${WECUBE_SERVER_JMX_PORT} -Dcom.sun.management.jmxremote.rmi.port=9080 -Dcom.sun.management.jmxremote.authenticate=false \
+java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=${WECUBE_SERVER_JMX_PORT} -Dcom.sun.management.jmxremote.rmi.port=${WECUBE_SERVER_JMX_PORT} -Dcom.sun.management.jmxremote.authenticate=false \
 -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${WECUBE_CORE_HOST} -Djava.security.egd=file:/dev/urandom \
 -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port=8080 \
 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver \
