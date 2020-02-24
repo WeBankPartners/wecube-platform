@@ -75,8 +75,11 @@
             <Col span="3" offset="0">
               <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
             </Col>
-            <Col span="3" offset="1">
+            <Col span="3" offset="0">
               <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
+            </Col>
+            <Col span="3" offset="0">
+              <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
             </Col>
             <Col span="8" offset="0">
               <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
@@ -95,7 +98,12 @@
                 :name="index + inter.action"
               >
                 {{ inter.action }}
-                <div class="interfaceContainer" slot="content">
+                <div
+                  class="interfaceContainer"
+                  slot="content"
+                  v-for="(inter, index) in currentPluginObj.interfaces"
+                  :key="index + inter.action"
+                >
                   <Row>
                     <Col span="3">
                       <FormItem :label-width="0">
@@ -115,9 +123,23 @@
                             </Tooltip>
                           </FormItem>
                         </Col>
-                        <Col span="3">
+                        <Col span="2" offset="0">
                           <FormItem :label-width="0">
                             <span>{{ param.dataType }}</span>
+                          </FormItem>
+                        </Col>
+                        <Col span="3" offset="0">
+                          <FormItem :label-width="0">
+                            <Select
+                              v-model="param.sensitiveData"
+                              size="small"
+                              style="width:50px"
+                              :disabled="currentPluginObj.status === 'ENABLED'"
+                            >
+                              <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                                item.label
+                              }}</Option>
+                            </Select>
                           </FormItem>
                         </Col>
                         <Col span="10" offset="0">
@@ -147,9 +169,10 @@
                             <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
                           </FormItem>
                         </Col>
-                        <Col span="4" offset="1">
+                        <Col span="3" offset="1">
                           <FormItem :label-width="0">
                             <Select
+                              size="small"
                               :disabled="currentPluginObj.status === 'ENABLED'"
                               v-model="param.mappingType"
                               @on-change="mappingTypeChange($event, param)"
@@ -172,7 +195,7 @@
                     </Col>
                     <Col span="21" offset="0">
                       <Row v-for="(outPut, index) in inter['outputParameters']" :key="index">
-                        <Col span="4">
+                        <Col span="5">
                           <FormItem :label-width="0">
                             <Tooltip :content="outPut.name" style="width: 100%">
                               <span v-if="outPut.required === 'Y'" style="color:red">*</span>
@@ -183,9 +206,23 @@
                             </Tooltip>
                           </FormItem>
                         </Col>
-                        <Col span="3" offset="1">
+                        <Col span="2" offset="0">
                           <FormItem :label-width="0">
-                            <span>{{ outPut.dataType }}</span>
+                            <span>{{ $t('output_params') }}</span>
+                          </FormItem>
+                        </Col>
+                        <Col span="3" offset="0">
+                          <FormItem :label-width="0">
+                            <Select
+                              v-model="outPut.sensitiveData"
+                              size="small"
+                              style="width:50px"
+                              :disabled="currentPluginObj.status === 'ENABLED'"
+                            >
+                              <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                                item.label
+                              }}</Option>
+                            </Select>
                           </FormItem>
                         </Col>
                         <Col span="10" offset="0">
@@ -201,9 +238,13 @@
                             <span v-if="outPut.mappingType === 'context'">N/A</span>
                           </FormItem>
                         </Col>
-                        <Col span="4" offset="1">
+                        <Col span="3" offset="1">
                           <FormItem :label-width="0">
-                            <Select :disabled="currentPluginObj.status === 'ENABLED'" v-model="outPut.mappingType">
+                            <Select
+                              size="small"
+                              :disabled="currentPluginObj.status === 'ENABLED'"
+                              v-model="outPut.mappingType"
+                            >
                               <Option value="context" key="context">context</Option>
                               <Option value="entity" key="entity">entity</Option>
                             </Select>
@@ -282,7 +323,17 @@ export default {
       selectedEntityType: '',
       targetPackage: '',
       form: {},
-      allSystemVariables: []
+      allSystemVariables: [],
+      sensitiveData: [
+        {
+          value: 'Y',
+          label: 'Y'
+        },
+        {
+          value: 'N',
+          label: 'N'
+        }
+      ]
     }
   },
   components: {
@@ -338,6 +389,7 @@ export default {
         })
       }
       const { data, status, message } = await savePluginConfig(currentPluginForSave)
+
       const id = data.id
       if (status === 'OK') {
         this.$Notice.success({
@@ -362,10 +414,6 @@ export default {
       }
     },
     async regist () {
-      // const pluginConfigDtoList = this.plugins.find(plugin => plugin.pluginConfigName === this.currentPlugin)
-      //   .pluginConfigDtoList
-      // const plugin = pluginConfigDtoList.find(dto => dto.id === this.currentPluginObj.id)
-      // const saveRes = await savePluginConfig(plugin)
       const saveRes = await savePluginConfig(this.currentPluginObj)
       if (saveRes.status === 'OK') {
         const { status, message } = await registerPlugin(this.currentPluginObj.id)
@@ -438,15 +486,15 @@ export default {
       this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
     },
     registSourceChange (v) {
-      this.activePanel = []
+      this.currentPluginObj = {}
       if (!v || v === 'add') {
         this.registerName = ''
         this.selectedEntityType = ''
-        this.currentPluginObj = {}
+
         return
       }
-
-      this.currentPluginObj = {}
+      const currentPluginData = this.plugins.find(plugin => plugin.pluginConfigName === this.currentPlugin)
+      this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
       this.$nextTick(() => {
         this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
         this.selectedEntityType = this.currentPluginObj.entityName
