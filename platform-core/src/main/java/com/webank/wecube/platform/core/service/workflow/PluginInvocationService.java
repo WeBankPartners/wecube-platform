@@ -202,7 +202,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         parsePluginInstance(ctx);
 
         buildTaskNodeExecRequestEntity(ctx);
-        List<Map<String, Object>> pluginParameters = calculateInputParameters(inputParamObjs, ctx.getRequestId(),
+        List<Map<String, Object>> pluginParameters = calculateInputParameters(ctx, inputParamObjs, ctx.getRequestId(),
                 procInstEntity.getOperator());
 
         PluginInvocationOperation operation = new PluginInvocationOperation() //
@@ -247,6 +247,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             InputParamAttr inputAttr = new InputParamAttr();
             inputAttr.setName(paramName);
             inputAttr.setType(paramType);
+            inputAttr.setSensitive("Y".equalsIgnoreCase(param.getSensitiveData()));
 
             List<Object> objectVals = new ArrayList<Object>();
             //
@@ -394,6 +395,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 InputParamAttr inputAttr = new InputParamAttr();
                 inputAttr.setName(paramName);
                 inputAttr.setType(paramType);
+                inputAttr.setSensitive("Y".equalsIgnoreCase(param.getSensitiveData()));
 
                 List<Object> objectVals = new ArrayList<Object>();
                 //
@@ -721,7 +723,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         return procInstEntity;
     }
 
-    private List<Map<String, Object>> calculateInputParameters(List<InputParamObject> inputParamObjs, String requestId,
+    private List<Map<String, Object>> calculateInputParameters(PluginInterfaceInvocationContext ctx, List<InputParamObject> inputParamObjs, String requestId,
             String operator) {
         List<Map<String, Object>> pluginParameters = new ArrayList<Map<String, Object>>();
 
@@ -762,6 +764,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setParamDataValue(attr.getExpectedValue() == null ? null : attr.getExpectedValue().toString());
                 e.setEntityDataId(entityDataId);
                 e.setEntityTypeId(entityTypeId);
+                
+                e.setSensitive(attr.isSensitive());
 
                 taskNodeExecParamRepository.save(e);
 
@@ -949,10 +953,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     entry.getKey());
 
             String paramDataType = null;
+            boolean isSensitiveData = false;
             if (p == null) {
                 paramDataType = DATA_TYPE_STRING;
             } else {
                 paramDataType = p.getDataType();
+                isSensitiveData = ("Y".equalsIgnoreCase(p.getSensitiveData()));
             }
 
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
@@ -965,6 +971,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setParamDataValue(
                     trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE));
             paramEntity.setRequestId(requestId);
+            paramEntity.setSensitive(isSensitiveData);
 
             taskNodeExecParamRepository.save(paramEntity);
         }
