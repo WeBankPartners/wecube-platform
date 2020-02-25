@@ -48,20 +48,20 @@ push:
 
 tencent_cloud_release_version=tencent-cloud-release-version
 releaseToTencentCloud:
-	docker tag  platform-core:$(version) webankpartners/platform-core:$(tencent_cloud_release_version)
-	docker push webankpartners/platform-core:$(tencent_cloud_release_version)
+	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/webankpartners/platform-core:$(tencent_cloud_release_version)
+	docker push $(tencent_cloud_docker_image_registry)/webankpartners/platform-core:$(tencent_cloud_release_version)
 
-	docker tag  platform-gateway:$(version) webankpartners/platform-gateway:$(tencent_cloud_release_version)
-	docker push webankpartners/platform-gateway:$(tencent_cloud_release_version)
+	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/webankpartners/platform-gateway:$(tencent_cloud_release_version)
+	docker push $(tencent_cloud_docker_image_registry)/webankpartners/platform-gateway:$(tencent_cloud_release_version)
 
-	docker tag  wecube-portal:$(version) webankpartners/wecube-portal:$(tencent_cloud_release_version)
-	docker push webankpartners/wecube-portal:$(tencent_cloud_release_version)
+	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/webankpartners/wecube-portal:$(tencent_cloud_release_version)
+	docker push $(tencent_cloud_docker_image_registry)/webankpartners/wecube-portal:$(tencent_cloud_release_version)
 
-	docker tag  platform-auth-server:$(version) webankpartners/platform-auth-server:$(tencent_cloud_release_version)
-	docker push webankpartners/platform-auth-server:$(tencent_cloud_release_version)
+	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/webankpartners/platform-auth-server:$(tencent_cloud_release_version)
+	docker push $(tencent_cloud_docker_image_registry)/webankpartners/platform-auth-server:$(tencent_cloud_release_version)
     
-	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(tencent_cloud_release_version)
-	docker push webankpartners/wecube-db:$(tencent_cloud_release_version)
+	docker tag  wecube-db:$(version) $(tencent_cloud_docker_image_registry)/webankpartners/wecube-db:$(tencent_cloud_release_version)
+	docker push $(tencent_cloud_docker_image_registry)/webankpartners/wecube-db:$(tencent_cloud_release_version)
     
 release_version=release-version
 release:
