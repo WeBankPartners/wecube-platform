@@ -17,6 +17,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
+import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 
 @RestController
@@ -25,6 +26,9 @@ public class WorkflowProcessInstanceController {
 
     @Autowired
     private WorkflowProcInstService procInstService;
+    
+    @Autowired
+    private WorkflowDataService workflowDataService;
 
     @PostMapping("/process/instances")
     public CommonResponseDto createProcessInstance(@RequestBody StartProcInstRequestDto requestDto) {
@@ -63,7 +67,7 @@ public class WorkflowProcessInstanceController {
     
     @GetMapping("/process/instances/{proc-inst-id}/tasknodes/{node-inst-id}/context")
     public CommonResponseDto getTaskNodeContextInfo(@PathVariable(name="proc-inst-id") Integer procInstId, @PathVariable(name="node-inst-id") Integer nodeInstId){
-        TaskNodeExecContextDto result = procInstService.getTaskNodeContextInfo(procInstId, nodeInstId);
+        TaskNodeExecContextDto result = workflowDataService.getTaskNodeContextInfo(procInstId, nodeInstId);
         return CommonResponseDto.okayWithData(result);
     }
 }

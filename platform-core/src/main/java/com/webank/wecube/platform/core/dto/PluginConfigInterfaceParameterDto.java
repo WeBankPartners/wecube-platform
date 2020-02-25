@@ -17,6 +17,7 @@ public class PluginConfigInterfaceParameterDto {
     private String mappingEntityExpression;
     private String mappingSystemVariableName;
     private String required;
+    private String sensitiveData;
 
     public PluginConfigInterfaceParameterDto() {
     }
@@ -104,7 +105,7 @@ public class PluginConfigInterfaceParameterDto {
     public void setRequired(String required) {
         this.required = required;
     }
-
+    
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
@@ -124,6 +125,8 @@ public class PluginConfigInterfaceParameterDto {
         parameter.setMappingEntityExpression(getMappingEntityExpression());
         parameter.setMappingSystemVariableName(getMappingSystemVariableName());
         parameter.setRequired(getRequired());
+        
+        parameter.setSensitiveData(this.getSensitiveData());
 
         return parameter;
     }
@@ -139,6 +142,15 @@ public class PluginConfigInterfaceParameterDto {
         pluginConfigInterfaceParameterDto.setMappingEntityExpression(pluginConfigInterfaceParameter.getMappingEntityExpression());
         pluginConfigInterfaceParameterDto.setMappingSystemVariableName(pluginConfigInterfaceParameter.getMappingSystemVariableName());
         pluginConfigInterfaceParameterDto.setRequired(pluginConfigInterfaceParameter.getRequired());
+        pluginConfigInterfaceParameterDto.setSensitiveData(pluginConfigInterfaceParameter.getSensitiveData());
         return pluginConfigInterfaceParameterDto;
+    }
+
+    public String getSensitiveData() {
+        return sensitiveData;
+    }
+
+    public void setSensitiveData(String sensitiveData) {
+        this.sensitiveData = sensitiveData;
     }
 }
