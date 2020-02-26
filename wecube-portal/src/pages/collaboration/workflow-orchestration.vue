@@ -803,6 +803,7 @@ export default {
           camunda: camundaModdleDescriptor
         }
       })
+      document.getElementsByClassName('djs-palette')[0].className = 'djs-palette open'
     },
     getHeaders () {
       let refreshRequest = null
@@ -923,7 +924,7 @@ export default {
 }
 .buttons {
   position: absolute;
-  left: 20px;
+  left: 44px;
   bottom: 20px;
   & > li {
     display: inline-block;
@@ -949,6 +950,11 @@ export default {
 .bpmn-icon-data-store,
 .bpmn-icon-participant {
   display: none;
+}
+// control toolbar position
+.djs-palette {
+  left: -1px;
+  top: -1px;
 }
 
 // hide panal tab
