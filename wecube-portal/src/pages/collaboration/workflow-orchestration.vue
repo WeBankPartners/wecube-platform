@@ -61,6 +61,7 @@
       </Button>
       <Button type="info" @click="getHeaders">{{ $t('import_flow') }}</Button>
       <Upload
+        v-show="isShowUploadList"
         ref="uploadButton"
         show-upload-list
         accept=".pds"
@@ -242,6 +243,7 @@ export default {
     return {
       isSaving: false,
       headers: {},
+      isShowUploadList: false,
       mgmtRolesKeyToFlow: [],
       useRolesKeyToFlow: [],
       currentUserRoles: [],
@@ -803,9 +805,10 @@ export default {
           camunda: camundaModdleDescriptor
         }
       })
-      document.getElementsByClassName('djs-palette')[0].className = 'djs-palette open'
+      document.getElementsByClassName('djs-palette')[0].classList.remove('two-column')
     },
     getHeaders () {
+      this.isShowUploadList = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
       let session = window.sessionStorage
@@ -910,8 +913,9 @@ export default {
   position: absolute;
   right: 0;
   top: 0;
-  width: 400px;
-  max-height: 100%;
+  width: 300px;
+  min-height: 100%;
+  background: #f8f8f8;
   overflow-y: auto;
 
   .bpp-properties-panel .entry-label {
@@ -996,5 +1000,8 @@ export default {
   font-weight: 700;
   background-color: rgb(226, 222, 222);
   margin-bottom: 5px;
+}
+.ivu-upload-select {
+  display: none !important;
 }
 </style>
