@@ -74,23 +74,95 @@
         <Button style="display:none">{{ $t('import_flow') }}</Button>
       </Upload>
     </Row>
-    <div v-show="showBpmn" class="containers" ref="content">
-      <div style="height:100%;" class="canvas" ref="canvas"></div>
-      <div id="right_click_menu">
-        <a href="javascript:void(0);" @click="openPluginModal">
-          {{ $t('config_plugin') }}
-        </a>
-        <br />
-      </div>
+    <div v-show="showBpmn" class="demo-split">
+      <Split v-model="split2" mode="vertical">
+        <div slot="top" class="demo-split-pane">
+          <div class="containers" ref="content">
+            <div class="canvas" ref="canvas"></div>
+            <div id="right_click_menu">
+              <a href="javascript:void(0);" @click="openPluginModal">
+                {{ $t('config_plugin') }}
+              </a>
+              <br />
+            </div>
 
-      <div id="js-properties-panel" class="panel"></div>
-      <ul class="buttons">
-        <li>
-          <Button @click="resetZoom">Reset Zoom</Button>
-        </li>
-      </ul>
+            <div id="js-properties-panel" class="panel"></div>
+            <ul class="buttons">
+              <li>
+                <Button @click="resetZoom">Reset Zoom</Button>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div slot="bottom" class="demo-split-pane">
+          <Form ref="pluginConfigForm" :model="pluginForm" label-position="right" :label-width="150">
+            <FormItem :label="$t('locate_rules')" prop="routineExpression">
+              <PathExp
+                v-if="pluginModalVisible"
+                :rootPkg="rootPkg"
+                :rootEntity="rootEntity"
+                :allDataModelsWithAttrs="allEntityType"
+                v-model="pluginForm.routineExpression"
+              ></PathExp>
+            </FormItem>
+            <FormItem :label="$t('plugin')" prop="serviceName">
+              <Select
+                filterable
+                clearable
+                v-model="pluginForm.serviceId"
+                @on-open-change="getFilteredPluginInterfaceList(pluginForm.routineExpression)"
+                @on-change="getPluginInterfaceList(false)"
+              >
+                <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                  item.serviceDisplayName
+                }}</Option>
+              </Select>
+            </FormItem>
+            <FormItem :label="$t('timeout')" prop="timeoutExpression">
+              <Select clearable v-model="pluginForm.timeoutExpression">
+                <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
+                  >{{ item.label }}
+                </Option>
+              </Select>
+            </FormItem>
+            <FormItem :label="$t('description')" prop="description">
+              <Input v-model="pluginForm.description" />
+            </FormItem>
+            <hr style="margin-bottom: 20px" />
+            <FormItem
+              :label="item.paramName"
+              :prop="item.paramName"
+              v-for="(item, index) in pluginForm.paramInfos"
+              :key="index"
+            >
+              <Select
+                v-model="item.bindNodeId"
+                style="width:30%"
+                v-if="item.bindType === 'context'"
+                @on-change="onParamsNodeChange(index)"
+                @on-open-change="getFlowsNodes"
+              >
+                <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
+              </Select>
+              <Select
+                v-model="item.bindParamType"
+                v-if="item.bindType === 'context'"
+                style="width:30%"
+                @on-change="onParamsNodeChange(index)"
+              >
+                <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
+              </Select>
+              <Select v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
+                <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
+              </Select>
+              <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
+            </FormItem>
+          </Form>
+        </div>
+      </Split>
     </div>
-    <Modal v-model="pluginModalVisible" :title="$t('config_plugin')" width="40">
+
+    <!-- <Modal v-model="pluginModalVisible" :title="$t('config_plugin')" width="40">
       <Form ref="pluginConfigForm" :model="pluginForm" label-position="right" :label-width="150">
         <FormItem :label="$t('locate_rules')" prop="routineExpression">
           <PathExp
@@ -155,7 +227,7 @@
       <div slot="footer">
         <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{ $t('confirm') }}</Button>
       </div>
-    </Modal>
+    </Modal> -->
     <Modal
       v-model="flowRoleManageModal"
       width="700"
@@ -191,6 +263,14 @@
     </Modal>
   </div>
 </template>
+<style lang="scss">
+.demo-split {
+  height: calc(100vh);
+}
+.demo-split-pane {
+  padding: 10px;
+}
+</style>
 <script>
 import BpmnModeler from 'bpmn-js/lib/Modeler'
 import propertiesPanelModule from 'bpmn-js-properties-panel'
@@ -241,6 +321,8 @@ export default {
   },
   data () {
     return {
+      split2: 1,
+      show: false,
       isSaving: false,
       headers: {},
       isShowUploadList: false,
@@ -336,6 +418,22 @@ export default {
     }
   },
   watch: {
+    show: function (val) {
+      console.log(val)
+      this.$nextTick(() => {
+        if (val) {
+          this.split2 = 0.9
+          this.setCss('ivu-split-trigger-con', 'top: 70%;')
+          this.setCss('bottom-pane', 'top: 70%;')
+          this.setCss('top-pane', 'bottom: 30%;')
+        } else {
+          this.split2 = 1
+          this.setCss('ivu-split-trigger-con', 'display: none;')
+          this.setCss('bottom-pane', 'display: none;')
+          this.setCss('top-pane', 'bottom: 0;')
+        }
+      })
+    },
     selectedFlow: {
       handler (val, oldVal) {
         this.$refs['currentSelectedEntity'].clearSingleSelect()
@@ -376,8 +474,14 @@ export default {
   },
   mounted () {
     this.initFlow()
+    this.setCss('ivu-split-trigger-con', 'display: none;')
+    this.setCss('bottom-pane', 'display: none;')
+    this.setCss('top-pane', 'bottom: -15%;')
   },
   methods: {
+    setCss (className, css) {
+      document.getElementsByClassName(className)[0].style.cssText = css
+    },
     renderRoleNameForTransfer (item) {
       return item.label
     },
@@ -780,7 +884,9 @@ export default {
       this.container = this.$refs.content
       const canvas = this.$refs.canvas
       canvas.onmouseup = () => {
-        this.bindRightClick()
+        this.show = true
+        console.log(111)
+        // this.bindRightClick()
       }
       var customTranslateModule = {
         translate: ['value', customTranslate]
