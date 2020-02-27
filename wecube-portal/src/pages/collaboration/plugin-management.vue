@@ -291,6 +291,7 @@ import MenuInjection from './components/menu-injection.vue'
 import SysParmas from './components/system-params.vue'
 import RuntimesResources from './components/runtime-resource.vue'
 import AuthSettings from './components/auth-setting.vue'
+import { setCookie, getCookie } from '../util/cookie'
 import axios from 'axios'
 const logTablePagination = {
   pageSize: 10,
@@ -723,20 +724,18 @@ export default {
     getHeaders () {
       let refreshRequest = null
       const currentTime = new Date().getTime()
-      let session = window.sessionStorage
-      const token = JSON.parse(session.getItem('token'))
-      if (token) {
-        const accessToken = token.find(t => t.tokenType === 'accessToken')
-        const expiration = accessToken.expiration * 1 - currentTime
+      const accessToken = getCookie('accessToken')
+      if (accessToken) {
+        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization: 'Bearer ' + token.find(t => t.tokenType === 'refreshToken').token
+              Authorization: 'Bearer ' + getCookie('refreshToken')
             }
           })
           refreshRequest.then(
             res => {
-              session.setItem('token', JSON.stringify(res.data.data))
+              setCookie(res.data.data)
               this.setUploadActionHeader()
               this.$refs.uploadButton.handleClick()
             },
@@ -755,10 +754,8 @@ export default {
       }
     },
     setUploadActionHeader () {
-      let session = window.sessionStorage
-      const token = JSON.parse(session.getItem('token'))
       this.headers = {
-        Authorization: 'Bearer ' + token.find(t => t.tokenType === 'accessToken').token
+        Authorization: 'Bearer ' + getCookie('accessToken')
       }
     }
   },
