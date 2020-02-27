@@ -120,12 +120,16 @@
       width="50"
       @on-ok="targetModelConfirm"
     >
+      {{ catchNodeTableList.length }}
       <Input v-model="tableFilterParam" placeholder="displayName filter" style="width: 300px;margin-bottom:8px;" />
       <Table
         border
         ref="selection"
         max-height="300"
-        @on-selection-change="targetModelSelectHandel"
+        @on-select="singleSelect"
+        @on-select-cancel="singleCancle"
+        @on-select-all-cancel="catchNodeTableList = []"
+        @on-select-all="selectAll"
         :columns="targetModelColums"
         :data="tartetModels"
       >
@@ -303,13 +307,20 @@ export default {
       this.tableFilterParam = null
       if (!val) {
         this.catchNodeTableList = []
+      } else {
+        document.getElementsByClassName('ivu-checkbox-input')[0].setAttribute('disabled', '')
       }
     },
     tableFilterParam: function (filter) {
-      this.tartetModels = this.catchTartetModels.filter(item => {
-        return item.displayName.includes(filter)
-      })
+      if (!filter) {
+        this.tartetModels = this.catchTartetModels
+      } else {
+        this.tartetModels = this.catchTartetModels.filter(item => {
+          return item.displayName.includes(filter)
+        })
+      }
       this.tartetModels.forEach(tm => {
+        tm._checked = false
         this.catchNodeTableList.forEach(cn => {
           if (tm.id === cn.id) {
             tm._checked = true
@@ -344,7 +355,16 @@ export default {
         this.renderModelGraph()
       }
     },
-    targetModelSelectHandel (selection) {
+    singleSelect (selection, row) {
+      this.catchNodeTableList = this.catchNodeTableList.concat(row)
+    },
+    singleCancle (selection, row) {
+      const index = this.catchNodeTableList.findIndex(cn => {
+        return cn.id === row.id
+      })
+      this.catchNodeTableList.splice(index, 1)
+    },
+    selectAll (selection) {
       this.catchNodeTableList = selection
     },
     updateNodeInfo () {
