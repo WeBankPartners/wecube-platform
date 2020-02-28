@@ -79,12 +79,12 @@
         <div slot="top" class="demo-split-pane">
           <div class="containers" ref="content">
             <div class="canvas" ref="canvas"></div>
-            <div id="right_click_menu">
+            <!-- <div id="right_click_menu">
               <a href="javascript:void(0);" @click="openPluginModal">
                 {{ $t('config_plugin') }}
               </a>
               <br />
-            </div>
+            </div> -->
 
             <div id="js-properties-panel" class="panel"></div>
             <ul class="buttons">
@@ -95,39 +95,60 @@
           </div>
         </div>
         <div slot="bottom" class="demo-split-pane">
-          <Form ref="pluginConfigForm" :model="pluginForm" label-position="right" :label-width="150">
-            <FormItem :label="$t('locate_rules')" prop="routineExpression">
-              <PathExp
-                v-if="pluginModalVisible"
-                :rootPkg="rootPkg"
-                :rootEntity="rootEntity"
-                :allDataModelsWithAttrs="allEntityType"
-                v-model="pluginForm.routineExpression"
-              ></PathExp>
-            </FormItem>
-            <FormItem :label="$t('plugin')" prop="serviceName">
-              <Select
-                filterable
-                clearable
-                v-model="pluginForm.serviceId"
-                @on-open-change="getFilteredPluginInterfaceList(pluginForm.routineExpression)"
-                @on-change="getPluginInterfaceList(false)"
-              >
-                <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-                  item.serviceDisplayName
-                }}</Option>
-              </Select>
-            </FormItem>
-            <FormItem :label="$t('timeout')" prop="timeoutExpression">
-              <Select clearable v-model="pluginForm.timeoutExpression">
-                <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
-                  >{{ item.label }}
-                </Option>
-              </Select>
-            </FormItem>
-            <FormItem :label="$t('description')" prop="description">
-              <Input v-model="pluginForm.description" />
-            </FormItem>
+          <Form ref="pluginConfigForm" :model="pluginForm" label-position="right" :label-width="120">
+            <Row>
+              <Col span="8">
+                <FormItem :label="$t('plugin_type')" prop="serviceName">
+                  <Select filterable clearable v-model="pluginForm.taskCategory">
+                    <Option v-for="(item, index) in taskCategoryList" :value="item.value" :key="index">{{
+                      item.label
+                    }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col span="8">
+                <FormItem :label="$t('locate_rules')" prop="routineExpression">
+                  <PathExp
+                    class="path-exp"
+                    :rootPkg="rootPkg"
+                    :rootEntity="rootEntity"
+                    :allDataModelsWithAttrs="allEntityType"
+                    v-model="pluginForm.routineExpression"
+                  ></PathExp>
+                </FormItem>
+              </Col>
+            </Row>
+            <Row>
+              <Col span="8">
+                <FormItem :label="$t('plugin')" prop="serviceName">
+                  <Select
+                    filterable
+                    clearable
+                    v-model="pluginForm.serviceId"
+                    @on-open-change="getFilteredPluginInterfaceList(pluginForm.routineExpression)"
+                    @on-change="getPluginInterfaceList(false)"
+                  >
+                    <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                      item.serviceDisplayName
+                    }}</Option>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col span="8">
+                <FormItem :label="$t('timeout')" prop="timeoutExpression">
+                  <Select clearable v-model="pluginForm.timeoutExpression">
+                    <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index"
+                      >{{ item.label }}
+                    </Option>
+                  </Select>
+                </FormItem>
+              </Col>
+              <Col span="8">
+                <FormItem :label="$t('description')" prop="description">
+                  <Input v-model="pluginForm.description" />
+                </FormItem>
+              </Col>
+            </Row>
             <hr style="margin-bottom: 20px" />
             <FormItem
               :label="item.paramName"
@@ -157,77 +178,14 @@
               </Select>
               <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
             </FormItem>
+            <Button type="primary" class="btn-plugin-config" @click="savePluginConfig('pluginConfigForm')">{{
+              $t('confirm')
+            }}</Button>
           </Form>
         </div>
       </Split>
     </div>
 
-    <!-- <Modal v-model="pluginModalVisible" :title="$t('config_plugin')" width="40">
-      <Form ref="pluginConfigForm" :model="pluginForm" label-position="right" :label-width="150">
-        <FormItem :label="$t('locate_rules')" prop="routineExpression">
-          <PathExp
-            v-if="pluginModalVisible"
-            :rootPkg="rootPkg"
-            :rootEntity="rootEntity"
-            :allDataModelsWithAttrs="allEntityType"
-            v-model="pluginForm.routineExpression"
-          ></PathExp>
-        </FormItem>
-        <FormItem :label="$t('plugin')" prop="serviceName">
-          <Select
-            filterable
-            clearable
-            v-model="pluginForm.serviceId"
-            @on-open-change="getFilteredPluginInterfaceList(pluginForm.routineExpression)"
-            @on-change="getPluginInterfaceList(false)"
-          >
-            <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-              item.serviceDisplayName
-            }}</Option>
-          </Select>
-        </FormItem>
-        <FormItem :label="$t('timeout')" prop="timeoutExpression">
-          <Select clearable v-model="pluginForm.timeoutExpression">
-            <Option v-for="(item, index) in timeSelection" :value="item.mins" :key="index">{{ item.label }} </Option>
-          </Select>
-        </FormItem>
-        <FormItem :label="$t('description')" prop="description">
-          <Input v-model="pluginForm.description" />
-        </FormItem>
-        <hr style="margin-bottom: 20px" />
-        <FormItem
-          :label="item.paramName"
-          :prop="item.paramName"
-          v-for="(item, index) in pluginForm.paramInfos"
-          :key="index"
-        >
-          <Select
-            v-model="item.bindNodeId"
-            style="width:30%"
-            v-if="item.bindType === 'context'"
-            @on-change="onParamsNodeChange(index)"
-            @on-open-change="getFlowsNodes"
-          >
-            <Option v-for="(i, index) in currentflowsNodes" :value="i.nodeId" :key="index">{{ i.nodeName }}</Option>
-          </Select>
-          <Select
-            v-model="item.bindParamType"
-            v-if="item.bindType === 'context'"
-            style="width:30%"
-            @on-change="onParamsNodeChange(index)"
-          >
-            <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
-          </Select>
-          <Select v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
-            <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
-          </Select>
-          <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
-        </FormItem>
-      </Form>
-      <div slot="footer">
-        <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{ $t('confirm') }}</Button>
-      </div>
-    </Modal> -->
     <Modal
       v-model="flowRoleManageModal"
       width="700"
@@ -265,10 +223,21 @@
 </template>
 <style lang="scss">
 .demo-split {
-  height: calc(100vh);
+  height: 85vh;
+  border: 1px solid #999;
+  // border-bottom: none;
 }
 .demo-split-pane {
   padding: 10px;
+}
+.ivu-form-item {
+  margin-bottom: 0 !important;
+}
+.path-exp {
+  margin-bottom: 8px;
+}
+.btn-plugin-config {
+  float: right;
 }
 </style>
 <script>
@@ -323,6 +292,10 @@ export default {
     return {
       split2: 1,
       show: false,
+      taskCategoryList: [
+        { value: 'SSTN', label: this.$t('sstn') },
+        { value: 'SUTN', label: this.$t('sutn') }
+      ],
       isSaving: false,
       headers: {},
       isShowUploadList: false,
@@ -353,7 +326,6 @@ export default {
       currentSelectedEntity: '',
       rootPkg: '',
       rootEntity: '',
-      pluginModalVisible: false,
       pluginForm: {},
       defaultPluginForm: {
         description: '',
@@ -419,7 +391,6 @@ export default {
   },
   watch: {
     show: function (val) {
-      console.log(val)
       this.$nextTick(() => {
         if (val) {
           this.split2 = 0.9
@@ -476,7 +447,7 @@ export default {
     this.initFlow()
     this.setCss('ivu-split-trigger-con', 'display: none;')
     this.setCss('bottom-pane', 'display: none;')
-    this.setCss('top-pane', 'bottom: -15%;')
+    this.setCss('top-pane', 'bottom: 0;')
   },
   methods: {
     setCss (className, css) {
@@ -575,6 +546,7 @@ export default {
       }
     },
     async getFilteredPluginInterfaceList (path) {
+      if (!path) return
       const pathList = path.split(/[~)>]/)
       const last = pathList[pathList.length - 1].split(':')
       const { status, data } = await getFilteredPluginInterfaceList(last[0], last[1])
@@ -778,9 +750,9 @@ export default {
         nodeId: this.currentNode.id,
         nodeName: this.currentNode.name,
         serviceName: (found && found.serviceName) || '',
-        routineRaw: pluginFormCopy.routineExpression
+        routineRaw: pluginFormCopy.routineExpression,
+        taskCategory: pluginFormCopy.taskCategory
       })
-      this.pluginModalVisible = false
       this.saveDiagram(true)
     },
     async openPluginModal () {
@@ -790,7 +762,6 @@ export default {
           desc: this.$t('select_entity_first')
         })
       } else {
-        this.pluginModalVisible = true
         this.pluginForm = (this.currentFlow &&
           this.currentFlow.taskNodeInfos &&
           this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) || { ...this.defaultPluginForm }
@@ -826,6 +797,17 @@ export default {
         let res = data.filter(_ => _.type === this.pluginForm.paramInfos[index].bindParamType)
         this.$set(this.pluginForm.paramInfos[index], 'currentParamNames', res)
       }
+    },
+    bindCurrentNode (e) {
+      this.currentNode.id = e.target.parentNode.getAttribute('data-element-id')
+      let nodeName = ''
+      const previousSibling = e.target.previousSibling
+      if (previousSibling && previousSibling.children[1] && previousSibling.children[1].children) {
+        for (let i = 0; i < previousSibling.children[1].children.length; i++) {
+          nodeName += previousSibling.children[1].children[i].innerHTML || ''
+        }
+      }
+      this.currentNode.name = nodeName
     },
     bindRightClick () {
       let menu = document.getElementById('right_click_menu')
@@ -872,7 +854,7 @@ export default {
           if (err) {
             console.error(err)
           }
-          _this.bindRightClick()
+          // _this.bindRightClick()
           _this.serviceTaskBindInfos = data.taskNodeInfos
           _this.currentSelectedEntity = data.rootEntity || ''
           _this.rootPkg = data.rootEntity.split(':')[0] || ''
@@ -883,10 +865,10 @@ export default {
     initFlow () {
       this.container = this.$refs.content
       const canvas = this.$refs.canvas
-      canvas.onmouseup = () => {
+      canvas.onmouseup = e => {
         this.show = true
-        console.log(111)
-        // this.bindRightClick()
+        this.bindCurrentNode(e)
+        this.openPluginModal()
       }
       var customTranslateModule = {
         translate: ['value', customTranslate]
@@ -999,7 +981,7 @@ export default {
   background-color: white;
   border: #999 1px solid;
   width: 97%;
-  height: 84%;
+  height: 96%;
 }
 .canvas {
   width: 100%;
