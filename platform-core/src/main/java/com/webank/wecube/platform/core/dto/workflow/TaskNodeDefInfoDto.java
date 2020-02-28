@@ -22,9 +22,7 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
     
     private String orderedNo;
     
-    private String taskNodeType; //SUTN-user task,SSTN-service task
-    
-    private String taskCategory; //APPROVAL,EXECUTION
+    private String taskCategory; //SUTN-user task,SSTN-service task
 
     private List<TaskNodeDefParamDto> paramInfos = new ArrayList<>();
 
@@ -144,14 +142,6 @@ public class TaskNodeDefInfoDto extends BaseNodeDefDto{
         this.orderedNo = orderedNo;
     }
     
-    public String getTaskNodeType() {
-        return taskNodeType;
-    }
-
-    public void setTaskNodeType(String taskNodeType) {
-        this.taskNodeType = taskNodeType;
-    }
-
     @Override
     public String toString() {
         return "TaskNodeDefInfoDto [nodeDefId=" + nodeDefId + ", processDefKey=" + procDefKey + ", processDefId="
