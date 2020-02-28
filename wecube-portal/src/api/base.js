@@ -23,7 +23,7 @@ req.interceptors.request.use(
     return new Promise((resolve, reject) => {
       const currentTime = new Date().getTime()
       const accessToken = getCookie('accessToken')
-      if (accessToken) {
+      if (accessToken && config.url !== '/auth/v1/api/login') {
         const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
