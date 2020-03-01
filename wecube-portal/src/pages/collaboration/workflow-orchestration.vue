@@ -75,16 +75,10 @@
       </Upload>
     </Row>
     <div v-show="showBpmn" class="demo-split">
-      <Split v-model="split2" mode="vertical">
-        <div slot="top" class="demo-split-pane">
+      <Split v-model="splitPanal" mode="vertical">
+        <div slot="top" class="">
           <div class="containers" ref="content">
             <div class="canvas" ref="canvas"></div>
-            <!-- <div id="right_click_menu">
-              <a href="javascript:void(0);" @click="openPluginModal">
-                {{ $t('config_plugin') }}
-              </a>
-              <br />
-            </div> -->
 
             <div id="js-properties-panel" class="panel"></div>
             <ul class="buttons">
@@ -94,8 +88,14 @@
             </ul>
           </div>
         </div>
-        <div slot="bottom" class="demo-split-pane">
-          <Form ref="pluginConfigForm" :model="pluginForm" label-position="right" :label-width="120">
+        <div slot="bottom" class="split-bottom">
+          <Form
+            ref="pluginConfigForm"
+            :model="pluginForm"
+            label-position="right"
+            :label-width="120"
+            style="margin-right:12px;padding-top: 16px;"
+          >
             <Row>
               <Col span="8">
                 <FormItem :label="$t('plugin_type')" prop="serviceName">
@@ -178,14 +178,17 @@
               </Select>
               <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
             </FormItem>
-            <Button type="primary" class="btn-plugin-config" @click="savePluginConfig('pluginConfigForm')">{{
-              $t('confirm')
-            }}</Button>
+            <FormItem>
+              <div class="btn-plugin-config">
+                <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
+                  $t('savePluginConfig')
+                }}</Button>
+              </div>
+            </FormItem>
           </Form>
         </div>
       </Split>
     </div>
-
     <Modal
       v-model="flowRoleManageModal"
       width="700"
@@ -221,25 +224,6 @@
     </Modal>
   </div>
 </template>
-<style lang="scss">
-.demo-split {
-  height: 85vh;
-  border: 1px solid #999;
-  // border-bottom: none;
-}
-.demo-split-pane {
-  padding: 10px;
-}
-.ivu-form-item {
-  margin-bottom: 0 !important;
-}
-.path-exp {
-  margin-bottom: 8px;
-}
-.btn-plugin-config {
-  float: right;
-}
-</style>
 <script>
 import BpmnModeler from 'bpmn-js/lib/Modeler'
 import propertiesPanelModule from 'bpmn-js-properties-panel'
@@ -290,7 +274,7 @@ export default {
   },
   data () {
     return {
-      split2: 1,
+      splitPanal: 1,
       show: false,
       taskCategoryList: [
         { value: 'SSTN', label: this.$t('sstn') },
@@ -393,12 +377,12 @@ export default {
     show: function (val) {
       this.$nextTick(() => {
         if (val) {
-          this.split2 = 0.9
-          this.setCss('ivu-split-trigger-con', 'top: 70%;')
-          this.setCss('bottom-pane', 'top: 70%;')
-          this.setCss('top-pane', 'bottom: 30%;')
+          this.splitPanal = 0.6
+          this.setCss('ivu-split-trigger-con', 'top: 60%;')
+          this.setCss('bottom-pane', 'top: 60%;')
+          this.setCss('top-pane', 'bottom: 40%;')
         } else {
-          this.split2 = 1
+          this.splitPanal = 1
           this.setCss('ivu-split-trigger-con', 'display: none;')
           this.setCss('bottom-pane', 'display: none;')
           this.setCss('top-pane', 'bottom: 0;')
@@ -979,9 +963,8 @@ export default {
 .containers {
   position: absolute;
   background-color: white;
-  border: #999 1px solid;
-  width: 97%;
-  height: 96%;
+  width: 100%;
+  height: 100%;
 }
 .canvas {
   width: 100%;
@@ -1091,5 +1074,30 @@ export default {
 }
 .ivu-upload-select {
   display: none !important;
+}
+</style>
+<style scoped lang="scss">
+.demo-split {
+  height: 76vh;
+  border: 1px solid #999;
+  border-bottom: none;
+}
+.split-bottom {
+  position: relative;
+  background: white;
+  left: -1px;
+  margin-right: -2px;
+  border-right: 1px solid #999;
+  border-left: 1px solid #999;
+}
+.ivu-form-item {
+  margin-bottom: 0 !important;
+}
+.path-exp {
+  margin-bottom: 8px;
+}
+.btn-plugin-config {
+  float: right;
+  background: white;
 }
 </style>

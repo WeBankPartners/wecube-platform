@@ -382,5 +382,6 @@
   "bc_warn_empty": "为空",
   "plugin_type": "插件类型",
   "sstn": "自动节点",
-  "sutn": "人工审批节点"
+  "sutn": "人工审批节点",
+  "savePluginConfig": "保存插件配置"
 }
