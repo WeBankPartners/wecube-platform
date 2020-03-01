@@ -383,5 +383,6 @@
   "bc_warn_empty": " is empty",
   "plugin_type": "Plugin Type",
   "sstn": "Automatic Node",
-  "sutn": "Manual Approval Node"
+  "sutn": "Manual Approval Node",
+  "savePluginConfig": "Save Plugin Configuration"
 }
