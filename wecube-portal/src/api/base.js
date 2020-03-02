@@ -1,9 +1,11 @@
 import Vue from 'vue'
 import axios from 'axios'
 import exportFile from '@/const/export-file'
+import { setCookie, getCookie } from '../pages/util/cookie'
+
 const baseURL = ''
 const req = axios.create({
-  withCredentials: true,
+  withCredentials: false,
   baseURL,
   timeout: 50000
 })
@@ -20,20 +22,18 @@ req.interceptors.request.use(
   config => {
     return new Promise((resolve, reject) => {
       const currentTime = new Date().getTime()
-      let session = window.sessionStorage
-      const token = JSON.parse(session.getItem('token'))
-      if (token) {
-        const accessToken = token.find(t => t.tokenType === 'accessToken')
-        const expiration = accessToken.expiration * 1 - currentTime
+      const accessToken = getCookie('accessToken')
+      if (accessToken && config.url !== '/auth/v1/api/login') {
+        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
         if (expiration < 1 * 60 * 1000 && !refreshRequest) {
           refreshRequest = axios.get('/auth/v1/api/token', {
             headers: {
-              Authorization: 'Bearer ' + token.find(t => t.tokenType === 'refreshToken').token
+              Authorization: 'Bearer ' + getCookie('refreshToken')
             }
           })
           refreshRequest.then(
             res => {
-              session.setItem('token', JSON.stringify(res.data.data))
+              setCookie(res.data.data)
               config.headers.Authorization = 'Bearer ' + res.data.data.find(t => t.tokenType === 'accessToken').token
               refreshRequest = null
               resolve(config)
@@ -42,14 +42,13 @@ req.interceptors.request.use(
             err => {
               refreshRequest = null
               window.location.href = window.location.origin + window.location.pathname + '#/login'
-              session.removeItem('token')
             }
           )
         }
         if (expiration < 1 * 60 * 1000 && refreshRequest) {
           refreshRequest.then(
             res => {
-              session.setItem('token', JSON.stringify(res.data.data))
+              setCookie(res.data.data)
               config.headers.Authorization = 'Bearer ' + res.data.data.find(t => t.tokenType === 'accessToken').token
               refreshRequest = null
               resolve(config)
@@ -58,12 +57,11 @@ req.interceptors.request.use(
             err => {
               refreshRequest = null
               window.location.href = window.location.origin + window.location.pathname + '#/login'
-              session.removeItem('token')
             }
           )
         }
         if (expiration > 1 * 60 * 1000) {
-          config.headers.Authorization = 'Bearer ' + accessToken.token
+          config.headers.Authorization = 'Bearer ' + accessToken
           resolve(config)
         }
       } else {
