@@ -196,6 +196,7 @@
   "output_params": "Output Param",
   "regist": "Regist",
   "decommission": "Decommission",
+  "sensitive": "Sensitive",
   "show_details": "Details",
   "file_name": "File Name",
   "match_text": "Match Text",
@@ -379,5 +380,9 @@
   "bc_from_system": "From System",
   "bc_continue": "Continue",
   "bc_warn_del": "Data will be cleared if you choose to continue",
-  "bc_warn_empty": " is empty"
+  "bc_warn_empty": " is empty",
+  "plugin_type": "Plugin Type",
+  "sstn": "Automatic Node",
+  "sutn": "Manual Approval Node",
+  "savePluginConfig": "Save Plugin Configuration"
 }
