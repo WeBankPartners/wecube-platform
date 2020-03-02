@@ -129,6 +129,7 @@
         <xs:attribute type="xs:string" name="mappingSystemVariableName" use="optional"/>
         <xs:attribute type="xs:string" name="required" use="required"/>
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
+        <xs:attribute type="xs:string" name="sensitiveData" use="optional"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -143,6 +144,7 @@
         <xs:attribute type="xs:string" name="datatype" use="optional"/>
         <xs:attribute type="xs:string" name="mappingType" use="optional"/>
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
+        <xs:attribute type="xs:string" name="sensitiveData" use="optional"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>

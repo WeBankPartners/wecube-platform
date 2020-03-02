@@ -503,6 +503,11 @@ public class PluginPackageXmlParser {
             } else {
                 pluginConfigInterfaceParameter.setRequired("N");
             }
+            
+            String sensitiveData = getStringAttribute(parameterNode, "./@sensitiveData");
+            if(StringUtils.isNoneBlank(sensitiveData)){
+                pluginConfigInterfaceParameter.setSensitiveData(sensitiveData);
+            }
 
             pluginConfigInterfaceParameters.add(pluginConfigInterfaceParameter);
         }

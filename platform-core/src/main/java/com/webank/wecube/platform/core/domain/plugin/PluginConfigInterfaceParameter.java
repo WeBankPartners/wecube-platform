@@ -43,6 +43,9 @@ public class PluginConfigInterfaceParameter {
     private String mappingSystemVariableName;
     @Column
     private String required;
+    
+    @Column
+    private String sensitiveData;
 
     @JsonInclude
     @ToString.Include
@@ -147,5 +150,13 @@ public class PluginConfigInterfaceParameter {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toStringExclude(this, "pluginConfigInterface");
+    }
+
+    public String getSensitiveData() {
+        return sensitiveData;
+    }
+
+    public void setSensitiveData(String sensitiveData) {
+        this.sensitiveData = sensitiveData;
     }
 }

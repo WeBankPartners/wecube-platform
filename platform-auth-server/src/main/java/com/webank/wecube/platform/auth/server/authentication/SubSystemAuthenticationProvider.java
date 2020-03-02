@@ -65,8 +65,8 @@ public class SubSystemAuthenticationProvider implements AuthenticationProvider {
                 EncryptionUtils.UTF8);
 
         String[] decryptedPasswordParts = decryptedPassword.split(DELIMITER_SYSTEM_CODE_AND_NONCE);
-        if ((decryptedPasswordParts.length < 2) && (!systemCode.equals(decryptedPasswordParts[0]))
-                && (!nonce.equals(decryptedPasswordParts[1]))) {
+        if ((decryptedPasswordParts.length < 2) || (!systemCode.equals(decryptedPasswordParts[0]))
+                || (!nonce.equals(decryptedPasswordParts[1]))) {
             throw new BadCredentialsException("Bad credential");
         }
     }
