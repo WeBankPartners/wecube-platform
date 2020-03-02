@@ -27,5 +27,6 @@ java -Djava.security.egd=file:/dev/urandom -jar /application/platform-core.jar  
 --wecube.core.authserver.host=${GATEWAY_HOST} \
 --wecube.core.authserver.port=${GATEWAY_PORT} \
 --wecube.core.plugin.plugin-deploy-path=${WECUBE_PLUGIN_DEPLOY_PATH} \
+--wecube.core.plugin.plugin-package-bucket-name=${WECUBE_BUCKET} \
 ${WECUBE_CUSTOM_PARAM} \
 >>/log/wecube-core.log 
