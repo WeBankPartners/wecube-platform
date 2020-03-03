@@ -27,9 +27,8 @@
           </Form>
         </div>
         <div class="search-btn">
-          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch">{{
-            $t('bc_execute_query')
-          }}</Button>
+          <!-- :disabled="!(!!currentPackageName && !!currentEntityName)" -->
+          <Button type="primary" @click="excuteSearch">{{ $t('bc_execute_query') }}</Button>
           <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
           <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
         </div>
@@ -61,24 +60,97 @@
         </Card>
         <a v-else @click="reExcute('displayResultTableZone')">
           {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected') }}{{ seletedRowsNum
-          }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ serviceId }}
+          }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ pluginId }}
         </a>
       </div>
     </section>
-    <section v-if="!displaySearchZone && !displayResultTableZone" style="margin-top:60px;">
+    <!-- v-if="!displaySearchZone && !displayResultTableZone" -->
+    <section v-if="executeHistory.length" style="margin-top:30px;">
+      {{ activeExecuteHistoryKey }}
+      <Row>
+        <Col span="4" class="res res-title">
+          <h6 style="margin: 8px">历史记录</h6>
+          <ul>
+            <li
+              @click="changeActiveExecuteHistory(keyIndex)"
+              class="business-key"
+              v-for="(key, keyIndex) in executeHistory"
+              :key="keyIndex"
+            >
+              <span>{{ key.id }}</span>
+            </li>
+          </ul>
+        </Col>
+        <Col span="20" class="res res-content">
+          <div class="res-content-step">
+            <Steps :current="3">
+              <Step title="设置查询条件"></Step>
+              <Step title="查询结果"></Step>
+              <Step title="选择插件"></Step>
+              <!-- <Step title="执行历史"></Step> -->
+            </Steps>
+          </div>
+          <div v-if="activeExecuteHistory" class="res-content-params">
+            <Form label-position="right" :label-width="100">
+              <Row>
+                <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
+                  <Col span="8" v-if="item.mappingType === 'constant'" :key="index">
+                    <FormItem :label="item.name" :key="index">
+                      <Input v-model="item.bindValue" />
+                    </FormItem>
+                  </Col>
+                </template>
+                <Col span="4" offset="4">
+                  <Button type="primary" @click="executeAgain">执行</Button>
+                </Col>
+              </Row>
+            </Form>
+          </div>
+          <div class="res-content-result">
+            <Row>
+              <Col span="6" class="excute-result excute-result-search">
+                <Input v-model="businessKey" />
+                <p class="excute-result-search-title">{{ pluginId }}</p>
+                <ul v-if="activeExecuteHistory.filterBusinessKeySet.length">
+                  <li
+                    @click="activeResultKey = key"
+                    :class="[activeResultKey === key ? 'active-key' : '', 'business-key']"
+                    v-for="(key, keyIndex) in activeExecuteHistory.filterBusinessKeySet"
+                    :key="keyIndex"
+                  >
+                    <span>{{ key }}</span>
+                  </li>
+                </ul>
+                <p v-else>No Data</p>
+              </Col>
+              <Col span="18" class="excute-result excute-result-json">
+                <div>
+                  <pre
+                    style="min-height: 300px;"
+                    v-if="businessKeyContent"
+                  > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
+                  <pre v-else> <span></span></pre>
+                </div>
+              </Col>
+            </Row>
+          </div>
+        </Col>
+      </Row>
+    </section>
+    <!-- <section  style="margin-top:60px;">
       <Card>
         <p slot="title">{{ $t('bc_execution_result') }}：</p>
         <Row>
           <Col span="6" class="excute-result excute-result-search">
             <Input v-model="businessKey" />
-            <p class="excute-result-search-title">{{ serviceId }}</p>
+            <p class="excute-result-search-title">{{ pluginId }}</p>
             <ul v-if="filterBusinessKeySet.length">
               <li
                 @click="activeResultKey = key"
                 :class="[
                   activeResultKey === key ? 'active-key' : '',
                   'business-key',
-                  excuteResult[key].errorCode === '1' ? 'error-key' : ''
+                  executeResult[key].errorCode === '1' ? 'error-key' : ''
                 ]"
                 v-for="(key, keyIndex) in filterBusinessKeySet"
                 :key="keyIndex"
@@ -91,18 +163,16 @@
           <Col span="18" class="excute-result excute-result-json">
             <Input v-model="resultFilterKey" style="width:300px;visibility: hidden;" />
             <div>
-              <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
               <pre
                 style="min-height: 300px;"
                 v-if="businessKeyContent"
               > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
               <pre v-else> <span></span></pre>
-              <!-- <p>{{ JSON.stringify(businessKeyContent, null, 2) }}</p> -->
             </div>
           </Col>
         </Row>
       </Card>
-    </section>
+    </section> -->
     <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
       <Form :label-width="130" label-colon>
         <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_start_path')">
@@ -164,7 +234,7 @@
     <Modal v-model="batchActionModalVisible" :title="$t('bc_batch_operation')">
       <Form label-position="right" :label-width="150">
         <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
-          <Select filterable clearable v-model="serviceId">
+          <Select filterable clearable v-model="pluginId">
             <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
               item.serviceDisplayName
             }}</Option>
@@ -178,7 +248,7 @@
         </template>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="excuteBatchAction" :disabled="!this.serviceId">
+        <Button type="primary" @click="excuteBatchAction" :disabled="!this.pluginId">
           {{ $t('confirm') }}
         </Button>
       </div>
@@ -216,7 +286,7 @@ export default {
     return {
       displaySearchZone: true,
       displayResultTableZone: false,
-      displayExcuteResultZone: false,
+      displayExecuteResultZone: false,
 
       DelConfig: {
         isDisplay: false,
@@ -247,23 +317,36 @@ export default {
       tableColumns: [],
 
       batchActionModalVisible: false,
-      serviceId: null,
+      pluginId: null,
       selectedPluginParams: [],
       allPlugins: [],
       filteredPlugins: [],
 
-      excuteResult: {},
-      excuteBusinessKeySet: [],
+      executeResult: {},
       filterBusinessKeySet: [],
-      activeResultKey: '',
+      activeResultKey: null,
       businessKey: '',
-      resultFilterKey: ''
+
+      activeExecuteHistoryKey: 0,
+      activeExecuteHistory: null,
+      tempExecuteHistory: null,
+      executeHistory: [
+        // {
+        //   id: null,
+        //   QueryConditions: {},
+        //   plugin: {},
+        //   executeResult: {
+        //   }
+        // }
+      ]
     }
   },
   mounted () {},
   computed: {
     businessKeyContent: function () {
-      return this.excuteResult[this.activeResultKey]
+      if (this.activeResultKey !== null) {
+        return this.activeExecuteHistory.executeResult[this.activeResultKey]
+      }
     }
   },
   watch: {
@@ -297,7 +380,7 @@ export default {
         })
       }
     },
-    serviceId: function (val) {
+    pluginId: function (val) {
       this.filteredPlugins.forEach(plugin => {
         if (plugin.serviceDisplayName === val) {
           this.selectedPluginParams = plugin.inputParameters
@@ -310,7 +393,7 @@ export default {
     },
     businessKey: function (val) {
       this.filterBusinessKeySet = []
-      for (const key in this.excuteResult) {
+      for (const key in this.executeResult) {
         if (key.indexOf(this.businessKey) > -1) {
           this.filterBusinessKeySet.push(key)
         }
@@ -375,6 +458,8 @@ export default {
       this.searchParameters = this.targetEntityAttr
     },
     async excuteSearch () {
+      this.currentPackageName = 'wecmdb'
+      this.currentEntityName = 'resource_instance'
       let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         this.tableColumns = data.map((_, i) => {
@@ -423,6 +508,7 @@ export default {
           }
         }
       })
+      // const requestParameter = {'dataModelExpression': 'wecmdb:resource_instance', 'filters': []}
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
         if (data.length) {
@@ -454,7 +540,7 @@ export default {
 
       this.displaySearchZone = false
       this.displayResultTableZone = false
-      this.displayExcuteResultZone = false
+      this.displayExecuteResultZone = false
       this.businessKey = null
       this[this.DelConfig.key] = true
     },
@@ -466,7 +552,7 @@ export default {
       this.getFilteredPluginInterfaceList()
       this.batchActionModalVisible = true
       this.selectedPluginParams = []
-      this.serviceId = null
+      this.pluginId = null
     },
     async getFilteredPluginInterfaceList () {
       const { status, data } = await getFilteredPluginInterfaceList(this.currentPackageName, this.currentEntityName)
@@ -476,7 +562,7 @@ export default {
     },
     async excuteBatchAction () {
       const plugin = this.filteredPlugins.find(_ => {
-        return _.serviceName === this.serviceId
+        return _.serviceName === this.pluginId
       })
       const inputParameterDefinitions = this.selectedPluginParams.map(p => {
         const inputParameterValue =
@@ -506,18 +592,354 @@ export default {
       }
 
       this.batchActionModalVisible = false
+      // const requestBody = {
+      //   'packageName': 'wecmdb',
+      //   'entityName': 'resource_instance',
+      //   'pluginConfigInterface': {
+      //       'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //       'pluginConfigId': 'saltstack__v1.8.1__host-script',
+      //       'action': 'runCustomScript',
+      //       'serviceName': 'saltstack/host-script/runCustomScript',
+      //       'serviceDisplayName': 'saltstack/host-script/runCustomScript',
+      //       'path': '/saltstack/v1/host-script/run',
+      //       'httpMethod': '',
+      //       'isAsyncProcessing': 'N',
+      //       'inputParameters': [
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'args',
+      //               'dataType': 'string',
+      //               'mappingType': 'constant',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'endpoint',
+      //               'dataType': 'string',
+      //               'mappingType': 'constant',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'Y',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'endpointType',
+      //               'dataType': 'string',
+      //               'mappingType': 'system_variable',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': 'SCRIPT_END_POINT_TYPE_USER_PARAM',
+      //               'required': 'Y',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'guid',
+      //               'dataType': 'string',
+      //               'mappingType': 'entity',
+      //               'mappingEntityExpression': 'wecmdb:resource_instance.id',
+      //               'mappingSystemVariableName': null,
+      //               'required': 'Y',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'runAs',
+      //               'dataType': 'string',
+      //               'mappingType': 'constant',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'scriptContent',
+      //               'dataType': 'string',
+      //               'mappingType': 'constant',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null,
+      //               'bindValue': 'ls'
+      //           },
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'target',
+      //               'dataType': 'string',
+      //               'mappingType': 'entity',
+      //               'mappingEntityExpression': 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
+      //               'mappingSystemVariableName': null,
+      //               'required': 'Y',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           }
+      //       ],
+      //       'outputParameters': [
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorCode',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'OUTPUT',
+      //               'name': 'errorCode',
+      //               'dataType': 'string',
+      //               'mappingType': 'context',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null
+      //           },
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorMessage',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'OUTPUT',
+      //               'name': 'errorMessage',
+      //               'dataType': 'string',
+      //               'mappingType': 'context',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null
+      //           },
+      //           {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__guid',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'OUTPUT',
+      //               'name': 'guid',
+      //               'dataType': 'string',
+      //               'mappingType': 'entity',
+      //               'mappingEntityExpression': 'wecmdb:resource_instance.id',
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null
+      //           }
+      //       ]
+      //   },
+      //   'inputParameterDefinitions': [
+      //       {
+      //           'inputParameter': {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'args',
+      //               'dataType': 'string',
+      //               'mappingType': 'constant',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           'inputParameterValue': ''
+      //       },
+      //       {
+      //           'inputParameter': {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'endpoint',
+      //               'dataType': 'string',
+      //               'mappingType': 'constant',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'Y',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           'inputParameterValue': ''
+      //       },
+      //       {
+      //           'inputParameter': {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'endpointType',
+      //               'dataType': 'string',
+      //               'mappingType': 'system_variable',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': 'SCRIPT_END_POINT_TYPE_USER_PARAM',
+      //               'required': 'Y',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           'inputParameterValue': null
+      //       },
+      //       {
+      //           'inputParameter': {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'guid',
+      //               'dataType': 'string',
+      //               'mappingType': 'entity',
+      //               'mappingEntityExpression': 'wecmdb:resource_instance.id',
+      //               'mappingSystemVariableName': null,
+      //               'required': 'Y',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           'inputParameterValue': null
+      //       },
+      //       {
+      //           'inputParameter': {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'runAs',
+      //               'dataType': 'string',
+      //               'mappingType': 'constant',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           'inputParameterValue': ''
+      //       },
+      //       {
+      //           'inputParameter': {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'scriptContent',
+      //               'dataType': 'string',
+      //               'mappingType': 'constant',
+      //               'mappingEntityExpression': null,
+      //               'mappingSystemVariableName': null,
+      //               'required': 'N',
+      //               'sensitiveData': null,
+      //               'bindValue': 'ls'
+      //           },
+      //           'inputParameterValue': 'ls'
+      //       },
+      //       {
+      //           'inputParameter': {
+      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
+      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+      //               'type': 'INPUT',
+      //               'name': 'target',
+      //               'dataType': 'string',
+      //               'mappingType': 'entity',
+      //               'mappingEntityExpression': 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
+      //               'mappingSystemVariableName': null,
+      //               'required': 'Y',
+      //               'sensitiveData': null,
+      //               'bindValue': ''
+      //           },
+      //           'inputParameterValue': null
+      //       }
+      //   ],
+      //   'businessKeyAttribute': {
+      //       'id': 'wecmdb__7__resource_instance__key_name',
+      //       'pluginPackageAttribute': null,
+      //       'name': 'key_name',
+      //       'description': '唯一名称',
+      //       'dataType': 'str',
+      //       'key': 'wecmdbresource_instance0',
+      //       'index': 0,
+      //       'title': 'key_name',
+      //       'entityName': 'resource_instance',
+      //       'packageName': 'wecmdb',
+      //       'nodeKey': 15
+      //   },
+      //   'resourceDatas': [
+      //       {
+      //           'id': '0015_0000000013',
+      //           'businessKeyValue': 'GZP4_SF_CS_APP_10.128.36.10'
+      //       }
+      //   ]
+      // }
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
-        this.excuteResult = data
-        this.excuteBusinessKeySet = this.filterBusinessKeySet = []
+        this.executeResult = data
+        this.filterBusinessKeySet = []
         for (const key in data) {
-          this.excuteBusinessKeySet.push(key)
+          this.filterBusinessKeySet.push(key)
         }
-        this.filterBusinessKeySet = this.excuteBusinessKeySet
         this.displayResultTableZone = false
-        this.displayExcuteResultZone = false
+        this.displayExecuteResultZone = false
+
+        this.executeHistory.push({
+          id: new Date().getMilliseconds(),
+          plugin: {
+            pluginName: this.pluginId,
+            pluginParams: this.selectedPluginParams
+          },
+          requestBody: requestBody,
+          executeResult: data,
+          filterBusinessKeySet: this.filterBusinessKeySet
+        })
+        this.activeExecuteHistoryKey = 0
+        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[0]))
+        this.tempExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory))
       }
+    },
+    async executeAgain () {
+      // console.log(this.executeHistory[this.activeExecuteHistoryKey].plugin.pluginParams)
+      const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
+        const inputParameterValue =
+          p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
+        return {
+          inputParameter: p,
+          inputParameterValue: inputParameterValue
+        }
+      })
+      let requestBody = this.activeExecuteHistory.requestBody
+      requestBody.inputParameterDefinitions = inputParameterDefinitions
+      // console.log(inputParameterDefinitions)
+      // console.log(this.activeExecuteHistory.requestBody.inputParameterDefinitions)
+      const { status, data } = await batchExecution(requestBody)
+      this.seletedRows = []
+      if (status === 'OK') {
+        this.executeResult = data
+        this.filterBusinessKeySet = []
+        for (const key in data) {
+          this.filterBusinessKeySet.push(key)
+        }
+        console.log(requestBody)
+        console.log(111)
+        console.log(this.executeHistory)
+        this.executeHistory.push({
+          id: new Date().getMilliseconds(),
+          plugin: this.activeExecuteHistory.plugin,
+          requestBody: requestBody,
+          executeResult: data,
+          filterBusinessKeySet: this.filterBusinessKeySet
+        })
+        // console.log(this.tempExecuteHistory)
+        // executeHistory
+        // this.executeHistory = JSON.parse(JSON.stringify(this.tempExecuteHistory))
+      }
+    },
+    changeActiveExecuteHistory (keyIndex) {
+      console.log(keyIndex)
+      console.log(this.executeHistory)
+      console.log(this.executeHistory[keyIndex])
+      this.activeExecuteHistoryKey = keyIndex
+      this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[keyIndex]))
+      console.log(this.activeExecuteHistory)
     }
   },
   components: {
@@ -525,8 +947,26 @@ export default {
   }
 }
 </script>
-
-<style lang="scss" scope>
+<style lang="scss" scoped>
+.res {
+  border: 1px solid #e8eaec;
+}
+.res-title {
+  height: 398px;
+}
+.res-content {
+  left: -1px;
+  .res-content-step,
+  .res-content-params {
+    padding: 8px;
+    border-bottom: 1px solid #e8eaec;
+  }
+  .res-content-result {
+    margin: 2px;
+  }
+}
+</style>
+<style lang="scss" scoped>
 .ivu-tree-children li {
   margin: 0 !important;
   .ivu-checkbox-wrapper {
