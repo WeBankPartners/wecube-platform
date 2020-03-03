@@ -98,12 +98,7 @@
                 :name="index + inter.action"
               >
                 {{ inter.action }}
-                <div
-                  class="interfaceContainer"
-                  slot="content"
-                  v-for="(inter, index) in currentPluginObj.interfaces"
-                  :key="index + inter.action"
-                >
+                <div class="interfaceContainer" slot="content">
                   <Row>
                     <Col span="3">
                       <FormItem :label-width="0">
@@ -208,7 +203,7 @@
                         </Col>
                         <Col span="2" offset="0">
                           <FormItem :label-width="0">
-                            <span>{{ $t('output_params') }}</span>
+                            <span>{{ outPut.dataType }}</span>
                           </FormItem>
                         </Col>
                         <Col span="3" offset="0">
