@@ -1037,7 +1037,7 @@ export default {
 </style>
 <style scoped lang="scss">
 .split {
-  height: 78vh;
+  height: calc(100vh - 145px);
   border: 1px solid #999;
   border-bottom: none;
 }
