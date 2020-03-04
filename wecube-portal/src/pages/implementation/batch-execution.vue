@@ -70,6 +70,7 @@
       <Row>
         <Col span="4" class="res res-title">
           <h6 style="margin: 8px">历史记录</h6>
+          <!-- <Tree :data="executeHistory"></Tree> -->
           <ul>
             <li
               @click="changeActiveExecuteHistory(keyIndex)"
@@ -81,13 +82,49 @@
             </li>
           </ul>
         </Col>
-        <Col span="20" class="res res-content">
+        <Col v-if="activeExecuteHistory" span="20" class="res res-content">
           <div class="res-content-step">
             <Steps :current="3">
-              <Step title="设置查询条件"></Step>
-              <Step title="查询结果"></Step>
-              <Step title="选择插件"></Step>
-              <!-- <Step title="执行历史"></Step> -->
+              <Step title="查询条件">
+                <div slot="content">
+                  <Tooltip :max-width="500">
+                    <Icon type="ios-information-circle-outline" />
+                    <div slot="content">
+                      <ul>
+                        <li>{{ $t('bc_query_path') }}:{{ dataModelExpression }}</li>
+                        <li v-for="(sp, spIndex) in activeExecuteHistory.requestBody.searchParameters" :key="spIndex">
+                          <span> {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{ sp.value }}] </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </Tooltip>
+                  <Button size="small" @click="changeTargetObject">重置查询</Button>
+                </div>
+              </Step>
+              <Step title="执行对象">
+                <div slot="content">
+                  <Tooltip>
+                    <Icon type="ios-information-circle-outline" />
+                    <div slot="content">
+                      <p
+                        :key="targetIndex"
+                        v-for="(target, targetIndex) in activeExecuteHistory.requestBody.resourceDatas"
+                      >
+                        {{ target.businessKeyValue }}
+                      </p>
+                    </div>
+                  </Tooltip>
+                  <Button size="small" @click="changeTargetObject">切换对象</Button>
+                </div>
+              </Step>
+              <Step title="执行插件" content="">
+                <div slot="content">
+                  <Tooltip :content="activeExecuteHistory.plugin.pluginName">
+                    <Icon type="ios-information-circle-outline" />
+                  </Tooltip>
+                  <Button size="small" @click="changePlugin">切换插件</Button>
+                </div>
+              </Step>
             </Steps>
           </div>
           <div v-if="activeExecuteHistory" class="res-content-params">
@@ -317,6 +354,7 @@ export default {
       tableColumns: [],
 
       batchActionModalVisible: false,
+      isHistoryToBatchActionModal: false,
       pluginId: null,
       selectedPluginParams: [],
       allPlugins: [],
@@ -329,7 +367,7 @@ export default {
 
       activeExecuteHistoryKey: 0,
       activeExecuteHistory: null,
-      tempExecuteHistory: null,
+      // tempExecuteHistory: null,
       executeHistory: [
         // {
         //   id: null,
@@ -397,6 +435,11 @@ export default {
         if (key.indexOf(this.businessKey) > -1) {
           this.filterBusinessKeySet.push(key)
         }
+      }
+    },
+    batchActionModalVisible: function (val) {
+      if (!val) {
+        this.isHistoryToBatchActionModal = false
       }
     }
   },
@@ -561,6 +604,8 @@ export default {
       }
     },
     async excuteBatchAction () {
+      console.log(this.searchParameters)
+      let requestBody = {}
       const plugin = this.filteredPlugins.find(_ => {
         return _.serviceName === this.pluginId
       })
@@ -572,304 +617,48 @@ export default {
           inputParameterValue: inputParameterValue
         }
       })
-      let currentEntity = this.currentEntityAttrList.find(_ => {
-        return _.name === this.currentEntityAttr
-      })
-      const resourceDatas = this.seletedRows.map(_ => {
-        return {
-          id: _.id,
-          businessKeyValue: _[this.currentEntityAttr]
+      if (this.isHistoryToBatchActionModal) {
+        const {
+          packageName,
+          entityName,
+          dataModelExpression,
+          searchParameters,
+          businessKeyAttribute,
+          resourceDatas
+        } = this.activeExecuteHistory.requestBody
+        requestBody = {
+          packageName,
+          entityName,
+          dataModelExpression,
+          searchParameters,
+          pluginConfigInterface: plugin,
+          inputParameterDefinitions,
+          businessKeyAttribute,
+          resourceDatas
         }
-      })
-
-      let requestBody = {
-        packageName: this.currentPackageName,
-        entityName: this.currentEntityName,
-        pluginConfigInterface: plugin,
-        inputParameterDefinitions,
-        businessKeyAttribute: currentEntity,
-        resourceDatas
+      } else {
+        let currentEntity = this.currentEntityAttrList.find(_ => {
+          return _.name === this.currentEntityAttr
+        })
+        const resourceDatas = this.seletedRows.map(_ => {
+          return {
+            id: _.id,
+            businessKeyValue: _[this.currentEntityAttr]
+          }
+        })
+        requestBody = {
+          packageName: this.currentPackageName,
+          entityName: this.currentEntityName,
+          dataModelExpression: this.dataModelExpression,
+          searchParameters: this.searchParameters,
+          pluginConfigInterface: plugin,
+          inputParameterDefinitions,
+          businessKeyAttribute: currentEntity,
+          resourceDatas
+        }
       }
-
       this.batchActionModalVisible = false
-      // const requestBody = {
-      //   'packageName': 'wecmdb',
-      //   'entityName': 'resource_instance',
-      //   'pluginConfigInterface': {
-      //       'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //       'pluginConfigId': 'saltstack__v1.8.1__host-script',
-      //       'action': 'runCustomScript',
-      //       'serviceName': 'saltstack/host-script/runCustomScript',
-      //       'serviceDisplayName': 'saltstack/host-script/runCustomScript',
-      //       'path': '/saltstack/v1/host-script/run',
-      //       'httpMethod': '',
-      //       'isAsyncProcessing': 'N',
-      //       'inputParameters': [
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'args',
-      //               'dataType': 'string',
-      //               'mappingType': 'constant',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'endpoint',
-      //               'dataType': 'string',
-      //               'mappingType': 'constant',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'Y',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'endpointType',
-      //               'dataType': 'string',
-      //               'mappingType': 'system_variable',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': 'SCRIPT_END_POINT_TYPE_USER_PARAM',
-      //               'required': 'Y',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'guid',
-      //               'dataType': 'string',
-      //               'mappingType': 'entity',
-      //               'mappingEntityExpression': 'wecmdb:resource_instance.id',
-      //               'mappingSystemVariableName': null,
-      //               'required': 'Y',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'runAs',
-      //               'dataType': 'string',
-      //               'mappingType': 'constant',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'scriptContent',
-      //               'dataType': 'string',
-      //               'mappingType': 'constant',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null,
-      //               'bindValue': 'ls'
-      //           },
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'target',
-      //               'dataType': 'string',
-      //               'mappingType': 'entity',
-      //               'mappingEntityExpression': 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
-      //               'mappingSystemVariableName': null,
-      //               'required': 'Y',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           }
-      //       ],
-      //       'outputParameters': [
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorCode',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'OUTPUT',
-      //               'name': 'errorCode',
-      //               'dataType': 'string',
-      //               'mappingType': 'context',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null
-      //           },
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorMessage',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'OUTPUT',
-      //               'name': 'errorMessage',
-      //               'dataType': 'string',
-      //               'mappingType': 'context',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null
-      //           },
-      //           {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__guid',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'OUTPUT',
-      //               'name': 'guid',
-      //               'dataType': 'string',
-      //               'mappingType': 'entity',
-      //               'mappingEntityExpression': 'wecmdb:resource_instance.id',
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null
-      //           }
-      //       ]
-      //   },
-      //   'inputParameterDefinitions': [
-      //       {
-      //           'inputParameter': {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'args',
-      //               'dataType': 'string',
-      //               'mappingType': 'constant',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           'inputParameterValue': ''
-      //       },
-      //       {
-      //           'inputParameter': {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'endpoint',
-      //               'dataType': 'string',
-      //               'mappingType': 'constant',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'Y',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           'inputParameterValue': ''
-      //       },
-      //       {
-      //           'inputParameter': {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'endpointType',
-      //               'dataType': 'string',
-      //               'mappingType': 'system_variable',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': 'SCRIPT_END_POINT_TYPE_USER_PARAM',
-      //               'required': 'Y',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           'inputParameterValue': null
-      //       },
-      //       {
-      //           'inputParameter': {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'guid',
-      //               'dataType': 'string',
-      //               'mappingType': 'entity',
-      //               'mappingEntityExpression': 'wecmdb:resource_instance.id',
-      //               'mappingSystemVariableName': null,
-      //               'required': 'Y',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           'inputParameterValue': null
-      //       },
-      //       {
-      //           'inputParameter': {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'runAs',
-      //               'dataType': 'string',
-      //               'mappingType': 'constant',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           'inputParameterValue': ''
-      //       },
-      //       {
-      //           'inputParameter': {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'scriptContent',
-      //               'dataType': 'string',
-      //               'mappingType': 'constant',
-      //               'mappingEntityExpression': null,
-      //               'mappingSystemVariableName': null,
-      //               'required': 'N',
-      //               'sensitiveData': null,
-      //               'bindValue': 'ls'
-      //           },
-      //           'inputParameterValue': 'ls'
-      //       },
-      //       {
-      //           'inputParameter': {
-      //               'id': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
-      //               'pluginConfigInterfaceId': 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-      //               'type': 'INPUT',
-      //               'name': 'target',
-      //               'dataType': 'string',
-      //               'mappingType': 'entity',
-      //               'mappingEntityExpression': 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
-      //               'mappingSystemVariableName': null,
-      //               'required': 'Y',
-      //               'sensitiveData': null,
-      //               'bindValue': ''
-      //           },
-      //           'inputParameterValue': null
-      //       }
-      //   ],
-      //   'businessKeyAttribute': {
-      //       'id': 'wecmdb__7__resource_instance__key_name',
-      //       'pluginPackageAttribute': null,
-      //       'name': 'key_name',
-      //       'description': '唯一名称',
-      //       'dataType': 'str',
-      //       'key': 'wecmdbresource_instance0',
-      //       'index': 0,
-      //       'title': 'key_name',
-      //       'entityName': 'resource_instance',
-      //       'packageName': 'wecmdb',
-      //       'nodeKey': 15
-      //   },
-      //   'resourceDatas': [
-      //       {
-      //           'id': '0015_0000000013',
-      //           'businessKeyValue': 'GZP4_SF_CS_APP_10.128.36.10'
-      //       }
-      //   ]
-      // }
+
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
@@ -893,7 +682,7 @@ export default {
         })
         this.activeExecuteHistoryKey = 0
         this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[0]))
-        this.tempExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory))
+        console.log(this.activeExecuteHistory)
       }
     },
     async executeAgain () {
@@ -908,8 +697,6 @@ export default {
       })
       let requestBody = this.activeExecuteHistory.requestBody
       requestBody.inputParameterDefinitions = inputParameterDefinitions
-      // console.log(inputParameterDefinitions)
-      // console.log(this.activeExecuteHistory.requestBody.inputParameterDefinitions)
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
@@ -928,18 +715,31 @@ export default {
           executeResult: data,
           filterBusinessKeySet: this.filterBusinessKeySet
         })
-        // console.log(this.tempExecuteHistory)
-        // executeHistory
-        // this.executeHistory = JSON.parse(JSON.stringify(this.tempExecuteHistory))
       }
     },
     changeActiveExecuteHistory (keyIndex) {
-      console.log(keyIndex)
-      console.log(this.executeHistory)
-      console.log(this.executeHistory[keyIndex])
       this.activeExecuteHistoryKey = keyIndex
       this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[keyIndex]))
-      console.log(this.activeExecuteHistory)
+    },
+    async changePlugin () {
+      const { status, data } = await getFilteredPluginInterfaceList(
+        this.activeExecuteHistory.requestBody.packageName,
+        this.activeExecuteHistory.requestBody.entityName
+      )
+      if (status === 'OK') {
+        this.filteredPlugins = data
+        this.selectedPluginParams = []
+        this.pluginId = null
+        this.batchActionModalVisible = true
+        this.isHistoryToBatchActionModal = true
+      }
+    },
+    changeTargetObject () {
+      const { packageName, entityName, dataModelExpression } = this.activeExecuteHistory.requestBody
+      this.currentPackageName = packageName
+      this.currentEntityName = entityName
+      this.dataModelExpression = dataModelExpression
+      this.excuteSearch()
     }
   },
   components: {
