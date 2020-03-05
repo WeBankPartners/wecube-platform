@@ -719,41 +719,12 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-.execute-history {
-  border-left: 1px solid #e8eaec;
-  border-bottom: 1px solid #e8eaec;
-  margin-top: 16px;
-}
-.res {
-  border: 1px solid #e8eaec;
-}
-.res-title {
-  border-top: 1px solid #e8eaec;
-}
-.res-content {
-  left: -1px;
-  .res-content-step,
-  .res-content-params {
-    padding: 8px;
-    border-bottom: 1px solid #e8eaec;
-  }
-  .res-content-result {
-    margin: 2px;
-  }
-}
-pre {
-  margin-bottom: 0;
-}
-</style>
-<style lang="scss" scoped>
+$border-config: 1px solid #e8eaec;
 .ivu-tree-children li {
   margin: 0 !important;
   .ivu-checkbox-wrapper {
     margin: 0 !important;
   }
-}
-.ivu-form-item {
-  margin-bottom: 6px !important;
 }
 .ivu-form-item-error .ivu-select-selection,
 .ivu-form-item-error .ivu-select-arrow {
@@ -767,8 +738,35 @@ textarea:focus {
   padding-left: 8px;
 }
 .search-btn {
+  margin-top: 8px;
+}
+
+.execute-history {
+  border-left: $border-config;
+  border-bottom: $border-config;
   margin-top: 16px;
 }
+.res {
+  border: $border-config;
+}
+.res-title {
+  border-top: $border-config;
+}
+.res-content {
+  left: -1px;
+  .res-content-step,
+  .res-content-params {
+    padding: 8px;
+    border-bottom: $border-config;
+  }
+  .res-content-result {
+    margin: 2px;
+  }
+}
+pre {
+  margin-bottom: 0;
+}
+
 .we-table /deep/ .ivu-form-label-top {
   display: none;
 }
@@ -779,7 +777,7 @@ textarea:focus {
 }
 .excute-result-search {
   // margin-right: 16px;
-  border-right: 1px solid #e8eaec;
+  border-right: $border-config;
   .excute-result-search-title {
     margin-top: 16px;
     font-size: 16px;
@@ -789,7 +787,7 @@ textarea:focus {
   }
 }
 .excute-result-json {
-  border: 1px solid #e8eaec;
+  border: $border-config;
   word-wrap: break-word;
   word-break: break-all;
   // overflow: scroll;
@@ -804,5 +802,20 @@ textarea:focus {
 }
 .error-key {
   color: red;
+}
+</style>
+<style>
+.ivu-card-body {
+  padding: 8px !important;
+}
+.ivu-form-item-label {
+  margin-bottom: 4px !important;
+}
+.ivu-form-item {
+  margin-bottom: 0 !important;
+}
+.ivu-tree-children li {
+  margin: 0 !important;
+  line-height: 24px;
 }
 </style>
