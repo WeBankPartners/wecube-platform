@@ -43,7 +43,8 @@
             </Col>
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('target_type')">
-                <Select
+                <FilterRules v-model="selectedEntityType" :allDataModelsWithAttrs="allEntityType"></FilterRules>
+                <!-- <Select
                   @on-change="onSelectEntityType"
                   v-model="selectedEntityType"
                   label-in-value
@@ -64,7 +65,7 @@
                       <span style="display:none">**{{ pluginPackage.packageName }}</span>
                     </Option>
                   </OptionGroup>
-                </Select>
+                </Select> -->
               </FormItem>
             </Col>
           </Row>
@@ -294,6 +295,7 @@
 </template>
 <script>
 import PathExp from '../../components/path-exp.vue'
+import FilterRules from '../../components/filter-rules.vue'
 import {
   getAllPluginByPkgId,
   getAllDataModels,
@@ -337,7 +339,8 @@ export default {
     }
   },
   components: {
-    PathExp
+    PathExp,
+    FilterRules
   },
   computed: {
     currentEntityAttr () {
