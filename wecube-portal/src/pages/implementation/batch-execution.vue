@@ -1,6 +1,6 @@
 <template>
-  <div class>
-    <section class="search">
+  <div>
+    <section v-if="displaySearchZone" class="search">
       <Card v-if="displaySearchZone">
         <div class="search-zone">
           <Form :label-width="170" label-colon>
@@ -27,7 +27,6 @@
           </Form>
         </div>
         <div class="search-btn">
-          <!-- :disabled="!(!!currentPackageName && !!currentEntityName)" -->
           <Button type="primary" @click="excuteSearch">{{ $t('bc_execute_query') }}</Button>
           <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
           <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
@@ -42,7 +41,7 @@
         </ul>
       </div>
     </section>
-    <section v-if="!displaySearchZone" class="search-result-table" style="margin-top:20px;">
+    <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
       <div class="we-table">
         <Card v-if="displayResultTableZone">
           <p slot="title">{{ $t('bc_search_result') }}：</p>
@@ -64,17 +63,14 @@
         </a>
       </div>
     </section>
-    <!-- v-if="!displaySearchZone && !displayResultTableZone" -->
-    <section v-if="executeHistory.length" style="margin-top:30px;">
-      {{ activeExecuteHistoryKey }}
+    <section v-if="executeHistory.length" class="execute-history">
       <Row>
-        <Col span="4" class="res res-title">
+        <Col span="4" class="res-title">
           <h6 style="margin: 8px">历史记录</h6>
-          <!-- <Tree :data="executeHistory"></Tree> -->
           <ul>
             <li
               @click="changeActiveExecuteHistory(keyIndex)"
-              class="business-key"
+              :class="[activeExecuteHistoryKey === keyIndex ? 'active-key' : '', 'business-key']"
               v-for="(key, keyIndex) in executeHistory"
               :key="keyIndex"
             >
@@ -98,7 +94,7 @@
                       </ul>
                     </div>
                   </Tooltip>
-                  <Button size="small" @click="changeTargetObject">重置查询</Button>
+                  <Button size="small" @click="changeSearchParams" type="primary" ghost>重置查询</Button>
                 </div>
               </Step>
               <Step title="执行对象">
@@ -114,7 +110,7 @@
                       </p>
                     </div>
                   </Tooltip>
-                  <Button size="small" @click="changeTargetObject">切换对象</Button>
+                  <Button size="small" @click="changeTargetObject" type="primary" ghost>切换对象</Button>
                 </div>
               </Step>
               <Step title="执行插件" content="">
@@ -122,7 +118,7 @@
                   <Tooltip :content="activeExecuteHistory.plugin.pluginName">
                     <Icon type="ios-information-circle-outline" />
                   </Tooltip>
-                  <Button size="small" @click="changePlugin">切换插件</Button>
+                  <Button size="small" @click="changePlugin" type="primary" ghost>切换插件</Button>
                 </div>
               </Step>
             </Steps>
@@ -137,7 +133,7 @@
                     </FormItem>
                   </Col>
                 </template>
-                <Col span="4" offset="4">
+                <Col span="2" offset="6">
                   <Button type="primary" @click="executeAgain">执行</Button>
                 </Col>
               </Row>
@@ -147,11 +143,15 @@
             <Row>
               <Col span="6" class="excute-result excute-result-search">
                 <Input v-model="businessKey" />
-                <p class="excute-result-search-title">{{ pluginId }}</p>
+                <p class="excute-result-search-title">{{ activeExecuteHistory.plugin.pluginName }}</p>
                 <ul v-if="activeExecuteHistory.filterBusinessKeySet.length">
                   <li
-                    @click="activeResultKey = key"
-                    :class="[activeResultKey === key ? 'active-key' : '', 'business-key']"
+                    @click="changeActiveResultKey(key)"
+                    :class="[
+                      activeResultKey === key ? 'active-key' : '',
+                      'business-key',
+                      activeExecuteHistory.executeResult[key].errorCode === '1' ? 'error-key' : ''
+                    ]"
                     v-for="(key, keyIndex) in activeExecuteHistory.filterBusinessKeySet"
                     :key="keyIndex"
                   >
@@ -174,42 +174,6 @@
         </Col>
       </Row>
     </section>
-    <!-- <section  style="margin-top:60px;">
-      <Card>
-        <p slot="title">{{ $t('bc_execution_result') }}：</p>
-        <Row>
-          <Col span="6" class="excute-result excute-result-search">
-            <Input v-model="businessKey" />
-            <p class="excute-result-search-title">{{ pluginId }}</p>
-            <ul v-if="filterBusinessKeySet.length">
-              <li
-                @click="activeResultKey = key"
-                :class="[
-                  activeResultKey === key ? 'active-key' : '',
-                  'business-key',
-                  executeResult[key].errorCode === '1' ? 'error-key' : ''
-                ]"
-                v-for="(key, keyIndex) in filterBusinessKeySet"
-                :key="keyIndex"
-              >
-                <span>{{ key }}</span>
-              </li>
-            </ul>
-            <p v-else>No Data</p>
-          </Col>
-          <Col span="18" class="excute-result excute-result-json">
-            <Input v-model="resultFilterKey" style="width:300px;visibility: hidden;" />
-            <div>
-              <pre
-                style="min-height: 300px;"
-                v-if="businessKeyContent"
-              > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
-              <pre v-else> <span></span></pre>
-            </div>
-          </Col>
-        </Row>
-      </Card>
-    </section> -->
     <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
       <Form :label-width="130" label-colon>
         <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_start_path')">
@@ -436,15 +400,13 @@ export default {
           this.filterBusinessKeySet.push(key)
         }
       }
-    },
-    batchActionModalVisible: function (val) {
-      if (!val) {
-        this.isHistoryToBatchActionModal = false
-      }
     }
   },
   methods: {
     formatResult (result) {
+      if (!result) {
+        return
+      }
       for (let key in result) {
         if (result[key].length > 1) {
           result[key] = result[key].split('\n').join('<br/>            ')
@@ -501,8 +463,6 @@ export default {
       this.searchParameters = this.targetEntityAttr
     },
     async excuteSearch () {
-      this.currentPackageName = 'wecmdb'
-      this.currentEntityName = 'resource_instance'
       let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
         this.tableColumns = data.map((_, i) => {
@@ -551,7 +511,6 @@ export default {
           }
         }
       })
-      // const requestParameter = {'dataModelExpression': 'wecmdb:resource_instance', 'filters': []}
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
         if (data.length) {
@@ -604,7 +563,6 @@ export default {
       }
     },
     async excuteBatchAction () {
-      console.log(this.searchParameters)
       let requestBody = {}
       const plugin = this.filteredPlugins.find(_ => {
         return _.serviceName === this.pluginId
@@ -680,13 +638,11 @@ export default {
           executeResult: data,
           filterBusinessKeySet: this.filterBusinessKeySet
         })
-        this.activeExecuteHistoryKey = 0
-        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[0]))
-        console.log(this.activeExecuteHistory)
+        this.activeExecuteHistoryKey = this.executeHistory.length - 1
+        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
       }
     },
     async executeAgain () {
-      // console.log(this.executeHistory[this.activeExecuteHistoryKey].plugin.pluginParams)
       const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
         const inputParameterValue =
           p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
@@ -705,9 +661,6 @@ export default {
         for (const key in data) {
           this.filterBusinessKeySet.push(key)
         }
-        console.log(requestBody)
-        console.log(111)
-        console.log(this.executeHistory)
         this.executeHistory.push({
           id: new Date().getMilliseconds(),
           plugin: this.activeExecuteHistory.plugin,
@@ -715,11 +668,20 @@ export default {
           executeResult: data,
           filterBusinessKeySet: this.filterBusinessKeySet
         })
+        this.activeExecuteHistoryKey = this.executeHistory.length - 1
+        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
       }
     },
     changeActiveExecuteHistory (keyIndex) {
+      this.displaySearchZone = false
+      this.displayResultTableZone = false
       this.activeExecuteHistoryKey = keyIndex
       this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[keyIndex]))
+    },
+    changeActiveResultKey (key) {
+      this.displaySearchZone = false
+      this.displayResultTableZone = false
+      this.activeResultKey = key
     },
     async changePlugin () {
       const { status, data } = await getFilteredPluginInterfaceList(
@@ -735,11 +697,20 @@ export default {
       }
     },
     changeTargetObject () {
+      this.displaySearchZone = false
+      this.displayResultTableZone = true
       const { packageName, entityName, dataModelExpression } = this.activeExecuteHistory.requestBody
       this.currentPackageName = packageName
       this.currentEntityName = entityName
       this.dataModelExpression = dataModelExpression
       this.excuteSearch()
+    },
+    changeSearchParams () {
+      const { dataModelExpression, searchParameters } = this.activeExecuteHistory.requestBody
+      this.searchParameters = searchParameters
+      this.dataModelExpression = dataModelExpression
+      this.displaySearchZone = true
+      this.displayResultTableZone = false
     }
   },
   components: {
@@ -748,11 +719,16 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.execute-history {
+  border-left: 1px solid #e8eaec;
+  border-bottom: 1px solid #e8eaec;
+  margin-top: 16px;
+}
 .res {
   border: 1px solid #e8eaec;
 }
 .res-title {
-  height: 398px;
+  border-top: 1px solid #e8eaec;
 }
 .res-content {
   left: -1px;
@@ -764,6 +740,9 @@ export default {
   .res-content-result {
     margin: 2px;
   }
+}
+pre {
+  margin-bottom: 0;
 }
 </style>
 <style lang="scss" scoped>
@@ -794,6 +773,7 @@ textarea:focus {
   display: none;
 }
 .excute-result {
+  right: -2px;
   padding-right: 4px;
   min-height: 300px;
 }
