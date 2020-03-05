@@ -66,7 +66,7 @@
     <section v-if="executeHistory.length" class="execute-history">
       <Row>
         <Col span="4" class="res-title">
-          <h6 style="margin: 8px">历史记录</h6>
+          <h6 style="margin: 8px">{{ $t('bc_history_record') }}</h6>
           <ul>
             <li
               @click="changeActiveExecuteHistory(keyIndex)"
@@ -81,7 +81,7 @@
         <Col v-if="activeExecuteHistory" span="20" class="res res-content">
           <div class="res-content-step">
             <Steps :current="3">
-              <Step title="查询条件">
+              <Step :title="$t('bc_query_conditions')">
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
@@ -94,10 +94,12 @@
                       </ul>
                     </div>
                   </Tooltip>
-                  <Button size="small" @click="changeSearchParams" type="primary" ghost>重置查询</Button>
+                  <Button size="small" @click="changeSearchParams" type="primary" ghost>{{
+                    $t('bc_reset_query')
+                  }}</Button>
                 </div>
               </Step>
-              <Step title="执行对象">
+              <Step :title="$t('bc_execution_instance')">
                 <div slot="content">
                   <Tooltip>
                     <Icon type="ios-information-circle-outline" />
@@ -110,15 +112,17 @@
                       </p>
                     </div>
                   </Tooltip>
-                  <Button size="small" @click="changeTargetObject" type="primary" ghost>切换对象</Button>
+                  <Button size="small" @click="changeTargetObject" type="primary" ghost>{{
+                    $t('bc_change_instance')
+                  }}</Button>
                 </div>
               </Step>
-              <Step title="执行插件" content="">
+              <Step :title="$t('bc_execution_plugin')" content="">
                 <div slot="content">
                   <Tooltip :content="activeExecuteHistory.plugin.pluginName">
                     <Icon type="ios-information-circle-outline" />
                   </Tooltip>
-                  <Button size="small" @click="changePlugin" type="primary" ghost>切换插件</Button>
+                  <Button size="small" @click="changePlugin" type="primary" ghost>{{ $t('bc_change_plugin') }}</Button>
                 </div>
               </Step>
             </Steps>
@@ -134,7 +138,7 @@
                   </Col>
                 </template>
                 <Col span="2" offset="6">
-                  <Button type="primary" @click="executeAgain">执行</Button>
+                  <Button type="primary" @click="executeAgain">{{ $t('bc_execute') }}</Button>
                 </Col>
               </Row>
             </Form>
