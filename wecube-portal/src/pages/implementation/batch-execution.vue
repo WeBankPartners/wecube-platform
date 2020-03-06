@@ -65,8 +65,10 @@
     </section>
     <section v-if="executeHistory.length" class="execute-history">
       <Row>
-        <Col span="4" class="res-title">
-          <h6 style="margin: 8px">{{ $t('bc_history_record') }}</h6>
+        <Col span="4" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
+          <h6 style="margin: 8px">
+            <span>{{ $t('bc_history_record') }} </span>
+          </h6>
           <ul>
             <li
               @click="changeActiveExecuteHistory(keyIndex)"
@@ -78,7 +80,13 @@
             </li>
           </ul>
         </Col>
-        <Col v-if="activeExecuteHistory" span="20" class="res res-content">
+        <Col v-if="activeExecuteHistory" :span="isShowHistoryMenu ? 20 : 24" class="res res-content">
+          <Icon
+            :style="isShowHistoryMenu ? '' : 'transform: rotate(90deg);'"
+            class="history-record-menu"
+            type="md-menu"
+            @click="isShowHistoryMenu = !isShowHistoryMenu"
+          />
           <div class="res-content-step">
             <Steps :current="3">
               <Step :title="$t('bc_query_conditions')">
@@ -146,7 +154,7 @@
           <div class="res-content-result">
             <Row>
               <Col span="6" class="excute-result excute-result-search">
-                <Input v-model="businessKey" />
+                <!-- <Input v-model="businessKey" /> -->
                 <p class="excute-result-search-title">{{ activeExecuteHistory.plugin.pluginName }}</p>
                 <ul v-if="activeExecuteHistory.filterBusinessKeySet.length">
                   <li
@@ -328,6 +336,7 @@ export default {
       allPlugins: [],
       filteredPlugins: [],
 
+      isShowHistoryMenu: true,
       executeResult: {},
       filterBusinessKeySet: [],
       activeResultKey: null,
@@ -418,7 +427,7 @@ export default {
         return
       }
       for (let key in result) {
-        if (result[key].length > 1) {
+        if (result[key] !== null && typeof result[key] === 'string') {
           result[key] = result[key].split('\n').join('<br/>            ')
         }
       }
@@ -755,6 +764,10 @@ textarea:focus {
   border-left: $border-config;
   border-bottom: $border-config;
   margin-top: 16px;
+}
+.history-record-menu {
+  cursor: pointer;
+  font-size: larger;
 }
 .res {
   border: $border-config;
