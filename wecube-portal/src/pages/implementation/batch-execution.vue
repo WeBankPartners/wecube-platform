@@ -74,7 +74,7 @@
               v-for="(key, keyIndex) in executeHistory"
               :key="keyIndex"
             >
-              <span>{{ key.id }}</span>
+              <span>{{ keyIndex }}、{{ key.id }}</span>
             </li>
           </ul>
         </Col>
@@ -137,8 +137,8 @@
                     </FormItem>
                   </Col>
                 </template>
-                <Col span="2" offset="6">
-                  <Button type="primary" @click="executeAgain">{{ $t('bc_execute') }}</Button>
+                <Col :span="executeAgainBtnSpan">
+                  <Button type="primary" style="float:right" @click="executeAgain">{{ $t('bc_execute') }}</Button>
                 </Col>
               </Row>
             </Form>
@@ -353,6 +353,12 @@ export default {
       if (this.activeResultKey !== null) {
         return this.activeExecuteHistory.executeResult[this.activeResultKey]
       }
+    },
+    executeAgainBtnSpan: function () {
+      const paramsNum = this.activeExecuteHistory.plugin.pluginParams.filter(item => {
+        return item.mappingType === 'constant'
+      }).length
+      return 24 - (paramsNum % 3) * 8
     }
   },
   watch: {
@@ -633,7 +639,7 @@ export default {
         this.displayExecuteResultZone = false
 
         this.executeHistory.push({
-          id: new Date().getMilliseconds(),
+          id: new Date().format('yyyy-MM-dd hh:mm:ss'),
           plugin: {
             pluginName: this.pluginId,
             pluginParams: this.selectedPluginParams
@@ -666,7 +672,7 @@ export default {
           this.filterBusinessKeySet.push(key)
         }
         this.executeHistory.push({
-          id: new Date().getMilliseconds(),
+          id: new Date().format('yyyy-MM-dd hh:mm:ss'),
           plugin: this.activeExecuteHistory.plugin,
           requestBody: requestBody,
           executeResult: data,
