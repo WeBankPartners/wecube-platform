@@ -2,19 +2,46 @@
   <div class="filter_rules_contain">
     <Poptip v-model="poptipVisable" placement="bottom">
       <div ref="wecube_cmdb_attr" class="filter_rules_path_contains">
-        <span class="path_exp" v-for="(path, index) in pathList" :key="path.pathExp" @click="showPoptip(path, index)">{{
-          path.pathExp
-        }}</span>
+        <span
+          class="path_exp"
+          :class="index % 2 === 1 ? 'odd_span' : 'even_span'"
+          v-for="(path, index) in pathList"
+          :key="path.pathExp"
+          @click="showPoptip(path, index)"
+          >{{ path.pathExp }}</span
+        >
+        <Button v-if="pathList.length > 0" type="dashed" icon="md-copy" @click.stop.prevent="copyPathExp" size="small"
+          >复制</Button
+        >
         <Button v-if="pathList.length === 0" type="dashed" icon="md-add-circle" long size="small">请选择</Button>
       </div>
       <div slot="content">
         <div class="filter_rules_path_options">
           <ul>
+            <li id="paste" v-if="pathList.length === 0">
+              <input
+                class="paste_input"
+                v-model="pasteValue"
+                @input="inputHandler"
+                placeholder="请在这粘贴"
+                @paste="pastePathExp($event)"
+              />
+            </li>
             <li class v-if="pathList.length > 0" @click="deleteCurrentNode">删除此节点</li>
-            <li class v-if="pathList.length > 0" @click="addFilterRuleForCurrentNode">添加过滤规则</li>
+            <li
+              class
+              v-if="pathList.length > 0 && currentNode.nodeType === 'entity'"
+              @click="addFilterRuleForCurrentNode"
+            >
+              添加过滤规则
+            </li>
+          </ul>
+          <hr />
+          <ul v-for="opt in currentRefOptiongs" :key="opt.pathExp">
+            <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
           </ul>
           <ul v-for="opt in currentOptiongs" :key="opt.pathExp">
-            <li class @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
+            <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
           </ul>
         </div>
       </div>
@@ -47,7 +74,7 @@
   </div>
 </template>
 <script>
-import { getTargetOptions } from '@/api/server'
+import { getTargetOptions, getRefByIdInfoByPackageNameAndEntityName } from '@/api/server'
 export default {
   name: 'FilterRules',
   data () {
@@ -56,12 +83,14 @@ export default {
       pathList: [],
       currentPathFilterRules: [], // 对象数组
       currentOptiongs: [],
+      currentRefOptiongs: [],
       modelVisable: false,
       poptipVisable: false,
       optionsFilter: '',
       currentNodeIndex: -1,
       currentNode: {},
-      currentNodeEntityAttrs: []
+      currentNodeEntityAttrs: [],
+      pasteValue: ''
     }
   },
   props: {
@@ -101,6 +130,70 @@ export default {
     }
   },
   methods: {
+    copyPathExp () {
+      const data = this.pathList.map(path => path.pathExp).join('')
+      let inputElement = document.createElement('input')
+      inputElement.value = data
+      document.body.appendChild(inputElement)
+      inputElement.select()
+      document.execCommand('Copy')
+      this.$Notice.success({
+        title: 'Success',
+        desc: '复制成功'
+      })
+      inputElement.remove()
+    },
+    inputHandler (v) {
+      this.pasteValue = ''
+    },
+    pastePathExp (e) {
+      let clipboardData = e.clipboardData
+      if (!clipboardData) {
+        clipboardData = e.originalEvent.clipboardData
+      }
+      let data = clipboardData.getData('Text')
+      this.restorePathExp(data)
+    },
+    restorePathExp (PathExp) {
+      const pathList = PathExp.split(/[~.]+(?=[^\\}]*(\\{|$))/).filter(p => p.length > 0)
+      let path = {}
+      pathList.forEach((_, i) => {
+        const ifEntity = _.indexOf(':')
+        if (ifEntity > 0) {
+          const isBy = _.indexOf(')')
+          const current = _.split(':')
+          const ruleIndex = current[1].indexOf('{')
+          if (isBy > 0) {
+            path = {
+              entity: ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1],
+              pkg: current[0].split(')')[1],
+              pathExp: `~${_}`,
+              nodeType: 'entity'
+            }
+          } else {
+            path = {
+              entity: ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1],
+              pkg: _.match(/[^>]+(?=:)/)[0],
+              pathExp: `${i > 0 ? '.' : ''}${_}`,
+              nodeType: 'entity'
+            }
+          }
+        } else {
+          const previous = pathList[i - 1]
+          const previousSplit = previous.split(':')
+          const ruleIndex = previousSplit[1].indexOf('{')
+          const isBy = previous.indexOf(')')
+          path = {
+            entity: ruleIndex > 0 ? previousSplit[1].slice(0, ruleIndex) : previousSplit[1],
+            pkg: isBy > 0 ? previousSplit[0].split(')')[1] : previousSplit[0],
+            pathExp: `.${_}`,
+            nodeType: 'attr'
+          }
+        }
+        this.pathList.push(path)
+      })
+      this.poptipVisable = false
+    },
     optClickHandler (opt) {
       this.pathList = this.pathList.slice(0, this.currentNodeIndex + 1)
       this.pathList.push(opt)
@@ -196,13 +289,16 @@ export default {
         })
       }
     },
-    formatNextCurrentOptions (opt) {
+    async formatNextCurrentOptions (opt) {
       if (this.pathList.length === 0) {
+        this.currentOptiongs = []
+        this.currentRefOptiongs = []
         this.formatFirstCurrentOptions()
         return
       }
       if (opt.nodeType === 'attr') {
         this.currentOptiongs = []
+        this.currentRefOptiongs = []
       } else {
         const entity = this.allEntity.find(_ => _.name === opt.entity)
         this.currentOptiongs = entity.attributes.map(attr => {
@@ -214,20 +310,22 @@ export default {
             nodeType: isRef ? 'entity' : 'attr'
           }
         })
-        this.currentOptiongs = entity.referenceByEntityList
-          .map(e => {
+        const { status, data } = await getRefByIdInfoByPackageNameAndEntityName(opt.pkg, opt.entity)
+        if (status === 'OK') {
+          this.currentRefOptiongs = data.map(e => {
             return {
               pkg: e.packageName,
               entity: e.name,
-              pathExp: `~${e.packageName}:${e.name}`,
+              pathExp: `~(${e.name})${e.packageName}:${e.entityName}`,
               nodeType: 'entity'
             }
           })
-          .concat(this.currentOptiongs)
+        }
       }
     }
   },
   mounted () {
+    // this.bindPastePathExp()
     this.formatFirstCurrentOptions()
   }
 }
@@ -238,6 +336,11 @@ export default {
   margin: 0;
   list-style: none;
   font-size: 14px;
+}
+.paste_input {
+  width: 100%;
+  border: none;
+  outline: none;
 }
 .filter_rules_path_options {
   width: 100%;
@@ -258,13 +361,19 @@ export default {
 .filter_rules_path_contains {
   width: 100%;
   .path_exp {
-    //   text-decoration:underline;
+    // text-decoration:underline;
     word-wrap: break-word;
     word-break: break-all;
     &:hover {
-      color: rgb(58, 160, 219);
+      color: rgb(39, 166, 240);
       cursor: pointer;
     }
+  }
+  .odd_span {
+    color: rgb(33, 42, 119);
+  }
+  .even_span {
+    color: rgb(39, 25, 17);
   }
 }
 .filter_rules_path_options ul {
@@ -280,7 +389,7 @@ export default {
   line-height: 25px;
   cursor: pointer;
   &:hover {
-    background-color: rgb(227, 231, 235);
+    background-color: rgb(220, 226, 231); //  rgb(139, 137, 6)  rgb(44, 85, 5)
   }
 }
 </style>
