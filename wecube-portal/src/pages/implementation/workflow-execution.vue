@@ -113,22 +113,22 @@
     <Modal
       :title="currentNodeTitle"
       v-model="targetModalVisible"
-      :mask-closable="false"
       :scrollable="true"
       :mask="false"
+      :mask-closable="false"
       class="model_target"
       width="50"
       @on-ok="targetModelConfirm"
     >
-      {{ catchNodeTableList.length }}
       <Input v-model="tableFilterParam" placeholder="displayName filter" style="width: 300px;margin-bottom:8px;" />
+      {{ catchNodeTableList.length }}
       <Table
         border
         ref="selection"
         max-height="300"
         @on-select="singleSelect"
         @on-select-cancel="singleCancle"
-        @on-select-all-cancel="catchNodeTableList = []"
+        @on-select-all-cancel="selectAllCancle"
         @on-select-all="selectAll"
         :columns="targetModelColums"
         :data="tartetModels"
@@ -307,8 +307,6 @@ export default {
       this.tableFilterParam = null
       if (!val) {
         this.catchNodeTableList = []
-      } else {
-        document.getElementsByClassName('ivu-checkbox-input')[0].setAttribute('disabled', '')
       }
     },
     tableFilterParam: function (filter) {
@@ -365,7 +363,28 @@ export default {
       this.catchNodeTableList.splice(index, 1)
     },
     selectAll (selection) {
-      this.catchNodeTableList = selection
+      let temp = []
+      this.catchNodeTableList.forEach(cntl => {
+        temp.push(cntl.id)
+      })
+      selection.forEach(se => {
+        if (!temp.includes(se.id)) {
+          this.catchNodeTableList.push(se)
+        }
+      })
+    },
+    selectAllCancle () {
+      let temp = []
+      this.tartetModels.forEach(tm => {
+        temp.push(tm.id)
+      })
+      if (this.tableFilterParam) {
+        this.catchNodeTableList = this.catchNodeTableList.filter(item => {
+          return !temp.includes(item.id)
+        })
+      } else {
+        this.catchNodeTableList = []
+      }
     },
     updateNodeInfo () {
       const currentFlow = this.flowData.flowNodes.find(i => i.nodeId === this.currentFlowNodeId)
@@ -839,6 +858,7 @@ export default {
     },
     highlightModel (nodeId) {
       this.catchTartetModels = []
+      this.catchNodeTableList = []
       const routineExpression = this.flowData.flowNodes.find(item => item.nodeId === nodeId).routineExpression
       if (routineExpression) {
         this.foundRefAry = routineExpression.split(/[~.>()]/).filter(i => i.length > 0)
