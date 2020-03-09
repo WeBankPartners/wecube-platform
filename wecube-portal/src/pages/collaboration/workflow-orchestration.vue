@@ -74,7 +74,7 @@
         <Button style="display:none">{{ $t('import_flow') }}</Button>
       </Upload>
     </Row>
-    <div v-show="showBpmn" class="demo-split">
+    <div v-show="showBpmn" class="split">
       <Split v-model="splitPanal" mode="vertical">
         <div slot="top" class="">
           <div class="containers" ref="content">
@@ -149,7 +149,7 @@
                 </FormItem>
               </Col>
             </Row>
-            <hr style="margin-bottom: 20px" />
+            <hr style="margin-bottom: 8px" />
             <FormItem
               :label="item.paramName"
               :prop="item.paramName"
@@ -376,19 +376,17 @@ export default {
   },
   watch: {
     show: function (val) {
-      this.$nextTick(() => {
-        if (val) {
-          this.splitPanal = 0.6
-          this.setCss('ivu-split-trigger-con', 'top: 60%;')
-          this.setCss('bottom-pane', 'top: 60%;')
-          this.setCss('top-pane', 'bottom: 40%;')
-        } else {
-          this.splitPanal = 1
-          this.setCss('ivu-split-trigger-con', 'display: none;')
-          this.setCss('bottom-pane', 'display: none;')
-          this.setCss('top-pane', 'bottom: 0;')
-        }
-      })
+      if (val) {
+        this.splitPanal = 0.65
+        this.setCss('ivu-split-trigger-con', 'top: 60%;')
+        this.setCss('bottom-pane', 'top: 60%;')
+        this.setCss('top-pane', 'bottom: 40%;')
+      } else {
+        this.splitPanal = 1
+        this.setCss('ivu-split-trigger-con', 'display: none;')
+        this.setCss('bottom-pane', 'display: none;')
+        this.setCss('top-pane', 'bottom: 0;')
+      }
     },
     selectedFlow: {
       handler (val, oldVal) {
@@ -794,41 +792,6 @@ export default {
       }
       this.currentNode.name = nodeName
     },
-    bindRightClick () {
-      let menu = document.getElementById('right_click_menu')
-      let elements = document.getElementsByClassName('djs-element djs-shape')
-      const _this = this
-      for (let i = 0; i < elements.length; i++) {
-        elements[i].oncontextmenu = function (e) {
-          e = e || window.event
-          let x = e.clientX
-          let y = e.clientY
-          menu.style.display = 'block'
-          menu.style.left = x - 25 + 'px'
-          menu.style.top = y - 130 + 'px'
-          _this.currentNode.id = e.target.parentNode.getAttribute('data-element-id')
-          let nodeName = ''
-          const previousSibling = e.target.previousSibling
-          if (previousSibling && previousSibling.children[1] && previousSibling.children[1].children) {
-            for (let i = 0; i < previousSibling.children[1].children.length; i++) {
-              nodeName += previousSibling.children[1].children[i].innerHTML || ''
-            }
-          }
-          _this.currentNode.name = nodeName
-          return false
-        }
-      }
-
-      document.onclick = function (e) {
-        e = e || window.event
-        menu.style.display = 'none'
-      }
-
-      menu.onclick = function (e) {
-        e = e || window.event
-        e.stopPropagation()
-      }
-    },
     async getFlowXml (id) {
       if (!id) return
       const { status, data } = await getFlowDetailByID(id)
@@ -839,7 +802,6 @@ export default {
           if (err) {
             console.error(err)
           }
-          // _this.bindRightClick()
           _this.serviceTaskBindInfos = data.taskNodeInfos
           _this.currentSelectedEntity = data.rootEntity || ''
           _this.rootPkg = data.rootEntity.split(':')[0] || ''
@@ -1074,8 +1036,8 @@ export default {
 }
 </style>
 <style scoped lang="scss">
-.demo-split {
-  height: 76vh;
+.split {
+  height: calc(100vh - 145px);
   border: 1px solid #999;
   border-bottom: none;
 }
