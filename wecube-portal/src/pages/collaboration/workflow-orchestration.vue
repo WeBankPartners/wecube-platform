@@ -110,6 +110,7 @@
                 <FormItem :label="$t('locate_rules')" prop="routineExpression">
                   <PathExp
                     class="path-exp"
+                    :row="2"
                     :rootPkg="rootPkg"
                     :rootEntity="rootEntity"
                     :allDataModelsWithAttrs="allEntityType"
@@ -1054,6 +1055,7 @@ export default {
 }
 .path-exp {
   margin-bottom: 8px;
+  margin-top: 0 !important;
 }
 .btn-plugin-config {
   float: right;
