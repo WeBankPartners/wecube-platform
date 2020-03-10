@@ -4,7 +4,7 @@
       <div ref="wecube_cmdb_attr" class="wecube_input_in">
         <textarea
           ref="textarea"
-          :rows="3"
+          :rows="row"
           @input="inputHandler"
           :value="inputValueWithNoSpace"
           :disabled="disabled"
@@ -50,6 +50,10 @@ export default {
     }
   },
   props: {
+    row: {
+      type: Number,
+      default: 3
+    },
     value: {
       required: false
     },
@@ -298,6 +302,10 @@ export default {
     width: 100%;
     border-radius: 5px;
     border-color: #dcdee2;
+  }
+  textarea:focus {
+    outline: none !important;
+    border: 1px solid #56a0ef;
   }
   .wecube-error-message {
     display: none;
