@@ -341,6 +341,7 @@
   "unselected_role": "未选中角色",
   "edit_role": "选择该编排的属主角色",
   "mgmt_role": "属主角色",
+  "mgmt_role_warning": "属主角色不能为空",
   "use_role": "使用角色",
   "source": "归属",
   "cube_front": "任务",
