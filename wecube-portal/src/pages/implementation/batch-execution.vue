@@ -160,7 +160,11 @@
                 <ul v-if="activeExecuteHistory.filterBusinessKeySet.length">
                   <li
                     @click="changeActiveResultKey(key)"
-                    :class="[activeResultKey === key ? 'active-key' : '', 'business-key']"
+                    :class="[
+                      activeResultKey === key ? 'active-key' : '',
+                      'business-key',
+                      catchExecuteResult[key].errorCode === '1' ? 'error-key' : ''
+                    ]"
                     v-for="(key, keyIndex) in catchFilterBusinessKeySet"
                     :key="keyIndex"
                   >
@@ -169,9 +173,9 @@
                   </li>
                 </ul>
                 <p v-else>No Data</p>
-                <Input v-model="filterParams" placeholder="Filter result" />
               </Col>
               <Col span="18" class="excute-result excute-result-json">
+                <Input v-model="filterParams" placeholder="Filter result, e.g :error or /[0-9]+/" />
                 <div>
                   <pre
                     style="min-height: 300px;"
@@ -899,6 +903,12 @@ export default {
         return _
       })
     },
+    activeExecuteHistory: function (val) {
+      this.catchExecuteResult = val.executeResult
+      this.catchFilterBusinessKeySet = val.filterBusinessKeySet
+      this.filterParams = null
+      this.businessKey = null
+    },
     businessKey: function (val) {
       // this.filterBusinessKeySet = []
       // for (const key in this.executeResult) {
@@ -906,6 +916,11 @@ export default {
       //     this.filterBusinessKeySet.push(key)
       //   }
       // }
+      if (!val) {
+        this.catchExecuteResult = this.activeExecuteHistory.executeResult
+        this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+        return
+      }
       this.filterParams = null
       this.catchFilterBusinessKeySet = []
       this.catchExecuteResult = {}
@@ -917,36 +932,34 @@ export default {
       })
     },
     filterParams (val) {
-      // if (!val) return
       console.log(val)
-      // this.businessKey = null
-      // this.catchFilterBusinessKeySet = []
-      // this.catchExecuteResult = {}
-      // this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
-      //   const tmp = JSON.stringify(this.activeExecuteHistory.executeResult[key])
-      //   if (tmp.indexOf(val) > -1) {
-      //     this.catchFilterBusinessKeySet.push(key)
-      //     const reg = '/' + val + '/g'
-      //     let tempHistory = JSON.parse(tmp)
-      //     for (let k in tempHistory.result) {
-      //       console.log(k)
-      //       console.log(tempHistory.result)
-      //       tempHistory.result[k] = tempHistory.result[k].replace(
-      //         eval(reg),
-      //         "<span style='color:red'>" + val + '</span>'
-      //       )
-      //     }
-      //     this.catchExecuteResult[key] = tempHistory
-      //   }
-      // if (this.activeExecuteHistory.executeResult[key].result.errorMessage.indexOf(val) > -1) {
-      //   this.catchFilterBusinessKeySet.push(key)
-      //   let tempHistory = JSON.parse(JSON.stringify(this.activeExecuteHistory.executeResult[key]))
-      //   const reg = '/' + val + '/g'
-      //   tempHistory.result.errorMessage = tempHistory.result.errorMessage.replace(eval(reg), '<span style=\'color:red\'>' + val + '</span>')
-      //   console.log(tempHistory.result)
-      //   this.catchExecuteResult[key] = tempHistory
-      // }
-      // })
+      if (!val) {
+        this.catchExecuteResult = this.activeExecuteHistory.executeResult
+        this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+        return
+      }
+      this.businessKey = null
+      this.catchFilterBusinessKeySet = []
+      this.catchExecuteResult = {}
+      this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+        let tmp = JSON.stringify(this.activeExecuteHistory.executeResult[key])
+        if (tmp.indexOf(val) > -1) {
+          this.catchFilterBusinessKeySet.push(key)
+          const reg = new RegExp(val, 'g')
+          // let tempHistory = JSON.parse(tmp)
+          // for (let k in tempHistory.result) {
+          //   console.log(k)
+          //   console.log(tempHistory.result)
+          //   tempHistory.result[k] = tempHistory.result[k].replace(
+          //     reg,
+          //     "<span style='color:red'>" + val + '</span>'
+          //   )
+          // }
+          tmp = tmp.replace(reg, "<span style='color:red'>" + val + '</span>')
+          this.catchExecuteResult[key] = JSON.parse(tmp)
+          // this.catchExecuteResult[key] = tempHistory
+        }
+      })
       console.log(this.catchFilterBusinessKeySet)
     }
   },
