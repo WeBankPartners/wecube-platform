@@ -492,7 +492,14 @@ export default {
       }
     },
     confirmRole () {
-      this.flowRoleManageModal = false
+      if (this.mgmtRolesKeyToFlow.length) {
+        this.flowRoleManageModal = false
+        this.showBpmn = true
+      } else {
+        this.$Message.warning(this.$t('mgmt_role_warning'))
+        this.showBpmn = false
+        this.isAdd = false
+      }
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
