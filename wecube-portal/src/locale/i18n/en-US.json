@@ -341,6 +341,7 @@
   "unselected_role": "Unselected Role",
   "edit_role": "Select Orchestrations Host Roles",
   "mgmt_role": "Owner Role",
+  "mgmt_role_warning": "Owner Role Cannot Empty",
   "use_role": "Executor Role",
   "source": "Source",
   "cube_front": "Tasks",
