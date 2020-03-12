@@ -58,6 +58,9 @@ http {
 	location /qcloud {
 		proxy_pass http://core;
 	}
+	location /adaptor-webank {
+		proxy_pass http://core;
+	}
    }
 }
 
