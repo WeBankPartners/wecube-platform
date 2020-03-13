@@ -27,7 +27,9 @@
           </Form>
         </div>
         <div class="search-btn">
-          <Button type="primary" @click="excuteSearch">{{ $t('bc_execute_query') }}</Button>
+          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch">{{
+            $t('bc_execute_query')
+          }}</Button>
           <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
           <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
         </div>
@@ -177,18 +179,18 @@
               <Col span="18" class="excute-result excute-result-json">
                 <Row>
                   <Col span="4">
-                    <Select v-model="filterType">
+                    <Select v-model="filterType" @on-change="filterTypeChange">
                       <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{
                         item.label
                       }}</Option>
                     </Select>
                   </Col>
-                  <Col span="6">
+                  <Col span="8">
                     <Input v-model="filterParams" placeholder="Filter result, e.g :error or /[0-9]+/" />
                   </Col>
-                  <Col span="6">
+                  <Col span="6" offset="1">
                     <Button type="primary" @click="filterResult">
-                      {{ $t('confirm') }}
+                      {{ $t('search') }}
                     </Button>
                   </Col>
                 </Row>
@@ -362,526 +364,25 @@ export default {
       businessKey: '',
 
       activeExecuteHistoryKey: 0,
-      // activeExecuteHistory: {},
-      // executeHistory: [],
-      // catchExecuteResult: {},
-      // catchFilterBusinessKeySet: [],
-      activeExecuteHistory: {
-        id: '2020-03-10 16:26:08',
-        plugin: {
-          pluginName: 'qcloud/vm/stop',
-          pluginParams: [
-            {
-              id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-              pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-              type: 'INPUT',
-              name: 'guid',
-              dataType: 'string',
-              mappingType: 'entity',
-              mappingEntityExpression: 'wecmdb:resource_instance.id',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: null,
-              bindValue: ''
-            },
-            {
-              id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-              pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-              type: 'INPUT',
-              name: 'id',
-              dataType: 'string',
-              mappingType: 'entity',
-              mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: null,
-              bindValue: ''
-            },
-            {
-              id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-              pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-              type: 'INPUT',
-              name: 'provider_params',
-              dataType: 'string',
-              mappingType: 'entity',
-              mappingEntityExpression:
-                'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: null,
-              bindValue: ''
-            }
-          ]
-        },
-        requestBody: {
-          packageName: 'wecmdb',
-          entityName: 'resource_instance',
-          dataModelExpression: 'wecmdb:resource_instance',
-          searchParameters: [],
-          pluginConfigInterface: {
-            id: 'qcloud__v1.8.1__vm__stop__resource_instance',
-            pluginConfigId: 'qcloud__v1.8.1__vm',
-            action: 'stop',
-            serviceName: 'qcloud/vm/stop',
-            serviceDisplayName: 'qcloud/vm/stop',
-            path: '/qcloud/v1/vm/stop',
-            httpMethod: '',
-            isAsyncProcessing: 'N',
-            inputParameters: [
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'guid',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.id',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'id',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'provider_params',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression:
-                  'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              }
-            ],
-            outputParameters: [
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__errorCode',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'OUTPUT',
-                name: 'errorCode',
-                dataType: 'string',
-                mappingType: 'context',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null
-              },
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__errorMessage',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'OUTPUT',
-                name: 'errorMessage',
-                dataType: 'string',
-                mappingType: 'context',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null
-              },
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__guid',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'OUTPUT',
-                name: 'guid',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.id',
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null
-              }
-            ]
-          },
-          inputParameterDefinitions: [
-            {
-              inputParameter: {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'guid',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.id',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: null
-            },
-            {
-              inputParameter: {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'id',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: null
-            },
-            {
-              inputParameter: {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'provider_params',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression:
-                  'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: null
-            }
-          ],
-          businessKeyAttribute: {
-            id: 'wecmdb__8__resource_instance__key_name',
-            pluginPackageAttribute: null,
-            name: 'key_name',
-            description: '唯一名称',
-            dataType: 'str',
-            key: 'wecmdbresource_instance0',
-            index: 0,
-            title: 'key_name',
-            entityName: 'resource_instance',
-            packageName: 'wecmdb',
-            nodeKey: 15
-          },
-          resourceDatas: [
-            {
-              id: '0015_0000000013',
-              businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.10'
-            },
-            {
-              id: '0015_0000000014',
-              businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.11'
-            }
-          ]
-        },
-        executeResult: {
-          'GZP4_SF_CS_APP_10.128.36.11': {
-            errorCode: '1',
-            result: {
-              errorCode: '1',
-              errorMessage: 'this is response one'
-            }
-          },
-          'GZP4_SF_CS_APP_10.128.36.10': {
-            errorCode: '1',
-            result: {
-              errorCode: '1',
-              errorMessage: 'Visit W3School, W33e44School is a palce to study web tle44chnology'
-            }
-          }
-        },
-        filterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.11', 'GZP4_SF_CS_APP_10.128.36.10']
-      },
-      executeHistory: [
-        {
-          id: '2020-03-10 16:26:08',
-          plugin: {
-            pluginName: 'qcloud/vm/stop',
-            pluginParams: [
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'guid',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.id',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'id',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-                pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                type: 'INPUT',
-                name: 'provider_params',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression:
-                  'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              }
-            ]
-          },
-          requestBody: {
-            packageName: 'wecmdb',
-            entityName: 'resource_instance',
-            dataModelExpression: 'wecmdb:resource_instance',
-            searchParameters: [],
-            pluginConfigInterface: {
-              id: 'qcloud__v1.8.1__vm__stop__resource_instance',
-              pluginConfigId: 'qcloud__v1.8.1__vm',
-              action: 'stop',
-              serviceName: 'qcloud/vm/stop',
-              serviceDisplayName: 'qcloud/vm/stop',
-              path: '/qcloud/v1/vm/stop',
-              httpMethod: '',
-              isAsyncProcessing: 'N',
-              inputParameters: [
-                {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'INPUT',
-                  name: 'guid',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.id',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'INPUT',
-                  name: 'id',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'INPUT',
-                  name: 'provider_params',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression:
-                    'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                }
-              ],
-              outputParameters: [
-                {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__errorCode',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'OUTPUT',
-                  name: 'errorCode',
-                  dataType: 'string',
-                  mappingType: 'context',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null
-                },
-                {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__errorMessage',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'OUTPUT',
-                  name: 'errorMessage',
-                  dataType: 'string',
-                  mappingType: 'context',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null
-                },
-                {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__guid',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'OUTPUT',
-                  name: 'guid',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.id',
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null
-                }
-              ]
-            },
-            inputParameterDefinitions: [
-              {
-                inputParameter: {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'INPUT',
-                  name: 'guid',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.id',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: null
-              },
-              {
-                inputParameter: {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'INPUT',
-                  name: 'id',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: null
-              },
-              {
-                inputParameter: {
-                  id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-                  pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-                  type: 'INPUT',
-                  name: 'provider_params',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression:
-                    'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: null
-              }
-            ],
-            businessKeyAttribute: {
-              id: 'wecmdb__8__resource_instance__key_name',
-              pluginPackageAttribute: null,
-              name: 'key_name',
-              description: '唯一名称',
-              dataType: 'str',
-              key: 'wecmdbresource_instance0',
-              index: 0,
-              title: 'key_name',
-              entityName: 'resource_instance',
-              packageName: 'wecmdb',
-              nodeKey: 15
-            },
-            resourceDatas: [
-              {
-                id: '0015_0000000013',
-                businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.10'
-              },
-              {
-                id: '0015_0000000014',
-                businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.11'
-              }
-            ]
-          },
-          executeResult: {
-            'GZP4_SF_CS_APP_10.128.36.11': {
-              errorCode: '1',
-              result: {
-                errorCode: '1',
-                errorMessage: 'this is response one'
-              }
-            },
-            'GZP4_SF_CS_APP_10.128.36.10': {
-              errorCode: '1',
-              result: {
-                errorCode: '1',
-                errorMessage: 'Visit W3School, W33e44School is a palce to study web tle44chnology'
-              }
-            }
-          },
-          filterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.11', 'GZP4_SF_CS_APP_10.128.36.10']
-        }
-      ],
-      catchExecuteResult: {
-        'GZP4_SF_CS_APP_10.128.36.11': {
-          errorCode: '1',
-          result: {
-            errorCode: '1',
-            errorMessage: 'this is response one'
-          }
-        },
-        'GZP4_SF_CS_APP_10.128.36.10': {
-          errorCode: '1',
-          result: {
-            errorCode: '1',
-            errorMessage: 'Visit W3School, W33e44School is a palce to study web tle44chnology'
-          }
-        }
-      },
-      catchFilterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.11', 'GZP4_SF_CS_APP_10.128.36.10'],
+      activeExecuteHistory: {},
+      executeHistory: [],
+      catchExecuteResult: {},
+      catchFilterBusinessKeySet: [],
       filterParams: null,
       filterType: 'str',
       filterTypeList: [
-        { label: '字符串匹配', value: 'str' },
-        { label: '正则匹配', value: 'regex' }
+        { label: this.$t('bc_filter_type_str'), value: 'str' },
+        { label: this.$t('bc_filter_type_regex'), value: 'regex' }
       ]
     }
   },
-  mounted () {
-    const str = 'Visit W3School, W33e44School is a palce to study web tle44chnology.'
-    let patt = new RegExp('[0-9]*e[0-9]', 'g')
-    var result = null
-    while ((result = patt.exec(str)) != null) {
-      console.log(result[0])
-    }
-  },
+  mounted () {},
   computed: {
     businessKeyContent: function () {
       if (this.activeResultKey !== null) {
         return this.catchExecuteResult[this.activeResultKey]
       }
     },
-    // businessKeyContent: function () {
-    //   if (this.activeResultKey !== null) {
-    //     return this.activeExecuteHistory.executeResult[this.activeResultKey]
-    //   }
-    // },
     executeAgainBtnSpan: function () {
       const paramsNum = this.activeExecuteHistory.plugin.pluginParams.filter(item => {
         return item.mappingType === 'constant'
@@ -955,15 +456,18 @@ export default {
     }
   },
   methods: {
+    filterTypeChange () {
+      this.filterParams = null
+      this.catchExecuteResult = this.activeExecuteHistory.executeResult
+      this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+    },
     filterResult () {
-      console.log(this.filterParams)
       if (!this.filterParams) {
         this.catchExecuteResult = this.activeExecuteHistory.executeResult
         this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
         return
       }
       this.businessKey = null
-
       this.$nextTick(() => {
         this.catchFilterBusinessKeySet = []
         this.catchExecuteResult = {}
@@ -978,30 +482,26 @@ export default {
             }
           })
         } else {
-          // '[0-9]*e[0-9]'
-          console.log(2)
-
           let execRes = []
           let patt = null
           try {
             patt = new RegExp(this.filterParams, 'g')
-            let x1 = JSON.stringify(this.activeExecuteHistory.executeResult)
+            let er = JSON.stringify(this.activeExecuteHistory.executeResult)
             let res = null
-            while ((res = patt.exec(x1)) != null) {
+            while ((res = patt.exec(er)) != null) {
               execRes.push(res[0])
             }
             execRes.sort(function (a, b) {
               return a.length - b.length
             })
           } catch (err) {
-            this.$Message.error('正则表达式不正确！')
+            console.log(err)
+            this.$Message.error(this.$t('bc_filter_type_warn'))
+            this.filterParams = null
             this.catchExecuteResult = this.activeExecuteHistory.executeResult
             this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
             return
           }
-
-          console.log(3)
-
           this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
             let str = JSON.stringify(this.activeExecuteHistory.executeResult[key])
             let len = str.length
