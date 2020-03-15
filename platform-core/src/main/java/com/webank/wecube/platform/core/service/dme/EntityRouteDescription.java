@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.service.dme;
 
-public class EntityDescription {
+public class EntityRouteDescription {
     private String packageName;
     private String entityName;
     private String httpSchema = "http";
