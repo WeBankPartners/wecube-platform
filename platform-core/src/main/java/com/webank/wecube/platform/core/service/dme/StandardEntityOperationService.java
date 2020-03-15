@@ -4,18 +4,27 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+@Service("standardEntityOperationService")
 public class StandardEntityOperationService {
     private static final Logger log = LoggerFactory.getLogger(StandardEntityOperationService.class);
 
-    private EntityQueryExpressionParser entityQueryExpressionParser = new EntityQueryExpressionParser();
+    @Autowired
+    private EntityQueryExpressionParser entityQueryExpressionParser;
 
-    private RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    @Qualifier(value = "jwtSsoRestTemplate")
+    private RestTemplate jwtSsoRestTemplate;
 
-    private StandardEntityQueryExecutor standardEntityQueryExcutor = new StandardEntityQueryExecutor();
+    @Autowired
+    private EntityQueryExecutor standardEntityQueryExcutor;
     
-    private EntityDataRouter entityDataRouter = new EntityDataRouter();
+    @Autowired
+    private EntityDataRouteFactory entityDataRouteFactory;
 
     public List<Object> query(EntityOperationRootCondition condition) {
         if (log.isInfoEnabled()) {
@@ -51,9 +60,9 @@ public class StandardEntityOperationService {
         ctx.setEntityQueryExprNodeInfos(exprNodeInfos);
         ctx.setOriginalEntityLinkExpression(condition.getEntityLinkExpr());
         ctx.setOriginalEntityData(condition.getEntityIdentity());
-        ctx.setStandardEntityOperationRestClient(new StandardEntityOperationRestClient(restTemplate));
+        ctx.setStandardEntityOperationRestClient(new StandardEntityOperationRestClient(jwtSsoRestTemplate));
         ctx.setHeadEntityQueryLinkNode(buildEntityQueryLinkNode(exprNodeInfos));
-        ctx.setEntityDataRouter(entityDataRouter);
+        ctx.setEntityDataRouteFactory(entityDataRouteFactory);
 
         return ctx;
     }
@@ -84,7 +93,7 @@ public class StandardEntityOperationService {
     }
 
     public RestTemplate getRestTemplate() {
-        return restTemplate;
+        return jwtSsoRestTemplate;
     }
 
 }
