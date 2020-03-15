@@ -6,19 +6,21 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
-public class StandardEntityQueryExecutor {
+@Service("standardEntityQueryExecutor")
+public class StandardEntityQueryExecutor implements EntityQueryExecutor {
     private static final Logger log = LoggerFactory.getLogger(StandardEntityQueryExecutor.class);
 
     public void executeUpdate(EntityOperationContext ctx, Object valueToUpdate) {
         List<EntityDataDelegate> entitiesToUpdate = executeQueryLeafEntity(ctx);
         List<EntityDataRecord> entityDataRecordsToUpdate = buildEntityDataRecords(entitiesToUpdate, valueToUpdate);
-        
+
         EntityQueryLinkNode leafLinkNode = ctx.getTailEntityQueryLinkNode();
         EntityQueryExprNodeInfo nodeInfo = leafLinkNode.getExprNodeInfo();
-        EntityDescription entityDef = ctx.getEntityDataRouter().deduceEntityDescription(nodeInfo.getEntityName(),
+        EntityRouteDescription entityDef = ctx.getEntityDataRouteFactory().deduceEntityDescription(nodeInfo.getEntityName(),
                 nodeInfo.getPackageName());
-        
+
         StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
         restClient.update(entityDef, entityDataRecordsToUpdate);
     }
@@ -35,11 +37,11 @@ public class StandardEntityQueryExecutor {
 
     public void performQuery(EntityOperationContext ctx, EntityQueryLinkNode linkNode) {
         if (log.isInfoEnabled()) {
-            log.info("perform query for {}", linkNode.getExprNodeInfo().getEntityQueryNodeExpr());
+            log.info("performing query for {} {}", linkNode.getIndex(), linkNode.getExprNodeInfo().getEntityQueryNodeExpr());
         }
 
         EntityQueryExprNodeInfo nodeInfo = linkNode.getExprNodeInfo();
-        EntityDescription entityDef = ctx.getEntityDataRouter().deduceEntityDescription(nodeInfo.getEntityName(),
+        EntityRouteDescription entityDef = ctx.getEntityDataRouteFactory().deduceEntityDescription(nodeInfo.getEntityName(),
                 nodeInfo.getPackageName());
 
         doPerformQuery(ctx, linkNode, entityDef);
@@ -60,14 +62,14 @@ public class StandardEntityQueryExecutor {
             attr.setAttrName(delegate.getQueryAttrName());
             attr.setAttrValue(valueToUpdate);
             record.addAttrs(attr);
-            
+
             dataRecords.add(record);
         }
-        
+
         return dataRecords;
     }
 
-    private void doPerformQuery(EntityOperationContext ctx, EntityQueryLinkNode linkNode, EntityDescription entityDef) {
+    private void doPerformQuery(EntityOperationContext ctx, EntityQueryLinkNode linkNode, EntityRouteDescription entityDef) {
 
         if (linkNode.isHeadLinkNode()) {
             doPerformHeadEntityLinkNodeQuery(ctx, linkNode, entityDef);
@@ -91,7 +93,7 @@ public class StandardEntityQueryExecutor {
     }
 
     private void doPerformRefByEntityLinkNodeQuery(EntityOperationContext ctx, EntityQueryLinkNode linkNode,
-            EntityDescription entityDef) {
+            EntityRouteDescription entityDef) {
         if (log.isDebugEnabled()) {
             log.debug("perform query for RefBy entity link  node with {}",
                     linkNode.getExprNodeInfo().getEntityQueryNodeExpr());
@@ -121,7 +123,7 @@ public class StandardEntityQueryExecutor {
     }
 
     private EntityQuerySpecification buildRefByEntityQuerySpecification(EntityOperationContext ctx,
-            EntityQueryLinkNode linkNode, EntityDescription entityDef, EntityQueryExprNodeInfo exprNodeInfo,
+            EntityQueryLinkNode linkNode, EntityRouteDescription entityDef, EntityQueryExprNodeInfo exprNodeInfo,
             EntityQueryLinkNode previousLinkNode, EntityDataDelegate prevEntityDataDelegate) {
         EntityQuerySpecification querySpec = new EntityQuerySpecification();
         EntityQueryCriteria criteria = new EntityQueryCriteria();
@@ -144,7 +146,7 @@ public class StandardEntityQueryExecutor {
     }
 
     private void doPerformRefToEntityLinkNodeQuery(EntityOperationContext ctx, EntityQueryLinkNode linkNode,
-            EntityDescription entityDef) {
+            EntityRouteDescription entityDef) {
         if (log.isDebugEnabled()) {
             log.debug("perform query for RefTo entity link  node with {}",
                     linkNode.getExprNodeInfo().getEntityQueryNodeExpr());
@@ -166,7 +168,7 @@ public class StandardEntityQueryExecutor {
     }
 
     private EntityQuerySpecification buildRefToEntityQuerySpecification(EntityOperationContext ctx,
-            EntityQueryLinkNode linkNode, EntityDescription entityDef, EntityQueryExprNodeInfo exprNodeInfo,
+            EntityQueryLinkNode linkNode, EntityRouteDescription entityDef, EntityQueryExprNodeInfo exprNodeInfo,
             EntityQueryLinkNode previousLinkNode, EntityDataDelegate prevEntityDataDelegate) {
         EntityQuerySpecification querySpec = new EntityQuerySpecification();
         EntityQueryCriteria criteria = new EntityQueryCriteria();
@@ -189,7 +191,7 @@ public class StandardEntityQueryExecutor {
     }
 
     private void doPerformHeadEntityLinkNodeQuery(EntityOperationContext ctx, EntityQueryLinkNode linkNode,
-            EntityDescription entityDef) {
+            EntityRouteDescription entityDef) {
         if (log.isDebugEnabled()) {
             log.debug("perform query for head entity link  node with {}",
                     linkNode.getExprNodeInfo().getEntityQueryNodeExpr());
@@ -217,7 +219,7 @@ public class StandardEntityQueryExecutor {
     }
 
     private void performRestOperation(EntityOperationContext ctx, EntityQueryLinkNode linkNode,
-            EntityDescription entityDef, EntityQuerySpecification querySpec) {
+            EntityRouteDescription entityDef, EntityQuerySpecification querySpec) {
         StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
         StandardEntityOperationResponseDto responseDto = restClient.query(entityDef, querySpec);
 

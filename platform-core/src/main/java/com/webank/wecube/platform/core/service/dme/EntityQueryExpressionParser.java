@@ -6,7 +6,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
+@Service("entityQueryExpressionParser")
 public class EntityQueryExpressionParser {
     public static final String PKG_DELIMITER = ":";
 

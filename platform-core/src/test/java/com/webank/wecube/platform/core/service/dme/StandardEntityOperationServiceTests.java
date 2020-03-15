@@ -11,27 +11,30 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+import com.webank.wecube.platform.core.BaseSpringBootTest;
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 
 
-//@SpringBootTest
-//@RunWith(SpringRunner.class)
-public class StandardEntityOperationServiceTests {
 
+public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
 
-    StandardEntityOperationService standardEntityOperationService = new StandardEntityOperationService();
-    RestTemplate jwtSsoRestTemplate = new RestTemplate();
-//    @Autowired
-//    @Qualifier(value = "jwtSsoRestTemplate")
-//    private RestTemplate jwtSsoRestTemplate;
-//    @Autowired
-//    private ApplicationProperties applicationProperties;
+    @Autowired
+    StandardEntityOperationService standardEntityOperationService;
+    @Autowired
+    @Qualifier(value = "jwtSsoRestTemplate")
+    private RestTemplate jwtSsoRestTemplate;
+    @Autowired
+    private ApplicationProperties applicationProperties;
     private String gatewayUrl = "localhost:8080";
     private MockRestServiceServer server;
     
@@ -39,7 +42,7 @@ public class StandardEntityOperationServiceTests {
     @Before
     public void setup() {
         server = MockRestServiceServer.bindTo(standardEntityOperationService.getRestTemplate()).build();
-//        gatewayUrl = this.applicationProperties.getGatewayUrl();
+        gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
 
     @Test
@@ -76,6 +79,7 @@ public class StandardEntityOperationServiceTests {
         server.verify();
     }
 
+    @Ignore
     @Test
     public void wecmdbFwdNodeExpressionFetchWithoutLastOpFetchShouldSucceed() {
         mockFwdNodeExpressionServer(server);
