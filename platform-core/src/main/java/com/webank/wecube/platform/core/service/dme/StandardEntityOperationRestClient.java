@@ -30,7 +30,7 @@ public class StandardEntityOperationRestClient {
         this.restTemplate = restTemplate;
     }
 
-    public StandardEntityOperationResponseDto query(EntityDescription entityDef, EntityQuerySpecification querySpec) {
+    public StandardEntityOperationResponseDto query(EntityRouteDescription entityDef, EntityQuerySpecification querySpec) {
         String baseUri = buildBaseRequestUri(entityDef);
         String requestUriStr = buildRequestUri(baseUri, getQueryUriTemplate());
         URI requestUri = getRestTemplate().getUriTemplateHandler().expand(requestUriStr, entityDef.getPackageName(),
@@ -45,7 +45,7 @@ public class StandardEntityOperationRestClient {
     }
 
     // POST List<Map<String, Object>>
-    public StandardEntityOperationResponseDto update(EntityDescription entityDef,
+    public StandardEntityOperationResponseDto update(EntityRouteDescription entityDef,
             List<EntityDataRecord> recordsToUpdate) {
         String baseUri = buildBaseRequestUri(entityDef);
         String requestUriStr = buildRequestUri(baseUri, getUpdateUriTemplate());
@@ -96,7 +96,7 @@ public class StandardEntityOperationRestClient {
         return baseUri + path;
     }
 
-    private String buildBaseRequestUri(EntityDescription entityDef) {
+    private String buildBaseRequestUri(EntityRouteDescription entityDef) {
         StringBuilder builder = new StringBuilder();
         builder.append(entityDef.getHttpSchema()).append("://");
         builder.append(entityDef.getHttpHost());
