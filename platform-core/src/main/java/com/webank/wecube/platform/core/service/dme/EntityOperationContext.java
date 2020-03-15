@@ -13,7 +13,7 @@ public class EntityOperationContext {
 
     protected EntityQueryLinkNode currentEntityQueryLinkNode;
     
-    protected EntityDataRouter entityDataRouter;
+    protected EntityDataRouteFactory entityDataRouteFactory;
     
     public EntityQueryLinkNode getHeadEntityQueryLinkNode(){
         return headEntityQueryLinkNode;
@@ -89,11 +89,11 @@ public class EntityOperationContext {
         this.currentEntityQueryLinkNode = currentEntityQueryLinkNode;
     }
 
-    public EntityDataRouter getEntityDataRouter() {
-        return entityDataRouter;
+    public EntityDataRouteFactory getEntityDataRouteFactory() {
+        return entityDataRouteFactory;
     }
 
-    public void setEntityDataRouter(EntityDataRouter entityDataRouter) {
-        this.entityDataRouter = entityDataRouter;
+    public void setEntityDataRouteFactory(EntityDataRouteFactory entityDataRouter) {
+        this.entityDataRouteFactory = entityDataRouter;
     }
 }
