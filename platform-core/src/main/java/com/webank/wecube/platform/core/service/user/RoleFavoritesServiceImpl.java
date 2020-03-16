@@ -35,8 +35,6 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     private RoleFavoritesRepository roleFavoritesRepository;
 
     @Autowired
-    private ProcessRoleServiceImpl processRoleService;
-    @Autowired
     private FavoritesInfoRepository favoritesInfoRepository;
     @Autowired
     private UserManagementServiceImpl userManagementService;
@@ -50,7 +48,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             throw new WecubeCoreException("Collection name cannot be empty.");
         }
 
-        List<FavoritesEntity> existingCollections = roleFavoritesRepository.findAllCollectionByCollectionName(collectionName);
+        List<FavoritesEntity> existingCollections = favoritesInfoRepository.findAllCollectionByCollectionName(collectionName);
         if (existingCollections != null && !existingCollections.isEmpty()) {
             log.error("such process definition name already exists,collectionName={}", collectionName);
             throw new WecubeCoreException("CollectionName name should NOT duplicated.");
