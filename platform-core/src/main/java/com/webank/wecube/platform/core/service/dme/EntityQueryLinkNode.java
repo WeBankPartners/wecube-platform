@@ -71,9 +71,9 @@ public class EntityQueryLinkNode {
                 if (d.getId() == null) {
                     throw new RuntimeException("Entity data should contain ID.");
                 }
-                if (contains(d)) {
-                    continue;
-                }
+//                if (contains(d)) {
+//                    continue;
+//                }
 
                 this.entityDataDelegates.add(d);
             }
