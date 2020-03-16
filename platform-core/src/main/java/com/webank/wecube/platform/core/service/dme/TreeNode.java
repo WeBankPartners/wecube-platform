@@ -1,9 +1,10 @@
 package com.webank.wecube.platform.core.service.dme;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import java.util.List;
 
 public class TreeNode {
     private String packageName;
@@ -11,12 +12,13 @@ public class TreeNode {
     private Object rootId;
     private Object displayName;
     private TreeNode parent;
-    private List<TreeNode> children;
+    private List<TreeNode> children = new ArrayList<>();
 
     public TreeNode() {
     }
 
-    public TreeNode(String packageName, String entityName, Object rootId, Object displayName, TreeNode parent, List<TreeNode> children) {
+    public TreeNode(String packageName, String entityName, Object rootId, Object displayName, TreeNode parent,
+            List<TreeNode> children) {
         this.packageName = packageName;
         this.entityName = entityName;
         this.rootId = rootId;
@@ -78,6 +80,19 @@ public class TreeNode {
         this.children = children;
     }
 
+    public void addChildren(TreeNode node) {
+        if (node == null) {
+            return;
+        }
+
+        for (TreeNode n : children) {
+            if (n.equals(node)) {
+                return;
+            }
+        }
+        this.children.add(node);
+    }
+
     public Object getDisplayName() {
         return displayName;
     }
@@ -98,19 +113,13 @@ public class TreeNode {
 
         TreeNode treeNode = (TreeNode) o;
 
-        return new EqualsBuilder()
-                .append(getPackageName(), treeNode.getPackageName())
-                .append(getEntityName(), treeNode.getEntityName())
-                .append(getRootId(), treeNode.getRootId())
-                .isEquals();
+        return new EqualsBuilder().append(getPackageName(), treeNode.getPackageName())
+                .append(getEntityName(), treeNode.getEntityName()).append(getRootId(), treeNode.getRootId()).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(getPackageName())
-                .append(getEntityName())
-                .append(getRootId())
+        return new HashCodeBuilder(17, 37).append(getPackageName()).append(getEntityName()).append(getRootId())
                 .toHashCode();
     }
 }
