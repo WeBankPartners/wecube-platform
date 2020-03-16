@@ -50,7 +50,13 @@ public class StandardEntityOperationService {
     }
 
     public List<TreeNode> generatePreviewTree(EntityOperationRootCondition condition) {
-        return null;
+        if(log.isInfoEnabled()){
+            log.info("generate preview tree with condition {}", condition);
+        }
+        
+        EntityOperationContext ctx = buildEntityOperationContext(condition);
+        ctx.setEntityOperationType(EntityOperationType.UPDATE);
+        return standardEntityQueryExcutor.generatePreviewTree(ctx);
     }
 
     protected EntityOperationContext buildEntityOperationContext(EntityOperationRootCondition condition) {
@@ -87,6 +93,8 @@ public class StandardEntityOperationService {
             linkNode.setHead(false);
             linkNode.setPreviousNode(previousLinkNode);
             linkNode.setSucceedingNode(null);
+            
+            previousLinkNode = linkNode;
         }
 
         return headLinkNode;

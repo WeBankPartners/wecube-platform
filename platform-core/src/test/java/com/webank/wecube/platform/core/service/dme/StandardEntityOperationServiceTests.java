@@ -41,7 +41,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
 
     @Before
     public void setup() {
-        server = MockRestServiceServer.bindTo(standardEntityOperationService.getRestTemplate()).build();
+        server = MockRestServiceServer.bindTo(jwtSsoRestTemplate).build();
         gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
 
@@ -587,8 +587,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
 
     private void mockMultipleLinksWithOpToOnlyExpressionServer(MockRestServiceServer server) {
         // first expression
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys?filter=id,0007_0000000001", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -611,8 +611,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys_design?filter=id,0002_0000000010", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -636,8 +636,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design?filter=id,0001_0000000003", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/system_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -660,8 +660,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "}", MediaType.APPLICATION_JSON));
 
         // second expression
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link?filter=id,0018_0000000002", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -686,8 +686,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone?filter=id,0017_0000000003", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -715,8 +715,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_design?filter=id,0023_0000000003", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -742,8 +742,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
 
     private void mockMultipleLinksWithOpByOnlyExpressionServer(MockRestServiceServer server) {
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys?filter=id,0007_0000000001", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -766,8 +766,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=subsys,0007_0000000001", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -809,8 +809,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/running_instance?filter=unit,0008_0000000001", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.once(), requestTo(String.format("http://%s/wecmdb/entities/running_instance/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -839,8 +839,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/running_instance?filter=unit,0008_0000000007", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.once(), requestTo(String.format("http://%s/wecmdb/entities/running_instance/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -851,8 +851,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
     private void mockMultipleLinksWithMixedOpExpressionServer(MockRestServiceServer server) {
         // first request
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys?filter=id,0007_0000000001", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -875,8 +875,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit?filter=subsys,0007_0000000001", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -918,8 +918,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit_design?filter=id,0003_0000000006", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -945,8 +945,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit_design?filter=id,0003_0000000007", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/unit_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -972,8 +972,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys_design?filter=id,0002_0000000010", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/subsys_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -999,8 +999,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
 
         // second request
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_design?filter=id,0023_0000000004", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -1023,8 +1023,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link_design?filter=zone_design2,0023_0000000004", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -1060,8 +1060,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link?filter=zone_link_design,0024_0000000005", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -1086,8 +1086,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link?filter=zone_link_design,0024_0000000006", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone_link/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -1112,8 +1112,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone?filter=id,0017_0000000003", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
@@ -1141,8 +1141,8 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest{
                         "    ]\n" +
                         "}", MediaType.APPLICATION_JSON));
 
-        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone?filter=id,0017_0000000005", this.gatewayUrl)))
-                .andExpect(method(HttpMethod.GET))
+        server.expect(ExpectedCount.manyTimes(), requestTo(String.format("http://%s/wecmdb/entities/zone/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess("{\n" +
                         "    \"status\": \"OK\",\n" +
                         "    \"message\": \"Success\",\n" +
