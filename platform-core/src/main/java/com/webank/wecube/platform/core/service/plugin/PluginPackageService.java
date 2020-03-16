@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
 
@@ -603,21 +602,6 @@ public class PluginPackageService {
                     .add(new PluginConfigGroupByNameDto(cfgDto.getName(), Lists.newArrayList(cfgDto)));
         }
         return pluginConfigGroupByNameDtos;
-    }
-
-    public List<PluginConfigInterfaceDto> getInterfacesByPluginConfigId(String pluginConfigId) {
-        List<PluginConfigInterfaceDto> interfaces = newArrayList();
-
-        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfigId);
-        if (!pluginConfigOptional.isPresent()) {
-            return interfaces;
-        }
-        PluginConfig pluginConfig = pluginConfigOptional.get();
-        if (pluginConfig.getInterfaces() != null && pluginConfig.getInterfaces().size() > 0) {
-            pluginConfig.getInterfaces().forEach(pluginConfigInterface -> interfaces
-                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
-        }
-        return interfaces;
     }
 
     public List<MenuItemDto> getAllSysMenus() {
