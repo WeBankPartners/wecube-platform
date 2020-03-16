@@ -1,6 +1,6 @@
 <template>
-  <div class>
-    <section class="search">
+  <div>
+    <section v-if="displaySearchZone" class="search">
       <Card v-if="displaySearchZone">
         <div class="search-zone">
           <Form :label-width="170" label-colon>
@@ -43,7 +43,7 @@
         </ul>
       </div>
     </section>
-    <section v-if="!displaySearchZone" class="search-result-table" style="margin-top:20px;">
+    <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
       <div class="we-table">
         <Card v-if="displayResultTableZone">
           <p slot="title">{{ $t('bc_search_result') }}：</p>
@@ -61,47 +61,151 @@
         </Card>
         <a v-else @click="reExcute('displayResultTableZone')">
           {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected') }}{{ seletedRowsNum
-          }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ serviceId }}
+          }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ pluginId }}
         </a>
       </div>
     </section>
-    <section v-if="!displaySearchZone && !displayResultTableZone" style="margin-top:60px;">
-      <Card>
-        <p slot="title">{{ $t('bc_execution_result') }}：</p>
-        <Row>
-          <Col span="6" class="excute-result excute-result-search">
-            <Input v-model="businessKey" />
-            <p class="excute-result-search-title">{{ serviceId }}</p>
-            <ul v-if="filterBusinessKeySet.length">
-              <li
-                @click="activeResultKey = key"
-                :class="[
-                  activeResultKey === key ? 'active-key' : '',
-                  'business-key',
-                  excuteResult[key].errorCode === '1' ? 'error-key' : ''
-                ]"
-                v-for="(key, keyIndex) in filterBusinessKeySet"
-                :key="keyIndex"
-              >
-                <span>{{ key }}</span>
-              </li>
-            </ul>
-            <p v-else>No Data</p>
-          </Col>
-          <Col span="18" class="excute-result excute-result-json">
-            <Input v-model="resultFilterKey" style="width:300px;visibility: hidden;" />
-            <div>
-              <!-- <highlight-code lang="json"><pre>{{ businessKeyContent }}</pre></highlight-code> -->
-              <pre
-                style="min-height: 300px;"
-                v-if="businessKeyContent"
-              > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
-              <pre v-else> <span></span></pre>
-              <!-- <p>{{ JSON.stringify(businessKeyContent, null, 2) }}</p> -->
-            </div>
-          </Col>
-        </Row>
-      </Card>
+    <!-- v-if="executeHistory.length" -->
+    <section v-if="executeHistory.length" class="execute-history">
+      <Row>
+        <Col span="4" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
+          <h6 style="margin: 8px">
+            <span>{{ $t('bc_history_record') }} </span>
+          </h6>
+          <ul>
+            <li
+              @click="changeActiveExecuteHistory(keyIndex)"
+              :class="[activeExecuteHistoryKey === keyIndex ? 'active-key' : '', 'business-key']"
+              v-for="(key, keyIndex) in executeHistory"
+              :key="keyIndex"
+            >
+              <span>{{ keyIndex }}、{{ key.id }}</span>
+            </li>
+          </ul>
+        </Col>
+        <Col v-if="activeExecuteHistory" :span="isShowHistoryMenu ? 20 : 24" class="res res-content">
+          <Icon
+            :style="isShowHistoryMenu ? '' : 'transform: rotate(90deg);'"
+            class="history-record-menu"
+            type="md-menu"
+            @click="isShowHistoryMenu = !isShowHistoryMenu"
+          />
+          <div class="res-content-step">
+            <Steps :current="3">
+              <Step :title="$t('bc_query_conditions')">
+                <div slot="content">
+                  <Tooltip :max-width="500">
+                    <Icon type="ios-information-circle-outline" />
+                    <div slot="content">
+                      <ul>
+                        <li>{{ $t('bc_query_path') }}:{{ dataModelExpression }}</li>
+                        <li v-for="(sp, spIndex) in activeExecuteHistory.requestBody.searchParameters" :key="spIndex">
+                          <span> {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{ sp.value }}] </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </Tooltip>
+                  <Button size="small" @click="changeSearchParams" type="primary" ghost>{{
+                    $t('bc_reset_query')
+                  }}</Button>
+                </div>
+              </Step>
+              <Step :title="$t('bc_execution_instance')">
+                <div slot="content">
+                  <Tooltip>
+                    <Icon type="ios-information-circle-outline" />
+                    <div slot="content">
+                      <p
+                        :key="targetIndex"
+                        v-for="(target, targetIndex) in activeExecuteHistory.requestBody.resourceDatas"
+                      >
+                        {{ target.businessKeyValue }}
+                      </p>
+                    </div>
+                  </Tooltip>
+                  <Button size="small" @click="changeTargetObject" type="primary" ghost>{{
+                    $t('bc_change_instance')
+                  }}</Button>
+                </div>
+              </Step>
+              <Step :title="$t('bc_execution_plugin')" content="">
+                <div slot="content">
+                  <Tooltip :content="activeExecuteHistory.plugin.pluginName">
+                    <Icon type="ios-information-circle-outline" />
+                  </Tooltip>
+                  <Button size="small" @click="changePlugin" type="primary" ghost>{{ $t('bc_change_plugin') }}</Button>
+                </div>
+              </Step>
+            </Steps>
+          </div>
+          <div v-if="activeExecuteHistory" class="res-content-params">
+            <Form label-position="right" :label-width="100">
+              <Row>
+                <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
+                  <Col span="8" v-if="item.mappingType === 'constant'" :key="index">
+                    <FormItem :label="item.name" :key="index">
+                      <Input v-model="item.bindValue" />
+                    </FormItem>
+                  </Col>
+                </template>
+                <Col :span="executeAgainBtnSpan">
+                  <Button type="primary" style="float:right" @click="executeAgain">{{ $t('bc_execute') }}</Button>
+                </Col>
+              </Row>
+            </Form>
+          </div>
+          <div class="res-content-result">
+            <Row>
+              <Col span="6" class="excute-result excute-result-search">
+                <Input v-model="businessKey" placeholder="Filter instance" />
+                <p class="excute-result-search-title">{{ activeExecuteHistory.plugin.pluginName }}</p>
+                <ul v-if="activeExecuteHistory.filterBusinessKeySet.length">
+                  <li
+                    @click="changeActiveResultKey(key)"
+                    :class="[
+                      activeResultKey === key ? 'active-key' : '',
+                      'business-key',
+                      catchExecuteResult[key].errorCode === '1' ? 'error-key' : ''
+                    ]"
+                    v-for="(key, keyIndex) in catchFilterBusinessKeySet"
+                    :key="keyIndex"
+                  >
+                    <!-- activeExecuteHistory.executeResult[key].errorCode === '1' ? 'error-key' : '' -->
+                    <span>{{ key }}</span>
+                  </li>
+                </ul>
+                <p v-else>No Data</p>
+              </Col>
+              <Col span="18" class="excute-result excute-result-json">
+                <Row>
+                  <Col span="4">
+                    <Select v-model="filterType" @on-change="filterTypeChange">
+                      <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{
+                        item.label
+                      }}</Option>
+                    </Select>
+                  </Col>
+                  <Col span="8">
+                    <Input v-model="filterParams" placeholder="Filter result, e.g :error or /[0-9]+/" />
+                  </Col>
+                  <Col span="6" offset="1">
+                    <Button type="primary" @click="filterResult">
+                      {{ $t('search') }}
+                    </Button>
+                  </Col>
+                </Row>
+                <div>
+                  <pre
+                    style="min-height: 300px;"
+                    v-if="businessKeyContent"
+                  > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
+                  <pre v-else> <span></span></pre>
+                </div>
+              </Col>
+            </Row>
+          </div>
+        </Col>
+      </Row>
     </section>
     <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
       <Form :label-width="130" label-colon>
@@ -164,7 +268,7 @@
     <Modal v-model="batchActionModalVisible" :title="$t('bc_batch_operation')">
       <Form label-position="right" :label-width="150">
         <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
-          <Select filterable clearable v-model="serviceId">
+          <Select filterable clearable v-model="pluginId">
             <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
               item.serviceDisplayName
             }}</Option>
@@ -178,7 +282,7 @@
         </template>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="excuteBatchAction" :disabled="!this.serviceId">
+        <Button type="primary" @click="excuteBatchAction" :disabled="!this.pluginId">
           {{ $t('confirm') }}
         </Button>
       </div>
@@ -216,7 +320,7 @@ export default {
     return {
       displaySearchZone: true,
       displayResultTableZone: false,
-      displayExcuteResultZone: false,
+      displayExecuteResultZone: false,
 
       DelConfig: {
         isDisplay: false,
@@ -247,23 +351,43 @@ export default {
       tableColumns: [],
 
       batchActionModalVisible: false,
-      serviceId: null,
+      isHistoryToBatchActionModal: false,
+      pluginId: null,
       selectedPluginParams: [],
       allPlugins: [],
       filteredPlugins: [],
 
-      excuteResult: {},
-      excuteBusinessKeySet: [],
+      isShowHistoryMenu: true,
+      executeResult: {},
       filterBusinessKeySet: [],
-      activeResultKey: '',
+      activeResultKey: null,
       businessKey: '',
-      resultFilterKey: ''
+
+      activeExecuteHistoryKey: 0,
+      activeExecuteHistory: {},
+      executeHistory: [],
+      catchExecuteResult: {},
+      catchFilterBusinessKeySet: [],
+      filterParams: null,
+      filterType: 'str',
+      filterTypeList: [
+        { label: this.$t('bc_filter_type_str'), value: 'str' },
+        { label: this.$t('bc_filter_type_regex'), value: 'regex' }
+      ]
     }
   },
   mounted () {},
   computed: {
     businessKeyContent: function () {
-      return this.excuteResult[this.activeResultKey]
+      if (this.activeResultKey !== null) {
+        return this.catchExecuteResult[this.activeResultKey]
+      }
+    },
+    executeAgainBtnSpan: function () {
+      const paramsNum = this.activeExecuteHistory.plugin.pluginParams.filter(item => {
+        return item.mappingType === 'constant'
+      }).length
+      return 24 - (paramsNum % 3) * 8
     }
   },
   watch: {
@@ -297,7 +421,7 @@ export default {
         })
       }
     },
-    serviceId: function (val) {
+    pluginId: function (val) {
       this.filteredPlugins.forEach(plugin => {
         if (plugin.serviceDisplayName === val) {
           this.selectedPluginParams = plugin.inputParameters
@@ -308,19 +432,98 @@ export default {
         return _
       })
     },
+    activeExecuteHistory: function (val) {
+      this.catchExecuteResult = val.executeResult
+      this.catchFilterBusinessKeySet = val.filterBusinessKeySet
+      this.filterParams = null
+      this.businessKey = null
+    },
     businessKey: function (val) {
-      this.filterBusinessKeySet = []
-      for (const key in this.excuteResult) {
-        if (key.indexOf(this.businessKey) > -1) {
-          this.filterBusinessKeySet.push(key)
-        }
+      if (!val) {
+        this.catchExecuteResult = this.activeExecuteHistory.executeResult
+        this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+        return
       }
+      this.filterParams = null
+      this.catchFilterBusinessKeySet = []
+      this.catchExecuteResult = {}
+      this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+        if (key.indexOf(this.businessKey) > -1) {
+          this.catchFilterBusinessKeySet.push(key)
+          this.catchExecuteResult[key] = this.activeExecuteHistory.executeResult[key]
+        }
+      })
     }
   },
   methods: {
+    filterTypeChange () {
+      this.filterParams = null
+      this.catchExecuteResult = this.activeExecuteHistory.executeResult
+      this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+    },
+    filterResult () {
+      if (!this.filterParams) {
+        this.catchExecuteResult = this.activeExecuteHistory.executeResult
+        this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+        return
+      }
+      this.businessKey = null
+      this.$nextTick(() => {
+        this.catchFilterBusinessKeySet = []
+        this.catchExecuteResult = {}
+        if (this.filterType === 'str') {
+          this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+            let tmp = JSON.stringify(this.activeExecuteHistory.executeResult[key])
+            if (tmp.indexOf(this.filterParams) > -1) {
+              this.catchFilterBusinessKeySet.push(key)
+              const reg = new RegExp(this.filterParams, 'g')
+              tmp = tmp.replace(reg, "<span style='color:red'>" + this.filterParams + '</span>')
+              this.catchExecuteResult[key] = JSON.parse(tmp)
+            }
+          })
+        } else {
+          let execRes = []
+          let patt = null
+          try {
+            patt = new RegExp(this.filterParams, 'g')
+            let er = JSON.stringify(this.activeExecuteHistory.executeResult)
+            let res = null
+            while ((res = patt.exec(er)) != null) {
+              execRes.push(res[0])
+            }
+            execRes.sort(function (a, b) {
+              return a.length - b.length
+            })
+          } catch (err) {
+            console.log(err)
+            this.$Message.error(this.$t('bc_filter_type_warn'))
+            this.filterParams = null
+            this.catchExecuteResult = this.activeExecuteHistory.executeResult
+            this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+            return
+          }
+          this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+            let str = JSON.stringify(this.activeExecuteHistory.executeResult[key])
+            let len = str.length
+            execRes.forEach(keyword => {
+              let reg = new RegExp(keyword, 'g')
+              str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
+            })
+
+            if (str.length !== len) {
+              this.catchFilterBusinessKeySet.push(key)
+              this.catchExecuteResult[key] = JSON.parse(str)
+            }
+          })
+        }
+      })
+    },
     formatResult (result) {
+      if (!result) {
+        return
+      }
       for (let key in result) {
-        if (result[key].length > 1) {
+        if (result[key] !== null && typeof result[key] === 'string') {
           result[key] = result[key].split('\n').join('<br/>            ')
         }
       }
@@ -454,7 +657,7 @@ export default {
 
       this.displaySearchZone = false
       this.displayResultTableZone = false
-      this.displayExcuteResultZone = false
+      this.displayExecuteResultZone = false
       this.businessKey = null
       this[this.DelConfig.key] = true
     },
@@ -466,7 +669,7 @@ export default {
       this.getFilteredPluginInterfaceList()
       this.batchActionModalVisible = true
       this.selectedPluginParams = []
-      this.serviceId = null
+      this.pluginId = null
     },
     async getFilteredPluginInterfaceList () {
       const { status, data } = await getFilteredPluginInterfaceList(this.currentPackageName, this.currentEntityName)
@@ -475,8 +678,9 @@ export default {
       }
     },
     async excuteBatchAction () {
+      let requestBody = {}
       const plugin = this.filteredPlugins.find(_ => {
-        return _.serviceName === this.serviceId
+        return _.serviceName === this.pluginId
       })
       const inputParameterDefinitions = this.selectedPluginParams.map(p => {
         const inputParameterValue =
@@ -486,38 +690,142 @@ export default {
           inputParameterValue: inputParameterValue
         }
       })
-      let currentEntity = this.currentEntityAttrList.find(_ => {
-        return _.name === this.currentEntityAttr
-      })
-      const resourceDatas = this.seletedRows.map(_ => {
-        return {
-          id: _.id,
-          businessKeyValue: _[this.currentEntityAttr]
+      if (this.isHistoryToBatchActionModal) {
+        const {
+          packageName,
+          entityName,
+          dataModelExpression,
+          searchParameters,
+          businessKeyAttribute,
+          resourceDatas
+        } = this.activeExecuteHistory.requestBody
+        requestBody = {
+          packageName,
+          entityName,
+          dataModelExpression,
+          searchParameters,
+          pluginConfigInterface: plugin,
+          inputParameterDefinitions,
+          businessKeyAttribute,
+          resourceDatas
         }
-      })
-
-      let requestBody = {
-        packageName: this.currentPackageName,
-        entityName: this.currentEntityName,
-        pluginConfigInterface: plugin,
-        inputParameterDefinitions,
-        businessKeyAttribute: currentEntity,
-        resourceDatas
+      } else {
+        let currentEntity = this.currentEntityAttrList.find(_ => {
+          return _.name === this.currentEntityAttr
+        })
+        const resourceDatas = this.seletedRows.map(_ => {
+          return {
+            id: _.id,
+            businessKeyValue: _[this.currentEntityAttr]
+          }
+        })
+        requestBody = {
+          packageName: this.currentPackageName,
+          entityName: this.currentEntityName,
+          dataModelExpression: this.dataModelExpression,
+          searchParameters: this.searchParameters,
+          pluginConfigInterface: plugin,
+          inputParameterDefinitions,
+          businessKeyAttribute: currentEntity,
+          resourceDatas
+        }
       }
-
       this.batchActionModalVisible = false
+
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
-        this.excuteResult = data
-        this.excuteBusinessKeySet = this.filterBusinessKeySet = []
+        this.executeResult = data
+        this.filterBusinessKeySet = []
         for (const key in data) {
-          this.excuteBusinessKeySet.push(key)
+          this.filterBusinessKeySet.push(key)
         }
-        this.filterBusinessKeySet = this.excuteBusinessKeySet
         this.displayResultTableZone = false
-        this.displayExcuteResultZone = false
+        this.displayExecuteResultZone = false
+
+        this.executeHistory.push({
+          id: new Date().format('yyyy-MM-dd hh:mm:ss'),
+          plugin: {
+            pluginName: this.pluginId,
+            pluginParams: this.selectedPluginParams
+          },
+          requestBody: requestBody,
+          executeResult: data,
+          filterBusinessKeySet: this.filterBusinessKeySet
+        })
+        this.activeExecuteHistoryKey = this.executeHistory.length - 1
+        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
       }
+    },
+    async executeAgain () {
+      const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
+        const inputParameterValue =
+          p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
+        return {
+          inputParameter: p,
+          inputParameterValue: inputParameterValue
+        }
+      })
+      let requestBody = this.activeExecuteHistory.requestBody
+      requestBody.inputParameterDefinitions = inputParameterDefinitions
+      const { status, data } = await batchExecution(requestBody)
+      this.seletedRows = []
+      if (status === 'OK') {
+        this.executeResult = data
+        this.filterBusinessKeySet = []
+        for (const key in data) {
+          this.filterBusinessKeySet.push(key)
+        }
+        this.executeHistory.push({
+          id: new Date().format('yyyy-MM-dd hh:mm:ss'),
+          plugin: this.activeExecuteHistory.plugin,
+          requestBody: requestBody,
+          executeResult: data,
+          filterBusinessKeySet: this.filterBusinessKeySet
+        })
+        this.activeExecuteHistoryKey = this.executeHistory.length - 1
+        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
+      }
+    },
+    changeActiveExecuteHistory (keyIndex) {
+      this.displaySearchZone = false
+      this.displayResultTableZone = false
+      this.activeExecuteHistoryKey = keyIndex
+      this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[keyIndex]))
+    },
+    changeActiveResultKey (key) {
+      this.displaySearchZone = false
+      this.displayResultTableZone = false
+      this.activeResultKey = key
+    },
+    async changePlugin () {
+      const { status, data } = await getFilteredPluginInterfaceList(
+        this.activeExecuteHistory.requestBody.packageName,
+        this.activeExecuteHistory.requestBody.entityName
+      )
+      if (status === 'OK') {
+        this.filteredPlugins = data
+        this.selectedPluginParams = []
+        this.pluginId = null
+        this.batchActionModalVisible = true
+        this.isHistoryToBatchActionModal = true
+      }
+    },
+    changeTargetObject () {
+      this.displaySearchZone = false
+      this.displayResultTableZone = true
+      const { packageName, entityName, dataModelExpression } = this.activeExecuteHistory.requestBody
+      this.currentPackageName = packageName
+      this.currentEntityName = entityName
+      this.dataModelExpression = dataModelExpression
+      this.excuteSearch()
+    },
+    changeSearchParams () {
+      const { dataModelExpression, searchParameters } = this.activeExecuteHistory.requestBody
+      this.searchParameters = searchParameters
+      this.dataModelExpression = dataModelExpression
+      this.displaySearchZone = true
+      this.displayResultTableZone = false
     }
   },
   components: {
@@ -525,16 +833,13 @@ export default {
   }
 }
 </script>
-
-<style lang="scss" scope>
+<style lang="scss" scoped>
+$border-config: 1px solid #e8eaec;
 .ivu-tree-children li {
   margin: 0 !important;
   .ivu-checkbox-wrapper {
     margin: 0 !important;
   }
-}
-.ivu-form-item {
-  margin-bottom: 6px !important;
 }
 .ivu-form-item-error .ivu-select-selection,
 .ivu-form-item-error .ivu-select-arrow {
@@ -548,18 +853,50 @@ textarea:focus {
   padding-left: 8px;
 }
 .search-btn {
+  margin-top: 8px;
+}
+
+.execute-history {
+  border-left: $border-config;
+  border-bottom: $border-config;
   margin-top: 16px;
 }
+.history-record-menu {
+  cursor: pointer;
+  font-size: larger;
+}
+.res {
+  border: $border-config;
+}
+.res-title {
+  border-top: $border-config;
+}
+.res-content {
+  left: -1px;
+  .res-content-step,
+  .res-content-params {
+    padding: 8px;
+    border-bottom: $border-config;
+  }
+  .res-content-result {
+    margin: 2px;
+  }
+}
+pre {
+  margin-bottom: 0;
+}
+
 .we-table /deep/ .ivu-form-label-top {
   display: none;
 }
 .excute-result {
+  right: -2px;
   padding-right: 4px;
   min-height: 300px;
 }
 .excute-result-search {
   // margin-right: 16px;
-  border-right: 1px solid #e8eaec;
+  border-right: $border-config;
   .excute-result-search-title {
     margin-top: 16px;
     font-size: 16px;
@@ -569,7 +906,7 @@ textarea:focus {
   }
 }
 .excute-result-json {
-  border: 1px solid #e8eaec;
+  border: $border-config;
   word-wrap: break-word;
   word-break: break-all;
   // overflow: scroll;
@@ -584,5 +921,20 @@ textarea:focus {
 }
 .error-key {
   color: red;
+}
+</style>
+<style>
+.ivu-card-body {
+  padding: 8px !important;
+}
+.ivu-form-item-label {
+  margin-bottom: 4px !important;
+}
+.ivu-form-item {
+  margin-bottom: 0 !important;
+}
+.ivu-tree-children li {
+  margin: 0 !important;
+  line-height: 24px;
 }
 </style>
