@@ -1,9 +1,6 @@
 package com.webank.wecube.platform.core.jpa.user;
 
-import com.webank.wecube.platform.core.domain.RoleFavorites;
-import com.webank.wecube.platform.core.entity.workflow.FavoritesEntity;
 import com.webank.wecube.platform.core.entity.workflow.FavoritesRoleEntity;
-import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
