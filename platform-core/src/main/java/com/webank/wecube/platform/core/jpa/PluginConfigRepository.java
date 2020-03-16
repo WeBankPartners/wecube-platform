@@ -22,6 +22,9 @@ public interface PluginConfigRepository extends CrudRepository<PluginConfig, Str
     @Query("SELECT DISTINCT inf FROM PluginConfig cfg JOIN cfg.interfaces inf LEFT JOIN FETCH inf.inputParameters LEFT JOIN FETCH inf.outputParameters WHERE inf.serviceName = :serviceName and cfg.status=:status")
     List<PluginConfigInterface> findAllPluginConfigInterfaceByServiceNameAndStatusAndFetchParameters(@Param("serviceName") String serviceName, @Param("status") Status status);
 
+    @Query("select * from plugin_configs where status ='ENABLED' group by target_package,target_entity")
+    List<PluginConfig> findAllPluginConfigGroupByTargetEntity();
+
     Optional<List<PluginConfig>> findByStatus(Status status);
 
     Optional<List<PluginConfig>> findByPluginPackage_idOrderByName(String pluginPackageId);

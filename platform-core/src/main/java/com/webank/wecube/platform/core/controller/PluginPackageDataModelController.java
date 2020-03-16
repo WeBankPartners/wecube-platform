@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.controller;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
+import com.webank.wecube.platform.core.dto.DataModelEntityDto;
 import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl;
@@ -63,5 +64,19 @@ public class PluginPackageDataModelController {
             return JsonResponse.error(ex.getMessage());
         }
         return JsonResponse.okayWithData(result);
+    }
+
+    @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}")
+    @ResponseBody
+    public JsonResponse getEntityInfoByPackageNameAndEntityName(
+            @PathVariable(value = "plugin-package-name") String packageName,
+            @PathVariable(value = "entity-name") String entityName) {
+        try {
+            DataModelEntityDto result = pluginPackageDataModelService.getEntityByPackageNameAndName(packageName,
+                    entityName);
+            return JsonResponse.okayWithData(result);
+        } catch (WecubeCoreException ex) {
+            return JsonResponse.error(ex.getMessage());
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service;
 
+import com.webank.wecube.platform.core.dto.DataModelEntityDto;
 import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 
@@ -21,4 +22,6 @@ public interface PluginPackageDataModelService {
     List<PluginPackageAttributeDto> getRefByInfo(String packageName, String entityName);
 
     List<PluginPackageAttributeDto> entityView(String packageName, String entityName);
+
+    DataModelEntityDto getEntityByPackageNameAndName(String packageName, String entityName);
 }

@@ -28,7 +28,8 @@ public class PluginPackageController {
     @PostMapping("/packages")
     @ResponseBody
     public JsonResponse uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file) throws Exception {
-        if (file == null || file.isEmpty()) throw new IllegalArgumentException("zip-file required.");
+        if (file == null || file.isEmpty())
+            throw new IllegalArgumentException("zip-file required.");
 
         PluginPackage pluginPackage = pluginPackageService.uploadPackage(file);
         return okayWithData(pluginPackage);
@@ -36,7 +37,8 @@ public class PluginPackageController {
 
     @GetMapping("/packages")
     @ResponseBody
-    public JsonResponse getAllPluginPackages(@RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
+    public JsonResponse getAllPluginPackages(
+            @RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
         if (ifDistinct) {
             return okayWithData(pluginPackageService.getAllDistinctPluginPackageNameList());
         } else {
@@ -63,7 +65,8 @@ public class PluginPackageController {
         try {
             pluginPackageService.decommissionPluginPackage(packageId);
         } catch (Exception e) {
-            return error(String.format("Failed to decommission plugin package with error message [%s]", e.getMessage()));
+            return error(
+                    String.format("Failed to decommission plugin package with error message [%s]", e.getMessage()));
         }
         return okay();
     }
@@ -131,10 +134,19 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/plugins")
     @ResponseBody
     public JsonResponse getPluginsById(@PathVariable(value = "id") String packageId) {
-        return okayWithData(pluginPackageService.getPluginsById(packageId));
+        return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, true));
+    }
+
+    @GetMapping("/packages/{id}/plugin-configs")
+    @ResponseBody
+    public JsonResponse getPluginConfigsByPackageId(@PathVariable(value = "id") String packageId) {
+        return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, false));
+    }
+
+    @GetMapping("/plugin-configs/{id}/interfaces")
+    @ResponseBody
+    public JsonResponse getInterfacesByPluginConfigId(@PathVariable(value = "id") String pluginConfigId) {
+        return okayWithData(pluginPackageService.getInterfacesByPluginConfigId(pluginConfigId));
     }
 
 }
-
-
-

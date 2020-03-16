@@ -7,11 +7,13 @@ import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
@@ -56,6 +58,8 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
     private RestTemplate restTemplate;
     @Autowired
     private PluginPackageEntityRepository pluginPackageEntityRepository;
+    @Autowired
+    private PluginConfigRepository pluginConfigRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(PluginPackageDataModelServiceImpl.class);
 
@@ -505,5 +509,31 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         return latestDataModelByPackageNameOpt.get().getVersion();
     }
 
+    public DataModelEntityDto getEntityByPackageNameAndName(String packageName, String entityName) {
+        DataModelEntityDto dataModelEntityDto = new DataModelEntityDto();
+
+        Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository
+                .findLatestDataModelByPackageName(packageName);
+        if (!dataModelOptional.isPresent()) {
+            return dataModelEntityDto;
+        }
+        Optional<PluginPackageEntity> entityOptional = pluginPackageEntityRepository
+                .findByPackageNameAndNameAndDataModelVersion(packageName, entityName,
+                        dataModelOptional.get().getVersion());
+        if (!entityOptional.isPresent()) {
+            return dataModelEntityDto;
+        }
+        dataModelEntityDto = DataModelEntityDto.fromDomain(entityOptional.get());
+        List<BindedInterfaceEntityDto> bindedInterfaceEntityList = new ArrayList<BindedInterfaceEntityDto>();
+        List<PluginConfig> bindedInterfacesConfigs = pluginConfigRepository.findAllPluginConfigGroupByTargetEntity();
+        if (bindedInterfacesConfigs.size() > 0) {
+            bindedInterfacesConfigs.forEach(config -> {
+                bindedInterfaceEntityList
+                        .add(new BindedInterfaceEntityDto(config.getTargetPackage(), config.getTargetEntity()));
+            });
+        }
+        dataModelEntityDto.setBindedInterfaceEntityList(bindedInterfaceEntityList);
+        return dataModelEntityDto;
+    }
 
 }
