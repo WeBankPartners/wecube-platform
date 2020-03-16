@@ -124,4 +124,5 @@ export const dmeIntegratedQuery = data => req.post(`/platform/v1/data-model/dme/
 export const entityView = (packageName, entityName) =>
   req.get(`/platform/v1/models/package/${packageName}/entity/${entityName}/attributes`)
 export const batchExecution = data => req.post(`/platform/v1/batch-execution/run`, data)
+export const saveBatchExecution = data => req.post(`/platform/v1/roles/favorites/create`, data)
 export const getVariableScope = () => req.get(`/platform/v1/system-variables/constant/system-variable-scope`)
