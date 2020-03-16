@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
 
@@ -258,7 +259,6 @@ public class PluginPackageService {
         return pluginPackageRepository.save(pluginPackage);
     }
 
-
     private void updateSystemVariableStatus(PluginPackage pluginPackage) {
         List<SystemVariable> globalSystemVariables = systemVariableRepository.findAllByScopeAndSource("global",
                 pluginPackage.getId());
@@ -307,7 +307,8 @@ public class PluginPackageService {
 
     void bindRoleToMenuWithAuthority(PluginPackage pluginPackage) throws WecubeCoreException {
         final Set<PluginPackageAuthority> pluginPackageAuthorities = pluginPackage.getPluginPackageAuthorities();
-        final List<String> selfPkgMenuCodeList = pluginPackage.getPluginPackageMenus().stream().map(PluginPackageMenu::getCode).collect(Collectors.toList());
+        final List<String> selfPkgMenuCodeList = pluginPackage.getPluginPackageMenus().stream()
+                .map(PluginPackageMenu::getCode).collect(Collectors.toList());
         if (null != pluginPackageAuthorities && pluginPackageAuthorities.size() > 0) {
             pluginPackageAuthorities.forEach(pluginPackageAuthority -> {
                 final String roleName = pluginPackageAuthority.getRoleName();
@@ -315,7 +316,9 @@ public class PluginPackageService {
 
                 // create role menu binding
                 if (!selfPkgMenuCodeList.contains(menuCode)) {
-                    String msg = String.format("The declared menu code: [%s] in <authorities> field doesn't declared in <menus> field of register.xml", menuCode);
+                    String msg = String.format(
+                            "The declared menu code: [%s] in <authorities> field doesn't declared in <menus> field of register.xml",
+                            menuCode);
                     log.error(msg);
                     throw new WecubeCoreException(msg);
                 }
@@ -445,7 +448,7 @@ public class PluginPackageService {
                 }
 
                 try (BufferedInputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-                     OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
+                        OutputStream outputStream = new FileOutputStream(destFilePath + zipEntryName, true)) {
                     byte[] buf = new byte[2048];
                     int len;
                     while ((len = inputStream.read(buf)) > 0) {
@@ -461,7 +464,7 @@ public class PluginPackageService {
     }
 
     private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
-                                                                                     String sourceZipFile, String sourceZipFileName) throws Exception {
+            String sourceZipFile, String sourceZipFileName) throws Exception {
         Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
         try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
             Enumeration entries = zipFile.entries();
@@ -469,7 +472,7 @@ public class PluginPackageService {
             if (entries.hasMoreElements()) {
                 pluginPackageResourceFiles = newLinkedHashSet();
             }
-            for (; entries.hasMoreElements(); ) {
+            for (; entries.hasMoreElements();) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 if (!entry.isDirectory()) {
                     String zipEntryName = entry.getName();
@@ -564,7 +567,7 @@ public class PluginPackageService {
         return (new PluginPackageRuntimeResouceDto(dockerSet, mysqlSet, s3Set));
     }
 
-    public List<PluginConfigGroupByNameDto> getPluginsById(String packageId) {
+    public List<PluginConfigGroupByNameDto> getPluginConfigsByPackageId(String packageId, boolean needInterfaceInfo) {
         List<PluginConfigGroupByNameDto> pluginConfigGroupByNameDtos = new ArrayList<PluginConfigGroupByNameDto>();
         List<PluginConfigDto> pluginConfigDtos = new ArrayList<PluginConfigDto>();
         Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
@@ -578,7 +581,12 @@ public class PluginPackageService {
         }
         List<PluginConfig> configs = configsOptional.get();
         if (null != configs && configs.size() > 0) {
-            configs.forEach(pluginConfig -> pluginConfigDtos.add(PluginConfigDto.fromDomain(pluginConfig)));
+            if (needInterfaceInfo) {
+                configs.forEach(pluginConfig -> pluginConfigDtos.add(PluginConfigDto.fromDomain(pluginConfig)));
+            } else {
+                configs.forEach(pluginConfig -> pluginConfigDtos
+                        .add(PluginConfigDto.fromDomainWithoutInterfaces(pluginConfig)));
+            }
         }
 
         for (PluginConfigDto cfgDto : pluginConfigDtos) {
@@ -597,6 +605,21 @@ public class PluginPackageService {
         return pluginConfigGroupByNameDtos;
     }
 
+    public List<PluginConfigInterfaceDto> getInterfacesByPluginConfigId(String pluginConfigId) {
+        List<PluginConfigInterfaceDto> interfaces = newArrayList();
+
+        Optional<PluginConfig> pluginConfigOptional = pluginConfigRepository.findById(pluginConfigId);
+        if (!pluginConfigOptional.isPresent()) {
+            return interfaces;
+        }
+        PluginConfig pluginConfig = pluginConfigOptional.get();
+        if (pluginConfig.getInterfaces() != null && pluginConfig.getInterfaces().size() > 0) {
+            pluginConfig.getInterfaces().forEach(pluginConfigInterface -> interfaces
+                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
+        }
+        return interfaces;
+    }
+
     public List<MenuItemDto> getAllSysMenus() {
         List<MenuItemDto> returnMenuDto = new ArrayList<>();
 
@@ -611,7 +634,7 @@ public class PluginPackageService {
     }
 
     private void updateDependencyDto(PluginPackageDependency pluginPackageDependency,
-                                     PluginPackageDependencyDto pluginPackageDependencyDto) {
+            PluginPackageDependencyDto pluginPackageDependencyDto) {
         // create new dependencyDto according to input dependency
         String dependencyName = pluginPackageDependency.getDependencyPackageName();
         String dependencyVersion = pluginPackageDependency.getDependencyPackageVersion();

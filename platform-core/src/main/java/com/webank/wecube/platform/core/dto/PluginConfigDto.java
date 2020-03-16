@@ -22,7 +22,6 @@ public class PluginConfigDto {
     private String status;
     private List<PluginConfigInterfaceDto> interfaces;
 
-
     public String getId() {
         return id;
     }
@@ -82,7 +81,8 @@ public class PluginConfigDto {
     public PluginConfigDto() {
     }
 
-    public PluginConfigDto(String id, String pluginPackageId, String name, String targetPackage, String targetEntity, String status, List<PluginConfigInterfaceDto> interfaces) {
+    public PluginConfigDto(String id, String pluginPackageId, String name, String targetPackage, String targetEntity,
+            String status, List<PluginConfigInterfaceDto> interfaces) {
         this.id = id;
         this.pluginPackageId = pluginPackageId;
         this.name = name;
@@ -116,7 +116,7 @@ public class PluginConfigDto {
         pluginConfig.setRegisterName(getRegisterName());
         Set<PluginConfigInterface> pluginConfigInterfaces = newLinkedHashSet();
         if (null != getInterfaces() && getInterfaces().size() > 0) {
-            getInterfaces().forEach(interfaceDto->pluginConfigInterfaces.add(interfaceDto.toDomain(pluginConfig)));
+            getInterfaces().forEach(interfaceDto -> pluginConfigInterfaces.add(interfaceDto.toDomain(pluginConfig)));
         }
         pluginConfig.setInterfaces(pluginConfigInterfaces);
 
@@ -134,9 +134,22 @@ public class PluginConfigDto {
         pluginConfigDto.setStatus(pluginConfig.getStatus().name());
         List<PluginConfigInterfaceDto> interfaces = newArrayList();
         if (null != pluginConfig.getInterfaces() && pluginConfig.getInterfaces().size() > 0) {
-            pluginConfig.getInterfaces().forEach(pluginConfigInterface -> interfaces.add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
+            pluginConfig.getInterfaces().forEach(pluginConfigInterface -> interfaces
+                    .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
         }
         pluginConfigDto.setInterfaces(interfaces);
+        return pluginConfigDto;
+    }
+
+    public static PluginConfigDto fromDomainWithoutInterfaces(PluginConfig pluginConfig) {
+        PluginConfigDto pluginConfigDto = new PluginConfigDto();
+        pluginConfigDto.setId(pluginConfig.getId());
+        pluginConfigDto.setName(pluginConfig.getName());
+        pluginConfigDto.setTargetPackage(pluginConfig.getTargetPackage());
+        pluginConfigDto.setTargetEntity(pluginConfig.getTargetEntity());
+        pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
+        pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
+        pluginConfigDto.setStatus(pluginConfig.getStatus().name());
         return pluginConfigDto;
     }
 
