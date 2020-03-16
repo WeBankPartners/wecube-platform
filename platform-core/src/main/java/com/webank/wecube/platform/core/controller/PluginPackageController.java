@@ -143,10 +143,4 @@ public class PluginPackageController {
         return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, false));
     }
 
-    @GetMapping("/plugin-configs/{id}/interfaces")
-    @ResponseBody
-    public JsonResponse getInterfacesByPluginConfigId(@PathVariable(value = "id") String pluginConfigId) {
-        return okayWithData(pluginPackageService.getInterfacesByPluginConfigId(pluginConfigId));
-    }
-
 }
