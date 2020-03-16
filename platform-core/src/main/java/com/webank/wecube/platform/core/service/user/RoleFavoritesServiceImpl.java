@@ -10,7 +10,6 @@ import com.webank.wecube.platform.core.entity.workflow.FavoritesRoleEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.jpa.FavoritesInfoRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleFavoritesRepository;
-import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,7 +62,12 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
 
         FavoritesEntity savedProcDefInfoEntity = favoritesInfoRepository.save(collectionsEntity);
         // Save ProcRoleBindingEntity
-        this.saveFavoritesRoleBinding(savedProcDefInfoEntity.getFavoritesId(), favoritesDto);
+        try {
+            this.saveFavoritesRoleBinding(savedProcDefInfoEntity.getFavoritesId(), favoritesDto);
+        } catch (Exception e) {
+            log.error("error",e);
+            throw new WecubeCoreException(e.getMessage());
+        }
     }
 
     @Override
