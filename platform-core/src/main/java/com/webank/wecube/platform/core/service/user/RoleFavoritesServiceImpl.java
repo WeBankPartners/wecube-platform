@@ -55,6 +55,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         }
 
         FavoritesEntity collectionsEntity = new FavoritesEntity();
+        collectionsEntity.setFavoritesId(LocalIdGenerator.generateId());
         collectionsEntity.setCollectionName(favoritesDto.getCollectionName());
         collectionsEntity.setData(favoritesDto.getData().getBytes());
         collectionsEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUser().getUsername());
