@@ -74,7 +74,7 @@
         <Button style="display:none">{{ $t('import_flow') }}</Button>
       </Upload>
     </Row>
-    <div v-show="showBpmn" class="demo-split">
+    <div v-show="showBpmn" class="split">
       <Split v-model="splitPanal" mode="vertical">
         <div slot="top" class="">
           <div class="containers" ref="content">
@@ -110,6 +110,7 @@
                 <FormItem :label="$t('locate_rules')" prop="routineExpression">
                   <PathExp
                     class="path-exp"
+                    :row="2"
                     :rootPkg="rootPkg"
                     :rootEntity="rootEntity"
                     :allDataModelsWithAttrs="allEntityType"
@@ -149,7 +150,7 @@
                 </FormItem>
               </Col>
             </Row>
-            <hr style="margin-bottom: 20px" />
+            <hr style="margin-bottom: 8px" />
             <FormItem
               :label="item.paramName"
               :prop="item.paramName"
@@ -376,19 +377,17 @@ export default {
   },
   watch: {
     show: function (val) {
-      this.$nextTick(() => {
-        if (val) {
-          this.splitPanal = 0.6
-          this.setCss('ivu-split-trigger-con', 'top: 60%;')
-          this.setCss('bottom-pane', 'top: 60%;')
-          this.setCss('top-pane', 'bottom: 40%;')
-        } else {
-          this.splitPanal = 1
-          this.setCss('ivu-split-trigger-con', 'display: none;')
-          this.setCss('bottom-pane', 'display: none;')
-          this.setCss('top-pane', 'bottom: 0;')
-        }
-      })
+      if (val) {
+        this.splitPanal = 0.65
+        this.setCss('ivu-split-trigger-con', 'top: 60%;')
+        this.setCss('bottom-pane', 'top: 60%;')
+        this.setCss('top-pane', 'bottom: 40%;')
+      } else {
+        this.splitPanal = 1
+        this.setCss('ivu-split-trigger-con', 'display: none;')
+        this.setCss('bottom-pane', 'display: none;')
+        this.setCss('top-pane', 'bottom: 0;')
+      }
     },
     selectedFlow: {
       handler (val, oldVal) {
@@ -493,7 +492,14 @@ export default {
       }
     },
     confirmRole () {
-      this.flowRoleManageModal = false
+      if (this.mgmtRolesKeyToFlow.length) {
+        this.flowRoleManageModal = false
+        this.showBpmn = true
+      } else {
+        this.$Message.warning(this.$t('mgmt_role_warning'))
+        this.showBpmn = false
+        this.isAdd = false
+      }
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
@@ -747,14 +753,21 @@ export default {
           desc: this.$t('select_entity_first')
         })
       } else {
-        this.pluginForm = (this.currentFlow &&
-          this.currentFlow.taskNodeInfos &&
-          this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) || { ...this.defaultPluginForm }
+        this.pluginForm =
+          (this.currentFlow &&
+            this.currentFlow.taskNodeInfos &&
+            this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
+          this.prepareDefaultPluginForm()
         this.getPluginInterfaceList()
         // get flow's params infos
         this.getFlowsNodes()
         this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
       }
+    },
+    prepareDefaultPluginForm () {
+      let temp = JSON.parse(JSON.stringify(this.defaultPluginForm))
+      temp.routineExpression = this.currentSelectedEntity
+      return { ...temp }
     },
     onParamsNodeChange (index) {
       this.getParamsOptionsByNode(index)
@@ -794,41 +807,6 @@ export default {
       }
       this.currentNode.name = nodeName
     },
-    bindRightClick () {
-      let menu = document.getElementById('right_click_menu')
-      let elements = document.getElementsByClassName('djs-element djs-shape')
-      const _this = this
-      for (let i = 0; i < elements.length; i++) {
-        elements[i].oncontextmenu = function (e) {
-          e = e || window.event
-          let x = e.clientX
-          let y = e.clientY
-          menu.style.display = 'block'
-          menu.style.left = x - 25 + 'px'
-          menu.style.top = y - 130 + 'px'
-          _this.currentNode.id = e.target.parentNode.getAttribute('data-element-id')
-          let nodeName = ''
-          const previousSibling = e.target.previousSibling
-          if (previousSibling && previousSibling.children[1] && previousSibling.children[1].children) {
-            for (let i = 0; i < previousSibling.children[1].children.length; i++) {
-              nodeName += previousSibling.children[1].children[i].innerHTML || ''
-            }
-          }
-          _this.currentNode.name = nodeName
-          return false
-        }
-      }
-
-      document.onclick = function (e) {
-        e = e || window.event
-        menu.style.display = 'none'
-      }
-
-      menu.onclick = function (e) {
-        e = e || window.event
-        e.stopPropagation()
-      }
-    },
     async getFlowXml (id) {
       if (!id) return
       const { status, data } = await getFlowDetailByID(id)
@@ -839,7 +817,6 @@ export default {
           if (err) {
             console.error(err)
           }
-          // _this.bindRightClick()
           _this.serviceTaskBindInfos = data.taskNodeInfos
           _this.currentSelectedEntity = data.rootEntity || ''
           _this.rootPkg = data.rootEntity.split(':')[0] || ''
@@ -1074,8 +1051,8 @@ export default {
 }
 </style>
 <style scoped lang="scss">
-.demo-split {
-  height: 76vh;
+.split {
+  height: calc(100vh - 145px);
   border: 1px solid #999;
   border-bottom: none;
 }
@@ -1092,6 +1069,7 @@ export default {
 }
 .path-exp {
   margin-bottom: 8px;
+  margin-top: 0 !important;
 }
 .btn-plugin-config {
   float: right;
