@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FavoritesInfoRepository extends JpaRepository<FavoritesEntity, String> {
+    List<FavoritesEntity> findAllCollectionByCollectionName(String collectionName);
 
     // @Transactional
     // @Modifying
