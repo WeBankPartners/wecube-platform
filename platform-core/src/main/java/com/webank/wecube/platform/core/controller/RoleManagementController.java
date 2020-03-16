@@ -9,8 +9,11 @@ import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.service.user.RoleFavoritesService;
+import com.webank.wecube.platform.core.service.user.RoleFavoritesServiceImpl;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/v1")
 public class RoleManagementController {
+    private static final Logger log = LoggerFactory.getLogger(RoleManagementController.class);
 
     @Autowired
     private UserManagementService userManagementService;
@@ -122,6 +126,7 @@ public class RoleManagementController {
             roleFavoritesService.createCollectionByRole(favoritesDto);
             return CommonResponseDto.okay();
         } catch (Exception e) {
+            log.error("error",e);
             return CommonResponseDto.error(e.getMessage());
         }
     }
