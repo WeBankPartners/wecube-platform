@@ -97,6 +97,10 @@ export default {
     value: {
       required: false
     },
+    needAttr: {
+      type: Boolean,
+      default: false
+    },
     disabled: {},
     allDataModelsWithAttrs: {}
   },
@@ -127,13 +131,15 @@ export default {
         }
       })
       return entity
+    },
+    fullPathExp () {
+      return this.pathList.map(path => path.pathExp).join('')
     }
   },
   methods: {
     copyPathExp () {
-      const data = this.pathList.map(path => path.pathExp).join('')
       let inputElement = document.createElement('input')
-      inputElement.value = data
+      inputElement.value = this.fullPathExp
       document.body.appendChild(inputElement)
       inputElement.select()
       document.execCommand('Copy')
@@ -192,14 +198,17 @@ export default {
         }
         this.pathList.push(path)
       })
+      this.$emit('input', this.fullPathExp)
       this.poptipVisable = false
     },
     optClickHandler (opt) {
       this.pathList = this.pathList.slice(0, this.currentNodeIndex + 1)
       this.pathList.push(opt)
+      this.$emit('input', this.fullPathExp)
       this.formatNextCurrentOptions(opt)
       this.currentNodeIndex++
       this.currentNode = opt
+      this.poptipVisable = this.needAttr
     },
     async attrChangeHandler (v, rule) {
       const found = this.currentNodeEntityAttrs.find(_ => _.name === v)
@@ -230,13 +239,13 @@ export default {
       let rules = ''
       this.currentPathFilterRules.forEach((rule, index) => {
         const isMultiple = Array.isArray(rule.value)
-        const concatStr = index === this.currentPathFilterRules.length - 1 ? '' : 'and'
         rules += isMultiple
-          ? `{${rule.attr} ${rule.op} [${rule.value}]}${concatStr}`
-          : `{${rule.attr} ${rule.op} ${rule.value}}${concatStr}`
+          ? `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
+          : `{${rule.attr} ${rule.op} '${rule.value}'}`
       })
       this.pathList[this.currentNodeIndex].pathExp = this.pathList[this.currentNodeIndex].pathExp.split('{')[0] + rules
       this.currentPathFilterRules = []
+      this.$emit('input', this.fullPathExp)
     },
     cancelHandler () {
       this.modelVisable = false
@@ -251,6 +260,7 @@ export default {
     deleteCurrentNode () {
       this.pathList = this.pathList.slice(0, this.currentNodeIndex)
       this.poptipVisable = false
+      this.$emit('input', this.fullPathExp)
       this.formatNextCurrentOptions(this.currentNode)
     },
     addFilterRuleForCurrentNode () {
@@ -269,7 +279,13 @@ export default {
               isRef = true
             }
           }
-          value = value.indexOf('[') > -1 ? value.slice(1, -1).split(',') : value
+          value =
+            value.indexOf('[') > -1
+              ? value
+                .slice(1, -1)
+                .split(',')
+                .map(v => v.slice(1, -1))
+              : value.slice(1, -1)
           this.currentPathFilterRules.push({ op, value, enums, isRef, attr })
         })
       }
@@ -278,6 +294,7 @@ export default {
     },
     formatFirstCurrentOptions () {
       if (this.value && this.value.indexOf(':') > -1) {
+        this.restorePathExp(this.value)
       } else {
         this.currentOptiongs = this.allEntity.map(_ => {
           return {
@@ -348,9 +365,6 @@ export default {
   background: white;
   max-height: 200px;
   overflow: auto;
-}
-.filter_rules_contain {
-  //   margin-top: -5px;
 }
 .filter_rules_contain .ivu-poptip {
   width: 100%;
