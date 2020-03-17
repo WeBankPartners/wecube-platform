@@ -114,7 +114,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         mockers.mockOneLinkWithOpByOnlyExpressionServer(server);
 
         List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
-                "wecmdb:subsys~(subsys)wecmdb:unit.fixed_date{attr1 eq 'abcDEF'}", "0007_0000000001"));
+                "wecmdb:subsys~(subsys)wecmdb:unit.fixed_date{attr1 eq '@@0001_1000222666@@abcDEF'}", "0007_0000000001"));
         Assert.assertNotNull(result);
         Assert.assertEquals(2, result.size());
         Assert.assertEquals("2019-07-24 16:30:35", result.get(0));
