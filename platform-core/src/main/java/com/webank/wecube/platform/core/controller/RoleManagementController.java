@@ -150,8 +150,8 @@ public class RoleManagementController {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
-    @DeleteMapping("/roles/favorites/delete")
-    public CommonResponseDto deleteCollectionByRole(@RequestParam("favorites-id") String favoritesId) {
+    @DeleteMapping("/roles/favorites/{favorites-id}/delete")
+    public CommonResponseDto deleteCollectionByRole(@PathVariable("favorites-id") String favoritesId) {
         try {
             this.roleFavoritesService.deleteCollectionById(favoritesId);
             //this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList);
