@@ -110,7 +110,7 @@ public class EntityQueryLinkNode {
         return Collections.unmodifiableList(entityDataDelegates);
     }
 
-    private boolean contains(EntityDataDelegate d) {
+    protected boolean contains(EntityDataDelegate d) {
         for (EntityDataDelegate exist : this.entityDataDelegates) {
             if (exist == null) {
                 continue;
