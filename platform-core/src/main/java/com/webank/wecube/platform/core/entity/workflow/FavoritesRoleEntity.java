@@ -10,7 +10,6 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "FAVORITES_ROLE")
-@EntityListeners(value = ProcRoleBindingEntityListener.class)
 public class FavoritesRoleEntity {
     @Id
     private String id;
