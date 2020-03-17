@@ -79,22 +79,20 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     }
 
     @Override
-    public List<FavoritesDto> retrieveAllCollections() {
-        List<String> currentUserRoleNameList = new ArrayList<>(Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
-
-        Optional<List<FavoritesRoleEntity>> favoritesRoles = roleFavoritesRepository.findByRoleNameIn(currentUserRoleNameList);
+    public List<FavoritesDto> retrieveAllCollections(String favoritesId) {
+        checkPermission(favoritesId, FavoritesRoleEntity.permissionEnum.MGMT);
+        Optional<List<FavoritesRoleEntity>> favoritesRoles = roleFavoritesRepository.findAllByFavoritesId(favoritesId);
         List<String> favoritesIds = new ArrayList<>();
-        List<String> mgmtRoleIds;
-        List<String> useRoleids;
+        List<String> mgmtRoleNames;
+        List<String> useRoleNames;
         HashMap<String, List<String>> permissionToRole = new HashMap<>();
         if (favoritesRoles.isPresent()) {
             favoritesIds = favoritesRoles.get().stream().map(FavoritesRoleEntity::getFavoritesId).collect(Collectors.toList());
-            mgmtRoleIds = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.MGMT)).map(FavoritesRoleEntity::getRoleId).collect(Collectors.toList());
-            useRoleids = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.USE)).map(FavoritesRoleEntity::getRoleId).collect(Collectors.toList());
-            permissionToRole.put(FavoritesRoleEntity.permissionEnum.MGMT.toString(),mgmtRoleIds);
-            permissionToRole.put(FavoritesRoleEntity.permissionEnum.USE.toString(),useRoleids);
+            mgmtRoleNames = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.MGMT)).map(FavoritesRoleEntity::getRoleName).collect(Collectors.toList());
+            useRoleNames = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.USE)).map(FavoritesRoleEntity::getRoleName).collect(Collectors.toList());
+            permissionToRole.put(FavoritesRoleEntity.permissionEnum.MGMT.toString(),mgmtRoleNames);
+            permissionToRole.put(FavoritesRoleEntity.permissionEnum.USE.toString(),useRoleNames);
         }
-
         List<FavoritesEntity> favoritesEntitys = favoritesInfoRepository.findAllById(favoritesIds);
         return favoritesEntitys.stream().map(favoritesEntity -> FavoritesEntity.fromDomain(permissionToRole,favoritesEntity)).collect(Collectors.toList());
     }
@@ -107,8 +105,8 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         checkPermission(favoritesId, FavoritesRoleEntity.permissionEnum.MGMT);
 
         // assure corresponding data has at least one row of MGMT permission
-        if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum)) {
-            Optional<List<ProcRoleBindingEntity>> foundMgmtData = this.roleFavoritesRepository.findAllByfavoritesIdAndPermission(favoritesId, permissionEnum);
+        if (FavoritesRoleEntity.permissionEnum.MGMT.equals(permissionEnum)) {
+            Optional<List<FavoritesRoleEntity>> foundMgmtData = this.roleFavoritesRepository.findAllByfavoritesIdAndPermission(favoritesId, permissionEnum);
             foundMgmtData.ifPresent(procRoleBindingEntities -> {
                 if (procRoleBindingEntities.size() <= favoritesRoleRequestDto.getRoleIdList().size()) {
                     String msg = "The process's management permission should have at least one role.";

@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.dto;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -8,8 +9,27 @@ public class FavoritesDto {
     private String collectionName;
     private Map<String, List<String>> permissionToRole;
     private String data;
+    private String createdBy;
+    private Date createdTime;
+
 
     public FavoritesDto() {
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
     }
 
     public String getFavoritesId() {
