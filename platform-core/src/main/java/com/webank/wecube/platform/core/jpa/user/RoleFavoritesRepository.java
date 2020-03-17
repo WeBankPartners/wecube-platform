@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.jpa.user;
 
 import com.webank.wecube.platform.core.entity.workflow.FavoritesRoleEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,4 +18,8 @@ public interface RoleFavoritesRepository extends JpaRepository<FavoritesRoleEnti
     Optional<List<FavoritesRoleEntity>> findAllByFavoritesIdAndPermission(String favoritesId, FavoritesRoleEntity.permissionEnum mgmt);
 
     Optional<List<FavoritesRoleEntity>> findByRoleNameIn(List<String> currentUserRoleNameList);
+
+    Optional<List<ProcRoleBindingEntity>> findAllByfavoritesIdAndPermission(String favoritesId, FavoritesRoleEntity.permissionEnum permissionEnum);
+
+    void deleteByfavoritesIdAndRoleIdAndPermission(String favoritesId, String roleId, FavoritesRoleEntity.permissionEnum permissionEnum);
 }
