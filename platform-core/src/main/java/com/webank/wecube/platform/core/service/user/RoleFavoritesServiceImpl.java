@@ -187,7 +187,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
             // if no stored data found, then save new data in to the database
             // get roleDto from auth server
-            this.roleFavoritesRepository.save(FavoritesRoleDto.toDomain(null,favoritesId, roleId, permissionEnum, roleDto.getName()));
+            this.roleFavoritesRepository.save(FavoritesRoleDto.toDomain(LocalIdGenerator.generateId(),favoritesId, roleId, permissionEnum, roleDto.getName()));
         }
     }
     public static FavoritesRoleEntity.permissionEnum transferPermissionStrToEnum(String permissionStr) throws WecubeCoreException {
