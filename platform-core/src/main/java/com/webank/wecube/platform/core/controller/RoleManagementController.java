@@ -151,7 +151,7 @@ public class RoleManagementController {
         }
     }
     @DeleteMapping("/roles/favorites/delete")
-    public CommonResponseDto deleteCollectionByRole(@PathVariable("favorites-id") String favoritesId) {
+    public CommonResponseDto deleteCollectionByRole(@RequestParam("favorites-id") String favoritesId) {
         try {
             this.roleFavoritesService.deleteCollectionById(favoritesId);
             //this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList);
