@@ -31,7 +31,7 @@
             $t('bc_execute_query')
           }}</Button>
           <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
-          <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
+          <Button @click="resetParametes">{{ $t('bc_set_condition') }}</Button>
         </div>
       </Card>
       <div v-else>
@@ -66,6 +66,7 @@
       </div>
     </section>
     <!-- v-if="executeHistory.length" -->
+    {{ dataModelExpression }}
     <section v-if="executeHistory.length" class="execute-history">
       <Row>
         <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
@@ -73,7 +74,13 @@
             <Form label-position="top" label-colon>
               <FormItem>
                 <span slot="label" style="font-weight:500">收藏列表:</span>
-                <Select clearable v-model="selectedCollectionId" @on-open-change="getAllCollections" filterable>
+                <Select
+                  clearable
+                  v-model="selectedCollectionId"
+                  @on-open-change="getAllCollections"
+                  @on-change="changeCollections"
+                  filterable
+                >
                   <Option
                     v-for="item in allCollections"
                     :value="item.favoritesId"
@@ -191,7 +198,7 @@
                       </ul>
                     </div>
                   </Tooltip>
-                  <Button size="small" type="primary" @click="setPluginParams">补充参数</Button>
+                  <Button size="small" type="primary" @click="setPluginParamsModal = true" ghost>补充参数</Button>
                 </div>
               </Step>
               <Step title="执行" content="">
@@ -201,6 +208,20 @@
               </Step>
             </Steps>
           </div>
+          <!-- <div v-if="activeExecuteHistory" class="res-content-params">
+            <Form label-position="right" :label-width="100">
+              <Row>
+                <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
+                  <Col span="8" v-if="item.mappingType === 'constant'" :key="index">
+                    <FormItem :label="item.name" :key="index">
+                      <Input v-model="item.bindValue" />
+                    </FormItem>
+                  </Col>
+                </template>
+                  <Button type="primary" style="float:right" @click="executeAgain">{{ $t('bc_execute') }}</Button>
+              </Row>
+            </Form>
+          </div> -->
           <div class="res-content-result">
             <Row>
               <Col span="6" class="excute-result excute-result-search">
@@ -334,6 +355,22 @@
       </div>
     </Modal>
 
+    <Modal v-model="setPluginParamsModal" :title="$t('bc_batch_operation')">
+      <Form label-position="right" :label-width="150" v-if="!!activeExecuteHistory.plugin">
+        <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
+          <FormItem :label="item.name" :key="index">
+            <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
+            <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
+          </FormItem>
+        </template>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" @click="executeAgain">
+          {{ $t('confirm') }}
+        </Button>
+      </div>
+    </Modal>
+
     <Modal v-model="DelConfig.isDisplay" width="360">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="ios-information-circle"></Icon>
@@ -395,6 +432,8 @@ import {
   deleteCollections,
   getRoleList,
   getRolesByCurrentUser,
+  deleteCollectionsRole,
+  addCollectionsRole,
   saveBatchExecution,
   updateCollections
 } from '@/api/server.js'
@@ -441,6 +480,8 @@ export default {
       selectedPluginParams: [],
       allPlugins: [],
       filteredPlugins: [],
+
+      setPluginParamsModal: false,
 
       isShowHistoryMenu: true,
       executeResult: {},
@@ -1260,6 +1301,7 @@ export default {
       editCollectionName: false,
       collectionName: '',
 
+      isAddCollect: false,
       toBeCollectedParams: null,
       allRoles: [],
       MGMT: [],
@@ -1279,6 +1321,7 @@ export default {
   },
   watch: {
     dataModelExpression: async function (val) {
+      console.log(val)
       if (val === ':') {
         return
       }
@@ -1322,10 +1365,12 @@ export default {
     activeExecuteHistory: function (val) {
       this.catchExecuteResult = val.executeResult
       this.catchFilterBusinessKeySet = val.filterBusinessKeySet
-      console.log(JSON.stringify(this.activeExecuteHistory))
-      console.log(this.executeHistory)
-      console.log(JSON.stringify(this.catchExecuteResult))
-      console.log(this.catchFilterBusinessKeySet)
+      this.dataModelExpression = val.requestBody.dataModelExpression
+      console.log(this.dataModelExpression)
+      // console.log(JSON.stringify(this.activeExecuteHistory))
+      // console.log(this.executeHistory)
+      // console.log(JSON.stringify(this.catchExecuteResult))
+      // console.log(this.catchFilterBusinessKeySet)
       this.filterParams = null
       this.businessKey = null
     },
@@ -1347,6 +1392,17 @@ export default {
     }
   },
   methods: {
+    changeCollections (id) {
+      this.activeExecuteHistoryKey = null
+      this.selectedCollection = this.allCollections.find(_ => {
+        return _.favoritesId === id
+      })
+      this.activeExecuteHistory = JSON.parse(this.selectedCollection.data)
+      this.activeExecuteHistory.executeResult = null
+      this.activeExecuteHistory.filterBusinessKeySet = []
+      console.log(this.selectedCollection)
+      console.log(this.activeExecuteHistory)
+    },
     async getRoleList () {
       const { status, data } = await getRoleList()
       if (status === 'OK') {
@@ -1374,11 +1430,11 @@ export default {
     async getAllCollections () {
       const { status, data } = await getAllCollections()
       if (status === 'OK') {
-        console.log(data)
         this.allCollections = data
       }
     },
     openAddCollectionModal (key) {
+      this.isAddCollect = true
       this.toBeCollectedParams = key
       console.log(key)
       this.getRoleList()
@@ -1389,6 +1445,7 @@ export default {
       this.editCollectionName = true
     },
     openEditCollectionModal (collection) {
+      this.isAddCollect = false
       this.selectedCollection = collection
       this.getRoleList()
       this.getRolesByCurrentUser()
@@ -1397,13 +1454,45 @@ export default {
       this.collectionRoleManageModal = true
       this.editCollectionName = false
     },
-    handleMgmtRoleTransferChange (newTargetKeys) {
+    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      if (this.isAddCollect) {
+        this.MGMT = newTargetKeys
+      } else {
+        let params = {
+          permission: 'mgmt',
+          roleId: moveKeys
+        }
+        if (direction === 'right') {
+          addCollectionsRole(this.selectedCollection.favoritesId, params)
+        } else {
+          if (!newTargetKeys.length) {
+            this.$Message.warning('属主角色不能为空！')
+          } else {
+            deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          }
+        }
+      }
+
       this.MGMT = newTargetKeys
     },
-    handleUseRoleTransferChange (newTargetKeys) {
+    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      if (this.isAddCollect) {
+        this.MGMT = newTargetKeys
+      } else {
+        let params = {
+          permission: 'use',
+          roleId: moveKeys
+        }
+        if (direction === 'right') {
+          addCollectionsRole(this.selectedCollection.favoritesId, params)
+        } else {
+          deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+        }
+      }
       this.USE = newTargetKeys
-      console.log(this.USE)
     },
+    async addCollectionsRole () {},
+    async deleteCollectionsRole () {},
     showDeleteConfirm (id, name) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
@@ -1415,12 +1504,17 @@ export default {
       })
     },
     async deleteCollection (id) {
-      const { status } = await deleteCollections(id)
+      const { status, message } = await deleteCollections(id)
       if (status === 'OK') {
-        this.$Message.success('收藏名称不能为空！')
+        this.selectedCollectionId = null
+        this.$Message.success(message)
       }
     },
     async confirmCollection () {
+      if (!this.isAddCollect) {
+        this.collectionRoleManageModal = false
+        return
+      }
       if (!this.MGMT.length) {
         this.$Message.warning('属主角色不能为空！')
         return
@@ -1592,10 +1686,14 @@ export default {
             displaySeqNo: i + 1
           }
         })
+        console.log(this.tableColumns)
+        console.log(11)
+        this.entityData()
+        console.log(33)
       }
-      this.entityData()
     },
     async entityData () {
+      console.log(22)
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
@@ -1631,6 +1729,7 @@ export default {
           }
         }
       })
+      console.log(requestParameter)
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
         if (data.length) {
@@ -1641,6 +1740,7 @@ export default {
           this.$Message.warning(this.$t('bc_warn_empty'))
         }
       }
+      console.log(data)
     },
     clearParametes () {
       this.searchParameters.forEach(item => {
@@ -1776,6 +1876,7 @@ export default {
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
+        this.setPluginParamsModal = false
         this.executeResult = data
         this.filterBusinessKeySet = []
         for (const key in data) {
@@ -1796,12 +1897,14 @@ export default {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeExecuteHistoryKey = keyIndex
+      this.selectedCollectionId = null
       this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[keyIndex]))
     },
     changeActiveResultKey (key) {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeResultKey = key
+      this.selectedCollectionId = null
     },
     async changePlugin () {
       const { status, data } = await getFilteredPluginInterfaceList(
