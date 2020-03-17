@@ -48,7 +48,7 @@ public class EntityQueryExpressionParserTests {
     
     @Test
     public void testParseSingleExprNodeWithFilterExprShouldSucceed() {
-        String inputExpr = "we-cmdb:system_design{att1 eq 'eee'}";
+        String inputExpr = "we-cmdb:system_design{att1 eq '@@0008_123456789@@eee'}";
         
         List<EntityQueryExprNodeInfo> queryNodeInfos = parser.parse(inputExpr);
         Assert.assertNotNull(queryNodeInfos);
@@ -59,7 +59,7 @@ public class EntityQueryExpressionParserTests {
         Assert.assertEquals("we-cmdb", nodeInfo.getPackageName());
         Assert.assertEquals("system_design", nodeInfo.getEntityName());
         
-        Assert.assertEquals("{att1 eq 'eee'}", nodeInfo.getEntityFilterExpr());
+        Assert.assertEquals("{att1 eq '@@0008_123456789@@eee'}", nodeInfo.getEntityFilterExpr());
         Assert.assertTrue(nodeInfo.hasAdditionalFilters());
         Assert.assertEquals(1, nodeInfo.getAdditionalFilters().size());
     }
@@ -67,7 +67,7 @@ public class EntityQueryExpressionParserTests {
     
     @Test
     public void testParseMultiExprNodeWithFilterExprShouldSucceed(){
-        String inputExpr = "wecmdb:zone_design{att1 eq 'eee @@'}{att2 in ['a','b']}"
+        String inputExpr = "wecmdb:zone_design{att1 eq 'eee @@'}{att2 in ['@@0009_123456@@a','b']}"
                 + "~(zone_design2)wecmdb:zone_link_design{att1 like 'A'}"
                 + "~(zone_link_design)wecmdb:zone_link.zone1" + ">wecmdb:zone";
         
@@ -81,7 +81,7 @@ public class EntityQueryExpressionParserTests {
         Assert.assertEquals("zone_design", nodeInfo.getEntityName());
         Assert.assertTrue(nodeInfo.isHeadEntity());
         Assert.assertNull(nodeInfo.getEntityLinkType());
-        Assert.assertEquals("{att1 eq 'eee @@'}{att2 in ['a','b']}", nodeInfo.getEntityFilterExpr());
+        Assert.assertEquals("{att1 eq 'eee @@'}{att2 in ['@@0009_123456@@a','b']}", nodeInfo.getEntityFilterExpr());
         Assert.assertTrue(nodeInfo.hasAdditionalFilters());
         Assert.assertEquals(2, nodeInfo.getAdditionalFilters().size());
         
