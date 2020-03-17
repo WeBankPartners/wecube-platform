@@ -26,7 +26,7 @@ public class StandardEntityOperationService {
     @Autowired
     private EntityDataRouteFactory entityDataRouteFactory;
 
-    public List<Object> query(EntityOperationRootCondition condition) {
+    public List<Object> queryAttributeValues(EntityOperationRootCondition condition) {
         if (log.isInfoEnabled()) {
             log.info("query entity with condition {}", condition);
         }

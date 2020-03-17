@@ -44,12 +44,12 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         mockers.mockPackageNameWithDashAndFwdNodeExpressionServer(server);
 
         List<Object> result = standardEntityOperationService
-                .query(new EntityOperationRootCondition("we-cmdb:system_design.code", "0001_0000000001"));
+                .queryAttributeValues(new EntityOperationRootCondition("we-cmdb:system_design.code", "0001_0000000001"));
         Assert.assertNotNull(result);
         Assert.assertEquals("EDP", result.get(0));
 
         result = standardEntityOperationService
-                .query(new EntityOperationRootCondition("we-cmdb:unit.key_name", "0008_0000000003"));
+                .queryAttributeValues(new EntityOperationRootCondition("we-cmdb:unit.key_name", "0008_0000000003"));
         Assert.assertNotNull(result);
         Assert.assertEquals("EDP-CORE_PRD-APP", result.get(0));
 
@@ -61,18 +61,19 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         mockers.mockFwdNodeExpressionServer(server);
 
         List<Object> result = standardEntityOperationService
-                .query(new EntityOperationRootCondition("wecmdb:system_design.code", "0001_0000000001"));
+                .queryAttributeValues(new EntityOperationRootCondition("wecmdb:system_design.code", "0001_0000000001"));
         Assert.assertNotNull(result);
         Assert.assertEquals("EDP", result.get(0));
 
         result = standardEntityOperationService
-                .query(new EntityOperationRootCondition("wecmdb:unit.key_name", "0008_0000000003"));
+                .queryAttributeValues(new EntityOperationRootCondition("wecmdb:unit.key_name", "0008_0000000003"));
         Assert.assertNotNull(result);
         Assert.assertEquals("EDP-CORE_PRD-APP", result.get(0));
 
         server.verify();
     }
 
+    @SuppressWarnings("unchecked")
     @Ignore
     @Test
     public void wecmdbFwdNodeExpressionFetchWithoutLastOpFetchShouldSucceed() {
@@ -80,14 +81,14 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
 
         final int WECMDB_SYSTEM_DESIGN_DATA_COLUMN_LENGTH = 12;
         List<Object> resultOne = standardEntityOperationService
-                .query(new EntityOperationRootCondition("wecmdb:system_design", "0001_0000000001"));
+                .queryAttributeValues(new EntityOperationRootCondition("wecmdb:system_design", "0001_0000000001"));
         assertNotNull(resultOne);
         LinkedHashMap<String, Object> resultOneMap = (LinkedHashMap<String, Object>) resultOne.get(0);
         assertThat(resultOneMap.size()).isEqualTo(WECMDB_SYSTEM_DESIGN_DATA_COLUMN_LENGTH);
 
         final int WECMDB_UNIT_DATA_COLUMN_LENGTH = 15;
         List<Object> resultTwo = standardEntityOperationService
-                .query(new EntityOperationRootCondition("wecmdb:unit", "0008_0000000003"));
+                .queryAttributeValues(new EntityOperationRootCondition("wecmdb:unit", "0008_0000000003"));
         assertNotNull(resultTwo);
         LinkedHashMap<String, Object> resultTwoMap = (LinkedHashMap<String, Object>) resultTwo.get(0);
         assertThat(resultTwoMap.size()).isEqualTo(WECMDB_UNIT_DATA_COLUMN_LENGTH);
@@ -99,7 +100,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbOneLinkWithOpToExpressionFetchShouldSucceed() {
         mockers.mockOneLinkWithOpToOnlyExpressionServer(server);
 
-        List<Object> result = standardEntityOperationService.query(new EntityOperationRootCondition(
+        List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys_design.system_design>wecmdb:system_design.code", "0002_0000000006"));
         Assert.assertNotNull(result);
         Assert.assertFalse(result.isEmpty());
@@ -112,14 +113,14 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbOneLinkWithOpByExpressionFetchShouldSucceed() {
         mockers.mockOneLinkWithOpByOnlyExpressionServer(server);
 
-        List<Object> result = standardEntityOperationService.query(new EntityOperationRootCondition(
+        List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys~(subsys)wecmdb:unit.fixed_date{attr1 eq 'abcDEF'}", "0007_0000000001"));
         Assert.assertNotNull(result);
         Assert.assertEquals(2, result.size());
         Assert.assertEquals("2019-07-24 16:30:35", result.get(0));
         Assert.assertEquals("", result.get(1));
 
-        result = standardEntityOperationService.query(new EntityOperationRootCondition(
+        result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:service_design~(service_design)wecmdb:invoke_design.key_name", "0004_0000000001"));
 
         Assert.assertNotNull(result);
@@ -134,13 +135,13 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithOpToOnlyExpressionFetchShouldSucceed() {
         mockers.mockMultipleLinksWithOpToOnlyExpressionServer(server);
 
-        List<Object> result = standardEntityOperationService.query(new EntityOperationRootCondition(
+        List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys.subsys_design>wecmdb:subsys_design.system_design>wecmdb:system_design.key_name",
                 "0007_0000000001"));
         Assert.assertNotNull(result);
         Assert.assertEquals("ECIF", result.get(0));
 
-        result = standardEntityOperationService.query(new EntityOperationRootCondition(
+        result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:zone_link.zone1>wecmdb:zone.zone_design>wecmdb:zone_design.fixed_date", "0018_0000000002"));
         Assert.assertNotNull(result);
         Assert.assertNull(result.get(0));
@@ -152,7 +153,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     public void wecmdbMultipleLinksWithOpByOnlyExpressionFetchShouldSucceed() {
         mockers.mockMultipleLinksWithOpByOnlyExpressionServer(server);
 
-        List<Object> result = standardEntityOperationService.query(new EntityOperationRootCondition(
+        List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys~(subsys)wecmdb:unit~(unit)wecmdb:running_instance.id", "0007_0000000001"));
         Assert.assertNotNull(result);
         Assert.assertEquals(1, result.size());
@@ -164,7 +165,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     @Test
     public void wecmdbMultipleLinksWithMixedOpExpressionFetchShouldSucceed() {
         mockers.mockMultipleLinksWithMixedOpExpressionServer(server);
-        List<Object> result = standardEntityOperationService.query(new EntityOperationRootCondition(
+        List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:subsys~(subsys)wecmdb:unit.unit_design>wecmdb:unit_design.subsys_design>wecmdb:subsys_design.key_name",
                 "0007_0000000001"));
 
@@ -173,7 +174,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         Assert.assertEquals("ECIF-CORE", result.get(0));
         Assert.assertEquals("ECIF-CORE", result.get(1));
 
-        result = standardEntityOperationService.query(new EntityOperationRootCondition(
+        result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
                 "wecmdb:zone_design~(zone_design2)wecmdb:zone_link_design~(zone_link_design)wecmdb:zone_link.zone1>wecmdb:zone.key_name",
                 "0023_0000000004"));
         Assert.assertNotNull(result);
