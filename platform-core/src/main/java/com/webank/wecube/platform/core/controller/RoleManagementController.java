@@ -8,6 +8,7 @@ import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 import com.webank.wecube.platform.core.service.user.RoleFavoritesService;
 import com.webank.wecube.platform.core.service.user.RoleFavoritesServiceImpl;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
@@ -141,15 +142,26 @@ public class RoleManagementController {
         }
     }
 
-    @PostMapping("/roles/favorites/update")
-    public CommonResponseDto updateCollectionByRole(@RequestBody FavoritesDto favoritesDto) {
+    @PostMapping("/roles/{favorites-id}/favorites")
+    public CommonResponseDto updateCollectionByRole(@PathVariable("favorites-id") String favoritesId, @RequestBody ProcRoleRequestDto favoritesRoleRequestDto) {
         try {
-            this.roleFavoritesService.updateCollectionByRole(favoritesDto);
-            return CommonResponseDto.okay();
+            roleFavoritesService.updateFavoritesRoleBinding(favoritesId, favoritesRoleRequestDto);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
+        return CommonResponseDto.okay();
     }
+
+    @DeleteMapping("/roles/{favorites-id}/favorites")
+    public CommonResponseDto deleteProcRoleBinding(@PathVariable("favorites-id") String favoritesId, @RequestBody ProcRoleRequestDto favoritesRoleRequestDto) {
+        try {
+            roleFavoritesService.deleteFavoritesRoleBinding(favoritesId, favoritesRoleRequestDto);
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
+        }
+        return CommonResponseDto.okay();
+    }
+
     @DeleteMapping("/roles/favorites/{favorites-id}/delete")
     public CommonResponseDto deleteCollectionByRole(@PathVariable("favorites-id") String favoritesId) {
         try {
