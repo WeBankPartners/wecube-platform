@@ -68,7 +68,7 @@
     <!-- v-if="executeHistory.length" -->
     <section v-if="executeHistory.length" class="execute-history">
       <Row>
-        <Col span="4" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
+        <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
           <div style="height:88px;padding: 8px;border-bottom:1px solid #e8eaec">
             <Form label-position="top" label-colon>
               <FormItem>
@@ -103,12 +103,17 @@
                 v-for="(key, keyIndex) in executeHistory"
                 :key="keyIndex"
               >
-                <span>{{ keyIndex }}、{{ key.id }}</span>
+                <span>
+                  {{ keyIndex }}、{{ key.id }}
+                  <Button style="margin-left: 8px" @click="openAddCollectionModal(key)" size="small">
+                    收藏
+                  </Button>
+                </span>
               </li>
             </ul>
           </div>
         </Col>
-        <Col v-if="activeExecuteHistory" :span="isShowHistoryMenu ? 20 : 24" class="res res-content">
+        <Col v-if="activeExecuteHistory" :span="isShowHistoryMenu ? 19 : 24" class="res res-content">
           <Icon
             :style="isShowHistoryMenu ? '' : 'transform: rotate(90deg);'"
             class="history-record-menu"
@@ -116,7 +121,7 @@
             @click="isShowHistoryMenu = !isShowHistoryMenu"
           />
           <div class="res-content-step">
-            <Steps :current="3">
+            <Steps :current="5">
               <Step :title="$t('bc_query_conditions')">
                 <div slot="content">
                   <Tooltip :max-width="500">
@@ -161,6 +166,29 @@
                   <Button size="small" @click="changePlugin" type="primary" ghost>{{ $t('bc_change_plugin') }}</Button>
                 </div>
               </Step>
+              <Step title="执行参数" content="">
+                <div slot="content">
+                  <Tooltip :max-width="500">
+                    <Icon type="ios-information-circle-outline" />
+                    <div slot="content" style="width:200px">
+                      <ul>
+                        <li v-for="(item, index) in activeExecuteHistory.plugin.pluginParams" :key="index">
+                          <span v-if="item.mappingType === 'constant'"> {{ item.name }}: {{ item.bindValue }} </span>
+                          <span v-else>{{
+                            item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system')
+                          }}</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </Tooltip>
+                  <Button size="small" type="primary" ghost>补充参数</Button>
+                </div>
+              </Step>
+              <Step title="执行" content="">
+                <div slot="content">
+                  <Button size="small" @click="executeAgain" type="primary" ghost>执行</Button>
+                </div>
+              </Step>
             </Steps>
           </div>
           <div v-if="activeExecuteHistory" class="res-content-params">
@@ -173,12 +201,6 @@
                     </FormItem>
                   </Col>
                 </template>
-                <Col :span="executeAgainBtnSpan">
-                  <div style="float:right">
-                    <Button type="primary" @click="executeAgain">{{ $t('bc_execute') }}</Button>
-                    <Button type="info" @click="openAddCollectionModal">收藏</Button>
-                  </div>
-                </Col>
               </Row>
             </Form>
           </div>
@@ -378,6 +400,7 @@ import {
   entityView,
   getFilteredPluginInterfaceList,
   batchExecution,
+  getAllCollections,
   getRoleList,
   getRolesByCurrentUser,
   saveBatchExecution
@@ -1243,6 +1266,7 @@ export default {
       editCollectionName: false,
       collectionName: '',
 
+      toBeCollectedParams: null,
       allRoles: [],
       mgmtRolesKeyToFlow: [],
       allRolesBackUp: [],
@@ -1257,12 +1281,6 @@ export default {
       if (this.activeResultKey !== null) {
         return this.catchExecuteResult[this.activeResultKey]
       }
-    },
-    executeAgainBtnSpan: function () {
-      const paramsNum = this.activeExecuteHistory.plugin.pluginParams.filter(item => {
-        return item.mappingType === 'constant'
-      }).length
-      return 24 - (paramsNum % 3) * 8
     }
   },
   watch: {
@@ -1359,13 +1377,16 @@ export default {
         })
       }
     },
-    getAllCollections () {
-      this.allCollections = [
-        { id: '111', collectionName: '111', ownerRoleId: ['1', '2'], useRoleId: ['a', 'b'], data: {} },
-        { id: '222', collectionName: '222', ownerRoleId: ['3', '4'], useRoleId: ['c', 'd'], data: {} }
-      ]
+    async getAllCollections () {
+      const { status, data } = await getAllCollections()
+      if (status === 'OK') {
+        console.log(data)
+        this.allCollections = data
+      }
     },
-    openAddCollectionModal () {
+    openAddCollectionModal (key) {
+      this.toBeCollectedParams = key
+      console.log(key)
       this.getRoleList()
       this.getRolesByCurrentUser()
       this.collectionRoleManageModal = true
@@ -1409,7 +1430,7 @@ export default {
           this.$Message.warning('属主角色不能为空！')
           return
         }
-        const { plugin, requestBody } = this.activeExecuteHistory
+        const { plugin, requestBody } = this.toBeCollectedParams
         let params = {
           collectionName: this.collectionName.trim(),
           permissionToRole: {
@@ -1422,9 +1443,9 @@ export default {
           })
         }
         console.log(params)
-        const { status, data } = await saveBatchExecution(params)
+        const { status } = await saveBatchExecution(params)
         if (status === 'OK') {
-          console.log(data)
+          this.collectionRoleManageModal = false
         }
       }
     },
@@ -1885,7 +1906,7 @@ pre {
   // overflow: scroll;
 }
 .business-key {
-  padding: 0 16px;
+  padding: 4px 16px;
   cursor: pointer;
   color: #19be6b;
 }
