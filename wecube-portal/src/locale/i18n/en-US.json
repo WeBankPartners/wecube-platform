@@ -365,6 +365,7 @@
   "bc_empty": "Empty",
   "bc_execute_query": "Execute Query",
   "bc_clear_condition": "Clear Conditions",
+  "bc_set_condition": "Set Condition",
   "bc_reset_query": "Reset Query",
   "bc_start_path": "Start Path",
   "bc_target_type": "Target Type",
