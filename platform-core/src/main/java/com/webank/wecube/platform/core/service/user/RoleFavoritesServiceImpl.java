@@ -95,8 +95,8 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         HashMap<String, List<String>> permissionToRole = new HashMap<>();
         if (favoritesRoles.isPresent()) {
             favoritesIds = favoritesRoles.get().stream().map(FavoritesRoleEntity::getFavoritesId).collect(Collectors.toList());
-            mgmtRoleIds = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.MGMT)).map(FavoritesRoleEntity::getFavoritesId).collect(Collectors.toList());
-            useRoleids = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.USE)).map(FavoritesRoleEntity::getFavoritesId).collect(Collectors.toList());
+            mgmtRoleIds = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.MGMT)).map(FavoritesRoleEntity::getRoleId).collect(Collectors.toList());
+            useRoleids = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.USE)).map(FavoritesRoleEntity::getRoleId).collect(Collectors.toList());
             permissionToRole.put(FavoritesRoleEntity.permissionEnum.MGMT.toString(),mgmtRoleIds);
             permissionToRole.put(FavoritesRoleEntity.permissionEnum.USE.toString(),useRoleids);
         }
@@ -112,7 +112,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         Map<String, List<String>> permissionToRoleMap = favoritesDto.getPermissionToRole();
 
         if (null == permissionToRoleMap) {
-            throw new WecubeCoreException("There is no process to role with permission mapping found.");
+            throw new WecubeCoreException("There is no favorites to role with permission mapping found.");
         }
 
         String errorMsg;
@@ -200,7 +200,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         }
 
         if (!ifUserHasSuchPermission) {
-            String msg = String.format("The user doesn't have process: [%s]'s [%s] permission", favoritesId, permissionEnum.toString());
+            String msg = String.format("The user doesn't have favorites: [%s]'s [%s] permission", favoritesId, permissionEnum.toString());
             throw new WecubeCoreException(msg);
         }
     }
