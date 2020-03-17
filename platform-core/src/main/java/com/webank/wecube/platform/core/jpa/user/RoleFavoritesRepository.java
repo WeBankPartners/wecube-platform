@@ -16,5 +16,5 @@ public interface RoleFavoritesRepository extends JpaRepository<FavoritesRoleEnti
 
     Optional<List<FavoritesRoleEntity>> findAllByFavoritesIdAndPermission(String favoritesId, FavoritesRoleEntity.permissionEnum mgmt);
 
-    Optional<List<FavoritesRoleEntity>> findByRoleIdIn(List<String> currentUserRoleNameList);
+    Optional<List<FavoritesRoleEntity>> findByRoleNameIn(List<String> currentUserRoleNameList);
 }
