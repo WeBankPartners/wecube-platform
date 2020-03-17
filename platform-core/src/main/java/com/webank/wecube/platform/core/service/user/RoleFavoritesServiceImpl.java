@@ -80,7 +80,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     @Override
     public void updateCollectionByRole(FavoritesDto favoritesDto) {
         // check if user's roles has permission to manage this process
-        checkPermission(favoritesDto.getCollectionName(), FavoritesRoleEntity.permissionEnum.MGMT);
+        checkPermission(favoritesDto.getFavoritesId(), FavoritesRoleEntity.permissionEnum.MGMT);
         saveFavoritesRoleBinding(favoritesDto.getFavoritesId(), favoritesDto);
     }
 
