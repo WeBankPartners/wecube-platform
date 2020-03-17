@@ -5,6 +5,7 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.FavoritesDto;
 import com.webank.wecube.platform.core.dto.FavoritesRoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 import com.webank.wecube.platform.core.entity.workflow.FavoritesEntity;
 import com.webank.wecube.platform.core.entity.workflow.FavoritesRoleEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
@@ -78,13 +79,6 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     }
 
     @Override
-    public void updateCollectionByRole(FavoritesDto favoritesDto) {
-        // check if user's roles has permission to manage this process
-        checkPermission(favoritesDto.getFavoritesId(), FavoritesRoleEntity.permissionEnum.MGMT);
-        saveFavoritesRoleBinding(favoritesDto.getFavoritesId(), favoritesDto);
-    }
-
-    @Override
     public List<FavoritesDto> retrieveAllCollections() {
         List<String> currentUserRoleNameList = new ArrayList<>(Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
 
@@ -103,6 +97,41 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
 
         List<FavoritesEntity> favoritesEntitys = favoritesInfoRepository.findAllById(favoritesIds);
         return favoritesEntitys.stream().map(favoritesEntity -> FavoritesEntity.fromDomain(permissionToRole,favoritesEntity)).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteFavoritesRoleBinding(String favoritesId, ProcRoleRequestDto favoritesRoleRequestDto) {
+        FavoritesRoleEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(favoritesRoleRequestDto.getPermission());
+
+        // check if the current user has the role to manage such process
+        checkPermission(favoritesId, FavoritesRoleEntity.permissionEnum.MGMT);
+
+        // assure corresponding data has at least one row of MGMT permission
+        if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum)) {
+            Optional<List<ProcRoleBindingEntity>> foundMgmtData = this.roleFavoritesRepository.findAllByfavoritesIdAndPermission(favoritesId, permissionEnum);
+            foundMgmtData.ifPresent(procRoleBindingEntities -> {
+                if (procRoleBindingEntities.size() <= favoritesRoleRequestDto.getRoleIdList().size()) {
+                    String msg = "The process's management permission should have at least one role.";
+                    log.info(String.format("The DELETE management roles operation was blocked, the process id is [%s].", favoritesId));
+                    throw new WecubeCoreException(msg);
+                }
+            });
+        }
+
+        for (String roleId : favoritesRoleRequestDto.getRoleIdList()) {
+            this.roleFavoritesRepository.deleteByfavoritesIdAndRoleIdAndPermission(favoritesId, roleId, permissionEnum);
+        }
+    }
+
+    @Override
+    public void updateFavoritesRoleBinding(String favoritesId, ProcRoleRequestDto favoritesRoleRequestDto) {
+        String permissionStr = favoritesRoleRequestDto.getPermission();
+        List<String> roleIdList = favoritesRoleRequestDto.getRoleIdList();
+        FavoritesRoleEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
+
+        // check if user's roles has permission to manage this process
+        checkPermission(favoritesId, FavoritesRoleEntity.permissionEnum.MGMT);
+        batchSaveRoleFavorites(favoritesId, roleIdList, permissionStr);
     }
 
 
@@ -158,7 +187,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
             // if no stored data found, then save new data in to the database
             // get roleDto from auth server
-            this.roleFavoritesRepository.save(FavoritesRoleDto.toDomain(LocalIdGenerator.generateId(),favoritesId, roleId, permissionEnum, roleDto.getName()));
+            this.roleFavoritesRepository.save(FavoritesRoleDto.toDomain(null,favoritesId, roleId, permissionEnum, roleDto.getName()));
         }
     }
     public static FavoritesRoleEntity.permissionEnum transferPermissionStrToEnum(String permissionStr) throws WecubeCoreException {
