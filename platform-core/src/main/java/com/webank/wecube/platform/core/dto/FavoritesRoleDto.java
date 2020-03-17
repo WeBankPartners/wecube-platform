@@ -17,8 +17,9 @@ public class FavoritesRoleDto {
         return result;
     }
 
-    public static FavoritesRoleEntity toDomain(String favoritesId, String roleId, FavoritesRoleEntity.permissionEnum permissionEnum, String roleName) {
+    public static FavoritesRoleEntity toDomain(String id, String favoritesId, String roleId, FavoritesRoleEntity.permissionEnum permissionEnum, String roleName) {
         FavoritesRoleEntity result = new FavoritesRoleEntity();
+        result.setId(id);
         result.setFavoritesId(favoritesId);
         result.setRoleId(roleId);
         result.setPermission(permissionEnum);
