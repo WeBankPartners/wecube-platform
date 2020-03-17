@@ -11,7 +11,7 @@ public interface RoleFavoritesService {
 
     void deleteCollectionById(String favoritesId);
 
-    List<FavoritesDto> retrieveAllCollections();
+    List<FavoritesDto> retrieveAllCollections(String favoritesId);
 
     void deleteFavoritesRoleBinding(String favoritesId, ProcRoleRequestDto favoritesRoleRequestDto);
 

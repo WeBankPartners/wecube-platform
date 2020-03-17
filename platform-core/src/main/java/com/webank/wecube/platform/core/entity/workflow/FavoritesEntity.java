@@ -50,6 +50,8 @@ public class FavoritesEntity extends BaseTraceableEntity {
         result.setData(new String(favoritesEntity.getData()));
         result.setCollectionName(favoritesEntity.getCollectionName());
         result.setPermissionToRole(permissionToRole);
+        result.setCreatedBy(favoritesEntity.getCreatedBy());
+        result.setCreatedTime(favoritesEntity.getCreatedTime());
         return result;
     }
 }
