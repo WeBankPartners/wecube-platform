@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 @Service("entityQueryExpressionParser")
 public class EntityQueryExpressionParser {
     public static final String PKG_DELIMITER = ":";
+    public static final String REG_ENTITY_ID = "@@\\w+@@";
+    private Pattern entityIdPattern = Pattern.compile(REG_ENTITY_ID);
 
     public List<EntityQueryExprNodeInfo> parse(String expr) {
 
@@ -162,7 +164,8 @@ public class EntityQueryExpressionParser {
         if (EntityQueryFilter.OP_EQUALS.equalsIgnoreCase(op) || EntityQueryFilter.OP_NOT_EQUALS.equalsIgnoreCase(op)
                 || EntityQueryFilter.OP_LESS_THAN.equalsIgnoreCase(op) || EntityQueryFilter.OP_LIKE.equalsIgnoreCase(op)
                 || EntityQueryFilter.OP_GREAT_THAN.equalsIgnoreCase(op)) {
-            return stripHeadAndTailChar(condExpr, "'");
+            String conditionExpr = stripHeadAndTailChar(condExpr, "'");
+            return tryCalculateConditionExpr(conditionExpr);
         }
 
         if (EntityQueryFilter.OP_IN.equalsIgnoreCase(op)) {
@@ -172,13 +175,29 @@ public class EntityQueryExpressionParser {
         return null;
     }
     
+    private String tryCalculateConditionExpr(String conditionExpr){
+        if(conditionExpr == null || conditionExpr.trim().length() <= 0 ){
+            return "";
+        }
+        Matcher m = entityIdPattern.matcher(conditionExpr);
+        if(m.find()){
+            String entityId = m.group();
+            entityId = entityId.substring(2,entityId.length()-2);
+            return entityId;
+        }else{
+            return conditionExpr;
+        }
+        
+    }
+    
     private List<String> buildConditionList(String listExpr) {
         String condExpr = stripHeadAndTailChar(listExpr, "[");
         condExpr = stripHeadAndTailChar(condExpr, "]");
         List<String> inConditions = new ArrayList<String>();
         String[] parts = condExpr.split(",");
         for (String part : parts) {
-            inConditions.add(stripHeadAndTailChar(part, "'"));
+            String inCondition = stripHeadAndTailChar(part, "'");
+            inConditions.add(tryCalculateConditionExpr(inCondition));
         }
 
         return inConditions;
