@@ -88,7 +88,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     public List<FavoritesDto> retrieveAllCollections() {
         List<String> currentUserRoleNameList = new ArrayList<>(Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
 
-        Optional<List<FavoritesRoleEntity>> favoritesRoles = roleFavoritesRepository.findByRoleIdIn(currentUserRoleNameList);
+        Optional<List<FavoritesRoleEntity>> favoritesRoles = roleFavoritesRepository.findByRoleNameIn(currentUserRoleNameList);
         List<String> favoritesIds = new ArrayList<>();
         List<String> mgmtRoleIds;
         List<String> useRoleids;
