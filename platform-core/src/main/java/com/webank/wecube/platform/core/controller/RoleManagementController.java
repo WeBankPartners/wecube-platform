@@ -132,10 +132,10 @@ public class RoleManagementController {
         }
     }
 
-    @GetMapping("/roles/favorites/retrieve")
-        public CommonResponseDto retrieveAllCollections() {
+    @GetMapping("/roles/{favorites-id}/favorites")
+        public CommonResponseDto retrieveAllCollections(@PathVariable("favorites-id") String favoritesId) {
         try {
-            List<FavoritesDto> result = roleFavoritesService.retrieveAllCollections();
+            List<FavoritesDto> result = roleFavoritesService.retrieveAllCollections(favoritesId);
             return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
