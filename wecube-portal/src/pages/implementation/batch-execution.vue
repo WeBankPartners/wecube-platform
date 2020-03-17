@@ -73,19 +73,29 @@
             <Form label-position="top" label-colon>
               <FormItem>
                 <span slot="label" style="font-weight:500">收藏列表:</span>
-                <Select clearable v-model="selectedCollection" @on-open-change="getAllCollections" filterable>
-                  <Option v-for="item in allCollections" :value="item.id" :key="item.id" :label="item.collectionName">
+                <Select clearable v-model="selectedCollectionId" @on-open-change="getAllCollections" filterable>
+                  <Option
+                    v-for="item in allCollections"
+                    :value="item.favoritesId"
+                    :key="item.favoritesId"
+                    :label="item.collectionName"
+                  >
                     <span>{{ item.collectionName }}</span>
                     <span style="float:right">
                       <Button
                         icon="ios-trash"
                         type="error"
                         size="small"
-                        @click="showDeleteConfirm(item.id, item.collectionName)"
+                        @click="showDeleteConfirm(item.favoritesId, item.collectionName)"
                       ></Button>
                     </span>
                     <span style="float:right;margin-right: 10px">
-                      <Button icon="ios-build" type="primary" @click="openEditCollectionModal" size="small"></Button>
+                      <Button
+                        icon="ios-build"
+                        type="primary"
+                        @click="openEditCollectionModal(item)"
+                        size="small"
+                      ></Button>
                     </span>
                   </Option>
                 </Select>
@@ -181,7 +191,7 @@
                       </ul>
                     </div>
                   </Tooltip>
-                  <Button size="small" type="primary" ghost>补充参数</Button>
+                  <Button size="small" type="primary" @click="setPluginParams">补充参数</Button>
                 </div>
               </Step>
               <Step title="执行" content="">
@@ -190,19 +200,6 @@
                 </div>
               </Step>
             </Steps>
-          </div>
-          <div v-if="activeExecuteHistory" class="res-content-params">
-            <Form label-position="right" :label-width="100">
-              <Row>
-                <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
-                  <Col span="8" v-if="item.mappingType === 'constant'" :key="index">
-                    <FormItem :label="item.name" :key="index">
-                      <Input v-model="item.bindValue" />
-                    </FormItem>
-                  </Col>
-                </template>
-              </Row>
-            </Form>
           </div>
           <div class="res-content-result">
             <Row>
@@ -355,20 +352,16 @@
         <span style="font-weight: 500;">收藏名称：</span>
         <Input v-model="collectionName" style="width:35%"></Input>
       </div>
-
-      <!-- @on-cancel="confirmRole" -->
       <div>
         <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
         <Transfer
           :titles="transferTitles"
           :list-style="transferStyle"
           :data="allRoles"
-          :target-keys="mgmtRolesKeyToFlow"
+          :target-keys="MGMT"
           @on-change="handleMgmtRoleTransferChange"
           filterable
         ></Transfer>
-        <!-- :render-format="renderRoleNameForTransfer"
-          @on-change="handleMgmtRoleTransferChange" -->
       </div>
       <div style="margin-top: 30px">
         <div class="role-transfer-title">{{ $t('use_role') }}</div>
@@ -376,15 +369,13 @@
           :titles="transferTitles"
           :list-style="transferStyle"
           :data="allRolesBackUp"
-          :target-keys="useRolesKeyToFlow"
+          :target-keys="USE"
           @on-change="handleUseRoleTransferChange"
           filterable
         ></Transfer>
-        <!-- :render-format="renderRoleNameForTransfer"
-          @on-change="handleUseRoleTransferChange" -->
       </div>
       <div slot="footer">
-        <Button>{{ $t('bc_cancle') }}</Button>
+        <Button @click="collectionRoleManageModal = false">{{ $t('bc_cancle') }}</Button>
         <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
@@ -401,9 +392,11 @@ import {
   getFilteredPluginInterfaceList,
   batchExecution,
   getAllCollections,
+  deleteCollections,
   getRoleList,
   getRolesByCurrentUser,
-  saveBatchExecution
+  saveBatchExecution,
+  updateCollections
 } from '@/api/server.js'
 
 export default {
@@ -1260,6 +1253,7 @@ export default {
         { label: this.$t('bc_filter_type_regex'), value: 'regex' }
       ],
 
+      selectedCollectionId: null,
       selectedCollection: null,
       allCollections: [],
       collectionRoleManageModal: false,
@@ -1268,9 +1262,9 @@ export default {
 
       toBeCollectedParams: null,
       allRoles: [],
-      mgmtRolesKeyToFlow: [],
+      MGMT: [],
       allRolesBackUp: [],
-      useRolesKeyToFlow: [],
+      USE: [],
       transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
       transferStyle: { width: '300px' }
     }
@@ -1389,23 +1383,26 @@ export default {
       console.log(key)
       this.getRoleList()
       this.getRolesByCurrentUser()
+      this.MGMT = []
+      this.USE = []
       this.collectionRoleManageModal = true
       this.editCollectionName = true
     },
-    openEditCollectionModal () {
+    openEditCollectionModal (collection) {
+      this.selectedCollection = collection
       this.getRoleList()
       this.getRolesByCurrentUser()
+      this.MGMT = collection.permissionToRole.MGMT
+      this.USE = collection.permissionToRole.USE
       this.collectionRoleManageModal = true
       this.editCollectionName = false
-      console.log(this.selectedCollection)
     },
-    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      this.mgmtRolesKeyToFlow = newTargetKeys
-      console.log(newTargetKeys, direction, moveKeys)
+    handleMgmtRoleTransferChange (newTargetKeys) {
+      this.MGMT = newTargetKeys
     },
-    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
-      this.useRolesKeyToFlow = newTargetKeys
-      console.log(newTargetKeys, direction, moveKeys)
+    handleUseRoleTransferChange (newTargetKeys) {
+      this.USE = newTargetKeys
+      console.log(this.USE)
     },
     showDeleteConfirm (id, name) {
       this.$Modal.confirm({
@@ -1417,25 +1414,28 @@ export default {
         onCancel: () => {}
       })
     },
-    deleteCollection (id) {
-      console.log(id)
+    async deleteCollection (id) {
+      const { status } = await deleteCollections(id)
+      if (status === 'OK') {
+        this.$Message.success('收藏名称不能为空！')
+      }
     },
     async confirmCollection () {
+      if (!this.MGMT.length) {
+        this.$Message.warning('属主角色不能为空！')
+        return
+      }
       if (this.editCollectionName) {
         if (!this.collectionName.trim()) {
           this.$Message.warning('收藏名称不能为空！')
-          return
-        }
-        if (!this.mgmtRolesKeyToFlow.length) {
-          this.$Message.warning('属主角色不能为空！')
           return
         }
         const { plugin, requestBody } = this.toBeCollectedParams
         let params = {
           collectionName: this.collectionName.trim(),
           permissionToRole: {
-            MGMT: this.mgmtRolesKeyToFlow,
-            USE: this.useRolesKeyToFlow
+            MGMT: this.MGMT,
+            USE: this.USE
           },
           data: JSON.stringify({
             plugin,
@@ -1444,6 +1444,17 @@ export default {
         }
         console.log(params)
         const { status } = await saveBatchExecution(params)
+        if (status === 'OK') {
+          this.collectionRoleManageModal = false
+        }
+      } else {
+        console.log(this.selectedCollection)
+        let params = JSON.parse(JSON.stringify(this.selectedCollection))
+        console.log(this.selectedCollection)
+        console.log(params)
+        params.permissionToRole.MGMT = this.MGMT
+        params.permissionToRole.USE = this.USE
+        const { status } = await updateCollections(params)
         if (status === 'OK') {
           this.collectionRoleManageModal = false
         }
@@ -1885,6 +1896,7 @@ pre {
 }
 .excute-result {
   right: -2px;
+  padding-top: 4px;
   padding-right: 4px;
   min-height: 300px;
 }
@@ -1900,7 +1912,6 @@ pre {
   }
 }
 .excute-result-json {
-  border: $border-config;
   word-wrap: break-word;
   word-break: break-all;
   // overflow: scroll;
