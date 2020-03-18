@@ -1,5 +1,18 @@
 package com.webank.wecube.platform.core.service.workflow;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
@@ -17,22 +30,10 @@ import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
-import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
-import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
+import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
+import com.webank.wecube.platform.core.service.dme.TreeNode;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
-import com.webank.wecube.platform.core.support.datamodel.dto.TreeNode;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class WorkflowDataService {
@@ -48,7 +49,7 @@ public class WorkflowDataService {
     private TaskNodeInstInfoRepository taskNodeInstInfoRepository;
 
     @Autowired
-    private ExpressionService expressionService;
+    private StandardEntityOperationService standardEntityOperationService;
 
     @Autowired
     private PluginConfigService pluginConfigService;
@@ -263,10 +264,10 @@ public class WorkflowDataService {
             log.info("About to fetch data for node {} {}", f.getNodeDefId(), f.getNodeName());
 
             log.info("About to fetch data with expression {} and data id {}", f.getRoutineExpression(), dataId);
-            DataModelExpressionToRootData expr = new DataModelExpressionToRootData(f.getRoutineExpression(), dataId);
+            EntityOperationRootCondition condition = new EntityOperationRootCondition(f.getRoutineExpression(), dataId);
             List<TreeNode> nodes = null;
             try {
-                nodes = expressionService.getPreviewTree(expr);
+                nodes = standardEntityOperationService.generatePreviewTree(condition);
             } catch (Exception e) {
                 log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId,
                         e);
