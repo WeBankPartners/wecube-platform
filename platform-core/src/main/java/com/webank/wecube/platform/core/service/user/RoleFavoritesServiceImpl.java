@@ -79,22 +79,29 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
     }
 
     @Override
-    public List<FavoritesDto> retrieveAllCollections(String favoritesId) {
-        checkPermission(favoritesId, FavoritesRoleEntity.permissionEnum.MGMT);
-        Optional<List<FavoritesRoleEntity>> favoritesRoles = roleFavoritesRepository.findAllByFavoritesId(favoritesId);
+    public List<FavoritesDto> retrieveAllCollections() {
+        List<String> currentUserRoleNameList = new ArrayList<>(Objects.requireNonNull(AuthenticationContextHolder.getCurrentUserRoles()));
+        Optional<List<FavoritesRoleEntity>> favoritesRoles = roleFavoritesRepository.findByRoleNameIn(currentUserRoleNameList);
         List<String> favoritesIds = new ArrayList<>();
-        List<String> mgmtRoleNames;
-        List<String> useRoleNames;
-        HashMap<String, List<String>> permissionToRole = new HashMap<>();
         if (favoritesRoles.isPresent()) {
             favoritesIds = favoritesRoles.get().stream().map(FavoritesRoleEntity::getFavoritesId).collect(Collectors.toList());
-            mgmtRoleNames = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.MGMT)).map(FavoritesRoleEntity::getRoleName).collect(Collectors.toList());
-            useRoleNames = favoritesRoles.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.USE)).map(FavoritesRoleEntity::getRoleName).collect(Collectors.toList());
-            permissionToRole.put(FavoritesRoleEntity.permissionEnum.MGMT.toString(),mgmtRoleNames);
-            permissionToRole.put(FavoritesRoleEntity.permissionEnum.USE.toString(),useRoleNames);
         }
         List<FavoritesEntity> favoritesEntitys = favoritesInfoRepository.findAllById(favoritesIds);
-        return favoritesEntitys.stream().map(favoritesEntity -> FavoritesEntity.fromDomain(permissionToRole,favoritesEntity)).collect(Collectors.toList());
+        List<FavoritesDto> favoritesDtos = new ArrayList<>();
+        favoritesEntitys.stream().forEach(favoritesEntity -> {
+            Optional<List<FavoritesRoleEntity>> favoritesRolesById = roleFavoritesRepository.findAllByFavoritesId(favoritesEntity.getFavoritesId());
+            HashMap<String, List<String>> permissionToRole = new HashMap<>();
+            if (favoritesRolesById.isPresent()) {
+                List<String> mgmtRoleNames;
+                List<String> useRoleNames;
+                mgmtRoleNames = favoritesRolesById.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.MGMT)).map(FavoritesRoleEntity::getRoleName).collect(Collectors.toList());
+                useRoleNames = favoritesRolesById.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.USE)).map(FavoritesRoleEntity::getRoleName).collect(Collectors.toList());
+                permissionToRole.put(FavoritesRoleEntity.permissionEnum.MGMT.toString(),mgmtRoleNames);
+                permissionToRole.put(FavoritesRoleEntity.permissionEnum.USE.toString(),useRoleNames);
+            }
+            favoritesDtos.add(FavoritesEntity.fromDomain(permissionToRole, favoritesEntity));
+        });
+        return favoritesDtos;
     }
 
     @Override
@@ -131,7 +138,6 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         checkPermission(favoritesId, FavoritesRoleEntity.permissionEnum.MGMT);
         batchSaveRoleFavorites(favoritesId, roleIdList, permissionStr);
     }
-
 
     private void saveFavoritesRoleBinding(String collectId, FavoritesDto favoritesDto)
             throws WecubeCoreException {

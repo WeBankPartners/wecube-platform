@@ -120,7 +120,15 @@ public class RoleManagementController {
             return CommonResponseDto.error(ex.getMessage());
         }
     }
-
+    @GetMapping("/roles/favorites/retrieve")
+    public CommonResponseDto retrieveAllCollections() {
+            try {
+                List<FavoritesDto> result = roleFavoritesService.retrieveAllCollections();
+                return CommonResponseDto.okayWithData(result);
+            } catch (WecubeCoreException ex) {
+                return CommonResponseDto.error(ex.getMessage());
+            }
+        }
     @PostMapping("/roles/favorites/create")
     public CommonResponseDto createCollectionByRole(@RequestBody FavoritesDto favoritesDto) {
         try {
@@ -129,16 +137,6 @@ public class RoleManagementController {
         } catch (Exception e) {
             log.error("error",e);
             return CommonResponseDto.error(e.getMessage());
-        }
-    }
-
-    @GetMapping("/roles/{favorites-id}/favorites")
-        public CommonResponseDto retrieveAllCollections(@PathVariable("favorites-id") String favoritesId) {
-        try {
-            List<FavoritesDto> result = roleFavoritesService.retrieveAllCollections(favoritesId);
-            return CommonResponseDto.okayWithData(result);
-        } catch (WecubeCoreException ex) {
-            return CommonResponseDto.error(ex.getMessage());
         }
     }
 
