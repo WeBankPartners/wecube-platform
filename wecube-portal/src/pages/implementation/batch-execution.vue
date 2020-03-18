@@ -66,8 +66,7 @@
       </div>
     </section>
     <!-- v-if="executeHistory.length" -->
-    {{ dataModelExpression }}
-    <section v-if="executeHistory.length" class="execute-history">
+    <section class="execute-history">
       <Row>
         <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
           <div style="height:88px;padding: 8px;border-bottom:1px solid #e8eaec">
@@ -131,7 +130,8 @@
             </ul>
           </div>
         </Col>
-        <Col v-if="activeExecuteHistory" :span="isShowHistoryMenu ? 19 : 24" class="res res-content">
+        <!-- v-if="activeExecuteHistory" -->
+        <Col :span="isShowHistoryMenu ? 19 : 24" class="res res-content">
           <Icon
             :style="isShowHistoryMenu ? '' : 'transform: rotate(90deg);'"
             class="history-record-menu"
@@ -171,9 +171,14 @@
                       </p>
                     </div>
                   </Tooltip>
-                  <Button size="small" @click="changeTargetObject" type="primary" ghost>{{
-                    $t('bc_change_instance')
-                  }}</Button>
+                  <Button
+                    size="small"
+                    @click="changeTargetObject"
+                    :disabled="!(!!currentPackageName && !!currentEntityName)"
+                    type="primary"
+                    ghost
+                    >{{ $t('bc_change_instance') }}</Button
+                  >
                 </div>
               </Step>
               <Step :title="$t('bc_execution_plugin')" content="">
@@ -181,7 +186,14 @@
                   <Tooltip :content="activeExecuteHistory.plugin.pluginName">
                     <Icon type="ios-information-circle-outline" />
                   </Tooltip>
-                  <Button size="small" @click="changePlugin" type="primary" ghost>{{ $t('bc_change_plugin') }}</Button>
+                  <Button
+                    size="small"
+                    @click="changePlugin"
+                    :disabled="!activeExecuteHistory.requestBody.packageName"
+                    type="primary"
+                    ghost
+                    >{{ $t('bc_change_plugin') }}</Button
+                  >
                 </div>
               </Step>
               <Step title="执行参数" content="">
@@ -199,30 +211,30 @@
                       </ul>
                     </div>
                   </Tooltip>
-                  <Button size="small" type="primary" @click="setPluginParamsModal = true" ghost>补充参数</Button>
+                  <Button
+                    size="small"
+                    type="primary"
+                    :disabled="activeExecuteHistory.plugin.pluginParams.length === 0"
+                    @click="setPluginParamsModal = true"
+                    ghost
+                    >补充参数</Button
+                  >
                 </div>
               </Step>
               <Step title="执行" content="">
                 <div slot="content">
-                  <Button size="small" @click="executeAgain" type="primary" ghost>执行</Button>
+                  <Button
+                    size="small"
+                    @click="executeAgain"
+                    :disabled="!activeExecuteHistory.requestBody.inputParameterDefinitions"
+                    type="primary"
+                    ghost
+                    >执行</Button
+                  >
                 </div>
               </Step>
             </Steps>
           </div>
-          <!-- <div v-if="activeExecuteHistory" class="res-content-params">
-            <Form label-position="right" :label-width="100">
-              <Row>
-                <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
-                  <Col span="8" v-if="item.mappingType === 'constant'" :key="index">
-                    <FormItem :label="item.name" :key="index">
-                      <Input v-model="item.bindValue" />
-                    </FormItem>
-                  </Col>
-                </template>
-                  <Button type="primary" style="float:right" @click="executeAgain">{{ $t('bc_execute') }}</Button>
-              </Row>
-            </Form>
-          </div> -->
           <div class="res-content-result">
             <Row>
               <Col span="6" class="excute-result excute-result-search">
@@ -443,7 +455,7 @@ export default {
   name: '',
   data () {
     return {
-      displaySearchZone: true,
+      displaySearchZone: false,
       displayResultTableZone: false,
       displayExecuteResultZone: false,
 
@@ -460,7 +472,7 @@ export default {
       selectedEntityType: null,
       allEntityType: [],
 
-      dataModelExpression: '',
+      dataModelExpression: ':',
       currentEntityName: '',
       currentPackageName: '',
       currentEntityAttr: '',
@@ -491,803 +503,29 @@ export default {
       businessKey: '',
 
       activeExecuteHistoryKey: 0,
-      // activeExecuteHistory: null,
-      // executeHistory: [],
-      // catchExecuteResult: {},
-      // catchFilterBusinessKeySet: [],
-      activeExecuteHistory: {
-        id: '2020-03-16 07:05:26',
+      defaultActiveExecuteHistory: {
         plugin: {
-          pluginName: 'saltstack/host-script/runCustomScript',
-          pluginParams: [
-            {
-              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
-              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-              type: 'INPUT',
-              name: 'args',
-              dataType: 'string',
-              mappingType: 'constant',
-              mappingEntityExpression: null,
-              mappingSystemVariableName: null,
-              required: 'N',
-              sensitiveData: null,
-              bindValue: ''
-            },
-            {
-              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
-              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-              type: 'INPUT',
-              name: 'endpoint',
-              dataType: 'string',
-              mappingType: 'constant',
-              mappingEntityExpression: null,
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: null,
-              bindValue: ''
-            },
-            {
-              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
-              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-              type: 'INPUT',
-              name: 'endpointType',
-              dataType: 'string',
-              mappingType: 'system_variable',
-              mappingEntityExpression: null,
-              mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
-              required: 'Y',
-              sensitiveData: null,
-              bindValue: ''
-            },
-            {
-              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
-              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-              type: 'INPUT',
-              name: 'guid',
-              dataType: 'string',
-              mappingType: 'entity',
-              mappingEntityExpression: 'wecmdb:resource_instance.id',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: null,
-              bindValue: ''
-            },
-            {
-              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
-              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-              type: 'INPUT',
-              name: 'runAs',
-              dataType: 'string',
-              mappingType: 'constant',
-              mappingEntityExpression: null,
-              mappingSystemVariableName: null,
-              required: 'N',
-              sensitiveData: null,
-              bindValue: ''
-            },
-            {
-              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
-              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-              type: 'INPUT',
-              name: 'scriptContent',
-              dataType: 'string',
-              mappingType: 'constant',
-              mappingEntityExpression: null,
-              mappingSystemVariableName: null,
-              required: 'N',
-              sensitiveData: null,
-              bindValue: ''
-            },
-            {
-              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
-              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-              type: 'INPUT',
-              name: 'target',
-              dataType: 'string',
-              mappingType: 'entity',
-              mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
-              mappingSystemVariableName: null,
-              required: 'Y',
-              sensitiveData: null,
-              bindValue: ''
-            }
-          ]
+          pluginName: '',
+          pluginParams: []
         },
         requestBody: {
-          packageName: 'wecmdb',
-          entityName: 'resource_instance',
-          dataModelExpression: 'wecmdb:resource_instance',
-          searchParameters: [],
-          pluginConfigInterface: {
-            id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-            pluginConfigId: 'saltstack__v1.8.1__host-script',
-            action: 'runCustomScript',
-            serviceName: 'saltstack/host-script/runCustomScript',
-            serviceDisplayName: 'saltstack/host-script/runCustomScript',
-            path: '/saltstack/v1/host-script/run',
-            httpMethod: '',
-            isAsyncProcessing: 'N',
-            inputParameters: [
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'args',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'endpoint',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'endpointType',
-                dataType: 'string',
-                mappingType: 'system_variable',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'guid',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.id',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'runAs',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'scriptContent',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'target',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              }
-            ],
-            outputParameters: [
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorCode',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'OUTPUT',
-                name: 'errorCode',
-                dataType: 'string',
-                mappingType: 'context',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorMessage',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'OUTPUT',
-                name: 'errorMessage',
-                dataType: 'string',
-                mappingType: 'context',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__guid',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'OUTPUT',
-                name: 'guid',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.id',
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null
-              }
-            ]
-          },
-          inputParameterDefinitions: [
-            {
-              inputParameter: {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'args',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: ''
-            },
-            {
-              inputParameter: {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'endpoint',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: ''
-            },
-            {
-              inputParameter: {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'endpointType',
-                dataType: 'string',
-                mappingType: 'system_variable',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: null
-            },
-            {
-              inputParameter: {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'guid',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.id',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: null
-            },
-            {
-              inputParameter: {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'runAs',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: ''
-            },
-            {
-              inputParameter: {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'scriptContent',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: ''
-            },
-            {
-              inputParameter: {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'target',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              inputParameterValue: null
-            }
-          ],
-          businessKeyAttribute: {
-            id: 'wecmdb__8__resource_instance__key_name',
-            pluginPackageAttribute: null,
-            name: 'key_name',
-            description: '唯一名称',
-            dataType: 'str',
-            key: 'wecmdbresource_instance0',
-            index: 0,
-            title: 'key_name',
-            entityName: 'resource_instance',
-            packageName: 'wecmdb',
-            nodeKey: 15
-          },
-          resourceDatas: [
-            {
-              id: '0015_0000000013',
-              businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.10'
-            }
-          ]
+          searchParameters: []
         },
-        executeResult: {
-          'GZP4_SF_CS_APP_10.128.36.10': {
-            errorCode: '1',
-            result: {
-              errorCode: '1',
-              errorMessage:
-                'Plugin call error: salt api:no target match ,please check if salt-agent installed on target,reqeust={local ipcidr 10.128.36.10 cmd.script [salt://base/script-291326910] false}'
-            }
-          }
+        filterBusinessKeySet: []
+      },
+      activeExecuteHistory: {
+        plugin: {
+          pluginName: '',
+          pluginParams: []
         },
-        filterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.10']
+        requestBody: {
+          searchParameters: []
+        },
+        filterBusinessKeySet: []
       },
-      executeHistory: [
-        {
-          id: '2020-03-16 07:05:26',
-          plugin: {
-            pluginName: 'saltstack/host-script/runCustomScript',
-            pluginParams: [
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'args',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'endpoint',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'endpointType',
-                dataType: 'string',
-                mappingType: 'system_variable',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'guid',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.id',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'runAs',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'scriptContent',
-                dataType: 'string',
-                mappingType: 'constant',
-                mappingEntityExpression: null,
-                mappingSystemVariableName: null,
-                required: 'N',
-                sensitiveData: null,
-                bindValue: ''
-              },
-              {
-                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
-                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                type: 'INPUT',
-                name: 'target',
-                dataType: 'string',
-                mappingType: 'entity',
-                mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
-                mappingSystemVariableName: null,
-                required: 'Y',
-                sensitiveData: null,
-                bindValue: ''
-              }
-            ]
-          },
-          requestBody: {
-            packageName: 'wecmdb',
-            entityName: 'resource_instance',
-            dataModelExpression: 'wecmdb:resource_instance',
-            searchParameters: [],
-            pluginConfigInterface: {
-              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-              pluginConfigId: 'saltstack__v1.8.1__host-script',
-              action: 'runCustomScript',
-              serviceName: 'saltstack/host-script/runCustomScript',
-              serviceDisplayName: 'saltstack/host-script/runCustomScript',
-              path: '/saltstack/v1/host-script/run',
-              httpMethod: '',
-              isAsyncProcessing: 'N',
-              inputParameters: [
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'args',
-                  dataType: 'string',
-                  mappingType: 'constant',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'endpoint',
-                  dataType: 'string',
-                  mappingType: 'constant',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'endpointType',
-                  dataType: 'string',
-                  mappingType: 'system_variable',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'guid',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.id',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'runAs',
-                  dataType: 'string',
-                  mappingType: 'constant',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'scriptContent',
-                  dataType: 'string',
-                  mappingType: 'constant',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'target',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                }
-              ],
-              outputParameters: [
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorCode',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'OUTPUT',
-                  name: 'errorCode',
-                  dataType: 'string',
-                  mappingType: 'context',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null
-                },
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorMessage',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'OUTPUT',
-                  name: 'errorMessage',
-                  dataType: 'string',
-                  mappingType: 'context',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null
-                },
-                {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__guid',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'OUTPUT',
-                  name: 'guid',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.id',
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null
-                }
-              ]
-            },
-            inputParameterDefinitions: [
-              {
-                inputParameter: {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'args',
-                  dataType: 'string',
-                  mappingType: 'constant',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: ''
-              },
-              {
-                inputParameter: {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'endpoint',
-                  dataType: 'string',
-                  mappingType: 'constant',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: ''
-              },
-              {
-                inputParameter: {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'endpointType',
-                  dataType: 'string',
-                  mappingType: 'system_variable',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: null
-              },
-              {
-                inputParameter: {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'guid',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.id',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: null
-              },
-              {
-                inputParameter: {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'runAs',
-                  dataType: 'string',
-                  mappingType: 'constant',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: ''
-              },
-              {
-                inputParameter: {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'scriptContent',
-                  dataType: 'string',
-                  mappingType: 'constant',
-                  mappingEntityExpression: null,
-                  mappingSystemVariableName: null,
-                  required: 'N',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: ''
-              },
-              {
-                inputParameter: {
-                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
-                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
-                  type: 'INPUT',
-                  name: 'target',
-                  dataType: 'string',
-                  mappingType: 'entity',
-                  mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
-                  mappingSystemVariableName: null,
-                  required: 'Y',
-                  sensitiveData: null,
-                  bindValue: ''
-                },
-                inputParameterValue: null
-              }
-            ],
-            businessKeyAttribute: {
-              id: 'wecmdb__8__resource_instance__key_name',
-              pluginPackageAttribute: null,
-              name: 'key_name',
-              description: '唯一名称',
-              dataType: 'str',
-              key: 'wecmdbresource_instance0',
-              index: 0,
-              title: 'key_name',
-              entityName: 'resource_instance',
-              packageName: 'wecmdb',
-              nodeKey: 15
-            },
-            resourceDatas: [
-              {
-                id: '0015_0000000013',
-                businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.10'
-              }
-            ]
-          },
-          executeResult: {
-            'GZP4_SF_CS_APP_10.128.36.10': {
-              errorCode: '1',
-              result: {
-                errorCode: '1',
-                errorMessage:
-                  'Plugin call error: salt api:no target match ,please check if salt-agent installed on target,reqeust={local ipcidr 10.128.36.10 cmd.script [salt://base/script-291326910] false}'
-              }
-            }
-          },
-          filterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.10']
-        }
-      ],
-      catchExecuteResult: {
-        'GZP4_SF_CS_APP_10.128.36.10': {
-          errorCode: '1',
-          result: {
-            errorCode: '1',
-            errorMessage:
-              'Plugin call error: salt api:no target match ,please check if salt-agent installed on target,reqeust={local ipcidr 10.128.36.10 cmd.script [salt://base/script-291326910] false}'
-          }
-        }
-      },
-      catchFilterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.10'],
+      executeHistory: [],
+      catchExecuteResult: {},
+      catchFilterBusinessKeySet: [],
       filterParams: null,
       filterType: 'str',
       filterTypeList: [
@@ -1322,8 +560,7 @@ export default {
   },
   watch: {
     dataModelExpression: async function (val) {
-      console.log(val)
-      if (val === ':') {
+      if (val === ':' || !val) {
         return
       }
       const params = {
@@ -1367,6 +604,7 @@ export default {
       this.filterParams = null
       this.businessKey = null
       if (!val) {
+        this.activeExecuteHistory = this.defaultActiveExecuteHistory
         this.catchExecuteResult = {}
         this.catchFilterBusinessKeySet = []
         this.dataModelExpression = ':'
@@ -1392,6 +630,11 @@ export default {
         }
       })
     }
+    // selectedCollectionId: function (val) {
+    //   if (!val) {
+    //     this.activeExecuteHistory = this.defaultActiveExecuteHistory
+    //   }
+    // }
   },
   methods: {
     changeCollections (id) {
@@ -1406,8 +649,6 @@ export default {
       this.activeExecuteHistory = JSON.parse(this.selectedCollection.data)
       this.activeExecuteHistory.executeResult = null
       this.activeExecuteHistory.filterBusinessKeySet = []
-      console.log(this.selectedCollection)
-      console.log(this.activeExecuteHistory)
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
@@ -1442,7 +683,6 @@ export default {
     openAddCollectionModal (key) {
       this.isAddCollect = true
       this.toBeCollectedParams = key
-      console.log(key)
       this.getRoleList()
       this.getRolesByCurrentUser()
       this.MGMT = []
@@ -1471,11 +711,11 @@ export default {
         if (direction === 'right') {
           addCollectionsRole(this.selectedCollection.favoritesId, params)
         } else {
-          // if (newTargetKeys.length === 0) {
-          //   this.$Message.warning('属主角色不能为空！')
-          // } else {
-          deleteCollectionsRole(this.selectedCollection.favoritesId, params)
-          // }
+          if (newTargetKeys.length === 0) {
+            this.$Message.warning('属主角色不能为空！')
+          } else {
+            deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          }
         }
       }
 
@@ -1483,7 +723,7 @@ export default {
     },
     handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
       if (this.isAddCollect) {
-        this.MGMT = newTargetKeys
+        this.USE = newTargetKeys
       } else {
         let params = {
           permission: 'use',
@@ -1542,16 +782,12 @@ export default {
             requestBody
           })
         }
-        console.log(params)
         const { status } = await saveBatchExecution(params)
         if (status === 'OK') {
           this.collectionRoleManageModal = false
         }
       } else {
-        console.log(this.selectedCollection)
         let params = JSON.parse(JSON.stringify(this.selectedCollection))
-        console.log(this.selectedCollection)
-        console.log(params)
         params.permissionToRole.MGMT = this.MGMT
         params.permissionToRole.USE = this.USE
         const { status } = await updateCollections(params)
@@ -1692,14 +928,10 @@ export default {
             displaySeqNo: i + 1
           }
         })
-        console.log(this.tableColumns)
-        console.log(11)
         this.entityData()
-        console.log(33)
       }
     },
     async entityData () {
-      console.log(22)
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
@@ -1735,7 +967,6 @@ export default {
           }
         }
       })
-      console.log(requestParameter)
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
         if (data.length) {
@@ -1746,7 +977,6 @@ export default {
           this.$Message.warning(this.$t('bc_warn_empty'))
         }
       }
-      console.log(data)
     },
     clearParametes () {
       this.searchParameters.forEach(item => {
