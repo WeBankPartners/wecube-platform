@@ -27,9 +27,11 @@
           </Form>
         </div>
         <div class="search-btn">
-          <Button type="primary" @click="excuteSearch">{{ $t('bc_execute_query') }}</Button>
+          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch">{{
+            $t('bc_execute_query')
+          }}</Button>
           <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
-          <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
+          <Button @click="resetParametes">{{ $t('bc_set_condition') }}</Button>
         </div>
       </Card>
       <div v-else>
@@ -64,24 +66,72 @@
       </div>
     </section>
     <!-- v-if="executeHistory.length" -->
+    {{ dataModelExpression }}
     <section v-if="executeHistory.length" class="execute-history">
       <Row>
-        <Col span="4" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
-          <h6 style="margin: 8px">
-            <span>{{ $t('bc_history_record') }} </span>
-          </h6>
-          <ul>
-            <li
-              @click="changeActiveExecuteHistory(keyIndex)"
-              :class="[activeExecuteHistoryKey === keyIndex ? 'active-key' : '', 'business-key']"
-              v-for="(key, keyIndex) in executeHistory"
-              :key="keyIndex"
-            >
-              <span>{{ keyIndex }}、{{ key.id }}</span>
-            </li>
-          </ul>
+        <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
+          <div style="height:88px;padding: 8px;border-bottom:1px solid #e8eaec">
+            <Form label-position="top" label-colon>
+              <FormItem>
+                <span slot="label" style="font-weight:500">收藏列表:</span>
+                <Select
+                  clearable
+                  @on-clear="selectedCollectionId = null"
+                  v-model="selectedCollectionId"
+                  @on-open-change="getAllCollections"
+                  @on-change="changeCollections"
+                  filterable
+                >
+                  <Option
+                    v-for="item in allCollections"
+                    :value="item.favoritesId"
+                    :key="item.favoritesId"
+                    :label="item.collectionName"
+                  >
+                    <span>{{ item.collectionName }}</span>
+                    <span style="float:right">
+                      <Button
+                        icon="ios-trash"
+                        type="error"
+                        size="small"
+                        @click="showDeleteConfirm(item.favoritesId, item.collectionName)"
+                      ></Button>
+                    </span>
+                    <span style="float:right;margin-right: 10px">
+                      <Button
+                        icon="ios-build"
+                        type="primary"
+                        @click="openEditCollectionModal(item)"
+                        size="small"
+                      ></Button>
+                    </span>
+                  </Option>
+                </Select>
+              </FormItem>
+            </Form>
+          </div>
+          <div>
+            <h6 style="margin: 8px">
+              <span>{{ $t('bc_history_record') }} </span>
+            </h6>
+            <ul>
+              <li
+                @click="changeActiveExecuteHistory(keyIndex)"
+                :class="[activeExecuteHistoryKey === keyIndex ? 'active-key' : '', 'business-key']"
+                v-for="(key, keyIndex) in executeHistory"
+                :key="keyIndex"
+              >
+                <span>
+                  {{ keyIndex }}、{{ key.id }}
+                  <Button style="margin-left: 8px" @click="openAddCollectionModal(key)" size="small">
+                    收藏
+                  </Button>
+                </span>
+              </li>
+            </ul>
+          </div>
         </Col>
-        <Col v-if="activeExecuteHistory" :span="isShowHistoryMenu ? 20 : 24" class="res res-content">
+        <Col v-if="activeExecuteHistory" :span="isShowHistoryMenu ? 19 : 24" class="res res-content">
           <Icon
             :style="isShowHistoryMenu ? '' : 'transform: rotate(90deg);'"
             class="history-record-menu"
@@ -89,7 +139,7 @@
             @click="isShowHistoryMenu = !isShowHistoryMenu"
           />
           <div class="res-content-step">
-            <Steps :current="3">
+            <Steps :current="5">
               <Step :title="$t('bc_query_conditions')">
                 <div slot="content">
                   <Tooltip :max-width="500">
@@ -134,9 +184,32 @@
                   <Button size="small" @click="changePlugin" type="primary" ghost>{{ $t('bc_change_plugin') }}</Button>
                 </div>
               </Step>
+              <Step title="执行参数" content="">
+                <div slot="content">
+                  <Tooltip :max-width="500">
+                    <Icon type="ios-information-circle-outline" />
+                    <div slot="content" style="width:200px">
+                      <ul>
+                        <li v-for="(item, index) in activeExecuteHistory.plugin.pluginParams" :key="index">
+                          <span v-if="item.mappingType === 'constant'"> {{ item.name }}: {{ item.bindValue }} </span>
+                          <span v-else>{{
+                            item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system')
+                          }}</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </Tooltip>
+                  <Button size="small" type="primary" @click="setPluginParamsModal = true" ghost>补充参数</Button>
+                </div>
+              </Step>
+              <Step title="执行" content="">
+                <div slot="content">
+                  <Button size="small" @click="executeAgain" type="primary" ghost>执行</Button>
+                </div>
+              </Step>
             </Steps>
           </div>
-          <div v-if="activeExecuteHistory" class="res-content-params">
+          <!-- <div v-if="activeExecuteHistory" class="res-content-params">
             <Form label-position="right" :label-width="100">
               <Row>
                 <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
@@ -146,12 +219,10 @@
                     </FormItem>
                   </Col>
                 </template>
-                <Col :span="executeAgainBtnSpan">
                   <Button type="primary" style="float:right" @click="executeAgain">{{ $t('bc_execute') }}</Button>
-                </Col>
               </Row>
             </Form>
-          </div>
+          </div> -->
           <div class="res-content-result">
             <Row>
               <Col span="6" class="excute-result excute-result-search">
@@ -168,14 +239,29 @@
                     v-for="(key, keyIndex) in catchFilterBusinessKeySet"
                     :key="keyIndex"
                   >
-                    <!-- activeExecuteHistory.executeResult[key].errorCode === '1' ? 'error-key' : '' -->
                     <span>{{ key }}</span>
                   </li>
                 </ul>
                 <p v-else>No Data</p>
               </Col>
               <Col span="18" class="excute-result excute-result-json">
-                <Input v-model="filterParams" placeholder="Filter result, e.g :error or /[0-9]+/" />
+                <Row>
+                  <Col span="4">
+                    <Select v-model="filterType" @on-change="filterTypeChange">
+                      <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{
+                        item.label
+                      }}</Option>
+                    </Select>
+                  </Col>
+                  <Col span="17">
+                    <Input v-model="filterParams" placeholder="Filter result, e.g :error or /[0-9]+/" />
+                  </Col>
+                  <Col span="2" offset="1">
+                    <Button type="primary" @click="filterResult">
+                      {{ $t('search') }}
+                    </Button>
+                  </Col>
+                </Row>
                 <div>
                   <pre
                     style="min-height: 300px;"
@@ -270,6 +356,22 @@
       </div>
     </Modal>
 
+    <Modal v-model="setPluginParamsModal" :title="$t('bc_batch_operation')">
+      <Form label-position="right" :label-width="150" v-if="!!activeExecuteHistory.plugin">
+        <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
+          <FormItem :label="item.name" :key="index">
+            <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
+            <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
+          </FormItem>
+        </template>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" @click="executeAgain">
+          {{ $t('confirm') }}
+        </Button>
+      </div>
+    </Modal>
+
     <Modal v-model="DelConfig.isDisplay" width="360">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="ios-information-circle"></Icon>
@@ -280,6 +382,39 @@
       </div>
       <div slot="footer">
         <Button type="warning" size="large" long @click="del">{{ $t('bc_continue') }}</Button>
+      </div>
+    </Modal>
+
+    <Modal v-model="collectionRoleManageModal" width="700" :title="$t('edit_role')" :mask-closable="false">
+      <div v-if="editCollectionName" style="margin-bottom:8px;">
+        <span style="font-weight: 500;">收藏名称：</span>
+        <Input v-model="collectionName" style="width:35%"></Input>
+      </div>
+      <div>
+        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRoles"
+          :target-keys="MGMT"
+          @on-change="handleMgmtRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div style="margin-top: 30px">
+        <div class="role-transfer-title">{{ $t('use_role') }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRolesBackUp"
+          :target-keys="USE"
+          @on-change="handleUseRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div slot="footer">
+        <Button @click="collectionRoleManageModal = false">{{ $t('bc_cancle') }}</Button>
+        <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
@@ -293,7 +428,15 @@ import {
   dmeIntegratedQuery,
   entityView,
   getFilteredPluginInterfaceList,
-  batchExecution
+  batchExecution,
+  getAllCollections,
+  deleteCollections,
+  getRoleList,
+  getRolesByCurrentUser,
+  deleteCollectionsRole,
+  addCollectionsRole,
+  saveBatchExecution,
+  updateCollections
 } from '@/api/server.js'
 
 export default {
@@ -339,6 +482,8 @@ export default {
       allPlugins: [],
       filteredPlugins: [],
 
+      setPluginParamsModal: false,
+
       isShowHistoryMenu: true,
       executeResult: {},
       filterBusinessKeySet: [],
@@ -346,500 +491,825 @@ export default {
       businessKey: '',
 
       activeExecuteHistoryKey: 0,
-      activeExecuteHistory: {},
-      executeHistory: [],
-      catchExecuteResult: {},
-      catchFilterBusinessKeySet: [],
-      // activeExecuteHistory: {
-      //   id: '2020-03-10 16:26:08',
-      //   plugin: {
-      //     pluginName: 'qcloud/vm/stop',
-      //     pluginParams: [
-      //       {
-      //         id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-      //         pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //         type: 'INPUT',
-      //         name: 'guid',
-      //         dataType: 'string',
-      //         mappingType: 'entity',
-      //         mappingEntityExpression: 'wecmdb:resource_instance.id',
-      //         mappingSystemVariableName: null,
-      //         required: 'Y',
-      //         sensitiveData: null,
-      //         bindValue: ''
-      //       },
-      //       {
-      //         id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-      //         pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //         type: 'INPUT',
-      //         name: 'id',
-      //         dataType: 'string',
-      //         mappingType: 'entity',
-      //         mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-      //         mappingSystemVariableName: null,
-      //         required: 'Y',
-      //         sensitiveData: null,
-      //         bindValue: ''
-      //       },
-      //       {
-      //         id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-      //         pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //         type: 'INPUT',
-      //         name: 'provider_params',
-      //         dataType: 'string',
-      //         mappingType: 'entity',
-      //         mappingEntityExpression:
-      //           'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-      //         mappingSystemVariableName: null,
-      //         required: 'Y',
-      //         sensitiveData: null,
-      //         bindValue: ''
-      //       }
-      //     ]
-      //   },
-      //   requestBody: {
-      //     packageName: 'wecmdb',
-      //     entityName: 'resource_instance',
-      //     dataModelExpression: 'wecmdb:resource_instance',
-      //     searchParameters: [],
-      //     pluginConfigInterface: {
-      //       id: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //       pluginConfigId: 'qcloud__v1.8.1__vm',
-      //       action: 'stop',
-      //       serviceName: 'qcloud/vm/stop',
-      //       serviceDisplayName: 'qcloud/vm/stop',
-      //       path: '/qcloud/v1/vm/stop',
-      //       httpMethod: '',
-      //       isAsyncProcessing: 'N',
-      //       inputParameters: [
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'guid',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression: 'wecmdb:resource_instance.id',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         },
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'id',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         },
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'provider_params',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression:
-      //             'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         }
-      //       ],
-      //       outputParameters: [
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__errorCode',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'OUTPUT',
-      //           name: 'errorCode',
-      //           dataType: 'string',
-      //           mappingType: 'context',
-      //           mappingEntityExpression: null,
-      //           mappingSystemVariableName: null,
-      //           required: 'N',
-      //           sensitiveData: null
-      //         },
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__errorMessage',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'OUTPUT',
-      //           name: 'errorMessage',
-      //           dataType: 'string',
-      //           mappingType: 'context',
-      //           mappingEntityExpression: null,
-      //           mappingSystemVariableName: null,
-      //           required: 'N',
-      //           sensitiveData: null
-      //         },
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__guid',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'OUTPUT',
-      //           name: 'guid',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression: 'wecmdb:resource_instance.id',
-      //           mappingSystemVariableName: null,
-      //           required: 'N',
-      //           sensitiveData: null
-      //         }
-      //       ]
-      //     },
-      //     inputParameterDefinitions: [
-      //       {
-      //         inputParameter: {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'guid',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression: 'wecmdb:resource_instance.id',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         },
-      //         inputParameterValue: null
-      //       },
-      //       {
-      //         inputParameter: {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'id',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         },
-      //         inputParameterValue: null
-      //       },
-      //       {
-      //         inputParameter: {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'provider_params',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression:
-      //             'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         },
-      //         inputParameterValue: null
-      //       }
-      //     ],
-      //     businessKeyAttribute: {
-      //       id: 'wecmdb__8__resource_instance__key_name',
-      //       pluginPackageAttribute: null,
-      //       name: 'key_name',
-      //       description: '唯一名称',
-      //       dataType: 'str',
-      //       key: 'wecmdbresource_instance0',
-      //       index: 0,
-      //       title: 'key_name',
-      //       entityName: 'resource_instance',
-      //       packageName: 'wecmdb',
-      //       nodeKey: 15
-      //     },
-      //     resourceDatas: [
-      //       {
-      //         id: '0015_0000000013',
-      //         businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.10'
-      //       },
-      //       {
-      //         id: '0015_0000000014',
-      //         businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.11'
-      //       }
-      //     ]
-      //   },
-      //   executeResult: {
-      //     'GZP4_SF_CS_APP_10.128.36.11': {
-      //       errorCode: '1',
-      //       result: {
-      //         errorCode: '1',
-      //         errorMessage: 'this is response one'
-      //       }
-      //     },
-      //     'GZP4_SF_CS_APP_10.128.36.10': {
-      //       errorCode: '1',
-      //       result: {
-      //         errorCode: '1',
-      //         errorMessage: 'this is response two'
-      //       }
-      //     }
-      //   },
-      //   filterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.11', 'GZP4_SF_CS_APP_10.128.36.10']
-      // },
-      // executeHistory: [
-      //   {
-      //     id: '2020-03-10 16:26:08',
-      //     plugin: {
-      //       pluginName: 'qcloud/vm/stop',
-      //       pluginParams: [
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'guid',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression: 'wecmdb:resource_instance.id',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         },
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'id',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         },
-      //         {
-      //           id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-      //           pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //           type: 'INPUT',
-      //           name: 'provider_params',
-      //           dataType: 'string',
-      //           mappingType: 'entity',
-      //           mappingEntityExpression:
-      //             'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-      //           mappingSystemVariableName: null,
-      //           required: 'Y',
-      //           sensitiveData: null,
-      //           bindValue: ''
-      //         }
-      //       ]
-      //     },
-      //     requestBody: {
-      //       packageName: 'wecmdb',
-      //       entityName: 'resource_instance',
-      //       dataModelExpression: 'wecmdb:resource_instance',
-      //       searchParameters: [],
-      //       pluginConfigInterface: {
-      //         id: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //         pluginConfigId: 'qcloud__v1.8.1__vm',
-      //         action: 'stop',
-      //         serviceName: 'qcloud/vm/stop',
-      //         serviceDisplayName: 'qcloud/vm/stop',
-      //         path: '/qcloud/v1/vm/stop',
-      //         httpMethod: '',
-      //         isAsyncProcessing: 'N',
-      //         inputParameters: [
-      //           {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'INPUT',
-      //             name: 'guid',
-      //             dataType: 'string',
-      //             mappingType: 'entity',
-      //             mappingEntityExpression: 'wecmdb:resource_instance.id',
-      //             mappingSystemVariableName: null,
-      //             required: 'Y',
-      //             sensitiveData: null,
-      //             bindValue: ''
-      //           },
-      //           {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'INPUT',
-      //             name: 'id',
-      //             dataType: 'string',
-      //             mappingType: 'entity',
-      //             mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-      //             mappingSystemVariableName: null,
-      //             required: 'Y',
-      //             sensitiveData: null,
-      //             bindValue: ''
-      //           },
-      //           {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'INPUT',
-      //             name: 'provider_params',
-      //             dataType: 'string',
-      //             mappingType: 'entity',
-      //             mappingEntityExpression:
-      //               'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-      //             mappingSystemVariableName: null,
-      //             required: 'Y',
-      //             sensitiveData: null,
-      //             bindValue: ''
-      //           }
-      //         ],
-      //         outputParameters: [
-      //           {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__errorCode',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'OUTPUT',
-      //             name: 'errorCode',
-      //             dataType: 'string',
-      //             mappingType: 'context',
-      //             mappingEntityExpression: null,
-      //             mappingSystemVariableName: null,
-      //             required: 'N',
-      //             sensitiveData: null
-      //           },
-      //           {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__errorMessage',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'OUTPUT',
-      //             name: 'errorMessage',
-      //             dataType: 'string',
-      //             mappingType: 'context',
-      //             mappingEntityExpression: null,
-      //             mappingSystemVariableName: null,
-      //             required: 'N',
-      //             sensitiveData: null
-      //           },
-      //           {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__OUTPUT__guid',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'OUTPUT',
-      //             name: 'guid',
-      //             dataType: 'string',
-      //             mappingType: 'entity',
-      //             mappingEntityExpression: 'wecmdb:resource_instance.id',
-      //             mappingSystemVariableName: null,
-      //             required: 'N',
-      //             sensitiveData: null
-      //           }
-      //         ]
-      //       },
-      //       inputParameterDefinitions: [
-      //         {
-      //           inputParameter: {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__guid',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'INPUT',
-      //             name: 'guid',
-      //             dataType: 'string',
-      //             mappingType: 'entity',
-      //             mappingEntityExpression: 'wecmdb:resource_instance.id',
-      //             mappingSystemVariableName: null,
-      //             required: 'Y',
-      //             sensitiveData: null,
-      //             bindValue: ''
-      //           },
-      //           inputParameterValue: null
-      //         },
-      //         {
-      //           inputParameter: {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__id',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'INPUT',
-      //             name: 'id',
-      //             dataType: 'string',
-      //             mappingType: 'entity',
-      //             mappingEntityExpression: 'wecmdb:resource_instance.asset_code',
-      //             mappingSystemVariableName: null,
-      //             required: 'Y',
-      //             sensitiveData: null,
-      //             bindValue: ''
-      //           },
-      //           inputParameterValue: null
-      //         },
-      //         {
-      //           inputParameter: {
-      //             id: 'qcloud__v1.8.1__vm__stop__resource_instance__INPUT__provider_params',
-      //             pluginConfigInterfaceId: 'qcloud__v1.8.1__vm__stop__resource_instance',
-      //             type: 'INPUT',
-      //             name: 'provider_params',
-      //             dataType: 'string',
-      //             mappingType: 'entity',
-      //             mappingEntityExpression:
-      //               'wecmdb:resource_instance.resource_set>wecmdb:resource_set.business_zone>wecmdb:business_zone.network_zone>wecmdb:network_zone.data_center>wecmdb:data_center.auth_parameter',
-      //             mappingSystemVariableName: null,
-      //             required: 'Y',
-      //             sensitiveData: null,
-      //             bindValue: ''
-      //           },
-      //           inputParameterValue: null
-      //         }
-      //       ],
-      //       businessKeyAttribute: {
-      //         id: 'wecmdb__8__resource_instance__key_name',
-      //         pluginPackageAttribute: null,
-      //         name: 'key_name',
-      //         description: '唯一名称',
-      //         dataType: 'str',
-      //         key: 'wecmdbresource_instance0',
-      //         index: 0,
-      //         title: 'key_name',
-      //         entityName: 'resource_instance',
-      //         packageName: 'wecmdb',
-      //         nodeKey: 15
-      //       },
-      //       resourceDatas: [
-      //         {
-      //           id: '0015_0000000013',
-      //           businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.10'
-      //         },
-      //         {
-      //           id: '0015_0000000014',
-      //           businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.11'
-      //         }
-      //       ]
-      //     },
-      //     executeResult: {
-      //       'GZP4_SF_CS_APP_10.128.36.11': {
-      //         errorCode: '1',
-      //         result: {
-      //           errorCode: '1',
-      //           errorMessage: 'this is response one'
-      //         }
-      //       },
-      //       'GZP4_SF_CS_APP_10.128.36.10': {
-      //         errorCode: '1',
-      //         result: {
-      //           errorCode: '1',
-      //           errorMessage: 'this is response two'
-      //         }
-      //       }
-      //     },
-      //     filterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.11', 'GZP4_SF_CS_APP_10.128.36.10']
-      //   }
-      // ],
-      // catchExecuteResult: {
-      //   'GZP4_SF_CS_APP_10.128.36.11': {
-      //     errorCode: '1',
-      //     result: {
-      //       errorCode: '1',
-      //       errorMessage: 'this is response one'
-      //     }
-      //   },
-      //   'GZP4_SF_CS_APP_10.128.36.10': {
-      //     errorCode: '1',
-      //     result: {
-      //       errorCode: '1',
-      //       errorMessage: 'this is response two'
-      //     }
-      //   }
-      // },
-      // catchFilterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.11', 'GZP4_SF_CS_APP_10.128.36.10'],
-      filterParams: null
+      // activeExecuteHistory: null,
+      // executeHistory: [],
+      // catchExecuteResult: {},
+      // catchFilterBusinessKeySet: [],
+      activeExecuteHistory: {
+        id: '2020-03-16 07:05:26',
+        plugin: {
+          pluginName: 'saltstack/host-script/runCustomScript',
+          pluginParams: [
+            {
+              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
+              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+              type: 'INPUT',
+              name: 'args',
+              dataType: 'string',
+              mappingType: 'constant',
+              mappingEntityExpression: null,
+              mappingSystemVariableName: null,
+              required: 'N',
+              sensitiveData: null,
+              bindValue: ''
+            },
+            {
+              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
+              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+              type: 'INPUT',
+              name: 'endpoint',
+              dataType: 'string',
+              mappingType: 'constant',
+              mappingEntityExpression: null,
+              mappingSystemVariableName: null,
+              required: 'Y',
+              sensitiveData: null,
+              bindValue: ''
+            },
+            {
+              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
+              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+              type: 'INPUT',
+              name: 'endpointType',
+              dataType: 'string',
+              mappingType: 'system_variable',
+              mappingEntityExpression: null,
+              mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
+              required: 'Y',
+              sensitiveData: null,
+              bindValue: ''
+            },
+            {
+              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
+              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+              type: 'INPUT',
+              name: 'guid',
+              dataType: 'string',
+              mappingType: 'entity',
+              mappingEntityExpression: 'wecmdb:resource_instance.id',
+              mappingSystemVariableName: null,
+              required: 'Y',
+              sensitiveData: null,
+              bindValue: ''
+            },
+            {
+              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
+              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+              type: 'INPUT',
+              name: 'runAs',
+              dataType: 'string',
+              mappingType: 'constant',
+              mappingEntityExpression: null,
+              mappingSystemVariableName: null,
+              required: 'N',
+              sensitiveData: null,
+              bindValue: ''
+            },
+            {
+              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
+              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+              type: 'INPUT',
+              name: 'scriptContent',
+              dataType: 'string',
+              mappingType: 'constant',
+              mappingEntityExpression: null,
+              mappingSystemVariableName: null,
+              required: 'N',
+              sensitiveData: null,
+              bindValue: ''
+            },
+            {
+              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
+              pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+              type: 'INPUT',
+              name: 'target',
+              dataType: 'string',
+              mappingType: 'entity',
+              mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
+              mappingSystemVariableName: null,
+              required: 'Y',
+              sensitiveData: null,
+              bindValue: ''
+            }
+          ]
+        },
+        requestBody: {
+          packageName: 'wecmdb',
+          entityName: 'resource_instance',
+          dataModelExpression: 'wecmdb:resource_instance',
+          searchParameters: [],
+          pluginConfigInterface: {
+            id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+            pluginConfigId: 'saltstack__v1.8.1__host-script',
+            action: 'runCustomScript',
+            serviceName: 'saltstack/host-script/runCustomScript',
+            serviceDisplayName: 'saltstack/host-script/runCustomScript',
+            path: '/saltstack/v1/host-script/run',
+            httpMethod: '',
+            isAsyncProcessing: 'N',
+            inputParameters: [
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'args',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'endpoint',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'endpointType',
+                dataType: 'string',
+                mappingType: 'system_variable',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'guid',
+                dataType: 'string',
+                mappingType: 'entity',
+                mappingEntityExpression: 'wecmdb:resource_instance.id',
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'runAs',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'scriptContent',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'target',
+                dataType: 'string',
+                mappingType: 'entity',
+                mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              }
+            ],
+            outputParameters: [
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorCode',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'OUTPUT',
+                name: 'errorCode',
+                dataType: 'string',
+                mappingType: 'context',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorMessage',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'OUTPUT',
+                name: 'errorMessage',
+                dataType: 'string',
+                mappingType: 'context',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__guid',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'OUTPUT',
+                name: 'guid',
+                dataType: 'string',
+                mappingType: 'entity',
+                mappingEntityExpression: 'wecmdb:resource_instance.id',
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null
+              }
+            ]
+          },
+          inputParameterDefinitions: [
+            {
+              inputParameter: {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'args',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              inputParameterValue: ''
+            },
+            {
+              inputParameter: {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'endpoint',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              inputParameterValue: ''
+            },
+            {
+              inputParameter: {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'endpointType',
+                dataType: 'string',
+                mappingType: 'system_variable',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              inputParameterValue: null
+            },
+            {
+              inputParameter: {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'guid',
+                dataType: 'string',
+                mappingType: 'entity',
+                mappingEntityExpression: 'wecmdb:resource_instance.id',
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              inputParameterValue: null
+            },
+            {
+              inputParameter: {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'runAs',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              inputParameterValue: ''
+            },
+            {
+              inputParameter: {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'scriptContent',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              inputParameterValue: ''
+            },
+            {
+              inputParameter: {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'target',
+                dataType: 'string',
+                mappingType: 'entity',
+                mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              inputParameterValue: null
+            }
+          ],
+          businessKeyAttribute: {
+            id: 'wecmdb__8__resource_instance__key_name',
+            pluginPackageAttribute: null,
+            name: 'key_name',
+            description: '唯一名称',
+            dataType: 'str',
+            key: 'wecmdbresource_instance0',
+            index: 0,
+            title: 'key_name',
+            entityName: 'resource_instance',
+            packageName: 'wecmdb',
+            nodeKey: 15
+          },
+          resourceDatas: [
+            {
+              id: '0015_0000000013',
+              businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.10'
+            }
+          ]
+        },
+        executeResult: {
+          'GZP4_SF_CS_APP_10.128.36.10': {
+            errorCode: '1',
+            result: {
+              errorCode: '1',
+              errorMessage:
+                'Plugin call error: salt api:no target match ,please check if salt-agent installed on target,reqeust={local ipcidr 10.128.36.10 cmd.script [salt://base/script-291326910] false}'
+            }
+          }
+        },
+        filterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.10']
+      },
+      executeHistory: [
+        {
+          id: '2020-03-16 07:05:26',
+          plugin: {
+            pluginName: 'saltstack/host-script/runCustomScript',
+            pluginParams: [
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'args',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'endpoint',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'endpointType',
+                dataType: 'string',
+                mappingType: 'system_variable',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'guid',
+                dataType: 'string',
+                mappingType: 'entity',
+                mappingEntityExpression: 'wecmdb:resource_instance.id',
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'runAs',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'scriptContent',
+                dataType: 'string',
+                mappingType: 'constant',
+                mappingEntityExpression: null,
+                mappingSystemVariableName: null,
+                required: 'N',
+                sensitiveData: null,
+                bindValue: ''
+              },
+              {
+                id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
+                pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                type: 'INPUT',
+                name: 'target',
+                dataType: 'string',
+                mappingType: 'entity',
+                mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
+                mappingSystemVariableName: null,
+                required: 'Y',
+                sensitiveData: null,
+                bindValue: ''
+              }
+            ]
+          },
+          requestBody: {
+            packageName: 'wecmdb',
+            entityName: 'resource_instance',
+            dataModelExpression: 'wecmdb:resource_instance',
+            searchParameters: [],
+            pluginConfigInterface: {
+              id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+              pluginConfigId: 'saltstack__v1.8.1__host-script',
+              action: 'runCustomScript',
+              serviceName: 'saltstack/host-script/runCustomScript',
+              serviceDisplayName: 'saltstack/host-script/runCustomScript',
+              path: '/saltstack/v1/host-script/run',
+              httpMethod: '',
+              isAsyncProcessing: 'N',
+              inputParameters: [
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'args',
+                  dataType: 'string',
+                  mappingType: 'constant',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'endpoint',
+                  dataType: 'string',
+                  mappingType: 'constant',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'Y',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'endpointType',
+                  dataType: 'string',
+                  mappingType: 'system_variable',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
+                  required: 'Y',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'guid',
+                  dataType: 'string',
+                  mappingType: 'entity',
+                  mappingEntityExpression: 'wecmdb:resource_instance.id',
+                  mappingSystemVariableName: null,
+                  required: 'Y',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'runAs',
+                  dataType: 'string',
+                  mappingType: 'constant',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'scriptContent',
+                  dataType: 'string',
+                  mappingType: 'constant',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'target',
+                  dataType: 'string',
+                  mappingType: 'entity',
+                  mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
+                  mappingSystemVariableName: null,
+                  required: 'Y',
+                  sensitiveData: null,
+                  bindValue: ''
+                }
+              ],
+              outputParameters: [
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorCode',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'OUTPUT',
+                  name: 'errorCode',
+                  dataType: 'string',
+                  mappingType: 'context',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null
+                },
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__errorMessage',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'OUTPUT',
+                  name: 'errorMessage',
+                  dataType: 'string',
+                  mappingType: 'context',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null
+                },
+                {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__OUTPUT__guid',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'OUTPUT',
+                  name: 'guid',
+                  dataType: 'string',
+                  mappingType: 'entity',
+                  mappingEntityExpression: 'wecmdb:resource_instance.id',
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null
+                }
+              ]
+            },
+            inputParameterDefinitions: [
+              {
+                inputParameter: {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__args',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'args',
+                  dataType: 'string',
+                  mappingType: 'constant',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                inputParameterValue: ''
+              },
+              {
+                inputParameter: {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpoint',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'endpoint',
+                  dataType: 'string',
+                  mappingType: 'constant',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'Y',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                inputParameterValue: ''
+              },
+              {
+                inputParameter: {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__endpointType',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'endpointType',
+                  dataType: 'string',
+                  mappingType: 'system_variable',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: 'SCRIPT_END_POINT_TYPE_USER_PARAM',
+                  required: 'Y',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                inputParameterValue: null
+              },
+              {
+                inputParameter: {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__guid',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'guid',
+                  dataType: 'string',
+                  mappingType: 'entity',
+                  mappingEntityExpression: 'wecmdb:resource_instance.id',
+                  mappingSystemVariableName: null,
+                  required: 'Y',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                inputParameterValue: null
+              },
+              {
+                inputParameter: {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__runAs',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'runAs',
+                  dataType: 'string',
+                  mappingType: 'constant',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                inputParameterValue: ''
+              },
+              {
+                inputParameter: {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__scriptContent',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'scriptContent',
+                  dataType: 'string',
+                  mappingType: 'constant',
+                  mappingEntityExpression: null,
+                  mappingSystemVariableName: null,
+                  required: 'N',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                inputParameterValue: ''
+              },
+              {
+                inputParameter: {
+                  id: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance__INPUT__target',
+                  pluginConfigInterfaceId: 'saltstack__v1.8.1__host-script__runCustomScript__resource_instance',
+                  type: 'INPUT',
+                  name: 'target',
+                  dataType: 'string',
+                  mappingType: 'entity',
+                  mappingEntityExpression: 'wecmdb:resource_instance.intranet_ip>wecmdb:ip_address.code',
+                  mappingSystemVariableName: null,
+                  required: 'Y',
+                  sensitiveData: null,
+                  bindValue: ''
+                },
+                inputParameterValue: null
+              }
+            ],
+            businessKeyAttribute: {
+              id: 'wecmdb__8__resource_instance__key_name',
+              pluginPackageAttribute: null,
+              name: 'key_name',
+              description: '唯一名称',
+              dataType: 'str',
+              key: 'wecmdbresource_instance0',
+              index: 0,
+              title: 'key_name',
+              entityName: 'resource_instance',
+              packageName: 'wecmdb',
+              nodeKey: 15
+            },
+            resourceDatas: [
+              {
+                id: '0015_0000000013',
+                businessKeyValue: 'GZP4_SF_CS_APP_10.128.36.10'
+              }
+            ]
+          },
+          executeResult: {
+            'GZP4_SF_CS_APP_10.128.36.10': {
+              errorCode: '1',
+              result: {
+                errorCode: '1',
+                errorMessage:
+                  'Plugin call error: salt api:no target match ,please check if salt-agent installed on target,reqeust={local ipcidr 10.128.36.10 cmd.script [salt://base/script-291326910] false}'
+              }
+            }
+          },
+          filterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.10']
+        }
+      ],
+      catchExecuteResult: {
+        'GZP4_SF_CS_APP_10.128.36.10': {
+          errorCode: '1',
+          result: {
+            errorCode: '1',
+            errorMessage:
+              'Plugin call error: salt api:no target match ,please check if salt-agent installed on target,reqeust={local ipcidr 10.128.36.10 cmd.script [salt://base/script-291326910] false}'
+          }
+        }
+      },
+      catchFilterBusinessKeySet: ['GZP4_SF_CS_APP_10.128.36.10'],
+      filterParams: null,
+      filterType: 'str',
+      filterTypeList: [
+        { label: this.$t('bc_filter_type_str'), value: 'str' },
+        { label: this.$t('bc_filter_type_regex'), value: 'regex' }
+      ],
+
+      selectedCollectionId: null,
+      selectedCollection: null,
+      allCollections: [],
+      collectionRoleManageModal: false,
+      editCollectionName: false,
+      collectionName: '',
+
+      isAddCollect: false,
+      toBeCollectedParams: null,
+      allRoles: [],
+      MGMT: [],
+      allRolesBackUp: [],
+      USE: [],
+      transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
+      transferStyle: { width: '300px' }
     }
   },
   mounted () {},
@@ -848,21 +1318,11 @@ export default {
       if (this.activeResultKey !== null) {
         return this.catchExecuteResult[this.activeResultKey]
       }
-    },
-    // businessKeyContent: function () {
-    //   if (this.activeResultKey !== null) {
-    //     return this.activeExecuteHistory.executeResult[this.activeResultKey]
-    //   }
-    // },
-    executeAgainBtnSpan: function () {
-      const paramsNum = this.activeExecuteHistory.plugin.pluginParams.filter(item => {
-        return item.mappingType === 'constant'
-      }).length
-      return 24 - (paramsNum % 3) * 8
     }
   },
   watch: {
     dataModelExpression: async function (val) {
+      console.log(val)
       if (val === ':') {
         return
       }
@@ -904,18 +1364,19 @@ export default {
       })
     },
     activeExecuteHistory: function (val) {
-      this.catchExecuteResult = val.executeResult
-      this.catchFilterBusinessKeySet = val.filterBusinessKeySet
       this.filterParams = null
       this.businessKey = null
+      if (!val) {
+        this.catchExecuteResult = {}
+        this.catchFilterBusinessKeySet = []
+        this.dataModelExpression = ':'
+        return
+      }
+      this.catchExecuteResult = val.executeResult
+      this.catchFilterBusinessKeySet = val.filterBusinessKeySet
+      this.dataModelExpression = val.requestBody.dataModelExpression
     },
     businessKey: function (val) {
-      // this.filterBusinessKeySet = []
-      // for (const key in this.executeResult) {
-      //   if (key.indexOf(this.businessKey) > -1) {
-      //     this.filterBusinessKeySet.push(key)
-      //   }
-      // }
       if (!val) {
         this.catchExecuteResult = this.activeExecuteHistory.executeResult
         this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
@@ -930,40 +1391,238 @@ export default {
           this.catchExecuteResult[key] = this.activeExecuteHistory.executeResult[key]
         }
       })
+    }
+  },
+  methods: {
+    changeCollections (id) {
+      this.activeExecuteHistoryKey = null
+      this.activeExecuteHistory = null
+      if (!id) {
+        return
+      }
+      this.selectedCollection = this.allCollections.find(_ => {
+        return _.favoritesId === id
+      })
+      this.activeExecuteHistory = JSON.parse(this.selectedCollection.data)
+      this.activeExecuteHistory.executeResult = null
+      this.activeExecuteHistory.filterBusinessKeySet = []
+      console.log(this.selectedCollection)
+      console.log(this.activeExecuteHistory)
     },
-    filterParams (val) {
-      console.log(val)
-      if (!val) {
+    async getRoleList () {
+      const { status, data } = await getRoleList()
+      if (status === 'OK') {
+        this.allRolesBackUp = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          }
+        })
+      }
+    },
+    async getRolesByCurrentUser () {
+      const { status, data } = await getRolesByCurrentUser()
+      if (status === 'OK') {
+        this.allRoles = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          }
+        })
+      }
+    },
+    async getAllCollections () {
+      const { status, data } = await getAllCollections()
+      if (status === 'OK') {
+        this.allCollections = data
+      }
+    },
+    openAddCollectionModal (key) {
+      this.isAddCollect = true
+      this.toBeCollectedParams = key
+      console.log(key)
+      this.getRoleList()
+      this.getRolesByCurrentUser()
+      this.MGMT = []
+      this.USE = []
+      this.collectionRoleManageModal = true
+      this.editCollectionName = true
+    },
+    openEditCollectionModal (collection) {
+      this.isAddCollect = false
+      this.selectedCollection = collection
+      this.getRoleList()
+      this.getRolesByCurrentUser()
+      this.MGMT = collection.permissionToRole.MGMT
+      this.USE = collection.permissionToRole.USE
+      this.collectionRoleManageModal = true
+      this.editCollectionName = false
+    },
+    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      if (this.isAddCollect) {
+        this.MGMT = newTargetKeys
+      } else {
+        let params = {
+          permission: 'mgmt',
+          roleId: moveKeys
+        }
+        if (direction === 'right') {
+          addCollectionsRole(this.selectedCollection.favoritesId, params)
+        } else {
+          // if (newTargetKeys.length === 0) {
+          //   this.$Message.warning('属主角色不能为空！')
+          // } else {
+          deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          // }
+        }
+      }
+
+      this.MGMT = newTargetKeys
+    },
+    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      if (this.isAddCollect) {
+        this.MGMT = newTargetKeys
+      } else {
+        let params = {
+          permission: 'use',
+          roleId: moveKeys
+        }
+        if (direction === 'right') {
+          addCollectionsRole(this.selectedCollection.favoritesId, params)
+        } else {
+          deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+        }
+      }
+      this.USE = newTargetKeys
+    },
+    async addCollectionsRole () {},
+    async deleteCollectionsRole () {},
+    showDeleteConfirm (id, name) {
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        content: name,
+        onOk: () => {
+          this.deleteCollection(id)
+        },
+        onCancel: () => {}
+      })
+    },
+    async deleteCollection (id) {
+      const { status, message } = await deleteCollections(id)
+      if (status === 'OK') {
+        this.selectedCollectionId = null
+        this.$Message.success(message)
+      }
+    },
+    async confirmCollection () {
+      if (!this.isAddCollect) {
+        this.collectionRoleManageModal = false
+        return
+      }
+      if (!this.MGMT.length) {
+        this.$Message.warning('属主角色不能为空！')
+        return
+      }
+      if (this.editCollectionName) {
+        if (!this.collectionName.trim()) {
+          this.$Message.warning('收藏名称不能为空！')
+          return
+        }
+        const { plugin, requestBody } = this.toBeCollectedParams
+        let params = {
+          collectionName: this.collectionName.trim(),
+          permissionToRole: {
+            MGMT: this.MGMT,
+            USE: this.USE
+          },
+          data: JSON.stringify({
+            plugin,
+            requestBody
+          })
+        }
+        console.log(params)
+        const { status } = await saveBatchExecution(params)
+        if (status === 'OK') {
+          this.collectionRoleManageModal = false
+        }
+      } else {
+        console.log(this.selectedCollection)
+        let params = JSON.parse(JSON.stringify(this.selectedCollection))
+        console.log(this.selectedCollection)
+        console.log(params)
+        params.permissionToRole.MGMT = this.MGMT
+        params.permissionToRole.USE = this.USE
+        const { status } = await updateCollections(params)
+        if (status === 'OK') {
+          this.collectionRoleManageModal = false
+        }
+      }
+    },
+
+    filterTypeChange () {
+      this.filterParams = null
+      this.catchExecuteResult = this.activeExecuteHistory.executeResult
+      this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+    },
+    filterResult () {
+      if (!this.filterParams) {
         this.catchExecuteResult = this.activeExecuteHistory.executeResult
         this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
         return
       }
       this.businessKey = null
-      this.catchFilterBusinessKeySet = []
-      this.catchExecuteResult = {}
-      this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
-        let tmp = JSON.stringify(this.activeExecuteHistory.executeResult[key])
-        if (tmp.indexOf(val) > -1) {
-          this.catchFilterBusinessKeySet.push(key)
-          const reg = new RegExp(val, 'g')
-          // let tempHistory = JSON.parse(tmp)
-          // for (let k in tempHistory.result) {
-          //   console.log(k)
-          //   console.log(tempHistory.result)
-          //   tempHistory.result[k] = tempHistory.result[k].replace(
-          //     reg,
-          //     "<span style='color:red'>" + val + '</span>'
-          //   )
-          // }
-          tmp = tmp.replace(reg, "<span style='color:red'>" + val + '</span>')
-          this.catchExecuteResult[key] = JSON.parse(tmp)
-          // this.catchExecuteResult[key] = tempHistory
+      this.$nextTick(() => {
+        this.catchFilterBusinessKeySet = []
+        this.catchExecuteResult = {}
+        if (this.filterType === 'str') {
+          this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+            let tmp = JSON.stringify(this.activeExecuteHistory.executeResult[key])
+            if (tmp.indexOf(this.filterParams) > -1) {
+              this.catchFilterBusinessKeySet.push(key)
+              const reg = new RegExp(this.filterParams, 'g')
+              tmp = tmp.replace(reg, "<span style='color:red'>" + this.filterParams + '</span>')
+              this.catchExecuteResult[key] = JSON.parse(tmp)
+            }
+          })
+        } else {
+          let execRes = []
+          let patt = null
+          try {
+            patt = new RegExp(this.filterParams, 'g')
+            let er = JSON.stringify(this.activeExecuteHistory.executeResult)
+            let res = null
+            while ((res = patt.exec(er)) != null) {
+              execRes.push(res[0])
+            }
+            execRes.sort(function (a, b) {
+              return a.length - b.length
+            })
+          } catch (err) {
+            console.log(err)
+            this.$Message.error(this.$t('bc_filter_type_warn'))
+            this.filterParams = null
+            this.catchExecuteResult = this.activeExecuteHistory.executeResult
+            this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+            return
+          }
+          this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+            let str = JSON.stringify(this.activeExecuteHistory.executeResult[key])
+            let len = str.length
+            execRes.forEach(keyword => {
+              let reg = new RegExp(keyword, 'g')
+              str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
+            })
+
+            if (str.length !== len) {
+              this.catchFilterBusinessKeySet.push(key)
+              this.catchExecuteResult[key] = JSON.parse(str)
+            }
+          })
         }
       })
-      console.log(this.catchFilterBusinessKeySet)
-    }
-  },
-  methods: {
+    },
     formatResult (result) {
       if (!result) {
         return
@@ -1033,10 +1692,14 @@ export default {
             displaySeqNo: i + 1
           }
         })
+        console.log(this.tableColumns)
+        console.log(11)
+        this.entityData()
+        console.log(33)
       }
-      this.entityData()
     },
     async entityData () {
+      console.log(22)
       const requestParameter = {
         dataModelExpression: this.dataModelExpression,
         filters: []
@@ -1072,6 +1735,7 @@ export default {
           }
         }
       })
+      console.log(requestParameter)
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
         if (data.length) {
@@ -1082,6 +1746,7 @@ export default {
           this.$Message.warning(this.$t('bc_warn_empty'))
         }
       }
+      console.log(data)
     },
     clearParametes () {
       this.searchParameters.forEach(item => {
@@ -1217,6 +1882,7 @@ export default {
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
+        this.setPluginParamsModal = false
         this.executeResult = data
         this.filterBusinessKeySet = []
         for (const key in data) {
@@ -1237,12 +1903,14 @@ export default {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeExecuteHistoryKey = keyIndex
+      this.selectedCollectionId = null
       this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[keyIndex]))
     },
     changeActiveResultKey (key) {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeResultKey = key
+      this.selectedCollectionId = null
     },
     async changePlugin () {
       const { status, data } = await getFilteredPluginInterfaceList(
@@ -1337,6 +2005,7 @@ pre {
 }
 .excute-result {
   right: -2px;
+  padding-top: 4px;
   padding-right: 4px;
   min-height: 300px;
 }
@@ -1352,13 +2021,12 @@ pre {
   }
 }
 .excute-result-json {
-  border: $border-config;
   word-wrap: break-word;
   word-break: break-all;
   // overflow: scroll;
 }
 .business-key {
-  padding: 0 16px;
+  padding: 4px 16px;
   cursor: pointer;
   color: #19be6b;
 }
@@ -1382,5 +2050,12 @@ pre {
 .ivu-tree-children li {
   margin: 0 !important;
   line-height: 24px;
+}
+.role-transfer-title {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background-color: rgb(226, 222, 222);
+  margin-bottom: 5px;
 }
 </style>

@@ -110,6 +110,7 @@
                 <FormItem :label="$t('locate_rules')" prop="routineExpression">
                   <PathExp
                     class="path-exp"
+                    :row="2"
                     :rootPkg="rootPkg"
                     :rootEntity="rootEntity"
                     :allDataModelsWithAttrs="allEntityType"
@@ -491,7 +492,14 @@ export default {
       }
     },
     confirmRole () {
-      this.flowRoleManageModal = false
+      if (this.mgmtRolesKeyToFlow.length) {
+        this.flowRoleManageModal = false
+        this.showBpmn = true
+      } else {
+        this.$Message.warning(this.$t('mgmt_role_warning'))
+        this.showBpmn = false
+        this.isAdd = false
+      }
     },
     async getRoleList () {
       const { status, data } = await getRoleList()
@@ -745,14 +753,21 @@ export default {
           desc: this.$t('select_entity_first')
         })
       } else {
-        this.pluginForm = (this.currentFlow &&
-          this.currentFlow.taskNodeInfos &&
-          this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) || { ...this.defaultPluginForm }
+        this.pluginForm =
+          (this.currentFlow &&
+            this.currentFlow.taskNodeInfos &&
+            this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
+          this.prepareDefaultPluginForm()
         this.getPluginInterfaceList()
         // get flow's params infos
         this.getFlowsNodes()
         this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
       }
+    },
+    prepareDefaultPluginForm () {
+      let temp = JSON.parse(JSON.stringify(this.defaultPluginForm))
+      temp.routineExpression = this.currentSelectedEntity
+      return { ...temp }
     },
     onParamsNodeChange (index) {
       this.getParamsOptionsByNode(index)
@@ -1054,6 +1069,7 @@ export default {
 }
 .path-exp {
   margin-bottom: 8px;
+  margin-top: 0 !important;
 }
 .btn-plugin-config {
   float: right;
