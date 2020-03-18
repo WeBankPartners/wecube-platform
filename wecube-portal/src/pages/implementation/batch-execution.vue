@@ -76,6 +76,7 @@
                 <span slot="label" style="font-weight:500">收藏列表:</span>
                 <Select
                   clearable
+                  @on-clear="selectedCollectionId = null"
                   v-model="selectedCollectionId"
                   @on-open-change="getAllCollections"
                   @on-change="changeCollections"
@@ -490,7 +491,7 @@ export default {
       businessKey: '',
 
       activeExecuteHistoryKey: 0,
-      // activeExecuteHistory: {},
+      // activeExecuteHistory: null,
       // executeHistory: [],
       // catchExecuteResult: {},
       // catchFilterBusinessKeySet: [],
@@ -1363,16 +1364,17 @@ export default {
       })
     },
     activeExecuteHistory: function (val) {
+      this.filterParams = null
+      this.businessKey = null
+      if (!val) {
+        this.catchExecuteResult = {}
+        this.catchFilterBusinessKeySet = []
+        this.dataModelExpression = ':'
+        return
+      }
       this.catchExecuteResult = val.executeResult
       this.catchFilterBusinessKeySet = val.filterBusinessKeySet
       this.dataModelExpression = val.requestBody.dataModelExpression
-      console.log(this.dataModelExpression)
-      // console.log(JSON.stringify(this.activeExecuteHistory))
-      // console.log(this.executeHistory)
-      // console.log(JSON.stringify(this.catchExecuteResult))
-      // console.log(this.catchFilterBusinessKeySet)
-      this.filterParams = null
-      this.businessKey = null
     },
     businessKey: function (val) {
       if (!val) {
@@ -1394,6 +1396,10 @@ export default {
   methods: {
     changeCollections (id) {
       this.activeExecuteHistoryKey = null
+      this.activeExecuteHistory = null
+      if (!id) {
+        return
+      }
       this.selectedCollection = this.allCollections.find(_ => {
         return _.favoritesId === id
       })
@@ -1465,11 +1471,11 @@ export default {
         if (direction === 'right') {
           addCollectionsRole(this.selectedCollection.favoritesId, params)
         } else {
-          if (!newTargetKeys.length) {
-            this.$Message.warning('属主角色不能为空！')
-          } else {
-            deleteCollectionsRole(this.selectedCollection.favoritesId, params)
-          }
+          // if (newTargetKeys.length === 0) {
+          //   this.$Message.warning('属主角色不能为空！')
+          // } else {
+          deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          // }
         }
       }
 
