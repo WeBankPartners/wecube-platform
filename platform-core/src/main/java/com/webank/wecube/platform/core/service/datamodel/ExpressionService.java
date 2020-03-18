@@ -8,11 +8,11 @@ import java.util.List;
 
 public interface ExpressionService {
 
-    List<Object> fetchData(DataModelExpressionToRootData expressionToRootData);
+//    List<Object> fetchData(DataModelExpressionToRootData expressionToRootData);
 
-    void writeBackData(DataModelExpressionToRootData expressionToRootData, Object updateData);
+//    void writeBackData(DataModelExpressionToRootData expressionToRootData, Object updateData);
 
-    List<TreeNode> getPreviewTree(DataModelExpressionToRootData expressionToRootData);
+//    List<TreeNode> getPreviewTree(DataModelExpressionToRootData expressionToRootData);
 
     List<EntityDto> getAllEntities(String dataModelExpression);
 }
