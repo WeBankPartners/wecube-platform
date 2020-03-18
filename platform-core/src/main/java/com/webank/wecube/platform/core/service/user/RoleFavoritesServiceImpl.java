@@ -94,8 +94,8 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             if (favoritesRolesById.isPresent()) {
                 List<String> mgmtRoleNames;
                 List<String> useRoleNames;
-                mgmtRoleNames = favoritesRolesById.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.MGMT)).map(FavoritesRoleEntity::getRoleName).collect(Collectors.toList());
-                useRoleNames = favoritesRolesById.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.USE)).map(FavoritesRoleEntity::getRoleName).collect(Collectors.toList());
+                mgmtRoleNames = favoritesRolesById.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.MGMT)).map(FavoritesRoleEntity::getRoleId).collect(Collectors.toList());
+                useRoleNames = favoritesRolesById.get().stream().filter(favoritesRoleEntity -> favoritesRoleEntity.getPermission().equals(FavoritesRoleEntity.permissionEnum.USE)).map(FavoritesRoleEntity::getRoleId).collect(Collectors.toList());
                 permissionToRole.put(FavoritesRoleEntity.permissionEnum.MGMT.toString(),mgmtRoleNames);
                 permissionToRole.put(FavoritesRoleEntity.permissionEnum.USE.toString(),useRoleNames);
             }
