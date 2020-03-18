@@ -1,34 +1,14 @@
 package com.webank.wecube.platform.core.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-import com.google.common.collect.Lists;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.BatchExecutionJob;
-import com.webank.wecube.platform.core.domain.ExecutionJob;
-import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
-import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.*;
-import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
-import com.webank.wecube.platform.core.dto.ExecutionJobResponseDto;
-import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
-import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
-import com.webank.wecube.platform.core.dto.InputParameterDefinition;
-import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
-import com.webank.wecube.platform.core.service.datamodel.ExpressionService;
-import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
-import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
-
-import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
-import com.webank.wecube.platform.core.utils.JsonUtils;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.aop.ThrowsAdvice;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.webank.wecube.platform.core.utils.Constants.CALLBACK_PARAMETER_KEY;
+import static com.webank.wecube.platform.core.utils.Constants.DATA_TYPE_NUMBER;
+import static com.webank.wecube.platform.core.utils.Constants.DATA_TYPE_STRING;
+import static com.webank.wecube.platform.core.utils.Constants.FIELD_REQUIRED;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_CONTEXT;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_ENTITY;
+import static com.webank.wecube.platform.core.utils.Constants.MAPPING_TYPE_SYSTEM_VARIABLE;
+import static com.webank.wecube.platform.core.utils.Constants.RESULT_CODE_ERROR;
+import static com.webank.wecube.platform.core.utils.Constants.RESULT_CODE_OK;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -38,7 +18,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.webank.wecube.platform.core.utils.Constants.*;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.BatchExecutionJob;
+import com.webank.wecube.platform.core.domain.ExecutionJob;
+import com.webank.wecube.platform.core.domain.ExecutionJobParameter;
+import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
+import com.webank.wecube.platform.core.dto.BatchExecutionRequestDto;
+import com.webank.wecube.platform.core.dto.ExecutionJobResponseDto;
+import com.webank.wecube.platform.core.dto.InputParameterDefinition;
+import com.webank.wecube.platform.core.jpa.BatchExecutionJobRepository;
+import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
+import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
+import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
+import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
+import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
+import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 
 @Service
 @Transactional
@@ -58,7 +66,7 @@ public class BatchExecutionService {
     @Autowired
     private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
     @Autowired
-    protected ExpressionService expressionService;
+    protected StandardEntityOperationService standardEntityOperationService;
 
     public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
             throws IOException {
@@ -223,16 +231,16 @@ public class BatchExecutionService {
                     log.debug("expression:{}", mappingEntityExpression);
                 }
 
-                DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
+                EntityOperationRootCondition criteria = new EntityOperationRootCondition(mappingEntityExpression,
                         executionJob.getRootEntityId());
 
-                List<Object> attrValsPerExpr = expressionService.fetchData(criteria);
+                List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria);
 
                 if ((attrValsPerExpr == null || attrValsPerExpr.size() == 0)
                         && FIELD_REQUIRED.equals(parameter.getRequired())) {
                     errorMessage = String.format(
                             "returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
-                            parameter.getName(), mappingEntityExpression, criteria.getRootData());
+                            parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity());
                     log.error(errorMessage);
                     executionJob.setErrorWithMessage(errorMessage);
                     break;
