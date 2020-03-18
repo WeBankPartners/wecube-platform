@@ -13,6 +13,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.dto.PluginPackageEntityDto.TrimmedPluginPackageEntityDto;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
@@ -528,16 +529,39 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             return dataModelEntityDto;
         }
         dataModelEntityDto = DataModelEntityDto.fromDomain(entityOptional.get());
-        List<BindedInterfaceEntityDto> bindedInterfaceEntityList = new ArrayList<BindedInterfaceEntityDto>();
-        List<PluginConfig> bindedInterfacesConfigs = pluginConfigRepository.findAllPluginConfigGroupByTargetEntity();
-        if (bindedInterfacesConfigs.size() > 0) {
-            bindedInterfacesConfigs.forEach(config -> {
-                bindedInterfaceEntityList
-                        .add(new BindedInterfaceEntityDto(config.getTargetPackage(), config.getTargetEntity()));
-            });
-        }
-        dataModelEntityDto.setBindedInterfaceEntityList(bindedInterfaceEntityList);
         updateReferenceInfo(dataModelEntityDto);
+
+        List<BindedInterfaceEntityDto> referenceToEntityList = new ArrayList<BindedInterfaceEntityDto>();
+        List<BindedInterfaceEntityDto> referenceByEntityList = new ArrayList<BindedInterfaceEntityDto>();
+
+        List<PluginConfig> bindedInterfacesConfigs = pluginConfigRepository
+                .findAllPluginConfigGroupByTargetEntityWithFilterRule();
+        if (bindedInterfacesConfigs == null || bindedInterfacesConfigs.size() == 0) {
+            return dataModelEntityDto;
+        }
+
+        for (PluginConfig config : bindedInterfacesConfigs) {
+
+            for (TrimmedPluginPackageEntityDto entityDto : dataModelEntityDto.getReferenceToEntityList()) {
+                if (entityDto.getPackageName().equals(config.getTargetPackage())
+                        && entityDto.getName().equals(config.getTargetEntity())) {
+                    referenceToEntityList.add(new BindedInterfaceEntityDto(config.getTargetPackage(),
+                            config.getTargetEntity(), config.getTargetEntityWithFilterRule()));
+                }
+            }
+
+            for (TrimmedPluginPackageEntityDto entityDto : dataModelEntityDto.getReferenceByEntityList()) {
+                if (entityDto.getPackageName().equals(config.getTargetPackage())
+                        && entityDto.getName().equals(config.getTargetEntity())) {
+                    referenceByEntityList.add(new BindedInterfaceEntityDto(config.getTargetPackage(),
+                            config.getTargetEntity(), config.getTargetEntityWithFilterRule()));
+                }
+            }
+        }
+
+        dataModelEntityDto.getLeafEntityList().setReferenceToEntityList(referenceToEntityList);
+        dataModelEntityDto.getLeafEntityList().setReferenceByEntityList(referenceByEntityList);
+
         return dataModelEntityDto;
     }
 
