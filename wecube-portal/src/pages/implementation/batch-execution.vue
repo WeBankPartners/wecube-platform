@@ -31,7 +31,7 @@
             $t('bc_execute_query')
           }}</Button>
           <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
-          <Button @click="resetParametes">{{ $t('bc_set_condition') }}</Button>
+          <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
         </div>
       </Card>
       <div v-else>
@@ -154,7 +154,7 @@
                     </div>
                   </Tooltip>
                   <Button size="small" @click="changeSearchParams" type="primary" ghost>{{
-                    $t('bc_reset_query')
+                    $t('bc_set_condition')
                   }}</Button>
                 </div>
               </Step>
