@@ -37,6 +37,8 @@ public class DataModelEntityDto extends PluginPackageEntityDto {
 
         public LeafEntityList() {
             super();
+            this.referenceToEntityList = new ArrayList<>();
+            this.referenceByEntityList = new ArrayList<>();
         }
     }
 
@@ -61,5 +63,10 @@ public class DataModelEntityDto extends PluginPackageEntityDto {
                     .getAttributes().add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
         }
         return dataModelEntityDto;
+    }
+
+    public DataModelEntityDto() {
+        super();
+        this.leafEntityList = new LeafEntityList();
     }
 }
