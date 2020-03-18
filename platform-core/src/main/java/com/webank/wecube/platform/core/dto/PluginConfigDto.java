@@ -13,11 +13,11 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 public class PluginConfigDto {
+
     private String id;
     private String pluginPackageId;
     private String name;
-    private String targetPackage;
-    private String targetEntity;
+    private String targetEntityWithFilterRule;
     private String registerName;
     private String status;
     private List<PluginConfigInterfaceDto> interfaces;
@@ -46,20 +46,12 @@ public class PluginConfigDto {
         this.name = name;
     }
 
-    public String getTargetPackage() {
-        return targetPackage;
+    public String getTargetEntityWithFilterRule() {
+        return targetEntityWithFilterRule;
     }
 
-    public void setTargetPackage(String targetPackage) {
-        this.targetPackage = targetPackage;
-    }
-
-    public String getTargetEntity() {
-        return targetEntity;
-    }
-
-    public void setTargetEntity(String targetEntity) {
-        this.targetEntity = targetEntity;
+    public void setTargetEntityWithFilterRule(String targetEntityWithFilterRule) {
+        this.targetEntityWithFilterRule = targetEntityWithFilterRule;
     }
 
     public String getStatus() {
@@ -81,13 +73,12 @@ public class PluginConfigDto {
     public PluginConfigDto() {
     }
 
-    public PluginConfigDto(String id, String pluginPackageId, String name, String targetPackage, String targetEntity,
+    public PluginConfigDto(String id, String pluginPackageId, String name, String targetEntityWithFilterRule,
             String status, List<PluginConfigInterfaceDto> interfaces) {
         this.id = id;
         this.pluginPackageId = pluginPackageId;
         this.name = name;
-        this.targetPackage = targetPackage;
-        this.targetEntity = targetEntity;
+        this.targetEntityWithFilterRule = targetEntityWithFilterRule;
         this.status = status;
         this.interfaces = interfaces;
     }
@@ -110,8 +101,13 @@ public class PluginConfigDto {
         } else {
             pluginConfig.setTargetPackage(pluginPackage.getName());
         }
+
         if (StringUtils.isNotBlank(getTargetEntity())) {
             pluginConfig.setTargetEntity(getTargetEntity());
+        }
+
+        if (StringUtils.isNotBlank(getFilterRule())) {
+            pluginConfig.setTargetEntityFilterRule(getFilterRule());
         }
         pluginConfig.setRegisterName(getRegisterName());
         Set<PluginConfigInterface> pluginConfigInterfaces = newLinkedHashSet();
@@ -127,8 +123,7 @@ public class PluginConfigDto {
         PluginConfigDto pluginConfigDto = new PluginConfigDto();
         pluginConfigDto.setId(pluginConfig.getId());
         pluginConfigDto.setName(pluginConfig.getName());
-        pluginConfigDto.setTargetPackage(pluginConfig.getTargetPackage());
-        pluginConfigDto.setTargetEntity(pluginConfig.getTargetEntity());
+        pluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
         pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
         pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
         pluginConfigDto.setStatus(pluginConfig.getStatus().name());
@@ -145,8 +140,7 @@ public class PluginConfigDto {
         PluginConfigDto pluginConfigDto = new PluginConfigDto();
         pluginConfigDto.setId(pluginConfig.getId());
         pluginConfigDto.setName(pluginConfig.getName());
-        pluginConfigDto.setTargetPackage(pluginConfig.getTargetPackage());
-        pluginConfigDto.setTargetEntity(pluginConfig.getTargetEntity());
+        pluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
         pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
         pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
         pluginConfigDto.setStatus(pluginConfig.getStatus().name());
@@ -160,4 +154,69 @@ public class PluginConfigDto {
     public void setRegisterName(String registerName) {
         this.registerName = registerName;
     }
+
+    public String getTargetPackage() {
+        return splitTargetEntityWithFilterRule().getTargetPackage();
+    }
+
+    public String getTargetEntity() {
+        return splitTargetEntityWithFilterRule().getTargetEntity();
+    }
+
+    public String getFilterRule() {
+        return splitTargetEntityWithFilterRule().getFilterRule();
+    }
+
+    public class TargetEntityWithFilterRule {
+        private String targetPackage;
+        private String targetEntity;
+        private String FilterRule;
+
+        public String getTargetPackage() {
+            return targetPackage;
+        }
+
+        public String getTargetEntity() {
+            return targetEntity;
+        }
+
+        public String getFilterRule() {
+            return FilterRule;
+        }
+
+        public TargetEntityWithFilterRule(String targetPackage, String targetEntity, String filterRule) {
+            super();
+            this.targetPackage = targetPackage;
+            this.targetEntity = targetEntity;
+            FilterRule = filterRule;
+        }
+
+        public TargetEntityWithFilterRule() {
+            super();
+        }
+    }
+
+    public TargetEntityWithFilterRule splitTargetEntityWithFilterRule() {
+        String targetEntityWithFilterRule = getTargetEntityWithFilterRule();
+        String packageString = "";
+        String entity = "";
+        String filterRule = "";
+        int index1 = StringUtils.indexOf(targetEntityWithFilterRule, ":");
+        if (index1 != -1) {
+            packageString = StringUtils.substring(targetEntityWithFilterRule, 0, index1);
+            int index2 = StringUtils.indexOf(targetEntityWithFilterRule, "{");
+
+            if (index2 != -1) {
+                entity = StringUtils.substring(targetEntityWithFilterRule, index1 + 1, index2);
+                filterRule = StringUtils.substring(targetEntityWithFilterRule, index2);
+            } else {
+                entity = StringUtils.substring(targetEntityWithFilterRule, index1 + 1);
+            }
+        } else {
+            packageString = targetEntityWithFilterRule;
+        }
+
+        return new TargetEntityWithFilterRule(packageString, entity, filterRule);
+    }
+
 }
