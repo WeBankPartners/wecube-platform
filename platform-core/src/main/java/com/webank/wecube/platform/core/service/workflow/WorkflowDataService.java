@@ -260,6 +260,11 @@ public class WorkflowDataService {
             if (!"subProcess".equals(nodeType)) {
                 continue;
             }
+            
+            if(StringUtils.isBlank(f.getRoutineExpression())) {
+            	log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
+            	continue;
+            }
 
             log.info("About to fetch data for node {} {}", f.getNodeDefId(), f.getNodeName());
 

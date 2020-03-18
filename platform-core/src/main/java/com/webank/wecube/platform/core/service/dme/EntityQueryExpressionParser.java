@@ -15,6 +15,10 @@ public class EntityQueryExpressionParser {
     private Pattern entityIdPattern = Pattern.compile(REG_ENTITY_ID);
 
     public List<EntityQueryExprNodeInfo> parse(String expr) {
+    	
+    	if(StringUtils.isBlank(expr)) {
+    		throw new IllegalArgumentException("Expression to parse cannot be blank.");
+    	}
 
         String exprOpReg = String.format("[%s%s]", EntityLinkType.REF_TO.symbol(), EntityLinkType.REF_BY.symbol());
 
