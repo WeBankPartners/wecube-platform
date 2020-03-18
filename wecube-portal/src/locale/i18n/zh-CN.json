@@ -204,7 +204,7 @@
   "for_example": "e.g.:",
   "flow_name": "编排名称",
   "ci_type": "CI类型",
-  "save_flow": "保存编排",
+  "release_flow": "发布编排",
   "calc_form": "表单计算",
   "config_plugin": "配置插件",
   "node_type": "节点类型",
@@ -393,6 +393,5 @@
   "bc_filter_type_warn": "正则表达式不正确",
   "plugin_type": "插件类型",
   "sstn": "自动节点",
-  "sutn": "人工审批节点",
-  "savePluginConfig": "保存插件配置"
+  "sutn": "人工审批节点"
 }
