@@ -54,7 +54,7 @@
         </Select>
       </Col>
       <Button type="info" :disabled="isSaving" @click="saveDiagram(false)">
-        {{ $t('save_flow') }}
+        {{ $t('release_flow') }}
       </Button>
       <Button type="info" @click="exportProcessDefinition(false)">
         {{ $t('export_flow') }}
@@ -181,9 +181,7 @@
             </FormItem>
             <FormItem>
               <div class="btn-plugin-config">
-                <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
-                  $t('savePluginConfig')
-                }}</Button>
+                <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{ $t('save') }}</Button>
               </div>
             </FormItem>
           </Form>
