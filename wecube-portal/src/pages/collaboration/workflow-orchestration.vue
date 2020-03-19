@@ -54,7 +54,7 @@
         </Select>
       </Col>
       <Button type="info" :disabled="isSaving" @click="saveDiagram(false)">
-        {{ $t('save_flow') }}
+        {{ $t('release_flow') }}
       </Button>
       <Button type="info" @click="exportProcessDefinition(false)">
         {{ $t('export_flow') }}
@@ -181,9 +181,7 @@
             </FormItem>
             <FormItem>
               <div class="btn-plugin-config">
-                <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{
-                  $t('savePluginConfig')
-                }}</Button>
+                <Button type="primary" @click="savePluginConfig('pluginConfigForm')">{{ $t('save') }}</Button>
               </div>
             </FormItem>
           </Form>
@@ -308,6 +306,7 @@ export default {
       allFlows: [],
       allEntityType: [],
       selectedFlow: null,
+      selectedFlowData: null,
       temporaryFlow: null,
       currentSelectedEntity: '',
       rootPkg: '',
@@ -393,6 +392,9 @@ export default {
       handler (val, oldVal) {
         this.$refs['currentSelectedEntity'].clearSingleSelect()
         if (val) {
+          this.selectedFlowData = this.allFlows.find(_ => {
+            return _.procDefId === val
+          })
           this.getFlowXml(val)
           this.getPermissionByProcess(val)
           this.pluginForm.paramInfos = []
@@ -677,8 +679,8 @@ export default {
       this.bpmnModeler.saveXML({ format: true }, function (err, xml) {
         if (!xml) return
         const xmlString = xml.replace(/[\r\n]/g, '')
-        const processName = document.getElementById('camunda-name').innerText
-        const payload = {
+        const processName = document.getElementById('camunda-name').innerText || ''
+        let payload = {
           permissionToRole: {
             MGMT: _this.mgmtRolesKeyToFlow,
             USE: _this.useRolesKeyToFlow
@@ -693,6 +695,7 @@ export default {
         }
 
         if (isDraft) {
+          payload.procDefName = _this.selectedFlowData.procDefName
           saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
               _this.$Notice.success({

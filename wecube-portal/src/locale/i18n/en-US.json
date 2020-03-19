@@ -204,7 +204,7 @@
   "for_example": "e.g.:",
   "flow_name": "Flow Name",
   "ci_type": "CI Type",
-  "save_flow": "Save",
+  "release_flow": "Release",
   "calc_form": "Calculate Flow",
   "config_plugin": "Config Plugin",
   "node_type": "Node Type",
@@ -365,6 +365,7 @@
   "bc_empty": "Empty",
   "bc_execute_query": "Execute Query",
   "bc_clear_condition": "Clear Conditions",
+  "bc_set_condition": "Set Condition",
   "bc_reset_query": "Reset Query",
   "bc_start_path": "Start Path",
   "bc_target_type": "Target Type",
@@ -392,8 +393,9 @@
   "bc_filter_type_str": "String",
   "bc_filter_type_regex": "Regex",
   "bc_filter_type_warn": "Regular expression is incorrect",
+  "bc_confirm": "Confirm",
+  "bc_cancle": "Cancle",
   "plugin_type": "Plugin Type",
   "sstn": "Automatic Node",
-  "sutn": "Manual Approval Node",
-  "savePluginConfig": "Save Plugin Configuration"
+  "sutn": "Manual Approval Node"
 }
