@@ -66,24 +66,72 @@
       </div>
     </section>
     <!-- v-if="executeHistory.length" -->
-    <section v-if="executeHistory.length" class="execute-history">
+    <section class="execute-history">
       <Row>
-        <Col span="4" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
-          <h6 style="margin: 8px">
-            <span>{{ $t('bc_history_record') }} </span>
-          </h6>
-          <ul>
-            <li
-              @click="changeActiveExecuteHistory(keyIndex)"
-              :class="[activeExecuteHistoryKey === keyIndex ? 'active-key' : '', 'business-key']"
-              v-for="(key, keyIndex) in executeHistory"
-              :key="keyIndex"
-            >
-              <span>{{ keyIndex }}、{{ key.id }}</span>
-            </li>
-          </ul>
+        <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
+          <div style="height:88px;padding: 8px;border-bottom:1px solid #e8eaec">
+            <Form label-position="top" label-colon>
+              <FormItem>
+                <span slot="label" style="font-weight:500">收藏列表:</span>
+                <Select
+                  clearable
+                  @on-clear="selectedCollectionId = null"
+                  v-model="selectedCollectionId"
+                  @on-open-change="getAllCollections"
+                  @on-change="changeCollections"
+                  filterable
+                >
+                  <Option
+                    v-for="item in allCollections"
+                    :value="item.favoritesId"
+                    :key="item.favoritesId"
+                    :label="item.collectionName"
+                  >
+                    <span>{{ item.collectionName }}</span>
+                    <span style="float:right">
+                      <Button
+                        icon="ios-trash"
+                        type="error"
+                        size="small"
+                        @click="showDeleteConfirm(item.favoritesId, item.collectionName)"
+                      ></Button>
+                    </span>
+                    <span style="float:right;margin-right: 10px">
+                      <Button
+                        icon="ios-build"
+                        type="primary"
+                        @click="openEditCollectionModal(item)"
+                        size="small"
+                      ></Button>
+                    </span>
+                  </Option>
+                </Select>
+              </FormItem>
+            </Form>
+          </div>
+          <div>
+            <h6 style="margin: 8px">
+              <span>{{ $t('bc_history_record') }} </span>
+            </h6>
+            <ul>
+              <li
+                @click="changeActiveExecuteHistory(keyIndex)"
+                :class="[activeExecuteHistoryKey === keyIndex ? 'active-key' : '', 'business-key']"
+                v-for="(key, keyIndex) in executeHistory"
+                :key="keyIndex"
+              >
+                <span>
+                  {{ keyIndex }}、{{ key.id }}
+                  <Button style="margin-left: 8px" @click="openAddCollectionModal(key)" size="small">
+                    收藏
+                  </Button>
+                </span>
+              </li>
+            </ul>
+          </div>
         </Col>
-        <Col v-if="activeExecuteHistory" :span="isShowHistoryMenu ? 20 : 24" class="res res-content">
+        <!-- v-if="activeExecuteHistory" -->
+        <Col :span="isShowHistoryMenu ? 19 : 24" class="res res-content">
           <Icon
             :style="isShowHistoryMenu ? '' : 'transform: rotate(90deg);'"
             class="history-record-menu"
@@ -91,7 +139,7 @@
             @click="isShowHistoryMenu = !isShowHistoryMenu"
           />
           <div class="res-content-step">
-            <Steps :current="3">
+            <Steps :current="5">
               <Step :title="$t('bc_query_conditions')">
                 <div slot="content">
                   <Tooltip :max-width="500">
@@ -106,7 +154,7 @@
                     </div>
                   </Tooltip>
                   <Button size="small" @click="changeSearchParams" type="primary" ghost>{{
-                    $t('bc_reset_query')
+                    $t('bc_set_condition')
                   }}</Button>
                 </div>
               </Step>
@@ -123,9 +171,14 @@
                       </p>
                     </div>
                   </Tooltip>
-                  <Button size="small" @click="changeTargetObject" type="primary" ghost>{{
-                    $t('bc_change_instance')
-                  }}</Button>
+                  <Button
+                    size="small"
+                    @click="changeTargetObject"
+                    :disabled="!(!!currentPackageName && !!currentEntityName)"
+                    type="primary"
+                    ghost
+                    >{{ $t('bc_change_instance') }}</Button
+                  >
                 </div>
               </Step>
               <Step :title="$t('bc_execution_plugin')" content="">
@@ -133,26 +186,54 @@
                   <Tooltip :content="activeExecuteHistory.plugin.pluginName">
                     <Icon type="ios-information-circle-outline" />
                   </Tooltip>
-                  <Button size="small" @click="changePlugin" type="primary" ghost>{{ $t('bc_change_plugin') }}</Button>
+                  <Button
+                    size="small"
+                    @click="changePlugin"
+                    :disabled="!activeExecuteHistory.requestBody.packageName"
+                    type="primary"
+                    ghost
+                    >{{ $t('bc_change_plugin') }}</Button
+                  >
+                </div>
+              </Step>
+              <Step title="执行参数" content="">
+                <div slot="content">
+                  <Tooltip :max-width="500">
+                    <Icon type="ios-information-circle-outline" />
+                    <div slot="content" style="width:200px">
+                      <ul>
+                        <li v-for="(item, index) in activeExecuteHistory.plugin.pluginParams" :key="index">
+                          <span v-if="item.mappingType === 'constant'"> {{ item.name }}: {{ item.bindValue }} </span>
+                          <span v-else>{{
+                            item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system')
+                          }}</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </Tooltip>
+                  <Button
+                    size="small"
+                    type="primary"
+                    :disabled="activeExecuteHistory.plugin.pluginParams.length === 0"
+                    @click="setPluginParamsModal = true"
+                    ghost
+                    >补充参数</Button
+                  >
+                </div>
+              </Step>
+              <Step title="执行" content="">
+                <div slot="content">
+                  <Button
+                    size="small"
+                    @click="executeAgain"
+                    :disabled="!activeExecuteHistory.requestBody.inputParameterDefinitions"
+                    type="primary"
+                    ghost
+                    >执行</Button
+                  >
                 </div>
               </Step>
             </Steps>
-          </div>
-          <div v-if="activeExecuteHistory" class="res-content-params">
-            <Form label-position="right" :label-width="100">
-              <Row>
-                <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
-                  <Col span="8" v-if="item.mappingType === 'constant'" :key="index">
-                    <FormItem :label="item.name" :key="index">
-                      <Input v-model="item.bindValue" />
-                    </FormItem>
-                  </Col>
-                </template>
-                <Col :span="executeAgainBtnSpan">
-                  <Button type="primary" style="float:right" @click="executeAgain">{{ $t('bc_execute') }}</Button>
-                </Col>
-              </Row>
-            </Form>
           </div>
           <div class="res-content-result">
             <Row>
@@ -170,7 +251,6 @@
                     v-for="(key, keyIndex) in catchFilterBusinessKeySet"
                     :key="keyIndex"
                   >
-                    <!-- activeExecuteHistory.executeResult[key].errorCode === '1' ? 'error-key' : '' -->
                     <span>{{ key }}</span>
                   </li>
                 </ul>
@@ -185,10 +265,10 @@
                       }}</Option>
                     </Select>
                   </Col>
-                  <Col span="8">
+                  <Col span="17">
                     <Input v-model="filterParams" placeholder="Filter result, e.g :error or /[0-9]+/" />
                   </Col>
-                  <Col span="6" offset="1">
+                  <Col span="2" offset="1">
                     <Button type="primary" @click="filterResult">
                       {{ $t('search') }}
                     </Button>
@@ -288,6 +368,22 @@
       </div>
     </Modal>
 
+    <Modal v-model="setPluginParamsModal" :title="$t('bc_batch_operation')">
+      <Form label-position="right" :label-width="150" v-if="!!activeExecuteHistory.plugin">
+        <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
+          <FormItem :label="item.name" :key="index">
+            <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
+            <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
+          </FormItem>
+        </template>
+      </Form>
+      <div slot="footer">
+        <Button type="primary" @click="executeAgain">
+          {{ $t('confirm') }}
+        </Button>
+      </div>
+    </Modal>
+
     <Modal v-model="DelConfig.isDisplay" width="360">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="ios-information-circle"></Icon>
@@ -298,6 +394,39 @@
       </div>
       <div slot="footer">
         <Button type="warning" size="large" long @click="del">{{ $t('bc_continue') }}</Button>
+      </div>
+    </Modal>
+
+    <Modal v-model="collectionRoleManageModal" width="700" :title="$t('edit_role')" :mask-closable="false">
+      <div v-if="editCollectionName" style="margin-bottom:8px;">
+        <span style="font-weight: 500;">收藏名称：</span>
+        <Input v-model="collectionName" style="width:35%"></Input>
+      </div>
+      <div>
+        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRoles"
+          :target-keys="MGMT"
+          @on-change="handleMgmtRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div style="margin-top: 30px">
+        <div class="role-transfer-title">{{ $t('use_role') }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRolesBackUp"
+          :target-keys="USE"
+          @on-change="handleUseRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div slot="footer">
+        <Button @click="collectionRoleManageModal = false">{{ $t('bc_cancle') }}</Button>
+        <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
@@ -311,14 +440,22 @@ import {
   dmeIntegratedQuery,
   entityView,
   getFilteredPluginInterfaceList,
-  batchExecution
+  batchExecution,
+  getAllCollections,
+  deleteCollections,
+  getRoleList,
+  getRolesByCurrentUser,
+  deleteCollectionsRole,
+  addCollectionsRole,
+  saveBatchExecution,
+  updateCollections
 } from '@/api/server.js'
 
 export default {
   name: '',
   data () {
     return {
-      displaySearchZone: true,
+      displaySearchZone: false,
       displayResultTableZone: false,
       displayExecuteResultZone: false,
 
@@ -335,7 +472,7 @@ export default {
       selectedEntityType: null,
       allEntityType: [],
 
-      dataModelExpression: '',
+      dataModelExpression: ':',
       currentEntityName: '',
       currentPackageName: '',
       currentEntityAttr: '',
@@ -357,6 +494,8 @@ export default {
       allPlugins: [],
       filteredPlugins: [],
 
+      setPluginParamsModal: false,
+
       isShowHistoryMenu: true,
       executeResult: {},
       filterBusinessKeySet: [],
@@ -364,7 +503,26 @@ export default {
       businessKey: '',
 
       activeExecuteHistoryKey: 0,
-      activeExecuteHistory: {},
+      defaultActiveExecuteHistory: {
+        plugin: {
+          pluginName: '',
+          pluginParams: []
+        },
+        requestBody: {
+          searchParameters: []
+        },
+        filterBusinessKeySet: []
+      },
+      activeExecuteHistory: {
+        plugin: {
+          pluginName: '',
+          pluginParams: []
+        },
+        requestBody: {
+          searchParameters: []
+        },
+        filterBusinessKeySet: []
+      },
       executeHistory: [],
       catchExecuteResult: {},
       catchFilterBusinessKeySet: [],
@@ -373,7 +531,23 @@ export default {
       filterTypeList: [
         { label: this.$t('bc_filter_type_str'), value: 'str' },
         { label: this.$t('bc_filter_type_regex'), value: 'regex' }
-      ]
+      ],
+
+      selectedCollectionId: null,
+      selectedCollection: null,
+      allCollections: [],
+      collectionRoleManageModal: false,
+      editCollectionName: false,
+      collectionName: '',
+
+      isAddCollect: false,
+      toBeCollectedParams: null,
+      allRoles: [],
+      MGMT: [],
+      allRolesBackUp: [],
+      USE: [],
+      transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
+      transferStyle: { width: '300px' }
     }
   },
   mounted () {},
@@ -382,17 +556,11 @@ export default {
       if (this.activeResultKey !== null) {
         return this.catchExecuteResult[this.activeResultKey]
       }
-    },
-    executeAgainBtnSpan: function () {
-      const paramsNum = this.activeExecuteHistory.plugin.pluginParams.filter(item => {
-        return item.mappingType === 'constant'
-      }).length
-      return 24 - (paramsNum % 3) * 8
     }
   },
   watch: {
     dataModelExpression: async function (val) {
-      if (val === ':') {
+      if (val === ':' || !val) {
         return
       }
       const params = {
@@ -433,10 +601,18 @@ export default {
       })
     },
     activeExecuteHistory: function (val) {
-      this.catchExecuteResult = val.executeResult
-      this.catchFilterBusinessKeySet = val.filterBusinessKeySet
       this.filterParams = null
       this.businessKey = null
+      if (!val) {
+        this.activeExecuteHistory = this.defaultActiveExecuteHistory
+        this.catchExecuteResult = {}
+        this.catchFilterBusinessKeySet = []
+        this.dataModelExpression = ':'
+        return
+      }
+      this.catchExecuteResult = val.executeResult
+      this.catchFilterBusinessKeySet = val.filterBusinessKeySet
+      this.dataModelExpression = val.requestBody.dataModelExpression
     },
     businessKey: function (val) {
       if (!val) {
@@ -454,8 +630,173 @@ export default {
         }
       })
     }
+    // selectedCollectionId: function (val) {
+    //   if (!val) {
+    //     this.activeExecuteHistory = this.defaultActiveExecuteHistory
+    //   }
+    // }
   },
   methods: {
+    changeCollections (id) {
+      this.activeExecuteHistoryKey = null
+      this.activeExecuteHistory = null
+      if (!id) {
+        return
+      }
+      this.selectedCollection = this.allCollections.find(_ => {
+        return _.favoritesId === id
+      })
+      this.activeExecuteHistory = JSON.parse(this.selectedCollection.data)
+      this.activeExecuteHistory.executeResult = null
+      this.activeExecuteHistory.filterBusinessKeySet = []
+    },
+    async getRoleList () {
+      const { status, data } = await getRoleList()
+      if (status === 'OK') {
+        this.allRolesBackUp = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          }
+        })
+      }
+    },
+    async getRolesByCurrentUser () {
+      const { status, data } = await getRolesByCurrentUser()
+      if (status === 'OK') {
+        this.allRoles = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          }
+        })
+      }
+    },
+    async getAllCollections () {
+      const { status, data } = await getAllCollections()
+      if (status === 'OK') {
+        this.allCollections = data
+      }
+    },
+    openAddCollectionModal (key) {
+      this.isAddCollect = true
+      this.toBeCollectedParams = key
+      this.getRoleList()
+      this.getRolesByCurrentUser()
+      this.MGMT = []
+      this.USE = []
+      this.collectionRoleManageModal = true
+      this.editCollectionName = true
+    },
+    openEditCollectionModal (collection) {
+      this.isAddCollect = false
+      this.selectedCollection = collection
+      this.getRoleList()
+      this.getRolesByCurrentUser()
+      this.MGMT = collection.permissionToRole.MGMT
+      this.USE = collection.permissionToRole.USE
+      this.collectionRoleManageModal = true
+      this.editCollectionName = false
+    },
+    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      if (this.isAddCollect) {
+        this.MGMT = newTargetKeys
+      } else {
+        let params = {
+          permission: 'mgmt',
+          roleId: moveKeys
+        }
+        if (direction === 'right') {
+          addCollectionsRole(this.selectedCollection.favoritesId, params)
+        } else {
+          if (newTargetKeys.length === 0) {
+            this.$Message.warning('属主角色不能为空！')
+          } else {
+            deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          }
+        }
+      }
+
+      this.MGMT = newTargetKeys
+    },
+    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      if (this.isAddCollect) {
+        this.USE = newTargetKeys
+      } else {
+        let params = {
+          permission: 'use',
+          roleId: moveKeys
+        }
+        if (direction === 'right') {
+          addCollectionsRole(this.selectedCollection.favoritesId, params)
+        } else {
+          deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+        }
+      }
+      this.USE = newTargetKeys
+    },
+    async addCollectionsRole () {},
+    async deleteCollectionsRole () {},
+    showDeleteConfirm (id, name) {
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        content: name,
+        onOk: () => {
+          this.deleteCollection(id)
+        },
+        onCancel: () => {}
+      })
+    },
+    async deleteCollection (id) {
+      const { status, message } = await deleteCollections(id)
+      if (status === 'OK') {
+        this.selectedCollectionId = null
+        this.$Message.success(message)
+      }
+    },
+    async confirmCollection () {
+      if (!this.isAddCollect) {
+        this.collectionRoleManageModal = false
+        return
+      }
+      if (!this.MGMT.length) {
+        this.$Message.warning('属主角色不能为空！')
+        return
+      }
+      if (this.editCollectionName) {
+        if (!this.collectionName.trim()) {
+          this.$Message.warning('收藏名称不能为空！')
+          return
+        }
+        const { plugin, requestBody } = this.toBeCollectedParams
+        let params = {
+          collectionName: this.collectionName.trim(),
+          permissionToRole: {
+            MGMT: this.MGMT,
+            USE: this.USE
+          },
+          data: JSON.stringify({
+            plugin,
+            requestBody
+          })
+        }
+        const { status } = await saveBatchExecution(params)
+        if (status === 'OK') {
+          this.collectionRoleManageModal = false
+        }
+      } else {
+        let params = JSON.parse(JSON.stringify(this.selectedCollection))
+        params.permissionToRole.MGMT = this.MGMT
+        params.permissionToRole.USE = this.USE
+        const { status } = await updateCollections(params)
+        if (status === 'OK') {
+          this.collectionRoleManageModal = false
+        }
+      }
+    },
+
     filterTypeChange () {
       this.filterParams = null
       this.catchExecuteResult = this.activeExecuteHistory.executeResult
@@ -587,8 +928,8 @@ export default {
             displaySeqNo: i + 1
           }
         })
+        this.entityData()
       }
-      this.entityData()
     },
     async entityData () {
       const requestParameter = {
@@ -771,6 +1112,7 @@ export default {
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
+        this.setPluginParamsModal = false
         this.executeResult = data
         this.filterBusinessKeySet = []
         for (const key in data) {
@@ -791,12 +1133,14 @@ export default {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeExecuteHistoryKey = keyIndex
+      this.selectedCollectionId = null
       this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[keyIndex]))
     },
     changeActiveResultKey (key) {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeResultKey = key
+      this.selectedCollectionId = null
     },
     async changePlugin () {
       const { status, data } = await getFilteredPluginInterfaceList(
@@ -891,6 +1235,7 @@ pre {
 }
 .excute-result {
   right: -2px;
+  padding-top: 4px;
   padding-right: 4px;
   min-height: 300px;
 }
@@ -906,13 +1251,12 @@ pre {
   }
 }
 .excute-result-json {
-  border: $border-config;
   word-wrap: break-word;
   word-break: break-all;
   // overflow: scroll;
 }
 .business-key {
-  padding: 0 16px;
+  padding: 4px 16px;
   cursor: pointer;
   color: #19be6b;
 }
@@ -936,5 +1280,12 @@ pre {
 .ivu-tree-children li {
   margin: 0 !important;
   line-height: 24px;
+}
+.role-transfer-title {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  background-color: rgb(226, 222, 222);
+  margin-bottom: 5px;
 }
 </style>
