@@ -553,7 +553,7 @@ export default {
   mounted () {},
   computed: {
     businessKeyContent: function () {
-      if (this.activeResultKey !== null) {
+      if (this.activeResultKey !== null && this.catchExecuteResult !== null) {
         return this.catchExecuteResult[this.activeResultKey]
       }
     }
@@ -638,11 +638,11 @@ export default {
   },
   methods: {
     changeCollections (id) {
-      this.activeExecuteHistoryKey = null
-      this.activeExecuteHistory = null
       if (!id) {
         return
       }
+      this.activeExecuteHistoryKey = null
+      this.activeExecuteHistory = null
       this.selectedCollection = this.allCollections.find(_ => {
         return _.favoritesId === id
       })
@@ -1085,7 +1085,7 @@ export default {
         this.displayExecuteResultZone = false
 
         this.executeHistory.push({
-          id: new Date().format('yyyy-MM-dd hh:mm:ss'),
+          id: this.getCurrentDate(),
           plugin: {
             pluginName: this.pluginId,
             pluginParams: this.selectedPluginParams
@@ -1097,6 +1097,18 @@ export default {
         this.activeExecuteHistoryKey = this.executeHistory.length - 1
         this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
       }
+    },
+    getCurrentDate () {
+      const timeStr = '-'
+      const curDate = new Date()
+      const curYear = curDate.getFullYear()
+      const curMonth = curDate.getMonth() + 1
+      const curDay = curDate.getDate()
+      const curHour = curDate.getHours()
+      const curMinute = curDate.getMinutes()
+      const curSec = curDate.getSeconds()
+      const Current = curYear + timeStr + curMonth + timeStr + curDay + ' ' + curHour + ':' + curMinute + ':' + curSec
+      return Current
     },
     async executeAgain () {
       const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
@@ -1119,7 +1131,7 @@ export default {
           this.filterBusinessKeySet.push(key)
         }
         this.executeHistory.push({
-          id: new Date().format('yyyy-MM-dd hh:mm:ss'),
+          id: this.getCurrentDate(),
           plugin: this.activeExecuteHistory.plugin,
           requestBody: requestBody,
           executeResult: data,
