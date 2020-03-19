@@ -22,6 +22,7 @@ public class PluginConfigInterfaceDto {
     private String isAsyncProcessing;
     private List<PluginConfigInterfaceParameterDto> inputParameters;
     private List<PluginConfigInterfaceParameterDto> outputParameters;
+    private String filterRule;
 
     public String getId() {
         return id;
@@ -126,6 +127,7 @@ public class PluginConfigInterfaceDto {
         pluginConfigInterface.setServiceDisplayName(pluginConfigInterface.generateServiceName());
         pluginConfigInterface.setPath(getPath());
         pluginConfigInterface.setHttpMethod(getHttpMethod());
+        pluginConfigInterface.setFilterRule(getFilterRule());
         Set<PluginConfigInterfaceParameter> pluginConfigInterfaceInputParameters = newLinkedHashSet();
         if (null != getInputParameters() && getInputParameters().size() > 0) {
             getInputParameters().forEach(inputParameter -> pluginConfigInterfaceInputParameters
@@ -181,6 +183,14 @@ public class PluginConfigInterfaceDto {
 
     public void setIsAsyncProcessing(String isAsyncProcessing) {
         this.isAsyncProcessing = isAsyncProcessing;
+    }
+
+    public String getFilterRule() {
+        return filterRule;
+    }
+
+    public void setFilterRule(String filterRule) {
+        this.filterRule = filterRule;
     }
 
 }
