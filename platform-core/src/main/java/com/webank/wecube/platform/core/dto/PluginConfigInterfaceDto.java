@@ -157,6 +157,7 @@ public class PluginConfigInterfaceDto {
         pluginConfigInterfaceDto.setAction(pluginConfigInterface.getAction());
         pluginConfigInterfaceDto.setHttpMethod(pluginConfigInterface.getHttpMethod());
         pluginConfigInterfaceDto.setIsAsyncProcessing(pluginConfigInterface.getIsAsyncProcessing());
+        pluginConfigInterfaceDto.setFilterRule(pluginConfigInterface.getFilterRule());
 
         List<PluginConfigInterfaceParameterDto> interfaceInputParameterDtos = newArrayList();
         if (null != pluginConfigInterface.getInputParameters()
