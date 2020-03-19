@@ -309,7 +309,8 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                         referenceByEntity.getPackageName(),
                         referenceByEntity.getDataModelVersion(),
                         referenceByEntity.getName(),
-                        referenceByEntity.getDisplayName());
+                        referenceByEntity.getDisplayName(), 
+                        PluginPackageAttributeDto.fromDomain(attribute));
             }
         }));
 
@@ -325,7 +326,8 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                                             entityReferenceToDto.getPackageName(),
                                             entityReferenceToDto.getDataModelVersion(),
                                             entityReferenceToDto.getName(),
-                                            entityReferenceToDto.getDisplayName()
+                                            entityReferenceToDto.getDisplayName(),
+                                            attributeDto
                                     );
                                 }));
                     }
