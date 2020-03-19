@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.controller;
 
 import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +34,12 @@ public class PluginConfigController {
 
     @GetMapping("/plugins/interfaces/package/{package-name}/entity/{entity-name}/enabled")
     @ResponseBody
-    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntityName(@PathVariable(value = "package-name") String packageName, @PathVariable(value = "entity-name") String entityName) {
-        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(packageName, entityName));
+    public JsonResponse queryAllEnabledPluginConfigInterfaceForEntityName(
+            @PathVariable(value = "package-name") String packageName,
+            @PathVariable(value = "entity-name") String entityName,
+            @RequestBody TargetEntityFilterRuleDto filterRuleDto) {
+        return okayWithData(pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(packageName, entityName,
+                filterRuleDto));
     }
 
     @PostMapping("/plugins/enable/{plugin-config-id:.+}")
