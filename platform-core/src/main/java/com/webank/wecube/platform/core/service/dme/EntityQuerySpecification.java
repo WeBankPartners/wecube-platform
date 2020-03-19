@@ -7,7 +7,7 @@ public class EntityQuerySpecification {
     
 
     private EntityQueryCriteria criteria;
-    private List<EntityQueryFilter> additionalFilters;
+    private List<EntityQueryFilter> additionalFilters = new ArrayList<>();
 
     public EntityQueryCriteria getCriteria() {
         return criteria;
