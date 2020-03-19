@@ -171,6 +171,11 @@ public class EntityQueryExpressionParser {
             String conditionExpr = stripHeadAndTailChar(condExpr, "'");
             return tryCalculateConditionExpr(conditionExpr);
         }
+        
+        if(EntityQueryFilter.OP_IS.equalsIgnoreCase(op) || EntityQueryFilter.OP_IS_NOT.equalsIgnoreCase(op)){
+            String conditionExpr = stripHeadAndTailChar(condExpr, "'");
+            return conditionExpr;
+        }
 
         if (EntityQueryFilter.OP_IN.equalsIgnoreCase(op)) {
             return buildConditionList(condExpr);
