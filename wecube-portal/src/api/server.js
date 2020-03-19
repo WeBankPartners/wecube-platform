@@ -125,3 +125,7 @@ export const entityView = (packageName, entityName) =>
   req.get(`/platform/v1/models/package/${packageName}/entity/${entityName}/attributes`)
 export const batchExecution = data => req.post(`/platform/v1/batch-execution/run`, data)
 export const getVariableScope = () => req.get(`/platform/v1/system-variables/constant/system-variable-scope`)
+export const getPluginConfigsByPackageId = packageId => req.get(`/platform/v1/packages/${packageId}/plugin-configs`)
+export const getInterfacesByPluginConfigId = configId => req.get(`/platform/v1/plugins/interfaces/${configId}`)
+export const getEntityRefsByPkgNameAndEntityName = (pkgName, entityName) =>
+  req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}`)
