@@ -8,6 +8,7 @@ import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.*;
 import java.util.Comparator;
@@ -42,6 +43,9 @@ public class PluginConfig {
 
     @Column
     private String targetEntity;
+
+    @Column
+    private String targetEntityFilterRule;
 
     @Column
     private String registerName;
@@ -130,7 +134,7 @@ public class PluginConfig {
     }
 
     public PluginConfig(String id, PluginPackage pluginPackage, String name, String targetPackage, String targetEntity,
-                        Status status, Set<PluginConfigInterface> interfaces) {
+            Status status, Set<PluginConfigInterface> interfaces) {
         this.id = id;
         this.pluginPackage = pluginPackage;
         this.name = name;
@@ -151,6 +155,18 @@ public class PluginConfig {
 
     public void setRegisterName(String registerName) {
         this.registerName = registerName;
+    }
+
+    public String getTargetEntityFilterRule() {
+        return targetEntityFilterRule;
+    }
+
+    public void setTargetEntityFilterRule(String targetEntityFilterRule) {
+        this.targetEntityFilterRule = targetEntityFilterRule;
+    }
+
+    public String getTargetEntityWithFilterRule() {
+        return StringUtils.join(targetPackage, ":", targetEntity, targetEntityFilterRule);
     }
 
 }

@@ -27,7 +27,9 @@
           </Form>
         </div>
         <div class="search-btn">
-          <Button type="primary" @click="excuteSearch">{{ $t('bc_execute_query') }}</Button>
+          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch">{{
+            $t('bc_execute_query')
+          }}</Button>
           <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
           <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
         </div>
@@ -63,6 +65,7 @@
         </a>
       </div>
     </section>
+    <!-- v-if="executeHistory.length" -->
     <section v-if="executeHistory.length" class="execute-history">
       <Row>
         <Col span="4" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
@@ -154,7 +157,7 @@
           <div class="res-content-result">
             <Row>
               <Col span="6" class="excute-result excute-result-search">
-                <!-- <Input v-model="businessKey" /> -->
+                <Input v-model="businessKey" placeholder="Filter instance" />
                 <p class="excute-result-search-title">{{ activeExecuteHistory.plugin.pluginName }}</p>
                 <ul v-if="activeExecuteHistory.filterBusinessKeySet.length">
                   <li
@@ -162,17 +165,35 @@
                     :class="[
                       activeResultKey === key ? 'active-key' : '',
                       'business-key',
-                      activeExecuteHistory.executeResult[key].errorCode === '1' ? 'error-key' : ''
+                      catchExecuteResult[key].errorCode === '1' ? 'error-key' : ''
                     ]"
-                    v-for="(key, keyIndex) in activeExecuteHistory.filterBusinessKeySet"
+                    v-for="(key, keyIndex) in catchFilterBusinessKeySet"
                     :key="keyIndex"
                   >
+                    <!-- activeExecuteHistory.executeResult[key].errorCode === '1' ? 'error-key' : '' -->
                     <span>{{ key }}</span>
                   </li>
                 </ul>
                 <p v-else>No Data</p>
               </Col>
               <Col span="18" class="excute-result excute-result-json">
+                <Row>
+                  <Col span="4">
+                    <Select v-model="filterType" @on-change="filterTypeChange">
+                      <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{
+                        item.label
+                      }}</Option>
+                    </Select>
+                  </Col>
+                  <Col span="8">
+                    <Input v-model="filterParams" placeholder="Filter result, e.g :error or /[0-9]+/" />
+                  </Col>
+                  <Col span="6" offset="1">
+                    <Button type="primary" @click="filterResult">
+                      {{ $t('search') }}
+                    </Button>
+                  </Col>
+                </Row>
                 <div>
                   <pre
                     style="min-height: 300px;"
@@ -343,16 +364,15 @@ export default {
       businessKey: '',
 
       activeExecuteHistoryKey: 0,
-      activeExecuteHistory: null,
-      // tempExecuteHistory: null,
-      executeHistory: [
-        // {
-        //   id: null,
-        //   QueryConditions: {},
-        //   plugin: {},
-        //   executeResult: {
-        //   }
-        // }
+      activeExecuteHistory: {},
+      executeHistory: [],
+      catchExecuteResult: {},
+      catchFilterBusinessKeySet: [],
+      filterParams: null,
+      filterType: 'str',
+      filterTypeList: [
+        { label: this.$t('bc_filter_type_str'), value: 'str' },
+        { label: this.$t('bc_filter_type_regex'), value: 'regex' }
       ]
     }
   },
@@ -360,7 +380,7 @@ export default {
   computed: {
     businessKeyContent: function () {
       if (this.activeResultKey !== null) {
-        return this.activeExecuteHistory.executeResult[this.activeResultKey]
+        return this.catchExecuteResult[this.activeResultKey]
       }
     },
     executeAgainBtnSpan: function () {
@@ -412,16 +432,92 @@ export default {
         return _
       })
     },
+    activeExecuteHistory: function (val) {
+      this.catchExecuteResult = val.executeResult
+      this.catchFilterBusinessKeySet = val.filterBusinessKeySet
+      this.filterParams = null
+      this.businessKey = null
+    },
     businessKey: function (val) {
-      this.filterBusinessKeySet = []
-      for (const key in this.executeResult) {
-        if (key.indexOf(this.businessKey) > -1) {
-          this.filterBusinessKeySet.push(key)
-        }
+      if (!val) {
+        this.catchExecuteResult = this.activeExecuteHistory.executeResult
+        this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+        return
       }
+      this.filterParams = null
+      this.catchFilterBusinessKeySet = []
+      this.catchExecuteResult = {}
+      this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+        if (key.indexOf(this.businessKey) > -1) {
+          this.catchFilterBusinessKeySet.push(key)
+          this.catchExecuteResult[key] = this.activeExecuteHistory.executeResult[key]
+        }
+      })
     }
   },
   methods: {
+    filterTypeChange () {
+      this.filterParams = null
+      this.catchExecuteResult = this.activeExecuteHistory.executeResult
+      this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+    },
+    filterResult () {
+      if (!this.filterParams) {
+        this.catchExecuteResult = this.activeExecuteHistory.executeResult
+        this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+        return
+      }
+      this.businessKey = null
+      this.$nextTick(() => {
+        this.catchFilterBusinessKeySet = []
+        this.catchExecuteResult = {}
+        if (this.filterType === 'str') {
+          this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+            let tmp = JSON.stringify(this.activeExecuteHistory.executeResult[key])
+            if (tmp.indexOf(this.filterParams) > -1) {
+              this.catchFilterBusinessKeySet.push(key)
+              const reg = new RegExp(this.filterParams, 'g')
+              tmp = tmp.replace(reg, "<span style='color:red'>" + this.filterParams + '</span>')
+              this.catchExecuteResult[key] = JSON.parse(tmp)
+            }
+          })
+        } else {
+          let execRes = []
+          let patt = null
+          try {
+            patt = new RegExp(this.filterParams, 'g')
+            let er = JSON.stringify(this.activeExecuteHistory.executeResult)
+            let res = null
+            while ((res = patt.exec(er)) != null) {
+              execRes.push(res[0])
+            }
+            execRes.sort(function (a, b) {
+              return a.length - b.length
+            })
+          } catch (err) {
+            console.log(err)
+            this.$Message.error(this.$t('bc_filter_type_warn'))
+            this.filterParams = null
+            this.catchExecuteResult = this.activeExecuteHistory.executeResult
+            this.catchFilterBusinessKeySet = this.activeExecuteHistory.filterBusinessKeySet
+            return
+          }
+          this.activeExecuteHistory.filterBusinessKeySet.forEach(key => {
+            let str = JSON.stringify(this.activeExecuteHistory.executeResult[key])
+            let len = str.length
+            execRes.forEach(keyword => {
+              let reg = new RegExp(keyword, 'g')
+              str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
+            })
+
+            if (str.length !== len) {
+              this.catchFilterBusinessKeySet.push(key)
+              this.catchExecuteResult[key] = JSON.parse(str)
+            }
+          })
+        }
+      })
+    },
     formatResult (result) {
       if (!result) {
         return
