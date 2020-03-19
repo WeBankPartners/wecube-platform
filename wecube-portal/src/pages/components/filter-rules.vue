@@ -8,7 +8,7 @@
           v-for="(path, index) in pathList"
           :key="path.pathExp"
           @click="showPoptip(path, index)"
-          >{{ path.pathExp }}</span
+          >{{ path.pathExp.replace(/@@[0-9A-Za-z_]*@@/g, '') }}</span
         >
         <Button v-if="pathList.length > 0" type="dashed" icon="md-copy" @click.stop.prevent="copyPathExp" size="small"
           >复制</Button
@@ -37,6 +37,9 @@
             </li>
           </ul>
           <hr />
+          <ul v-for="opt in currentLeafOptiongs" :key="opt.pathExp">
+            <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
+          </ul>
           <ul v-for="opt in currentRefOptiongs" :key="opt.pathExp">
             <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
           </ul>
@@ -61,10 +64,17 @@
           </Select>
         </Col>
         <Col span="8" offset="1">
-          <Input v-if="!rule.isRef" v-model="rule.value"></Input>
-          <Select v-if="rule.isRef" v-model="rule.value" :multiple="rule.op === 'in' || rule.op === 'like'">
-            <Option v-for="(e, i) in rule.enums" :key="i" :value="e.key_name">{{ e.key_name }}</Option>
+          <Input v-if="!rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')" v-model="rule.value"></Input>
+          <Select
+            v-if="rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')"
+            v-model="rule.value"
+            :multiple="rule.op === 'in' || rule.op === 'like'"
+          >
+            <Option v-for="(e, i) in rule.enums" :key="i" :value="'@@' + e.id + '@@' + e.key_name">{{
+              e.key_name
+            }}</Option>
           </Select>
+          <span v-if="rule.op === 'is' || rule.op === 'isnot'">null</span>
         </Col>
       </Row>
       <Row style="margin-top: 10px">
@@ -74,16 +84,17 @@
   </div>
 </template>
 <script>
-import { getTargetOptions, getRefByIdInfoByPackageNameAndEntityName } from '@/api/server'
+import { getTargetOptions, getEntityRefsByPkgNameAndEntityName } from '@/api/server'
 export default {
   name: 'FilterRules',
   data () {
     return {
-      filterRuleOp: ['eq', 'neq', 'in', 'like', 'gt', 'lt'],
+      filterRuleOp: ['eq', 'neq', 'in', 'like', 'gt', 'lt', 'is', 'isnot'],
       pathList: [],
       currentPathFilterRules: [], // 对象数组
       currentOptiongs: [],
       currentRefOptiongs: [],
+      currentLeafOptiongs: [],
       modelVisable: false,
       poptipVisable: false,
       optionsFilter: '',
@@ -103,6 +114,15 @@ export default {
     },
     disabled: {},
     allDataModelsWithAttrs: {}
+  },
+  watch: {
+    value: {
+      handler (val) {
+        console.log(val)
+        // if (val === this.fullPathExp) return
+        // this.formatFirstCurrentOptions()
+      }
+    }
   },
   computed: {
     allEntity () {
@@ -222,7 +242,7 @@ export default {
       }
     },
     opChangeHandler (v, rule) {
-      const multiple = v === 'in' || v === 'like'
+      const multiple = (v === 'in' || v === 'like') && rule.isRef
       rule.value = multiple ? [] : ''
     },
     addRules () {
@@ -239,9 +259,16 @@ export default {
       let rules = ''
       this.currentPathFilterRules.forEach((rule, index) => {
         const isMultiple = Array.isArray(rule.value)
-        rules += isMultiple
-          ? `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
-          : `{${rule.attr} ${rule.op} '${rule.value}'}`
+        let str = ''
+        if (isMultiple) {
+          str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
+        } else if (rule.op === 'is' || rule.op === 'isnot') {
+          str = `{${rule.attr} ${rule.op} null}`
+        } else {
+          const noQuotation = rule.op === 'gt' || rule.op === 'lt'
+          str = noQuotation ? `{${rule.attr} ${rule.op} ${rule.value}}` : `{${rule.attr} ${rule.op} '${rule.value}'}`
+        }
+        rules += str
       })
       this.pathList[this.currentNodeIndex].pathExp = this.pathList[this.currentNodeIndex].pathExp.split('{')[0] + rules
       this.currentPathFilterRules = []
@@ -261,6 +288,7 @@ export default {
       this.pathList = this.pathList.slice(0, this.currentNodeIndex)
       this.poptipVisable = false
       this.$emit('input', this.fullPathExp)
+      console.log(111, this.fullPathExp)
       this.formatNextCurrentOptions(this.currentNode)
     },
     addFilterRuleForCurrentNode () {
@@ -285,58 +313,82 @@ export default {
                 .slice(1, -1)
                 .split(',')
                 .map(v => v.slice(1, -1))
-              : value.slice(1, -1)
+              : value.indexOf("'") > -1
+                ? value.slice(1, -1)
+                : value
           this.currentPathFilterRules.push({ op, value, enums, isRef, attr })
         })
       }
       this.poptipVisable = false
       this.modelVisable = true
     },
+    formaCurrentOptions () {
+      this.currentOptiongs = this.allEntity.map(_ => {
+        return {
+          pkg: _.packageName,
+          entity: _.name,
+          pathExp: `${_.packageName}:${_.name}`,
+          nodeType: 'entity'
+        }
+      })
+    },
     formatFirstCurrentOptions () {
       if (this.value && this.value.indexOf(':') > -1) {
         this.restorePathExp(this.value)
       } else {
-        this.currentOptiongs = this.allEntity.map(_ => {
-          return {
-            pkg: _.packageName,
-            entity: _.name,
-            pathExp: `${_.packageName}:${_.name}`,
-            nodeType: 'entity'
-          }
-        })
+        this.formaCurrentOptions()
       }
     },
     async formatNextCurrentOptions (opt) {
       if (this.pathList.length === 0) {
         this.currentOptiongs = []
         this.currentRefOptiongs = []
-        this.formatFirstCurrentOptions()
+        this.currentLeafOptiongs = []
+        this.formaCurrentOptions()
         return
       }
-      if (opt.nodeType === 'attr') {
+      if (opt.nodeType === 'leaf' || !this.needAttr) {
         this.currentOptiongs = []
         this.currentRefOptiongs = []
+        this.currentLeafOptiongs = []
       } else {
-        const entity = this.allEntity.find(_ => _.name === opt.entity)
-        this.currentOptiongs = entity.attributes.map(attr => {
-          const isRef = attr.refEntityName
-          return {
-            pkg: isRef ? attr.refPackageName : attr.packageName,
-            entity: isRef ? attr.refEntityName : attr.name,
-            pathExp: isRef ? `.${attr.name}>${attr.refPackageName}:${attr.refEntityName}` : `.${attr.name}`,
-            nodeType: isRef ? 'entity' : 'attr'
-          }
-        })
-        const { status, data } = await getRefByIdInfoByPackageNameAndEntityName(opt.pkg, opt.entity)
+        const { status, data } = await getEntityRefsByPkgNameAndEntityName(opt.pkg, opt.entity)
         if (status === 'OK') {
-          this.currentRefOptiongs = data.map(e => {
+          this.currentRefOptiongs = data.referenceByEntityList.map(e => {
             return {
               pkg: e.packageName,
               entity: e.name,
-              pathExp: `~(${e.name})${e.packageName}:${e.entityName}`,
+              pathExp: `~(${e.relatedAttribute.name})${e.packageName}:${e.name}`,
               nodeType: 'entity'
             }
           })
+          this.currentOptiongs = data.referenceToEntityList.map(e => {
+            return {
+              pkg: e.relatedAttribute.refPackageName,
+              entity: e.relatedAttribute.refEntityName,
+              pathExp: `.${e.relatedAttribute.name}>${e.relatedAttribute.refPackageName}:${e.relatedAttribute.refEntityName}`,
+              nodeType: 'entity'
+            }
+          })
+          this.currentLeafOptiongs = data.leafEntityList.referenceToEntityList
+            .map(e => {
+              return {
+                pkg: e.packageName,
+                entity: e.name,
+                pathExp: `.${e.filterRule}`,
+                nodeType: 'entity'
+              }
+            })
+            .concat(
+              data.leafEntityList.referenceByEntityList.map(e => {
+                return {
+                  pkg: e.packageName,
+                  entity: e.name,
+                  pathExp: `~${e.filterRule}`,
+                  nodeType: 'leaf'
+                }
+              })
+            )
         }
       }
     }
