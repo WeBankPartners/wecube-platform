@@ -826,14 +826,15 @@ export default {
           let execRes = []
           let patt = null
           try {
-            patt = new RegExp(this.filterParams, 'g')
+            patt = new RegExp(this.filterParams, 'gmi')
             let er = JSON.stringify(this.activeExecuteHistory.executeResult)
-            let res = null
-            while ((res = patt.exec(er)) != null) {
-              execRes.push(res[0])
-            }
+            execRes = er.match(patt)
+            execRes = this.unique(execRes)
             execRes.sort(function (a, b) {
-              return a.length - b.length
+              return b.length - a.length
+            })
+            execRes = execRes.filter(s => {
+              return s && s.trim()
             })
           } catch (err) {
             console.log(err)
@@ -850,7 +851,6 @@ export default {
               let reg = new RegExp(keyword, 'g')
               str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
             })
-
             if (str.length !== len) {
               this.catchFilterBusinessKeySet.push(key)
               this.catchExecuteResult[key] = JSON.parse(str)
@@ -858,6 +858,9 @@ export default {
           })
         }
       })
+    },
+    unique (arr) {
+      return Array.from(new Set(arr))
     },
     formatResult (result) {
       if (!result) {
