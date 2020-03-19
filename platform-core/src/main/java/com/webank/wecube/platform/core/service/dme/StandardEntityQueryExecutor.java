@@ -66,16 +66,16 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             for (EntityDataDelegate succeedingDelegate : delegate.getSucceedingEntities()) {
                 TreeNode succeedingTreeNode = findTreeNode(result, succeedingDelegate.getPackageName(),
                         succeedingDelegate.getEntityName(), succeedingDelegate.getId());
-                if(succeedingTreeNode == null){
+                if (succeedingTreeNode == null) {
                     succeedingTreeNode = new TreeNode();
                     succeedingTreeNode.setRootId(succeedingDelegate.getId());
                     succeedingTreeNode.setDisplayName(succeedingDelegate.getDisplayName());
                     succeedingTreeNode.setEntityName(succeedingDelegate.getEntityName());
                     succeedingTreeNode.setPackageName(succeedingDelegate.getPackageName());
-                    
+
                     result.add(succeedingTreeNode);
                 }
-                
+
                 succeedingTreeNode.setParent(currTreeNode);
                 currTreeNode.addChildren(succeedingTreeNode);
             }
@@ -311,7 +311,8 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
             performEntityDataExtraction(ctx, linkNode, prevEntityDataDelegate, responseDto.getData());
         } else {
             log.error("Error status met {} with message {}", responseDto.getStatus(), responseDto.getMessage());
-            throw new IllegalStateException("Error status met.");
+            throw new IllegalStateException(String.format("Errors met while fetching data from %s due to status %s.",
+                    entityDef.getPackageName(), responseDto.getStatus()));
         }
     }
 
