@@ -65,14 +65,13 @@
         </a>
       </div>
     </section>
-    <!-- v-if="executeHistory.length" -->
     <section class="execute-history">
       <Row>
         <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
           <div style="height:88px;padding: 8px;border-bottom:1px solid #e8eaec">
             <Form label-position="top" label-colon>
               <FormItem>
-                <span slot="label" style="font-weight:500">收藏列表:</span>
+                <span slot="label" style="font-weight:500">{{ $t('bc_favorites_list') }}:</span>
                 <Select
                   clearable
                   @on-clear="selectedCollectionId = null"
@@ -123,14 +122,13 @@
                 <span>
                   {{ keyIndex }}、{{ key.id }}
                   <Button style="margin-left: 8px" @click="openAddCollectionModal(key)" size="small">
-                    收藏
+                    {{ $t('bc_save') }}
                   </Button>
                 </span>
               </li>
             </ul>
           </div>
         </Col>
-        <!-- v-if="activeExecuteHistory" -->
         <Col :span="isShowHistoryMenu ? 19 : 24" class="res res-content">
           <Icon
             :style="isShowHistoryMenu ? '' : 'transform: rotate(90deg);'"
@@ -196,7 +194,7 @@
                   >
                 </div>
               </Step>
-              <Step title="执行参数" content="">
+              <Step :title="$t('bc_execution_parameter')" content="">
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
@@ -217,11 +215,11 @@
                     :disabled="activeExecuteHistory.plugin.pluginParams.length === 0"
                     @click="setPluginParamsModal = true"
                     ghost
-                    >补充参数</Button
+                    >{{ $t('bc_complement_parameters') }}</Button
                   >
                 </div>
               </Step>
-              <Step title="执行" content="">
+              <Step :title="$t('bc_execute')" content="">
                 <div slot="content">
                   <Button
                     size="small"
@@ -229,7 +227,7 @@
                     :disabled="!activeExecuteHistory.requestBody.inputParameterDefinitions"
                     type="primary"
                     ghost
-                    >执行</Button
+                    >{{ $t('bc_execute') }}</Button
                   >
                 </div>
               </Step>
@@ -397,9 +395,9 @@
       </div>
     </Modal>
 
-    <Modal v-model="collectionRoleManageModal" width="700" :title="$t('edit_role')" :mask-closable="false">
+    <Modal v-model="collectionRoleManageModal" width="700" :title="$t('bc_edit_role')" :mask-closable="false">
       <div v-if="editCollectionName" style="margin-bottom:8px;">
-        <span style="font-weight: 500;">收藏名称：</span>
+        <span style="font-weight: 500;">{{ $t('bc_name') }}：</span>
         <Input v-model="collectionName" style="width:35%"></Input>
       </div>
       <div>
@@ -630,11 +628,6 @@ export default {
         }
       })
     }
-    // selectedCollectionId: function (val) {
-    //   if (!val) {
-    //     this.activeExecuteHistory = this.defaultActiveExecuteHistory
-    //   }
-    // }
   },
   methods: {
     changeCollections (id) {
@@ -712,7 +705,7 @@ export default {
           addCollectionsRole(this.selectedCollection.favoritesId, params)
         } else {
           if (newTargetKeys.length === 0) {
-            this.$Message.warning('属主角色不能为空！')
+            this.$Message.warning(this.$t('bc_mgmt_role_cannot_empty'))
           } else {
             deleteCollectionsRole(this.selectedCollection.favoritesId, params)
           }
@@ -762,12 +755,12 @@ export default {
         return
       }
       if (!this.MGMT.length) {
-        this.$Message.warning('属主角色不能为空！')
+        this.$Message.warning(this.$t('bc_mgmt_role_cannot_empty'))
         return
       }
       if (this.editCollectionName) {
         if (!this.collectionName.trim()) {
-          this.$Message.warning('收藏名称不能为空！')
+          this.$Message.warning(this.$t('bc_name_cannot_empty'))
           return
         }
         const { plugin, requestBody } = this.toBeCollectedParams
