@@ -8,5 +8,6 @@ public interface EntityQueryExecutor {
     List<EntityDataDelegate> executeQueryLeafEntity(EntityOperationContext ctx);
     void performQuery(EntityOperationContext ctx, EntityQueryLinkNode linkNode);
     List<TreeNode> generatePreviewTree(EntityOperationContext ctx);
+    EntityTreeNodesOverview generateEntityLinkOverview(EntityOperationContext ctx);
 }
 

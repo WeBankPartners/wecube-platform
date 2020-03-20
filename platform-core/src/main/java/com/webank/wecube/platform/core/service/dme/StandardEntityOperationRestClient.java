@@ -12,12 +12,6 @@ import org.springframework.web.client.RestTemplate;
 
 public class StandardEntityOperationRestClient {
     private static final Logger log = LoggerFactory.getLogger(StandardEntityOperationRestClient.class);
-    public static final String CHAIN_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
-    public static final String CREATE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/create";
-    public static final String RETRIEVE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}";
-    public static final String RETRIEVE_REQUEST_WITH_FILTER_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}?{requestParams}";
-    public static final String UPDATE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/update";
-    public static final String DELETE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/delete";
 
     private String queryUriTemplate = "/{package-name}/entities/{entity-name}/query";
     private String updateUriTemplate = "/{package-name}/entities/{entity-name}/update";
