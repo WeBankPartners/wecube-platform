@@ -405,5 +405,15 @@
   "bc_edit_role": "Edit Role",
   "plugin_type": "Plugin Type",
   "sstn": "Automatic Node",
-  "sutn": "Manual Approval Node"
+  "sutn": "Manual Approval Node",
+  "copy": "Copy",
+  "copy_success": "Copy Successful",
+  "filter_rule": "Filter Rules",
+  "add_filter_rule": "Adding Filtering Rules",
+  "set_filter_rule": "Set Up Filtering Rules",
+  "please_choose": "Select",
+  "please_paste_here": "Please Paste Here",
+  "delete_node": "Delete Node",
+  "remove": "Remove",
+  "completely_deleted": "It Will Be Completely Deleted After Clicking Save"
 }

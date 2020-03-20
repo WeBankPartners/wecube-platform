@@ -10,10 +10,17 @@
           @click="showPoptip(path, index)"
           >{{ path.pathExp.replace(/@@[0-9A-Za-z_]*@@/g, '') }}</span
         >
-        <Button v-if="pathList.length > 0" type="dashed" icon="md-copy" @click.stop.prevent="copyPathExp" size="small"
-          >复制</Button
+        <Button
+          v-if="pathList.length > 0"
+          type="dashed"
+          icon="md-copy"
+          @click.stop.prevent="copyPathExp"
+          size="small"
+          >{{ $t('copy') }}</Button
         >
-        <Button v-if="pathList.length === 0" type="primary" ghost icon="md-add-circle" long size="small">请选择</Button>
+        <Button v-if="pathList.length === 0" type="primary" ghost icon="md-add-circle" long size="small">{{
+          $t('please_choose')
+        }}</Button>
       </div>
       <div slot="content">
         <div class="filter_rules_path_options">
@@ -23,17 +30,17 @@
                 class="paste_input"
                 v-model="pasteValue"
                 @input="inputHandler"
-                placeholder="请在这粘贴"
+                :placeholder="$t('please_paste_here')"
                 @paste="pastePathExp($event)"
               />
             </li>
-            <li class v-if="pathList.length > 0" @click="deleteCurrentNode">删除此节点</li>
+            <li class v-if="pathList.length > 0" @click="deleteCurrentNode">{{ $t('delete_node') }}</li>
             <li
               class
               v-if="pathList.length > 0 && currentNode.nodeType === 'entity'"
               @click="addFilterRuleForCurrentNode"
             >
-              添加过滤规则
+              {{ $t('add_filter_rule') }}
             </li>
           </ul>
           <hr />
@@ -49,7 +56,7 @@
         </div>
       </div>
     </Poptip>
-    <Modal v-model="modelVisable" title="过滤规则" @on-ok="okHandler" @on-cancel="cancelHandler">
+    <Modal v-model="modelVisable" :title="$t('copy')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
         <Col span="8">
           <Select v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
@@ -78,7 +85,7 @@
         </Col>
       </Row>
       <Row style="margin-top: 10px">
-        <Button type="primary" @click="addRules" long size="small">添加过滤规则</Button>
+        <Button type="primary" @click="addRules" long size="small">{{ $t('add_filter_rule') }}</Button>
       </Row>
     </Modal>
   </div>
@@ -91,7 +98,7 @@ export default {
     return {
       filterRuleOp: ['eq', 'neq', 'in', 'like', 'gt', 'lt', 'is', 'isnot'],
       pathList: [],
-      currentPathFilterRules: [], // 对象数组
+      currentPathFilterRules: [],
       currentOptiongs: [],
       currentRefOptiongs: [],
       currentLeafOptiongs: [],
@@ -170,7 +177,7 @@ export default {
       document.execCommand('Copy')
       this.$Notice.success({
         title: 'Success',
-        desc: '复制成功'
+        desc: this.$t('copy_success')
       })
       inputElement.remove()
     },

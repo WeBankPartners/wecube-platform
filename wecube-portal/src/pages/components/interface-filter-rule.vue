@@ -1,9 +1,9 @@
 <template>
   <span>
-    <Button size="small" :disabled="disabled" type="primary" ghost @click.stop.prevent="addFilters"
-      >设置过滤规则</Button
-    >
-    <Modal v-model="modelVisable" title="过滤规则" @on-ok="okHandler" @on-cancel="cancelHandler">
+    <Button size="small" :disabled="disabled" type="primary" ghost @click.stop.prevent="addFilters">{{
+      $t('set_filter_rule')
+    }}</Button>
+    <Modal v-model="modelVisable" :title="$t('copy')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
         <Col span="8">
           <Select v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
@@ -32,7 +32,7 @@
         </Col>
       </Row>
       <Row style="margin-top: 10px">
-        <Button type="primary" @click="addRules" long size="small">添加过滤规则</Button>
+        <Button type="primary" @click="addRules" long size="small">{{ $t('add_filter_rule') }}</Button>
       </Row>
     </Modal>
   </span>

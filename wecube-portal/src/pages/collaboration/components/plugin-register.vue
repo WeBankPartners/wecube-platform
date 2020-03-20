@@ -14,7 +14,7 @@
                 style="color: #2d8cf0;"
                 icon="md-add-circle"
                 @click.stop.prevent="addPluginConfigDto(plugin)"
-                >添加</Button
+                >{{ $t('add') }}</Button
               >
             </template>
             <MenuItem
@@ -30,7 +30,7 @@
                 style="color: #19be6b;"
                 icon="md-copy"
                 @click.stop.prevent="copyPluginConfigDto(dto.id)"
-                >复制</Button
+                >{{ $t('copy') }}</Button
               >
             </MenuItem>
           </Submenu>
@@ -77,9 +77,9 @@
                   ghost
                   icon="md-copy"
                   @click.stop.prevent="copyInterface(inter)"
-                  >复制</Button
+                  >{{ $t('copy') }}</Button
                 >
-                <Tooltip content="点击保存后将完全删除" placement="top">
+                <Tooltip :content="$t('completely_deleted')" placement="top">
                   <Button
                     size="small"
                     type="error"
@@ -87,7 +87,7 @@
                     ghost
                     icon="ios-trash-outline"
                     @click.stop.prevent="deleteInterface(index)"
-                    >移除</Button
+                    >{{ $t('remove') }}</Button
                   >
                 </Tooltip>
                 <div slot="content">
