@@ -129,3 +129,8 @@ export const getPluginConfigsByPackageId = packageId => req.get(`/platform/v1/pa
 export const getInterfacesByPluginConfigId = configId => req.get(`/platform/v1/plugins/interfaces/${configId}`)
 export const getEntityRefsByPkgNameAndEntityName = (pkgName, entityName) =>
   req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}`)
+export const getPluginsByTargetEntityFilterRule = data =>
+  req.post(
+    `/platform/v1/plugins/interfaces/package/${data.pkgName}/entity/${data.entityName}/enabled/query-by-target-entity-filter-rule`,
+    data
+  )
