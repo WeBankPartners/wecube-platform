@@ -13,7 +13,7 @@
         <Button v-if="pathList.length > 0" type="dashed" icon="md-copy" @click.stop.prevent="copyPathExp" size="small"
           >复制</Button
         >
-        <Button v-if="pathList.length === 0" type="dashed" icon="md-add-circle" long size="small">请选择</Button>
+        <Button v-if="pathList.length === 0" type="primary" ghost icon="md-add-circle" long size="small">请选择</Button>
       </div>
       <div slot="content">
         <div class="filter_rules_path_options">
@@ -120,7 +120,12 @@ export default {
       handler (val) {
         console.log(val)
         // if (val === this.fullPathExp) return
-        // this.formatFirstCurrentOptions()
+        this.formatFirstCurrentOptions()
+      }
+    },
+    allDataModelsWithAttrs: {
+      handler (val) {
+        this.formatCurrentOptions()
       }
     }
   },
@@ -181,6 +186,7 @@ export default {
       this.restorePathExp(data)
     },
     restorePathExp (PathExp) {
+      this.pathList = []
       const pathList = PathExp.split(/[~.]+(?=[^\\}]*(\\{|$))/).filter(p => p.length > 0)
       let path = {}
       pathList.forEach((_, i) => {
@@ -218,13 +224,15 @@ export default {
         }
         this.pathList.push(path)
       })
-      this.$emit('input', this.fullPathExp)
+      // this.$emit('input', this.fullPathExp)
+      // this.$emit('change', this.fullPathExp)
       this.poptipVisable = false
     },
     optClickHandler (opt) {
       this.pathList = this.pathList.slice(0, this.currentNodeIndex + 1)
       this.pathList.push(opt)
       this.$emit('input', this.fullPathExp)
+      this.$emit('change', this.fullPathExp)
       this.formatNextCurrentOptions(opt)
       this.currentNodeIndex++
       this.currentNode = opt
@@ -273,6 +281,7 @@ export default {
       this.pathList[this.currentNodeIndex].pathExp = this.pathList[this.currentNodeIndex].pathExp.split('{')[0] + rules
       this.currentPathFilterRules = []
       this.$emit('input', this.fullPathExp)
+      this.$emit('change', this.fullPathExp)
     },
     cancelHandler () {
       this.modelVisable = false
@@ -288,7 +297,7 @@ export default {
       this.pathList = this.pathList.slice(0, this.currentNodeIndex)
       this.poptipVisable = false
       this.$emit('input', this.fullPathExp)
-      console.log(111, this.fullPathExp)
+      this.$emit('change', this.fullPathExp)
       this.formatNextCurrentOptions(this.currentNode)
     },
     addFilterRuleForCurrentNode () {
@@ -322,7 +331,7 @@ export default {
       this.poptipVisable = false
       this.modelVisable = true
     },
-    formaCurrentOptions () {
+    formatCurrentOptions () {
       this.currentOptiongs = this.allEntity.map(_ => {
         return {
           pkg: _.packageName,
@@ -336,7 +345,7 @@ export default {
       if (this.value && this.value.indexOf(':') > -1) {
         this.restorePathExp(this.value)
       } else {
-        this.formaCurrentOptions()
+        this.formatCurrentOptions()
       }
     },
     async formatNextCurrentOptions (opt) {
@@ -344,7 +353,7 @@ export default {
         this.currentOptiongs = []
         this.currentRefOptiongs = []
         this.currentLeafOptiongs = []
-        this.formaCurrentOptions()
+        this.formatCurrentOptions()
         return
       }
       if (opt.nodeType === 'leaf' || !this.needAttr) {
