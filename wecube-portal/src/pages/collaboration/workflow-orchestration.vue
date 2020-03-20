@@ -42,23 +42,6 @@
             :allDataModelsWithAttrs="allEntityType"
           ></FilterRules>
         </div>
-        <!-- <Select
-          @on-change="onEntitySelect"
-          v-model="currentSelectedEntity"
-          ref="currentSelectedEntity"
-          filterable
-          clearable
-          style="width: 70%"
-        >
-          <OptionGroup :label="pluginPackage.packageName" v-for="(pluginPackage, index) in allEntityType" :key="index">
-            <Option
-              v-for="item in pluginPackage.pluginPackageEntities"
-              :value="pluginPackage.packageName + ':' + item.name"
-              :key="item.name"
-              >{{ item.name }}</Option
-            >
-          </OptionGroup>
-        </Select> -->
       </Col>
       <Button type="info" :disabled="isSaving" @click="saveDiagram(false)">
         {{ $t('release_flow') }}
@@ -120,14 +103,6 @@
                     v-model="pluginForm.routineExpression"
                     :allDataModelsWithAttrs="allEntityType"
                   ></FilterRules>
-                  <!-- <PathExp
-                    class="path-exp"
-                    :row="2"
-                    :rootPkg="rootPkg"
-                    :rootEntity="rootEntity"
-                    :allDataModelsWithAttrs="allEntityType"
-                    v-model="pluginForm.routineExpression"
-                  ></PathExp> -->
                 </FormItem>
               </Col>
             </Row>
@@ -629,9 +604,6 @@ export default {
     },
     onEntitySelect (v) {
       this.currentSelectedEntity = v || ''
-      // this.rootPkg = this.currentSelectedEntity.split(':')[0]
-      // this.rootEntity = this.currentSelectedEntity.split(':')[1].split('{')[0]
-
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = []
       this.pluginForm = {
         ...this.defaultPluginForm,
