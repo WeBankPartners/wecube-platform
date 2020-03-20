@@ -333,6 +333,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
         fDto.setStatus(nodeEntity.getStatus());
         fDto.setOrderedNo(nodeEntity.getOrderedNo());
         fDto.setRoutineExpression(nodeEntity.getRoutineExpression());
+        fDto.setServiceId(nodeEntity.getServiceId());
 
         List<String> previousNodeIds = unmarshalNodeIds(nodeEntity.getPreviousNodeIds());
         previousNodeIds.forEach(n -> fDto.addPreviousNodeIds(n));

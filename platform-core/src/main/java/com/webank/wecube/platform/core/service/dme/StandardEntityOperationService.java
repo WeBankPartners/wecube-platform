@@ -48,6 +48,17 @@ public class StandardEntityOperationService {
 
         return;
     }
+    
+    public EntityTreeNodesOverview generateEntityLinkOverview(EntityOperationRootCondition condition) {
+    	if(log.isInfoEnabled()) {
+    		log.info("generate entity link overview with condition {}", condition);
+    	}
+    	
+    	EntityOperationContext ctx = buildEntityOperationContext(condition);
+        ctx.setEntityOperationType(EntityOperationType.QUERY);
+        
+        return standardEntityQueryExcutor.generateEntityLinkOverview(ctx);
+    }
 
     public List<TreeNode> generatePreviewTree(EntityOperationRootCondition condition) {
         if(log.isInfoEnabled()){

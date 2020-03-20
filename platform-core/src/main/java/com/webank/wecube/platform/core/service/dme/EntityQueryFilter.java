@@ -7,6 +7,8 @@ public class EntityQueryFilter {
     public static final String OP_LIKE = "like";
     public static final String OP_GREAT_THAN = "gt";
     public static final String OP_LESS_THAN = "lt";
+    public static final String OP_IS = "is";
+    public static final String OP_IS_NOT = "isnot";
     private String attrName;
     private String op;
     private Object condition;
