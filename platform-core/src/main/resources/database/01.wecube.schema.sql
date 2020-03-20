@@ -315,4 +315,26 @@ CREATE TABLE `execution_job_parameters` (
     CONSTRAINT `FK_execution_job_parameters_execution_jobs` FOREIGN KEY (`execution_job_id`) REFERENCES `execution_jobs` (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `favorites`;
+CREATE TABLE `favorites` (
+  `favorites_id` varchar(255) NOT NULL,
+  `created_by` varchar(255) DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `collection_name` varchar(255) NOT NULL,
+  `data` blob,
+  PRIMARY KEY (`favorites_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `favorites_role`;
+CREATE TABLE `favorites_role` (
+  `id` varchar(255) NOT NULL,
+  `favorites_id` varchar(255) DEFAULT NULL,
+  `permission` varchar(255) DEFAULT NULL,
+  `role_id` varchar(255) DEFAULT NULL,
+  `role_name` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 SET FOREIGN_KEY_CHECKS = 1;
