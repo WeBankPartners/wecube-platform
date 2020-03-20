@@ -7,6 +7,7 @@ public class StartProcInstRequestDto {
     private String procDefId;
     private String entityTypeId;
     private String entityDataId;
+    private String processSessionId;
     private List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
 
     public String getProcDefId() {
@@ -64,4 +65,14 @@ public class StartProcInstRequestDto {
         
         return this;
     }
+
+	public String getProcessSessionId() {
+		return processSessionId;
+	}
+
+	public void setProcessSessionId(String processSessionId) {
+		this.processSessionId = processSessionId;
+	}
+    
+    
 }
