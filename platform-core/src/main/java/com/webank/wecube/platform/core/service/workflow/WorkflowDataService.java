@@ -260,31 +260,32 @@ public class WorkflowDataService {
             if (!"subProcess".equals(nodeType)) {
                 continue;
             }
-            
-            if(StringUtils.isBlank(f.getRoutineExpression())) {
-            	log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
-            	continue;
+
+            String routineExpr = calculateDataModelExpression(f);
+
+            if (StringUtils.isBlank(routineExpr)) {
+                log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
+                continue;
             }
 
             log.info("About to fetch data for node {} {}", f.getNodeDefId(), f.getNodeName());
 
-            log.info("About to fetch data with expression {} and data id {}", f.getRoutineExpression(), dataId);
-            EntityOperationRootCondition condition = new EntityOperationRootCondition(f.getRoutineExpression(), dataId);
+            log.info("About to fetch data with expression {} and data id {}", routineExpr, dataId);
+            EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
             List<TreeNode> nodes = null;
             try {
                 nodes = standardEntityOperationService.generatePreviewTree(condition);
             } catch (Exception e) {
-                log.error("errors while fetching data with expr {} and data id {}", f.getRoutineExpression(), dataId,
-                        e);
+                log.error("errors while fetching data with expr {} and data id {}", routineExpr, dataId, e);
                 throw new WecubeCoreException(e.getMessage());
             }
 
             if (nodes == null || nodes.isEmpty()) {
-                log.warn("None data returned for {} and {}", f.getRoutineExpression(), dataId);
+                log.warn("None data returned for {} and {}", routineExpr, dataId);
                 continue;
             }
 
-            log.info("total {} records returned for {} and {}", nodes.size(), f.getRoutineExpression(), dataId);
+            log.info("total {} records returned for {} and {}", nodes.size(), routineExpr, dataId);
 
             for (TreeNode tn : nodes) {
                 String treeNodeId = buildId(tn);
@@ -317,6 +318,29 @@ public class WorkflowDataService {
 
         return result;
 
+    }
+
+    private String calculateDataModelExpression(FlowNodeDefDto f) {
+        if (StringUtils.isBlank(f.getRoutineExpression())) {
+            return null;
+        }
+
+        String expr = f.getRoutineExpression();
+
+        if (StringUtils.isBlank(f.getServiceId())) {
+            return expr;
+        }
+
+        PluginConfigInterface inter = pluginConfigService.getPluginConfigInterfaceByServiceName(f.getServiceId());
+        if (inter == null) {
+            return expr;
+        }
+
+        if (StringUtils.isBlank(inter.getFilterRule())) {
+            return expr;
+        }
+
+        return expr + inter.getFilterRule();
     }
 
     private void addToResult(List<GraphNodeDto> result, GraphNodeDto... nodes) {
