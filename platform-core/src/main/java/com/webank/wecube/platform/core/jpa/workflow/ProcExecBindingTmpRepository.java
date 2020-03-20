@@ -10,12 +10,12 @@ import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
 
 public interface ProcExecBindingTmpRepository extends JpaRepository<ProcExecBindingTmpEntity, Integer> {
 
-	@Query("select t.* from ProcExecBindingTmpEntity t "
+	@Query("select t from ProcExecBindingTmpEntity t "
 			+ " where t.nodeDefId = :nodeDefId and t.procSessionId = :processSessionId")
 	List<ProcExecBindingTmpEntity> getAllByNodeAndSession(@Param("nodeDefId") String nodeDefId,
 			@Param("processSessionId") String processSessionId);
 	
-	@Query("select t.* from ProcExecBindingTmpEntity t "
+	@Query("select t from ProcExecBindingTmpEntity t "
 			+ " where t.procSessionId = :processSessionId")
 	List<ProcExecBindingTmpEntity> getAllBySession(@Param("processSessionId") String processSessionId);
 }
