@@ -35,7 +35,14 @@
       </Col>
       <Col span="8" offset="1">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <Select
+        <div style="width:70%;display: inline-block;">
+          <FilterRules
+            @change="onEntitySelect"
+            v-model="currentSelectedEntity"
+            :allDataModelsWithAttrs="allEntityType"
+          ></FilterRules>
+        </div>
+        <!-- <Select
           @on-change="onEntitySelect"
           v-model="currentSelectedEntity"
           ref="currentSelectedEntity"
@@ -51,7 +58,7 @@
               >{{ item.name }}</Option
             >
           </OptionGroup>
-        </Select>
+        </Select> -->
       </Col>
       <Button type="info" :disabled="isSaving" @click="saveDiagram(false)">
         {{ $t('save_flow') }}
@@ -106,16 +113,21 @@
                   </Select>
                 </FormItem>
               </Col>
-              <Col span="8">
+              <Col span="16">
                 <FormItem :label="$t('locate_rules')" prop="routineExpression">
-                  <PathExp
+                  <FilterRules
+                    :needAttr="true"
+                    v-model="pluginForm.routineExpression"
+                    :allDataModelsWithAttrs="allEntityType"
+                  ></FilterRules>
+                  <!-- <PathExp
                     class="path-exp"
                     :row="2"
                     :rootPkg="rootPkg"
                     :rootEntity="rootEntity"
                     :allDataModelsWithAttrs="allEntityType"
                     v-model="pluginForm.routineExpression"
-                  ></PathExp>
+                  ></PathExp> -->
                 </FormItem>
               </Col>
             </Row>
@@ -243,6 +255,7 @@ import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css'
 import 'bpmn-js-properties-panel/dist/assets/bpmn-js-properties-panel.css'
 
 import PathExp from '../components/path-exp.vue'
+import FilterRules from '../components/filter-rules.vue'
 import axios from 'axios'
 import { setCookie, getCookie } from '../util/cookie'
 
@@ -256,7 +269,8 @@ import {
   getAllDataModels,
   getPluginInterfaceList,
   removeProcessDefinition,
-  getFilteredPluginInterfaceList,
+  // getFilteredPluginInterfaceList,
+  getPluginsByTargetEntityFilterRule,
   exportProcessDefinitionWithId,
   getRolesByCurrentUser,
   getRoleList,
@@ -272,7 +286,8 @@ function setCTM (node, m) {
 
 export default {
   components: {
-    PathExp
+    PathExp,
+    FilterRules
   },
   data () {
     return {
@@ -391,7 +406,8 @@ export default {
     },
     selectedFlow: {
       handler (val, oldVal) {
-        this.$refs['currentSelectedEntity'].clearSingleSelect()
+        this.currentSelectedEntity = ''
+        // this.$refs['currentSelectedEntity'].clearSingleSelect()
         if (val) {
           this.getFlowXml(val)
           this.getPermissionByProcess(val)
@@ -540,7 +556,13 @@ export default {
       if (!path) return
       const pathList = path.split(/[~)>]/)
       const last = pathList[pathList.length - 1].split(':')
-      const { status, data } = await getFilteredPluginInterfaceList(last[0], last[1])
+      const index = pathList[pathList.length - 1].indexOf('{')
+      const payload = {
+        pkgName: last[0],
+        entityName: last[1].split('{')[0],
+        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+      }
+      const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.filteredPlugins = data
       }
@@ -605,8 +627,8 @@ export default {
     },
     onEntitySelect (v) {
       this.currentSelectedEntity = v || ''
-      this.rootPkg = this.currentSelectedEntity.split(':')[0]
-      this.rootEntity = this.currentSelectedEntity.split(':')[1]
+      // this.rootPkg = this.currentSelectedEntity.split(':')[0]
+      // this.rootEntity = this.currentSelectedEntity.split(':')[1].split('{')[0]
 
       if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = []
       this.pluginForm = {
@@ -819,8 +841,8 @@ export default {
           }
           _this.serviceTaskBindInfos = data.taskNodeInfos
           _this.currentSelectedEntity = data.rootEntity || ''
-          _this.rootPkg = data.rootEntity.split(':')[0] || ''
-          _this.rootEntity = data.rootEntity.split(':')[1] || ''
+          // _this.rootPkg = data.rootEntity.split(':')[0] || ''
+          // _this.rootEntity = data.rootEntity.split(':')[1].split('{')[0] || ''
         })
       }
     },
@@ -828,6 +850,7 @@ export default {
       this.container = this.$refs.content
       const canvas = this.$refs.canvas
       canvas.onmouseup = e => {
+        console.log(e.target)
         this.show = true
         this.bindCurrentNode(e)
         this.openPluginModal()
