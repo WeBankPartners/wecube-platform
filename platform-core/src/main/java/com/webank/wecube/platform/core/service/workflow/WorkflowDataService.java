@@ -88,16 +88,16 @@ public class WorkflowDataService {
 		for (TaskNodeDefObjectBindInfoDto dto : bindings) {
 			ProcExecBindingTmpEntity existEntity = findProcExecBindingTmpEntityWithNodeAndEntity(dto.getNodeDefId(),
 					dto.getEntityTypeId(), dto.getEntityDataId(), bindingEntities);
-			if(existEntity == null) {
-				log.warn("cannot find such binds for {} {} {}", dto.getNodeDefId(),
-					dto.getEntityTypeId(), dto.getEntityDataId());
+			if (existEntity == null) {
+				log.warn("cannot find such binds for {} {} {}", dto.getNodeDefId(), dto.getEntityTypeId(),
+						dto.getEntityDataId());
 				continue;
 			}
-			
+
 			existEntity.setBound(dto.getBound());
 			existEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
 			existEntity.setUpdatedTime(new Date());
-			
+
 			procExecBindingTmpRepository.save(existEntity);
 		}
 	}
@@ -265,6 +265,7 @@ public class WorkflowDataService {
 		procInstBindingTmpEntity.setProcSessionId(processSessionId);
 		procInstBindingTmpEntity.setProcDefId(outline.getProcDefId());
 		procInstBindingTmpEntity.setEntityDataId(dataId);
+		procInstBindingTmpEntity.setEntityTypeId(outline.getRootEntity());
 		procInstBindingTmpEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
 
 		procExecBindingTmpRepository.save(procInstBindingTmpEntity);
@@ -359,6 +360,7 @@ public class WorkflowDataService {
 			taskNodeBinding.setProcSessionId(processSessionId);
 			taskNodeBinding.setProcDefId(f.getProcDefId());
 			taskNodeBinding.setEntityDataId(String.valueOf(tn.getRootId()));
+			taskNodeBinding.setEntityTypeId(String.format("%s:%s", tn.getPackageName(), tn.getEntityName()));
 			taskNodeBinding.setNodeDefId(f.getNodeDefId());
 			taskNodeBinding.setOrderedNo(f.getOrderedNo());
 			taskNodeBinding.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
