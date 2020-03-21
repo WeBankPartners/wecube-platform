@@ -535,7 +535,7 @@ export default {
       this.isLoading = false
       if (!this.selectedTarget) return
       if (status === 'OK') {
-        this.modelData = data.map(_ => {
+        this.modelData = data.entityTreeNodes.map(_ => {
           return {
             ..._,
             refFlowNodeIds: []
