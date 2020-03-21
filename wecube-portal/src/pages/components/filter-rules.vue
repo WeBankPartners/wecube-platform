@@ -232,7 +232,6 @@ export default {
         }
         this.pathList.push(path)
       })
-      console.log(this.pathList)
       // this.$emit('input', this.fullPathExp)
       // this.$emit('change', this.fullPathExp)
       this.poptipVisable = false
