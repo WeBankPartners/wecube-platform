@@ -9,6 +9,7 @@
   "table_action": "操作",
   "add": "添加",
   "delete": "删除",
+  "remove": "移除",
   "modify": "修改",
   "edit": "编辑",
   "save": "保存",
@@ -404,5 +405,14 @@
   "bc_edit_role": "角色配置",
   "plugin_type": "插件类型",
   "sstn": "自动节点",
-  "sutn": "人工审批节点"
+  "sutn": "人工审批节点",
+  "copy": "复制",
+  "copy_success": "复制成功",
+  "filter_rule": "过滤规则",
+  "add_filter_rule": "添加过滤规则",
+  "set_filter_rule": "设置过滤规则",
+  "please_choose": "请选择",
+  "please_paste_here": "请在这粘贴",
+  "delete_node": "删除此节点",
+  "completely_deleted": "点击保存后将完全删除"
 }

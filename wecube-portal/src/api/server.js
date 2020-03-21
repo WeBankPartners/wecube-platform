@@ -131,3 +131,18 @@ export const deleteCollections = id => req.delete(`/platform/v1/roles/favorites/
 export const saveBatchExecution = data => req.post(`/platform/v1/roles/favorites/create`, data)
 export const updateCollections = data => req.post(`/platform/v1/roles/favorites/update`, data)
 export const getVariableScope = () => req.get(`/platform/v1/system-variables/constant/system-variable-scope`)
+export const getPluginConfigsByPackageId = packageId => req.get(`/platform/v1/packages/${packageId}/plugin-configs`)
+export const getInterfacesByPluginConfigId = configId => req.get(`/platform/v1/plugins/interfaces/${configId}`)
+export const getEntityRefsByPkgNameAndEntityName = (pkgName, entityName) =>
+  req.get(`/platform/v1/models/package/${pkgName}/entity/${entityName}`)
+export const getPluginsByTargetEntityFilterRule = data =>
+  req.post(
+    `/platform/v1/plugins/interfaces/package/${data.pkgName}/entity/${data.entityName}/enabled/query-by-target-entity-filter-rule`,
+    data
+  )
+export const getDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId) =>
+  req.get(`/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings`)
+export const setDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId, data) =>
+  req.post(`/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings`, data)
+export const getAllBindingsProcessSessionId = ProcessSessionId =>
+  req.get(`/platform/v1/process/instances/tasknodes/session/${ProcessSessionId}/tasknode-bindings`)
