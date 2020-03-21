@@ -188,7 +188,8 @@ import {
   retryProcessInstance,
   getModelNodeDetail,
   getNodeBindings,
-  getNodeContext
+  getNodeContext,
+  getDataByNodeDefIdAndProcessSessionId
 } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
@@ -299,7 +300,8 @@ export default {
       flowNodesBindings: [],
       flowDetailTimer: null,
       isLoading: false,
-      catchNodeTableList: []
+      catchNodeTableList: [],
+      processSessionId: ''
     }
   },
   watch: {
@@ -347,6 +349,7 @@ export default {
       }
     },
     targetModelConfirm (visible) {
+      // TODO:
       this.targetModalVisible = visible
       if (!visible) {
         this.updateNodeInfo()
@@ -535,6 +538,7 @@ export default {
       this.isLoading = false
       if (!this.selectedTarget) return
       if (status === 'OK') {
+        this.processSessionId = data.processSessionId
         this.modelData = data.entityTreeNodes.map(_ => {
           return {
             ..._,
@@ -848,30 +852,43 @@ export default {
       e.preventDefault()
       e.stopPropagation()
       let g = e.currentTarget
-      this.highlightModel(g.id)
       this.currentFlowNodeId = g.id
       const currentNode = this.flowData.flowNodes.find(_ => {
         return _.nodeId === this.currentFlowNodeId
       })
       this.currentNodeTitle = `${currentNode.orderedNo}、${currentNode.nodeName}`
+      this.highlightModel(g.id, currentNode.nodeDefId)
       this.renderFlowGraph()
     },
-    highlightModel (nodeId) {
-      this.catchTartetModels = []
-      this.catchNodeTableList = []
-      const routineExpression = this.flowData.flowNodes.find(item => item.nodeId === nodeId).routineExpression
-      if (routineExpression) {
-        this.foundRefAry = routineExpression.split(/[~.>()]/).filter(i => i.length > 0)
+    async highlightModel (nodeId, nodeDefId) {
+      if (nodeDefId && this.processSessionId) {
+        let { status, data } = await getDataByNodeDefIdAndProcessSessionId(nodeDefId, this.processSessionId)
+        if (status === 'OK') {
+          this.tartetModels = data.map(_ => {
+            return this.modelData.find(j => j.dataId === _.entityDataId)
+          })
+        } else {
+          this.tartetModels = []
+        }
       } else {
-        this.$Message.info(this.$t('no_result'))
-        this.targetModalVisible = false
         return
       }
-      this.tartetModels = JSON.parse(
-        JSON.stringify(
-          this.modelData.filter(_ => this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] === _.entityName)
-        )
-      )
+
+      this.catchTartetModels = []
+      // this.catchNodeTableList = []
+      // const routineExpression = this.flowData.flowNodes.find(item => item.nodeId === nodeId).routineExpression
+      // if (routineExpression) {
+      //   this.foundRefAry = routineExpression.split(/[~.>()]/).filter(i => i.length > 0)
+      // } else {
+      //   this.$Message.info(this.$t('no_result'))
+      //   this.targetModalVisible = false
+      //   return
+      // }
+      // this.tartetModels = JSON.parse(
+      //   JSON.stringify(
+      //     this.modelData.filter(_ => this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] === _.entityName)
+      //   )
+      // )
       this.catchTartetModels = JSON.parse(JSON.stringify(this.tartetModels))
       this.targetModalVisible = true
       this.showNodeDetail = false
