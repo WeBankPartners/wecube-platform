@@ -14,6 +14,8 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
     private String routineExpression;
     
     private String taskCategory; //APPROVAL,EXECUTION
+    
+    private String serviceId;
 
     private List<String> previousNodeIds = new ArrayList<>();
     private List<String> succeedingNodeIds = new ArrayList<>();
@@ -145,12 +147,22 @@ public class FlowNodeDefDto extends BaseNodeDefDto {
             }
         }
     }
+    
+    
 
     @Override
     public String toString() {
         return "FlowNodeDefDto [procDefId=" + procDefId + ", procDefKey=" + procDefKey + ", previousNodeIds="
                 + previousNodeIds + ", succeedingNodeIds=" + succeedingNodeIds + ", getNodeId()=" + getNodeId()
                 + ", getNodeName()=" + getNodeName() + ", getNodeType()=" + getNodeType() + "]";
+    }
+
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
     }
 
 }

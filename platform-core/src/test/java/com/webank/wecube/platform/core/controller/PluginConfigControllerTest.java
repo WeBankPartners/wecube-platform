@@ -328,8 +328,8 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
         mockMultipleVersionPluginConfig();
 
         try {
-            mvc.perform(get("/v1/plugins/interfaces/package/wecmdb/entity/resource_set/enabled"))
-                    .andDo(print())
+            mvc.perform(get("/v1/plugins/interfaces/package/wecmdb/entity/resource_set/enabled")
+                    .contentType(MediaType.APPLICATION_JSON).content("{}")).andDo(print())
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.length()", is(3)))
