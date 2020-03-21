@@ -140,3 +140,5 @@ export const getPluginsByTargetEntityFilterRule = data =>
     `/platform/v1/plugins/interfaces/package/${data.pkgName}/entity/${data.entityName}/enabled/query-by-target-entity-filter-rule`,
     data
   )
+export const getDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId) =>
+  req.get(`/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings`)
