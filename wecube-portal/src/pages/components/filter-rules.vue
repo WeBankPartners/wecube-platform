@@ -194,7 +194,8 @@ export default {
     },
     restorePathExp (PathExp) {
       this.pathList = []
-      const pathList = PathExp.split(/[~.]+(?=[^\\}]*(\\{|$))/).filter(p => p.length > 0)
+      // eslint-disable-next-line no-useless-escape
+      const pathList = PathExp.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
       let path = {}
       pathList.forEach((_, i) => {
         const ifEntity = _.indexOf(':')
@@ -231,6 +232,7 @@ export default {
         }
         this.pathList.push(path)
       })
+      console.log(this.pathList)
       // this.$emit('input', this.fullPathExp)
       // this.$emit('change', this.fullPathExp)
       this.poptipVisable = false
