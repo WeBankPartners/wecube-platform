@@ -46,35 +46,35 @@ public class ExpressionServiceImpl implements ExpressionService {
     }
 
 
-    @Override
-    public List<Object> fetchData(DataModelExpressionToRootData dataModelExpressionToRootData) {
+//    @Override
+//    public List<Object> fetchData(DataModelExpressionToRootData dataModelExpressionToRootData) {
+//
+//        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new DataFlowTreeDto(), dataModelExpressionToRootData);
+//
+//        return resultDtoStack.pop().getResultValue();
+//    }
 
-        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new DataFlowTreeDto(), dataModelExpressionToRootData);
 
-        return resultDtoStack.pop().getResultValue();
-    }
+//    @Override
+//    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object writeBackData) {
+//        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new DataFlowTreeDto(), expressionToRootData);
+//        WriteBackTargetDto writeBackTargetDto = findWriteBackTarget(resultDtoStack);
+//        Object writeBackId = dataModelServiceStub.extractValueFromResponse(writeBackTargetDto.getLastRequestResponse().get(0), DataModelServiceStub.UNIQUE_IDENTIFIER).get(0);
+//        Map<String, Object> postRequestUrlParamMap = dataModelServiceStub.generatePostUrlParamMap(
+//                this.applicationProperties.getGatewayUrl(),
+//                writeBackTargetDto.getWriteBackPackageName(),
+//                writeBackTargetDto.getWriteBackEntityName()
+//        );
+//        List<Map<String, Object>> writeBackRequestBodyParamMap = dataModelServiceStub.generatePostBodyParamMap(writeBackId, writeBackTargetDto.getWriteBackAttributeName(), writeBackData);
+//        dataModelServiceStub.initiatePostRequest(DataModelServiceStub.UPDATE_REQUEST_URL, postRequestUrlParamMap, writeBackRequestBodyParamMap);
+//    }
 
-
-    @Override
-    public void writeBackData(DataModelExpressionToRootData expressionToRootData, Object writeBackData) {
-        Stack<DataModelExpressionDto> resultDtoStack = chainRequest(new DataFlowTreeDto(), expressionToRootData);
-        WriteBackTargetDto writeBackTargetDto = findWriteBackTarget(resultDtoStack);
-        Object writeBackId = dataModelServiceStub.extractValueFromResponse(writeBackTargetDto.getLastRequestResponse().get(0), DataModelServiceStub.UNIQUE_IDENTIFIER).get(0);
-        Map<String, Object> postRequestUrlParamMap = dataModelServiceStub.generatePostUrlParamMap(
-                this.applicationProperties.getGatewayUrl(),
-                writeBackTargetDto.getWriteBackPackageName(),
-                writeBackTargetDto.getWriteBackEntityName()
-        );
-        List<Map<String, Object>> writeBackRequestBodyParamMap = dataModelServiceStub.generatePostBodyParamMap(writeBackId, writeBackTargetDto.getWriteBackAttributeName(), writeBackData);
-        dataModelServiceStub.initiatePostRequest(DataModelServiceStub.UPDATE_REQUEST_URL, postRequestUrlParamMap, writeBackRequestBodyParamMap);
-    }
-
-    @Override
-    public List<TreeNode> getPreviewTree(DataModelExpressionToRootData expressionToRootData) {
-        DataFlowTreeDto dataFlowTreeDto = new DataFlowTreeDto();
-        chainRequest(dataFlowTreeDto, expressionToRootData);
-        return this.flattenTreeNode(dataFlowTreeDto.getTreeNode());
-    }
+//    @Override
+//    public List<TreeNode> getPreviewTree(DataModelExpressionToRootData expressionToRootData) {
+//        DataFlowTreeDto dataFlowTreeDto = new DataFlowTreeDto();
+//        chainRequest(dataFlowTreeDto, expressionToRootData);
+//        return this.flattenTreeNode(dataFlowTreeDto.getTreeNode());
+//    }
 
     /**
      * Chain request operation from dataModelExpression and root Id data pair
