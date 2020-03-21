@@ -189,7 +189,9 @@ import {
   getModelNodeDetail,
   getNodeBindings,
   getNodeContext,
-  getDataByNodeDefIdAndProcessSessionId
+  getDataByNodeDefIdAndProcessSessionId,
+  setDataByNodeDefIdAndProcessSessionId,
+  getAllBindingsProcessSessionId
 } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
@@ -215,7 +217,6 @@ export default {
       allFlows: [],
       allTarget: [],
       currentFlowNodeId: '',
-      foundRefAry: [],
       selectedFlowInstance: '',
       selectedFlow: '',
       selectedTarget: '',
@@ -301,7 +302,8 @@ export default {
       flowDetailTimer: null,
       isLoading: false,
       catchNodeTableList: [],
-      processSessionId: ''
+      processSessionId: '',
+      allBindingsList: []
     }
   },
   watch: {
@@ -348,11 +350,12 @@ export default {
         this.rowContent = data
       }
     },
-    targetModelConfirm (visible) {
+    async targetModelConfirm (visible) {
       // TODO:
       this.targetModalVisible = visible
       if (!visible) {
-        this.updateNodeInfo()
+        await this.updateNodeInfo()
+        this.formatRefNodeIds()
         this.renderModelGraph()
       }
     },
@@ -389,20 +392,16 @@ export default {
         this.catchNodeTableList = []
       }
     },
-    updateNodeInfo () {
-      const currentFlow = this.flowData.flowNodes.find(i => i.nodeId === this.currentFlowNodeId)
-      this.modelData.forEach(i => {
-        const flowNodeIndex = i.refFlowNodeIds.indexOf(currentFlow.orderedNo)
-        if (flowNodeIndex > -1) {
-          i.refFlowNodeIds.splice(flowNodeIndex, 1)
-        }
-        this.catchNodeTableList.forEach(_ => {
-          if (i.id === _.id) {
-            i.refFlowNodeIds.push(currentFlow.orderedNo)
-          }
-        })
+    async updateNodeInfo () {
+      const currentNode = this.flowData.flowNodes.find(_ => {
+        return _.nodeId === this.currentFlowNodeId
       })
-      this.catchNodeTableList = []
+      const payload = this.catchNodeTableList.map(_ => {
+        return { ..._, bound: 'Y' }
+      })
+      await setDataByNodeDefIdAndProcessSessionId(currentNode.nodeDefId, this.processSessionId, payload)
+      const filter = this.allBindingsList.filter(_ => _.nodeDefId !== currentNode.nodeDefId)
+      this.allBindingsList = filter.concat(payload)
     },
     async getProcessInstances (isAfterCreate = false, createResponse = undefined) {
       let { status, data } = await getProcessInstances()
@@ -442,6 +441,7 @@ export default {
         this.showExcution = true
         this.selectedTarget = ''
         this.modelData = []
+        this.formatRefNodeIds()
         this.renderModelGraph()
       }
     },
@@ -522,15 +522,6 @@ export default {
     onTargetSelectHandler () {
       this.getModelData()
     },
-    formatNodesBindings () {
-      this.modelData.forEach(item => {
-        this.flowNodesBindings.forEach(d => {
-          if (d.entityDataId === item.dataId) {
-            item.refFlowNodeIds.push(d.orderedNo)
-          }
-        })
-      })
-    },
     async getModelData () {
       if (!this.selectedFlow || !this.selectedTarget) return
       this.isLoading = true
@@ -539,15 +530,15 @@ export default {
       if (!this.selectedTarget) return
       if (status === 'OK') {
         this.processSessionId = data.processSessionId
+        const binds = await getAllBindingsProcessSessionId(data.processSessionId)
+        this.allBindingsList = binds.data
         this.modelData = data.entityTreeNodes.map(_ => {
           return {
             ..._,
             refFlowNodeIds: []
           }
         })
-        if (this.isEnqueryPage) {
-          this.formatNodesBindings()
-        }
+        this.formatRefNodeIds()
         this.renderModelGraph()
       }
     },
@@ -560,14 +551,26 @@ export default {
         this.getTargetOptions()
       }
     },
+    formatRefNodeIds () {
+      this.modelData.forEach(i => {
+        i.refFlowNodeIds = []
+        this.allBindingsList.forEach(j => {
+          if (j.entityDataId === i.dataId) {
+            i.refFlowNodeIds.push(j.orderedNo)
+          }
+        })
+      })
+    },
     renderModelGraph () {
       let nodes = this.modelData.map((_, index) => {
         const nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
         let color = _.isHighlight ? '#5DB400' : 'black'
         const isRecord = _.refFlowNodeIds.length > 0
         const shape = isRecord ? 'ellipse' : 'ellipse'
-        const fontSize = Math.abs(50 - _.displayName.length) * 0.25
-        const label = (_.displayName || _.dataId) + '\n' + _.refFlowNodeIds.toString().replace(/,/g, '/')
+        const refStr = _.refFlowNodeIds.toString().replace(/,/g, '/')
+        const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
+        const fontSize = Math.abs(50 - len) * 0.25
+        const label = (_.displayName || _.dataId) + '\n' + refStr
         return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fontsize="${fontSize}" fillcolor="white" shape="${shape}"]`
       })
       let genEdge = () => {
@@ -715,6 +718,7 @@ export default {
         })
 
         let payload = {
+          processSessionId: this.processSessionId,
           entityDataId: currentTarget.id,
           entityTypeId: this.flowData.rootEntity,
           procDefId: this.flowData.procDefId,
@@ -865,7 +869,10 @@ export default {
         let { status, data } = await getDataByNodeDefIdAndProcessSessionId(nodeDefId, this.processSessionId)
         if (status === 'OK') {
           this.tartetModels = data.map(_ => {
-            return this.modelData.find(j => j.dataId === _.entityDataId)
+            return {
+              ..._,
+              ...this.modelData.find(j => j.dataId === _.entityDataId)
+            }
           })
         } else {
           this.tartetModels = []
@@ -875,30 +882,15 @@ export default {
       }
 
       this.catchTartetModels = []
-      // this.catchNodeTableList = []
-      // const routineExpression = this.flowData.flowNodes.find(item => item.nodeId === nodeId).routineExpression
-      // if (routineExpression) {
-      //   this.foundRefAry = routineExpression.split(/[~.>()]/).filter(i => i.length > 0)
-      // } else {
-      //   this.$Message.info(this.$t('no_result'))
-      //   this.targetModalVisible = false
-      //   return
-      // }
-      // this.tartetModels = JSON.parse(
-      //   JSON.stringify(
-      //     this.modelData.filter(_ => this.foundRefAry[this.foundRefAry.length - 1].split(':')[1] === _.entityName)
-      //   )
-      // )
+      this.catchNodeTableList = []
       this.catchTartetModels = JSON.parse(JSON.stringify(this.tartetModels))
       this.targetModalVisible = true
       this.showNodeDetail = false
       this.$nextTick(() => {
         let objData = this.$refs.selection.objData
-        const currentFlow = this.flowData.flowNodes.find(i => i.nodeId === this.currentFlowNodeId)
-        this.modelData.forEach(_ => {
-          const flowNodeIndex = _.refFlowNodeIds.indexOf(currentFlow.orderedNo)
-          Object.keys(objData).forEach(i => {
-            if (_.id === objData[i].id && flowNodeIndex > -1) {
+        Object.keys(objData).forEach(i => {
+          this.allBindingsList.forEach(j => {
+            if (j.nodeDefId === nodeDefId && j.entityDataId === objData[i].entityDataId) {
               objData[i]._isChecked = true
               this.catchNodeTableList.push(objData[i])
             }
@@ -923,6 +915,7 @@ export default {
           .width(graphEl.offsetWidth - 10)
       }
       initEvent()
+      this.formatRefNodeIds()
       this.renderModelGraph()
     },
     initFlowGraph (excution = false) {

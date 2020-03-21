@@ -142,3 +142,7 @@ export const getPluginsByTargetEntityFilterRule = data =>
   )
 export const getDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId) =>
   req.get(`/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings`)
+export const setDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionId, data) =>
+  req.post(`/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings`, data)
+export const getAllBindingsProcessSessionId = ProcessSessionId =>
+  req.get(`/platform/v1/process/instances/tasknodes/session/${ProcessSessionId}/tasknode-bindings`)
