@@ -38,7 +38,6 @@ import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcInstInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
-import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
@@ -46,6 +45,7 @@ import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.SystemVariableService;
+import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationContext;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInterfaceInvocationResult;
 import com.webank.wecube.platform.core.service.workflow.PluginInvocationProcessor.PluginInvocationOperation;
@@ -432,10 +432,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 log.debug("expression:{}", mappingEntityExpression);
             }
 
-            DataModelExpressionToRootData criteria = new DataModelExpressionToRootData(mappingEntityExpression,
+            EntityOperationRootCondition condition = new EntityOperationRootCondition(mappingEntityExpression,
                     entityDataId);
 
-            List<Object> attrValsPerExpr = expressionService.fetchData(criteria);
+            List<Object> attrValsPerExpr = entityOperationService.queryAttributeValues(condition);
 
             if (attrValsPerExpr == null) {
                 log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
@@ -1023,9 +1023,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 continue;
             }
 
-            DataModelExpressionToRootData dmeCriteria = new DataModelExpressionToRootData(paramExpr, nodeEntityId);
+            EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
 
-            this.expressionService.writeBackData(dmeCriteria, retVal);
+            this.entityOperationService.update(condition, retVal);
 
         }
     }
