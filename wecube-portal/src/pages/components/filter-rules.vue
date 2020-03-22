@@ -340,14 +340,25 @@ export default {
       this.modelVisable = true
     },
     formatCurrentOptions () {
-      this.currentOptiongs = this.allEntity.map(_ => {
-        return {
-          pkg: _.packageName,
-          entity: _.name,
-          pathExp: `${_.packageName}:${_.name}`,
-          nodeType: 'entity'
+      let compare = (a, b) => {
+        if (a.pathExp < b.pathExp) {
+          return -1
         }
-      })
+        if (a.pathExp > b.pathExp) {
+          return 1
+        }
+        return 0
+      }
+      this.currentOptiongs = this.allEntity
+        .map(_ => {
+          return {
+            pkg: _.packageName,
+            entity: _.name,
+            pathExp: `${_.packageName}:${_.name}`,
+            nodeType: 'entity'
+          }
+        })
+        .sort(compare)
     },
     formatFirstCurrentOptions () {
       if (this.value && this.value.indexOf(':') > -1) {
