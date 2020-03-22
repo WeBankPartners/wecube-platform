@@ -42,6 +42,8 @@ public class PluginConfigInterface {
     private String isAsyncProcessing;
     @Column
     private String type;
+    @Column
+    private String filterRule;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
@@ -180,5 +182,13 @@ public class PluginConfigInterface {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getFilterRule() {
+        return filterRule;
+    }
+
+    public void setFilterRule(String filterRule) {
+        this.filterRule = filterRule;
     }
 }
