@@ -4,6 +4,7 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.*;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
+import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
@@ -222,7 +223,8 @@ public class PluginConfigService {
         return pluginConfigInterfaceDtos;
     }
 
-    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName, String entityName) {
+    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName,
+            String entityName, TargetEntityFilterRuleDto filterRule) {
         Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository.findLatestDataModelByPackageName(packageName);
         if (!dataModelOptional.isPresent()) {
             log.info("No data model found for package [{}]", packageName);
@@ -237,9 +239,24 @@ public class PluginConfigService {
         }
 
         List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository.findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(packageName, entityName, ENABLED);
-        if (allEnabledInterfacesOptional.isPresent()) {
-            pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream().map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)).collect(Collectors.toList()));
+        if (filterRule == null) {
+            Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository
+                    .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(
+                            packageName, entityName, ENABLED);
+            if (allEnabledInterfacesOptional.isPresent()) {
+                pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream()
+                        .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
+                        .collect(Collectors.toList()));
+            }
+        } else {
+            Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository
+                    .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
+                            packageName, entityName, filterRule.getTargetEntityFilterRule(), ENABLED);
+            if (allEnabledInterfacesOptional.isPresent()) {
+                pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream()
+                        .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
+                        .collect(Collectors.toList()));
+            }
         }
         Optional<List<PluginConfigInterface>> allEnabledWithEntityNameNullOptional = pluginConfigInterfaceRepository.findAllEnabledWithEntityNameNull();
         if (allEnabledWithEntityNameNullOptional.isPresent()) {
