@@ -15,7 +15,11 @@ public interface PluginConfigInterfaceRepository extends CrudRepository<PluginCo
 
     Optional<List<PluginConfigInterface>> findAllByPluginConfig_Id(String pluginConfigId);
 
-    Optional<List<PluginConfigInterface>> findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(String targetPackage, String targetEntity, Status status);
+    Optional<List<PluginConfigInterface>> findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(
+            String targetPackage, String targetEntity, Status status);
+
+    Optional<List<PluginConfigInterface>> findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
+            String targetPackage, String targetEntity, String targetEntityFilterRule, Status status);
 
     @Query("select configInterface from PluginConfigInterface configInterface where configInterface.pluginConfig.status = :status and (configInterface.pluginConfig.targetEntity is null or configInterface.pluginConfig.targetEntity='')")
     Optional<List<PluginConfigInterface>> findAllByEntityNameEmptyAndStatus(@Param("status") Status status);
