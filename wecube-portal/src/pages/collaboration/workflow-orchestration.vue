@@ -296,7 +296,7 @@ export default {
       allFlows: [],
       allEntityType: [],
       selectedFlow: null,
-      selectedFlowData: null,
+      selectedFlowData: '',
       temporaryFlow: null,
       currentSelectedEntity: '',
       rootPkg: '',
