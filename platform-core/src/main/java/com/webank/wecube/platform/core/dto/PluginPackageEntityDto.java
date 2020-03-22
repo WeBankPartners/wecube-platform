@@ -80,22 +80,30 @@ public class PluginPackageEntityDto {
         return new TrimmedPluginPackageEntityDto(getId(), getPackageName(), getDataModelVersion(), getName(), getDisplayName());
     }
 
-    public void updateReferenceBy(String entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
-        TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, dataModelVersion, name, displayName);
+    public void updateReferenceBy(String entityId, String packageName, Integer dataModelVersion, String name,
+            String displayName, PluginPackageAttributeDto relatedAttribute) {
+        TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId,
+                packageName, dataModelVersion, name, displayName, relatedAttribute);
         this.referenceByEntityList.add(trimmedPluginPackageEntityDto);
     }
 
     public void updateReferenceBy(TrimmedPluginPackageEntityDto trimmedEntityDto) {
-        updateReferenceBy(trimmedEntityDto.getId(), trimmedEntityDto.getPackageName(), trimmedEntityDto.getDataModelVersion(), trimmedEntityDto.getName(), trimmedEntityDto.getDisplayName());
+        updateReferenceBy(trimmedEntityDto.getId(), trimmedEntityDto.getPackageName(),
+                trimmedEntityDto.getDataModelVersion(), trimmedEntityDto.getName(), trimmedEntityDto.getDisplayName(),
+                trimmedEntityDto.getRelatedAttribute());
     }
 
-    public void updateReferenceTo(String entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
-        TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId, packageName, dataModelVersion, name, displayName);
+    public void updateReferenceTo(String entityId, String packageName, Integer dataModelVersion, String name,
+            String displayName, PluginPackageAttributeDto relatedAttribute) {
+        TrimmedPluginPackageEntityDto trimmedPluginPackageEntityDto = new TrimmedPluginPackageEntityDto(entityId,
+                packageName, dataModelVersion, name, displayName, relatedAttribute);
         this.referenceToEntityList.add(trimmedPluginPackageEntityDto);
     }
 
     public void updateReferenceTo(TrimmedPluginPackageEntityDto trimmedEntityDto) {
-        updateReferenceTo(trimmedEntityDto.getId(), trimmedEntityDto.getPackageName(), trimmedEntityDto.getDataModelVersion(), trimmedEntityDto.getName(), trimmedEntityDto.getDisplayName());
+        updateReferenceTo(trimmedEntityDto.getId(), trimmedEntityDto.getPackageName(),
+                trimmedEntityDto.getDataModelVersion(), trimmedEntityDto.getName(), trimmedEntityDto.getDisplayName(),
+                trimmedEntityDto.getRelatedAttribute());
     }
 
     public String getId() {
@@ -181,18 +189,30 @@ public class PluginPackageEntityDto {
         private Integer dataModelVersion;
         private String name;
         private String displayName;
+        private PluginPackageAttributeDto relatedAttribute;
 
         public TrimmedPluginPackageEntityDto() {
         }
 
-        public TrimmedPluginPackageEntityDto(String entityId, String packageName, Integer dataModelVersion, String name, String displayName) {
+        public TrimmedPluginPackageEntityDto(String entityId, String packageName, Integer dataModelVersion, String name,
+                String displayName, PluginPackageAttributeDto relatedAttribute) {
+            this.id = entityId;
+            this.packageName = packageName;
+            this.name = name;
+            this.displayName = displayName;
+            this.dataModelVersion = dataModelVersion;
+            this.relatedAttribute = relatedAttribute;
+        }
+
+        public TrimmedPluginPackageEntityDto(String entityId, String packageName, Integer dataModelVersion, String name,
+                String displayName) {
             this.id = entityId;
             this.packageName = packageName;
             this.name = name;
             this.displayName = displayName;
             this.dataModelVersion = dataModelVersion;
         }
-
+        
         public String getId() {
             return id;
         }
@@ -244,6 +264,14 @@ public class PluginPackageEntityDto {
                     .append(getDisplayName())
                     .append(getDataModelVersion())
                     .toHashCode();
+        }
+
+        public PluginPackageAttributeDto getRelatedAttribute() {
+            return relatedAttribute;
+        }
+
+        public void setRelatedAttribute(PluginPackageAttributeDto relatedAttribute) {
+            this.relatedAttribute = relatedAttribute;
         }
     }
 

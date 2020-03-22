@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -38,6 +39,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoExportImportDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefOutlineDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
@@ -127,7 +129,7 @@ public class WorkflowProcessDefinitionController {
     @GetMapping("/process/definitions/{proc-def-id}/preview/entities/{entity-data-id}")
     public CommonResponseDto getProcessDataPreview(@PathVariable("proc-def-id") String procDefId,
                                                    @PathVariable("entity-data-id") String dataId) {
-        List<GraphNodeDto> result = workflowDataService.getProcessDataPreview(procDefId, dataId);
+    	ProcessDataPreviewDto result = workflowDataService.generateProcessDataPreview(procDefId, dataId);
         return CommonResponseDto.okayWithData(result);
     }
 
