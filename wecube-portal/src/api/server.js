@@ -146,3 +146,4 @@ export const setDataByNodeDefIdAndProcessSessionId = (nodeDefId, ProcessSessionI
   req.post(`/platform/v1/process/instances/tasknodes/${nodeDefId}/session/${ProcessSessionId}/tasknode-bindings`, data)
 export const getAllBindingsProcessSessionId = ProcessSessionId =>
   req.get(`/platform/v1/process/instances/tasknodes/session/${ProcessSessionId}/tasknode-bindings`)
+export const getTargetModelByProcessDefId = id => req.get(`/platform/v1/process/definitions/${id}/root-entities`)
