@@ -11,6 +11,7 @@ import com.webank.wecube.platform.core.dto.PluginPackageDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.log.LogDelegateFactory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -33,6 +34,10 @@ public class PluginPackageXmlParser {
     private final static String SEPARATOR_OF_NAMES = "/";
     public static final String DEFAULT_DATA_MODEL_UPDATE_PATH = "/data-model";
     public static final String DEFAULT_DATA_MODEL_UPDATE_METHOD = "GET";
+    public static final String DEFAULT_REQUIRED = "N";
+    public static final String DEFAULT_SENSITIVE_DATA = "N";
+    public static final String DEFAULT_TARGET_ENTITY_FILTER_RULE = "";
+    public static final String DEFAULT_FILTER_RULE_FOR_INTERFACE = "";
 
     public static PluginPackageXmlParser newInstance(InputStream inputStream)
             throws ParserConfigurationException, SAXException, IOException {
@@ -413,6 +418,15 @@ public class PluginPackageXmlParser {
             if (StringUtils.isNotBlank(registerName)) {
                 pluginConfig.setRegisterName(registerName);
             }
+
+            String targetEntityFilterRule = getStringAttribute(pluginConfigNode, "./@targetEntityFilterRule");
+
+            if (StringUtils.isNotBlank(targetEntityFilterRule)) {
+                pluginConfig.setTargetEntityFilterRule(targetEntityFilterRule);
+            } else {
+                pluginConfig.setTargetEntityFilterRule(DEFAULT_TARGET_ENTITY_FILTER_RULE);
+            }
+
             NodeList pluginConfigInterfaceNodes = xPathEvaluator.getNodeList("./interface", pluginConfigNode);
             if (pluginConfigInterfaceNodes != null && pluginConfigInterfaceNodes.getLength() > 0) {
                 pluginConfig.setInterfaces(
@@ -438,8 +452,7 @@ public class PluginPackageXmlParser {
             pluginConfigInterface.setAction(
                     ensureNotNull(trim(xPathEvaluator.getString("./@action", interfaceNode)), "Plugin interface name"));
             String serviceName = pluginConfigInterface.generateServiceName();
-//                    createServiceName(pluginConfig.getPluginPackage().getName(), pluginConfig.getName(),
-//                    pluginConfig.getRegisterName(), pluginConfigInterface.getAction());
+
             pluginConfigInterface.setServiceName(serviceName);
             pluginConfigInterface.setServiceDisplayName(serviceName);
             pluginConfigInterface.setPath(getStringAttribute(interfaceNode, "./@path"));
@@ -449,6 +462,13 @@ public class PluginPackageXmlParser {
                 pluginConfigInterface.setIsAsyncProcessing(isAsyncProcessing);
             } else {
                 pluginConfigInterface.setIsAsyncProcessing(PluginConfigInterface.DEFAULT_IS_ASYNC_PROCESSING_VALUE);
+            }
+            String filterRule = getStringAttribute(interfaceNode, "./@filterRule");
+
+            if (StringUtils.isNotBlank(filterRule)) {
+                pluginConfigInterface.setFilterRule(filterRule);
+            } else {
+                pluginConfigInterface.setFilterRule(DEFAULT_FILTER_RULE_FOR_INTERFACE);
             }
 
             String interfaceType = getStringAttribute(interfaceNode, "./@type");
@@ -501,12 +521,14 @@ public class PluginPackageXmlParser {
             if (StringUtils.isNoneBlank(required)) {
                 pluginConfigInterfaceParameter.setRequired(required);
             } else {
-                pluginConfigInterfaceParameter.setRequired("N");
+                pluginConfigInterfaceParameter.setRequired(DEFAULT_REQUIRED);
             }
             
             String sensitiveData = getStringAttribute(parameterNode, "./@sensitiveData");
             if(StringUtils.isNoneBlank(sensitiveData)){
                 pluginConfigInterfaceParameter.setSensitiveData(sensitiveData);
+            } else {
+                pluginConfigInterfaceParameter.setSensitiveData(DEFAULT_SENSITIVE_DATA);
             }
 
             pluginConfigInterfaceParameters.add(pluginConfigInterfaceParameter);

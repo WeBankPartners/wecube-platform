@@ -96,8 +96,8 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
-        <plugin name="task">
-            <interface action="create" path="/service-management/tasks" httpMethod='POST'>
+        <plugin name="task" targetEntityFilterRule="{name eq '//abc manual task'}">
+            <interface action="create" path="/service-management/tasks" httpMethod='POST' filterRule="{vm eq '//xyz nothing'}">
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='1' required='Y'>callbackUrl</parameter>
                     <parameter datatype="string" mappingType='context'  required='N'>description</parameter>
@@ -105,7 +105,7 @@
                     <parameter datatype="string" mappingType='entity' mappingEntityExpression='name_xxx' required='Y'>operatorRoleId</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>processDefinitionKey</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>processInstanceId</parameter>
-                    <parameter datatype="string" mappingType='context' required='Y'>reporter</parameter>
+                    <parameter datatype="string" mappingType='context' required='Y' sensitiveData='Y'>reporter</parameter>
                     <parameter datatype="string" mappingType='context' required='Y'>serviceRequestId</parameter>
                 </inputParameters>
                 <outputParameters>
@@ -114,8 +114,8 @@
                 </outputParameters>
             </interface>
         </plugin>
-        <plugin name="service request management">
-            <interface action="update" path="/service-management/service-requests/{service-request-id}/done" httpMethod='PUT'>
+        <plugin name="service request"  targetEntityFilterRule="{name eq 'ITSM service request'}">
+            <interface action="update" path="/service-management/service-requests/{service-request-id}/done" httpMethod='PUT' filterRule="{name eq 'nothing'}">
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='1' required='Y'>service-request-id</parameter>
                     <parameter datatype="string" mappingType='context'  required='Y'>result</parameter>
