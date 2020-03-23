@@ -550,7 +550,7 @@ export default {
       const payload = {
         pkgName: pkg,
         entityName: entity,
-        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : null
       }
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
