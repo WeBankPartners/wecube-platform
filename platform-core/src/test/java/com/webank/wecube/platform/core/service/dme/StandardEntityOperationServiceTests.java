@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,6 +38,25 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         server = MockRestServiceServer.bindTo(jwtSsoRestTemplate).build();
         gatewayUrl = this.applicationProperties.getGatewayUrl();
         mockers = new StandardEntityOperationServiceTestsMockers(gatewayUrl);
+    }
+    
+    @Test
+    public void givenSignleLinkNodeWithFilterExpressionWhenFetchThenShouldSucceed() {
+        mockers.mockSingleLinkNodeWithFilterExpressionServer(server);
+
+        List<Map<String,Object>> result = standardEntityOperationService
+                .queryAttributeValuesOfLeafNode(new EntityOperationRootCondition("we-cmdb:system_design{attr1 eq 'ABC'}", null) );
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isEmpty());
+        Assert.assertEquals("EDP", result.get(0).get("key_name"));
+        
+        result = standardEntityOperationService
+                .queryAttributeValuesOfLeafNode(new EntityOperationRootCondition("we-cmdb:unit.key_name", null));
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.isEmpty());
+        Assert.assertEquals("EDP-CORE_PRD-APP", result.get(0).get("key_name"));
+
+        server.verify();
     }
 
     @Test
