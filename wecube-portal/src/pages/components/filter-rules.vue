@@ -61,7 +61,7 @@
         <Col span="8">
           <Select v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
-              attr.description
+              attr.name
             }}</Option>
           </Select>
         </Col>
