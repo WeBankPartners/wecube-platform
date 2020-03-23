@@ -9,6 +9,7 @@ public class DataModelEntityDto extends PluginPackageEntityDto {
     private LeafEntityList leafEntityList;
 
     public class LeafEntityList {
+        
         private List<BindedInterfaceEntityDto> referenceToEntityList = new ArrayList<>();
         private List<BindedInterfaceEntityDto> referenceByEntityList = new ArrayList<>();
 
