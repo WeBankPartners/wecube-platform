@@ -129,7 +129,7 @@
         <xs:attribute type="xs:string" name="mappingSystemVariableName" use="optional"/>
         <xs:attribute type="xs:string" name="required" use="required"/>
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
-        <xs:attribute type="xs:string" name="sensitiveData" use="optional"/>
+        <xs:attribute type="xs:string" name="sensitiveData" use="optional" default="N"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -144,7 +144,7 @@
         <xs:attribute type="xs:string" name="datatype" use="optional"/>
         <xs:attribute type="xs:string" name="mappingType" use="optional"/>
         <xs:attribute type="xs:string" name="mappingEntityExpression" use="optional"/>
-        <xs:attribute type="xs:string" name="sensitiveData" use="optional"/>
+        <xs:attribute type="xs:string" name="sensitiveData" use="optional" default="N"/>
       </xs:extension>
     </xs:simpleContent>
   </xs:complexType>
@@ -161,7 +161,8 @@
     <xs:attribute type="xs:string" name="action"/>
     <xs:attribute type="xs:string" name="path"/>
     <xs:attribute type="xs:string" name="httpMethod"/>
-    <xs:attribute type="xs:string" name="isAsyncProcessing" use="optional"/>
+    <xs:attribute type="xs:string" name="isAsyncProcessing" use="optional" default="N"/>
+    <xs:attribute type="xs:string" name="filterRule" use="optional" default=""/>
     <xs:attribute name="type" use="optional">
       <xs:simpleType>
         <xs:restriction base="xs:string">
@@ -179,6 +180,7 @@
     <xs:attribute type="xs:string" name="name" use="required"/>
     <xs:attribute type="xs:string" name="targetPackage"/>
     <xs:attribute type="xs:string" name="targetEntity"/>
+    <xs:attribute type="xs:string" name="targetEntityFilterRule"/>
     <xs:attribute type="xs:string" name="registerName"/>
   </xs:complexType>
   <xs:complexType name="pluginsType">
