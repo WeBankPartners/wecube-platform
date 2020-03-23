@@ -404,31 +404,32 @@ export default {
               nodeType: 'entity'
             }
           })
-          this.currentLeafOptiongs = data.leafEntityList.referenceToEntityList
-            .map(e => {
-              const found = data.referenceToEntityList.find(
-                _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
-              )
-              return {
+          data.leafEntityList.referenceToEntityList.forEach(e => {
+            const found = data.referenceToEntityList.filter(
+              _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
+            )
+            found.forEach(j => {
+              this.currentLeafOptiongs.push({
                 pkg: e.packageName,
                 entity: e.name,
-                pathExp: `.${found.relatedAttribute.name}>${e.filterRule}`,
+                pathExp: `.${j.relatedAttribute.name}>${e.filterRule}`,
                 nodeType: 'entity'
-              }
-            })
-            .concat(
-              data.leafEntityList.referenceByEntityList.map(e => {
-                const found = data.referenceByEntityList.find(
-                  _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
-                )
-                return {
-                  pkg: e.packageName,
-                  entity: e.name,
-                  pathExp: `~(${found.relatedAttribute.name})${e.filterRule}`,
-                  nodeType: 'leaf'
-                }
               })
+            })
+          })
+          data.leafEntityList.referenceByEntityList.forEach(e => {
+            const found = data.referenceByEntityList.filter(
+              _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
             )
+            found.forEach(j => {
+              this.currentLeafOptiongs.push({
+                pkg: e.packageName,
+                entity: e.name,
+                pathExp: `~(${j.relatedAttribute.name})${e.filterRule}`,
+                nodeType: 'leaf'
+              })
+            })
+          })
         }
       }
     }
