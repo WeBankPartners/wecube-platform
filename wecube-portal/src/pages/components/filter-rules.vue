@@ -56,16 +56,19 @@
         </div>
       </div>
     </Poptip>
-    <Modal v-model="modelVisable" :title="$t('copy')" @on-ok="okHandler" @on-cancel="cancelHandler">
+    <Modal v-model="modelVisable" :title="$t('filter_rule')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
-        <Col span="8">
+        <Col span="1" style="margin-top: 4px;"
+          ><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button
+        ></Col>
+        <Col span="8" offset="1">
           <Select v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
-              attr.description
+              attr.name
             }}</Option>
           </Select>
         </Col>
-        <Col span="6" offset="1">
+        <Col span="4" offset="1">
           <Select v-model="rule.op" @on-change="opChangeHandler($event, rule)">
             <Option v-for="(op, index) in filterRuleOp" :key="index" :value="op">{{ op }}</Option>
           </Select>
@@ -261,6 +264,9 @@ export default {
       const multiple = (v === 'in' || v === 'like') && rule.isRef
       rule.value = multiple ? [] : ''
     },
+    deleteFilterRule (index) {
+      this.currentPathFilterRules.splice(index, 1)
+    },
     addRules () {
       this.currentPathFilterRules.push({
         op: '',
@@ -340,14 +346,25 @@ export default {
       this.modelVisable = true
     },
     formatCurrentOptions () {
-      this.currentOptiongs = this.allEntity.map(_ => {
-        return {
-          pkg: _.packageName,
-          entity: _.name,
-          pathExp: `${_.packageName}:${_.name}`,
-          nodeType: 'entity'
+      let compare = (a, b) => {
+        if (a.pathExp < b.pathExp) {
+          return -1
         }
-      })
+        if (a.pathExp > b.pathExp) {
+          return 1
+        }
+        return 0
+      }
+      this.currentOptiongs = this.allEntity
+        .map(_ => {
+          return {
+            pkg: _.packageName,
+            entity: _.name,
+            pathExp: `${_.packageName}:${_.name}`,
+            nodeType: 'entity'
+          }
+        })
+        .sort(compare)
     },
     formatFirstCurrentOptions () {
       if (this.value && this.value.indexOf(':') > -1) {
@@ -389,19 +406,25 @@ export default {
           })
           this.currentLeafOptiongs = data.leafEntityList.referenceToEntityList
             .map(e => {
+              const found = data.referenceToEntityList.find(
+                _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
+              )
               return {
                 pkg: e.packageName,
                 entity: e.name,
-                pathExp: `.${e.filterRule}`,
+                pathExp: `.${found.relatedAttribute.name}>${e.filterRule}`,
                 nodeType: 'entity'
               }
             })
             .concat(
               data.leafEntityList.referenceByEntityList.map(e => {
+                const found = data.referenceByEntityList.find(
+                  _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
+                )
                 return {
                   pkg: e.packageName,
                   entity: e.name,
-                  pathExp: `~${e.filterRule}`,
+                  pathExp: `~(${found.relatedAttribute.name})${e.filterRule}`,
                   nodeType: 'leaf'
                 }
               })
