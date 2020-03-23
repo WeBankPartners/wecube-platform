@@ -28,11 +28,13 @@ import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingTmpRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
@@ -71,6 +73,38 @@ public class WorkflowDataService {
 
 	@Autowired
 	protected ProcExecBindingTmpRepository procExecBindingTmpRepository;
+
+	@Autowired
+	protected ProcDefInfoRepository procDefInfoRepository;
+
+	public List<Map<String, Object>> getProcessDefinitionRootEntities(String procDefId) {
+		if (StringUtils.isBlank(procDefId)) {
+			throw new WecubeCoreException("Process definition ID cannot be blank.");
+		}
+		Optional<ProcDefInfoEntity> procDefInfoEntityOpt = procDefInfoRepository.findById(procDefId);
+		if (!procDefInfoEntityOpt.isPresent()) {
+			throw new WecubeCoreException("Cannot find such process definition with ID " + procDefId);
+		}
+
+		ProcDefInfoEntity procDef = procDefInfoEntityOpt.get();
+
+		List<Map<String, Object>> result = new ArrayList<>();
+
+		String rootEntityExpr = procDef.getRootEntity();
+		if (StringUtils.isBlank(rootEntityExpr)) {
+			return result;
+		}
+
+		List<Map<String, Object>> retRecords = standardEntityOperationService
+				.queryAttributeValuesOfLeafNode(new EntityOperationRootCondition(rootEntityExpr, null));
+		if(retRecords == null) {
+			return result;
+		}
+		
+		result.addAll(retRecords);
+		
+		return result;
+	}
 
 	public void updateProcessInstanceExecBindingsOfSession(String nodeDefId, String processSessionId,
 			List<TaskNodeDefObjectBindInfoDto> bindings) {

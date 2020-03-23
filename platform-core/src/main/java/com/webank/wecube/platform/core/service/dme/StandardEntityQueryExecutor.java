@@ -280,10 +280,14 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 		}
 		EntityQueryExprNodeInfo exprNodeInfo = linkNode.getExprNodeInfo();
 		EntityQuerySpecification querySpec = new EntityQuerySpecification();
-		EntityQueryCriteria criteria = new EntityQueryCriteria();
-		criteria.setAttrName(EntityDataDelegate.UNIQUE_IDENTIFIER);
-		criteria.setCondition(ctx.getOriginalEntityData());
-
+		
+		EntityQueryCriteria criteria = null;
+		if(ctx.getOriginalEntityData() != null && ctx.getOriginalEntityData().trim().length() > 0) {
+			criteria = new EntityQueryCriteria();
+			criteria.setAttrName(EntityDataDelegate.UNIQUE_IDENTIFIER);
+			criteria.setCondition(ctx.getOriginalEntityData());
+		}
+		
 		if (exprNodeInfo.getAdditionalFilters() != null) {
 			for (EntityQueryFilter f : exprNodeInfo.getAdditionalFilters()) {
 				EntityQueryFilter queryFilter = new EntityQueryFilter();
@@ -294,7 +298,9 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 			}
 		}
 
-		querySpec.setCriteria(criteria);
+		if(criteria != null) {
+			querySpec.setCriteria(criteria);
+		}
 
 		performRestOperation(ctx, linkNode, entityDef, null, querySpec);
 
@@ -383,6 +389,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 			ret.setPackageName(e.getPackageName());
 			ret.setQueryAttrName(e.getQueryAttrName());
 			ret.setQueryAttrValue(e.getQueryAttrValue());
+			ret.setEntityData(e.getEntityData());
 
 			retDataDelegates.add(ret);
 
