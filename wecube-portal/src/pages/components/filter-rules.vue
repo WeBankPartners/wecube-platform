@@ -400,19 +400,25 @@ export default {
           })
           this.currentLeafOptiongs = data.leafEntityList.referenceToEntityList
             .map(e => {
+              const found = data.referenceToEntityList.find(
+                _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
+              )
               return {
                 pkg: e.packageName,
                 entity: e.name,
-                pathExp: `.${e.filterRule}`,
+                pathExp: `.${found.relatedAttribute.name}>${e.filterRule}`,
                 nodeType: 'entity'
               }
             })
             .concat(
               data.leafEntityList.referenceByEntityList.map(e => {
+                const found = data.referenceByEntityList.find(
+                  _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
+                )
                 return {
                   pkg: e.packageName,
                   entity: e.name,
-                  pathExp: `~${e.filterRule}`,
+                  pathExp: `~(${found.relatedAttribute.name})${e.filterRule}`,
                   nodeType: 'leaf'
                 }
               })
