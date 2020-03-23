@@ -296,7 +296,7 @@ export default {
       allFlows: [],
       allEntityType: [],
       selectedFlow: null,
-      selectedFlowData: null,
+      selectedFlowData: '',
       temporaryFlow: null,
       currentSelectedEntity: '',
       rootPkg: '',
@@ -550,7 +550,7 @@ export default {
       const payload = {
         pkgName: pkg,
         entityName: entity,
-        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : null
       }
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
@@ -698,7 +698,7 @@ export default {
           procDefName: processName,
           rootEntity: _this.currentSelectedEntity,
           status: isDraft ? (_this.currentFlow && _this.currentFlow.procDefKey) || '' : '',
-          taskNodeInfos: _this.serviceTaskBindInfos
+          taskNodeInfos: [..._this.serviceTaskBindInfos]
         }
 
         if (isDraft) {
@@ -838,8 +838,7 @@ export default {
       this.container = this.$refs.content
       const canvas = this.$refs.canvas
       canvas.onmouseup = e => {
-        console.log(e.target)
-        this.show = true
+        this.show = e.target.tagName === 'rect'
         this.bindCurrentNode(e)
         this.openPluginModal()
       }

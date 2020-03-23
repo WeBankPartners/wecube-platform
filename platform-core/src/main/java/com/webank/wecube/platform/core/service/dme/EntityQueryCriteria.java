@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.service.dme;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EntityQueryCriteria {
 
     private String attrName;

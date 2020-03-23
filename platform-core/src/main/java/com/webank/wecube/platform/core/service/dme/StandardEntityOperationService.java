@@ -1,6 +1,9 @@
 package com.webank.wecube.platform.core.service.dme;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +28,35 @@ public class StandardEntityOperationService {
     
     @Autowired
     private EntityDataRouteFactory entityDataRouteFactory;
+    
+    public List<Map<String,Object>> queryAttributeValuesOfLeafNode(EntityOperationRootCondition condition){
+    	if(log.isDebugEnabled()) {
+    		log.debug("query attribute values of leaf node for condition {}", condition);
+    	}
+    	
+    	EntityOperationContext ctx = buildEntityOperationContext(condition);
+        ctx.setEntityOperationType(EntityOperationType.QUERY);
+        
+        List<EntityDataDelegate> entityDelegates = standardEntityQueryExcutor.executeQueryLeafEntity(ctx);
+        List<Map<String,Object>> result = new ArrayList<>();
+        if(entityDelegates == null) {
+        	return result;
+        }
+        
+        entityDelegates.forEach(entity -> {
+        	Map<String, Object> entityData = entity.getEntityData();
+        	Map<String, Object> recordMap = new HashMap<String, Object>();
+        	recordMap.putAll(entityData);
+        	
+        	result.add(recordMap);
+        });
+        
+        return result;
+    }
 
     public List<Object> queryAttributeValues(EntityOperationRootCondition condition) {
-        if (log.isInfoEnabled()) {
-            log.info("query entity with condition {}", condition);
+        if (log.isDebugEnabled()) {
+            log.debug("query entity with condition {}", condition);
         }
 
         EntityOperationContext ctx = buildEntityOperationContext(condition);

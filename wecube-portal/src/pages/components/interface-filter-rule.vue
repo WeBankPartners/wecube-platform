@@ -3,16 +3,19 @@
     <Button size="small" :disabled="disabled" type="primary" ghost @click.stop.prevent="addFilters">{{
       $t('set_filter_rule')
     }}</Button>
-    <Modal v-model="modelVisable" :title="$t('copy')" @on-ok="okHandler" @on-cancel="cancelHandler">
+    <Modal v-model="modelVisable" :title="$t('filter_rule')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
-        <Col span="8">
+        <Col span="1" style="margin-top: 4px;"
+          ><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button
+        ></Col>
+        <Col span="8" offset="1">
           <Select v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
-              attr.description
+              attr.name
             }}</Option>
           </Select>
         </Col>
-        <Col span="6" offset="1">
+        <Col span="4" offset="1">
           <Select v-model="rule.op" @on-change="opChangeHandler($event, rule)">
             <Option v-for="(op, index) in filterRuleOp" :key="index" :value="op">{{ op }}</Option>
           </Select>
@@ -143,6 +146,9 @@ export default {
         this.poptipVisable = false
         this.modelVisable = true
       }
+    },
+    deleteFilterRule (index) {
+      this.currentPathFilterRules.splice(index, 1)
     },
     addRules () {
       this.currentPathFilterRules.push({
