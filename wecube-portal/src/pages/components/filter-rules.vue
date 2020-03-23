@@ -404,6 +404,7 @@ export default {
               nodeType: 'entity'
             }
           })
+          this.currentLeafOptiongs = []
           data.leafEntityList.referenceToEntityList.forEach(e => {
             const found = data.referenceToEntityList.filter(
               _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
