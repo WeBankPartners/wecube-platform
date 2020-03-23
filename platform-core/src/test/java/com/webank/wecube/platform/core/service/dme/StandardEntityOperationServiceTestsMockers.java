@@ -215,6 +215,41 @@ public class StandardEntityOperationServiceTestsMockers {
                         MediaType.APPLICATION_JSON));
 
     }
+    
+    
+    public void mockSingleLinkNodeWithFilterExpressionServer(MockRestServiceServer server) {
+        // mockFwdNodeExpression
+        server.expect(ExpectedCount.manyTimes(),
+                requestTo(String.format("http://%s/we-cmdb/entities/system_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+                        + "    \"data\": [\n" + "        {\n" + "            \"biz_key\": null,\n"
+                        + "            \"key_name\": \"EDP\",\n" + "            \"business_group\": 105,\n"
+                        + "            \"code\": \"EDP\",\n" + "            \"orchestration\": null,\n"
+                        + "            \"r_guid\": \"0001_0000000001\",\n"
+                        + "            \"name\": \"Deposit Micro Core System\",\n"
+                        + "            \"description\": \"Deposit Micro Core System\",\n"
+                        + "            \"displayName\": \"Deposit Micro Core System\",\n"
+                        + "            \"id\": \"0001_0000000001\",\n" + "            \"state\": 34,\n"
+                        + "            \"fixed_date\": \"2019-07-24 17:28:15\"\n" + "        }\n" + "    ]\n" + "}",
+                        MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(),
+                requestTo(String.format("http://%s/we-cmdb/entities/unit/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+                        + "    \"data\": [\n" + "        {\n" + "            \"biz_key\": null,\n"
+                        + "            \"code\": \"APP\",\n" + "            \"orchestration\": null,\n"
+                        + "            \"package\": \"\",\n" + "            \"r_guid\": \"0008_0000000003\",\n"
+                        + "            \"description\": \"\",\n" + "            \"displayName\": \"\",\n"
+                        + "            \"resource_set\": \"0020_0000000001\",\n"
+                        + "            \"key_name\": \"EDP-CORE_PRD-APP\",\n" + "            \"instance_num\": 1,\n"
+                        + "            \"subsys\": \"0007_0000000003\",\n"
+                        + "            \"id\": \"0008_0000000003\",\n" + "            \"state\": 37,\n"
+                        + "            \"fixed_date\": \"2019-07-24 16:30:37\",\n"
+                        + "            \"unit_design\": \"0003_0000000002\"\n" + "        }\n" + "    ]\n" + "}",
+                        MediaType.APPLICATION_JSON));
+    }
 
     public void mockPackageNameWithDashAndFwdNodeExpressionServer(MockRestServiceServer server) {
         // mockFwdNodeExpression

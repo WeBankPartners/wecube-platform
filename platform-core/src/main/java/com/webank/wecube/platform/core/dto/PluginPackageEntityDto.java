@@ -20,8 +20,8 @@ public class PluginPackageEntityDto {
     private String description;
 
     private Integer dataModelVersion;
-    private Set<TrimmedPluginPackageEntityDto> referenceToEntityList = new HashSet<>();
-    private Set<TrimmedPluginPackageEntityDto> referenceByEntityList = new HashSet<>();
+    private List<TrimmedPluginPackageEntityDto> referenceToEntityList = new ArrayList<>();
+    private List<TrimmedPluginPackageEntityDto> referenceByEntityList = new ArrayList<>();
     private List<PluginPackageAttributeDto> attributes = new ArrayList<>();
 
 
@@ -162,19 +162,19 @@ public class PluginPackageEntityDto {
         this.displayName = displayName;
     }
 
-    public Set<TrimmedPluginPackageEntityDto> getReferenceToEntityList() {
+    public List<TrimmedPluginPackageEntityDto> getReferenceToEntityList() {
         return referenceToEntityList;
     }
 
-    public void setReferenceToEntityList(Set<TrimmedPluginPackageEntityDto> referenceToEntityList) {
+    public void setReferenceToEntityList(List<TrimmedPluginPackageEntityDto> referenceToEntityList) {
         this.referenceToEntityList = referenceToEntityList;
     }
 
-    public Set<TrimmedPluginPackageEntityDto> getReferenceByEntityList() {
+    public List<TrimmedPluginPackageEntityDto> getReferenceByEntityList() {
         return referenceByEntityList;
     }
 
-    public void setReferenceByEntityList(Set<TrimmedPluginPackageEntityDto> referenceByEntityList) {
+    public void setReferenceByEntityList(List<TrimmedPluginPackageEntityDto> referenceByEntityList) {
         this.referenceByEntityList = referenceByEntityList;
     }
 

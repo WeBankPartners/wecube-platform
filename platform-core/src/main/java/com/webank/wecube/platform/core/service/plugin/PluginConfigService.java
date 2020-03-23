@@ -224,22 +224,24 @@ public class PluginConfigService {
     }
 
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName,
-            String entityName, TargetEntityFilterRuleDto filterRule) {
-        Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository.findLatestDataModelByPackageName(packageName);
+            String entityName, TargetEntityFilterRuleDto filterRuleDto) {
+        Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository
+                .findLatestDataModelByPackageName(packageName);
         if (!dataModelOptional.isPresent()) {
             log.info("No data model found for package [{}]", packageName);
             return Collections.EMPTY_LIST;
         }
         Set<PluginPackageEntity> pluginPackageEntities = dataModelOptional.get().getPluginPackageEntities();
         if (null != pluginPackageEntities && pluginPackageEntities.size() > 0) {
-            if (!pluginPackageEntities.stream().filter(entity -> entity.getName().equals(entityName)).findAny().isPresent()) {
+            if (!pluginPackageEntities.stream().filter(entity -> entity.getName().equals(entityName)).findAny()
+                    .isPresent()) {
                 log.info("No entity found with name [{}}] for package [{}}]", entityName, packageName);
                 return Collections.EMPTY_LIST;
             }
         }
 
         List<PluginConfigInterfaceDto> pluginConfigInterfaceDtos = newArrayList();
-        if (filterRule == null) {
+        if (filterRuleDto == null) {
             Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository
                     .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(
                             packageName, entityName, ENABLED);
@@ -249,18 +251,40 @@ public class PluginConfigService {
                         .collect(Collectors.toList()));
             }
         } else {
+            if (filterRuleDto.getTargetEntityFilterRule() == null
+                    || filterRuleDto.getTargetEntityFilterRule().isEmpty()) {
+                Optional<List<PluginConfigInterface>> filterRuleIsNullEnabledInterfacesOptional = pluginConfigInterfaceRepository
+                        .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_StatusAndPluginConfig_TargetEntityFilterRuleIsNull(
+                                packageName, entityName, ENABLED);
+                if (filterRuleIsNullEnabledInterfacesOptional.isPresent()) {
+                    pluginConfigInterfaceDtos.addAll(filterRuleIsNullEnabledInterfacesOptional.get().stream()
+                            .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
+                            .collect(Collectors.toList()));
+                }
+                Optional<List<PluginConfigInterface>> filterRuleIsEmptyEnabledInterfacesOptional = pluginConfigInterfaceRepository
+                        .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
+                                packageName, entityName, "", ENABLED);
+                if (filterRuleIsEmptyEnabledInterfacesOptional.isPresent()) {
+                    pluginConfigInterfaceDtos.addAll(filterRuleIsEmptyEnabledInterfacesOptional.get().stream()
+                            .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
+                            .collect(Collectors.toList()));
+                }
+            }
             Optional<List<PluginConfigInterface>> allEnabledInterfacesOptional = pluginConfigInterfaceRepository
                     .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
-                            packageName, entityName, filterRule.getTargetEntityFilterRule(), ENABLED);
+                            packageName, entityName, filterRuleDto.getTargetEntityFilterRule(), ENABLED);
             if (allEnabledInterfacesOptional.isPresent()) {
                 pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream()
                         .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                         .collect(Collectors.toList()));
             }
         }
-        Optional<List<PluginConfigInterface>> allEnabledWithEntityNameNullOptional = pluginConfigInterfaceRepository.findAllEnabledWithEntityNameNull();
+        Optional<List<PluginConfigInterface>> allEnabledWithEntityNameNullOptional = pluginConfigInterfaceRepository
+                .findAllEnabledWithEntityNameNull();
         if (allEnabledWithEntityNameNullOptional.isPresent()) {
-            pluginConfigInterfaceDtos.addAll(allEnabledWithEntityNameNullOptional.get().stream().map(pluginConfigInterface->PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)).collect(Collectors.toList()));
+            pluginConfigInterfaceDtos.addAll(allEnabledWithEntityNameNullOptional.get().stream()
+                    .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
+                    .collect(Collectors.toList()));
         }
         return pluginConfigInterfaceDtos;
     }

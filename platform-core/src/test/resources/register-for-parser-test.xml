@@ -100,8 +100,8 @@
 
     <!-- 7.插件列表 - 描述插件包中单个插件的输入和输出 -->
     <plugins>
-        <plugin name="task" package="service-management" entity="task">
-            <interface action="create" path="/service-management/tasks" httpMethod='POST'>
+        <plugin name="task" targetPackage="service-management" targetEntity="task" targetEntityFilterRule="{name eq '//abc manual task'}">
+            <interface action="create" path="/service-management/tasks" httpMethod='POST' filterRule="{vm eq '//xyz nothing'}">
                 <inputParameters>
                     <parameter datatype="string" mappingType='system_variable' mappingSystemVariableName='1' required='Y'>
                         callbackUrl
@@ -122,7 +122,7 @@
                 </outputParameters>
             </interface>
         </plugin>
-        <plugin name="service_request" entity="service_request">
+        <plugin name="service_request" targetEntity="service_request">
             <interface action="update" path="/service-management/service-requests/{service-request-id}/done"
                        httpMethod='PUT'>
                 <inputParameters>
