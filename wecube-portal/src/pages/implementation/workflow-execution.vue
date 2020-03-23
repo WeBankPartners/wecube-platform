@@ -180,7 +180,7 @@
 import {
   getAllFlow,
   getFlowOutlineByID,
-  getTargetOptions,
+  // getTargetOptions,
   getTreePreviewData,
   createFlowInstance,
   getProcessInstances,
@@ -191,7 +191,8 @@ import {
   getNodeContext,
   getDataByNodeDefIdAndProcessSessionId,
   setDataByNodeDefIdAndProcessSessionId,
-  getAllBindingsProcessSessionId
+  getAllBindingsProcessSessionId,
+  getTargetModelByProcessDefId
 } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
@@ -445,19 +446,8 @@ export default {
         this.renderModelGraph()
       }
     },
-    getTargetOptions () {
-      if (this.flowData.rootEntity) {
-        this.getTargetData('rootEntity')
-        return
-      }
-      if (this.flowData.entityTypeId) {
-        this.getTargetData('entityTypeId')
-      }
-    },
-    async getTargetData (flowDataKey) {
-      const pkgName = this.flowData[flowDataKey].split(':')[0]
-      const entityName = this.flowData[flowDataKey].split(':')[1]
-      const { status, data } = await getTargetOptions(pkgName, entityName)
+    async getTargetOptions () {
+      const { status, data } = await getTargetModelByProcessDefId(this.selectedFlow)
       if (status === 'OK') {
         this.allTarget = data
       }
@@ -469,6 +459,8 @@ export default {
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
         if (!(found && found.id)) return
+        this.selectedFlow = found.procDefId
+        this.selectedTarget = found.entityDataId
         this.processInstance()
         this.getNodeBindings(found.id)
         let { status, data } = await getProcessInstance(found.id)
@@ -478,7 +470,6 @@ export default {
             flowNodes: data.taskNodeInstances
           }
           this.getTargetOptions()
-
           this.initFlowGraph(true)
           removeEvent('.retry', 'click', this.retryHandler)
           addEvent('.retry', 'click', this.retryHandler)
@@ -486,9 +477,6 @@ export default {
 
           this.showExcution = false
         }
-
-        this.selectedFlow = found.procDefId
-        this.selectedTarget = found.entityDataId
         this.getModelData()
       })
     },
