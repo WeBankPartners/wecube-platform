@@ -5,7 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,7 +33,6 @@ import com.webank.wecube.platform.auth.client.encryption.StringUtilsEx;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.workflow.GraphNodeDto;
 import com.webank.wecube.platform.core.dto.workflow.InterfaceParameterDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcDefInfoExportImportDto;
@@ -91,6 +90,14 @@ public class WorkflowProcessDefinitionController {
         log.info("currentUser:{}", AuthenticationContextHolder.getCurrentUsername());
         boolean includeDraftProcDef = (includeDraft == 1);
         List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef, permission);
+        return CommonResponseDto.okayWithData(result);
+    }
+    
+    @GetMapping("/process/definitions/{proc-def-id}/root-entities")
+    public CommonResponseDto getProcessDefinitionRootEntities(@PathVariable("proc-def-id") String procDefId) {
+
+
+    	List<Map<String,Object>> result = workflowDataService.getProcessDefinitionRootEntities(procDefId);
         return CommonResponseDto.okayWithData(result);
     }
 
