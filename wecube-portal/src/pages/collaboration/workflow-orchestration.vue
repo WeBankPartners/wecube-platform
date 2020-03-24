@@ -702,7 +702,7 @@ export default {
         }
 
         if (isDraft) {
-          payload.procDefName = _this.selectedFlowData.procDefName
+          payload.procDefName = _this.selectedFlowData.procDefName || 'default'
           saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
               _this.$Notice.success({
@@ -763,15 +763,18 @@ export default {
           desc: this.$t('select_entity_first')
         })
       } else {
-        this.pluginForm =
-          (this.currentFlow &&
-            this.currentFlow.taskNodeInfos &&
-            this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
-          this.prepareDefaultPluginForm()
-        this.getPluginInterfaceList()
-        // get flow's params infos
-        this.getFlowsNodes()
-        this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        this.pluginForm = {}
+        this.$nextTick(() => {
+          this.pluginForm =
+            (this.currentFlow &&
+              this.currentFlow.taskNodeInfos &&
+              this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
+            this.prepareDefaultPluginForm()
+          this.getPluginInterfaceList()
+          // get flow's params infos
+          this.getFlowsNodes()
+          this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        })
       }
     },
     prepareDefaultPluginForm () {
