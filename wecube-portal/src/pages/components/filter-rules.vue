@@ -44,13 +44,13 @@
             </li>
           </ul>
           <hr />
-          <ul v-for="opt in currentLeafOptiongs" :key="opt.pathExp">
+          <ul v-for="(opt, index) in currentLeafOptiongs" :key="opt.pathExp + index">
             <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
           </ul>
-          <ul v-for="opt in currentRefOptiongs" :key="opt.pathExp">
+          <ul v-for="(opt, index) in currentRefOptiongs" :key="opt.pathExp + index">
             <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
           </ul>
-          <ul v-for="opt in currentOptiongs" :key="opt.pathExp">
+          <ul v-for="(opt, index) in currentOptiongs" :key="opt.pathExp + index">
             <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
           </ul>
         </div>
@@ -404,31 +404,42 @@ export default {
               nodeType: 'entity'
             }
           })
+          this.currentLeafOptiongs = []
+          let referenceToEntityList = []
           data.leafEntityList.referenceToEntityList.forEach(e => {
-            const found = data.referenceToEntityList.filter(
-              _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
-            )
-            found.forEach(j => {
-              this.currentLeafOptiongs.push({
-                pkg: e.packageName,
-                entity: e.name,
-                pathExp: `.${j.relatedAttribute.name}>${e.filterRule}`,
-                nodeType: 'entity'
+            const index = referenceToEntityList.indexOf(e.filterRule)
+            if (index < 0) {
+              const found = data.referenceToEntityList.filter(
+                _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
+              )
+              found.forEach(j => {
+                this.currentLeafOptiongs.push({
+                  pkg: e.packageName,
+                  entity: e.name,
+                  pathExp: `.${j.relatedAttribute.name}>${e.filterRule}`,
+                  nodeType: 'entity'
+                })
               })
-            })
+              referenceToEntityList.push(e.filterRule)
+            }
           })
+          let referenceByEntityList = []
           data.leafEntityList.referenceByEntityList.forEach(e => {
-            const found = data.referenceByEntityList.filter(
-              _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
-            )
-            found.forEach(j => {
-              this.currentLeafOptiongs.push({
-                pkg: e.packageName,
-                entity: e.name,
-                pathExp: `~(${j.relatedAttribute.name})${e.filterRule}`,
-                nodeType: 'leaf'
+            const index = referenceByEntityList.indexOf(e.filterRule)
+            if (index < 0) {
+              const found = data.referenceByEntityList.filter(
+                _ => `${_.packageName}:${_.name}` === `${e.packageName}:${e.entityName}`
+              )
+              found.forEach(j => {
+                this.currentLeafOptiongs.push({
+                  pkg: e.packageName,
+                  entity: e.name,
+                  pathExp: `~(${j.relatedAttribute.name})${e.filterRule}`,
+                  nodeType: 'leaf'
+                })
               })
-            })
+              referenceByEntityList.push(e.filterRule)
+            }
           })
         }
       }
