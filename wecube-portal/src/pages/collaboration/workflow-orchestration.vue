@@ -80,6 +80,7 @@
         </div>
         <div slot="bottom" class="split-bottom">
           <Form
+            v-if="show"
             ref="pluginConfigForm"
             :model="pluginForm"
             label-position="right"
@@ -381,7 +382,7 @@ export default {
     selectedFlow: {
       handler (val, oldVal) {
         this.currentSelectedEntity = ''
-        // this.$refs['currentSelectedEntity'].clearSingleSelect()
+        this.show = false
         if (val) {
           this.selectedFlowData = this.allFlows.find(_ => {
             return _.procDefId === val
@@ -756,7 +757,7 @@ export default {
       })
       this.saveDiagram(true)
     },
-    async openPluginModal () {
+    async openPluginModal (e) {
       if (!this.currentSelectedEntity) {
         this.$Notice.warning({
           title: 'Warning',
@@ -771,8 +772,11 @@ export default {
         this.getPluginInterfaceList()
         // get flow's params infos
         this.getFlowsNodes()
-        this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
         this.pluginForm.routineExpression = this.pluginForm.routineExpression || this.currentSelectedEntity
+        this.$nextTick(() => {
+          this.show = e.target.tagName === 'rect'
+        })
       }
     },
     prepareDefaultPluginForm () {
@@ -839,11 +843,9 @@ export default {
       this.container = this.$refs.content
       const canvas = this.$refs.canvas
       canvas.onmouseup = e => {
-        this.show = e.target.tagName === 'rect'
-        if (this.show) {
-          this.bindCurrentNode(e)
-          this.openPluginModal()
-        }
+        this.show = false
+        this.bindCurrentNode(e)
+        this.openPluginModal(e)
       }
       var customTranslateModule = {
         translate: ['value', customTranslate]
