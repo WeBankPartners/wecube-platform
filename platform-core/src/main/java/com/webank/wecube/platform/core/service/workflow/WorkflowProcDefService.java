@@ -638,7 +638,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     public ProcDefOutlineDto deployProcessDefinition(String token, ProcDefInfoDto procDefInfoDto) {
+    	
     	validateTaskInfos(procDefInfoDto);
+    	
         String procDefName = procDefInfoDto.getProcDefName();
         if (StringUtils.isBlank(procDefName)) {
             throw new WecubeCoreException("Process definition name cannot be empty.");
