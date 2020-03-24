@@ -45,7 +45,7 @@ public class PluginConfig {
     private String targetEntity;
 
     @Column
-    private String targetEntityFilterRule;
+    private String targetEntityFilterRule = "";
 
     @Column
     private String registerName;
