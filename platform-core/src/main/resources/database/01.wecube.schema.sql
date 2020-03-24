@@ -126,7 +126,7 @@ CREATE TABLE `plugin_configs` (
   `name` VARCHAR(100) NOT NULL,
   `target_package` VARCHAR(63) NULL DEFAULT NULL,
   `target_entity` VARCHAR(100) NULL,
-  `target_entity_filter_rule` VARCHAR(1024) NOT NULL DEFAULT '',
+  `target_entity_filter_rule` VARCHAR(1024) NULL DEFAULT '',
   `register_name` VARCHAR(100) NULL DEFAULT NULL,
   `status` VARCHAR(20) NOT NULL default 'DISABLED'
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
@@ -142,7 +142,7 @@ create table plugin_config_interfaces (
     `http_method` VARCHAR(10) NOT NULL, 
     `is_async_processing` VARCHAR(1) DEFAULT 'N',
     `type` VARCHAR(16) DEFAULT 'EXECUTION',
-    `filter_rule` VARCHAR(1024) NOT NULL DEFAULT ''
+    `filter_rule` VARCHAR(1024) NULL DEFAULT ''
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_config_interface_parameters;
