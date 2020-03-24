@@ -769,11 +769,11 @@ export default {
             this.currentFlow.taskNodeInfos &&
             this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
           this.prepareDefaultPluginForm()
+        this.pluginForm.routineExpression = this.pluginForm.routineExpression || this.currentSelectedEntity
         this.getPluginInterfaceList()
         // get flow's params infos
         this.getFlowsNodes()
         this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
-        this.pluginForm.routineExpression = this.pluginForm.routineExpression || this.currentSelectedEntity
         this.$nextTick(() => {
           this.show = e.target.tagName === 'rect'
         })
