@@ -566,9 +566,16 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
                 draftNodeEntity.setNodeName(nodeDto.getNodeName());
                 draftNodeEntity.setProcDefId(draftEntity.getId());
                 draftNodeEntity.setProcDefKey(draftEntity.getProcDefKey());
-                draftNodeEntity.setRoutineExpression(nodeDto.getRoutineExpression());
-                draftNodeEntity.setRoutineRaw(nodeDto.getRoutineRaw());
-                draftNodeEntity.setServiceId(nodeDto.getServiceId());
+                if(!StringUtils.isBlank(nodeDto.getRoutineExpression())) {
+                	draftNodeEntity.setRoutineExpression(nodeDto.getRoutineExpression());
+                }
+                if(!StringUtils.isBlank(nodeDto.getRoutineRaw())) {
+                	draftNodeEntity.setRoutineRaw(nodeDto.getRoutineRaw());
+                }
+                
+                if(!StringUtils.isBlank(nodeDto.getServiceId())) {
+                	draftNodeEntity.setServiceId(nodeDto.getServiceId());
+                }
                 draftNodeEntity.setServiceName(nodeDto.getServiceName());
                 draftNodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
                 draftNodeEntity.setUpdatedTime(currTime);
@@ -631,7 +638,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     }
 
     public ProcDefOutlineDto deployProcessDefinition(String token, ProcDefInfoDto procDefInfoDto) {
-
+    	
+    	validateTaskInfos(procDefInfoDto);
+    	
         String procDefName = procDefInfoDto.getProcDefName();
         if (StringUtils.isBlank(procDefName)) {
             throw new WecubeCoreException("Process definition name cannot be empty.");
@@ -694,6 +703,18 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
         return postDeployProcessDefinition(procDefEntity, procDef, procDefOutline);
 
+    }
+    
+    private void validateTaskInfos(ProcDefInfoDto procDefInfoDto) {
+    	if(procDefInfoDto.getTaskNodeInfos() == null) {
+    		return;
+    	}
+    	
+    	for (TaskNodeDefInfoDto nodeDto : procDefInfoDto.getTaskNodeInfos()) {
+    		if(StringUtils.isBlank(nodeDto.getRoutineExpression()) || StringUtils.isBlank(nodeDto.getServiceId())) {
+    			throw new WecubeCoreException(String.format("Routine expression or service ID is invalid for %s", nodeDto.getNodeName()));
+    		}
+    	}
     }
 
     private void processDeployTaskNodeInfos(ProcDefInfoDto procDefInfoDto, ProcDefInfoEntity procDefEntity,
