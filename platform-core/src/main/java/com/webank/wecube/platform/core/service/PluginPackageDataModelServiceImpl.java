@@ -335,6 +335,45 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         }
     }
 
+    private void updateReferenceInfoIncludeSelfReference(PluginPackageEntityDto inputEntityDto) {
+        String packageName = inputEntityDto.getPackageName();
+        String entityName = inputEntityDto.getName();
+        int dataModelVersion = 0;
+
+        Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository
+                .findLatestDataModelByPackageName(packageName);
+        if (latestDataModelByPackageName.isPresent()) {
+            dataModelVersion = latestDataModelByPackageName.get().getVersion();
+        }
+        Optional<List<PluginPackageAttribute>> allAttributeReferenceByList = pluginPackageAttributeRepository
+                .findAllChildrenAttributes(packageName, entityName, dataModelVersion);
+
+        allAttributeReferenceByList.ifPresent(attributeList -> attributeList.forEach(attribute -> {
+            PluginPackageEntity referenceByEntity = attribute.getPluginPackageEntity();
+            inputEntityDto.updateReferenceBy(referenceByEntity.getId(), referenceByEntity.getPackageName(),
+                    referenceByEntity.getDataModelVersion(), referenceByEntity.getName(),
+                    referenceByEntity.getDisplayName(), PluginPackageAttributeDto.fromDomain(attribute));
+
+        }));
+
+        List<PluginPackageAttributeDto> attributes = inputEntityDto.getAttributes();
+        if (!CollectionUtils.isEmpty(attributes)) {
+            attributes.forEach(attributeDto -> {
+                dataModelRepository.findLatestDataModelByPackageName(attributeDto.getRefPackageName())
+                        .ifPresent(dataModel -> dataModel.getPluginPackageEntities().stream()
+                                .filter(entity -> attributeDto.getRefEntityName().equals(entity.getName())).findAny()
+                                .ifPresent(entity -> {
+                                    PluginPackageEntityDto entityReferenceToDto = PluginPackageEntityDto
+                                            .fromDomain(entity);
+                                    inputEntityDto.updateReferenceTo(entityReferenceToDto.getId(),
+                                            entityReferenceToDto.getPackageName(),
+                                            entityReferenceToDto.getDataModelVersion(), entityReferenceToDto.getName(),
+                                            entityReferenceToDto.getDisplayName(), attributeDto);
+                                }));
+            });
+        }
+    }
+
     /**
      * Convert the plugin model entities from domains to dtos
      *
@@ -531,7 +570,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             return dataModelEntityDto;
         }
         dataModelEntityDto = DataModelEntityDto.fromDomain(entityOptional.get());
-        updateReferenceInfo(dataModelEntityDto);
+        updateReferenceInfoIncludeSelfReference(dataModelEntityDto);
 
         List<BindedInterfaceEntityDto> referenceToEntityList = new ArrayList<BindedInterfaceEntityDto>();
         List<BindedInterfaceEntityDto> referenceByEntityList = new ArrayList<BindedInterfaceEntityDto>();
@@ -543,28 +582,36 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         }
 
         for (PluginConfig config : bindedInterfacesConfigs) {
-
-            for (TrimmedPluginPackageEntityDto entityDto : dataModelEntityDto.getReferenceToEntityList()) {
-                if (entityDto.getPackageName().equals(config.getTargetPackage())
-                        && entityDto.getName().equals(config.getTargetEntity())) {
-                    referenceToEntityList.add(new BindedInterfaceEntityDto(config.getTargetPackage(),
-                            config.getTargetEntity(), config.getTargetEntityWithFilterRule()));
-                }
-            }
-
-            for (TrimmedPluginPackageEntityDto entityDto : dataModelEntityDto.getReferenceByEntityList()) {
-                if (entityDto.getPackageName().equals(config.getTargetPackage())
-                        && entityDto.getName().equals(config.getTargetEntity())) {
-                    referenceByEntityList.add(new BindedInterfaceEntityDto(config.getTargetPackage(),
-                            config.getTargetEntity(), config.getTargetEntityWithFilterRule()));
-                }
-            }
+            buildLeafEntity(referenceToEntityList,dataModelEntityDto.getReferenceToEntityList(),config);
+            buildLeafEntity(referenceByEntityList,dataModelEntityDto.getReferenceByEntityList(),config);
         }
 
         dataModelEntityDto.getLeafEntityList().setReferenceToEntityList(referenceToEntityList);
         dataModelEntityDto.getLeafEntityList().setReferenceByEntityList(referenceByEntityList);
 
         return dataModelEntityDto;
+    }
+
+    private void buildLeafEntity(List<BindedInterfaceEntityDto> leafEntityList,
+            List<TrimmedPluginPackageEntityDto> entityDtoList, PluginConfig config) {
+        for (TrimmedPluginPackageEntityDto entityDto : entityDtoList) {
+            if (entityDto.getPackageName().equals(config.getTargetPackage())
+                    && entityDto.getName().equals(config.getTargetEntity())) {
+                boolean entityExistedFlag = false;
+                for (BindedInterfaceEntityDto bindedInterfaceEntityDto : leafEntityList) {
+                    if (bindedInterfaceEntityDto.getPackageName().equals(config.getTargetPackage())
+                            && bindedInterfaceEntityDto.getEntityName().equals(config.getTargetEntity())
+                            && bindedInterfaceEntityDto.getFilterRule()
+                                    .equals(config.getTargetEntityWithFilterRule())) {
+                        entityExistedFlag = true;
+                    }
+                }
+                if (!entityExistedFlag) {
+                    leafEntityList.add(new BindedInterfaceEntityDto(config.getTargetPackage(), config.getTargetEntity(),
+                            config.getTargetEntityWithFilterRule()));
+                }
+            }
+        }
     }
 
 }
