@@ -1,253 +1,273 @@
 <template>
-  <div>
+  <div class="plugin-register-page">
     <Row>
-      <Col span="5">
+      <Col span="6">
         <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
         <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
-          <MenuItem
-            v-for="(plugin, index) in plugins"
-            :name="plugin.pluginConfigName"
-            :key="index"
-            style="padding: 10px 5px;"
-          >
-            <Icon type="md-flower" />
-            {{ plugin.pluginConfigName }}
-          </MenuItem>
+          <Submenu v-for="(plugin, index) in plugins" :name="plugin.pluginConfigName" style="padding: 0;" :key="index">
+            <template slot="title">
+              <Icon type="md-flower" />
+              <span style="font-size: 17px; font-weight:500">{{ plugin.pluginConfigName }}</span>
+              <Button
+                size="small"
+                type="text"
+                style="color: #2d8cf0;"
+                icon="md-add-circle"
+                @click.stop.prevent="addPluginConfigDto(plugin)"
+                >{{ $t('add') }}</Button
+              >
+            </template>
+            <MenuItem
+              v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
+              :name="dto.id"
+              :key="index"
+              style="padding: 5px 30px;"
+            >
+              <span style="font-size: 15px; font-weight:400">{{ dto.name }}-({{ dto.registerName }})</span>
+              <Button
+                size="small"
+                type="text"
+                style="color: #19be6b;"
+                icon="md-copy"
+                @click.stop.prevent="copyPluginConfigDto(dto.id)"
+                >{{ $t('copy') }}</Button
+              >
+            </MenuItem>
+          </Submenu>
         </Menu>
       </Col>
-      <Col span="19" offset="0" style="padding-left: 10px" v-show="hidePanal">
-        <Form v-show="currentPlugin.length > 0" :model="form">
-          <Row style="border-bottom: 1px solid #bbb7b7;">
-            <FormItem :label-width="100" :label="$t('regist_source')">
-              <Select
-                v-model="selectedSource"
-                @on-change="registSourceChange"
-                :placeholder="$t('regist_source_placeholder')"
-              >
-                <Option value="add" key="add">
-                  <Button @click="addRegistMsg" type="success" long>
-                    <Icon type="md-add" />
-                  </Button>
-                </Option>
-                <Option v-for="item in sourceList" :value="item.id" :key="item.id"
-                  >{{ item.name }}-({{ item.registerName }})</Option
-                >
-              </Select>
-            </FormItem>
-          </Row>
-          <Row style="border-bottom: 1px solid #bbb7b7; margin-top: 20px" v-if="selectedSource">
+      <Col span="18" offset="0" style="padding-left: 10px" v-if="hidePanal">
+        <Form :model="form">
+          <Row style="border-bottom: 1px solid #bbb7b7; margin-top: 20px">
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
-                <Input v-model="registerName" :disabled="currentPluginObj.status === 'ENABLED'" />
+                <Input v-model="registerName" ref="registerName" :disabled="currentPluginObj.status === 'ENABLED'" />
               </FormItem>
             </Col>
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('target_type')">
-                <Select
-                  @on-change="onSelectEntityType"
-                  v-model="selectedEntityType"
-                  label-in-value
-                  :disabled="currentPluginObj.status === 'ENABLED'"
-                  @on-open-change="getAllDataModels"
-                >
-                  <OptionGroup
-                    :label="pluginPackage.packageName"
-                    v-for="(pluginPackage, index) in allEntityType"
-                    :key="index"
-                  >
-                    <Option
-                      v-for="(item, index) in pluginPackage.pluginPackageEntities"
-                      :value="item.name"
-                      :key="index"
-                    >
-                      {{ item.name }}
-                      <span style="display:none">**{{ pluginPackage.packageName }}</span>
-                    </Option>
-                  </OptionGroup>
-                </Select>
+                <FilterRules v-model="selectedEntityType" :allDataModelsWithAttrs="allEntityType"></FilterRules>
               </FormItem>
             </Col>
           </Row>
-          <Row v-if="selectedSource" style="margin: 10px 0px 10px 15px;">
-            <Col span="3" offset="0">
-              <strong style="font-size:15px;">{{ $t('params_type') }}</strong>
-            </Col>
-            <Col span="3" offset="0">
-              <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
-            </Col>
-            <Col span="3" offset="0">
-              <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
-            </Col>
-            <Col span="3" offset="0">
-              <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
-            </Col>
-            <Col span="8" offset="0">
-              <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
-            </Col>
-            <Col span="3" offset="1">
-              <strong style="font-size:15px;">
-                {{ $t('attribute_type') }}
-              </strong>
-            </Col>
-          </Row>
           <div id="paramsContainer">
-            <Collapse v-model="activePanel" simple>
+            <Collapse v-model="activePanel" accordion>
               <Panel
                 v-for="(inter, index) in currentPluginObj.interfaces"
                 :key="index + inter.action"
                 :name="index + inter.action"
               >
-                {{ inter.action }}
-                <div class="interfaceContainer" slot="content">
-                  <Row>
-                    <Col span="3">
-                      <FormItem :label-width="0">
-                        <span>{{ $t('input_params') }}</span>
-                      </FormItem>
+                <Input
+                  v-model="inter.action"
+                  :disabled="currentPluginObj.status === 'ENABLED'"
+                  @click.stop.native="onFocus"
+                  style="width:200px"
+                  size="small"
+                />
+                <InterfaceFilterRule
+                  v-model="inter.filterRule"
+                  :disabled="currentPluginObj.status === 'ENABLED'"
+                  :rootEntity="rootEntity"
+                  :allDataModelsWithAttrs="allEntityType"
+                ></InterfaceFilterRule>
+                <Button
+                  size="small"
+                  type="success"
+                  :disabled="currentPluginObj.status === 'ENABLED'"
+                  ghost
+                  icon="md-copy"
+                  @click.stop.prevent="copyInterface(inter)"
+                  >{{ $t('copy') }}</Button
+                >
+                <Tooltip :content="$t('completely_deleted')" placement="top">
+                  <Button
+                    size="small"
+                    type="error"
+                    :disabled="currentPluginObj.status === 'ENABLED'"
+                    ghost
+                    icon="ios-trash-outline"
+                    @click.stop.prevent="deleteInterface(index)"
+                    >{{ $t('remove') }}</Button
+                  >
+                </Tooltip>
+                <div slot="content">
+                  <Row style="border-bottom: 1px solid gray;margin-bottom:5px">
+                    <Col span="3" offset="0">
+                      <strong style="font-size:15px;">{{ $t('params_type') }}</strong>
                     </Col>
-                    <Col span="21" offset="0">
-                      <Row v-for="(param, index) in inter['inputParameters']" :key="index">
-                        <Col span="5">
-                          <FormItem :label-width="0">
-                            <Tooltip :content="param.name" style="width: 100%">
-                              <span v-if="param.required === 'Y'" style="color:red">*</span>
-                              <span
-                                style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
-                                >{{ param.name }}</span
-                              >
-                            </Tooltip>
-                          </FormItem>
-                        </Col>
-                        <Col span="2" offset="0">
-                          <FormItem :label-width="0">
-                            <span>{{ param.dataType }}</span>
-                          </FormItem>
-                        </Col>
-                        <Col span="3" offset="0">
-                          <FormItem :label-width="0">
-                            <Select
-                              v-model="param.sensitiveData"
-                              size="small"
-                              style="width:50px"
-                              :disabled="currentPluginObj.status === 'ENABLED'"
-                            >
-                              <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
-                                item.label
-                              }}</Option>
-                            </Select>
-                          </FormItem>
-                        </Col>
-                        <Col span="10" offset="0">
-                          <FormItem :label-width="0">
-                            <PathExp
-                              v-if="param.mappingType === 'entity'"
-                              :rootPkg="pkgName"
-                              :rootEntity="selectedEntityType"
-                              :allDataModelsWithAttrs="allEntityType"
-                              :disabled="currentPluginObj.status === 'ENABLED'"
-                              v-model="param.mappingEntityExpression"
-                            ></PathExp>
-                            <Select
-                              v-if="param.mappingType === 'system_variable'"
-                              v-model="param.mappingSystemVariableName"
-                              :disabled="currentPluginObj.status === 'ENABLED'"
-                              @on-open-change="retrieveSystemVariables"
-                            >
-                              <Option
-                                v-for="(item, index) in allSystemVariables"
-                                v-if="item.status === 'active'"
-                                :value="item.name"
-                                :key="index"
-                                >{{ item.name }}</Option
-                              >
-                            </Select>
-                            <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'">N/A</span>
-                          </FormItem>
-                        </Col>
-                        <Col span="3" offset="1">
-                          <FormItem :label-width="0">
-                            <Select
-                              size="small"
-                              :disabled="currentPluginObj.status === 'ENABLED'"
-                              v-model="param.mappingType"
-                              @on-change="mappingTypeChange($event, param)"
-                            >
-                              <Option value="context" key="context">context</Option>
-                              <Option value="system_variable" key="system_variable">system_variable</Option>
-                              <Option value="entity" key="entity">entity</Option>
-                              <Option value="constant" key="constant">constant</Option>
-                            </Select>
-                          </FormItem>
-                        </Col>
-                      </Row>
+                    <Col span="3" offset="0">
+                      <strong style="font-size:15px;">{{ $t('params_name') }}</strong>
+                    </Col>
+                    <Col span="3" offset="0" style="text-align: center">
+                      <strong style="font-size:15px;">{{ $t('data_type') }}</strong>
+                    </Col>
+                    <Col span="3" offset="0">
+                      <strong style="font-size:15px;">{{ $t('sensitive') }}</strong>
+                    </Col>
+                    <Col span="8" offset="0">
+                      <strong style="font-size:15px;">{{ $t('attribute') }}</strong>
+                    </Col>
+                    <Col span="3" offset="1">
+                      <strong style="font-size:15px;">
+                        {{ $t('attribute_type') }}
+                      </strong>
                     </Col>
                   </Row>
-                  <Row>
-                    <Col span="3">
-                      <FormItem :label-width="0">
-                        <span>{{ $t('output_params') }}</span>
-                      </FormItem>
-                    </Col>
-                    <Col span="21" offset="0">
-                      <Row v-for="(outPut, index) in inter['outputParameters']" :key="index">
-                        <Col span="5">
-                          <FormItem :label-width="0">
-                            <Tooltip :content="outPut.name" style="width: 100%">
-                              <span v-if="outPut.required === 'Y'" style="color:red">*</span>
-                              <span
-                                style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
-                                >{{ outPut.name }}</span
+                  <div class="interfaceContainers">
+                    <Row>
+                      <Col span="3">
+                        <FormItem :label-width="0">
+                          <span>{{ $t('input_params') }}</span>
+                        </FormItem>
+                      </Col>
+                      <Col span="21" offset="0">
+                        <Row v-for="(param, index) in inter['inputParameters']" :key="index">
+                          <Col span="5">
+                            <FormItem :label-width="0">
+                              <Tooltip :content="param.name" style="width: 100%">
+                                <div>
+                                  <span v-if="param.required === 'Y'" style="color:red">*</span>
+                                  <span
+                                    style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
+                                    >{{ param.name }}</span
+                                  >
+                                </div>
+                              </Tooltip>
+                            </FormItem>
+                          </Col>
+                          <Col span="2" offset="0">
+                            <FormItem :label-width="0">
+                              <span>{{ param.dataType }}</span>
+                            </FormItem>
+                          </Col>
+                          <Col span="3" offset="0">
+                            <FormItem :label-width="0">
+                              <Select
+                                v-model="param.sensitiveData"
+                                size="small"
+                                style="width:50px"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
                               >
-                            </Tooltip>
-                          </FormItem>
-                        </Col>
-                        <Col span="2" offset="0">
-                          <FormItem :label-width="0">
-                            <span>{{ outPut.dataType }}</span>
-                          </FormItem>
-                        </Col>
-                        <Col span="3" offset="0">
-                          <FormItem :label-width="0">
-                            <Select
-                              v-model="outPut.sensitiveData"
-                              size="small"
-                              style="width:50px"
-                              :disabled="currentPluginObj.status === 'ENABLED'"
-                            >
-                              <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
-                                item.label
-                              }}</Option>
-                            </Select>
-                          </FormItem>
-                        </Col>
-                        <Col span="10" offset="0">
-                          <FormItem :label-width="0">
-                            <PathExp
-                              v-if="outPut.mappingType === 'entity'"
-                              :rootPkg="pkgName"
-                              :rootEntity="selectedEntityType"
-                              :allDataModelsWithAttrs="allEntityType"
-                              :disabled="currentPluginObj.status === 'ENABLED'"
-                              v-model="outPut.mappingEntityExpression"
-                            ></PathExp>
-                            <span v-if="outPut.mappingType === 'context'">N/A</span>
-                          </FormItem>
-                        </Col>
-                        <Col span="3" offset="1">
-                          <FormItem :label-width="0">
-                            <Select
-                              size="small"
-                              :disabled="currentPluginObj.status === 'ENABLED'"
-                              v-model="outPut.mappingType"
-                            >
-                              <Option value="context" key="context">context</Option>
-                              <Option value="entity" key="entity">entity</Option>
-                            </Select>
-                          </FormItem>
-                        </Col>
-                      </Row>
-                    </Col>
-                  </Row>
+                                <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                                  item.label
+                                }}</Option>
+                              </Select>
+                            </FormItem>
+                          </Col>
+                          <Col span="10" offset="0">
+                            <FormItem :label-width="0">
+                              <PathExp
+                                v-if="param.mappingType === 'entity'"
+                                :rootPkg="pkgName"
+                                :rootEntity="rootEntity"
+                                :allDataModelsWithAttrs="allEntityType"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                v-model="param.mappingEntityExpression"
+                              ></PathExp>
+                              <Select
+                                v-if="param.mappingType === 'system_variable'"
+                                v-model="param.mappingSystemVariableName"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                @on-open-change="retrieveSystemVariables"
+                              >
+                                <Option
+                                  v-for="(item, index) in allSystemVariables"
+                                  v-if="item.status === 'active'"
+                                  :value="item.name"
+                                  :key="index"
+                                  >{{ item.name }}</Option
+                                >
+                              </Select>
+                              <span v-if="param.mappingType === 'context' || param.mappingType === 'constant'"
+                                >N/A</span
+                              >
+                            </FormItem>
+                          </Col>
+                          <Col span="3" offset="1">
+                            <FormItem :label-width="0">
+                              <Select
+                                size="small"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                v-model="param.mappingType"
+                                @on-change="mappingTypeChange($event, param)"
+                              >
+                                <Option value="context" key="context">context</Option>
+                                <Option value="system_variable" key="system_variable">system_variable</Option>
+                                <Option value="entity" key="entity">entity</Option>
+                                <Option value="constant" key="constant">constant</Option>
+                              </Select>
+                            </FormItem>
+                          </Col>
+                        </Row>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col span="3">
+                        <FormItem :label-width="0">
+                          <span>{{ $t('output_params') }}</span>
+                        </FormItem>
+                      </Col>
+                      <Col span="21" offset="0">
+                        <Row v-for="(outPut, index) in inter['outputParameters']" :key="index">
+                          <Col span="5">
+                            <FormItem :label-width="0">
+                              <Tooltip :content="outPut.name" style="width: 100%">
+                                <span v-if="outPut.required === 'Y'" style="color:red">*</span>
+                                <span
+                                  style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;"
+                                  >{{ outPut.name }}</span
+                                >
+                              </Tooltip>
+                            </FormItem>
+                          </Col>
+                          <Col span="2" offset="0">
+                            <FormItem :label-width="0">
+                              <span>{{ outPut.dataType }}</span>
+                            </FormItem>
+                          </Col>
+                          <Col span="3" offset="0">
+                            <FormItem :label-width="0">
+                              <Select
+                                v-model="outPut.sensitiveData"
+                                size="small"
+                                style="width:50px"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                              >
+                                <Option v-for="item in sensitiveData" :value="item.value" :key="item.value">{{
+                                  item.label
+                                }}</Option>
+                              </Select>
+                            </FormItem>
+                          </Col>
+                          <Col span="10" offset="0">
+                            <FormItem :label-width="0">
+                              <PathExp
+                                v-if="outPut.mappingType === 'entity'"
+                                :rootPkg="pkgName"
+                                :rootEntity="rootEntity"
+                                :allDataModelsWithAttrs="allEntityType"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                v-model="outPut.mappingEntityExpression"
+                              ></PathExp>
+                              <span v-if="outPut.mappingType === 'context'">N/A</span>
+                            </FormItem>
+                          </Col>
+                          <Col span="3" offset="1">
+                            <FormItem :label-width="0">
+                              <Select
+                                size="small"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                v-model="outPut.mappingType"
+                              >
+                                <Option value="context" key="context">context</Option>
+                                <Option value="entity" key="entity">entity</Option>
+                              </Select>
+                            </FormItem>
+                          </Col>
+                        </Row>
+                      </Col>
+                    </Row>
+                  </div>
                 </div>
               </Panel>
             </Collapse>
@@ -271,24 +291,12 @@
         </Form>
       </Col>
     </Row>
-    <Modal v-model="addRegistModal" :title="$t('create_regist_source')" @on-ok="ok" @on-cancel="cancel">
-      <Form ref="formValidate" :label-width="120">
-        <FormItem :label="$t('regist_name')">
-          <Input v-model="addRegisterName" placeholder></Input>
-        </FormItem>
-        <FormItem :label="$t('copy_source')">
-          <Select v-model="selectedSource" @on-change="copyRegistSource">
-            <Option v-for="(item, index) in sourceList" :value="item.id" :key="index"
-              >{{ item.name }}({{ item.registerName }})</Option
-            >
-          </Select>
-        </FormItem>
-      </Form>
-    </Modal>
   </div>
 </template>
 <script>
 import PathExp from '../../components/path-exp.vue'
+import FilterRules from '../../components/filter-rules.vue'
+import InterfaceFilterRule from '../../components/interface-filter-rule.vue'
 import {
   getAllPluginByPkgId,
   getAllDataModels,
@@ -296,7 +304,9 @@ import {
   deletePlugin,
   deleteRegisterSource,
   savePluginConfig,
-  retrieveSystemVariables
+  retrieveSystemVariables,
+  getPluginConfigsByPackageId,
+  getInterfacesByPluginConfigId
 } from '@/api/server'
 
 export default {
@@ -313,10 +323,9 @@ export default {
       registerName: '',
       addRegisterName: '',
       hasNewSource: false,
-      hidePanal: true,
+      hidePanal: false,
       allEntityType: [],
       selectedEntityType: '',
-      targetPackage: '',
       form: {},
       allSystemVariables: [],
       sensitiveData: [
@@ -332,16 +341,24 @@ export default {
     }
   },
   components: {
-    PathExp
+    PathExp,
+    FilterRules,
+    InterfaceFilterRule
   },
   computed: {
-    currentEntityAttr () {
-      const allEntity = [].concat(...this.allEntityType.map(_ => _.pluginPackageEntities))
-      const found = allEntity.find(i => i.name === this.selectedEntityType)
-      return found ? found.attributes : []
+    rootEntity () {
+      if (this.selectedEntityType && this.selectedEntityType.length > 0) {
+        return this.selectedEntityType.split('{')[0].split(':')[1]
+      } else {
+        return ''
+      }
+      // return ''
     },
     currentPluginObjKeysLength () {
       return Object.keys(this.currentPluginObj).length
+    },
+    allPluginConfigs () {
+      return [].concat(...this.plugins.map(p => p.pluginConfigDtoList))
     }
   },
   props: {
@@ -352,7 +369,11 @@ export default {
       required: true
     }
   },
-  watch: {},
+  watch: {
+    selectedEntityType: {
+      handler (val) {}
+    }
+  },
   methods: {
     async retrieveSystemVariables () {
       const { data, status } = await retrieveSystemVariables({
@@ -364,19 +385,17 @@ export default {
       }
     },
     async pluginSave () {
-      this.currentPluginObj.entityName = this.selectedEntityType
-      const entitys = [].concat(...this.allEntityType.map(_ => _.pluginPackageEntities))
-      if (this.selectedEntityType) {
-        const entityId = entitys.find(i => i.name === this.selectedEntityType).id
-        this.currentPluginObj.entityId = entityId
-        this.currentPluginObj.targetEntity = this.selectedEntityType
-        this.currentPluginObj.targetPackage = this.targetPackage
-      } else {
-        this.currentPluginObj.targetPackage = null
+      if (this.registerName.length === 0) {
+        this.$refs.registerName.focus()
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: '输入注册名称'
+        })
+        return
       }
-
       this.currentPluginObj.registerName = this.registerName
       let currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
+      currentPluginForSave.targetEntityWithFilterRule = this.selectedEntityType
       if (this.hasNewSource) {
         delete currentPluginForSave.id
         currentPluginForSave.interfaces.map(_ => {
@@ -384,23 +403,17 @@ export default {
         })
       }
       const { data, status, message } = await savePluginConfig(currentPluginForSave)
-
-      const id = data.id
       if (status === 'OK') {
+        const id = data.id
         this.$Notice.success({
           title: 'Success',
           desc: message
         })
         if (this.hasNewSource) {
           this.hasNewSource = false
-          const { data, status } = await getAllPluginByPkgId(this.pkgId)
-          if (status === 'OK') {
-            this.plugins = data
-            this.currentPluginObj.id = id
-            this.selectedSource = id
-          }
         }
-        this.getAllPluginByPkgId()
+        await this.getAllPluginByPkgId()
+        this.getInterfacesByPluginConfigId(id)
       }
     },
     mappingTypeChange (v, param) {
@@ -409,7 +422,16 @@ export default {
       }
     },
     async regist () {
-      const saveRes = await savePluginConfig(this.currentPluginObj)
+      this.currentPluginObj.registerName = this.registerName
+      let currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
+      currentPluginForSave.targetEntityWithFilterRule = this.selectedEntityType
+      if (this.hasNewSource) {
+        delete currentPluginForSave.id
+        currentPluginForSave.interfaces.map(_ => {
+          delete _.id
+        })
+      }
+      const saveRes = await savePluginConfig(currentPluginForSave)
       if (saveRes.status === 'OK') {
         const { status, message } = await registerPlugin(this.currentPluginObj.id)
         if (status === 'OK') {
@@ -417,8 +439,8 @@ export default {
             title: 'Success',
             desc: message
           })
-          this.getAllPluginByPkgId()
-          this.currentPluginObj.status = 'ENABLED'
+          await this.getAllPluginByPkgId()
+          this.getInterfacesByPluginConfigId(this.currentPluginObj.id)
         }
       }
     },
@@ -449,12 +471,6 @@ export default {
       this.selectedSource = this.currentPluginObj.id
       this.hasNewSource = true
     },
-    cancel () {
-      this.registerName = ''
-      this.selectedEntityType = ''
-      this.currentPluginObj = {}
-      this.currentPluginData = {}
-    },
     async removePlugin () {
       const { status, message } = await deletePlugin(this.currentPluginObj.id)
       if (status === 'OK') {
@@ -462,49 +478,69 @@ export default {
           title: 'Success',
           desc: message
         })
-        this.getAllPluginByPkgId()
-        this.currentPluginObj.status = 'DISABLED'
+        await this.getAllPluginByPkgId()
+        this.getInterfacesByPluginConfigId(this.currentPluginObj.id)
       }
     },
+    onFocus () {},
+    copyInterface (interfaces) {
+      const found = this.currentPluginObj.interfaces.find(_ => _.action === interfaces.action + '-(copy)')
+      if (found) return
+      let i = { ...interfaces }
+      i.action = interfaces.action + '-(copy)'
+      this.currentPluginObj.interfaces.push(i)
+    },
+    deleteInterface (index) {
+      this.currentPluginObj.interfaces.splice(index, 1)
+    },
     async getAllPluginByPkgId () {
-      const { data, status } = await getAllPluginByPkgId(this.pkgId)
+      const { data, status } = await getPluginConfigsByPackageId(this.pkgId)
       if (status === 'OK') {
         this.plugins = data
       }
     },
+    async copyPluginConfigDto (id) {
+      this.currentPlugin = ''
+      this.hasNewSource = true
+      await this.getInterfacesByPluginConfigId(id)
+      this.registerName = this.currentPluginObj.registerName + '-(copy)'
+      this.currentPluginObj.status = 'DISABLED'
+      this.$refs.registerName.focus()
+    },
+    async addPluginConfigDto (plugin) {
+      this.hasNewSource = true
+      const id = plugin.pluginConfigDtoList.find(_ => _.registerName === null).id
+      await this.getInterfacesByPluginConfigId(id)
+      this.registerName = ''
+      this.currentPluginObj.status = 'DISABLED'
+      this.$refs.registerName.focus()
+    },
     selectPlugin (val) {
       this.hasNewSource = false
-      this.hidePanal = true
       this.currentPlugin = val
-      this.currentPluginObj = {}
-      let currentPluginData = this.plugins.find(plugin => plugin.pluginConfigName === val)
-      this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
+      this.getInterfacesByPluginConfigId(val)
     },
-    registSourceChange (v) {
+    async getInterfacesByPluginConfigId (id) {
+      this.hidePanal = false
       this.currentPluginObj = {}
-      if (!v || v === 'add') {
-        this.registerName = ''
-        this.selectedEntityType = ''
-
-        return
+      let currentConfig = this.allPluginConfigs.find(s => s.id === id)
+      const { data, status } = await getInterfacesByPluginConfigId(id)
+      if (status === 'OK') {
+        currentConfig.interfaces = data.map(_ => {
+          return {
+            ..._,
+            filterRule: _.filterRule ? _.filterRule : ''
+          }
+        })
       }
-      const currentPluginData = this.plugins.find(plugin => plugin.pluginConfigName === this.currentPlugin)
-      this.sourceList = currentPluginData ? currentPluginData.pluginConfigDtoList : []
-      this.$nextTick(() => {
-        this.currentPluginObj = JSON.parse(JSON.stringify(this.sourceList.find(source => source.id === v)))
-        this.selectedEntityType = this.currentPluginObj.entityName
-        this.registerName = this.currentPluginObj.registerName
-        this.selectedEntityType = this.currentPluginObj.targetEntity
-        this.targetPackage = this.currentPluginObj.targetPackage
-        this.hasNewSource = false
-      })
+      this.currentPluginObj = currentConfig
+      this.selectedEntityType = currentConfig.targetEntityWithFilterRule
+      this.registerName = this.currentPluginObj.registerName
+      this.hidePanal = true
     },
     copyRegistSource (v) {
       this.registSourceChange(v)
       this.currentPluginObj.status = 'DISABLED'
-    },
-    onSelectEntityType (val) {
-      this.targetPackage = val ? val.label.split('**')[1] : ''
     },
     async getAllDataModels () {
       const { data, status } = await getAllDataModels()
@@ -528,16 +564,20 @@ export default {
     this.getAllPluginByPkgId()
     this.getAllDataModels()
     this.retrieveSystemVariables()
-    this.selectedEntityType = this.currentPluginObj.entityName
   }
 }
 </script>
-<style lang="scss" scoped>
-.interfaceContainer {
-  margin-top: 20px;
-}
-#paramsContainer {
-  overflow: auto;
-  height: calc(100vh - 450px);
+<style lang="scss">
+.plugin-register-page {
+  .interfaceContainers {
+    overflow: auto;
+    height: calc(100vh - 450px);
+  }
+  .ivu-menu-vertical .ivu-menu-submenu-title {
+    padding: 8px 0px;
+  }
+  .ivu-menu-vertical .ivu-menu-submenu-title-icon {
+    right: 0;
+  }
 }
 </style>
