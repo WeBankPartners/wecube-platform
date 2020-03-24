@@ -763,18 +763,16 @@ export default {
           desc: this.$t('select_entity_first')
         })
       } else {
-        this.pluginForm = {}
-        this.$nextTick(() => {
-          this.pluginForm =
-            (this.currentFlow &&
-              this.currentFlow.taskNodeInfos &&
-              this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
-            this.prepareDefaultPluginForm()
-          this.getPluginInterfaceList()
-          // get flow's params infos
-          this.getFlowsNodes()
-          this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
-        })
+        this.pluginForm =
+          (this.currentFlow &&
+            this.currentFlow.taskNodeInfos &&
+            this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
+          this.prepareDefaultPluginForm()
+        this.getPluginInterfaceList()
+        // get flow's params infos
+        this.getFlowsNodes()
+        this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        this.pluginForm.routineExpression = this.pluginForm.routineExpression || this.currentSelectedEntity
       }
     },
     prepareDefaultPluginForm () {
@@ -842,8 +840,10 @@ export default {
       const canvas = this.$refs.canvas
       canvas.onmouseup = e => {
         this.show = e.target.tagName === 'rect'
-        this.bindCurrentNode(e)
-        this.openPluginModal()
+        if (this.show) {
+          this.bindCurrentNode(e)
+          this.openPluginModal()
+        }
       }
       var customTranslateModule = {
         translate: ['value', customTranslate]
