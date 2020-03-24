@@ -43,7 +43,7 @@ public class PluginConfigInterface {
     @Column
     private String type;
     @Column
-    private String filterRule;
+    private String filterRule = "";
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfigInterface", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
