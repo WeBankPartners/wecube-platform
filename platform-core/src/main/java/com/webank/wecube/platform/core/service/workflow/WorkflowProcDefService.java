@@ -711,6 +711,9 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
     	}
     	
     	for (TaskNodeDefInfoDto nodeDto : procDefInfoDto.getTaskNodeInfos()) {
+    		if(!"subProcess".equalsIgnoreCase(nodeDto.getNodeType())) {
+    			continue;
+    		}
     		if(StringUtils.isBlank(nodeDto.getRoutineExpression()) || StringUtils.isBlank(nodeDto.getServiceId())) {
     			throw new WecubeCoreException(String.format("Routine expression or service ID is invalid for %s", nodeDto.getNodeName()));
     		}
