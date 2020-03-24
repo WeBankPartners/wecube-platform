@@ -488,10 +488,10 @@ export default {
     confirmRole () {
       if (this.mgmtRolesKeyToFlow.length) {
         this.flowRoleManageModal = false
-        this.showBpmn = true
+        // this.showBpmn = true
       } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
-        this.showBpmn = false
+        // this.showBpmn = false
         this.isAdd = false
       }
     },
@@ -704,13 +704,13 @@ export default {
 
         if (isDraft) {
           payload.procDefName = _this.selectedFlowData.procDefName || 'default'
-          saveFlowDraft(payload).then(data => {
+          saveFlowDraft(payload).then(async data => {
             if (data && data.status === 'OK') {
               _this.$Notice.success({
                 title: 'Success',
                 desc: data.message
               })
-              _this.getAllFlows(true)
+              await _this.getAllFlows(true)
               _this.selectedFlow = data.data.procDefId
               _this.temporaryFlow = data.data.procDefId
             }
