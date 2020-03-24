@@ -702,7 +702,7 @@ export default {
         }
 
         if (isDraft) {
-          payload.procDefName = _this.selectedFlowData.procDefName
+          payload.procDefName = _this.selectedFlowData.procDefName || 'default'
           saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
               _this.$Notice.success({
@@ -772,6 +772,7 @@ export default {
         // get flow's params infos
         this.getFlowsNodes()
         this.pluginForm.routineExpression && this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
+        this.pluginForm.routineExpression = this.pluginForm.routineExpression || this.currentSelectedEntity
       }
     },
     prepareDefaultPluginForm () {
@@ -839,8 +840,10 @@ export default {
       const canvas = this.$refs.canvas
       canvas.onmouseup = e => {
         this.show = e.target.tagName === 'rect'
-        this.bindCurrentNode(e)
-        this.openPluginModal()
+        if (this.show) {
+          this.bindCurrentNode(e)
+          this.openPluginModal()
+        }
       }
       var customTranslateModule = {
         translate: ['value', customTranslate]
