@@ -65,14 +65,13 @@
         </a>
       </div>
     </section>
-    <!-- v-if="executeHistory.length" -->
     <section class="execute-history">
       <Row>
         <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
           <div style="height:88px;padding: 8px;border-bottom:1px solid #e8eaec">
             <Form label-position="top" label-colon>
               <FormItem>
-                <span slot="label" style="font-weight:500">收藏列表:</span>
+                <span slot="label" style="font-weight:500">{{ $t('bc_favorites_list') }}:</span>
                 <Select
                   clearable
                   @on-clear="selectedCollectionId = null"
@@ -123,14 +122,13 @@
                 <span>
                   {{ keyIndex }}、{{ key.id }}
                   <Button style="margin-left: 8px" @click="openAddCollectionModal(key)" size="small">
-                    收藏
+                    {{ $t('bc_save') }}
                   </Button>
                 </span>
               </li>
             </ul>
           </div>
         </Col>
-        <!-- v-if="activeExecuteHistory" -->
         <Col :span="isShowHistoryMenu ? 19 : 24" class="res res-content">
           <Icon
             :style="isShowHistoryMenu ? '' : 'transform: rotate(90deg);'"
@@ -196,7 +194,7 @@
                   >
                 </div>
               </Step>
-              <Step title="执行参数" content="">
+              <Step :title="$t('bc_execution_parameter')" content="">
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
@@ -217,11 +215,11 @@
                     :disabled="activeExecuteHistory.plugin.pluginParams.length === 0"
                     @click="setPluginParamsModal = true"
                     ghost
-                    >补充参数</Button
+                    >{{ $t('bc_complement_parameters') }}</Button
                   >
                 </div>
               </Step>
-              <Step title="执行" content="">
+              <Step :title="$t('bc_execute')" content="">
                 <div slot="content">
                   <Button
                     size="small"
@@ -229,7 +227,7 @@
                     :disabled="!activeExecuteHistory.requestBody.inputParameterDefinitions"
                     type="primary"
                     ghost
-                    >执行</Button
+                    >{{ $t('bc_execute') }}</Button
                   >
                 </div>
               </Step>
@@ -397,9 +395,9 @@
       </div>
     </Modal>
 
-    <Modal v-model="collectionRoleManageModal" width="700" :title="$t('edit_role')" :mask-closable="false">
+    <Modal v-model="collectionRoleManageModal" width="700" :title="$t('bc_edit_role')" :mask-closable="false">
       <div v-if="editCollectionName" style="margin-bottom:8px;">
-        <span style="font-weight: 500;">收藏名称：</span>
+        <span style="font-weight: 500;">{{ $t('bc_name') }}：</span>
         <Input v-model="collectionName" style="width:35%"></Input>
       </div>
       <div>
@@ -553,7 +551,7 @@ export default {
   mounted () {},
   computed: {
     businessKeyContent: function () {
-      if (this.activeResultKey !== null) {
+      if (this.activeResultKey !== null && this.catchExecuteResult !== null) {
         return this.catchExecuteResult[this.activeResultKey]
       }
     }
@@ -630,19 +628,14 @@ export default {
         }
       })
     }
-    // selectedCollectionId: function (val) {
-    //   if (!val) {
-    //     this.activeExecuteHistory = this.defaultActiveExecuteHistory
-    //   }
-    // }
   },
   methods: {
     changeCollections (id) {
-      this.activeExecuteHistoryKey = null
-      this.activeExecuteHistory = null
       if (!id) {
         return
       }
+      this.activeExecuteHistoryKey = null
+      this.activeExecuteHistory = null
       this.selectedCollection = this.allCollections.find(_ => {
         return _.favoritesId === id
       })
@@ -712,7 +705,7 @@ export default {
           addCollectionsRole(this.selectedCollection.favoritesId, params)
         } else {
           if (newTargetKeys.length === 0) {
-            this.$Message.warning('属主角色不能为空！')
+            this.$Message.warning(this.$t('bc_mgmt_role_cannot_empty'))
           } else {
             deleteCollectionsRole(this.selectedCollection.favoritesId, params)
           }
@@ -762,12 +755,12 @@ export default {
         return
       }
       if (!this.MGMT.length) {
-        this.$Message.warning('属主角色不能为空！')
+        this.$Message.warning(this.$t('bc_mgmt_role_cannot_empty'))
         return
       }
       if (this.editCollectionName) {
         if (!this.collectionName.trim()) {
-          this.$Message.warning('收藏名称不能为空！')
+          this.$Message.warning(this.$t('bc_name_cannot_empty'))
           return
         }
         const { plugin, requestBody } = this.toBeCollectedParams
@@ -826,14 +819,15 @@ export default {
           let execRes = []
           let patt = null
           try {
-            patt = new RegExp(this.filterParams, 'g')
+            patt = new RegExp(this.filterParams, 'gmi')
             let er = JSON.stringify(this.activeExecuteHistory.executeResult)
-            let res = null
-            while ((res = patt.exec(er)) != null) {
-              execRes.push(res[0])
-            }
+            execRes = er.match(patt)
+            execRes = this.unique(execRes)
             execRes.sort(function (a, b) {
-              return a.length - b.length
+              return b.length - a.length
+            })
+            execRes = execRes.filter(s => {
+              return s && s.trim()
             })
           } catch (err) {
             console.log(err)
@@ -850,7 +844,6 @@ export default {
               let reg = new RegExp(keyword, 'g')
               str = str.replace(reg, "<span style='color:red'>" + keyword + '</span>')
             })
-
             if (str.length !== len) {
               this.catchFilterBusinessKeySet.push(key)
               this.catchExecuteResult[key] = JSON.parse(str)
@@ -858,6 +851,9 @@ export default {
           })
         }
       })
+    },
+    unique (arr) {
+      return Array.from(new Set(arr))
     },
     formatResult (result) {
       if (!result) {
@@ -1085,7 +1081,7 @@ export default {
         this.displayExecuteResultZone = false
 
         this.executeHistory.push({
-          id: new Date().format('yyyy-MM-dd hh:mm:ss'),
+          id: this.getCurrentDate(),
           plugin: {
             pluginName: this.pluginId,
             pluginParams: this.selectedPluginParams
@@ -1097,6 +1093,18 @@ export default {
         this.activeExecuteHistoryKey = this.executeHistory.length - 1
         this.activeExecuteHistory = JSON.parse(JSON.stringify(this.executeHistory[this.activeExecuteHistoryKey]))
       }
+    },
+    getCurrentDate () {
+      const timeStr = '-'
+      const curDate = new Date()
+      const curYear = curDate.getFullYear()
+      const curMonth = curDate.getMonth() + 1
+      const curDay = curDate.getDate()
+      const curHour = curDate.getHours()
+      const curMinute = curDate.getMinutes()
+      const curSec = curDate.getSeconds()
+      const Current = curYear + timeStr + curMonth + timeStr + curDay + ' ' + curHour + ':' + curMinute + ':' + curSec
+      return Current
     },
     async executeAgain () {
       const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
@@ -1119,7 +1127,7 @@ export default {
           this.filterBusinessKeySet.push(key)
         }
         this.executeHistory.push({
-          id: new Date().format('yyyy-MM-dd hh:mm:ss'),
+          id: this.getCurrentDate(),
           plugin: this.activeExecuteHistory.plugin,
           requestBody: requestBody,
           executeResult: data,
