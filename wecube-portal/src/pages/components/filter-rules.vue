@@ -367,6 +367,7 @@ export default {
         .sort(compare)
     },
     formatFirstCurrentOptions () {
+      this.pathList = []
       if (this.value && this.value.indexOf(':') > -1) {
         this.restorePathExp(this.value)
       } else {
