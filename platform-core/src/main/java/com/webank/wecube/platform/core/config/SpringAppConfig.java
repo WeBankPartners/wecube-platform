@@ -17,6 +17,7 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.HttpClientP
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.S3Properties;
+import com.webank.wecube.platform.core.commons.ApplicationProperties.DockerRemoteProperties;
 import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
 
 @Configuration
@@ -25,7 +26,8 @@ import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
         HttpClientProperties.class,
         PluginProperties.class,
         S3Properties.class,
-        ResourceProperties.class
+        ResourceProperties.class,
+        DockerRemoteProperties.class
 })
 @ComponentScan({ "com.webank.wecube.platform.core.service" })
 @EntityScan(basePackages = { "com.webank.wecube.platform.core" })
