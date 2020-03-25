@@ -118,21 +118,35 @@ public class WorkflowDataService {
 		if (bindingEntities == null || bindingEntities.isEmpty()) {
 			return;
 		}
+		
+		List<ProcExecBindingTmpEntity> bindingsSelected = new ArrayList<ProcExecBindingTmpEntity>();
 
 		for (TaskNodeDefObjectBindInfoDto dto : bindings) {
 			ProcExecBindingTmpEntity existEntity = findProcExecBindingTmpEntityWithNodeAndEntity(dto.getNodeDefId(),
 					dto.getEntityTypeId(), dto.getEntityDataId(), bindingEntities);
-			if (existEntity == null) {
-				log.warn("cannot find such binds for {} {} {}", dto.getNodeDefId(), dto.getEntityTypeId(),
-						dto.getEntityDataId());
+			if (existEntity != null) {
+				bindingsSelected.add(existEntity);
+				
+				existEntity.setBound(ProcExecBindingTmpEntity.BOUND);
+				existEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+				existEntity.setUpdatedTime(new Date());
+				
+				procExecBindingTmpRepository.save(existEntity);
 				continue;
 			}
-
-			existEntity.setBound(dto.getBound());
-			existEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-			existEntity.setUpdatedTime(new Date());
-
-			procExecBindingTmpRepository.save(existEntity);
+			
+		}
+		
+		for(ProcExecBindingTmpEntity entity : bindingEntities) {
+			if(bindingsSelected.contains(entity)) {
+				continue;
+			}
+			
+			entity.setBound(ProcExecBindingTmpEntity.UNBOUND);
+			entity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+			entity.setUpdatedTime(new Date());
+			
+			procExecBindingTmpRepository.save(entity);
 		}
 	}
 
