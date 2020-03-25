@@ -5,7 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.github.dockerjava.api.DockerClient;
@@ -28,10 +32,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class DockerContainerManagementService implements ResourceItemService, ResourceItemOperationService {
+    @Autowired
+    private ApplicationProperties.DockerRemoteProperties dockerRemoteProperties;
 
     public DockerClient newDockerClient(String host) {
-        String url = String.format("tcp://%s:2375", host);
-        return DockerClientBuilder.getInstance(url).build();
+        String url = String.format("tcp://%s:%d", host,dockerRemoteProperties.getPort());
+        if(dockerRemoteProperties.getEnableTls() == true){
+            DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                    .withDockerHost(url)
+                    .withDockerTlsVerify(true)
+                    .withDockerCertPath(dockerRemoteProperties.getCertPath())
+                    .build();
+            return DockerClientBuilder.getInstance(config).build();
+        }else{
+            return DockerClientBuilder.getInstance(url).build();
+        }
     }
 
     public List<Container> listRunningContainers(DockerClient client) {
