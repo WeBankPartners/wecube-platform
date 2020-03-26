@@ -1372,21 +1372,24 @@ CREATE TABLE `core_re_task_node_def_info` (
 
 drop table if exists `core_re_task_node_param`;
 CREATE TABLE `core_re_task_node_param` (
-  `id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
-  `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
-  `updated_time` datetime DEFAULT NULL,
-  `active` bit(1) DEFAULT NULL,
-  `rev` int(11) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `node_id` varchar(255) DEFAULT NULL,
-  `param_exp` varchar(255) DEFAULT NULL,
-  `param_name` varchar(255) DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
-  `task_node_id` varchar(255) DEFAULT NULL,
-  `task_node_def_id` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+    `id` VARCHAR(255) NOT NULL,
+    `created_by` VARCHAR(255) NULL DEFAULT NULL,
+    `created_time` DATETIME NULL DEFAULT NULL,
+    `updated_by` VARCHAR(255) NULL DEFAULT NULL,
+    `updated_time` DATETIME NULL DEFAULT NULL,
+    `active` BIT(1) NULL DEFAULT NULL,
+    `rev` INT(11) NULL DEFAULT NULL,
+    `status` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_node_id` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_param_name` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_param_type` VARCHAR(255) NULL DEFAULT NULL,
+    `node_id` VARCHAR(255) NULL DEFAULT NULL,
+    `param_name` VARCHAR(255) NULL DEFAULT NULL,
+    `proc_def_id` VARCHAR(255) NULL DEFAULT NULL,
+    `task_node_def_id` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_type` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_val` VARCHAR(1024) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `core_ru_proc_exec_binding` */
