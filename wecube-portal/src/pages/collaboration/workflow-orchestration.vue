@@ -383,10 +383,12 @@ export default {
       handler (val, oldVal) {
         this.currentSelectedEntity = ''
         this.show = false
+        this.selectedFlowData = {}
         if (val) {
-          this.selectedFlowData = this.allFlows.find(_ => {
-            return _.procDefId === val
-          })
+          this.selectedFlowData =
+            this.allFlows.find(_ => {
+              return _.procDefId === val
+            }) || {}
           this.getFlowXml(val)
           this.getPermissionByProcess(val)
           this.pluginForm.paramInfos = []
@@ -704,13 +706,13 @@ export default {
 
         if (isDraft) {
           payload.procDefName = _this.selectedFlowData.procDefName || 'default'
-          saveFlowDraft(payload).then(async data => {
+          saveFlowDraft(payload).then(data => {
             if (data && data.status === 'OK') {
               _this.$Notice.success({
                 title: 'Success',
                 desc: data.message
               })
-              await _this.getAllFlows(true)
+              _this.getAllFlows(true)
               _this.selectedFlow = data.data.procDefId
               _this.temporaryFlow = data.data.procDefId
             }
@@ -922,7 +924,7 @@ export default {
 
       exportProcessDefinitionWithId(procDefId)
     },
-    async onImportProcessDefinitionSuccess (response, file, filelist) {
+    onImportProcessDefinitionSuccess (response, file, filelist) {
       if (response.status === 'OK') {
         this.$Notice.success({
           title: 'Success',
