@@ -1,0 +1,44 @@
+server:
+  port: 8080
+  address: localhost
+
+logging:
+   config: classpath:logback-spring.xml
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: ***REMOVED***
+#    username: wecube
+#    password: password
+#    url: jdbc:mysql://localhost:port/db?characterEncoding=utf8&serverTimezone=UTC
+#    username: mariadb
+#    password: qq123456
+    url: jdbc:mysql://localhost:3306/wecube?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true
+    username: root
+    ***REMOVED***
+#    url: ***REMOVED***
+#    username: mariadb
+#    ***REMOVED***
+  jpa:
+    database: mysql
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+      naming:
+         physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+#    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+wecube:
+  core:
+    security-enabled: true
+    cas-server-url: http://129.204.99.160:8080/cas
+    cas-redirect-app-addr: localhost:8080
+    cmdb-server-url: http://127.0.0.1:37000/cmdb
+    plugin:
+      plugin-hosts: 192.168.0.1, 192.168.0.2
+      plugin-package-name-of-deploy: deployment-plugin-name
+
+    s3:
+      endpoint: http://129.204.99.160:9000
+      access-key: access_key
+      secret-key: secret_key

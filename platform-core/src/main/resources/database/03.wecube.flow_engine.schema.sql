@@ -1480,19 +1480,38 @@ CREATE TABLE `core_ru_task_node_inst_info` (
 drop table if exists `core_ru_proc_exec_binding_tmp`;
 CREATE TABLE `core_ru_proc_exec_binding_tmp` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `created_by` varchar(255)  DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `updated_by` varchar(255)  DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `bind_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `is_bound` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `entity_data_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `entity_type_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `node_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `ordered_no` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `proc_session_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `bind_type` varchar(255)  DEFAULT NULL,
+  `is_bound` varchar(255)  DEFAULT NULL,
+  `entity_data_id` varchar(255)  DEFAULT NULL,
+  `entity_type_id` varchar(255) DEFAULT NULL,
+  `node_def_id` varchar(255)  DEFAULT NULL,
+  `ordered_no` varchar(255)  DEFAULT NULL,
+  `proc_def_id` varchar(255)  DEFAULT NULL,
+  `proc_session_id` varchar(255)  DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+drop table if exists `core_ru_graph_node`;
+CREATE TABLE `core_ru_graph_node` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_by` varchar(255)  DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `updated_by` varchar(255)  DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `data_id` varchar(255)  DEFAULT NULL,
+  `display_name` varchar(255)  DEFAULT NULL,
+  `entity_name` varchar(255)  DEFAULT NULL,
+  `g_node_id` varchar(255)  DEFAULT NULL,
+  `pkg_name` varchar(255)  DEFAULT NULL,
+  `prev_ids` varchar(1024)  DEFAULT NULL,
+  `proc_inst_id` int(11) DEFAULT NULL,
+  `proc_sess_id` varchar(255)  DEFAULT NULL,
+  `succ_ids` varchar(1024)  DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS = 1;
