@@ -488,6 +488,7 @@ export default {
       if (found) return
       let i = { ...interfaces }
       i.action = interfaces.action + '-(copy)'
+      i.id = null
       this.currentPluginObj.interfaces.push(i)
     },
     deleteInterface (index) {
