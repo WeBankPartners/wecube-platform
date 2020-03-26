@@ -34,9 +34,12 @@
                 @paste="pastePathExp($event)"
               />
             </li>
-            <li class v-if="pathList.length > 0" @click="deleteCurrentNode">{{ $t('delete_node') }}</li>
+            <li class v-if="pathList.length > 0" style="color: #ed4014" @click="deleteCurrentNode">
+              {{ $t('delete_node') }}
+            </li>
             <li
               class
+              style="color: #2d8cf0"
               v-if="pathList.length > 0 && currentNode.nodeType === 'entity'"
               @click="addFilterRuleForCurrentNode"
             >
@@ -44,15 +47,17 @@
             </li>
           </ul>
           <hr />
-          <ul v-for="(opt, index) in currentLeafOptiongs" :key="opt.pathExp + index">
-            <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
-          </ul>
-          <ul v-for="(opt, index) in currentRefOptiongs" :key="opt.pathExp + index">
-            <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
-          </ul>
-          <ul v-for="(opt, index) in currentOptiongs" :key="opt.pathExp + index">
-            <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
-          </ul>
+          <div style="max-height: 145px;overflow: auto;">
+            <ul v-for="opt in currentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
+              <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
+            </ul>
+            <ul v-for="opt in currentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
+              <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
+            </ul>
+            <ul v-for="opt in currentOptiongs" :key="opt.pathExp + Math.random() * 1000">
+              <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
+            </ul>
+          </div>
         </div>
       </div>
     </Poptip>
