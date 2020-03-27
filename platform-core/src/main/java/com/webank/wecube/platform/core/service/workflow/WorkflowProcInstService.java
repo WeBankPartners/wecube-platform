@@ -20,12 +20,14 @@ import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstDto;
+import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.jpa.workflow.GraphNodeRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingTmpRepository;
@@ -76,6 +78,9 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
     @Autowired
     private ProcExecBindingTmpRepository procExecBindingTmpRepository;
+    
+    @Autowired
+	protected GraphNodeRepository graphNodeRepository;
 
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindings(Integer procInstId) {
         Optional<ProcInstInfoEntity> procInstEntityOpt = procInstInfoRepository.findById(procInstId);
@@ -441,7 +446,26 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         ProcInstInfoDto result = doCreateProcessInstance(procInstInfoEntity, procDefInfoEntity.getProcDefKernelId(),
                 procInstKey);
 
+        postHandleGraphNodes(requestDto, result);
         return result;
+    }
+    
+    private void postHandleGraphNodes(StartProcInstRequestDto requestDto, ProcInstInfoDto result) {
+    	if(StringUtils.isBlank(requestDto.getProcessSessionId())) {
+    		return;
+    	}
+    	
+    	List<GraphNodeEntity> gNodes = graphNodeRepository.findAllByProcessSessionId(requestDto.getProcessSessionId());
+    	if(gNodes == null || gNodes.isEmpty()) {
+    		return;
+    	}
+    	
+    	for(GraphNodeEntity gNode : gNodes) {
+    		gNode.setUpdatedTime(new Date());
+    		gNode.setProcInstId(result.getId());
+    		
+    		graphNodeRepository.save(gNode);
+    	}
     }
 
     protected ProcInstInfoDto doCreateProcessInstance(ProcInstInfoEntity procInstInfoEntity, String processDefinitionId,
