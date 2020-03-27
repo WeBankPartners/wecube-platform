@@ -80,6 +80,11 @@ wecube:
       resource:
          dockerPullImageTimeout: 300
          passwordEncryptionSeed: defaultSeed
+      docker-remote:
+         port: 2375
+         enable-tls: false
+         cert-path: /root/docker/cert
+
 platform:
    auth:
       jwt-sso-authentication-uri: http://localhost:9090/auth/v1/api/login
