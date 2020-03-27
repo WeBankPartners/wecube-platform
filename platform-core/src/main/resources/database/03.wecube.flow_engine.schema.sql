@@ -1372,21 +1372,24 @@ CREATE TABLE `core_re_task_node_def_info` (
 
 drop table if exists `core_re_task_node_param`;
 CREATE TABLE `core_re_task_node_param` (
-  `id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
-  `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
-  `updated_time` datetime DEFAULT NULL,
-  `active` bit(1) DEFAULT NULL,
-  `rev` int(11) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
-  `node_id` varchar(255) DEFAULT NULL,
-  `param_exp` varchar(255) DEFAULT NULL,
-  `param_name` varchar(255) DEFAULT NULL,
-  `proc_def_id` varchar(255) DEFAULT NULL,
-  `task_node_id` varchar(255) DEFAULT NULL,
-  `task_node_def_id` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+    `id` VARCHAR(255) NOT NULL,
+    `created_by` VARCHAR(255) NULL DEFAULT NULL,
+    `created_time` DATETIME NULL DEFAULT NULL,
+    `updated_by` VARCHAR(255) NULL DEFAULT NULL,
+    `updated_time` DATETIME NULL DEFAULT NULL,
+    `active` BIT(1) NULL DEFAULT NULL,
+    `rev` INT(11) NULL DEFAULT NULL,
+    `status` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_node_id` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_param_name` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_param_type` VARCHAR(255) NULL DEFAULT NULL,
+    `node_id` VARCHAR(255) NULL DEFAULT NULL,
+    `param_name` VARCHAR(255) NULL DEFAULT NULL,
+    `proc_def_id` VARCHAR(255) NULL DEFAULT NULL,
+    `task_node_def_id` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_type` VARCHAR(255) NULL DEFAULT NULL,
+    `bind_val` VARCHAR(1024) NULL DEFAULT NULL,
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Table structure for table `core_ru_proc_exec_binding` */
@@ -1477,19 +1480,38 @@ CREATE TABLE `core_ru_task_node_inst_info` (
 drop table if exists `core_ru_proc_exec_binding_tmp`;
 CREATE TABLE `core_ru_proc_exec_binding_tmp` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `created_by` varchar(255)  DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `updated_by` varchar(255)  DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
-  `bind_type` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `is_bound` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `entity_data_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `entity_type_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `node_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `ordered_no` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `proc_def_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `proc_session_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `bind_type` varchar(255)  DEFAULT NULL,
+  `is_bound` varchar(255)  DEFAULT NULL,
+  `entity_data_id` varchar(255)  DEFAULT NULL,
+  `entity_type_id` varchar(255) DEFAULT NULL,
+  `node_def_id` varchar(255)  DEFAULT NULL,
+  `ordered_no` varchar(255)  DEFAULT NULL,
+  `proc_def_id` varchar(255)  DEFAULT NULL,
+  `proc_session_id` varchar(255)  DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+drop table if exists `core_ru_graph_node`;
+CREATE TABLE `core_ru_graph_node` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `created_by` varchar(255)  DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `updated_by` varchar(255)  DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  `data_id` varchar(255)  DEFAULT NULL,
+  `display_name` varchar(255)  DEFAULT NULL,
+  `entity_name` varchar(255)  DEFAULT NULL,
+  `g_node_id` varchar(255)  DEFAULT NULL,
+  `pkg_name` varchar(255)  DEFAULT NULL,
+  `prev_ids` varchar(1024)  DEFAULT NULL,
+  `proc_inst_id` int(11) DEFAULT NULL,
+  `proc_sess_id` varchar(255)  DEFAULT NULL,
+  `succ_ids` varchar(1024)  DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS = 1;
