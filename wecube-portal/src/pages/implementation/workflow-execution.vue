@@ -802,6 +802,7 @@ export default {
         removeEvent('.flow', 'click', this.flowNodesClickHandler)
         addEvent('.flow', 'click', this.flowNodesClickHandler)
       } else {
+        removeEvent('.flow', 'click', this.flowNodesClickHandler)
         removeEvent('.flow text', 'mouseenter', this.flowGraphMouseenterHandler)
         removeEvent('.flow text', 'mouseleave', this.flowGraphLeaveHandler)
         addEvent('.flow text', 'mouseenter', this.flowGraphMouseenterHandler)
