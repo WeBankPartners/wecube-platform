@@ -192,8 +192,8 @@ import {
   getDataByNodeDefIdAndProcessSessionId,
   setDataByNodeDefIdAndProcessSessionId,
   getAllBindingsProcessSessionId,
-  getTargetModelByProcessDefId
-  // getPreviewEntitiesByInstancesId
+  getTargetModelByProcessDefId,
+  getPreviewEntitiesByInstancesId
 } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
@@ -514,8 +514,9 @@ export default {
     async getModelData () {
       if (!this.selectedFlow || !this.selectedTarget) return
       this.isLoading = true
-      // let { status, data } = this.isEnqueryPage ? await getPreviewEntitiesByInstancesId(this.selectedFlowInstance) : await getTreePreviewData(this.selectedFlow, this.selectedTarget)
-      let { status, data } = await getTreePreviewData(this.selectedFlow, this.selectedTarget)
+      let { status, data } = this.isEnqueryPage
+        ? await getPreviewEntitiesByInstancesId(this.selectedFlowInstance)
+        : await getTreePreviewData(this.selectedFlow, this.selectedTarget)
       this.isLoading = false
       if (!this.selectedTarget) return
       if (status === 'OK') {
@@ -561,7 +562,7 @@ export default {
         const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
         const fontSize = Math.abs(50 - len) * 0.25
         const label = (_.displayName || _.dataId) + '\n' + refStr
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fontsize="${fontSize}" fillcolor="white" shape="${shape}"]`
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fontsize=${fontSize} fillcolor="white" shape="${shape}"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -582,11 +583,10 @@ export default {
           .replace(/,/g, ';')
       }
       let nodesToString = Array.isArray(nodes) && nodes.length > 0 ? nodes.toString().replace(/,/g, ';') + ';' : ''
-
       let nodesString =
         'digraph G { ' +
         'bgcolor="transparent";' +
-        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8",fontsize=12];' +
+        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8"];' +
         'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' +
         nodesToString +
         genEdge() +
