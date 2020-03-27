@@ -193,6 +193,7 @@ import {
   setDataByNodeDefIdAndProcessSessionId,
   getAllBindingsProcessSessionId,
   getTargetModelByProcessDefId
+  // getPreviewEntitiesByInstancesId
 } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
@@ -513,6 +514,7 @@ export default {
     async getModelData () {
       if (!this.selectedFlow || !this.selectedTarget) return
       this.isLoading = true
+      // let { status, data } = this.isEnqueryPage ? await getPreviewEntitiesByInstancesId(this.selectedFlowInstance) : await getTreePreviewData(this.selectedFlow, this.selectedTarget)
       let { status, data } = await getTreePreviewData(this.selectedFlow, this.selectedTarget)
       this.isLoading = false
       if (!this.selectedTarget) return

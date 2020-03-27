@@ -28,12 +28,14 @@ import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.RequestObjectDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
+import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.jpa.workflow.GraphNodeRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingTmpRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
@@ -77,6 +79,37 @@ public class WorkflowDataService {
 	@Autowired
 	protected ProcDefInfoRepository procDefInfoRepository;
 
+	@Autowired
+	protected GraphNodeRepository graphNodeRepository;
+
+	public ProcessDataPreviewDto generateProcessDataPreviewForProcInstance(Integer procInstId) {
+		List<GraphNodeEntity> gNodeEntities = graphNodeRepository.findAllByProcInstId(procInstId);
+		ProcessDataPreviewDto result = new ProcessDataPreviewDto();
+		if (gNodeEntities == null || gNodeEntities.isEmpty()) {
+			return result;
+		}
+
+		result.setProcessSessionId(gNodeEntities.get(0).getProcessSessionId());
+
+		List<GraphNodeDto> gNodes = new ArrayList<>();
+		for (GraphNodeEntity entity : gNodeEntities) {
+			GraphNodeDto gNode = new GraphNodeDto();
+			gNode.setDataId(entity.getDataId());
+			gNode.setDisplayName(entity.getDisplayName());
+			gNode.setEntityName(entity.getEntityName());
+			gNode.setId(entity.getGraphNodeId());
+			gNode.setPackageName(entity.getPackageName());
+			gNode.setPreviousIds(GraphNodeEntity.convertIdsStringToList(entity.getPreviousIds()));
+			gNode.setSucceedingIds(GraphNodeEntity.convertIdsStringToList(entity.getSucceedingIds()));
+
+			gNodes.add(gNode);
+		}
+
+		result.addAllEntityTreeNodes(gNodes);
+
+		return result;
+	}
+
 	public List<Map<String, Object>> getProcessDefinitionRootEntities(String procDefId) {
 		if (StringUtils.isBlank(procDefId)) {
 			throw new WecubeCoreException("Process definition ID cannot be blank.");
@@ -97,20 +130,17 @@ public class WorkflowDataService {
 
 		List<Map<String, Object>> retRecords = standardEntityOperationService
 				.queryAttributeValuesOfLeafNode(new EntityOperationRootCondition(rootEntityExpr, null));
-		if(retRecords == null) {
+		if (retRecords == null) {
 			return result;
 		}
-		
+
 		result.addAll(retRecords);
-		
+
 		return result;
 	}
 
 	public void updateProcessInstanceExecBindingsOfSession(String nodeDefId, String processSessionId,
 			List<TaskNodeDefObjectBindInfoDto> bindings) {
-		if (bindings == null || bindings.isEmpty()) {
-			return;
-		}
 
 		List<ProcExecBindingTmpEntity> bindingEntities = procExecBindingTmpRepository.getAllByNodeAndSession(nodeDefId,
 				processSessionId);
@@ -118,34 +148,36 @@ public class WorkflowDataService {
 		if (bindingEntities == null || bindingEntities.isEmpty()) {
 			return;
 		}
-		
+
 		List<ProcExecBindingTmpEntity> bindingsSelected = new ArrayList<ProcExecBindingTmpEntity>();
 
-		for (TaskNodeDefObjectBindInfoDto dto : bindings) {
-			ProcExecBindingTmpEntity existEntity = findProcExecBindingTmpEntityWithNodeAndEntity(dto.getNodeDefId(),
-					dto.getEntityTypeId(), dto.getEntityDataId(), bindingEntities);
-			if (existEntity != null) {
-				bindingsSelected.add(existEntity);
-				
-				existEntity.setBound(ProcExecBindingTmpEntity.BOUND);
-				existEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
-				existEntity.setUpdatedTime(new Date());
-				
-				procExecBindingTmpRepository.save(existEntity);
-				continue;
+		if (bindings != null) {
+			for (TaskNodeDefObjectBindInfoDto dto : bindings) {
+				ProcExecBindingTmpEntity existEntity = findProcExecBindingTmpEntityWithNodeAndEntity(dto.getNodeDefId(),
+						dto.getEntityTypeId(), dto.getEntityDataId(), bindingEntities);
+				if (existEntity != null) {
+					bindingsSelected.add(existEntity);
+
+					existEntity.setBound(ProcExecBindingTmpEntity.BOUND);
+					existEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
+					existEntity.setUpdatedTime(new Date());
+
+					procExecBindingTmpRepository.save(existEntity);
+					continue;
+				}
+
 			}
-			
 		}
-		
-		for(ProcExecBindingTmpEntity entity : bindingEntities) {
-			if(bindingsSelected.contains(entity)) {
+
+		for (ProcExecBindingTmpEntity entity : bindingEntities) {
+			if (bindingsSelected.contains(entity)) {
 				continue;
 			}
-			
+
 			entity.setBound(ProcExecBindingTmpEntity.UNBOUND);
 			entity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
 			entity.setUpdatedTime(new Date());
-			
+
 			procExecBindingTmpRepository.save(entity);
 		}
 	}
@@ -298,15 +330,30 @@ public class WorkflowDataService {
 			throw new WecubeCoreException(String.format("Such process definition {%s} does not exist.", procDefId));
 		}
 
-		return doFetchProcessPreviewData(procDefOutline, dataId);
+		ProcessDataPreviewDto previewDto = doFetchProcessPreviewData(procDefOutline, dataId, true);
+		saveProcessDataPreview(previewDto);
+
+		return previewDto;
 
 	}
 
-	protected ProcessDataPreviewDto doFetchProcessPreviewData(ProcDefOutlineDto outline, String dataId) {
-		ProcessDataPreviewDto result = new ProcessDataPreviewDto();
+	private void saveProcessDataPreview(ProcessDataPreviewDto previewDto) {
+		for (GraphNodeDto gNode : previewDto.getEntityTreeNodes()) {
+			GraphNodeEntity entity = new GraphNodeEntity();
+			entity.setDataId(gNode.getDataId());
+			entity.setDisplayName(gNode.getDisplayName());
+			entity.setEntityName(gNode.getEntityName());
+			entity.setGraphNodeId(gNode.getId());
+			entity.setPackageName(gNode.getPackageName());
+			entity.setPreviousIds(GraphNodeEntity.convertIdsListToString(gNode.getPreviousIds()));
+			entity.setSucceedingIds(GraphNodeEntity.convertIdsListToString(gNode.getSucceedingIds()));
+			entity.setProcessSessionId(previewDto.getProcessSessionId());
 
-		List<GraphNodeDto> hierarchicalEntityNodes = new ArrayList<>();
-		String processSessionId = UUID.randomUUID().toString();
+			graphNodeRepository.save(entity);
+		}
+	}
+
+	private void saveProcExecBindingTmpEntity(ProcDefOutlineDto outline, String dataId, String processSessionId) {
 		ProcExecBindingTmpEntity procInstBindingTmpEntity = new ProcExecBindingTmpEntity();
 		procInstBindingTmpEntity.setBindType(ProcExecBindingTmpEntity.BIND_TYPE_PROC_INSTANCE);
 		procInstBindingTmpEntity.setBound(ProcExecBindingTmpEntity.BOUND);
@@ -317,6 +364,18 @@ public class WorkflowDataService {
 		procInstBindingTmpEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
 
 		procExecBindingTmpRepository.save(procInstBindingTmpEntity);
+	}
+
+	protected ProcessDataPreviewDto doFetchProcessPreviewData(ProcDefOutlineDto outline, String dataId,
+			boolean needSaveTmp) {
+		ProcessDataPreviewDto result = new ProcessDataPreviewDto();
+
+		List<GraphNodeDto> hierarchicalEntityNodes = new ArrayList<>();
+		String processSessionId = UUID.randomUUID().toString();
+
+		if (needSaveTmp) {
+			saveProcExecBindingTmpEntity(outline, dataId, processSessionId);
+		}
 
 		for (FlowNodeDefDto f : outline.getFlowNodes()) {
 			String nodeType = f.getNodeType();
@@ -325,62 +384,7 @@ public class WorkflowDataService {
 				continue;
 			}
 
-			String routineExpr = calculateDataModelExpression(f);
-
-			if (StringUtils.isBlank(routineExpr)) {
-				log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
-				continue;
-			}
-
-			log.info("About to fetch data for node {} {}", f.getNodeDefId(), f.getNodeName());
-
-			log.info("About to fetch data with expression {} and data id {}", routineExpr, dataId);
-			EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
-			List<TreeNode> nodes = null;
-			try {
-				EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition);
-				nodes = overview.getHierarchicalEntityNodes();
-
-				handleLeafNodeEntityNodes(f, overview.getLeafNodeEntityNodes(), processSessionId);
-			} catch (Exception e) {
-				log.error("errors while fetching data with expr {} and data id {}", routineExpr, dataId, e);
-				throw new WecubeCoreException(e.getMessage());
-			}
-
-			if (nodes == null || nodes.isEmpty()) {
-				log.warn("None data returned for {} and {}", routineExpr, dataId);
-				continue;
-			}
-
-			log.info("total {} records returned for {} and {}", nodes.size(), routineExpr, dataId);
-
-			for (TreeNode tn : nodes) {
-				String treeNodeId = buildId(tn);
-				GraphNodeDto currNode = findGraphNodeDtoById(hierarchicalEntityNodes, treeNodeId);
-				if (currNode == null) {
-					currNode = new GraphNodeDto();
-					currNode.setDataId(tn.getRootId().toString());
-					currNode.setPackageName(tn.getPackageName());
-					currNode.setEntityName(tn.getEntityName());
-					currNode.setDisplayName(tn.getDisplayName() == null ? null : tn.getDisplayName().toString());
-
-					addToResult(hierarchicalEntityNodes, currNode);
-				}
-
-				TreeNode parentTreeNode = tn.getParent();
-				if (parentTreeNode != null) {
-					String parentTreeNodeId = buildId(parentTreeNode);
-					currNode.addPreviousIds(parentTreeNodeId);
-				}
-
-				List<TreeNode> childrenTreeNodes = tn.getChildren();
-				if (childrenTreeNodes != null) {
-					for (TreeNode ctn : childrenTreeNodes) {
-						String ctnId = buildId(ctn);
-						currNode.addSucceedingIds(ctnId);
-					}
-				}
-			}
+			processSingleFlowNodeDefDto(f, hierarchicalEntityNodes, dataId, processSessionId, needSaveTmp);
 		}
 
 		result.addAllEntityTreeNodes(hierarchicalEntityNodes);
@@ -390,7 +394,73 @@ public class WorkflowDataService {
 
 	}
 
-	private void handleLeafNodeEntityNodes(FlowNodeDefDto f, List<TreeNode> leafNodeEntityNodes,
+	private void processSingleFlowNodeDefDto(FlowNodeDefDto f, List<GraphNodeDto> hierarchicalEntityNodes,
+			String dataId, String processSessionId, boolean needSaveTmp) {
+		String routineExpr = calculateDataModelExpression(f);
+
+		if (StringUtils.isBlank(routineExpr)) {
+			log.info("the routine expression is blank for {} {}", f.getNodeDefId(), f.getNodeName());
+			return;
+		}
+
+		log.info("About to fetch data for node {} {} with expression {} and data id {}", f.getNodeDefId(),
+				f.getNodeName(), routineExpr, dataId);
+		EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
+		List<TreeNode> nodes = null;
+		try {
+			EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition);
+			nodes = overview.getHierarchicalEntityNodes();
+
+			if (needSaveTmp) {
+				saveLeafNodeEntityNodesTemporary(f, overview.getLeafNodeEntityNodes(), processSessionId);
+			}
+		} catch (Exception e) {
+			log.error("errors while fetching data for node {} {} with expr {} and data id {}", f.getNodeDefId(),
+					f.getNodeName(), routineExpr, dataId, e);
+			throw new WecubeCoreException(String.format("Errors occurs while fetching data: %s", e.getMessage()));
+		}
+
+		if (nodes == null || nodes.isEmpty()) {
+			log.warn("None data returned for {} and {}", routineExpr, dataId);
+			return;
+		}
+
+		log.info("total {} records returned for {} and {}", nodes.size(), routineExpr, dataId);
+
+		processTreeNodes(hierarchicalEntityNodes, nodes);
+	}
+
+	private void processTreeNodes(List<GraphNodeDto> hierarchicalEntityNodes, List<TreeNode> nodes) {
+		for (TreeNode tn : nodes) {
+			String treeNodeId = buildId(tn);
+			GraphNodeDto currNode = findGraphNodeDtoById(hierarchicalEntityNodes, treeNodeId);
+			if (currNode == null) {
+				currNode = new GraphNodeDto();
+				currNode.setDataId(tn.getRootId().toString());
+				currNode.setPackageName(tn.getPackageName());
+				currNode.setEntityName(tn.getEntityName());
+				currNode.setDisplayName(tn.getDisplayName() == null ? null : tn.getDisplayName().toString());
+
+				addToResult(hierarchicalEntityNodes, currNode);
+			}
+
+			TreeNode parentTreeNode = tn.getParent();
+			if (parentTreeNode != null) {
+				String parentTreeNodeId = buildId(parentTreeNode);
+				currNode.addPreviousIds(parentTreeNodeId);
+			}
+
+			List<TreeNode> childrenTreeNodes = tn.getChildren();
+			if (childrenTreeNodes != null) {
+				for (TreeNode ctn : childrenTreeNodes) {
+					String ctnId = buildId(ctn);
+					currNode.addSucceedingIds(ctnId);
+				}
+			}
+		}
+	}
+
+	private void saveLeafNodeEntityNodesTemporary(FlowNodeDefDto f, List<TreeNode> leafNodeEntityNodes,
 			String processSessionId) {
 		if (leafNodeEntityNodes == null) {
 			return;
