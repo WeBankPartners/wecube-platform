@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeExecContextDto;
@@ -104,4 +105,10 @@ public class WorkflowProcessInstanceController {
 		TaskNodeExecContextDto result = workflowDataService.getTaskNodeContextInfo(procInstId, nodeInstId);
 		return CommonResponseDto.okayWithData(result);
 	}
+	
+	@GetMapping("/process/instances/{proc-inst-id}/preview/entities")
+    public CommonResponseDto getProcessDataPreview(@PathVariable(name = "proc-inst-id") Integer procInstId) {
+    	ProcessDataPreviewDto result = workflowDataService.generateProcessDataPreviewForProcInstance(procInstId);
+        return CommonResponseDto.okayWithData(result);
+    }
 }
