@@ -61,10 +61,10 @@ services:
     volumes:
       - /data/wecube/log:/log/ 
       - /etc/localtime:/etc/localtime
+      - {{DOCKER_API_CERTS_PATH}}:/certs
     ports:
       - {{WECUBE_SERVER_PORT}}:8080
       - {{WECUBE_SERVER_JMX_PORT}}:{{WECUBE_SERVER_JMX_PORT}}
-      - {{DOCKER_API_CERTS_PATH}}:/certs
     environment:
       - TZ=Asia/Shanghai
       - MYSQL_SERVER_ADDR={{MYSQL_SERVER_ADDR}}
