@@ -1,28 +1,42 @@
 <template>
   <span>
-    <Button size="small" :disabled="disabled" type="primary" ghost @click.stop.prevent="addFilters">{{
+    <Button size="small" v-if="!disabled" type="primary" ghost @click.stop.prevent="addFilters">{{
       $t('set_filter_rule')
+    }}</Button>
+    <Button size="small" v-if="disabled" type="primary" ghost @click.stop.prevent="viewFilters">{{
+      $t('query_filter_rule')
     }}</Button>
     <Modal v-model="modelVisable" :title="$t('filter_rule')" @on-ok="okHandler" @on-cancel="cancelHandler">
       <Row style="margin-bottom: 10px" v-for="(rule, index) in currentPathFilterRules" :key="index">
         <Col span="1" style="margin-top: 4px;"
-          ><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button
+          ><Button
+            type="error"
+            :disabled="disabled"
+            icon="ios-trash-outline"
+            @click="deleteFilterRule(index)"
+            size="small"
+          ></Button
         ></Col>
         <Col span="8" offset="1">
-          <Select v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
+          <Select :disabled="disabled" v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
               attr.name
             }}</Option>
           </Select>
         </Col>
         <Col span="4" offset="1">
-          <Select v-model="rule.op" @on-change="opChangeHandler($event, rule)">
+          <Select :disabled="disabled" v-model="rule.op" @on-change="opChangeHandler($event, rule)">
             <Option v-for="(op, index) in filterRuleOp" :key="index" :value="op">{{ op }}</Option>
           </Select>
         </Col>
         <Col span="8" offset="1">
-          <Input v-if="!rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')" v-model="rule.value"></Input>
+          <Input
+            :disabled="disabled"
+            v-if="!rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')"
+            v-model="rule.value"
+          ></Input>
           <Select
+            :disabled="disabled"
             v-if="rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')"
             v-model="rule.value"
             :multiple="rule.op === 'in' || rule.op === 'like'"
@@ -35,7 +49,9 @@
         </Col>
       </Row>
       <Row style="margin-top: 10px">
-        <Button type="primary" @click="addRules" long size="small">{{ $t('add_filter_rule') }}</Button>
+        <Button type="primary" :disabled="disabled" @click="addRules" long size="small">{{
+          $t('add_filter_rule')
+        }}</Button>
       </Row>
     </Modal>
   </span>
@@ -114,9 +130,14 @@ export default {
       const multiple = (v === 'in' || v === 'like') && rule.isRef
       rule.value = multiple ? [] : ''
     },
+    viewFilters () {
+      this.addFilters()
+    },
     addFilters () {
       if (this.rootEntity && this.rootEntity.length > 0) {
+        this.currentPathFilterRules = []
         this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.rootEntity).attributes
+        console.log(this.value)
         const rules = this.value.match(/[^{]+(?=})/g)
         if (rules) {
           rules.forEach(async r => {
@@ -161,22 +182,24 @@ export default {
     },
     okHandler () {
       this.modelVisable = false
-      let rules = ''
-      this.currentPathFilterRules.forEach((rule, index) => {
-        const isMultiple = Array.isArray(rule.value)
-        let str = ''
-        if (isMultiple) {
-          str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
-        } else if (rule.op === 'is' || rule.op === 'isnot') {
-          str = `{${rule.attr} ${rule.op} null}`
-        } else {
-          const noQuotation = rule.op === 'gt' || rule.op === 'lt'
-          str = noQuotation ? `{${rule.attr} ${rule.op} ${rule.value}}` : `{${rule.attr} ${rule.op} '${rule.value}'}`
-        }
-        rules += str
-      })
-      this.currentPathFilterRules = []
-      this.$emit('input', rules)
+      if (!this.disabled) {
+        let rules = ''
+        this.currentPathFilterRules.forEach((rule, index) => {
+          const isMultiple = Array.isArray(rule.value)
+          let str = ''
+          if (isMultiple) {
+            str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
+          } else if (rule.op === 'is' || rule.op === 'isnot') {
+            str = `{${rule.attr} ${rule.op} null}`
+          } else {
+            const noQuotation = rule.op === 'gt' || rule.op === 'lt'
+            str = noQuotation ? `{${rule.attr} ${rule.op} ${rule.value}}` : `{${rule.attr} ${rule.op} '${rule.value}'}`
+          }
+          rules += str
+        })
+        this.currentPathFilterRules = []
+        this.$emit('input', rules)
+      }
     },
     cancelHandler () {
       this.modelVisable = false
