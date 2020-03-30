@@ -448,6 +448,7 @@ export default {
       }
     },
     async getTargetOptions () {
+      if (!(this.selectedFlow && this.selectedFlow.length > 0)) return
       const { status, data } = await getTargetModelByProcessDefId(this.selectedFlow)
       if (status === 'OK') {
         this.allTarget = data
