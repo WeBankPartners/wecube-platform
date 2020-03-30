@@ -187,7 +187,7 @@ create table plugin_package_resource_files
 
 drop table if exists resource_server;
 CREATE TABLE `resource_server` (
-    `id` VARCHAR(64) PRIMARY KEY,
+    `id` VARCHAR(255) PRIMARY KEY,
     `created_by` VARCHAR(255) NULL DEFAULT NULL ,
     `created_date` DATETIME NULL DEFAULT NULL,
     `host` VARCHAR(255) NULL DEFAULT NULL ,
@@ -205,7 +205,7 @@ CREATE TABLE `resource_server` (
 
 drop table if exists resource_item;
 CREATE TABLE `resource_item` (
-    `id` VARCHAR(64) PRIMARY KEY,
+    `id` VARCHAR(255) PRIMARY KEY,
     `additional_properties` VARCHAR(2048) NULL DEFAULT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
     `created_date` DATETIME NULL DEFAULT NULL,
