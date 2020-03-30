@@ -433,14 +433,14 @@ export default {
       }
       const saveRes = await savePluginConfig(currentPluginForSave)
       if (saveRes.status === 'OK') {
-        const { status, message } = await registerPlugin(this.currentPluginObj.id)
+        const { status, message } = await registerPlugin(saveRes.data.id)
         if (status === 'OK') {
           this.$Notice.success({
             title: 'Success',
             desc: message
           })
           await this.getAllPluginByPkgId()
-          this.getInterfacesByPluginConfigId(this.currentPluginObj.id)
+          this.getInterfacesByPluginConfigId(saveRes.data.id)
         }
       }
     },
@@ -585,6 +585,15 @@ export default {
   }
   .ivu-menu-vertical .ivu-menu-submenu-title-icon {
     right: 0;
+  }
+  .ivu-menu-vertical .ivu-menu-opened > * > .ivu-menu-submenu-title-icon {
+    color: #2d8cf0;
+  }
+  .ivu-menu-opened {
+    .ivu-menu-submenu-title {
+      background: rgb(224, 230, 231);
+      border-radius: 5px;
+    }
   }
 }
 </style>
