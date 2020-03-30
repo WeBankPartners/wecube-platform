@@ -260,6 +260,37 @@ public class ApplicationProperties {
 
     }
 
+    @ConfigurationProperties(prefix = "wecube.core.docker-remote")
+    public class DockerRemoteProperties{
+        private Integer port = 2375;
+        private Boolean enableTls = false;
+        private String certPath;
+
+        public Boolean getEnableTls() {
+            return enableTls;
+        }
+
+        public void setEnableTls(Boolean enableTls) {
+            this.enableTls = enableTls;
+        }
+
+        public String getCertPath() {
+            return certPath;
+        }
+
+        public void setCertPath(String certPath) {
+            this.certPath = certPath;
+        }
+
+        public Integer getPort() {
+            return port;
+        }
+
+        public void setPort(Integer port) {
+            this.port = port;
+        }
+    }
+
     public String getGatewayUrl() {
         return gatewayUrl;
     }

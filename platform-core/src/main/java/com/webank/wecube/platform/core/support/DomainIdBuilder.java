@@ -221,7 +221,7 @@ public class DomainIdBuilder {
         return StringUtils.isNotBlank(resourceItem.getId())
                 ? resourceItem.getId()
                 : buildDomainId(
-                null != resourceItem.getResourceServer() ? resourceItem.getResourceServer().getId() : null,
+                null != resourceItem.getResourceServerId() ? resourceItem.getResourceServerId(): null,
                 resourceItem.getType(),
                 resourceItem.getName()
         );
