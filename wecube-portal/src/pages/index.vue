@@ -59,6 +59,11 @@ export default {
       } else {
         this.parentBreadcrumb = '-'
         this.childBreadcrumb = this.$route.path.substr(1)
+        if (!window.implicitRoutes) {
+          return
+        }
+        const implicitRoute = window.implicitRoutes[this.childBreadcrumb]
+        this.parentBreadcrumb = implicitRoute ? implicitRoute[currentLangKey] : '-'
       }
     },
     homePageClickHandler () {
