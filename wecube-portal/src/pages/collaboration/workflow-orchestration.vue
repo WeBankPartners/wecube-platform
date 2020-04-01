@@ -232,6 +232,7 @@ import PathExp from '../components/path-exp.vue'
 import FilterRules from '../components/filter-rules.vue'
 import axios from 'axios'
 import { setCookie, getCookie } from '../util/cookie'
+import CustomContextPad from '../util/CustomContextPad'
 
 import {
   getAllFlow,
@@ -256,6 +257,11 @@ import {
 function setCTM (node, m) {
   var mstr = 'matrix(' + m.a + ',' + m.b + ',' + m.c + ',' + m.d + ',' + m.e + ',' + m.f + ')'
   node.setAttribute('transform', mstr)
+}
+
+let contextPad = {
+  __init__: ['customContextPad'],
+  customContextPad: ['type', CustomContextPad]
 }
 
 export default {
@@ -293,7 +299,7 @@ export default {
         name: '',
         nodeDefId: ''
       },
-      additionalModules: [propertiesProviderModule, propertiesPanelModule],
+      additionalModules: [propertiesProviderModule, propertiesPanelModule, contextPad],
       allFlows: [],
       allEntityType: [],
       selectedFlow: null,
@@ -852,11 +858,10 @@ export default {
       var customTranslateModule = {
         translate: ['value', customTranslate]
       }
-
       if (this.$lang === 'zh-CN') {
         this.additionalModules.push(customTranslateModule)
       } else {
-        if (this.additionalModules.length > 2) {
+        if (this.additionalModules.length > 3) {
           this.additionalModules.pop()
         }
       }
