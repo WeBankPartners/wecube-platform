@@ -15,6 +15,102 @@ public class StandardEntityOperationServiceTestsMockers {
     public StandardEntityOperationServiceTestsMockers(String gatewayUrl) {
         this.gatewayUrl = gatewayUrl;
     }
+    
+    
+    public void mockWecmdbMultipleRefToLinksWithOpToOnlyExpressionFetchShouldSucceed(MockRestServiceServer server) {
+        // first expression
+        server.expect(ExpectedCount.manyTimes(),
+                requestTo(String.format("http://%s/wecmdb/entities/subsys/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+                        + "    \"data\": [\n" + "        {\n" + "            \"biz_key\": null,\n"
+                        + "            \"subsys_design\": \"0002_0000000010,0002_0000000011,0002_0000000012\",\n"
+                        + "            \"key_name\": \"ECIF-CORE_PRD\",\n" + "            \"code\": \"CORE\",\n"
+                        + "            \"orchestration\": null,\n" + "            \"manager\": \"nertonsong\",\n"
+                        + "            \"r_guid\": \"0007_0000000001\",\n"
+                        + "            \"description\": \"ECIF-CORE PRD\",\n"
+                        + "            \"displayName\": \"ECIF-CORE PRD\",\n"
+                        + "            \"id\": \"0007_0000000001\",\n" + "            \"state\": 37,\n"
+                        + "            \"env\": 111,\n" + "            \"fixed_date\": \"2019-07-24 16:30:17\"\n"
+                        + "        }\n" + "    ]\n" + "}", MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(),
+                requestTo(String.format("http://%s/wecmdb/entities/subsys_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+                        + "    \"data\": [\n" + "        {\n" + "            \"biz_key\": null,\n"
+                        + "            \"business_group\": 105,\n" + "            \"code\": \"CORE\",\n"
+                        + "            \"orchestration\": null,\n" + "            \"r_guid\": \"0002_0000000010\",\n"
+                        + "            \"description\": \"CRM Core Subsystem\",\n"
+                        + "            \"displayName\": \"CRM Core Subsystem\",\n"
+                        + "            \"dcn_design_type\": 135,\n" + "            \"key_name\": \"ECIF-CORE\",\n"
+                        + "            \"name\": \"CRM Core Subsystem\",\n"
+                        + "            \"id\": \"0002_0000000010\",\n" + "            \"state\": 34,\n"
+                        + "            \"fixed_date\": \"2019-07-24 16:28:27\",\n"
+                        + "            \"system_design\": \"0001_0000000003\"\n" + "        }\n" + "    ]\n" + "}",
+                        MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(),
+                requestTo(String.format("http://%s/wecmdb/entities/system_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+                        + "    \"data\": [\n" + "        {\n" + "            \"biz_key\": null,\n"
+                        + "            \"key_name\": \"ECIF\",\n" + "            \"business_group\": 105,\n"
+                        + "            \"code\": \"ECIF\",\n" + "            \"orchestration\": null,\n"
+                        + "            \"r_guid\": \"0001_0000000003\",\n" + "            \"name\": \"CRM System\",\n"
+                        + "            \"description\": \"CRM System\",\n"
+                        + "            \"displayName\": \"CRM System\",\n"
+                        + "            \"id\": \"0001_0000000003\",\n" + "            \"state\": 34,\n"
+                        + "            \"fixed_date\": \"2019-07-24 17:28:17\"\n" + "        }\n" + "    ]\n" + "}",
+                        MediaType.APPLICATION_JSON));
+
+        // second expression
+        server.expect(ExpectedCount.manyTimes(),
+                requestTo(String.format("http://%s/wecmdb/entities/zone_link/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+                        + "    \"data\": [\n" + "        {\n" + "            \"biz_key\": null,\n"
+                        + "            \"code\": \"MGMT-SF\",\n" + "            \"orchestration\": null,\n"
+                        + "            \"r_guid\": \"0018_0000000002\",\n" + "            \"description\": \"\",\n"
+                        + "            \"displayName\": \"\",\n" + "            \"zone2\": \"0017_0000000001\",\n"
+                        + "            \"zone1\": \"0017_0000000003\",\n"
+                        + "            \"key_name\": \"PRD-GZ1-MGMT_link_PRD-GZ1-SF\",\n"
+                        + "            \"asset_code\": \"\",\n" + "            \"name\": \"MGMT-SF\",\n"
+                        + "            \"id\": \"0018_0000000002\",\n" + "            \"state\": 37,\n"
+                        + "            \"zone_link_design\": \"0024_0000000001\",\n"
+                        + "            \"fixed_date\": null\n" + "        }\n" + "    ]\n" + "}",
+                        MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(),
+                requestTo(String.format("http://%s/wecmdb/entities/zone/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+                        + "    \"data\": [\n" + "        {\n" + "            \"biz_key\": null,\n"
+                        + "            \"zone_layer\": 124,\n" + "            \"code\": \"MGMT\",\n"
+                        + "            \"orchestration\": 224,\n"
+                        + "            \"network_segment\": \"0021_0000000004\",\n"
+                        + "            \"r_guid\": \"0017_0000000003\",\n" + "            \"vpc\": \"\",\n"
+                        + "            \"description\": \"MGMT\",\n" + "            \"displayName\": \"MGMT\",\n"
+                        + "            \"idc\": \"0016_0000000001\",\n" + "            \"type\": 121,\n"
+                        + "            \"key_name\": \"PRD-GZ1-MGMT\",\n" + "            \"asset_code\": \"\",\n"
+                        + "            \"name\": \"MGMT\",\n" + "            \"id\": \"0017_0000000003\",\n"
+                        + "            \"state\": 37,\n" + "            \"fixed_date\": null,\n"
+                        + "            \"zone_design\": \"0023_0000000003\"\n" + "        }\n" + "    ]\n" + "}",
+                        MediaType.APPLICATION_JSON));
+
+        server.expect(ExpectedCount.manyTimes(),
+                requestTo(String.format("http://%s/wecmdb/entities/zone_design/query", this.gatewayUrl)))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+                        + "    \"data\": [\n" + "        {\n" + "            \"biz_key\": null,\n"
+                        + "            \"zone_layer\": 124,\n" + "            \"key_name\": \"PRD-MGMT\",\n"
+                        + "            \"code\": \"MGMT\",\n" + "            \"orchestration\": null,\n"
+                        + "            \"r_guid\": \"0023_0000000003\",\n" + "            \"description\": \"MGMT\",\n"
+                        + "            \"displayName\": \"MGMT\",\n" + "            \"id\": \"0023_0000000003\",\n"
+                        + "            \"state\": 34,\n" + "            \"type\": 121,\n"
+                        + "            \"fixed_date\": null,\n" + "            \"idc_design\": \"0022_0000000001\"\n"
+                        + "        }\n" + "    ]\n" + "}", MediaType.APPLICATION_JSON));
+    }
 
     public void mockWecmdbMultipleLinksWithMixedOpExpressionGetPreviewTreeShouldSucceed(MockRestServiceServer server) {
         server.expect(ExpectedCount.manyTimes(),
