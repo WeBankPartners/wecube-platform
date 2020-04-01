@@ -23,7 +23,7 @@
         }}</Button>
       </div>
       <div slot="content">
-        <div class="filter_rules_path_options">
+        <div v-if="!disabled" class="filter_rules_path_options">
           <ul>
             <li id="paste" v-if="pathList.length === 0">
               <input
