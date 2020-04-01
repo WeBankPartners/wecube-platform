@@ -411,6 +411,7 @@
   "filter_rule": "Filter Rules",
   "add_filter_rule": "Adding Filtering Rules",
   "set_filter_rule": "Set Up Filtering Rules",
+  "query_filter_rule": "View Filtering Rules",
   "please_choose": "Select",
   "please_paste_here": "Please Paste Here",
   "delete_node": "Delete Node",
