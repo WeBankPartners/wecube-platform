@@ -132,6 +132,12 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 			Object valueToUpdate) {
 		List<EntityDataRecord> dataRecords = new ArrayList<>();
 		for (EntityDataDelegate delegate : entitiesToUpdate) {
+			if (delegate.getQueryAttrName() == null || delegate.getQueryAttrName().trim().length() < 1) {
+				log.warn("Unknown field to update for {} {}, probably the expression is not valid. ",
+						delegate.getPackageName(), delegate.getEntityName());
+				throw new IllegalStateException(String.format("Unknown field to update for %s %s",
+						delegate.getPackageName(), delegate.getEntityName()));
+			}
 			if (log.isInfoEnabled()) {
 				log.info("UPDATE entity:id={} name={} attrName={} oldValue={} newValue={}", delegate.getId(),
 						delegate.getDisplayName(), delegate.getQueryAttrName(), delegate.getQueryAttrValue(),
@@ -234,28 +240,67 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 					linkNode.getExprNodeInfo().getEntityQueryNodeExpr());
 		}
 
-		EntityQueryExprNodeInfo exprNodeInfo = linkNode.getExprNodeInfo();
-
 		EntityQueryLinkNode previousLinkNode = linkNode.getPreviousNode();
 		List<EntityDataDelegate> prevEntityDataDelegates = previousLinkNode.getEntityDataDelegates();
 		if (prevEntityDataDelegates != null) {
 			for (EntityDataDelegate prevEntityDataDelegate : prevEntityDataDelegates) {
-				EntityQuerySpecification querySpec = buildRefToEntityQuerySpecification(ctx, linkNode, entityDef,
-						exprNodeInfo, previousLinkNode, prevEntityDataDelegate);
+				if (prevEntityDataDelegate == null) {
+					continue;
+				}
 
-				performRestOperation(ctx, linkNode, entityDef, prevEntityDataDelegate, querySpec);
-
+				performRefToEntityDataDelegate(ctx, linkNode, entityDef, prevEntityDataDelegate, previousLinkNode);
 			}
 		}
 	}
 
-	private EntityQuerySpecification buildRefToEntityQuerySpecification(EntityOperationContext ctx,
+	private void performRefToEntityDataDelegate(EntityOperationContext ctx, EntityQueryLinkNode linkNode,
+			EntityRouteDescription entityDef, EntityDataDelegate prevEntityDataDelegate,
+			EntityQueryLinkNode previousLinkNode) {
+		List<EntityQuerySpecification> querySpecs = buildRefToEntityQuerySpecifications(ctx, linkNode, entityDef,
+				linkNode.getExprNodeInfo(), previousLinkNode, prevEntityDataDelegate);
+
+		if (log.isInfoEnabled() && (querySpecs.size() > 1)) {
+			log.info("performing multi-ref-to querying for {} {}", linkNode.getExprNodeInfo().getPackageName(),
+					linkNode.getExprNodeInfo().getEntityName());
+		}
+
+		for (EntityQuerySpecification querySpec : querySpecs) {
+			performRestOperation(ctx, linkNode, entityDef, prevEntityDataDelegate, querySpec);
+		}
+
+	}
+
+	private List<EntityQuerySpecification> buildRefToEntityQuerySpecifications(EntityOperationContext ctx,
 			EntityQueryLinkNode linkNode, EntityRouteDescription entityDef, EntityQueryExprNodeInfo exprNodeInfo,
 			EntityQueryLinkNode previousLinkNode, EntityDataDelegate prevEntityDataDelegate) {
+		List<EntityQuerySpecification> specs = new ArrayList<EntityQuerySpecification>();
+		if (prevEntityDataDelegate.getQueryAttrValue() == null) {
+			return specs;
+		}
+
+		String queryAttrValueStr = String.valueOf(prevEntityDataDelegate.getQueryAttrValue());
+		if (queryAttrValueStr.trim().length() <= 0) {
+			return specs;
+		}
+
+		String[] queryAttrValueParts = queryAttrValueStr.split(",");
+
+		for (String queryAttrValuePart : queryAttrValueParts) {
+			EntityQuerySpecification spec = buildRefToEntityQuerySpecification(ctx, linkNode, entityDef, exprNodeInfo,
+					previousLinkNode, prevEntityDataDelegate, queryAttrValuePart);
+			specs.add(spec);
+		}
+
+		return specs;
+	}
+
+	private EntityQuerySpecification buildRefToEntityQuerySpecification(EntityOperationContext ctx,
+			EntityQueryLinkNode linkNode, EntityRouteDescription entityDef, EntityQueryExprNodeInfo exprNodeInfo,
+			EntityQueryLinkNode previousLinkNode, EntityDataDelegate prevEntityDataDelegate, String queryAttrValueStr) {
 		EntityQuerySpecification querySpec = new EntityQuerySpecification();
 		EntityQueryCriteria criteria = new EntityQueryCriteria();
 		criteria.setAttrName(EntityDataDelegate.UNIQUE_IDENTIFIER);
-		criteria.setCondition(String.valueOf(prevEntityDataDelegate.getQueryAttrValue()));
+		criteria.setCondition(queryAttrValueStr.trim());
 
 		if (exprNodeInfo.getAdditionalFilters() != null) {
 			for (EntityQueryFilter f : exprNodeInfo.getAdditionalFilters()) {
@@ -280,14 +325,14 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 		}
 		EntityQueryExprNodeInfo exprNodeInfo = linkNode.getExprNodeInfo();
 		EntityQuerySpecification querySpec = new EntityQuerySpecification();
-		
+
 		EntityQueryCriteria criteria = null;
-		if(ctx.getOriginalEntityData() != null && ctx.getOriginalEntityData().trim().length() > 0) {
+		if (ctx.getOriginalEntityData() != null && ctx.getOriginalEntityData().trim().length() > 0) {
 			criteria = new EntityQueryCriteria();
 			criteria.setAttrName(EntityDataDelegate.UNIQUE_IDENTIFIER);
 			criteria.setCondition(ctx.getOriginalEntityData());
 		}
-		
+
 		if (exprNodeInfo.getAdditionalFilters() != null) {
 			for (EntityQueryFilter f : exprNodeInfo.getAdditionalFilters()) {
 				EntityQueryFilter queryFilter = new EntityQueryFilter();
@@ -298,7 +343,7 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 			}
 		}
 
-		if(criteria != null) {
+		if (criteria != null) {
 			querySpec.setCriteria(criteria);
 		}
 
