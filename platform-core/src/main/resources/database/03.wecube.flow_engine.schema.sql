@@ -1507,10 +1507,10 @@ CREATE TABLE `core_ru_graph_node` (
   `entity_name` varchar(255)  DEFAULT NULL,
   `g_node_id` varchar(255)  DEFAULT NULL,
   `pkg_name` varchar(255)  DEFAULT NULL,
-  `prev_ids` varchar(1024)  DEFAULT NULL,
+  `prev_ids` text,
   `proc_inst_id` int(11) DEFAULT NULL,
   `proc_sess_id` varchar(255)  DEFAULT NULL,
-  `succ_ids` varchar(1024)  DEFAULT NULL,
+  `succ_ids` text,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
