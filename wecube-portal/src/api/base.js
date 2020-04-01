@@ -7,7 +7,7 @@ const baseURL = ''
 const req = axios.create({
   withCredentials: false,
   baseURL,
-  timeout: 50000
+  timeout: 500000
 })
 
 const throwError = res => {
