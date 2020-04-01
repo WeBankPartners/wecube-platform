@@ -95,6 +95,11 @@ window.addRoutersWithoutPermission = routes => {
     })
   )
 }
+window.implicitRoutes = {}
+window.addImplicitRoute = routes => {
+  window.implicitRoutes = Object.assign(window.implicitRoutes, routes)
+}
+
 window.component = (name, comp) => {
   Vue.component(name, comp)
 }
