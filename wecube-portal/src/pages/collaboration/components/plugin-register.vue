@@ -46,7 +46,11 @@
             </Col>
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('target_type')">
-                <FilterRules v-model="selectedEntityType" :allDataModelsWithAttrs="allEntityType"></FilterRules>
+                <FilterRules
+                  v-model="selectedEntityType"
+                  :disabled="currentPluginObj.status === 'ENABLED'"
+                  :allDataModelsWithAttrs="allEntityType"
+                ></FilterRules>
               </FormItem>
             </Col>
           </Row>
