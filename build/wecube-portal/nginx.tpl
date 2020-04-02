@@ -26,9 +26,10 @@ http {
   server {
         listen  8080;
         server_name     localhost;
-	client_max_body_size 9999999m;
+        client_max_body_size 9999999m;
         client_header_timeout 99999999999s;
-	keepalive_timeout 999999999s;
+	    keepalive_timeout 999999999s;
+	    proxy_read_timeout 180s;
 
 	location / {
                 root /root/app;
