@@ -282,6 +282,9 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 		if (queryAttrValueStr.trim().length() <= 0) {
 			return specs;
 		}
+		
+		queryAttrValueStr = stripHeadAndTailChar(queryAttrValueStr, "[");
+		queryAttrValueStr = stripHeadAndTailChar(queryAttrValueStr, "]");
 
 		String[] queryAttrValueParts = queryAttrValueStr.split(",");
 
@@ -499,5 +502,18 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 		}
 		return result;
 	}
+	
+	private String stripHeadAndTailChar(String s, String specialChar) {
+        String data = s;
+        if (data.startsWith(specialChar)) {
+            data = data.substring(1);
+        }
+
+        if (data.endsWith(specialChar)) {
+            data = data.substring(0, data.length() - 1);
+        }
+
+        return data;
+    }
 
 }
