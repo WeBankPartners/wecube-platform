@@ -136,7 +136,8 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             log.error("result data handling failed", e);
             result.setResultCode(RESULT_CODE_ERR);
             pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-            handlePluginInterfaceInvocationFailure(ctx, "101", "result data handling failed:" + e.getMessage());
+            String errMsg = e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage());
+            handlePluginInterfaceInvocationFailure(ctx, "101", "result data handling failed:" + errMsg);
         }
 
         return;
