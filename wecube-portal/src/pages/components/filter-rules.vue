@@ -199,6 +199,8 @@ export default {
       }
       let data = clipboardData.getData('Text')
       this.restorePathExp(data)
+      this.$emit('input', this.fullPathExp)
+      this.$emit('change', this.fullPathExp)
     },
     restorePathExp (PathExp) {
       this.pathList = []
