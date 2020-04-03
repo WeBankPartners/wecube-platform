@@ -9,6 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+/**
+ * 
+ * @author gavinli
+ *
+ */
 @Service("standardEntityQueryExecutor")
 public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 	private static final Logger log = LoggerFactory.getLogger(StandardEntityQueryExecutor.class);
