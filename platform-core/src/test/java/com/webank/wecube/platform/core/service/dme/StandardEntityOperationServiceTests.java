@@ -40,6 +40,25 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         mockers = new StandardEntityOperationServiceTestsMockers(gatewayUrl);
     }
     
+    
+    @Test
+    public void wecmdbMultipleRefToLinksWithOpToOnlyExpressionFetchShouldSucceed() {
+        mockers.mockWecmdbMultipleRefToLinksWithOpToOnlyExpressionFetchShouldSucceed(server);
+
+        List<Object> result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
+                "wecmdb:subsys.subsys_design>wecmdb:subsys_design.system_design>wecmdb:system_design.key_name",
+                "0007_0000000001"));
+        Assert.assertNotNull(result);
+        Assert.assertEquals("ECIF", result.get(0));
+
+        result = standardEntityOperationService.queryAttributeValues(new EntityOperationRootCondition(
+                "wecmdb:zone_link.zone1>wecmdb:zone.zone_design>wecmdb:zone_design.fixed_date", "0018_0000000002"));
+        Assert.assertNotNull(result);
+        Assert.assertNull(result.get(0));
+
+        server.verify();
+    }
+    
     @Test
     public void givenSignleLinkNodeWithFilterExpressionWhenFetchThenShouldSucceed() {
         mockers.mockSingleLinkNodeWithFilterExpressionServer(server);
