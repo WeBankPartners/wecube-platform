@@ -36,8 +36,12 @@
           </Submenu>
         </Menu>
       </Col>
-      <Col span="18" offset="0" style="padding-left: 10px" v-if="hidePanal">
-        <Form :model="form">
+      <Col span="18" offset="0" style="padding-left: 10px">
+        <Spin size="large" fix style="margin-top: 200px;" v-show="isLoading">
+          <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+          <div>{{ $t('loading') }}</div>
+        </Spin>
+        <Form :model="form" v-show="hidePanal">
           <Row style="border-bottom: 1px solid #bbb7b7; margin-top: 20px">
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
@@ -316,6 +320,7 @@ import {
 export default {
   data () {
     return {
+      isLoading: false,
       activePanel: null,
       allDataModelsWithAttrs: {},
       currentPlugin: '',
@@ -533,6 +538,7 @@ export default {
     },
     async getInterfacesByPluginConfigId (id) {
       this.hidePanal = false
+      this.isLoading = true
       this.currentPluginObj = {}
       let currentConfig = this.allPluginConfigs.find(s => s.id === id)
       const { data, status } = await getInterfacesByPluginConfigId(id)
@@ -548,6 +554,7 @@ export default {
       this.selectedEntityType = currentConfig.targetEntityWithFilterRule
       this.registerName = this.currentPluginObj.registerName
       this.hidePanal = true
+      this.isLoading = false
     },
     copyRegistSource (v) {
       this.registSourceChange(v)
