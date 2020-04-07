@@ -5,7 +5,7 @@
         <Col span="20">
           <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select v-model="selectedFlowInstance" style="width:70%" filterable clearable>
+              <Select v-model="selectedFlowInstance" style="width:70%" filterable>
                 <Option
                   v-for="item in allFlowInstances"
                   :value="item.id"
@@ -53,7 +53,6 @@
                     @on-change="orchestrationSelectHandler"
                     @on-open-change="getAllFlow"
                     filterable
-                    clearable
                   >
                     <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
                       item.procDefName + ' ' + item.createdTime
@@ -77,7 +76,6 @@
                     @on-change="onTargetSelectHandler"
                     @on-open-change="getTargetOptions"
                     filterable
-                    clearable
                   >
                     <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
                   </Select>

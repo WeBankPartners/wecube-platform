@@ -139,6 +139,7 @@ export default {
         this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.rootEntity).attributes
         console.log(this.value)
         const rules = this.value.match(/[^{]+(?=})/g)
+        console.log(rules)
         if (rules) {
           rules.forEach(async r => {
             let enums = []
@@ -153,7 +154,7 @@ export default {
               }
             }
             value =
-              value.indexOf('[') > -1
+              value.indexOf('[') > -1 && found.dataType === 'ref'
                 ? value
                   .slice(1, -1)
                   .split(',')
