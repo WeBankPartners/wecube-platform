@@ -338,7 +338,7 @@ export default {
             }
           }
           value =
-            value.indexOf('[') > -1
+            value.indexOf('[') > -1 && found.dataType === 'ref'
               ? value
                 .slice(1, -1)
                 .split(',')
