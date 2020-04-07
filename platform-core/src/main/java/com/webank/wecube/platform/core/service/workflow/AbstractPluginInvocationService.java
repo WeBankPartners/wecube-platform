@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
@@ -63,6 +64,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
     @Autowired
     protected StandardEntityOperationService entityOperationService;
+    
+    @Autowired
+    protected ApplicationProperties applicationProperties;
 
     protected TaskNodeInstInfoEntity findExactTaskNodeInstInfoEntityWithNodeId(
             List<TaskNodeInstInfoEntity> nodeInstEntities, String nodeId) {
