@@ -197,7 +197,6 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     }
 
     private void handleLoadErrors(Throwable e) {
-        log.info("on error #########################################");
         log.info("errors while loading routes...", e);
         isDynamicRouteLoaded = false;
     }
@@ -335,29 +334,32 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
         this.publisher.publishEvent(new RefreshRoutesEvent(this));
     }
 
-    public void pushRouteItem(String name, List<RouteItemInfoDto> routeItems) {
+    public void pushRouteItem(String name, List<RouteItemInfoDto> newRouteItems) {
         if (StringUtils.isBlank(name)) {
             log.info("name is blank.");
             return;
         }
 
-        if (routeItems == null || routeItems.isEmpty()) {
+        if (newRouteItems == null || newRouteItems.isEmpty()) {
             log.info("route items is empty for name:{}", name);
             return;
         }
 
-        if (routeItems.contains(name)) {
+        if (this.routeItems.containsKey(name)) {
             log.info("route items already exist for name:{}", name);
             return;
         }
 
-        doPushRouteItem(name, routeItems);
+        doPushRouteItem(name, newRouteItems);
 
     }
 
-    protected void doPushRouteItem(String name, List<RouteItemInfoDto> routeItems) {
+    protected void doPushRouteItem(String name, List<RouteItemInfoDto> newRouteItems) {
         log.info("about to add route items for name {} size {}", name, routeItems.size());
-        buildRouteDefinition(name, routeItems.get(0));
+        List<RouteItemInfoDto> routeItemsToPush = new ArrayList<>();
+        routeItemsToPush.addAll(newRouteItems);
+        this.routeItems.put(name, routeItemsToPush);
+        buildRouteDefinition(name, newRouteItems.get(0));
     }
 
     public String add(RouteDefinition definition) {
