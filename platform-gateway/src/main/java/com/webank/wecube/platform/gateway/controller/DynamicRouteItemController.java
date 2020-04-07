@@ -6,7 +6,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +35,19 @@ public class DynamicRouteItemController {
         
         List<RouteItemInfoDto> items = dynamicRouteConfigurationService.listAllRouteItems();
         return Mono.just(CommonResponseDto.okayWithData(items));
+    }
+    
+    @GetMapping("/loaded-routes")
+    public Mono<CommonResponseDto> listLoadedRouteItems(){
+        
+        List<RouteItemInfoDto> items = dynamicRouteConfigurationService.getAllLoadedRouteItemInfoDtos();
+        return Mono.just(CommonResponseDto.okayWithData(items));
+    }
+    
+    @DeleteMapping("/route-items/{route-name}")
+    public Mono<CommonResponseDto> deleteRouteItems(@PathVariable("route-name")String routeName){
+        dynamicRouteConfigurationService.deleteRouteItem(routeName);
+        return Mono.just(CommonResponseDto.okay());
     }
 
     @PostMapping("/route-items")

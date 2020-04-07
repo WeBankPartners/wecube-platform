@@ -8,6 +8,10 @@ public class DynamicRouteProperties {
     private String routeConfigUri;
     private String routeConfigAccessKey;
 
+    private boolean enableRetry = true;
+    private int retryIntervalOfSeconds = 5;
+    private int refreshIntervalOfMinutes = 10;
+
     public String getRouteConfigServer() {
         return routeConfigServer;
     }
@@ -30,6 +34,30 @@ public class DynamicRouteProperties {
 
     public void setRouteConfigAccessKey(String routeConfigAccessKey) {
         this.routeConfigAccessKey = routeConfigAccessKey;
+    }
+
+    public boolean isEnableRetry() {
+        return enableRetry;
+    }
+
+    public void setEnableRetry(boolean enableRetry) {
+        this.enableRetry = enableRetry;
+    }
+
+    public int getRetryIntervalOfSeconds() {
+        return retryIntervalOfSeconds;
+    }
+
+    public void setRetryIntervalOfSeconds(int retryIntervalOfSeconds) {
+        this.retryIntervalOfSeconds = retryIntervalOfSeconds;
+    }
+
+    public int getRefreshIntervalOfMinutes() {
+        return refreshIntervalOfMinutes;
+    }
+
+    public void setRefreshIntervalOfMinutes(int refreshIntervalOfMinutes) {
+        this.refreshIntervalOfMinutes = refreshIntervalOfMinutes;
     }
 
 }
