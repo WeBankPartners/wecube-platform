@@ -130,22 +130,7 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
 
         return apply(retryConfig.getRouteId(), statusCodeRepeat, exceptionRetry);
     }
-
-    public boolean exceedsMaxIterations(ServerWebExchange exchange, RetryConfig retryConfig) {
-        Integer iteration = exchange.getAttribute(EX_RETRY_ITERATION_KEY);
-
-        boolean exceeds = iteration != null && iteration >= retryConfig.getRetries();
-        trace("exceedsMaxIterations %b, iteration %d, configured retries %d", exceeds, iteration,
-                retryConfig.getRetries());
-        return exceeds;
-    }
-
-    public void reset(ServerWebExchange exchange) {
-        Set<String> addedHeaders = exchange.getAttributeOrDefault(CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
-        addedHeaders.forEach(header -> exchange.getResponse().getHeaders().remove(header));
-        exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
-    }
-
+    
     public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
         if (routeId != null && getPublisher() != null) {
             getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
@@ -175,6 +160,23 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
             return Mono.fromDirect(publisher);
         };
     }
+
+    public boolean exceedsMaxIterations(ServerWebExchange exchange, RetryConfig retryConfig) {
+        Integer iteration = exchange.getAttribute(EX_RETRY_ITERATION_KEY);
+
+        boolean exceeds = iteration != null && iteration >= retryConfig.getRetries();
+        trace("exceedsMaxIterations %b, iteration %d, configured retries %d", exceeds, iteration,
+                retryConfig.getRetries());
+        return exceeds;
+    }
+
+    public void reset(ServerWebExchange exchange) {
+        Set<String> addedHeaders = exchange.getAttributeOrDefault(CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
+        addedHeaders.forEach(header -> exchange.getResponse().getHeaders().remove(header));
+        exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
+    }
+
+    
 
     private void tryPrepareRoute(ServerWebExchange exchange) {
         DynamicRouteContext routeContext = exchange.getAttribute(DynamicRouteContext.DYNAMIC_ROUTE_CONTEXT_KEY);
