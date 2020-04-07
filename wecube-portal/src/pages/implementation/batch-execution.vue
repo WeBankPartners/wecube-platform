@@ -598,6 +598,9 @@ export default {
         return _
       })
     },
+    selectedCollectionId: function (val) {
+      this.isHistoryToBatchActionModal = !!val
+    },
     activeExecuteHistory: function (val) {
       this.filterParams = null
       this.businessKey = null
@@ -1068,7 +1071,6 @@ export default {
         }
       }
       this.batchActionModalVisible = false
-
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
@@ -1160,7 +1162,6 @@ export default {
         this.selectedPluginParams = []
         this.pluginId = null
         this.batchActionModalVisible = true
-        this.isHistoryToBatchActionModal = true
       }
     },
     changeTargetObject () {
