@@ -558,10 +558,10 @@ export default {
         const isRecord = _.refFlowNodeIds.length > 0
         const shape = isRecord ? 'ellipse' : 'ellipse'
         const refStr = _.refFlowNodeIds.toString().replace(/,/g, '/')
-        const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
-        const fontSize = Math.abs(50 - len) * 0.25
+        // const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
+        // const fontSize = Math.abs(50 - len) * 0.25
         const label = (_.displayName || _.dataId) + '\n' + refStr
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fontsize=${fontSize} fillcolor="white" shape="${shape}"]`
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="${shape}"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -591,10 +591,21 @@ export default {
         genEdge() +
         '}'
       this.graph.graphviz.renderDot(nodesString)
+      this.setFontSizeForText()
       removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       removeEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
       addEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       addEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
+    },
+    setFontSizeForText () {
+      const nondes = d3.selectAll('#graph svg g .node')._groups[0]
+      for (let i = 0; i < nondes.length; i++) {
+        const len = nondes[i].children[2].innerHTML.length
+        const fontsize = Math.abs(58 - len) * 0.2
+        for (let j = 2; j < nondes[i].children.length; j++) {
+          nondes[i].children[j].setAttribute('font-size', fontsize)
+        }
+      }
     },
     modelGraphMouseenterHandler (e) {
       clearTimeout(this.modelDetailTimer)
