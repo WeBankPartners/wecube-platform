@@ -12,14 +12,14 @@ public interface ProcExecBindingTmpRepository extends JpaRepository<ProcExecBind
 
 	@Query("select t from ProcExecBindingTmpEntity t "
 			+ " where t.nodeDefId = :nodeDefId and t.procSessionId = :processSessionId and t.bindType = 'taskNode' ")
-	List<ProcExecBindingTmpEntity> getAllByNodeAndSession(@Param("nodeDefId") String nodeDefId,
+	List<ProcExecBindingTmpEntity> findAllNodeBindingsByNodeAndSession(@Param("nodeDefId") String nodeDefId,
 			@Param("processSessionId") String processSessionId);
 	
 	@Query("select t from ProcExecBindingTmpEntity t "
 			+ " where t.procSessionId = :processSessionId and t.bindType = 'taskNode' ")
-	List<ProcExecBindingTmpEntity> getAllBySession(@Param("processSessionId") String processSessionId);
+	List<ProcExecBindingTmpEntity> findAllNodeBindingsBySession(@Param("processSessionId") String processSessionId);
 	
 	@Query("select t from ProcExecBindingTmpEntity t "
             + " where t.procSessionId = :processSessionId and t.bindType = 'process' ")
-	List<ProcExecBindingTmpEntity> getAllRootBindingsBySession(@Param("processSessionId") String processSessionId);
+	List<ProcExecBindingTmpEntity> findAllRootBindingsBySession(@Param("processSessionId") String processSessionId);
 }
