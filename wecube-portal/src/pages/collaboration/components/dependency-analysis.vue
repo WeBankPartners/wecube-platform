@@ -123,6 +123,17 @@ export default {
     renderGraph () {
       let nodesString = this.genDOT()
       this.graph.graphviz.renderDot(nodesString)
+      this.setFontSizeForText()
+    },
+    setFontSizeForText () {
+      const nondes = d3.selectAll('#dependency-analysis-graph svg g .node')._groups[0]
+      for (let i = 0; i < nondes.length; i++) {
+        const len = nondes[i].children[2].innerHTML.length
+        const fontsize = Math.abs(58 - len) * 0.2
+        for (let j = 2; j < nondes[i].children.length; j++) {
+          nondes[i].children[j].setAttribute('font-size', fontsize)
+        }
+      }
     },
     initGraph () {
       const initEvent = () => {
