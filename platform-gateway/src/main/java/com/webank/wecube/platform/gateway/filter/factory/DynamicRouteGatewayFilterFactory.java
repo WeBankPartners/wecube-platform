@@ -1,8 +1,6 @@
 package com.webank.wecube.platform.gateway.filter.factory;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,21 +10,18 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.webank.wecube.platform.gateway.dto.GenericResponseDto;
-import com.webank.wecube.platform.gateway.dto.RouteItemInfoDto;
+import com.webank.wecube.platform.gateway.route.DynamicRouteContext;
+import com.webank.wecube.platform.gateway.route.DynamicRouteItemInfo;
+import com.webank.wecube.platform.gateway.route.DynamicRouteItemInfoHolder;
 
-import wiremock.org.apache.commons.lang3.StringUtils;
-
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class DynamicRouteGatewayFilterFactory
         extends AbstractGatewayFilterFactory<DynamicRouteGatewayFilterFactory.Config> {
 
@@ -42,13 +37,12 @@ public class DynamicRouteGatewayFilterFactory
 
     @Override
     public GatewayFilter apply(Config config) {
-        if (log.isInfoEnabled()) {
-            log.info("Filter-{} applied", DynamicRouteGatewayFilterFactory.class.getSimpleName());
+        if (log.isDebugEnabled()) {
+            log.debug("Filter-{} applied", DynamicRouteGatewayFilterFactory.class.getSimpleName());
         }
         return ((exchange, chain) -> {
-            ServerHttpRequest req = exchange.getRequest();
-            log.info("Filter-IN-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
-                    req.getURI().toString());
+            log.debug("Filter-IN-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
+                    exchange.getRequest().getURI().toString());
 
             boolean enabled = config.isEnabled();
 
@@ -68,64 +62,48 @@ public class DynamicRouteGatewayFilterFactory
                 log.debug("route:{} {}", route.getId(), route.getUri().toString());
             }
 
-            String newPath = req.getURI().getPath();
-            String baseUrl = null;
-            try {
-                baseUrl = determineBaseUrl(newPath);
-            } catch (Exception e) {
-                log.error("errors while determining base url", e);
-                return chain.filter(exchange);
+            String newPath = exchange.getRequest().getURI().getPath();
+            String baseUrl = determineDynamicRoute(newPath, exchange);
+            if (baseUrl != null) {
+                tryPrepareRoute(exchange, route, baseUrl);
             }
-
-            if (log.isDebugEnabled()) {
-                log.debug("base url:{}", baseUrl);
-            }
-
-            URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl).build().toUri();
-            ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.getURI());
-            
-
-            Route newRoute = Route.async().asyncPredicate(route.getPredicate()).filters(route.getFilters())
-                    .id(route.getId()).order(route.getOrder()).uri(newUri).build();
-
-            exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, newRoute);
 
             return chain.filter(exchange);
         });
     }
+    
+    protected void tryPrepareRoute(ServerWebExchange exchange, Route route, String baseUrl) {
+        if (log.isDebugEnabled()) {
+            log.debug("base url:{}", baseUrl);
+        }
 
-    protected String determineBaseUrl(String path) {
+        URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl).build().toUri();
+        ServerWebExchangeUtils.addOriginalRequestUrl(exchange, exchange.getRequest().getURI());
+
+        Route newRoute = Route.async().asyncPredicate(route.getPredicate()).filters(route.getFilters())
+                .id(route.getId()).order(route.getOrder()).uri(newUri).build();
+
+        exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, newRoute);
+    }
+
+    protected String determineDynamicRoute(String path, ServerWebExchange exchange) {
         String componentPath = calculateComponentPath(path);
-        RestTemplate client = new RestTemplate();
+        List<DynamicRouteItemInfo> routeItemInfos = DynamicRouteItemInfoHolder.findByName(componentPath);
+        if (routeItemInfos == null || routeItemInfos.isEmpty()) {
+            return null;
+        }
+        
+        DynamicRouteContext routeContext = new DynamicRouteContext().addDynamicRouteItemInfos(routeItemInfos);
+        exchange.getAttributes().put(DynamicRouteContext.DYNAMIC_ROUTE_CONTEXT_KEY, routeContext);
 
-        String url = dynamicRouteProperties.getRouteConfigServer() + dynamicRouteProperties.getRouteConfigUri() + "/"
-                + componentPath;
-
-        HttpHeaders header = new HttpHeaders();
-        header.setContentType(MediaType.APPLICATION_JSON_UTF8);
-        header.add("Authorization", String.format("Bearer %s", dynamicRouteProperties.getRouteConfigAccessKey()));
-
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(header);
-
-        ResponseEntity<RouteConfigInfoResponseDto> responseEntity = client.exchange(url, HttpMethod.GET, httpEntity,
-                RouteConfigInfoResponseDto.class);
-
-        RouteConfigInfoResponseDto responseDto = responseEntity.getBody();
-
-        List<RouteItemInfoDto> routeItemInfoDtos = responseDto.getData();
-        if (log.isInfoEnabled()) {
-            if (routeItemInfoDtos != null) {
-                routeItemInfoDtos.forEach(ri -> {
-                    log.info("Route Item:{}", ri);
-                });
-            }
+        DynamicRouteItemInfo routeItemInfo = routeContext.next();
+        
+        if(routeItemInfo == null){
+            return null;
         }
 
-        String baseUrl = "";
-        if (routeItemInfoDtos != null && !routeItemInfoDtos.isEmpty()) {
-            RouteItemInfoDto item = routeItemInfoDtos.get(0);
-            baseUrl = String.format("%s://%s:%s", item.getSchema(), item.getHost(), item.getPort());
-        }
+        String baseUrl = String.format("%s://%s:%s", routeItemInfo.getHttpSchema(), routeItemInfo.getHost(),
+                routeItemInfo.getPort());
         return baseUrl;
     }
 
@@ -163,10 +141,6 @@ public class DynamicRouteGatewayFilterFactory
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
         }
-
-    }
-
-    private static class RouteConfigInfoResponseDto extends GenericResponseDto<List<RouteItemInfoDto>> {
 
     }
 
