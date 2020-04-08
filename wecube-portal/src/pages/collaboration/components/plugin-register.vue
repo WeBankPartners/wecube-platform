@@ -164,14 +164,6 @@
                           </Col>
                           <Col span="10" offset="0">
                             <FormItem :label-width="0">
-                              <!-- <PathExp
-                                v-if="param.mappingType === 'entity'"
-                                :rootPkg="pkgName"
-                                :rootEntity="rootEntity"
-                                :allDataModelsWithAttrs="allEntityType"
-                                :disabled="currentPluginObj.status === 'ENABLED'"
-                                v-model="param.mappingEntityExpression"
-                              ></PathExp> -->
                               <FilterRules
                                 v-if="param.mappingType === 'entity'"
                                 v-model="param.mappingEntityExpression"
@@ -257,14 +249,6 @@
                           </Col>
                           <Col span="10" offset="0">
                             <FormItem :label-width="0">
-                              <!-- <PathExp
-                                v-if="outPut.mappingType === 'entity'"
-                                :rootPkg="pkgName"
-                                :rootEntity="rootEntity"
-                                :allDataModelsWithAttrs="allEntityType"
-                                :disabled="currentPluginObj.status === 'ENABLED'"
-                                v-model="outPut.mappingEntityExpression"
-                              ></PathExp> -->
                               <FilterRules
                                 v-if="outPut.mappingType === 'entity'"
                                 v-model="outPut.mappingEntityExpression"
@@ -318,7 +302,6 @@
   </div>
 </template>
 <script>
-import PathExp from '../../components/path-exp.vue'
 import FilterRules from '../../components/filter-rules.vue'
 import InterfaceFilterRule from '../../components/interface-filter-rule.vue'
 import {
@@ -366,7 +349,6 @@ export default {
     }
   },
   components: {
-    PathExp,
     FilterRules,
     InterfaceFilterRule
   },
