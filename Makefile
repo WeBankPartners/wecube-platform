@@ -81,7 +81,7 @@ release:
 	docker push webankpartners/wecube-db:$(release_version)
 
 huawei_cloud_release_version=huawei-cloud-release-version
-release:
+releaseToHuaweiCloud:
 	docker tag  platform-core:$(version) swr.ap-southeast-3.myhuaweicloud.com/webankpartners/platform-core:$(huawei_cloud_release_version)
 	docker push swr.ap-southeast-3.myhuaweicloud.com/webankpartners/platform-core:$(huawei_cloud_release_version)
 
