@@ -164,14 +164,22 @@
                           </Col>
                           <Col span="10" offset="0">
                             <FormItem :label-width="0">
-                              <PathExp
+                              <!-- <PathExp
                                 v-if="param.mappingType === 'entity'"
                                 :rootPkg="pkgName"
                                 :rootEntity="rootEntity"
                                 :allDataModelsWithAttrs="allEntityType"
                                 :disabled="currentPluginObj.status === 'ENABLED'"
                                 v-model="param.mappingEntityExpression"
-                              ></PathExp>
+                              ></PathExp> -->
+                              <FilterRules
+                                v-if="param.mappingType === 'entity'"
+                                v-model="param.mappingEntityExpression"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                :allDataModelsWithAttrs="allEntityType"
+                                :needNativeAttr="true"
+                                :needAttr="true"
+                              ></FilterRules>
                               <Select
                                 v-if="param.mappingType === 'system_variable'"
                                 v-model="param.mappingSystemVariableName"
@@ -249,14 +257,22 @@
                           </Col>
                           <Col span="10" offset="0">
                             <FormItem :label-width="0">
-                              <PathExp
+                              <!-- <PathExp
                                 v-if="outPut.mappingType === 'entity'"
                                 :rootPkg="pkgName"
                                 :rootEntity="rootEntity"
                                 :allDataModelsWithAttrs="allEntityType"
                                 :disabled="currentPluginObj.status === 'ENABLED'"
                                 v-model="outPut.mappingEntityExpression"
-                              ></PathExp>
+                              ></PathExp> -->
+                              <FilterRules
+                                v-if="outPut.mappingType === 'entity'"
+                                v-model="outPut.mappingEntityExpression"
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                :allDataModelsWithAttrs="allEntityType"
+                                :needNativeAttr="true"
+                                :needAttr="true"
+                              ></FilterRules>
                               <span v-if="outPut.mappingType === 'context'">N/A</span>
                             </FormItem>
                           </Col>
