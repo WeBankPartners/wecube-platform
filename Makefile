@@ -80,6 +80,23 @@ release:
 	docker tag  wecube-db:$(version) webankpartners/wecube-db:$(release_version)
 	docker push webankpartners/wecube-db:$(release_version)
 
+huawei_cloud_release_version=huawei-cloud-release-version
+release:
+	docker tag  platform-core:$(version) swr.ap-southeast-3.myhuaweicloud.com/webankpartners/platform-core:$(huawei_cloud_release_version)
+	docker push swr.ap-southeast-3.myhuaweicloud.com/webankpartners/platform-core:$(huawei_cloud_release_version)
+
+	docker tag  platform-gateway:$(version) swr.ap-southeast-3.myhuaweicloud.com/webankpartners/platform-gateway:$(huawei_cloud_release_version)
+	docker push swr.ap-southeast-3.myhuaweicloud.com/webankpartners/platform-gateway:$(huawei_cloud_release_version)
+
+	docker tag  wecube-portal:$(version) swr.ap-southeast-3.myhuaweicloud.com/webankpartners/wecube-portal:$(huawei_cloud_release_version)
+	docker push swr.ap-southeast-3.myhuaweicloud.com/webankpartners/wecube-portal:$(huawei_cloud_release_version)
+
+	docker tag  platform-auth-server:$(version) swr.ap-southeast-3.myhuaweicloud.com/webankpartners/platform-auth-server:$(huawei_cloud_release_version)
+	docker push swr.ap-southeast-3.myhuaweicloud.com/webankpartners/platform-auth-server:$(huawei_cloud_release_version)
+    
+	docker tag  wecube-db:$(version) swr.ap-southeast-3.myhuaweicloud.com/webankpartners/wecube-db:$(huawei_cloud_release_version)
+	docker push swr.ap-southeast-3.myhuaweicloud.com/webankpartners/wecube-db:$(huawei_cloud_release_version)
+
 env_config=smoke_branch.cfg
 target_host="tcp://10.0.0.1:2375"
 deploy:
