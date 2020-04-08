@@ -46,6 +46,9 @@ public class ProcExecBindingTmpEntity extends BaseTraceableEntity {
 
 	@Column(name = "ENTITY_DATA_ID")
 	private String entityDataId;
+	
+	@Column(name = "ENTITY_DATA_NAME")
+	private String entityDataName;
 
 	public Integer getId() {
 		return id;
@@ -119,4 +122,11 @@ public class ProcExecBindingTmpEntity extends BaseTraceableEntity {
 		this.bound = bound;
 	}
 
+	public String getEntityDataName() {
+		return entityDataName;
+	}
+
+	public void setEntityDataName(String entityDataName) {
+		this.entityDataName = entityDataName;
+	}
 }
