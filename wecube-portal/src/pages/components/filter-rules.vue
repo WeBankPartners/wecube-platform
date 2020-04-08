@@ -23,7 +23,7 @@
         }}</Button>
       </div>
       <div slot="content">
-        <div class="filter_rules_path_options">
+        <div v-if="!disabled" class="filter_rules_path_options">
           <ul>
             <li id="paste" v-if="pathList.length === 0">
               <input
@@ -199,6 +199,8 @@ export default {
       }
       let data = clipboardData.getData('Text')
       this.restorePathExp(data)
+      this.$emit('input', this.fullPathExp)
+      this.$emit('change', this.fullPathExp)
     },
     restorePathExp (PathExp) {
       this.pathList = []
@@ -336,7 +338,7 @@ export default {
             }
           }
           value =
-            value.indexOf('[') > -1
+            value.indexOf('[') > -1 && found.dataType === 'ref'
               ? value
                 .slice(1, -1)
                 .split(',')
