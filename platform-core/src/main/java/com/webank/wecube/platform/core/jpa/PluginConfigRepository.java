@@ -19,6 +19,8 @@ public interface PluginConfigRepository extends CrudRepository<PluginConfig, Str
     
     boolean existsByPluginPackage_idAndNameAndRegisterName(String pluginPackageId, String name, String registerName);
 
+    int countByPluginPackage_idAndNameAndRegisterName(String pluginPackageId, String name, String registerName);
+
     @Query("SELECT DISTINCT inf FROM PluginConfig cfg JOIN cfg.interfaces inf LEFT JOIN FETCH inf.inputParameters LEFT JOIN FETCH inf.outputParameters WHERE cfg.id = :pluginConfigId")
     List<PluginConfigInterface> findAllPluginConfigInterfacesByConfigIdAndFetchParameters(String pluginConfigId);
 

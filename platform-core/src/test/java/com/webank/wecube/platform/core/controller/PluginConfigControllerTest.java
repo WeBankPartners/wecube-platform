@@ -75,7 +75,7 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("$.status", is("ERROR")))
                     .andExpect(jsonPath("$.message",
                             is(String.format(
-                                    "PluginPackageEntity not found for packageName:dataModelVersion:entityName [service-management:2:entity_not_exists_at_all_blabla] for plugin config: Vpc Management",
+                                    "PluginPackageEntity not found for packageName:dataModelVersion:entityName [service-management:2:entity_not_exists_at_all_blabla] for plugin config: Vpc",
                                     NON_EXIST_ENTITY_ID))))
                     .andDo(print()).andReturn().getResponse().getContentAsString();
         } catch (Exception e) {
@@ -459,12 +459,12 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                 + ",('13', '5', 'service_request', 'service-management', '', 'ENABLED')\n"
                 + ",('14', '5', 'task', 'service-management', '', 'ENABLED')\n"
                 + ",('21', '2', 'Vpc Management', 'service-management', null, 'DISABLED')\n"
-                + ",('31', '3', 'Vpc Management', 'service-management', null, 'DISABLED')\n"
+                + ",('31', '3', 'Vpc', 'service-management', null, 'DISABLED')\n"
                 + ",('32', '4', 'Vpc Management', 'service-management', null, 'DISABLED')\n"
                 + ",('33', '5', 'Vpc Management', 'service-management', null, 'DISABLED')\n" + ";\n"
                 + "insert into plugin_configs (id, plugin_package_id, name, status) values\n"
                 + " ('41', '3', 'Vpc Management', 'DISABLED')\n"
-                + ",('99', '3', 'Vpc Management', 'DISABLED')\n"
+                + ",('99', '3', 'Subnet', 'DISABLED')\n"
                 + ";\n"
                 + "insert into plugin_config_interfaces (id, plugin_config_id, action, service_name, service_display_name, path, http_method) values "
                 + " ('1', '11', 'create', 'service-management/task/create', 'service-management/task/create', '/service-management/tasks', 'POST')"
