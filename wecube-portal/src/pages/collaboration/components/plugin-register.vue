@@ -164,14 +164,14 @@
                           </Col>
                           <Col span="10" offset="0">
                             <FormItem :label-width="0">
-                              <PathExp
+                              <FilterRules
                                 v-if="param.mappingType === 'entity'"
-                                :rootPkg="pkgName"
-                                :rootEntity="rootEntity"
-                                :allDataModelsWithAttrs="allEntityType"
-                                :disabled="currentPluginObj.status === 'ENABLED'"
                                 v-model="param.mappingEntityExpression"
-                              ></PathExp>
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                :allDataModelsWithAttrs="allEntityType"
+                                :needNativeAttr="true"
+                                :needAttr="true"
+                              ></FilterRules>
                               <Select
                                 v-if="param.mappingType === 'system_variable'"
                                 v-model="param.mappingSystemVariableName"
@@ -249,14 +249,14 @@
                           </Col>
                           <Col span="10" offset="0">
                             <FormItem :label-width="0">
-                              <PathExp
+                              <FilterRules
                                 v-if="outPut.mappingType === 'entity'"
-                                :rootPkg="pkgName"
-                                :rootEntity="rootEntity"
-                                :allDataModelsWithAttrs="allEntityType"
-                                :disabled="currentPluginObj.status === 'ENABLED'"
                                 v-model="outPut.mappingEntityExpression"
-                              ></PathExp>
+                                :disabled="currentPluginObj.status === 'ENABLED'"
+                                :allDataModelsWithAttrs="allEntityType"
+                                :needNativeAttr="true"
+                                :needAttr="true"
+                              ></FilterRules>
                               <span v-if="outPut.mappingType === 'context'">N/A</span>
                             </FormItem>
                           </Col>
@@ -302,7 +302,6 @@
   </div>
 </template>
 <script>
-import PathExp from '../../components/path-exp.vue'
 import FilterRules from '../../components/filter-rules.vue'
 import InterfaceFilterRule from '../../components/interface-filter-rule.vue'
 import {
@@ -350,7 +349,6 @@ export default {
     }
   },
   components: {
-    PathExp,
     FilterRules,
     InterfaceFilterRule
   },
@@ -442,6 +440,9 @@ export default {
       }
       const saveRes = await savePluginConfig(currentPluginForSave)
       if (saveRes.status === 'OK') {
+        if (this.hasNewSource) {
+          this.hasNewSource = false
+        }
         const { status, message } = await registerPlugin(saveRes.data.id)
         if (status === 'OK') {
           this.$Notice.success({
