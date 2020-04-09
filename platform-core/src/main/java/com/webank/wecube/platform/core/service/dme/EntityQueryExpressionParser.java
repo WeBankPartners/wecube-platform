@@ -91,6 +91,13 @@ public class EntityQueryExpressionParser {
             
             expr = expr.substring(expr.indexOf(PKG_DELIMITER) + 1);
         }
+        
+        if(expr.indexOf(".") > 0){
+            String attrName = expr.substring(expr.indexOf(".") + 1);
+            nodeInfo.setQueryAttrName(attrName);
+            
+            expr = expr.substring(0, expr.indexOf("."));
+        }
 
         if(expr.indexOf("{") > 0){
             String filterExpr = expr.substring(expr.indexOf("{"));

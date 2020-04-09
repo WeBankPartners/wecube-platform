@@ -40,6 +40,9 @@ public class ProcExecBindingEntity extends BaseTraceableEntity {
 
     @Column(name = "ENTITY_DATA_ID")
     private String entityDataId;
+    
+    @Column(name = "ENTITY_DATA_NAME")
+    private String entityDataName;
 
     public Integer getId() {
         return id;
@@ -105,4 +108,11 @@ public class ProcExecBindingEntity extends BaseTraceableEntity {
         this.nodeDefId = nodeDefId;
     }
 
+	public String getEntityDataName() {
+		return entityDataName;
+	}
+
+	public void setEntityDataName(String entityDataName) {
+		this.entityDataName = entityDataName;
+	}
 }
