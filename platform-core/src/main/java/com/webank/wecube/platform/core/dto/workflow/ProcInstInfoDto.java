@@ -3,6 +3,9 @@ package com.webank.wecube.platform.core.dto.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProcInstInfoDto {
     private Integer id;
     private String procInstKey;
@@ -14,6 +17,7 @@ public class ProcInstInfoDto {
 
     private String entityTypeId;
     private String entityDataId;
+    private String entityDisplayName;
 
     private List<TaskNodeInstDto> taskNodeInstances = new ArrayList<>();
 
@@ -24,8 +28,16 @@ public class ProcInstInfoDto {
     public void setId(Integer id) {
         this.id = id;
     }
+    
+    public String getEntityDisplayName() {
+		return entityDisplayName;
+	}
 
-    public String getProcInstKey() {
+	public void setEntityDisplayName(String entityDisplayName) {
+		this.entityDisplayName = entityDisplayName;
+	}
+
+	public String getProcInstKey() {
         return procInstKey;
     }
 
