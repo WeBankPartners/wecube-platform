@@ -137,7 +137,7 @@ export default {
               nondes[i].children[j].setAttribute('font-size', fontsize)
             }
           }
-        }, 0)
+        }, 100)
       })
     },
     initGraph () {
