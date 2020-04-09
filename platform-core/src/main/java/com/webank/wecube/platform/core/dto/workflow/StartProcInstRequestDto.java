@@ -7,10 +7,19 @@ public class StartProcInstRequestDto {
     private String procDefId;
     private String entityTypeId;
     private String entityDataId;
+    private String entityDisplayName;
     private String processSessionId;
     private List<TaskNodeDefObjectBindInfoDto> taskNodeBinds = new ArrayList<>();
+    
+    public String getEntityDisplayName() {
+		return entityDisplayName;
+	}
 
-    public String getProcDefId() {
+	public void setEntityDisplayName(String entityDisplayName) {
+		this.entityDisplayName = entityDisplayName;
+	}
+
+	public String getProcDefId() {
         return procDefId;
     }
 
