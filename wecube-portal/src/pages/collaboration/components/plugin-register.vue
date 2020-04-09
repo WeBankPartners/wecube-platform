@@ -440,6 +440,9 @@ export default {
       }
       const saveRes = await savePluginConfig(currentPluginForSave)
       if (saveRes.status === 'OK') {
+        if (this.hasNewSource) {
+          this.hasNewSource = false
+        }
         const { status, message } = await registerPlugin(saveRes.data.id)
         if (status === 'OK') {
           this.$Notice.success({
