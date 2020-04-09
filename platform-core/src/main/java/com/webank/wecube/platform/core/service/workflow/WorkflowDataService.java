@@ -438,9 +438,10 @@ public class WorkflowDataService {
 				saveLeafNodeEntityNodesTemporary(f, overview.getLeafNodeEntityNodes(), processSessionId);
 			}
 		} catch (Exception e) {
-			log.error("errors while fetching data for node {} {} with expr {} and data id {}", f.getNodeDefId(),
-					f.getNodeName(), routineExpr, dataId, e);
-			throw new WecubeCoreException(String.format("Errors occurs while fetching data: %s", e.getMessage()));
+			String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s", f.getNodeDefId(),
+					f.getNodeName(), routineExpr, dataId);
+			log.error(errMsg, e);
+			throw new WecubeCoreException(errMsg);
 		}
 
 		if (nodes == null || nodes.isEmpty()) {
