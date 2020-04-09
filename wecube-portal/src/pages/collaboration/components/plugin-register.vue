@@ -432,14 +432,19 @@ export default {
       this.currentPluginObj.registerName = this.registerName
       let currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
       currentPluginForSave.targetEntityWithFilterRule = this.selectedEntityType
+      console.log(3, this.currentPluginObj)
       if (this.hasNewSource) {
         delete currentPluginForSave.id
         currentPluginForSave.interfaces.map(_ => {
           delete _.id
         })
       }
+      console.log(4, currentPluginForSave)
       const saveRes = await savePluginConfig(currentPluginForSave)
       if (saveRes.status === 'OK') {
+        if (this.hasNewSource) {
+          this.hasNewSource = false
+        }
         const { status, message } = await registerPlugin(saveRes.data.id)
         if (status === 'OK') {
           this.$Notice.success({
@@ -539,6 +544,7 @@ export default {
       this.isLoading = true
       this.currentPluginObj = {}
       let currentConfig = this.allPluginConfigs.find(s => s.id === id)
+      console.log(1, currentConfig)
       const { data, status } = await getInterfacesByPluginConfigId(id)
       if (status === 'OK') {
         currentConfig.interfaces = data.map(_ => {
@@ -549,6 +555,7 @@ export default {
         })
       }
       this.currentPluginObj = currentConfig
+      console.log(2, this.currentPluginObj)
       this.selectedEntityType = currentConfig.targetEntityWithFilterRule
       this.registerName = this.currentPluginObj.registerName
       this.hidePanal = true
