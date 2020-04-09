@@ -113,11 +113,13 @@ export default {
       let drawConnection = (from, to) => {
         return `"${from.id}" -> "${to.id}"[edgetooltip="${to.id}"];`
       }
+
       let addNodeAttr = node => {
         const color = '#273c75'
-        return `"${node.id}" [fixedsize=false id="${node.id}" label="${node.id +
-          '_v' +
-          node.dataModelVersion}" shape="box" fontcolor="${color}"];`
+        return `"${node.id}" [fixedsize=false id="${node.id}" label="${node.name +
+          '(v' +
+          node.dataModelVersion +
+          ')'}" shape="box" fontcolor="${color}"];`
       }
       const nodeMap = new Map()
       this.data.forEach(node => {
