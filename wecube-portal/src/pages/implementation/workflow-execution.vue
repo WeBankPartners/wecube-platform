@@ -590,7 +590,7 @@ export default {
         nodesToString +
         genEdge() +
         '}'
-      this.graph.graphviz.renderDot(nodesString)
+      this.graph.graphviz.renderDot(nodesString).transition()
       this.setFontSizeForText()
       removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       removeEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
@@ -608,7 +608,7 @@ export default {
               nondes[i].children[j].setAttribute('font-size', fontsize)
             }
           }
-        }, 0)
+        }, 100)
       })
     },
     modelGraphMouseenterHandler (e) {
@@ -698,7 +698,7 @@ export default {
         genEdge() +
         '}'
 
-      this.flowGraph.graphviz.renderDot(nodesString)
+      this.flowGraph.graphviz.renderDot(nodesString).transition()
       this.bindFlowEvent()
     },
     async excutionFlow () {
@@ -932,7 +932,7 @@ export default {
         this.flowGraph.graphviz = graph
           .graphviz()
           .fit(true)
-          .zoom(false)
+          .zoom(true)
           .height(graphEl.offsetHeight - 10)
           .width(graphEl.offsetWidth - 10)
       }
