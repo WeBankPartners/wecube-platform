@@ -1,11 +1,15 @@
 package com.webank.wecube.platform.core.dto.workflow;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskNodeDefObjectBindInfoDto {
 
 	private String nodeDefId;
 	private String orderedNo;
 	private String entityTypeId;
 	private String entityDataId;
+	private String entityDisplayName;
 
 	private String bound;// "Y"-bound,default;"N"-unbound;
 
@@ -49,4 +53,11 @@ public class TaskNodeDefObjectBindInfoDto {
 		this.bound = bound;
 	}
 
+	public String getEntityDisplayName() {
+		return entityDisplayName;
+	}
+
+	public void setEntityDisplayName(String entityDisplayName) {
+		this.entityDisplayName = entityDisplayName;
+	}
 }

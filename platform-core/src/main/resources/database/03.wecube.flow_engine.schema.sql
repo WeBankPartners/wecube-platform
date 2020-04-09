@@ -1407,6 +1407,7 @@ CREATE TABLE `core_ru_proc_exec_binding` (
   `proc_def_id` varchar(255) DEFAULT NULL,
   `proc_inst_id` int(11) DEFAULT NULL,
   `task_node_inst_id` int(11) DEFAULT NULL,
+  `entity_data_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -1492,6 +1493,7 @@ CREATE TABLE `core_ru_proc_exec_binding_tmp` (
   `ordered_no` varchar(255)  DEFAULT NULL,
   `proc_def_id` varchar(255)  DEFAULT NULL,
   `proc_session_id` varchar(255)  DEFAULT NULL,
+  `entity_data_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
