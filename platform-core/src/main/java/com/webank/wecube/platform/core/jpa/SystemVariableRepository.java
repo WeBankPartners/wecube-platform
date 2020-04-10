@@ -19,6 +19,8 @@ public interface SystemVariableRepository extends CrudRepository<SystemVariable,
     List<SystemVariable> findAllByScopeAndSource(String scope, String source);
 
     Optional<List<SystemVariable>> findBySource(String source);
+    
+    List<SystemVariable> findAllBySourceIn(List<String> sourceList);
 
     List<SystemVariable> findAllByScopeAndStatus(String scope, String status);
 
