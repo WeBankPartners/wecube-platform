@@ -259,14 +259,10 @@ public class PluginPackageService {
     }
 
     private void updateSystemVariableStatus(PluginPackage pluginPackage) {
-        List<SystemVariable> globalSystemVariables = systemVariableRepository.findAllByScopeAndSource("global",
-                pluginPackage.getId());
-        globalSystemVariables.forEach(globalSystemVariable -> {
-            globalSystemVariable.activate();
-        });
-        systemVariableRepository.saveAll(globalSystemVariables);
+        List<String> packageIdList = new ArrayList<String>();
+        pluginPackageRepository.findAllByName(pluginPackage.getName()).forEach(pkg -> packageIdList.add(pkg.getId()));
 
-        List<SystemVariable> pluginSystemVariables = systemVariableRepository.findAllByScope(pluginPackage.getName());
+        List<SystemVariable> pluginSystemVariables = systemVariableRepository.findAllBySourceIn(packageIdList);
         pluginSystemVariables.forEach(pluginSystemVariable -> {
             if (SystemVariable.ACTIVE.equals(pluginSystemVariable.getStatus())
                     && !pluginPackage.getId().equals(pluginSystemVariable.getSource())) {
