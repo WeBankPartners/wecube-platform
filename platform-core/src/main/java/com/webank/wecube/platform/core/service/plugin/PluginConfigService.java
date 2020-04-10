@@ -89,14 +89,20 @@ public class PluginConfigService {
         }
     }
 
-    private void ensurePluginConfigRegisterNameNotDuplicate(PluginConfigDto pluginConfigDto) {
-        int num=pluginConfigRepository.countByPluginPackage_idAndNameAndRegisterName(pluginConfigDto.getPluginPackageId(),
-                pluginConfigDto.getName(), pluginConfigDto.getRegisterName());
-        if (num>1) {
-            throw new WecubeCoreException(
-                    String.format("PluginPackage[%s] already have this PluginConfig[%s] with RegisterName[%s]",
-                            pluginConfigDto.getPluginPackageId(), pluginConfigDto.getName(),
-                            pluginConfigDto.getRegisterName()));
+    private void ensurePluginConfigUnique(PluginConfigDto pluginConfigDto) {
+        Optional<List<PluginConfig>> existedPluginConfigListOptional = pluginConfigRepository
+                .findAllByPluginPackage_idAndNameAndRegisterName(pluginConfigDto.getPluginPackageId(),
+                        pluginConfigDto.getName(), pluginConfigDto.getRegisterName());
+        if (existedPluginConfigListOptional.isPresent()) {
+            List<PluginConfig> existedPluginConfigList = existedPluginConfigListOptional.get();
+            existedPluginConfigList.forEach(existedPluginConfig -> {
+                if (!existedPluginConfig.getId().equals(pluginConfigDto.getId())) {
+                    throw new WecubeCoreException(
+                            String.format("PluginPackage[%s] already have this PluginConfig[%s] with RegisterName[%s]",
+                                    pluginConfigDto.getPluginPackageId(), pluginConfigDto.getName(),
+                                    pluginConfigDto.getRegisterName()));
+                }
+            });
         }
     }
 
@@ -129,7 +135,7 @@ public class PluginConfigService {
         if (!pluginConfigRepository.existsById(pluginConfigDto.getId())) {
             throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigDto.getId());
         }
-        ensurePluginConfigRegisterNameNotDuplicate(pluginConfigDto);
+        ensurePluginConfigUnique(pluginConfigDto);
 
         ensureEntityIsValid(pluginConfigDto.getName(), pluginConfigDto.getTargetPackage(), pluginConfigDto.getTargetEntity());
     }
