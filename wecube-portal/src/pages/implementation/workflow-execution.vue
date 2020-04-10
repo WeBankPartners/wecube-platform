@@ -721,7 +721,7 @@ export default {
 
         let payload = {
           processSessionId: this.processSessionId,
-          entityDataId: currentTarget.id,
+          entityDisplayName: currentTarget.displayName,
           entityTypeId: this.flowData.rootEntity,
           procDefId: this.flowData.procDefId,
           taskNodeBinds: taskNodeBinds.map(_ => {
