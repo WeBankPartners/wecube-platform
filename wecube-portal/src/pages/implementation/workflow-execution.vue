@@ -591,8 +591,8 @@ export default {
         genEdge() +
         '}'
       this.graph.graphviz
-        .renderDot(nodesString)
         .transition()
+        .renderDot(nodesString)
         .on('end', this.setFontSizeForText)
       removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       removeEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
@@ -696,7 +696,7 @@ export default {
         genEdge() +
         '}'
 
-      this.flowGraph.graphviz.renderDot(nodesString).transition()
+      this.flowGraph.graphviz.transition().renderDot(nodesString)
       this.bindFlowEvent()
     },
     async excutionFlow () {
@@ -721,7 +721,7 @@ export default {
 
         let payload = {
           processSessionId: this.processSessionId,
-          entityDataId: currentTarget.id,
+          entityDisplayName: currentTarget.displayName,
           entityTypeId: this.flowData.rootEntity,
           procDefId: this.flowData.procDefId,
           taskNodeBinds: taskNodeBinds.map(_ => {
