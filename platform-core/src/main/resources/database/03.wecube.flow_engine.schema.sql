@@ -1516,4 +1516,30 @@ CREATE TABLE `core_ru_graph_node` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+drop table if exists `core_operation_event`;
+CREATE TABLE `core_operation_event` (
+    `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+    `created_by` VARCHAR(255) NULL DEFAULT NULL,
+    `created_time` DATETIME NULL DEFAULT NULL,
+    `updated_by` VARCHAR(255) NULL DEFAULT NULL,
+    `updated_time` DATETIME NULL DEFAULT NULL,
+    `event_seq_no` VARCHAR(255) NULL DEFAULT NULL,
+    `event_type` VARCHAR(255) NULL DEFAULT NULL,
+    `is_notified` BIT(1) NULL DEFAULT NULL,
+    `notify_endpoint` VARCHAR(255) NULL DEFAULT NULL,
+    `is_notify_required` BIT(1) NULL DEFAULT NULL,
+    `oper_data` VARCHAR(255) NULL DEFAULT NULL,
+    `oper_key` VARCHAR(255) NULL DEFAULT NULL,
+    `oper_user` VARCHAR(255) NULL DEFAULT NULL,
+    `proc_def_id` VARCHAR(255) NULL DEFAULT NULL,
+    `proc_inst_id` VARCHAR(255) NULL DEFAULT NULL,
+    `src_sub_system` VARCHAR(255) NULL DEFAULT NULL,
+    `status` VARCHAR(255) NULL DEFAULT NULL,
+    `end_time` DATETIME NULL DEFAULT NULL,
+    `priority` INT(11) NULL DEFAULT NULL,
+    `proc_inst_key` VARCHAR(255) NULL DEFAULT NULL,
+    `start_time` DATETIME NULL DEFAULT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 SET FOREIGN_KEY_CHECKS = 1;
