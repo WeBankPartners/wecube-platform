@@ -523,7 +523,7 @@ export default {
     },
     async getModelData () {
       this.modelData = []
-      if (!this.selectedFlow || !this.selectedTarget) {
+      if ((!this.selectedFlow || !this.selectedTarget) && !this.isEnqueryPage) {
         this.renderModelGraph()
         return
       }
@@ -532,7 +532,7 @@ export default {
         ? await getPreviewEntitiesByInstancesId(this.selectedFlowInstance)
         : await getTreePreviewData(this.selectedFlow, this.selectedTarget)
       this.isLoading = false
-      if (!this.selectedTarget) return
+      if (!this.selectedTarget && !this.isEnqueryPage) return
       if (status === 'OK') {
         this.processSessionId = data.processSessionId
         const binds = await getAllBindingsProcessSessionId(data.processSessionId)
@@ -735,6 +735,7 @@ export default {
         })
 
         let payload = {
+          entityDataId: currentTarget.id,
           processSessionId: this.processSessionId,
           entityDisplayName: currentTarget.displayName,
           entityTypeId: this.flowData.rootEntity,
