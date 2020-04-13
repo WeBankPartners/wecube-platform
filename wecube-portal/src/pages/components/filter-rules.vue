@@ -120,6 +120,9 @@ export default {
     }
   },
   props: {
+    rootEntity: {
+      required: false
+    },
     value: {
       required: false
     },
@@ -144,6 +147,13 @@ export default {
     allDataModelsWithAttrs: {
       handler (val) {
         this.formatCurrentOptions()
+      }
+    },
+    rootEntity: {
+      handler (val) {
+        this.restorePathExp(val)
+        this.$emit('input', this.fullPathExp)
+        this.$emit('change', this.fullPathExp)
       }
     }
   },
@@ -475,6 +485,12 @@ export default {
   },
   mounted () {
     // this.bindPastePathExp()
+    if (!this.value && this.rootEntity) {
+      this.restorePathExp(this.rootEntity)
+      this.$emit('input', this.fullPathExp)
+      this.$emit('change', this.fullPathExp)
+      return
+    }
     this.formatFirstCurrentOptions()
   }
 }
