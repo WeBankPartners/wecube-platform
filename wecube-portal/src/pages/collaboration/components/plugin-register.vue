@@ -169,6 +169,7 @@
                                 v-model="param.mappingEntityExpression"
                                 :disabled="currentPluginObj.status === 'ENABLED'"
                                 :allDataModelsWithAttrs="allEntityType"
+                                :rootEntity="selectedEntityType"
                                 :needNativeAttr="true"
                                 :needAttr="true"
                               ></FilterRules>
@@ -254,6 +255,7 @@
                                 v-model="outPut.mappingEntityExpression"
                                 :disabled="currentPluginObj.status === 'ENABLED'"
                                 :allDataModelsWithAttrs="allEntityType"
+                                :rootEntity="selectedEntityType"
                                 :needNativeAttr="true"
                                 :needAttr="true"
                               ></FilterRules>
