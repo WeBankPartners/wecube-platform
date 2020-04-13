@@ -11,17 +11,28 @@
                   :value="item.id"
                   :key="item.id"
                   :label="
-                    item.procInstName + ' ' + (item.createdTime || 'createdTime') + ' ' + (item.operator || 'operator')
+                    item.procInstName +
+                      ' ' +
+                      item.entityDisplayName +
+                      ' ' +
+                      (item.createdTime || 'createdTime') +
+                      ' ' +
+                      (item.operator || 'operator')
                   "
                 >
                   <span>
-                    {{
-                      item.procInstName +
-                        ' ' +
-                        (item.createdTime || 'createdTime') +
-                        ' ' +
-                        (item.operator || 'operator')
-                    }}
+                    <span style="color:#2b85e4">
+                      {{ item.procInstName + ' ' }}
+                    </span>
+                    <span style="color:#515a6e">
+                      {{ item.entityDisplayName + ' ' }}
+                    </span>
+                    <span style="color:#ccc;float:right">
+                      {{ (item.createdTime || 'createdTime') + ' ' }}
+                    </span>
+                    <span style="float:right;color:#515a6e;margin-right:20px">
+                      {{ item.operator || 'operator' }}
+                    </span>
                   </span>
                 </Option>
               </Select>
@@ -511,13 +522,17 @@ export default {
       this.getModelData()
     },
     async getModelData () {
-      if (!this.selectedFlow || !this.selectedTarget) return
+      this.modelData = []
+      if ((!this.selectedFlow || !this.selectedTarget) && !this.isEnqueryPage) {
+        this.renderModelGraph()
+        return
+      }
       this.isLoading = true
       let { status, data } = this.isEnqueryPage
         ? await getPreviewEntitiesByInstancesId(this.selectedFlowInstance)
         : await getTreePreviewData(this.selectedFlow, this.selectedTarget)
       this.isLoading = false
-      if (!this.selectedTarget) return
+      if (!this.selectedTarget && !this.isEnqueryPage) return
       if (status === 'OK') {
         this.processSessionId = data.processSessionId
         const binds = await getAllBindingsProcessSessionId(data.processSessionId)
@@ -529,8 +544,8 @@ export default {
           }
         })
         this.formatRefNodeIds()
-        this.renderModelGraph()
       }
+      this.renderModelGraph()
     },
     async getFlowOutlineData (id) {
       if (!id) return
@@ -720,6 +735,7 @@ export default {
         })
 
         let payload = {
+          entityDataId: currentTarget.id,
           processSessionId: this.processSessionId,
           entityDisplayName: currentTarget.displayName,
           entityTypeId: this.flowData.rootEntity,
@@ -946,7 +962,7 @@ export default {
 </script>
 <style lang="scss" scoped>
 body {
-  color: #15a043;
+  color: #e5f173; //#15a043;
 }
 #graphcontain {
   border: 1px solid #d3cece;

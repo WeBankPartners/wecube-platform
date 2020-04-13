@@ -45,7 +45,7 @@
               e.key_name
             }}</Option>
           </Select>
-          <span v-if="rule.op === 'is' || rule.op === 'isnot'">null</span>
+          <span v-if="rule.op === 'is' || rule.op === 'isnot'">NULL</span>
         </Col>
       </Row>
       <Row style="margin-top: 10px">
@@ -185,19 +185,23 @@ export default {
       this.modelVisable = false
       if (!this.disabled) {
         let rules = ''
-        this.currentPathFilterRules.forEach((rule, index) => {
-          const isMultiple = Array.isArray(rule.value)
-          let str = ''
-          if (isMultiple) {
-            str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
-          } else if (rule.op === 'is' || rule.op === 'isnot') {
-            str = `{${rule.attr} ${rule.op} null}`
-          } else {
-            const noQuotation = rule.op === 'gt' || rule.op === 'lt'
-            str = noQuotation ? `{${rule.attr} ${rule.op} ${rule.value}}` : `{${rule.attr} ${rule.op} '${rule.value}'}`
-          }
-          rules += str
-        })
+        this.currentPathFilterRules
+          .filter(r => r.op && r.attr)
+          .forEach((rule, index) => {
+            const isMultiple = Array.isArray(rule.value)
+            let str = ''
+            if (isMultiple) {
+              str = `{${rule.attr} ${rule.op} [${rule.value.map(v => `'${v}'`)}]}`
+            } else if (rule.op === 'is' || rule.op === 'isnot') {
+              str = `{${rule.attr} ${rule.op} NULL}`
+            } else {
+              const noQuotation = rule.op === 'gt' || rule.op === 'lt'
+              str = noQuotation
+                ? `{${rule.attr} ${rule.op} ${rule.value}}`
+                : `{${rule.attr} ${rule.op} '${rule.value}'}`
+            }
+            rules += str
+          })
         this.currentPathFilterRules = []
         this.$emit('input', rules)
       }
