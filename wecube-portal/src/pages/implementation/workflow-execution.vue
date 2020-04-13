@@ -470,7 +470,6 @@ export default {
       this.$nextTick(async () => {
         const found = this.allFlowInstances.find(_ => _.id === this.selectedFlowInstance)
         if (!(found && found.id)) return
-        console.log(found)
         this.selectedFlow = found.procDefId
         this.selectedTarget = found.entityDataId
         this.processInstance()
