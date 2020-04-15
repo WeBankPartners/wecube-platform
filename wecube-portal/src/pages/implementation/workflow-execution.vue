@@ -570,13 +570,15 @@ export default {
       let nodes = this.modelData.map((_, index) => {
         const nodeId = _.packageName + '_' + _.entityName + '_' + _.dataId
         let color = _.isHighlight ? '#5DB400' : 'black'
-        const isRecord = _.refFlowNodeIds.length > 0
-        const shape = isRecord ? 'ellipse' : 'ellipse'
+        // const isRecord = _.refFlowNodeIds.length > 0
+        // const shape = isRecord ? 'ellipse' : 'ellipse'
+        const str = _.displayName || _.dataId
         const refStr = _.refFlowNodeIds.toString().replace(/,/g, '/')
-        const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
-        const fontSize = Math.min((58 / len) * 3, 16)
-        const label = (_.displayName || _.dataId) + '\n' + refStr
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize=${fontSize} style="filled" fillcolor="white" shape="${shape}"]`
+        // const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
+        const firstLabel = str.length > 15 ? `${str.slice(0, 1)}...${str.slice(-14)}` : str
+        // const fontSize = Math.min((58 / len) * 3, 16)
+        const label = firstLabel + '\n' + refStr
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="box"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -600,15 +602,13 @@ export default {
       let nodesString =
         'digraph G { ' +
         'bgcolor="transparent";' +
-        'Node [fontname=Arial, shape="ellipse", fixedsize="true", width="1.6", height=".8"];' +
+        'Node [fontname=Arial, shape="ellipse"];' +
         'Edge [fontname=Arial, minlen="1", color="#7f8fa6", fontsize=10];' +
         nodesToString +
         genEdge() +
         '}'
-      this.graph.graphviz
-        .transition()
-        .renderDot(nodesString)
-        .on('end', this.setFontSizeForText)
+      this.graph.graphviz.transition().renderDot(nodesString)
+      // .on('end', this.setFontSizeForText)
       removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       removeEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
       addEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
