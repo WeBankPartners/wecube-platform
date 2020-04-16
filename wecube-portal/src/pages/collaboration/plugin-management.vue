@@ -1,5 +1,9 @@
 <template>
   <Row style="padding:20px">
+    <Spin size="large" fix v-if="isLoading">
+      <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+      <div>{{ $t('loading') }}</div>
+    </Spin>
     <Col span="6">
       <Row>
         <Card dis-hover>
@@ -117,10 +121,6 @@
       </Card>
     </Col>
     <Col span="18" style="padding-left: 20px" v-if="isShowRuntimeManagementPanel">
-      <Spin size="large" fix v-if="isLoading">
-        <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
-        <div>{{ $t('loading') }}</div>
-      </Spin>
       <div v-if="Object.keys(currentPlugin).length > 0">
         <div v-if="currentPlugin.children">
           <Row class="instances-container">
