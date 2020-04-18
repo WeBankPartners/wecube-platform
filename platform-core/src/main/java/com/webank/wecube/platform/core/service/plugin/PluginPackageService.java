@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
@@ -24,6 +25,7 @@ import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
+import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -651,42 +653,51 @@ public class PluginPackageService {
                 + File.separator + pluginPackage.getVersion() + File.separator;
         log.info("Upload UI.zip from local to static server:" + remotePath);
 
-        // mkdir at remote host
-        if (!remotePath.equals("/") && !remotePath.equals(".")) {
-            String mkdirCmd = String.format("rm -rf %s && mkdir -p %s", remotePath, remotePath);
+        //get all static resource hosts
+        List<String> staticResourceIps= StringUtils.splitByComma(pluginProperties.getStaticResourceServerIp());
 
+        for (String remoteIp : staticResourceIps) {
+
+            // mkdir at remote host
+            if (!remotePath.equals("/") && !remotePath.equals(".")) {
+                String mkdirCmd = String.format("rm -rf %s && mkdir -p %s", remotePath, remotePath);
+
+                try {
+                    commandService.runAtRemote(remoteIp, pluginProperties.getStaticResourceServerUser(),
+                            pluginProperties.getStaticResourceServerPassword(),
+                            pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                } catch (Exception e) {
+                    log.error("Run command [mkdir] meet error: ", e.getMessage());
+                    throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
+                }
+            }
+
+            // scp UI.zip to Static Resource Server
             try {
-                commandService.runAtRemote(pluginProperties.getStaticResourceServerIp(),
+                scpService.put(remoteIp, pluginProperties.getStaticResourceServerPort(),
                         pluginProperties.getStaticResourceServerUser(),
-                        pluginProperties.getStaticResourceServerPassword(),
-                        pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                        pluginProperties.getStaticResourceServerPassword(), downloadUiZipPath, remotePath);
             } catch (Exception e) {
-                log.error("Run command [mkdir] meet error: ", e.getMessage());
+                throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage());
+            }
+            log.info("scp UI.zip to Static Resource Server - Done");
+
+            // unzip file
+            String unzipCmd = String.format("cd %s && unzip %s", remotePath, pluginProperties.getUiFile());
+            try {
+                commandService.runAtRemote(remoteIp, pluginProperties.getStaticResourceServerUser(),
+                        pluginProperties.getStaticResourceServerPassword(),
+                        pluginProperties.getStaticResourceServerPort(), unzipCmd);
+            } catch (Exception e) {
+                log.error("Run command [unzip] meet error: ", e.getMessage());
                 throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
             }
         }
 
-        // scp UI.zip to Static Resource Server
-        try {
-            scpService.put(pluginProperties.getStaticResourceServerIp(), pluginProperties.getStaticResourceServerPort(),
-                    pluginProperties.getStaticResourceServerUser(), pluginProperties.getStaticResourceServerPassword(),
-                    downloadUiZipPath, remotePath);
-        } catch (Exception e) {
-            throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage());
-        }
-        log.info("scp UI.zip to Static Resource Server - Done");
-
-        // unzip file
-        String unzipCmd = String.format("cd %s && unzip %s", remotePath, pluginProperties.getUiFile());
-        try {
-            commandService.runAtRemote(pluginProperties.getStaticResourceServerIp(),
-                    pluginProperties.getStaticResourceServerUser(), pluginProperties.getStaticResourceServerPassword(),
-                    pluginProperties.getStaticResourceServerPort(), unzipCmd);
-        } catch (Exception e) {
-            log.error("Run command [unzip] meet error: ", e.getMessage());
-            throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
-        }
         log.info("UI package deployment has done...");
+        
+        
+        
     }
 
     private void removePluginUiResourcesIfRequired(PluginPackage pluginPackage) {
