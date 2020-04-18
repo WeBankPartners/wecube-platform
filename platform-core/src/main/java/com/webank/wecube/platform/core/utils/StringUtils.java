@@ -20,13 +20,17 @@ public class StringUtils {
 
         List<String> returnVarName = Lists.newArrayList();
         Pattern pattern = Pattern.compile("\\{{2}(.*?)}}");
-//        Pattern pattern = Pattern.compile("(?<=\\{\\{).*?(?=}})");
         Matcher matcher = pattern.matcher(str);
         while (matcher.find()) {
             returnVarName.add(matcher.group());
         }
 
         return returnVarName;
+    }
+    
+    public static List<String> splitByComma(String ipsString){
+        String[] ips= ipsString.split(",");
+        return Lists.newArrayList(ips);
     }
 
 }
