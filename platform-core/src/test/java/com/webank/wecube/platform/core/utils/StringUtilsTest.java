@@ -2,7 +2,11 @@ package com.webank.wecube.platform.core.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,6 +60,22 @@ public class StringUtilsTest {
         String ip = "196.0.0.72";
         log.info("Checking IP: " + ip);
         assertThat(StringUtils.isValidIp(ip)).isTrue();
+    }
+
+    @Test
+    public void splitIpTest() {
+        String str1 = "127.0.0.1,127.0.0.2";
+        String str2 = "127.0.0.1,";
+        String str3 = ",127.0.0.1";
+        String str4 = "127.0.0.1";
+        String str5 = "";
+        
+        assertThat(StringUtils.splitByComma(str1).equals(Lists.newArrayList("127.0.0.1","127.0.0.2")));
+        assertThat(StringUtils.splitByComma(str2).equals(Lists.newArrayList("127.0.0.1")));
+        assertThat(StringUtils.splitByComma(str3).equals(Lists.newArrayList("127.0.0.1")));
+        assertThat(StringUtils.splitByComma(str4).equals(Lists.newArrayList("127.0.0.1")));
+        assertThat(StringUtils.splitByComma(str5).equals(Lists.newArrayList()));
+        assertThat(StringUtils.splitByComma(str5).size()==0);
     }
 
 }
