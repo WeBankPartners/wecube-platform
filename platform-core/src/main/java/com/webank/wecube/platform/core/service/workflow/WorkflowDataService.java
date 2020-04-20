@@ -256,9 +256,7 @@ public class WorkflowDataService {
 		result.setNodeInstId(nodeEntity.getId());
 		result.setNodeName(nodeEntity.getNodeName());
 		result.setNodeType(nodeEntity.getNodeType());
-		if (StringUtils.isNotBlank(nodeEntity.getErrorMessage())) {
-			result.setErrorMessage(nodeEntity.getErrorMessage());
-		}
+		result.setErrorMessage(nodeEntity.getErrorMessage());
 
 		TaskNodeExecRequestEntity requestEntity = taskNodeExecRequestRepository
 				.findCurrentEntityByNodeInstId(nodeEntity.getId());
@@ -269,11 +267,6 @@ public class WorkflowDataService {
 
 		result.setRequestId(requestEntity.getRequestId());
 		result.setErrorCode(requestEntity.getErrorCode());
-		if (StringUtils.isNotBlank(result.getErrorMessage())) {
-			result.setErrorMessage(result.getErrorMessage() + "|" + requestEntity.getErrorMessage());
-		} else {
-			result.setErrorMessage(requestEntity.getErrorMessage());
-		}
 
 		List<TaskNodeExecParamEntity> requestParamEntities = taskNodeExecParamRepository.findAllByRequestIdAndParamType(
 				requestEntity.getRequestId(), TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
