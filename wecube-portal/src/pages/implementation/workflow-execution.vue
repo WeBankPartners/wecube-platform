@@ -167,7 +167,7 @@
       </p>
       <div v-if="!isTargetNodeDetail" :style="[{ overflow: 'auto' }, fullscreenModalContentStyle]">
         <h5>Data:</h5>
-        <div style="margin: 0 6px 6px" v-html="nodeDetailResponseHeader"></div>
+        <pre style="margin: 0 6px 6px" v-html="nodeDetailResponseHeader"></pre>
         <h5>requestObjects:</h5>
         <Table :columns="nodeDetailColumns" :max-height="tableMaxHeight" tooltip="true" :data="nodeDetailIO"></Table>
       </div>
@@ -848,20 +848,32 @@ export default {
         this.nodeTitle = (found.orderedNo ? found.orderedNo + '、' : '') + found.nodeName
         const { status, data } = await getNodeContext(found.procInstId, found.id)
         if (status === 'OK') {
-          this.nodeDetail = data
           this.nodeDetailResponseHeader = JSON.parse(JSON.stringify(data))
           delete this.nodeDetailResponseHeader.requestObjects
-          this.nodeDetailResponseHeader = JSON.stringify(this.nodeDetailResponseHeader)
+          this.nodeDetailResponseHeader = JSON.stringify(this.replaceParams(this.nodeDetailResponseHeader))
             .split(',')
             .join(',<br/>')
-          this.nodeDetailIO = data.requestObjects
+          this.nodeDetailIO = data.requestObjects.map(ro => {
+            ro['inputs'] = this.replaceParams(ro['inputs'])
+            ro['outputs'] = this.replaceParams(ro['outputs'])
+            return ro
+          })
         }
         this.nodeDetailFullscreen = false
         this.isTargetNodeDetail = false
         this.showNodeDetail = true
-        this.nodeDetailFullscreen = false
         this.tableMaxHeight = 250
       }, 1000)
+    },
+    replaceParams (obj) {
+      let placeholder = new Array(16).fill('&nbsp;')
+      placeholder.unshift('<br/>')
+      for (let key in obj) {
+        if (obj[key] !== null && typeof obj[key] === 'string') {
+          obj[key] = obj[key].replace('\r\n', placeholder.join(''))
+        }
+      }
+      return obj
     },
     flowDetailEnterHandler (e) {
       let modelDetail = document.getElementById('flow_graph_detail')
