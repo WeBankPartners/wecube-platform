@@ -347,6 +347,23 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
         if (this.routeItems.containsKey(name)) {
             log.info("route items already exist for name:{}", name);
+            List<RouteItemInfoDto> storedRouteItems = this.routeItems.get(name);
+            storedRouteItems.addAll(newRouteItems);
+            
+            List<DynamicRouteItemInfo> routeItemInfos = new ArrayList<>();
+
+            for (RouteItemInfoDto d : newRouteItems) {
+                DynamicRouteItemInfo info = new DynamicRouteItemInfo();
+                info.setHost(d.getHost());
+                info.setHttpSchema(d.getSchema());
+                info.setName(d.getName());
+                info.setPort(d.getPort());
+
+                routeItemInfos.add(info);
+            }
+            
+            DynamicRouteItemInfoHolder.addDynamicRouteItemInfos(routeItemInfos);
+            
             return;
         }
 
