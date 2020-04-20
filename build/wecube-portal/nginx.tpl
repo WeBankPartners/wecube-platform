@@ -6,6 +6,7 @@ events {
   worker_connections  1024;
 }
 http {
+  server_tokens  off;
   include       /etc/nginx/mime.types;
   default_type  application/octet-stream;
   log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
