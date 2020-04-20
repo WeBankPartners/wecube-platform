@@ -1026,7 +1026,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
             EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, nodeEntityId);
 
-            this.entityOperationService.update(condition, retVal);
+            try {
+            	this.entityOperationService.update(condition, retVal);
+            }catch(Exception e) {
+            	log.warn("Exceptions while updating entity.But still keep going to update.", e);
+            }
 
         }
     }
@@ -1059,6 +1063,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             nodeInstEntity = nodeInstEntityOpt.get();
             nodeInstEntity.setUpdatedTime(now);
             nodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+            nodeInstEntity.setErrorMessage("");
 
             taskNodeInstInfoRepository.save(nodeInstEntity);
         }
@@ -1131,6 +1136,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             nodeInstEntity = nodeInstEntityOpt.get();
             nodeInstEntity.setUpdatedTime(now);
             nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
+            nodeInstEntity.setErrorMessage(errorMsg);
 
             taskNodeInstInfoRepository.save(nodeInstEntity);
         }
