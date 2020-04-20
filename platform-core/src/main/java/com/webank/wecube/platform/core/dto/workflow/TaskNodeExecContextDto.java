@@ -3,6 +3,9 @@ package com.webank.wecube.platform.core.dto.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskNodeExecContextDto {
     private String nodeName;
     private String nodeId;
