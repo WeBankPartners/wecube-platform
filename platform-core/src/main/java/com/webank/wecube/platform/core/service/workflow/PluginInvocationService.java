@@ -257,16 +257,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             if (MAPPING_TYPE_SYSTEM_VARIABLE.equalsIgnoreCase(mappingType)) {
                 String systemVariableName = param.getMappingSystemVariableName();
                 SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
-                        param.getPluginConfigInterface().getPluginConfig().getTargetPackage(), systemVariableName);
+                		param.getPluginConfigInterface().getPluginConfig().getPluginPackage().getName(), systemVariableName);
 
                 if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
                     log.error("variable is null but is mandatory for {}", paramName);
                     throw new WecubeCoreException("Variable is null but mandatory.");
                 }
 
-                String sVal = sVariable.getValue();
-                if (StringUtils.isBlank(sVal)) {
-                    sVal = sVariable.getDefaultValue();
+                String sVal = null;
+                if(sVariable != null ) {
+	                sVal = sVariable.getValue();
+	                if (StringUtils.isBlank(sVal)) {
+	                    sVal = sVariable.getDefaultValue();
+	                }
                 }
 
                 if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(param.getRequired())) {
@@ -514,16 +517,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
             String systemVariableName = param.getMappingSystemVariableName();
             SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
-                    param.getPluginConfigInterface().getPluginConfig().getTargetPackage(), systemVariableName);
+            		param.getPluginConfigInterface().getPluginConfig().getPluginPackage().getName(), systemVariableName);
 
             if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
                 log.error("variable is null but is mandatory for {}", paramName);
                 throw new WecubeCoreException(String.format("Variable is null but is mandatory for {%s}", paramName));
             }
 
-            String sVal = sVariable.getValue();
-            if (StringUtils.isBlank(sVal)) {
-                sVal = sVariable.getDefaultValue();
+            String sVal = null;
+            if(sVariable != null) {
+            	sVal = sVariable.getValue();
+	            if (StringUtils.isBlank(sVal)) {
+	                sVal = sVariable.getDefaultValue();
+	            }
             }
 
             if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(param.getRequired())) {
