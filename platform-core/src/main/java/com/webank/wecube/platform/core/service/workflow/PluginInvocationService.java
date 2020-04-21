@@ -656,7 +656,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         taskNodeInstEntity.setUpdatedTime(currTime);
         taskNodeInstEntity.setErrorMessage(null);
-        taskNodeInstInfoRepository.save(taskNodeInstEntity);
+        taskNodeInstEntity = taskNodeInstInfoRepository.save(taskNodeInstEntity);
 
         TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
                 .findCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
