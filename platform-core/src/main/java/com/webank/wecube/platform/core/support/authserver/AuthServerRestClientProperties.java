@@ -23,6 +23,8 @@ public class AuthServerRestClientProperties {
     private String pathConfigureRoleAuthorities = "/auth/v1/roles/{role-id}/authorities";
     private String pathConfigureRoleAuthoritiesWithRoleName = "/auth/v1/roles/authorities-grant";
     private String pathRevokeRoleAuthoritiesWithRoleName = "/auth/v1/roles/authorities-revocation";
+    
+    private String pathHealthCheck = "/auth/v1/health-check";
 
 
     public String getHost() {
@@ -168,4 +170,12 @@ public class AuthServerRestClientProperties {
     public void setPathRevokeRoleAuthoritiesWithRoleName(String pathRevokeRoleAuthoritiesWithRoleName) {
         this.pathRevokeRoleAuthoritiesWithRoleName = pathRevokeRoleAuthoritiesWithRoleName;
     }
+
+	public String getPathHealthCheck() {
+		return pathHealthCheck;
+	}
+
+	public void setPathHealthCheck(String pathHealthCheck) {
+		this.pathHealthCheck = pathHealthCheck;
+	}
 }
