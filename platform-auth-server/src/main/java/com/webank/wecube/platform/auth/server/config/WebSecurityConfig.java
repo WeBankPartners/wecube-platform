@@ -19,6 +19,13 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 @EnableWebSecurity(debug = false)
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class WebSecurityConfig extends AuthSecurityConfigurerAdapter {
-    
+	private static final String[] AUTH_WHITELIST = { //
+            "/v1/health-check"
+    };
+	
+	@Override
+    protected String[] getAuthWhiteList() {
+        return AUTH_WHITELIST;
+    }
     
 }
