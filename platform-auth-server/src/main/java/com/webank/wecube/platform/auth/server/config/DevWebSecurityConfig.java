@@ -15,9 +15,7 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 @EnableGlobalMethodSecurity(securedEnabled = true)
 public class DevWebSecurityConfig extends AuthSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = { //
-            // "/v1/api/login", //
-//            "/v1/users/**", // for dev only
-//            "/v1/roles/**", // for dev only
+    		"/v1/health-check",//
             "/v1/api/ping", //
             "/v2/api-docs", //
             "/error", //
