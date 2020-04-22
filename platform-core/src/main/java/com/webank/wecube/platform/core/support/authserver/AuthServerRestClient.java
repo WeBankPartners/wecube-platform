@@ -7,6 +7,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+
 import javax.annotation.PostConstruct;
 import java.util.List;
 
@@ -33,6 +35,16 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
         }
 
         return _INSTANCE;
+    }
+    
+    public void healthCheck() {
+    	try {
+    		getForObject(clientProperties.getPathHealthCheck(), new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
+                });
+    	}catch(Exception e) {
+    		log.warn("Health check failed", e);
+    		throw new WecubeCoreException("Auth server health check failed.");
+    	}
     }
 
     public void revokeAuthoritiesFromRole(String roleId, List<AsAuthorityDto> authorities) {
