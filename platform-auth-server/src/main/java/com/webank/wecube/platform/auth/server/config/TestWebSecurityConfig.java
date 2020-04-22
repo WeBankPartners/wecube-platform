@@ -16,6 +16,7 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 public class TestWebSecurityConfig extends AuthSecurityConfigurerAdapter {
     
     private static final String[] AUTH_WHITELIST = { //
+    		"/v1/health-check",//
             "/error", //
             "/swagger-resources", //
             "/swagger-resources/**", //
