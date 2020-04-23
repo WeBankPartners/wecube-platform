@@ -711,10 +711,12 @@ public class PluginPackageService {
         if (!remotePath.equals("/") && !remotePath.equals(".")) {
             String mkdirCmd = String.format("rm -rf %s", remotePath);
             try {
-                commandService.runAtRemote(pluginProperties.getStaticResourceServerIp(),
-                        pluginProperties.getStaticResourceServerUser(),
-                        pluginProperties.getStaticResourceServerPassword(),
-                        pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                List<String> staticResourceIps = StringUtils.splitByComma(pluginProperties.getStaticResourceServerIp());
+                for (String staticResourceIp : staticResourceIps) {
+                    commandService.runAtRemote(staticResourceIp, pluginProperties.getStaticResourceServerUser(),
+                            pluginProperties.getStaticResourceServerPassword(),
+                            pluginProperties.getStaticResourceServerPort(), mkdirCmd);
+                }
             } catch (Exception e) {
                 log.error("Run command [rm] meet error: ", e.getMessage());
                 throw new WecubeCoreException(String.format("Run command [rm] meet error: %s", e.getMessage()));
