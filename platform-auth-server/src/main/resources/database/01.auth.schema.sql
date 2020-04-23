@@ -18,6 +18,7 @@ CREATE TABLE `auth_sys_api` (
 ENGINE=InnoDB
 ;
 
+DROP TABLE IF EXISTS `auth_sys_authority`;
 CREATE TABLE `auth_sys_authority` (
     `id` VARCHAR(255) NOT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
@@ -36,6 +37,7 @@ CREATE TABLE `auth_sys_authority` (
 ENGINE=InnoDB
 ;
 
+DROP TABLE IF EXISTS `auth_sys_role`;
 CREATE TABLE `auth_sys_role` (
     `id` VARCHAR(255) NOT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
@@ -54,6 +56,7 @@ CREATE TABLE `auth_sys_role` (
 ENGINE=InnoDB
 ;
 
+DROP TABLE IF EXISTS `auth_sys_role_authority`;
 CREATE TABLE `auth_sys_role_authority` (
     `id` VARCHAR(255) NOT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
@@ -72,6 +75,7 @@ CREATE TABLE `auth_sys_role_authority` (
 ENGINE=InnoDB
 ;
 
+DROP TABLE IF EXISTS `auth_sys_sub_system`;
 CREATE TABLE `auth_sys_sub_system` (
     `id` VARCHAR(255) NOT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
@@ -91,6 +95,7 @@ CREATE TABLE `auth_sys_sub_system` (
 ENGINE=InnoDB
 ;
 
+DROP TABLE IF EXISTS `auth_sys_sub_system_authority`;
 CREATE TABLE `auth_sys_sub_system_authority` (
     `id` VARCHAR(255) NOT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
@@ -109,6 +114,7 @@ CREATE TABLE `auth_sys_sub_system_authority` (
 ENGINE=InnoDB
 ;
 
+DROP TABLE IF EXISTS `auth_sys_user`;
 CREATE TABLE `auth_sys_user` (
     `id` VARCHAR(255) NOT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
@@ -133,6 +139,7 @@ CREATE TABLE `auth_sys_user` (
 ENGINE=InnoDB
 ;
 
+DROP TABLE IF EXISTS `auth_sys_user_role`;
 CREATE TABLE `auth_sys_user_role` (
     `id` VARCHAR(255) NOT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
