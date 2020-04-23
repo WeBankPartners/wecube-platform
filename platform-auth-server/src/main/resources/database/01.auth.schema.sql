@@ -1,6 +1,8 @@
 SET FOREIGN_KEY_CHECKS=0;
 
-CREATE TABLE `auth_sys_api` (
+
+DROP TABLE IF EXISTS `auth_sys_api`;
+CREATE TABLE IF NOT EXISTS `auth_sys_api` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
@@ -13,7 +15,8 @@ CREATE TABLE `auth_sys_api` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `auth_sys_authority` (
+DROP TABLE IF EXISTS `auth_sys_authority`;
+CREATE TABLE IF NOT EXISTS `auth_sys_authority` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
@@ -28,7 +31,8 @@ CREATE TABLE `auth_sys_authority` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `auth_sys_role` (
+DROP TABLE IF EXISTS `auth_sys_role`;
+CREATE TABLE IF NOT EXISTS `auth_sys_role` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
@@ -43,7 +47,8 @@ CREATE TABLE `auth_sys_role` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `auth_sys_role_authority` (
+DROP TABLE IF EXISTS `auth_sys_role_authority`;
+CREATE TABLE IF NOT EXISTS `auth_sys_role_authority` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
@@ -58,7 +63,8 @@ CREATE TABLE `auth_sys_role_authority` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `auth_sys_sub_system` (
+DROP TABLE IF EXISTS `auth_sys_sub_system`;
+CREATE TABLE IF NOT EXISTS `auth_sys_sub_system` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
@@ -74,7 +80,8 @@ CREATE TABLE `auth_sys_sub_system` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `auth_sys_sub_system_authority` (
+DROP TABLE IF EXISTS `auth_sys_sub_system_authority`;
+CREATE TABLE IF NOT EXISTS `auth_sys_sub_system_authority` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
@@ -89,7 +96,8 @@ CREATE TABLE `auth_sys_sub_system_authority` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `auth_sys_user` (
+DROP TABLE IF EXISTS `auth_sys_user`;
+CREATE TABLE IF NOT EXISTS `auth_sys_user` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
@@ -110,7 +118,8 @@ CREATE TABLE `auth_sys_user` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `auth_sys_user_role` (
+DROP TABLE IF EXISTS `auth_sys_user_role`;
+CREATE TABLE IF NOT EXISTS `auth_sys_user_role` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
