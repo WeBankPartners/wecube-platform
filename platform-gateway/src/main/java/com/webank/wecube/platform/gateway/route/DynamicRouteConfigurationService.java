@@ -165,9 +165,38 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
             info.setPort(d.getPort());
 
             routeItemInfos.add(info);
+            
+            tryAddRouteDefinition(d);
         }
 
         DynamicRouteItemInfoHolder.refreshDynamicRouteItemInfos(routeItemInfos);
+    }
+    
+    private void tryAddRouteDefinition(RouteItemInfoDto routeItemInfoDto) {
+    	if( routeItemInfoDto == null ) {
+    		return;
+    	}
+    	
+    	if( StringUtils.isBlank(routeItemInfoDto.getName()) ) {
+    		return;
+    	}
+    	
+    	if (this.routeItems.containsKey(routeItemInfoDto.getName())) {
+    		return;
+    	}
+    	
+    	this.buildRouteDefinition(routeItemInfoDto.getName(), routeItemInfoDto);
+    	
+    	
+    	List<RouteItemInfoDto> items = new ArrayList<>();
+    	items.add(routeItemInfoDto);
+    	
+    	this.routeItems.put(routeItemInfoDto.getName(), items);
+    	
+    	log.info("REFRESH loaded route definition:{}", routeItemInfoDto.getName());
+    	
+    	return;
+    	
     }
     
     private void handleRefreshErrors(Throwable e) {
