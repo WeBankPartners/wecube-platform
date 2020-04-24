@@ -20,14 +20,14 @@ insert  into `auth_sys_authority`(`id`,`created_by`,`created_time`,`updated_by`,
 
 insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) values 
 ('2c9280827019695c017019ac974f001c','system','2019-12-09 17:19:22',NULL,NULL,b'1',b'0','SUPER_ADMIN','SUPER_ADMIN',NULL,'SUPER_ADMIN'),
-('2c9280836f78a84b016f794c3a270000','system','2020-01-06 13:20:36',NULL,NULL,b'1',b'0','CMDB¹ÜÀíÔ±','CMDB¹ÜÀíÔ±',NULL,'CMDB_ADMIN'),
-('2c9280836f78a84b016f794cd6dd0001','system','2020-01-06 13:21:16',NULL,NULL,b'1',b'0','¼à¿Ø¹ÜÀíÔ±','¼à¿Ø¹ÜÀíÔ±',NULL,'MONITOR_ADMIN'),
-('2c9280836f78a84b016f794d6bb50002','system','2020-01-06 13:21:54',NULL,NULL,b'1',b'0','Éú²úÔËÎ¬','Éú²úÔËÎ¬',NULL,'PRD_OPS'),
-('2c9280836f78a84b016f794e0d3b0003','system','2020-01-06 13:22:35',NULL,NULL,b'1',b'0','²âÊÔÔËÎ¬','²âÊÔÔËÎ¬',NULL,'STG_OPS'),
-('2c9280836f78a84b016f794e9b170004','system','2020-01-06 13:23:12',NULL,NULL,b'1',b'0','Ó¦ÓÃ¼Ü¹¹Ê¦','Ó¦ÓÃ¼Ü¹¹Ê¦',NULL,'APP_ARC'),
-('2c9280836f78a84b016f794f20440005','system','2020-01-06 13:23:46',NULL,NULL,b'1',b'0','»ù´¡¼Ü¹¹Ê¦','»ù´¡¼Ü¹¹Ê¦',NULL,'IFA_ARC'),
-('2c9280836f78a84b016f794ff45e0006','system','2020-01-06 13:24:40',NULL,NULL,b'1',b'0','Ó¦ÓÃ¿ª·¢ÈËÔ±','Ó¦ÓÃ¿ª·¢ÈËÔ±',NULL,'APP_DEV'),
-('2c9280836f78a84b016f795068870007','system','2020-01-06 13:25:10',NULL,NULL,b'1',b'0','»ù´¡¼Ü¹¹ÔËÎ¬ÈËÔ±','»ù´¡¼Ü¹¹ÔËÎ¬ÈËÔ±',NULL,'IFA_OPS');
+('2c9280836f78a84b016f794c3a270000','system','2020-01-06 13:20:36',NULL,NULL,b'1',b'0','CMDBç®¡ç†å‘˜','CMDBç®¡ç†å‘˜',NULL,'CMDB_ADMIN'),
+('2c9280836f78a84b016f794cd6dd0001','system','2020-01-06 13:21:16',NULL,NULL,b'1',b'0','ç›‘æ§ç®¡ç†å‘˜','ç›‘æ§ç®¡ç†å‘˜',NULL,'MONITOR_ADMIN'),
+('2c9280836f78a84b016f794d6bb50002','system','2020-01-06 13:21:54',NULL,NULL,b'1',b'0','ç”Ÿäº§è¿ç»´','ç”Ÿäº§è¿ç»´',NULL,'PRD_OPS'),
+('2c9280836f78a84b016f794e0d3b0003','system','2020-01-06 13:22:35',NULL,NULL,b'1',b'0','æµ‹è¯•è¿ç»´','æµ‹è¯•è¿ç»´',NULL,'STG_OPS'),
+('2c9280836f78a84b016f794e9b170004','system','2020-01-06 13:23:12',NULL,NULL,b'1',b'0','åº”ç”¨æ¶æ„å¸ˆ','åº”ç”¨æ¶æ„å¸ˆ',NULL,'APP_ARC'),
+('2c9280836f78a84b016f794f20440005','system','2020-01-06 13:23:46',NULL,NULL,b'1',b'0','åŸºç¡€æ¶æ„å¸ˆ','åŸºç¡€æ¶æ„å¸ˆ',NULL,'IFA_ARC'),
+('2c9280836f78a84b016f794ff45e0006','system','2020-01-06 13:24:40',NULL,NULL,b'1',b'0','åº”ç”¨å¼€å‘äººå‘˜','åº”ç”¨å¼€å‘äººå‘˜',NULL,'APP_DEV'),
+('2c9280836f78a84b016f795068870007','system','2020-01-06 13:25:10',NULL,NULL,b'1',b'0','åŸºç¡€æ¶æ„è¿ç»´äººå‘˜','åŸºç¡€æ¶æ„è¿ç»´äººå‘˜',NULL,'IFA_OPS');
 
 insert  into `auth_sys_role_authority`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`authority_code`,`authority_id`,`role_id`,`role_name`) values 
 ('2c9280827019695c017019c28b10001f','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_WORKFLOW_EXECUTION','2c9280827019695c017019c28b0f001e','2c9280827019695c017019ac974f001c','admin'),
@@ -53,7 +53,7 @@ insert  into `auth_sys_sub_system`(`id`,`created_by`,`created_time`,`updated_by`
 ('2c9280827019695c0170199c2375001a','system','2020-01-06 20:04:44',NULL,NULL,b'1','MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEAhErKNhmx4o7apVfYxPEDOxaOkKe7lwk2uLzigW5NTLlhZRLJ4d7qXqAdBEFgUwj5KvzGtlp+v5c120X+JYFYUwIDAQABAkAFYSkx4/+Yz+hSOu1ErOxNtdAcT8XQEX7ZKk0nqD2adgw/fjUCdeVCde/bzEVyhdguT+cSAHVicyvRU8o4/r0xAiEA1Uv8EYtayyo0vMz5caR1uOhJDBoBgi1IsHF/+WMhPSsCIQCexxsXLl9DAD1tsJejfJiQEkef6kwsaw+TfHJkvnDNeQIhANDbh6bySuR3no5lM7hYrsFyCt0jtehvSSck7IgZzlljAiEAmgKFO4IGcwX7j7c4DyNfFHg2s13fj0I1tJiEmUXEQvkCIQC+nepLywSWr/XDIcRHnATReCfytK7+d3wDiy4d4YaVhQ==',b'0',NULL,'WeCMDB Plugin','MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIRKyjYZseKO2qVX2MTxAzsWjpCnu5cJNri84oFuTUy5YWUSyeHe6l6gHQRBYFMI+Sr8xrZafr+XNdtF/iWBWFMCAwEAAQ==','SYS_WECMDB');
 
 insert  into `auth_sys_user`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_blocked`,`cell_phone_no`,`is_deleted`,`dept`,`email_addr`,`english_name`,`local_name`,`office_tel_no`,`password`,`title`,`username`) values 
-('2c9280827019695c017019a2d5ac001b','system','2020-02-06 12:05:03',NULL,NULL,b'1',b'0','10000000000',b'0','OPT',NULL,'UM ADMIN','UM¹ÜÀíÔ±','0755-12345678','$2a$10$XH7kL/aIjCKwZZ2CXd5Nk.dFxyP4UubHa7vqekT1IYB1dX./0Hr8m','ÔËÎ¬¸Ú','umadmin'),
+('2c9280827019695c017019a2d5ac001b','system','2020-02-06 12:05:03',NULL,NULL,b'1',b'0','10000000000',b'0','OPT',NULL,'UM ADMIN','UMç®¡ç†å‘˜','0755-12345678','$2a$10$XH7kL/aIjCKwZZ2CXd5Nk.dFxyP4UubHa7vqekT1IYB1dX./0Hr8m','è¿ç»´å²—','umadmin'),
 ('2c9280827019695c017019dac0ea0040','umadmin','2020-02-06 17:35:31',NULL,NULL,b'1',b'0',NULL,b'0',NULL,NULL,NULL,NULL,NULL,'$2a$10$YOyZUonK23qiPS03MeZQL.T.4LHje8FRbp6dhV2wHBGeVWdm9hwtu',NULL,'admin');
 
 insert  into `auth_sys_user_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`role_id`,`role_name`,`user_id`,`username`) values 
