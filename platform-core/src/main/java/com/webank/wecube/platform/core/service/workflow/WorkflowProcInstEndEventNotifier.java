@@ -38,7 +38,7 @@ public class WorkflowProcInstEndEventNotifier {
                 .findAllByProcInstKey(procInstEntity.getProcInstKey());
 
         if (operationEventEntities == null || operationEventEntities.isEmpty()) {
-            log.info("none operation event to notify");
+            log.debug("none operation event to notify");
             return;
         }
 
