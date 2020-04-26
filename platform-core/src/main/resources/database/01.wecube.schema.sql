@@ -97,7 +97,7 @@ create table plugin_package_runtime_resources_docker (
   plugin_package_id VARCHAR(255) not null,
   image_name varchar(256) not null, 
   container_name varchar(128) not null,
-  port_bindings varchar(64) not null, 
+  port_bindings varchar(256) not null, 
   volume_bindings varchar(1024) not null,
   env_variables varchar(2000)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
