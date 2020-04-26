@@ -10,7 +10,8 @@ import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 
 public interface ProcInstInfoRepository extends JpaRepository<ProcInstInfoEntity, Integer> {
     
-    ProcInstInfoEntity findOneByProcInstKernelId(String procInstKernelId);
+    @Query("select t from ProcInstInfoEntity t " + " where t.procInstKernelId = :procInstKernelId ")
+    ProcInstInfoEntity findOneByProcInstKernelId(@Param("procInstKernelId") String procInstKernelId);
 
     @Query(value = "select * from core_ru_proc_inst_info where proc_def_id in (:procDefIds) ", nativeQuery = true)
     List<ProcInstInfoEntity> findByProcDefIdIn(@Param("procDefIds") List<String> procDefIds);
