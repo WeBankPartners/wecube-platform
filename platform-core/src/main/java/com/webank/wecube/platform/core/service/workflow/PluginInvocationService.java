@@ -105,6 +105,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		    try {
                 Thread.sleep(300);
             } catch (InterruptedException e) {
+                log.warn("exceptions while handling end event.", e.getMessage());
             }
 		    
 		    times++;
