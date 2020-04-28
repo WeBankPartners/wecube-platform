@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.gateway.dto.CommonResponseDto;
+import com.webank.wecube.platform.gateway.dto.MvcContextRouteConfigDto;
 import com.webank.wecube.platform.gateway.dto.RouteItemInfoDto;
 import com.webank.wecube.platform.gateway.dto.RouteItemPushDto;
 import com.webank.wecube.platform.gateway.route.DynamicRouteConfigurationService;
@@ -28,40 +29,40 @@ public class DynamicRouteItemController {
     private static final Logger log = LoggerFactory.getLogger(DynamicRouteItemController.class);
 
     @Autowired
-    private DynamicRouteConfigurationService dynamicRouteConfigurationService;
-    
+    private DynamicRouteConfigurationService service;
+
     @GetMapping("/route-items")
     public Mono<CommonResponseDto> listRouteItems(){
         
-        List<RouteItemInfoDto> items = dynamicRouteConfigurationService.listAllRouteItems();
+        List<RouteItemInfoDto> items = service.listAllContextRouteItems();
         return Mono.just(CommonResponseDto.okayWithData(items));
     }
     
     @GetMapping("/loaded-routes")
     public Mono<CommonResponseDto> listLoadedRouteItems(){
         
-        List<RouteItemInfoDto> items = dynamicRouteConfigurationService.getAllLoadedRouteItemInfoDtos();
+        List<MvcContextRouteConfigDto> items = service.getAllMvcContextRouteConfigs();
         return Mono.just(CommonResponseDto.okayWithData(items));
     }
     
     @DeleteMapping("/route-items/{route-name}")
     public Mono<CommonResponseDto> deleteRouteItems(@PathVariable("route-name")String routeName){
-        dynamicRouteConfigurationService.deleteRouteItem(routeName);
+        service.deleteRouteItem(routeName);
         return Mono.just(CommonResponseDto.okay());
     }
 
     @PostMapping("/route-items")
     public Mono<CommonResponseDto> pushRouteItems(@RequestBody RouteItemPushDto request) {
-        String name = request.getName();
+        String context = request.getContext();
         List<RouteItemInfoDto> items = request.getItems();
 
         if (items == null) {
             items = new ArrayList<>();
         }
 
-        log.info("try to push route items for {} {}", name, items.size());
+        log.info("try to push route items for {} {}", context, items.size());
 
-        dynamicRouteConfigurationService.pushRouteItem(name, items);
+        service.pushRouteItem(context, items);
 
         return Mono.just(CommonResponseDto.okay());
     }
