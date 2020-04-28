@@ -10,18 +10,17 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.webank.wecube.platform.gateway.route.DynamicRouteContext;
-import com.webank.wecube.platform.gateway.route.DynamicRouteItemInfo;
 import com.webank.wecube.platform.gateway.route.DynamicRouteItemInfoHolder;
+import com.webank.wecube.platform.gateway.route.HttpDestination;
+import com.webank.wecube.platform.gateway.route.MvcHttpMethodAndPathConfig;
 
-/**
- * 
- * @author gavin
- *
- */
+import reactor.core.publisher.Mono;
+
 public class DynamicRouteGatewayFilterFactory
         extends AbstractGatewayFilterFactory<DynamicRouteGatewayFilterFactory.Config> {
 
@@ -37,11 +36,11 @@ public class DynamicRouteGatewayFilterFactory
 
     @Override
     public GatewayFilter apply(Config config) {
-        if (log.isDebugEnabled()) {
-            log.debug("Filter-{} applied", DynamicRouteGatewayFilterFactory.class.getSimpleName());
+        if (log.isInfoEnabled()) {
+            log.info("Filter-{} applied", DynamicRouteGatewayFilterFactory.class.getSimpleName());
         }
         return ((exchange, chain) -> {
-            log.debug("Filter-IN-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
+            log.info("Filter-IN-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
                     exchange.getRequest().getURI().toString());
 
             boolean enabled = config.isEnabled();
@@ -50,29 +49,26 @@ public class DynamicRouteGatewayFilterFactory
                 return chain.filter(exchange);
             }
 
-            Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+            Route originalRoute = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
 
-            if (route == null) {
+            if (originalRoute == null) {
                 log.warn("There is none route found for filter:{}",
                         DynamicRouteGatewayFilterFactory.class.getSimpleName());
                 return chain.filter(exchange);
             }
 
-            if (log.isDebugEnabled()) {
-                log.debug("route:{} {}", route.getId(), route.getUri().toString());
-            }
+            tryPrepareDynamicRoute(exchange, originalRoute);
 
-            String newPath = exchange.getRequest().getURI().getPath();
-            String baseUrl = determineDynamicRoute(newPath, exchange);
-            if (baseUrl != null) {
-                tryPrepareRoute(exchange, route, baseUrl);
+            try {
+                return chain.filter(exchange);
+            } catch (Exception e) {
+                log.error("errors while exchanging", e);
+                return Mono.justOrEmpty(null);
             }
-
-            return chain.filter(exchange);
         });
     }
-    
-    protected void tryPrepareRoute(ServerWebExchange exchange, Route route, String baseUrl) {
+
+    protected void trySetGatewayRouteAttribute(ServerWebExchange exchange, Route route, String baseUrl) {
         if (log.isDebugEnabled()) {
             log.debug("base url:{}", baseUrl);
         }
@@ -86,25 +82,37 @@ public class DynamicRouteGatewayFilterFactory
         exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, newRoute);
     }
 
-    protected String determineDynamicRoute(String path, ServerWebExchange exchange) {
+    protected void tryPrepareDynamicRoute(ServerWebExchange exchange, Route originalRoute) {
+        String path = exchange.getRequest().getURI().getPath();
         String componentPath = calculateComponentPath(path);
-        List<DynamicRouteItemInfo> routeItemInfos = DynamicRouteItemInfoHolder.findByName(componentPath);
-        if (routeItemInfos == null || routeItemInfos.isEmpty()) {
-            return null;
+        HttpMethod httpMethod = exchange.getRequest().getMethod();
+        MvcHttpMethodAndPathConfig methodAndPathConfig = DynamicRouteItemInfoHolder.findRouteConfig(componentPath, path,
+                httpMethod);
+
+        List<HttpDestination> httpDestinations = null;
+        if (methodAndPathConfig == null) {
+            httpDestinations = DynamicRouteItemInfoHolder.findDefaultRouteConfig(componentPath, path, httpMethod);
+        } else {
+            httpDestinations = methodAndPathConfig.getHttpDestinations();
         }
-        
-        DynamicRouteContext routeContext = new DynamicRouteContext().addDynamicRouteItemInfos(routeItemInfos);
+
+        if (httpDestinations.isEmpty()) {
+            log.debug("cannot find http destination for {}", path);
+            return;
+        }
+
+        DynamicRouteContext routeContext = DynamicRouteContext.newInstance().addHttpDestinations(httpDestinations)
+                .sortByWeight();
+
         exchange.getAttributes().put(DynamicRouteContext.DYNAMIC_ROUTE_CONTEXT_KEY, routeContext);
 
-        DynamicRouteItemInfo routeItemInfo = routeContext.next();
-        
-        if(routeItemInfo == null){
-            return null;
+        if (routeContext.hasNext()) {
+            HttpDestination httpDest = routeContext.next();
+            String baseUrl = String.format("%s://%s:%s", httpDest.getScheme(), httpDest.getHost(), httpDest.getPort());
+            trySetGatewayRouteAttribute(exchange, originalRoute, baseUrl);
         }
 
-        String baseUrl = String.format("%s://%s:%s", routeItemInfo.getHttpSchema(), routeItemInfo.getHost(),
-                routeItemInfo.getPort());
-        return baseUrl;
+        return;
     }
 
     protected String calculateComponentPath(String path) {
@@ -143,5 +151,4 @@ public class DynamicRouteGatewayFilterFactory
         }
 
     }
-
 }
