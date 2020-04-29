@@ -4,18 +4,19 @@ import java.util.List;
 
 public class RegisterRouteItemsDto {
 
-    private String name;
+    private String context;
     private List<RouteItem> items;
 
-    public String getName() {
-        return name;
-    }
+    
+    public String getContext() {
+		return context;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setContext(String context) {
+		this.context = context;
+	}
 
-    public List<RouteItem> getItems() {
+	public List<RouteItem> getItems() {
         return items;
     }
 
@@ -26,8 +27,8 @@ public class RegisterRouteItemsDto {
     public RegisterRouteItemsDto() {
     }
 
-    public RegisterRouteItemsDto(String name, List<RouteItem> items) {
-        this.name = name;
+    public RegisterRouteItemsDto(String context, List<RouteItem> items) {
+        this.context = context;
         this.items = items;
     }
 
