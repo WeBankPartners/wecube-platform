@@ -1,5 +1,9 @@
 package com.webank.wecube.platform.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class PluginRouteItemDto {
 	private String context;
 	private String httpMethod;
