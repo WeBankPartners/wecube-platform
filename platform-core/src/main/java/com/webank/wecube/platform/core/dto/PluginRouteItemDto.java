@@ -1,41 +1,69 @@
 package com.webank.wecube.platform.core.dto;
 
 public class PluginRouteItemDto {
-    private String name;
-    private String host;
-    private String port;
-    private String schema;
+	private String context;
+	private String httpMethod;
+	private String path;
+	private String httpScheme;
+	private String host;
+	private String port;
 
-    public String getName() {
-        return name;
-    }
+	private String weight;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getContext() {
+		return context;
+	}
 
-    public String getHost() {
-        return host;
-    }
+	public void setContext(String context) {
+		this.context = context;
+	}
 
-    public void setHost(String host) {
-        this.host = host;
-    }
+	public String getHttpMethod() {
+		return httpMethod;
+	}
 
-    public String getPort() {
-        return port;
-    }
+	public void setHttpMethod(String httpMethod) {
+		this.httpMethod = httpMethod;
+	}
 
-    public void setPort(String port) {
-        this.port = port;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public String getSchema() {
-        return schema;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
+	public String getHttpScheme() {
+		return httpScheme;
+	}
+
+	public void setHttpScheme(String httpScheme) {
+		this.httpScheme = httpScheme;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public String getPort() {
+		return port;
+	}
+
+	public void setPort(String port) {
+		this.port = port;
+	}
+
+	public String getWeight() {
+		return weight;
+	}
+
+	public void setWeight(String weight) {
+		this.weight = weight;
+	}
 
 }

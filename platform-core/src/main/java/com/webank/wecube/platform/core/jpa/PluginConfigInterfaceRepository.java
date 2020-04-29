@@ -26,6 +26,10 @@ public interface PluginConfigInterfaceRepository extends CrudRepository<PluginCo
 
     @Query("select configInterface from PluginConfigInterface configInterface where configInterface.pluginConfig.status = :status and (configInterface.pluginConfig.targetEntity is null or configInterface.pluginConfig.targetEntity='')")
     Optional<List<PluginConfigInterface>> findAllByEntityNameEmptyAndStatus(@Param("status") Status status);
+    
+    @Query("select intf from PluginConfigInterface intf where intf.pluginConfig.status = 'ENABLED' ")
+    List<PluginConfigInterface> findAllEnabledInterfaces();
+    
     default Optional<List<PluginConfigInterface>> findAllEnabledWithEntityNameNull() {
         return findAllByEntityNameEmptyAndStatus(Status.ENABLED);
     }
