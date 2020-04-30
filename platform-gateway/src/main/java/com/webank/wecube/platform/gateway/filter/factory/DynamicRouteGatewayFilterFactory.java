@@ -37,10 +37,10 @@ public class DynamicRouteGatewayFilterFactory
     @Override
     public GatewayFilter apply(Config config) {
         if (log.isInfoEnabled()) {
-            log.info("Filter-{} applied", DynamicRouteGatewayFilterFactory.class.getSimpleName());
+            log.debug("Filter-{} applied", DynamicRouteGatewayFilterFactory.class.getSimpleName());
         }
         return ((exchange, chain) -> {
-            log.info("Filter-IN-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
+            log.debug("Filter-IN-{}, uri:{}", DynamicRouteGatewayFilterFactory.class.getSimpleName(),
                     exchange.getRequest().getURI().toString());
 
             boolean enabled = config.isEnabled();
@@ -52,7 +52,7 @@ public class DynamicRouteGatewayFilterFactory
             Route originalRoute = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
 
             if (originalRoute == null) {
-                log.warn("There is none route found for filter:{}",
+                log.debug("There is none route found for filter:{}",
                         DynamicRouteGatewayFilterFactory.class.getSimpleName());
                 return chain.filter(exchange);
             }
@@ -62,7 +62,7 @@ public class DynamicRouteGatewayFilterFactory
             try {
                 return chain.filter(exchange);
             } catch (Exception e) {
-                log.error("errors while exchanging", e);
+                log.debug("errors while exchanging", e);
                 return Mono.justOrEmpty(null);
             }
         });
