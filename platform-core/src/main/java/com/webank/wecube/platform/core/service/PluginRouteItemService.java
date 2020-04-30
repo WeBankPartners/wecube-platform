@@ -39,6 +39,8 @@ public class PluginRouteItemService {
     private PluginPackageRepository pluginPackageRepository;
 
     public List<PluginRouteItemDto> getAllPluginRouteItems() {
+    	
+    	long startTime = System.currentTimeMillis();
 
         List<PluginRouteItemDto> resultList = new LinkedList<>();
 
@@ -61,10 +63,14 @@ public class PluginRouteItemService {
         // 2 assemble routes for each interface
         tryCalculateInterfaceRoutes(resultList);
 
-        if (log.isInfoEnabled()) {
-            log.info("total {} routes got to push.", resultList.size());
+        if (log.isDebugEnabled()) {
+            log.debug("total {} routes got to push.", resultList.size());
         }
-
+        
+        long endTime = System.currentTimeMillis();
+        
+        log.info("total {} seconds elapsed",(endTime - startTime)/1000);
+        
         return resultList;
     }
 
