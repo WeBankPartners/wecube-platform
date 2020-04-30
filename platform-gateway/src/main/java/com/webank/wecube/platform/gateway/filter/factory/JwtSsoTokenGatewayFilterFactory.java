@@ -49,12 +49,12 @@ public class JwtSsoTokenGatewayFilterFactory
     @Override
     public GatewayFilter apply(Config config) {
         if (log.isInfoEnabled()) {
-            log.info("Filter-{} applied", JwtSsoTokenGatewayFilterFactory.class.getSimpleName());
+            log.debug("Filter-{} applied", JwtSsoTokenGatewayFilterFactory.class.getSimpleName());
         }
         
         return ((exchange, chain) -> {
             ServerHttpRequest req = exchange.getRequest();
-            log.info("Filter-{},uri:{}", JwtSsoTokenGatewayFilterFactory.class.getSimpleName(), req.getURI().toString());
+            log.debug("Filter-{},uri:{}", JwtSsoTokenGatewayFilterFactory.class.getSimpleName(), req.getURI().toString());
             
             boolean authenticated = config.isAuthenticated();
             if (!authenticated) {
@@ -107,7 +107,7 @@ public class JwtSsoTokenGatewayFilterFactory
 
             return response.writeWith(Mono.just(buffer));
         } catch (JsonProcessingException e) {
-            log.error("failed to process json", e);
+            log.debug("failed to process json", e);
             response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             return response.setComplete();
         }
