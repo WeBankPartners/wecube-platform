@@ -84,13 +84,13 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 				.subscribe(this::refreshRoutes);
 
 		if (log.isInfoEnabled()) {
-			log.info("{} applied", DynamicRouteConfigurationService.class.getSimpleName());
+			log.debug("{} applied", DynamicRouteConfigurationService.class.getSimpleName());
 		}
 
 	}
 
 	protected void refreshRoutes(Long time) {
-		log.info("refresh routes ---- {}", time);
+		log.debug("refresh routes ---- {}", time);
 
 		if (!isDynamicRouteLoaded) {
 			return;
@@ -123,34 +123,34 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 		outdatedMvcContextRouteConfigs.forEach(c -> {
 			String contextRouteId = c.getContext()+ROUTE_ID_SUFFIX;
 			delete(contextRouteId);
-			log.info("outdated context route:{}", contextRouteId);
+			log.debug("outdated context route:{}", contextRouteId);
 		});
 
 	}
 
 	private void handleRefreshErrors(Throwable e) {
-		log.error("errors while refreshing routes...", e);
+		log.info("errors while refreshing routes...", e);
 	}
 
 	protected void loadRoutes(Long time) {
-		log.info("load routes  ------  {}", time);
+		log.debug("load routes  ------  {}", time);
 		if (!loadLock.tryLock()) {
-			log.info("cannot acquire the lock.");
+			log.debug("cannot acquire the lock.");
 			return;
 		}
 		try {
 			if (isDynamicRouteLoaded) {
-				log.info("isDynamicRouteLoaded:{}, isDisposed:{}", isDynamicRouteLoaded, loadDisposable.isDisposed());
+				log.debug("isDynamicRouteLoaded:{}, isDisposed:{}", isDynamicRouteLoaded, loadDisposable.isDisposed());
 
 				if (!loadDisposable.isDisposed()) {
-					log.info("to dispose load tasks.");
+					log.debug("to dispose load tasks.");
 					loadDisposable.dispose();
 				}
 
 				return;
 			}
 
-			log.info("try to load dynamic routes --- {}", time);
+			log.debug("try to load dynamic routes --- {}", time);
 			doLoadRoutes();
 		} finally {
 			loadLock.unlock();
@@ -159,7 +159,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 	}
 
 	protected void doLoadRoutes() {
-		log.info("start to load routes...");
+		log.debug("start to load routes...");
 
 		loadLock.lock();
 
@@ -175,7 +175,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 	}
 
 	private void handleLoadErrors(Throwable e) {
-		log.error("errors while loading routes...", e);
+		log.info("errors while loading routes...", e);
 		isDynamicRouteLoaded = false;
 	}
 
@@ -204,7 +204,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 		loadLock.lock();
 		try {
 			List<RouteItemInfoDto> routeItemInfoDtos = respDto.getData();
-			log.info("size:{}", routeItemInfoDtos.size());
+			log.debug("size:{}", routeItemInfoDtos.size());
 
 			List<DynamicRouteItemInfo> routeItemInfos = parseRouteConfigInfoResponse(respDto);
 
@@ -233,7 +233,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 			}
 		}
 
-		log.info("add {} route definitions", count);
+		log.debug("add {} route definitions", count);
 	}
 
 	private boolean initContextRouteConfig(MvcContextRouteConfig contextRouteConfig) {
@@ -295,7 +295,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
 		add(rd);
 
-		log.info("### route added:{} {} {}", itemInfo.getContext(), itemInfo.getHost(), itemInfo.getPort());
+		log.debug("### route added:{} {} {}", itemInfo.getContext(), itemInfo.getHost(), itemInfo.getPort());
 	}
 
 	private void refreshAllLoadedContexts() {
@@ -372,7 +372,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 		String routeId = routeContext+ROUTE_ID_SUFFIX;
 		
 		if(!this.loadedContexts.containsKey(routeId)) {
-			log.info("such context route does not exist. context={}", routeId);
+			log.debug("such context route does not exist. context={}", routeId);
 			return;
 		}
 		
@@ -440,10 +440,10 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 		RouteConfigInfoResponseDto responseDto = responseEntity.getBody();
 
 		List<RouteItemInfoDto> routeItemInfoDtos = responseDto.getData();
-		if (log.isInfoEnabled()) {
+		if (log.isDebugEnabled()) {
 			if (routeItemInfoDtos != null) {
 				routeItemInfoDtos.forEach(ri -> {
-					log.info("Route Item:{}", ri);
+					log.debug("Route Item:{}", ri);
 				});
 			}
 		}
@@ -461,7 +461,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
 	public void pushRouteItem(String context, List<RouteItemInfoDto> routeItems) {
 		if (StringUtils.isBlank(context)) {
-			log.error("context is blank.");
+			log.debug("context is blank.");
 			return;
 		}
 
@@ -503,7 +503,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 			notifyChanged();
 			return "delete success";
 		} catch (Exception e) {
-			log.error("delete failed", e);
+			log.warn("delete failed", e);
 			return "delete fail";
 		}
 
