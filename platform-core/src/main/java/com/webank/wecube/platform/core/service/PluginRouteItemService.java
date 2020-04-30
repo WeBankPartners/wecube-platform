@@ -63,8 +63,8 @@ public class PluginRouteItemService {
         // 2 assemble routes for each interface
         tryCalculateInterfaceRoutes(resultList);
 
-        if (log.isDebugEnabled()) {
-            log.debug("total {} routes got to push.", resultList.size());
+        if (log.isInfoEnabled()) {
+            log.info("total {} routes got to push.", resultList.size());
         }
         
         long endTime = System.currentTimeMillis();
