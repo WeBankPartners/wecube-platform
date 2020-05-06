@@ -48,7 +48,7 @@ public class JwtSsoTokenGatewayFilterFactory
 
     @Override
     public GatewayFilter apply(Config config) {
-        if (log.isInfoEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Filter-{} applied", JwtSsoTokenGatewayFilterFactory.class.getSimpleName());
         }
         
