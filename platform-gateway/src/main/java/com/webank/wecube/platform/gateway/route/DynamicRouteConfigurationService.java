@@ -83,7 +83,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 		Flux.interval(Duration.ofMinutes(dynamicRouteProperties.getRefreshIntervalOfMinutes()))
 				.subscribe(this::refreshRoutes);
 
-		if (log.isInfoEnabled()) {
+		if (log.isDebugEnabled()) {
 			log.debug("{} applied", DynamicRouteConfigurationService.class.getSimpleName());
 		}
 
