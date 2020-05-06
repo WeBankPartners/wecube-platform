@@ -71,20 +71,6 @@ WeCube分为核心功能模块和插件模块。
 
 ## 系统架构
 
-### WeCube 1.x版本
-WeCube1.0版本已经完成开发，整体架构如下图：
-
-![WeCube1.0整体逻辑架构](wecube-wiki/images/wecube_arch_1.png) 
-
-- WeCube1.0版本以WeCMDB为数据核心，配置数据都存储在WeCMDB中；
-- WeCube1.0版本需要CAS服务提供鉴权能力， 为保持权限数据的一致性， 建议与WeCMDB共用一个CAS服务。在WeCube1.1版本，会增加支持本地用户验证模式；
-- WeCube1.0版本需要一个对象存储服务（S3协议），用于存储物料包、执行脚本等。
-- WeCube1.0版本支持了两个插件：腾讯云插件、SaltStack插件。
-
-WeCube1.0版本已实现功能见下图：
-
-![WeCube1.0功能架构](wecube-wiki/images/wecube_arch_2.png) 
-
 ### WeCube 2.0版本
 ![WeCube2.0功能架构](wecube-wiki/images/wecube_arch_2.0.png) 
 
