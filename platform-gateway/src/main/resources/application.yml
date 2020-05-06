@@ -1,5 +1,5 @@
 server:
-   port: 9999
+   port: 19110
    ssl:
       enabled: false
       key-alias: gw
