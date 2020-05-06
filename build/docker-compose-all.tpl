@@ -38,7 +38,7 @@ services:
       - wecube-minio
       - wecube-mysql
     volumes:
-      - /data/wecube/log:/log/ 
+      - /var/log/wecube:/var/log/wecube
       - /etc/localtime:/etc/localtime
     ports:
       - {{WECUBE_SERVER_PORT}}:8080
