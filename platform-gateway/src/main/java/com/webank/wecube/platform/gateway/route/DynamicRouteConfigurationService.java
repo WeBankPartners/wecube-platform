@@ -122,8 +122,12 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 		
 		outdatedMvcContextRouteConfigs.forEach(c -> {
 			String contextRouteId = c.getContext()+ROUTE_ID_SUFFIX;
-			delete(contextRouteId);
-			log.debug("outdated context route:{}", contextRouteId);
+			if(this.loadedContexts.containsKey(contextRouteId)) {
+				delete(contextRouteId);
+				log.debug("outdated context route:{}", contextRouteId);
+				
+				this.loadedContexts.remove(contextRouteId);
+			}
 		});
 
 	}
@@ -503,7 +507,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 			notifyChanged();
 			return "delete success";
 		} catch (Exception e) {
-			log.warn("delete failed", e);
+			log.warn("delete failed {}" , id);
 			return "delete fail";
 		}
 
