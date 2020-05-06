@@ -334,7 +334,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			nd.setId(n.getId());
 			nd.setNodeDefId(n.getNodeDefId());
 			nd.setNodeId(n.getNodeId());
-			nd.setNodeName(n.getNodeName());
+			nd.setNodeName(reduceTaskNodeName(n));
 			nd.setNodeType(n.getNodeType());
 			nd.setOrderedNo(n.getOrderedNo());
 
@@ -354,6 +354,22 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		}
 
 		return result;
+	}
+	
+	private String reduceTaskNodeName(TaskNodeInstInfoEntity nodeInstEntity) {
+		if(!StringUtils.isBlank(nodeInstEntity.getNodeName())) {
+			return nodeInstEntity.getNodeName();
+		}
+		
+		if("startEvent".equals(nodeInstEntity.getNodeType())) {
+			return "S";
+		}
+		
+		if("endEvent".equals(nodeInstEntity.getNodeType())) {
+			return "E";
+		}
+		
+		return null;
 	}
 
 	private TaskNodeDefInfoEntity findTaskNodeDefInfoEntityByNodeDefId(List<TaskNodeDefInfoEntity> nodeDefEntities,
