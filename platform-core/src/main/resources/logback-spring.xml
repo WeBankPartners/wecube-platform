@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <property name="logPath" value="${APP_LOG_PATH:-/var/log/wecube}"/>
+    <property name="logPath" value="${APP_LOG_PATH:-/data/wecube/log}"/>
     <property name="logFile" value="wecube-core"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
