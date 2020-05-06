@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class LoggerInfoDto {
     private String level;
     private String path;
