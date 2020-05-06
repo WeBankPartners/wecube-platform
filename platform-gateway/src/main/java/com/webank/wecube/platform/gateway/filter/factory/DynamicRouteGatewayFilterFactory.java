@@ -36,7 +36,7 @@ public class DynamicRouteGatewayFilterFactory
 
     @Override
     public GatewayFilter apply(Config config) {
-        if (log.isInfoEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Filter-{} applied", DynamicRouteGatewayFilterFactory.class.getSimpleName());
         }
         return ((exchange, chain) -> {
