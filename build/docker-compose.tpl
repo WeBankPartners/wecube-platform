@@ -59,7 +59,7 @@ services:
     image: {{WECUBE_IMAGE_NAME}}:{{WECUBE_IMAGE_VERSION}}
     restart: always
     volumes:
-      - /var/log/wecube:{{WECUBE_LOG_LOCATION}} 
+      - /data/wecube/log:{{WECUBE_LOG_LOCATION}} 
       - /etc/localtime:/etc/localtime
       - {{DOCKER_API_CERTS_PATH}}:/certs
     ports:
