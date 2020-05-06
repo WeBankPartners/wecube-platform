@@ -4,16 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RouteItemPushDto {
-    private String name;
+    private String context;
     private List<RouteItemInfoDto> items = new ArrayList<>();
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public List<RouteItemInfoDto> getItems() {
         return items;
@@ -21,6 +13,14 @@ public class RouteItemPushDto {
 
     public void setItems(List<RouteItemInfoDto> items) {
         this.items = items;
+    }
+
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
     }
 
 }
