@@ -1,38 +1,66 @@
 package com.webank.wecube.platform.core.support.gateway;
 
 public class RouteItem {
-    private String name;
-    private String schema;
-    private String host;
-    private String port;
+	private String context;
+	private String httpMethod;
+	private String path;
+	private String httpScheme;
+	private String host;
+	private String port;
+	
+	private String weight;
 
     public RouteItem() {
     }
 
-    public RouteItem(String name, String schema, String host, String port) {
-        this.name = name;
-        this.schema = schema;
+    public RouteItem(String context, String httpScheme, String host, String port) {
+        this.context = context;
+        this.httpScheme = httpScheme;
         this.host = host;
         this.port = port;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getContext() {
+		return context;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setContext(String context) {
+		this.context = context;
+	}
 
-    public String getSchema() {
-        return schema;
-    }
+	public String getHttpMethod() {
+		return httpMethod;
+	}
 
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
+	public void setHttpMethod(String httpMethod) {
+		this.httpMethod = httpMethod;
+	}
 
-    public String getHost() {
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	public String getHttpScheme() {
+		return httpScheme;
+	}
+
+	public void setHttpScheme(String httpScheme) {
+		this.httpScheme = httpScheme;
+	}
+
+	public String getWeight() {
+		return weight;
+	}
+
+	public void setWeight(String weight) {
+		this.weight = weight;
+	}
+
+	public String getHost() {
         return host;
     }
 
