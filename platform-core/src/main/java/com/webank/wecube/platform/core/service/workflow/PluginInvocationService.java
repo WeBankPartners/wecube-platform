@@ -92,13 +92,35 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		}
 
 		Date currTime = new Date();
+		
+		ProcInstInfoEntity procInstEntity = null;
+		int times = 0;
+		
+		while(times < 20){
+		    procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(cmd.getProcInstId());
+		    if(procInstEntity != null){
+		        break;
+		    }
+		    
+		    try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                log.info("exceptions while handling end event.", e.getMessage());
+            }
+		    
+		    times++;
+		}
 
-		ProcInstInfoEntity procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(cmd.getProcInstId());
+		if(procInstEntity == null){
+		    log.error("Cannot find process instance entity currently for {}", cmd.getProcInstId());
+		    return;
+		}
+		
 		procInstEntity.setUpdatedTime(currTime);
 		procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
 		procInstInfoRepository.save(procInstEntity);
 
-		log.info("updated process instance {} to {}", procInstEntity.getId(), ProcInstInfoEntity.COMPLETED_STATUS);
+		log.debug("updated process instance {} to {}", procInstEntity.getId(), ProcInstInfoEntity.COMPLETED_STATUS);
 
 		List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
 				.findAllByProcInstId(procInstEntity.getId());
@@ -115,7 +137,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 				taskNodeInstInfoRepository.save(n);
 
-				log.info("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
+				log.debug("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
 			}
 		}
 
@@ -126,11 +148,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 	private void refreshStatusOfPreviousNodes(List<TaskNodeInstInfoEntity> nodeInstEntities,
 			TaskNodeDefInfoEntity currNodeDefInfo) {
 		List<String> previousNodeIds = unmarshalNodeIds(currNodeDefInfo.getPreviousNodeIds());
-		log.info("previousNodeIds:{}", previousNodeIds);
+		log.debug("previousNodeIds:{}", previousNodeIds);
 		for (String prevNodeId : previousNodeIds) {
 			TaskNodeInstInfoEntity prevNodeInst = findExactTaskNodeInstInfoEntityWithNodeId(nodeInstEntities,
 					prevNodeId);
-			log.info("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
+			log.debug("prevNodeInst:{} - {}", prevNodeInst, prevNodeId);
 			if (prevNodeInst != null) {
 				if (statelessNodeTypes.contains(prevNodeInst.getNodeType())
 						&& !TaskNodeInstInfoEntity.COMPLETED_STATUS.equalsIgnoreCase(prevNodeInst.getStatus())) {
@@ -164,7 +186,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 					new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
 
 			if (taskNodeInstEntity != null) {
-				log.info("mark task node instance {} as {}", taskNodeInstEntity.getId(),
+				log.debug("mark task node instance {} as {}", taskNodeInstEntity.getId(),
 						TaskNodeInstInfoEntity.FAULTED_STATUS);
 				taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
 				taskNodeInstEntity.setUpdatedTime(new Date());
@@ -406,7 +428,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			List<Object> attrValsPerExpr = entityOperationService.queryAttributeValues(condition);
 
 			if (attrValsPerExpr == null) {
-				log.error("returned null while fetch data with expression:{}", mappingEntityExpression);
+				log.info("returned null while fetch data with expression:{}", mappingEntityExpression);
 				attrValsPerExpr = new ArrayList<>();
 			}
 
@@ -465,7 +487,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			Object finalInputParam = calculateContextValue(paramType, execParamEntities);
 
-			log.info("context final input parameter {} {} {}", paramName, paramType, finalInputParam);
+			log.debug("context final input parameter {} {} {}", paramName, paramType, finalInputParam);
 
 			objectVals.add(finalInputParam);
 		}
@@ -481,8 +503,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 					systemVariableName);
 
 			if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
-				log.error("variable is null but is mandatory for {}", paramName);
-				throw new WecubeCoreException(String.format("Variable is null but is mandatory for {%s}", paramName));
+				log.error("variable is null but [{}] is mandatory", paramName);
+				throw new WecubeCoreException(String.format("Variable is absent but [%s] is mandatory.", paramName));
 			}
 
 			String sVal = null;
@@ -494,8 +516,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			}
 
 			if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(param.getRequired())) {
-				log.error("variable is blank but is mandatory for {}", paramName);
-				throw new WecubeCoreException(String.format("variable is blank but is mandatory for {%s}", paramName));
+				log.error("variable is blank but [{}] is mandatory", paramName);
+				throw new WecubeCoreException(String.format("Variable is absent but [%s] is mandatory.", paramName));
 			}
 
 			objectVals.add(sVal);
@@ -577,7 +599,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				.findAllTaskNodeBindings(taskNodeInstEntity.getProcInstId(), taskNodeInstEntity.getId());
 
 		if (nodeObjectBindings == null) {
-			log.warn("node object bindings is empty for {} {}", taskNodeInstEntity.getProcInstId(),
+			log.info("node object bindings is empty for {} {}", taskNodeInstEntity.getProcInstId(),
 					taskNodeInstEntity.getId());
 			nodeObjectBindings = new ArrayList<>();
 		}
@@ -593,7 +615,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		}
 
 		if (log.isDebugEnabled()) {
-			log.info("retrieved service id {} for {},{}", serviceId, taskNodeDefEntity.getProcDefId(), nodeId);
+			log.debug("retrieved service id {} for {},{}", serviceId, taskNodeDefEntity.getProcDefId(), nodeId);
 		}
 		return serviceId;
 	}
@@ -772,7 +794,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 		PluginConfigInterface pci = ctx.getPluginConfigInterface();
 		if (ASYNC_SERVICE_SYMBOL.equalsIgnoreCase(pci.getIsAsyncProcessing())) {
-			log.info("such interface is asynchronous service : {} ", pci.getServiceName());
+			log.debug("such interface is asynchronous service : {} ", pci.getServiceName());
 			return;
 		}
 
@@ -793,11 +815,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			return;
 		} catch (Exception e) {
-			log.error("result data handling failed", e);
+			log.warn("result data handling failed", e);
 			result.setResultCode(RESULT_CODE_ERR);
 			pluginInvocationResultService.responsePluginInterfaceInvocation(result);
 			String errMsg = e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage());
-			handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "101",
+			handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5002",
 					"result data handling failed:" + errMsg);
 		}
 
@@ -808,18 +830,18 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			PluginInterfaceInvocationContext ctx) {
 
 		if (pluginInvocationResult.getResultData() != null && !pluginInvocationResult.getResultData().isEmpty()) {
-			log.info("plugin invocation partially succeeded.{} {}", ctx.getRequestId(), ctx.getInterfacePath());
+			log.debug("plugin invocation partially succeeded.{} {}", ctx.getRequestId(), ctx.getInterfacePath());
 			handleResultData(pluginInvocationResult, ctx, pluginInvocationResult.getResultData());
 		}
 
 		PluginInvocationResult result = new PluginInvocationResult()
 				.parsePluginInvocationCommand(ctx.getPluginInvocationCommand());
 
-		log.error("system errors:{}", pluginInvocationResult.getErrMsg());
+		log.warn("system errors:{}", pluginInvocationResult.getErrMsg());
 		result.setResultCode(RESULT_CODE_ERR);
 		pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-		handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "400",
-				"system errors:" + trimWithMaxLength(pluginInvocationResult.getErrMsg()));
+		handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5001",
+				"Errors:" + trimWithMaxLength(pluginInvocationResult.getErrMsg()));
 
 		return;
 	}
@@ -848,11 +870,11 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				handlePluginInterfaceInvocationSuccess(pluginInvocationResult, ctx);
 				return;
 			} else {
-				log.error("output parameter is configured but result is empty for interface {}",
+				log.warn("output parameter is configured but result is empty for interface {}",
 						pluginConfigInterface.getServiceName());
 				result.setResultCode(RESULT_CODE_ERR);
 				pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-				handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "100", "output is null");
+				handlePluginInterfaceInvocationFailure(pluginInvocationResult, ctx, "5003", "output is null");
 				return;
 			}
 		}
@@ -866,15 +888,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		List<Map<String, Object>> outputParameterMaps = validateAndCastResultData(resultData);
 		storeOutputParameterMaps(ctx, outputParameterMaps);
 
-		if (log.isInfoEnabled()) {
-			log.info("about to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
+		if (log.isDebugEnabled()) {
+			log.debug("about to process output parameters for {}", ctx.getPluginConfigInterface().getServiceName());
 		}
 		for (Map<String, Object> outputParameterMap : outputParameterMaps) {
 			handleSingleOutputMap(pluginInvocationResult, ctx, outputParameterMap);
 		}
 
-		if (log.isInfoEnabled()) {
-			log.info("finished processing {} output parameters for {}", outputParameterMaps.size(),
+		if (log.isDebugEnabled()) {
+			log.debug("finished processing {} output parameters for {}", outputParameterMaps.size(),
 					ctx.getPluginConfigInterface().getServiceName());
 		}
 
@@ -1010,7 +1032,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				.findById(requestEntity.getRequestId());
 
 		if (!requestEntityOpt.isPresent()) {
-			log.warn("request entity does not exist for {}", requestEntity.getRequestId());
+			log.info("request entity does not exist for {}", requestEntity.getRequestId());
 
 		} else {
 			requestEntity = requestEntityOpt.get();
@@ -1025,7 +1047,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				.findById(nodeInstEntity.getId());
 
 		if (!nodeInstEntityOpt.isPresent()) {
-			log.warn("task node instance entity does not exist for {}", nodeInstEntity.getId());
+			log.info("task node instance entity does not exist for {}", nodeInstEntity.getId());
 		} else {
 			nodeInstEntity = nodeInstEntityOpt.get();
 			nodeInstEntity.setUpdatedTime(now);
@@ -1063,7 +1085,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		}
 
 		if (!requestEntityOpt.isPresent()) {
-			log.warn("request entity does not exist for {}", requestEntity.getRequestId());
+			log.info("request entity does not exist for {}", requestEntity.getRequestId());
 
 		} else {
 			requestEntity = requestEntityOpt.get();
@@ -1098,7 +1120,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		}
 
 		if (!nodeInstEntityOpt.isPresent()) {
-			log.warn("task node instance entity does not exist for {}", nodeInstEntity.getId());
+			log.info("task node instance entity does not exist for {}", nodeInstEntity.getId());
 		} else {
 			nodeInstEntity = nodeInstEntityOpt.get();
 			nodeInstEntity.setUpdatedTime(now);
