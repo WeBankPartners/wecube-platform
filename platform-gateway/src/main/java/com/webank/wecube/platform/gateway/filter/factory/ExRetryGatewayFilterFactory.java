@@ -30,7 +30,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.webank.wecube.platform.gateway.route.DynamicRouteContext;
-import com.webank.wecube.platform.gateway.route.DynamicRouteItemInfo;
+import com.webank.wecube.platform.gateway.route.HttpDestination;
 
 import reactor.core.publisher.Mono;
 import reactor.retry.Repeat;
@@ -70,14 +70,18 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
             Predicate<RepeatContext<ServerWebExchange>> repeatPredicate = context -> {
                 ServerWebExchange exchange = context.applicationContext();
                 if (exceedsMaxIterations(exchange, retryConfig)) {
+                    log.debug("exceeded max iterations.");
                     return false;
                 }
 
                 if (!isRouteContextAvailable(context.applicationContext())) {
+                    log.debug("route context is NOT available now.");
                     return false;
                 }
 
                 HttpStatus statusCode = exchange.getResponse().getStatusCode();
+
+                log.trace("statusCode:{}", statusCode.value());
 
                 boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
 
@@ -106,10 +110,12 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
         if (!retryConfig.getExceptions().isEmpty()) {
             Predicate<RetryContext<ServerWebExchange>> retryContextPredicate = context -> {
                 if (exceedsMaxIterations(context.applicationContext(), retryConfig)) {
+                    log.debug("exceeded max iterations.");
                     return false;
                 }
 
                 if (!isRouteContextAvailable(context.applicationContext())) {
+                    log.debug("route context is NOT available now.");
                     return false;
                 }
 
@@ -130,7 +136,7 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
 
         return apply(retryConfig.getRouteId(), statusCodeRepeat, exceptionRetry);
     }
-    
+
     public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
         if (routeId != null && getPublisher() != null) {
             getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
@@ -143,11 +149,6 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
                 int newIteration = iteration + 1;
                 trace("setting new iteration in attr %d", newIteration);
                 exchange.getAttributes().put(EX_RETRY_ITERATION_KEY, newIteration);
-
-                if (throwable != null) {
-                    log.debug("errors:", throwable);
-                    tryPrepareRoute(exchange);
-                }
             });
 
             if (retry != null) {
@@ -176,8 +177,6 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
         exchange.getAttributes().remove(GATEWAY_ALREADY_ROUTED_ATTR);
     }
 
-    
-
     private void tryPrepareRoute(ServerWebExchange exchange) {
         DynamicRouteContext routeContext = exchange.getAttribute(DynamicRouteContext.DYNAMIC_ROUTE_CONTEXT_KEY);
         if (routeContext == null) {
@@ -185,18 +184,19 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
             return;
         }
 
-        DynamicRouteItemInfo item = routeContext.next();
-        if (item == null) {
+        HttpDestination httpDest = routeContext.next();
+        if (httpDest == null) {
             log.debug("dynamic route item info is null for {}", exchange.getRequest().getURI().toString());
             return;
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("DynamicRouteItemInfo:{},round:{}", item, exchange.getAttribute(EX_RETRY_ITERATION_KEY));
+            log.debug("prepare dynamic route:{},last round:{}", httpDest,
+                    exchange.getAttribute(EX_RETRY_ITERATION_KEY));
         }
 
         Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
-        String baseUrl = String.format("%s://%s:%s", item.getHttpSchema(), item.getHost(), item.getPort());
+        String baseUrl = String.format("%s://%s:%s", httpDest.getScheme(), httpDest.getHost(), httpDest.getPort());
         URI newUri = UriComponentsBuilder.fromHttpUrl(baseUrl).build().toUri();
         ServerWebExchangeUtils.addOriginalRequestUrl(exchange, exchange.getRequest().getURI());
         Route newRoute = Route.async().asyncPredicate(route.getPredicate()).filters(route.getFilters())
@@ -211,7 +211,12 @@ public class ExRetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Ex
             return false;
         }
 
-        return routeContext.hasNext();
+        if (!routeContext.hasNext()) {
+            return false;
+        }
+
+        tryPrepareRoute(exchange);
+        return true;
     }
 
     private void trace(String message, Object... args) {
