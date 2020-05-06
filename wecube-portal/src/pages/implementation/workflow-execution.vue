@@ -21,34 +21,22 @@
                   "
                 >
                   <span>
-                    <span style="color:#2b85e4">
-                      {{ item.procInstName + ' ' }}
-                    </span>
-                    <span style="color:#515a6e">
-                      {{ item.entityDisplayName + ' ' }}
-                    </span>
-                    <span style="color:#ccc;float:right">
-                      {{ (item.createdTime || 'createdTime') + ' ' }}
-                    </span>
-                    <span style="float:right;color:#515a6e;margin-right:20px">
-                      {{ item.operator || 'operator' }}
-                    </span>
+                    <span style="color:#2b85e4">{{ item.procInstName + ' ' }}</span>
+                    <span style="color:#515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                    <span style="color:#ccc;float:right">{{ (item.createdTime || 'createdTime') + ' ' }}</span>
+                    <span style="float:right;color:#515a6e;margin-right:20px">{{ item.operator || 'operator' }}</span>
                   </span>
                 </Option>
               </Select>
-              <Button type="info" @click="queryHandler">
-                {{ $t('query_orch') }}
-              </Button>
+              <Button type="info" @click="queryHandler">{{ $t('query_orch') }}</Button>
             </FormItem>
           </Form>
         </Col>
         <Col span="4" style="text-align: right;margin-bottom:8px;padding-right:40px;float:right;">
-          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">
-            {{ $t('enquery_new_workflow_job') }}
-          </Button>
-          <Button type="success" v-if="isEnqueryPage" @click="createHandler">
-            {{ $t('create_new_workflow_job') }}
-          </Button>
+          <Button type="info" v-if="!isEnqueryPage" @click="queryHistory">{{ $t('enquery_new_workflow_job') }}</Button>
+          <Button type="success" v-if="isEnqueryPage" @click="createHandler">{{
+            $t('create_new_workflow_job')
+          }}</Button>
         </Col>
       </Row>
       <Row>
@@ -65,9 +53,9 @@
                     @on-open-change="getAllFlow"
                     filterable
                   >
-                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
-                      item.procDefName + ' ' + item.createdTime
-                    }}</Option>
+                    <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">
+                      {{ item.procDefName + ' ' + item.createdTime }}
+                    </Option>
                   </Select>
                 </FormItem>
               </Form>
@@ -102,9 +90,9 @@
         </Row>
       </Row>
       <div style="text-align: right;margin-top: 6px;margin-right:40px">
-        <Button v-if="showExcution" :disabled="isExecuteActive" style="width:120px" type="info" @click="excutionFlow">{{
-          $t('execute')
-        }}</Button>
+        <Button v-if="showExcution" :disabled="isExecuteActive" style="width:120px" type="info" @click="excutionFlow">
+          {{ $t('execute') }}
+        </Button>
       </div>
     </Card>
     <Modal
@@ -672,12 +660,13 @@ export default {
           .filter(i => i.status !== 'predeploy')
           .map((_, index) => {
             if (_.nodeType === 'startEvent' || _.nodeType === 'endEvent') {
-              return `${_.nodeId} [label="${_.nodeName || _.nodeType}", fontsize="10", class="flow",style="${
+              const defaultLabel = _.nodeType === 'startEvent' ? 'start' : 'end'
+              return `${_.nodeId} [label="${_.nodeName || defaultLabel}", fontsize="10", class="flow",style="${
                 excution ? 'filled' : 'none'
               }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
             } else {
               const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : ''
-              return `${_.nodeId} [fixedsize=false label="${(_.orderedNo ? _.orderedNo + '、' : '') +
+              return `${_.nodeId} [fixedsize=false label="${(_.orderedNo ? _.orderedNo + ' ' : '') +
                 _.nodeName}" class="flow ${className}" style="${excution ? 'filled' : 'none'}" color="${
                 excution ? statusColor[_.status] : _.nodeId === this.currentFlowNodeId ? '#5DB400' : '#7F8A96'
               }"  shape="box" id="${_.nodeId}" ]`
