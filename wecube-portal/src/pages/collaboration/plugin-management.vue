@@ -134,6 +134,7 @@
                     <Row>
                       <Select
                         @on-change="selectHost"
+                        @on-open-change="hostSelectOpenHandler"
                         multiple
                         style="width: 40%"
                         :max-tag-count="4"
@@ -611,6 +612,11 @@ export default {
         })
       }
       this.isLoading = false
+    },
+    hostSelectOpenHandler (flag) {
+      if (flag) {
+        this.getAvailableContainerHosts()
+      }
     },
     async getAvailableContainerHosts () {
       const { data, status } = await getAvailableContainerHosts()
