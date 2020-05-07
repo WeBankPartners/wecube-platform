@@ -720,6 +720,7 @@ export default {
               })
               _this.getAllFlows(true)
               _this.selectedFlow = data.data.procDefId
+              _this.getFlowXml(data.data.procDefId)
               _this.temporaryFlow = data.data.procDefId
             }
           })
