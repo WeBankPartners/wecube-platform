@@ -66,9 +66,11 @@
                 :name="index + inter.action"
               >
                 <Input
-                  v-model="inter.action"
+                  :value="inter.action"
                   :disabled="currentPluginObj.status === 'ENABLED'"
-                  @click.stop.native="onFocus"
+                  @click.stop.native="onFocus($event, inter)"
+                  @input.stop.native="actionInputHandler($event, inter)"
+                  @on-blur="actionBlurHandler($event, inter)"
                   style="width:200px"
                   size="small"
                 />
@@ -321,6 +323,7 @@ import {
 export default {
   data () {
     return {
+      inputtingValue: '',
       isLoading: false,
       activePanel: null,
       allDataModelsWithAttrs: {},
@@ -494,7 +497,24 @@ export default {
         this.getInterfacesByPluginConfigId(this.currentPluginObj.id)
       }
     },
-    onFocus () {},
+    actionInputHandler (e, i) {
+      console.log(e)
+      if (e.inputType === 'insertText') {
+        this.inputtingValue += e.data
+      } else {
+        this.inputtingValue = this.inputtingValue.substr(0, this.inputtingValue.length - 1)
+      }
+      // i.action += e.data
+      // e.target.focus()
+    },
+    onFocus (e, i) {
+      this.inputtingValue = i.action
+    },
+    actionBlurHandler (e, i) {
+      i.action = this.inputtingValue
+      this.inputtingValue = ''
+      console.log(i)
+    },
     copyInterface (interfaces) {
       const found = this.currentPluginObj.interfaces.find(_ => _.action === interfaces.action + '-(copy)')
       if (found) return
