@@ -59,8 +59,6 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     protected void configureLocalAuthentication(HttpSecurity http) throws Exception {
         http.authorizeRequests() //
-                .antMatchers("/index.html").permitAll() //
-                .antMatchers("/workflow/**").permitAll() //
                 .antMatchers("/swagger-ui.html/**", "/swagger-resources/**").permitAll()//
                 .antMatchers("/webjars/**").permitAll() //
                 .antMatchers("/v2/api-docs").permitAll() //
@@ -68,6 +66,8 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .antMatchers("/v1/route-items").permitAll() //
                 .antMatchers("/v1/route-items/**").permitAll() //
                 .antMatchers("/v1/health-check").permitAll() //
+                .antMatchers("/v1/appinfo/loggers/query").permitAll() //
+                .antMatchers("/v1/appinfo/loggers/update").permitAll() //
                 .anyRequest().authenticated() //
                 .and()//
                 .addFilter(jwtSsoBasedAuthenticationFilter())//

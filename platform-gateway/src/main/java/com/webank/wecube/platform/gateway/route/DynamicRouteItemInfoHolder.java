@@ -1,216 +1,243 @@
 package com.webank.wecube.platform.gateway.route;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 
- * @author gavin
- *
- */
+import org.springframework.http.HttpMethod;
+
+import com.github.jknack.handlebars.internal.lang3.StringUtils;
+
 public class DynamicRouteItemInfoHolder {
 
-    private static Map<String, List<DynamicRouteItemInfo>> routeItemsByName = new ConcurrentHashMap<String, List<DynamicRouteItemInfo>>();
+    private Map<String, MvcContextRouteConfig> mvcContextRouteConfigs = new ConcurrentHashMap<String, MvcContextRouteConfig>();
 
-    private static List<DynamicRouteItemInfo> badRouteItems = new LinkedList<>();
+    private static final DynamicRouteItemInfoHolder INSTANCE = new DynamicRouteItemInfoHolder();
 
-    private static volatile Long lastRefreshTime = 0L;
+    private volatile long lastVersion = 0L;
+    private volatile long currentVersion = 0L;
 
-    public static List<DynamicRouteItemInfo> findByName(String name) {
-        List<DynamicRouteItemInfo> dynamicRouteItems = routeItemsByName.get(name);
-        if (dynamicRouteItems == null || dynamicRouteItems.isEmpty()) {
-            return null;
-        }
-        
-        List<DynamicRouteItemInfo> retList = new ArrayList<>();
-        dynamicRouteItems.forEach(item -> {
-            retList.add(item.clone());
-        });
+    private List<HttpDestination> unreachableHttpDestinations = new ArrayList<>();
 
-        return Collections.unmodifiableList(retList);
+    private List<MvcContextRouteConfig> outdatedMvcContextRouteConfigs = new ArrayList<>();
+
+    public static DynamicRouteItemInfoHolder instance() {
+        return INSTANCE;
+    }
+
+    public static void refresh(List<DynamicRouteItemInfo> fullyDynamicRouteItemInfos) {
+        INSTANCE.refreshRoutes(fullyDynamicRouteItemInfos);
+    }
+
+    public static Collection<MvcContextRouteConfig> routeConfigs() {
+        return INSTANCE.getMvcContextRouteConfigs().values();
+    }
+
+    public static MvcContextRouteConfig routeConfig(String context){
+        return INSTANCE.getMvcContextRouteConfig(context);
+    }
+
+    public static MvcHttpMethodAndPathConfig findRouteConfig(String context, String path, HttpMethod httpMethod) {
+        return INSTANCE.findRoute(context, path, httpMethod);
+    }
+
+    public static List<HttpDestination> findDefaultRouteConfig(String context, String path, HttpMethod httpMethod) {
+        return INSTANCE.findDefaultRoute(context, path, httpMethod);
     }
     
-    public static List<DynamicRouteItemInfo> findAll(){
-        List<DynamicRouteItemInfo> items = new LinkedList<>();
-        for(String name : routeItemsByName.keySet()){
-            items.addAll(routeItemsByName.get(name));
-        }
-        
-        return Collections.unmodifiableList(items);
+    public static List<MvcContextRouteConfig> outdatedMvcContextRouteConfigs(){
+    	return INSTANCE.getOutdatedMvcContextRouteConfigs();
     }
-    
-    public synchronized static void addDynamicRouteItemInfos(List<DynamicRouteItemInfo> rawRouteItemInfos){
-        if (rawRouteItemInfos == null) {
+
+    public void refreshRoutes(List<DynamicRouteItemInfo> fullyDynamicRouteItemInfos) {
+        if (fullyDynamicRouteItemInfos == null) {
             return;
         }
 
-        if (rawRouteItemInfos.isEmpty()) {
-            return;
-        }
-        
-        for (DynamicRouteItemInfo rawItem : rawRouteItemInfos) {
-            if (rawItem == null) {
+        increaseVersion();
+
+        for (DynamicRouteItemInfo item : fullyDynamicRouteItemInfos) {
+            if (item == null) {
                 continue;
             }
 
-            tryAddDynamicRouteItemInfo(rawItem);
-        }
-    }
-
-    public synchronized static void refreshDynamicRouteItemInfos(List<DynamicRouteItemInfo> rawRouteItemInfos) {
-        if (rawRouteItemInfos == null) {
-            return;
-        }
-
-        if (rawRouteItemInfos.isEmpty()) {
-            return;
-        }
-
-        tryClearBadRouteItems();
-
-        for (DynamicRouteItemInfo rawItem : rawRouteItemInfos) {
-            if (rawItem == null) {
+            if (StringUtils.isBlank(item.getContext())) {
                 continue;
             }
 
-            tryAddDynamicRouteItemInfo(rawItem);
+            tryAddDynamicRouteItemInfo(item);
         }
 
-        tryClearOutdatedDynamicRouteItemInfos();
-
-        lastRefreshTime = System.currentTimeMillis();
+        cleanOutdated();
     }
 
-    private static void tryClearBadRouteItems() {
-        badRouteItems.clear();
-    }
-
-    private static void tryClearOutdatedDynamicRouteItemInfos() {
-        for (String name : routeItemsByName.keySet()) {
-            List<DynamicRouteItemInfo> outdatedItems = new ArrayList<>();
-            List<DynamicRouteItemInfo> items = routeItemsByName.get(name);
-            for (DynamicRouteItemInfo item : items) {
-                if (item.getLastModifiedTime() <= lastRefreshTime) {
-                    outdatedItems.add(item);
-                }
-            }
-
-            items.removeAll(outdatedItems);
-
-            routeItemsByName.put(name, items);
+    private void tryAddDynamicRouteItemInfo(DynamicRouteItemInfo item) {
+        
+        MvcContextRouteConfig existConfig = mvcContextRouteConfigs.get(item.getContext());
+        if (existConfig == null) {
+            existConfig = new MvcContextRouteConfig(item.getContext());
+            mvcContextRouteConfigs.put(item.getContext(), existConfig);
         }
-    }
 
-    private static void tryAddDynamicRouteItemInfo(DynamicRouteItemInfo rawItem) {
-        List<DynamicRouteItemInfo> items = routeItemsByName.get(rawItem.getName());
-        if (items == null) {
-            items = new ArrayList<>();
-            DynamicRouteItemInfo item = new DynamicRouteItemInfo();
-            item.setAvailable(true);
-            item.setCreateTime(System.currentTimeMillis());
-            item.setHost(rawItem.getHost());
-            item.setHttpSchema(rawItem.getHttpSchema());
-            item.setItemId(UUID.randomUUID().toString());
-            item.setLastModifiedTime(System.currentTimeMillis());
-            item.setName(rawItem.getName());
-            item.setOrderNo(0);
-            item.setPort(rawItem.getPort());
+        existConfig.version(currentVersion);
 
-            items.add(item);
-
-            routeItemsByName.put(item.getName(), items);
+        if (StringUtils.isBlank(item.getHttpMethod()) && StringUtils.isBlank(item.getPath())) {
+            existConfig.tryAddDefaultHttpDestination(
+                    new HttpDestination(item.getHttpScheme(), item.getHost(), item.getPort(), item.getWeight()));
 
             return;
         }
 
-        DynamicRouteItemInfo existItem = findDynamicRouteItemInfoFromListByTemplate(items, rawItem);
-        if (existItem == null) {
-            DynamicRouteItemInfo item = new DynamicRouteItemInfo();
-            item.setAvailable(true);
-            item.setCreateTime(System.currentTimeMillis());
-            item.setHost(rawItem.getHost());
-            item.setHttpSchema(rawItem.getHttpSchema());
-            item.setItemId(UUID.randomUUID().toString());
-            item.setLastModifiedTime(System.currentTimeMillis());
-            item.setName(rawItem.getName());
-            item.setOrderNo(items.size());
-            item.setPort(rawItem.getPort());
-
-            items.add(item);
-
+        if (StringUtils.isBlank(item.getPath())) {
             return;
         }
 
-        existItem.setLastModifiedTime(System.currentTimeMillis());
+        if (StringUtils.isBlank(item.getHttpMethod())) {
+            existConfig.tryAddMvcHttpMethodAndPathConfig(item.getPath(),
+                    new HttpDestination(item.getHttpScheme(), item.getHost(), item.getPort(), item.getWeight()));
+            return;
+        }
+
+        HttpMethod httpMethod = resolveHttpMethod(item.getHttpMethod());
+        if (httpMethod == null) {
+            return;
+        }
+
+        existConfig.tryAddMvcHttpMethodAndPathConfig(item.getPath(), httpMethod,
+                new HttpDestination(item.getHttpScheme(), item.getHost(), item.getPort(), item.getWeight()));
 
         return;
     }
 
-    private static DynamicRouteItemInfo findDynamicRouteItemInfoFromListByTemplate(List<DynamicRouteItemInfo> items,
-            DynamicRouteItemInfo rawItem) {
-        for (DynamicRouteItemInfo item : items) {
-            if (item.equals(rawItem)) {
-                return item;
+    private HttpMethod resolveHttpMethod(String sHttpMethod) {
+        if (StringUtils.isBlank(sHttpMethod)) {
+            return null;
+        }
+
+        return HttpMethod.resolve(sHttpMethod.toUpperCase());
+    }
+
+    private void cleanOutdated() {
+        clearUnreachableHttpDestinations();
+        cleanOutdatedMvcContextRouteConfigs();
+        cleanMvcContextRouteConfigs();
+    }
+
+    private void cleanMvcContextRouteConfigs() {
+        for (MvcContextRouteConfig config : mvcContextRouteConfigs.values()) {
+            config.cleanOutdated();
+
+            if (config.getVersion() < currentVersion) {
+                this.outdatedMvcContextRouteConfigs.add(config);
             }
         }
 
-        return null;
+        for (MvcContextRouteConfig config : this.outdatedMvcContextRouteConfigs) {
+            mvcContextRouteConfigs.remove(config.getContext());
+        }
+    }
+
+    private void cleanOutdatedMvcContextRouteConfigs() {
+        outdatedMvcContextRouteConfigs.clear();
+    }
+
+    private void increaseVersion() {
+        this.lastVersion = currentVersion;
+        this.currentVersion = currentVersion + 1;
+    }
+
+    public MvcHttpMethodAndPathConfig findRoute(String context, String path, HttpMethod httpMethod) {
+
+        MvcContextRouteConfig ctxConfig = findContextConfig(context, path, httpMethod);
+        if (ctxConfig == null) {
+            return null;
+        }
+
+        return ctxConfig.findByMvcHttpMethodAndPath(httpMethod, path);
+    }
+
+    private MvcContextRouteConfig findContextConfig(String context, String path, HttpMethod httpMethod) {
+        if (StringUtils.isBlank(context) || StringUtils.isBlank(path) || httpMethod == null) {
+            return null;
+        }
+
+        return this.mvcContextRouteConfigs.get(context);
 
     }
 
-    public static List<DynamicRouteItemInfo> getBadRouteItemInfos() {
-        return Collections.unmodifiableList(badRouteItems);
+    public List<HttpDestination> findDefaultRoute(String context, String path, HttpMethod httpMethod) {
+        MvcContextRouteConfig ctxConfig = findContextConfig(context, path, httpMethod);
+        if (ctxConfig == null) {
+            return Collections.emptyList();
+        }
+
+        return ctxConfig.getDefaultHttpDestinations();
     }
 
-    public static void disableDynamicRouteItemInfo(DynamicRouteItemInfo itemToDisable) {
-        if (itemToDisable == null) {
-            return;
-        }
-
-        if (itemToDisable.getItemId() == null) {
-            return;
-        }
-
-        if (itemToDisable.getName() == null) {
-            return;
-        }
-
-        List<DynamicRouteItemInfo> items = routeItemsByName.get(itemToDisable.getName());
-        if (items == null || items.isEmpty()) {
-            return;
-        }
-
-        DynamicRouteItemInfo item = findDynamicRouteItemInfoFromListById(items, itemToDisable.getItemId());
-        if (item == null) {
-            return;
-        }
-
-        item.setAvailable(false);
-        item.setLastModifiedTime(System.currentTimeMillis());
-
-        if (!badRouteItems.contains(item)) {
-            badRouteItems.add(item);
-        }
-
-        items.remove(item);
-
-        routeItemsByName.put(item.getName(), items);
+    public void addRoute(String context, String path, HttpDestination httpDest, HttpMethod httpMethod) {
+        // NOT implemented currently
     }
 
-    private static DynamicRouteItemInfo findDynamicRouteItemInfoFromListById(List<DynamicRouteItemInfo> items,
-            String itemId) {
-        for (DynamicRouteItemInfo item : items) {
-            if (itemId.equals(item.getItemId())) {
-                return item;
-            }
-        }
+    public void addRoute(String context, String path, HttpDestination httpDest) {
+    	// NOT implemented currently
+    }
 
-        return null;
+    public void deleteRoute(String context, String path, HttpDestination httpDest, HttpMethod httpMethod) {
+    	// NOT implemented currently
+    }
+
+    public void deleteRoute(String context, String path, HttpDestination httpDest) {
+    	// NOT implemented currently
+    }
+
+    public void addDefaultRoute(String context, HttpDestination httpDest) {
+    	// NOT implemented currently
+    }
+
+    public void removeDefaultRoute(String context, HttpDestination httpDest) {
+    	// NOT implemented currently
+    }
+
+    void clearUnreachableHttpDestinations() {
+        this.unreachableHttpDestinations.clear();
+    }
+
+    public void removeUnreachableHttpDestination(HttpDestination httpDestination) {
+    	// NOT implemented currently
+    }
+
+    public void addUnreachableHttpDestination(HttpDestination httpDestination) {
+    	// NOT implemented currently
+    }
+
+    public List<HttpDestination> getUnreachableHttpDestinations() {
+        return Collections.unmodifiableList(this.unreachableHttpDestinations);
+    }
+
+    public Map<String, MvcContextRouteConfig> getMvcContextRouteConfigs() {
+        return Collections.unmodifiableMap(this.mvcContextRouteConfigs);
+    }
+
+    public MvcContextRouteConfig getMvcContextRouteConfig(String context) {
+        if (StringUtils.isBlank(context)) {
+            return null;
+        }
+        return this.mvcContextRouteConfigs.get(context);
+    }
+
+    public List<MvcContextRouteConfig> getOutdatedMvcContextRouteConfigs() {
+        return Collections.unmodifiableList(outdatedMvcContextRouteConfigs);
+    }
+
+    public long getLastVersion() {
+        return lastVersion;
+    }
+
+    public long getCurrentVersion() {
+        return currentVersion;
     }
 
 }
