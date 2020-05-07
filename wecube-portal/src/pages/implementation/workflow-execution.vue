@@ -883,6 +883,7 @@ export default {
       this.currentNodeTitle = `${currentNode.orderedNo}、${currentNode.nodeName}`
       this.highlightModel(g.id, currentNode.nodeDefId)
       this.renderFlowGraph()
+      this.renderModelGraph()
     },
     async highlightModel (nodeId, nodeDefId) {
       if (nodeDefId && this.processSessionId) {
