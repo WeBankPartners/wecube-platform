@@ -415,5 +415,6 @@
   "please_choose": "请选择",
   "please_paste_here": "请在这粘贴",
   "delete_node": "删除此节点",
-  "completely_deleted": "点击保存后将完全删除"
+  "completely_deleted": "点击保存后将完全删除",
+  "show_log": "查看日志"
 }
