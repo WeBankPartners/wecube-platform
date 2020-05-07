@@ -1,5 +1,5 @@
 server:
-   port: 9999
+   port: 19110
    ssl:
       enabled: false
       key-alias: gw
@@ -12,7 +12,7 @@ logging:
 platform:
    gateway:
       route:
-         route-config-server: http://${WECUBE_CORE_HOST}:19100
+         route-config-server: http://${WECUBE_CORE_HOST:127.0.0.1}:19100
          route-config-uri: /platform/v1/route-items
          route-config-access-key: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJXRUNVQkUtQ09SRSIsImlhdCI6MTU3MDY5MDMwMCwidHlwZSI6ImFjY2Vzc1Rva2VuIiwiY2xpZW50VHlwZSI6IlNVQl9TWVNURU0iLCJleHAiOjE2MDIzMTI3MDAsImF1dGhvcml0eSI6IltTVUJfU1lTVEVNXSJ9.Mq8g_ZoPIQ_mB59zEq0KVtwGn_uPqL8qn6sP7WzEiJxoXQQIcVe7mYsG-E2jxCShEQL7PsMNLM47MYuY7R5nBg
 
@@ -24,13 +24,13 @@ spring:
                useInsecureTrustManager: true
          routes:
          - id: platform-core
-           uri: http://${WECUBE_CORE_HOST}:19100
+           uri: http://${WECUBE_CORE_HOST:127.0.0.1}:19100
            predicates:
               - Path=/platform/**
            filters:
               - DynamicRoute=false
          - id: platform-auth-server
-           uri: http://${AUTH_SERVER_HOST}:19120
+           uri: http://${AUTH_SERVER_HOST:127.0.0.1}:19120
            predicates:
               - Path=/auth/**
            filters:
