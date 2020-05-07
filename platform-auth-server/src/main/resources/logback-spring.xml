@@ -3,27 +3,31 @@
 
 <configuration scan="true" scanPeriod="30 seconds">
 
+    <property name="logPath"
+        value="${APP_LOG_PATH:-./target/data/auth_server/log}" />
+    <property name="logFile" value="auth-server" />
+
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>
     </contextListener>
 
-    <jmxConfigurator/>
+    <jmxConfigurator />
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%-5level %-48logger{48} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %-48logger{48} - %msg%n</pattern>
         </encoder>
     </appender>
-    
+
     <appender name="rollingFile"
         class="ch.qos.logback.core.rolling.RollingFileAppender">
-        
-        <File>logs/wecube-cds.log</File>
+
+        <File>${logPath}/${logFile}.log</File>
         <rollingPolicy
             class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>logs/wecube-cds.log-%d{yyyyMMdd}.log
+            <FileNamePattern>${logPath}/${logFile}-%d{yyyyMMdd}.log
             </FileNamePattern>
-            <MaxHistory>2</MaxHistory>
+            <MaxHistory>30</MaxHistory>
         </rollingPolicy>
         <encoder>
             <Pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %thread %-5level %-48logger{48} %msg%n]]>
@@ -31,32 +35,9 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
-    
-    <appender name="subprocessLog"
-        class="ch.qos.logback.core.rolling.RollingFileAppender">
-        
-        <File>logs/subproc-trace.log</File>
-        <rollingPolicy
-            class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>logs/subproc-trace.log-%d{yyyyMMdd}.log
-            </FileNamePattern>
-            <MaxHistory>2</MaxHistory>
-        </rollingPolicy>
-        <encoder>
-            <Pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %msg%n]]>
-            </Pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
 
-    <logger name="com.gl.wecube.cds.workflow.listener" level="debug" additivity="true">
-    	<appender-ref ref="subprocessLog" />
-    </logger> 
-         
     <root level="info">
-        <appender-ref ref="console"/>
-        <!-- 
-        <appender-ref ref="rollingFile"/>
-         -->
+        <!-- <appender-ref ref="console"/> -->
+        <appender-ref ref="rollingFile" />
     </root>
 </configuration>
