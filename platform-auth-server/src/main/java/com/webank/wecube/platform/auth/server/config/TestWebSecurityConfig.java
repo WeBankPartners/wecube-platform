@@ -17,6 +17,8 @@ public class TestWebSecurityConfig extends AuthSecurityConfigurerAdapter {
     
     private static final String[] AUTH_WHITELIST = { //
     		"/v1/health-check",//
+    		"/v1/appinfo/loggers/query",//
+            "/v1/appinfo/loggers/update",//
             "/error", //
             "/swagger-resources", //
             "/swagger-resources/**", //
