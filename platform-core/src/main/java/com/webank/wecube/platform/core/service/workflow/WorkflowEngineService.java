@@ -378,17 +378,21 @@ public class WorkflowEngineService {
 
         for (FlowNode fn : flowNode.getSucceedingNodes().list()) {
             ProcFlowNodeInst childPfn = outline.findProcFlowNodeInstByNodeId(fn.getId());
+            boolean needPopulateChild = false;
             if (childPfn == null) {
                 childPfn = new ProcFlowNodeInst();
                 childPfn.setId(fn.getId());
                 childPfn.setNodeType(fn.getElementType().getTypeName());
                 childPfn.setNodeName(fn.getName() == null ? "" : fn.getName());
                 outline.addNodeInsts(childPfn);
+                needPopulateChild = true;
             }
 
             pfn.addSucceedingFlowNodes(childPfn);
 
-            populateFlowNodeInsts(outline, fn);
+            if (needPopulateChild) {
+                populateFlowNodeInsts(outline, fn);
+            }
         }
 
     }
@@ -490,19 +494,18 @@ public class WorkflowEngineService {
 
         return processDef;
     }
-    
-    public ProcDefOutline readProcDefOutlineFromXmlData(String xmlData){
-        BpmnModelInstance bpmnModel = readModelFromXmlData(xmlData); 
+
+    public ProcDefOutline readProcDefOutlineFromXmlData(String xmlData) {
+        BpmnModelInstance bpmnModel = readModelFromXmlData(xmlData);
 
         ProcDefOutline pdo = new ProcDefOutline();
-        
-        
+
         Collection<org.camunda.bpm.model.bpmn.instance.Process> processes = bpmnModel
                 .getModelElementsByType(org.camunda.bpm.model.bpmn.instance.Process.class);
 
         org.camunda.bpm.model.bpmn.instance.Process process = processes.iterator().next();
-        
-//        pdo.setProcDefKey(process.getKey());
+
+        // pdo.setProcDefKey(process.getKey());
         pdo.setProcDefName(process.getName());
 
         Collection<StartEvent> startEvents = process.getChildElementsByType(StartEvent.class);
@@ -513,12 +516,12 @@ public class WorkflowEngineService {
 
         return pdo;
     }
-    
-    protected BpmnModelInstance readModelFromXmlData(String xmlData){
-        if(StringUtils.isBlank(xmlData)){
+
+    protected BpmnModelInstance readModelFromXmlData(String xmlData) {
+        if (StringUtils.isBlank(xmlData)) {
             throw new WecubeCoreException("XML data to parse cannot be blank.");
         }
-        
+
         InputStream is = null;
         BpmnModelInstance procModelInstance = null;
         try {
@@ -537,12 +540,12 @@ public class WorkflowEngineService {
                 }
             }
         }
-        
-        if(procModelInstance == null){
+
+        if (procModelInstance == null) {
             log.error("failed to read model instance.");
             throw new WecubeCoreException("Failed to read model instance.");
         }
-        
+
         return procModelInstance;
     }
 
@@ -579,14 +582,18 @@ public class WorkflowEngineService {
 
         for (FlowNode fn : succeedingFlowNodes) {
             ProcFlowNode childPfn = outline.findFlowNode(fn.getId());
+            boolean needPopulateChild = false;
             if (childPfn == null) {
                 childPfn = buildProcFlowNode(fn);
                 outline.addFlowNodes(childPfn);
+                needPopulateChild = true;
             }
 
             pfn.addSucceedingFlowNodes(childPfn);
 
-            populateFlowNodes(outline, fn);
+            if (needPopulateChild) {
+                populateFlowNodes(outline, fn);
+            }
         }
 
     }
