@@ -498,14 +498,11 @@ export default {
       }
     },
     actionInputHandler (e, i) {
-      console.log(e)
       if (e.inputType === 'insertText') {
         this.inputtingValue += e.data
       } else {
         this.inputtingValue = this.inputtingValue.substr(0, this.inputtingValue.length - 1)
       }
-      // i.action += e.data
-      // e.target.focus()
     },
     onFocus (e, i) {
       this.inputtingValue = i.action
@@ -513,7 +510,6 @@ export default {
     actionBlurHandler (e, i) {
       i.action = this.inputtingValue
       this.inputtingValue = ''
-      console.log(i)
     },
     copyInterface (interfaces) {
       const found = this.currentPluginObj.interfaces.find(_ => _.action === interfaces.action + '-(copy)')
