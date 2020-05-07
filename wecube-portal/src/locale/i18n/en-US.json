@@ -416,5 +416,6 @@
   "please_paste_here": "Please Paste Here",
   "delete_node": "Delete Node",
   "remove": "Remove",
-  "completely_deleted": "It Will Be Completely Deleted After Clicking Save"
+  "completely_deleted": "It Will Be Completely Deleted After Clicking Save",
+  "show_log": "Show Log"
 }
