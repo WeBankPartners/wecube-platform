@@ -42,7 +42,7 @@ services:
     depends_on:
       - platform-core
     volumes:
-      - /data/wecube-gateway/log:/log/ 
+      - /data/wecube-gateway/log:{{WECUBE_GATEWAY_LOG_PATH}}
       - /etc/localtime:/etc/localtime
     ports:
       - {{GATEWAY_PORT}}:8080
@@ -54,12 +54,13 @@ services:
       - WECUBE_CORE_HOST={{WECUBE_CORE_HOST}}
       - AUTH_SERVER_HOST={{AUTH_SERVER_HOST}}
       - GATEWAY_CUSTOM_PARAM={{GATEWAY_CUSTOM_PARAM}}
+      - WECUBE_GATEWAY_LOG_PATH={{WECUBE_GATEWAY_LOG_PATH}}
 
   platform-core:
     image: {{WECUBE_IMAGE_NAME}}:{{WECUBE_IMAGE_VERSION}}
     restart: always
     volumes:
-      - {{APP_LOG_PATH}}:/data/wecube/log
+      - /data/wecube/log:{{APP_LOG_PATH}}
       - /etc/localtime:/etc/localtime
       - {{DOCKER_API_CERTS_PATH}}:/certs
     ports:
@@ -94,12 +95,13 @@ services:
       - WECUBE_BUCKET={{WECUBE_BUCKET}}
       - WECUBE_CORE_HOST={{WECUBE_CORE_HOST}}
       - WECUBE_CUSTOM_PARAM={{WECUBE_CUSTOM_PARAM}}
+      - APP_LOG_PATH={{APP_LOG_PATH}}
       
   auth-server:
     image: {{AUTH_SERVER_IMAGE_NAME}}:{{AUTH_SERVER_IMAGE_VERSION}}
     restart: always
     volumes:
-      - /data/auth_server/log:/log/ 
+      - /data/auth_server/log:{{AUTH_SERVER_LOG_PATH}}
       - /etc/localtime:/etc/localtime
     ports:
       - {{AUTH_SERVER_PORT}}:8080
@@ -111,6 +113,7 @@ services:
       - MYSQL_USER_NAME={{AUTH_SERVER_MYSQL_USER_NAME}}
       - MYSQL_USER_PASSWORD={{AUTH_SERVER_MYSQL_USER_PASSWORD}}
       - AUTH_CUSTOM_PARAM={{AUTH_CUSTOM_PARAM}}
+      - AUTH_SERVER_LOG_PATH={{AUTH_SERVER_LOG_PATH}}
       
 
    
