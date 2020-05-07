@@ -4,83 +4,99 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RouteItemInfoDto {
-    private String name;
-    private String schema;
-    private String host;
-    private String port;
+	private String context;
+	private String httpMethod;
+	private String path;
+	private String httpScheme;
+	private String host;
+	private String port;
+	
+	private String weight;
 
-    private Long createTime;
-    private Long lastModifyTime;
-    private Boolean available;
-    private String itemId;
+	private Long createTime;
+	private Long lastModifyTime;
+	private Boolean available;
 
-    public String getName() {
-        return name;
-    }
+	public String getContext() {
+		return context;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public void setContext(String context) {
+		this.context = context;
+	}
 
-    public String getSchema() {
-        return schema;
-    }
+	public String getHttpMethod() {
+		return httpMethod;
+	}
 
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
+	public void setHttpMethod(String httpMethod) {
+		this.httpMethod = httpMethod;
+	}
 
-    public String getHost() {
-        return host;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setHost(String host) {
-        this.host = host;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public String getPort() {
-        return port;
-    }
+	public String getHttpScheme() {
+		return httpScheme;
+	}
 
-    public void setPort(String port) {
-        this.port = port;
-    }
+	public void setHttpScheme(String httpScheme) {
+		this.httpScheme = httpScheme;
+	}
 
-    @Override
-    public String toString() {
-        return "name=" + name + ", schema=" + schema + ", host=" + host + ", port=" + port + "";
-    }
+	public String getHost() {
+		return host;
+	}
 
-    public Long getCreateTime() {
-        return createTime;
-    }
+	public void setHost(String host) {
+		this.host = host;
+	}
 
-    public void setCreateTime(Long createTime) {
-        this.createTime = createTime;
-    }
+	public String getPort() {
+		return port;
+	}
 
-    public Long getLastModifyTime() {
-        return lastModifyTime;
-    }
+	public void setPort(String port) {
+		this.port = port;
+	}
 
-    public void setLastModifyTime(Long lastModifyTime) {
-        this.lastModifyTime = lastModifyTime;
-    }
+	public Long getCreateTime() {
+		return createTime;
+	}
 
-    public Boolean getAvailable() {
-        return available;
-    }
+	public void setCreateTime(Long createTime) {
+		this.createTime = createTime;
+	}
 
-    public void setAvailable(Boolean available) {
-        this.available = available;
-    }
+	public Long getLastModifyTime() {
+		return lastModifyTime;
+	}
 
-    public String getItemId() {
-        return itemId;
-    }
+	public void setLastModifyTime(Long lastModifyTime) {
+		this.lastModifyTime = lastModifyTime;
+	}
 
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
-    }
+	public Boolean getAvailable() {
+		return available;
+	}
+
+	public void setAvailable(Boolean available) {
+		this.available = available;
+	}
+
+	public String getWeight() {
+		return weight;
+	}
+
+	public void setWeight(String weight) {
+		this.weight = weight;
+	}
+	
+	
 
 }
