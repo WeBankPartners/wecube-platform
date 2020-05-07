@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="30 seconds">
 
+    <property name="logPath" value="${APP_LOG_PATH:-./target/data/wecube-gateway/log}"/>
+    <property name="logFile" value="wecube-gateway"/>
+
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>
     </contextListener>
@@ -9,19 +12,19 @@
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%-5level %logger{0} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <appender name="rollingFile"
         class="ch.qos.logback.core.rolling.RollingFileAppender">
 
-        <File>../logs/mock/mock-trace.log</File>
+        <File>${logPath}/${logFile}.log</File>
         <rollingPolicy
             class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>../logs/mock/mock-trace-%d{yyyyMMdd}.log
+            <FileNamePattern>${logPath}/${logFile}-%d{yyyyMMdd}.log
             </FileNamePattern>
-            <MaxHistory>2</MaxHistory>
+            <MaxHistory>30</MaxHistory>
         </rollingPolicy>
         <encoder>
             <Pattern><![CDATA[%d{yyyy-MM-dd HH:mm:ss} %thread %-5level %-48logger{48} %msg%n]]>
@@ -31,9 +34,9 @@
     </appender>
 
     <root level="info">
-        <appender-ref ref="console" />
         <!-- 
-        <appender-ref ref="rollingFile" />
+        <appender-ref ref="console" />
          -->
+        <appender-ref ref="rollingFile" />
     </root>
 </configuration>
