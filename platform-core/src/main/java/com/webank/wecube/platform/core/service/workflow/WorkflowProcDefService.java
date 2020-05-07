@@ -327,7 +327,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 		fDto.setProcDefId(nodeEntity.getProcDefId());
 		fDto.setProcDefKey(nodeEntity.getProcDefKey());
 		fDto.setNodeId(nodeEntity.getNodeId());
-		fDto.setNodeName(nodeEntity.getNodeName());
+		fDto.setNodeName(reduceTaskNodeName(nodeEntity));
 		fDto.setNodeType(nodeEntity.getNodeType());
 
 		fDto.setNodeDefId(nodeEntity.getId());
@@ -344,6 +344,22 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 		succeedingNodeIds.forEach(n -> fDto.addSucceedingNodeIds(n));
 
 		return fDto;
+	}
+	
+	private String reduceTaskNodeName(TaskNodeDefInfoEntity nodeEntity) {
+		if(!StringUtils.isBlank(nodeEntity.getNodeName())) {
+			return nodeEntity.getNodeName();
+		}
+		
+		if("startEvent".equals(nodeEntity.getNodeType())) {
+			return "S";
+		}
+		
+		if("endEvent".equals(nodeEntity.getNodeType())) {
+			return "E";
+		}
+		
+		return null;
 	}
 
 	public ProcDefInfoDto getProcessDefinition(String id) {
