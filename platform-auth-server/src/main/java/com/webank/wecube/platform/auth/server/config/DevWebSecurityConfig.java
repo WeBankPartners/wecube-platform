@@ -16,6 +16,8 @@ import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 public class DevWebSecurityConfig extends AuthSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = { //
     		"/v1/health-check",//
+    		"/v1/appinfo/loggers/query",//
+    		"/v1/appinfo/loggers/update",//
             "/v1/api/ping", //
             "/v2/api-docs", //
             "/error", //
