@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE xml>
-
 <configuration scan="true" scanPeriod="30 seconds">
 
-    <property name="logPath"
-        value="${AUTH_SERVER_LOG_PATH:-/data/auth_server/log}" />
-    <property name="logFile" value="auth-server" />
+    <property name="logPath" value="${WECUBE_GATEWAY_LOG_PATH:-./target/data/wecube-gateway/log}"/>
+    <property name="logFile" value="wecube-gateway"/>
 
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>
@@ -15,7 +12,7 @@
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %-48logger{48} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{0} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -37,7 +34,9 @@
     </appender>
 
     <root level="info">
-        <!-- <appender-ref ref="console"/> -->
+        <appender-ref ref="console" />
+        <!-- 
         <appender-ref ref="rollingFile" />
+         -->
     </root>
 </configuration>
