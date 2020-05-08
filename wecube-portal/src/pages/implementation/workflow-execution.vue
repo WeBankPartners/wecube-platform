@@ -202,6 +202,7 @@ import { addEvent, removeEvent } from '../util/event.js'
 export default {
   data () {
     return {
+      currentModelNodeRefs: [],
       showNodeDetail: false,
       isTargetNodeDetail: false,
       nodeDetailFullscreen: false,
@@ -604,6 +605,10 @@ export default {
       // .on('end', this.setFontSizeForText)
       removeEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       removeEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
+      removeEvent('.model text', 'click', this.modelGraphClickHandler)
+      removeEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
+      addEvent('.model text', 'click', this.modelGraphClickHandler)
+      addEvent('#graph svg', 'click', this.resetcurrentModelNodeRefs)
       addEvent('.model text', 'mouseenter', this.modelGraphMouseenterHandler)
       addEvent('.model text', 'mouseleave', this.modelGraphMouseleaveHandler)
     },
@@ -614,6 +619,23 @@ export default {
         const fontsize = Math.min((nondes[i].children[1].rx.baseVal.value / len) * 3, 16)
         for (let j = 2; j < nondes[i].children.length; j++) {
           nondes[i].children[j].setAttribute('font-size', fontsize)
+        }
+      }
+    },
+    resetcurrentModelNodeRefs () {
+      if (!this.isEnqueryPage) {
+        this.currentModelNodeRefs = []
+        this.renderFlowGraph()
+      }
+    },
+    modelGraphClickHandler (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      if (!this.isEnqueryPage) {
+        const refEle = e.target.parentNode.children[3]
+        if (refEle) {
+          this.currentModelNodeRefs = refEle.innerHTML.trim().split('/')
+          this.renderFlowGraph()
         }
       }
     },
@@ -635,7 +657,7 @@ export default {
         this.showNodeDetail = true
         this.nodeDetailFullscreen = false
         this.tableMaxHeight = 250
-      }, 1000)
+      }, 1300)
     },
     modelDetailEnterHandler (e) {
       let modelDetail = document.getElementById('model_graph_detail')
@@ -671,9 +693,16 @@ export default {
               }" color="${excution ? statusColor[_.status] : '#7F8A96'}" shape="circle", id="${_.nodeId}"]`
             } else {
               const className = _.status === 'Faulted' || _.status === 'Timeouted' ? 'retry' : 'normal'
+              const isModelClick = this.currentModelNodeRefs.indexOf(_.orderedNo) > -1
               return `${_.nodeId} [fixedsize=false label="${(_.orderedNo ? _.orderedNo + ' ' : '') +
-                _.nodeName}" class="flow ${className}" style="${excution ? 'filled' : 'none'}" color="${
-                excution ? statusColor[_.status] : _.nodeId === this.currentFlowNodeId ? '#5DB400' : '#7F8A96'
+                _.nodeName}" class="flow ${className}" style="${excution || isModelClick ? 'filled' : 'none'}" color="${
+                excution
+                  ? statusColor[_.status]
+                  : isModelClick
+                    ? '#ff9900'
+                    : _.nodeId === this.currentFlowNodeId
+                      ? '#5DB400'
+                      : '#7F8A96'
               }"  shape="box" id="${_.nodeId}" ]`
             }
           })
