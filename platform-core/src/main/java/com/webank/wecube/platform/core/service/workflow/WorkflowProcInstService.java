@@ -369,7 +369,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			return "E";
 		}
 		
-		return null;
+		return "";
 	}
 
 	private TaskNodeDefInfoEntity findTaskNodeDefInfoEntityByNodeDefId(List<TaskNodeDefInfoEntity> nodeDefEntities,

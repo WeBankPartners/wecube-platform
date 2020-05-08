@@ -359,7 +359,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 			return "E";
 		}
 		
-		return null;
+		return "";
 	}
 
 	public ProcDefInfoDto getProcessDefinition(String id) {
