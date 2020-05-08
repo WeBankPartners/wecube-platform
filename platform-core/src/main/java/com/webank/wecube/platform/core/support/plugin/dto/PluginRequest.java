@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class PluginRequest<DATATYPE> {
     private String requestId;
+    private List<String> allowedOptions;
     private List<DATATYPE> inputs;
 
     public PluginRequest<DATATYPE> withInputs(List<DATATYPE> inputs) {
@@ -14,6 +15,11 @@ public class PluginRequest<DATATYPE> {
     
     public PluginRequest<DATATYPE> withRequestId(String requestId){
         this.requestId = requestId;
+        return this;
+    }
+    
+    public PluginRequest<DATATYPE> withAllowedOptions(List<String> allowedOptions){
+        this.allowedOptions = allowedOptions;
         return this;
     }
     
@@ -33,6 +39,27 @@ public class PluginRequest<DATATYPE> {
         this.inputs = inputs;
     }
     
+    public List<String> getAllowedOptions() {
+        return allowedOptions;
+    }
+
+    public void setAllowedOptions(List<String> allowedOptions) {
+        this.allowedOptions = allowedOptions;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("PluginRequest [requestId=");
+        builder.append(requestId);
+        builder.append(", allowedOptions=");
+        builder.append(allowedOptions);
+        builder.append(", inputs=");
+        builder.append(inputs);
+        builder.append("]");
+        return builder.toString();
+    }
+    
     public static class DefaultPluginRequest extends PluginRequest<Map<String, Object>> {
     }
     
@@ -40,10 +67,5 @@ public class PluginRequest<DATATYPE> {
     }
 
     public static class PluginLoggingInfoSearchDetailRequest extends PluginRequest<PluginLoggingInfoSearchDetailRequestParameter> {
-    }
-
-    @Override
-    public String toString() {
-        return "PluginRequest [requestId=" + requestId + ", inputs=" + inputs + "]";
     }
 }
