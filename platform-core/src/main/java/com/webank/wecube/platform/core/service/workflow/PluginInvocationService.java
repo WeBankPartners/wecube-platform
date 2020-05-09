@@ -114,7 +114,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		}
 
 		if(procInstEntity == null){
-		    log.error("Cannot find process instance entity currently for {}", cmd.getProcInstId());
+		    log.warn("Cannot find process instance entity currently for {}", cmd.getProcInstId());
 		    return;
 		}
 		
@@ -183,7 +183,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			taskNodeInstEntity = retrieveTaskNodeInstInfoEntity(procInstEntity.getId(), cmd.getNodeId());
 			doInvokePluginInterface(procInstEntity, taskNodeInstEntity, cmd);
 		} catch (Exception e) {
-			log.error("errors while processing {} {}", cmd.getClass().getSimpleName(), cmd, e);
+			log.warn("errors while processing {} {}", cmd.getClass().getSimpleName(), cmd, e);
 			pluginInvocationResultService.responsePluginInterfaceInvocation(
 					new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
 
@@ -353,11 +353,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		PluginInstance pluginInstance = retrieveAvailablePluginInstance(pluginConfigInterface);
 		String interfacePath = pluginConfigInterface.getPath();
 		if (pluginInstance == null) {
-			log.error("cannot find an available plugin instance for {}", pluginConfigInterface.getServiceName());
+			log.warn("cannot find an available plugin instance for {}", pluginConfigInterface.getServiceName());
 			throw new WecubeCoreException("Cannot find an available plugin instance.");
 		}
-		// String instanceHostAndPort = String.format("%s:%s",
-		// pluginInstance.getHost(), pluginInstance.getPort());
+		
 		String instanceHostAndPort = applicationProperties.getGatewayUrl();
 		ctx.setInstanceHost(instanceHostAndPort);
 		ctx.setInterfacePath(interfacePath);
