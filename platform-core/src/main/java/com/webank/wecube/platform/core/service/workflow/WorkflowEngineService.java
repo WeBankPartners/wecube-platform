@@ -121,7 +121,7 @@ public class WorkflowEngineService {
 		String act = StringUtils.isBlank(userAction) ? PROCEED_ACT_RETRY : userAction;
 
 		if (!(PROCEED_ACT_RETRY.equals(act) || PROCEED_ACT_SKIP.equals(act))) {
-			log.error("invalid action met for {} {} {}", procInstanceId, nodeId, userAction);
+			log.warn("invalid action met for {} {} {}", procInstanceId, nodeId, userAction);
 			throw new IllegalArgumentException(String.format("action {%s} is invalid.", userAction));
 		}
 
@@ -261,7 +261,7 @@ public class WorkflowEngineService {
 				.findOneByprocInstanceId(procInstId);
 
 		if (procInstStatusEntity == null) {
-			log.error("cannot find such process instance record with procInstId={}", procInstId);
+			log.warn("cannot find such process instance record with procInstId={}", procInstId);
 			throw new WecubeCoreException("Such process instance record does not exist.");
 		}
 
@@ -274,7 +274,7 @@ public class WorkflowEngineService {
 			ProcessInstance existProcInst = getProcessInstanceByProcInstId(procInstId);
 
 			if (existProcInst == null) {
-				log.error("such process instance does not exist,procInstId={}", procInstId);
+				log.warn("such process instance does not exist,procInstId={}", procInstId);
 				throw new WecubeCoreException("Such process instance does not exist.");
 			}
 
@@ -285,7 +285,7 @@ public class WorkflowEngineService {
 		ProcessDefinition procDef = getProcessDefinitionByProcId(processDefinitionId);
 
 		if (procDef == null) {
-			log.error("such process definition does not exist,procDefId={}", processDefinitionId);
+			log.warn("such process definition does not exist,procDefId={}", processDefinitionId);
 			throw new WecubeCoreException("Such process definition does not exist.");
 		}
 
@@ -426,7 +426,7 @@ public class WorkflowEngineService {
 		try {
 			return doDeployProcessDefinition(procDefDto);
 		} catch (Exception e) {
-			log.error("errors while deploy process definition", e);
+			log.warn("errors while deploy process definition", e);
 			throw new BpmnCustomizationException(e.getMessage());
 		}
 	}
@@ -474,7 +474,7 @@ public class WorkflowEngineService {
 				.processDefinitionId(processDefinitionId);
 		ProcessDefinition procDef = query.singleResult();
 		if (procDef == null) {
-			log.error("such process definition did not exist,processDefinitionId={}", processDefinitionId);
+			log.warn("such process definition did not exist,processDefinitionId={}", processDefinitionId);
 			throw new WecubeCoreException(
 					String.format("Such proccess definition [%s] does not exist.", processDefinitionId));
 		}
@@ -482,7 +482,7 @@ public class WorkflowEngineService {
 		ProcessInstance instance = runtimeService.startProcessInstanceById(processDefinitionId, processInstanceKey);
 
 		if (instance == null) {
-			log.error("Failed to create process instance with id {} and key {}", processDefinitionId,
+			log.warn("Failed to create process instance with id {} and key {}", processDefinitionId,
 					processInstanceKey);
 			throw new WecubeCoreException(String.format("Failed to create process instance with id %s and key %s.",
 					processDefinitionId, processInstanceKey));
@@ -505,7 +505,7 @@ public class WorkflowEngineService {
 		List<ProcessDefinition> processDefs = deployment.getDeployedProcessDefinitions();
 
 		if (processDefs == null || processDefs.isEmpty()) {
-			log.error("abnormally to parse process definition,request={}", procDefDto);
+			log.warn("abnormally to parse process definition,request={}", procDefDto);
 			throw new WecubeCoreException("process deploying failed");
 		}
 
@@ -547,7 +547,7 @@ public class WorkflowEngineService {
 			is = new ByteArrayInputStream(xmlData.getBytes(encoding));
 			procModelInstance = Bpmn.readModelFromStream(is);
 		} catch (UnsupportedEncodingException e1) {
-			log.error("errors while reading model", e1);
+			log.warn("errors while reading model", e1);
 			procModelInstance = null;
 			throw new WecubeCoreException("failed to read xml process content");
 		} finally {
@@ -555,13 +555,13 @@ public class WorkflowEngineService {
 				try {
 					is.close();
 				} catch (IOException e) {
-					log.error("errors while closing", e);
+					log.warn("errors while closing", e);
 				}
 			}
 		}
 
 		if (procModelInstance == null) {
-			log.error("failed to read model instance.");
+			log.warn("failed to read model instance.");
 			throw new WecubeCoreException("Failed to read model instance.");
 		}
 
