@@ -63,11 +63,11 @@ public class BpmnProcessModelCustomizer {
     public BpmnProcessModelCustomizer(String resourceName, String originalProcessXml, String encoding) {
         super();
         if (StringUtils.isBlank(resourceName)) {
-            throw new BpmnCustomizationException("resource name must not be null");
+            throw new BpmnCustomizationException("Resource name must not be null.");
         }
 
         if (StringUtils.isBlank(originalProcessXml)) {
-            throw new BpmnCustomizationException("process XML must provide");
+            throw new BpmnCustomizationException("Process XML must provide.");
         }
         this.resourceName = resourceName;
         this.originalProcessXml = originalProcessXml;
@@ -87,7 +87,7 @@ public class BpmnProcessModelCustomizer {
         if (rootBpmnModelInstance != null) {
             return Bpmn.convertToString(rootBpmnModelInstance);
         } else {
-            throw new BpmnCustomizationException("failed to build BPMN model instance");
+            throw new BpmnCustomizationException("Failed to build BPMN model instance.");
         }
     }
 
@@ -99,7 +99,7 @@ public class BpmnProcessModelCustomizer {
         if (rootBpmnModelInstance != null) {
             return rootBpmnModelInstance;
         } else {
-            throw new BpmnCustomizationException("failed to build BPMN model instance");
+            throw new BpmnCustomizationException("Failed to build BPMN model instance.");
         }
     }
 
@@ -129,8 +129,8 @@ public class BpmnProcessModelCustomizer {
         BpmnModelInstance procModelInstance = readModelFromStream();
 
         if (procModelInstance == null) {
-            log.error("failed to read model from stream");
-            throw new BpmnCustomizationException("failed to read model from stream");
+            log.warn("failed to read model from stream");
+            throw new BpmnCustomizationException("Failed to read model from stream.");
         }
 
         enhanceSubProcesses(procModelInstance);
@@ -152,15 +152,15 @@ public class BpmnProcessModelCustomizer {
             is = new ByteArrayInputStream(originalProcessXml.getBytes(encoding));
             procModelInstance = Bpmn.readModelFromStream(is);
         } catch (UnsupportedEncodingException e1) {
-            log.error("errors while reading model", e1);
+            log.warn("errors while reading model", e1);
             procModelInstance = null;
-            throw new BpmnCustomizationException("failed to read original process content");
+            throw new BpmnCustomizationException("Failed to read original process content.");
         } finally {
             if (is != null) {
                 try {
                     is.close();
                 } catch (IOException e) {
-                    log.error("errors while closing", e);
+                    log.warn("errors while closing", e);
                 }
             }
         }
@@ -172,7 +172,7 @@ public class BpmnProcessModelCustomizer {
         Collection<org.camunda.bpm.model.bpmn.instance.Process> processes = procModelInstance
                 .getModelElementsByType(org.camunda.bpm.model.bpmn.instance.Process.class);
         if (processes.size() != 1) {
-            log.error("only one process must provide, size={}", processes.size());
+            log.warn("only one process must provide, size={}", processes.size());
             throw new BpmnCustomizationException("only one process must provide");
         }
 
@@ -195,7 +195,7 @@ public class BpmnProcessModelCustomizer {
             log.info("subprocess {} {}", subProc.getId(), subProc.getName());
             Collection<StartEvent> internalStartEvents = subProc.getChildElementsByType(StartEvent.class);
             if (!internalStartEvents.isEmpty()) {
-                log.info("subprocess {} {} already have child nodes and no need to supplement any nodes",
+                log.debug("subprocess {} {} already have child nodes and no need to supplement any nodes",
                         subProc.getId(), subProc.getName());
 
                 continue;
@@ -211,8 +211,8 @@ public class BpmnProcessModelCustomizer {
             if ("endEvent".equals(dstFlowNode.getElementType().getTypeName())) {
                 log.info("end event,id={}", dstFlowNode.getId());
             } else {
-                log.error("the leaf node must be end event,id={}", dstFlowNode.getId());
-                throw new BpmnCustomizationException("the leaf node must be end event");
+                log.warn("the leaf node must be end event,id={}", dstFlowNode.getId());
+                throw new BpmnCustomizationException("The leaf node must be end event.");
             }
         }
     }
@@ -220,18 +220,17 @@ public class BpmnProcessModelCustomizer {
     protected void enhanceSequenceFlow(SequenceFlow sf) {
         FlowNode srcFlowNode = sf.getSource();
 
-     // type="bpmn2:tFormalExpression"
         if (sf.getConditionExpression() == null && "exclusiveGateway".equals(srcFlowNode.getElementType().getTypeName())
                 && srcFlowNode.getOutgoing().size() >= 2) {
             String sfName = sf.getName();
             if (StringUtils.isBlank(sfName)) {
-                log.error("the name of squence flow {} is blank.", sf.getId());
-                throw new BpmnCustomizationException("the name of sequence flow cannot be blank.");
+                log.warn("the name of squence flow {} is blank.", sf.getId());
+                throw new BpmnCustomizationException(String.format("The name of sequence flow %s cannot be blank.", sf.getId()));
             }
 
             List<SubProcess> preSubProcesses = srcFlowNode.getPreviousNodes().filterByType(SubProcess.class).list();
             if (preSubProcesses.size() == 1) {
-                log.info("to add condition,sequenceFlowId={}", sf.getId());
+                log.debug("to add condition,sequenceFlowId={}", sf.getId());
                 SubProcess preSubProcess = preSubProcesses.get(0);
                 ConditionExpression okCon = sf.getModelInstance().newInstance(ConditionExpression.class);
                 okCon.setType(FORMAL_EXPR_TYPE);
@@ -251,7 +250,7 @@ public class BpmnProcessModelCustomizer {
             FlowNode srcFlowNode = sf.getSource();
             FlowNode dstFlowNode = sf.getTarget();
 
-            log.info("validate sequence flow, id={},name={},srcType={},srcId={},srcOut={},dstId={},dstOut={} ",
+            log.debug("validate sequence flow, id={},name={},srcType={},srcId={},srcOut={},dstId={},dstOut={} ",
                     sf.getId(), sf.getName(), srcFlowNode.getElementType().getTypeName(), srcFlowNode.getId(),
                     srcFlowNode.getOutgoing().size(), dstFlowNode.getId(), dstFlowNode.getOutgoing().size());
 
@@ -270,22 +269,22 @@ public class BpmnProcessModelCustomizer {
     }
 
     protected void enhanceEndEvent(EndEvent endEvent) {
-        log.info("validate end event,id={}", endEvent.getId());
+        log.debug("validate end event,id={}", endEvent.getId());
 
         Collection<EventDefinition> eventDefinitions = endEvent.getEventDefinitions();
         List<ErrorEventDefinition> eedsToReplace = new ArrayList<ErrorEventDefinition>();
         for (EventDefinition ed : eventDefinitions) {
             if (ed instanceof ErrorEventDefinition) {
-                log.info("error end event definition");
+                log.debug("error end event definition");
                 ErrorEventDefinition eed = (ErrorEventDefinition) ed;
 
                 if (eed.getError() != null) {
                     if (StringUtils.isBlank(eed.getError().getErrorCode())) {
-                        log.info("error code is null,errorId={}", eed.getError().getId());
+                        log.debug("error code is null,errorId={}", eed.getError().getId());
                         eed.getError().setErrorCode(DEFAULT_ERROR_CODE);
                     }
                 } else {
-                    log.info("does not have error reference, eventId={}", endEvent.getId());
+                    log.debug("does not have error reference, eventId={}", endEvent.getId());
                     eedsToReplace.add(eed);
                 }
 
@@ -303,16 +302,16 @@ public class BpmnProcessModelCustomizer {
         Collection<SignalEventDefinition> signalEventDefinitions = procModelInstance
                 .getModelElementsByType(SignalEventDefinition.class);
         for (SignalEventDefinition sed : signalEventDefinitions) {
-            log.info("validate signal event definition, id={},signalRef={}", sed.getId(),
+            log.debug("validate signal event definition, id={},signalRef={}", sed.getId(),
                     sed.getAttributeValueNs(NS_BPMN, "signalRef"));
 
             Signal sig = sed.getSignal();
             if (sig == null) {
-                log.error("invalid signal defined, id={},signalRef={}", sed.getId(),
+                log.warn("invalid signal defined, id={},signalRef={}", sed.getId(),
                         sed.getAttributeValueNs(NS_BPMN, "signalRef"));
                 throw new BpmnCustomizationException("invalid signal definition");
             } else {
-                log.info("signal id={}, name={}", sig.getId(), sig.getName());
+                log.debug("signal id={}, name={}", sig.getId(), sig.getName());
             }
         }
     }
@@ -321,15 +320,15 @@ public class BpmnProcessModelCustomizer {
         Collection<IntermediateCatchEvent> ices = procModelInstance
                 .getModelElementsByType(IntermediateCatchEvent.class);
         for (IntermediateCatchEvent ice : ices) {
-            log.info("validate intermediate catch event,{} {}", ice.getId(), ice.getName());
+            log.debug("validate intermediate catch event,{} {}", ice.getId(), ice.getName());
             Collection<EventDefinition> events = ice.getEventDefinitions();
 
             List<EventDefinition> eventsToReplace = new ArrayList<EventDefinition>();
             for (EventDefinition e : events) {
-                log.info("event definition,{}, {}", e.getId(), e.getElementType().getTypeName());
+                log.debug("event definition,{}, {}", e.getId(), e.getElementType().getTypeName());
                 if ("signalEventDefinition".equals(e.getElementType().getTypeName())
                         && StringUtils.isBlank(e.getAttributeValueNs(NS_BPMN, "signalRef"))) {
-                    log.info("invalid event definition");
+                    log.debug("invalid event definition");
                     eventsToReplace.add(e);
                 }
             }
@@ -343,7 +342,7 @@ public class BpmnProcessModelCustomizer {
                     iceBuilder.done();
                     ice.removeChildElement(e);
 
-                    log.info("add signal event definition, signalId={}", signalId);
+                    log.debug("add signal event definition, signalId={}", signalId);
                 }
 
             }
@@ -353,10 +352,10 @@ public class BpmnProcessModelCustomizer {
     protected void enhanceServiceTasks(BpmnModelInstance procModelInstance) {
         Collection<ServiceTask> serviceTasks = procModelInstance.getModelElementsByType(ServiceTask.class);
         for (ServiceTask serviceTask : serviceTasks) {
-            log.info("validate service task, {} {}", serviceTask.getId(), serviceTask.getName());
+            log.debug("validate service task, {} {}", serviceTask.getId(), serviceTask.getName());
             String delegateExpression = serviceTask.getCamundaDelegateExpression();
             if (StringUtils.isBlank(delegateExpression)) {
-                log.info("delegate expression is blank, {} {}", serviceTask.getId(), serviceTask.getName());
+                log.debug("delegate expression is blank, {} {}", serviceTask.getId(), serviceTask.getName());
                 delegateExpression = "${srvBean}";
                 serviceTask.setCamundaDelegateExpression(delegateExpression);
             }
@@ -441,13 +440,13 @@ public class BpmnProcessModelCustomizer {
         Collection<StartEvent> procStartEvents = process.getChildElementsByType(StartEvent.class);
         Collection<EndEvent> procEndEvents = process.getChildElementsByType(EndEvent.class);
         if (procStartEvents.size() != 1) {
-            log.error("only one start event must provide for {} {}", process.getId(), process.getName());
-            throw new BpmnCustomizationException("only one start event must provide");
+            log.warn("only one start event must provide for {} {}", process.getId(), process.getName());
+            throw new BpmnCustomizationException("Only one start event must provide.");
         }
 
         if (procEndEvents.size() < 1) {
-            log.error("at least one end event must provide for {} {}", process.getId(), process.getName());
-            throw new BpmnCustomizationException("at least one end event must provide");
+            log.warn("at least one end event must provide for {} {}", process.getId(), process.getName());
+            throw new BpmnCustomizationException("At least one end event must provide.");
         }
     }
 
