@@ -46,7 +46,7 @@ public class BpmnProcessModelCustomizer {
 
     public static final String DEFAULT_ERROR_CODE = "1";
 
-    public static final String FORMAL_EXPR_TYPE = "bpmn:tFormalExpression";
+    public static final String FORMAL_EXPR_TYPE = "bpmn2:tFormalExpression";
 
     private String resourceName;
 
@@ -220,7 +220,7 @@ public class BpmnProcessModelCustomizer {
     protected void enhanceSequenceFlow(SequenceFlow sf) {
         FlowNode srcFlowNode = sf.getSource();
 
-     // type="bpmn:tFormalExpression"
+     // type="bpmn2:tFormalExpression"
         if (sf.getConditionExpression() == null && "exclusiveGateway".equals(srcFlowNode.getElementType().getTypeName())
                 && srcFlowNode.getOutgoing().size() >= 2) {
             String sfName = sf.getName();
