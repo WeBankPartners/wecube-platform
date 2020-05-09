@@ -44,13 +44,7 @@ public class BpmnProcessModelCustomizer {
     private static final Logger log = LoggerFactory.getLogger(BpmnProcessModelCustomizer.class);
     public static final String NS_BPMN = "http://www.omg.org/spec/BPMN/20100524/MODEL";
 
-    public static final String PROC_ID_PREFIX = "PK_";
-
     public static final String DEFAULT_ERROR_CODE = "1";
-
-    public static final String CONDITION_EXPR_OK = "${ok}";
-
-    public static final String CONDITION_EXPR_NOT_OK = "${!ok}";
 
     public static final String FORMAL_EXPR_TYPE = "bpmn:tFormalExpression";
 
@@ -184,13 +178,6 @@ public class BpmnProcessModelCustomizer {
 
         org.camunda.bpm.model.bpmn.instance.Process process = processes.iterator().next();
 
-        // String procId = process.getId();
-        // if (StringUtils.isBlank(procId) ||
-        // !procId.startsWith(PROC_ID_PREFIX)) {
-        // procId = LocalIdGenerator.generateId(PROC_ID_PREFIX);
-        // process.setId(procId);
-        // }
-
         if (StringUtils.isBlank(process.getId())) {
             throw new BpmnCustomizationException("process ID must provide");
         }
@@ -232,44 +219,28 @@ public class BpmnProcessModelCustomizer {
 
     protected void enhanceSequenceFlow(SequenceFlow sf) {
         FlowNode srcFlowNode = sf.getSource();
-        FlowNode dstFlowNode = sf.getTarget();
 
-        // type="bpmn:tFormalExpression"
+     // type="bpmn:tFormalExpression"
         if (sf.getConditionExpression() == null && "exclusiveGateway".equals(srcFlowNode.getElementType().getTypeName())
-                && srcFlowNode.getOutgoing().size() == 2) {
-            String dstType = dstFlowNode.getElementType().getTypeName();
-            if ("serviceTask".equals(dstType) || "subProcess".equals(dstType)) {
+                && srcFlowNode.getOutgoing().size() >= 2) {
+            String sfName = sf.getName();
+            if (StringUtils.isBlank(sfName)) {
+                log.error("the name of squence flow {} is blank.", sf.getId());
+                throw new BpmnCustomizationException("the name of sequence flow cannot be blank.");
+            }
+
+            List<SubProcess> preSubProcesses = srcFlowNode.getPreviousNodes().filterByType(SubProcess.class).list();
+            if (preSubProcesses.size() == 1) {
                 log.info("to add condition,sequenceFlowId={}", sf.getId());
+                SubProcess preSubProcess = preSubProcesses.get(0);
                 ConditionExpression okCon = sf.getModelInstance().newInstance(ConditionExpression.class);
                 okCon.setType(FORMAL_EXPR_TYPE);
-                okCon.setTextContent(CONDITION_EXPR_OK);
+                okCon.setTextContent(
+                        String.format("${ subProcRetCode_%s == '%s' }", preSubProcess.getId(), sfName.trim()));
                 sf.builder().condition(okCon).done();
             }
 
-            if ("endEvent".equals(dstType)) {
-                EndEvent endEvent = (EndEvent) dstFlowNode;
-                Collection<EventDefinition> eventDefinitions = endEvent.getEventDefinitions();
-                boolean isErrorEndEvent = false;
-                for (EventDefinition ed : eventDefinitions) {
-                    if (ErrorEventDefinition.class.isAssignableFrom(ed.getClass())) {
-                        isErrorEndEvent = true;
-                        break;
-                    }
-                }
-
-                if (isErrorEndEvent) {
-                    log.info("to add condition,sequenceFlowId={}", sf.getId());
-                    ConditionExpression notOkCon = sf.getModelInstance().newInstance(ConditionExpression.class);
-                    notOkCon.setType(FORMAL_EXPR_TYPE);
-                    notOkCon.setTextContent(CONDITION_EXPR_NOT_OK);
-                    sf.builder().condition(notOkCon).done();
-                } else {
-                    ConditionExpression okCon = sf.getModelInstance().newInstance(ConditionExpression.class);
-                    okCon.setType(FORMAL_EXPR_TYPE);
-                    okCon.setTextContent(CONDITION_EXPR_OK);
-                    sf.builder().condition(okCon).done();
-                }
-            }
+            
         }
     }
 
@@ -386,7 +357,7 @@ public class BpmnProcessModelCustomizer {
             String delegateExpression = serviceTask.getCamundaDelegateExpression();
             if (StringUtils.isBlank(delegateExpression)) {
                 log.info("delegate expression is blank, {} {}", serviceTask.getId(), serviceTask.getName());
-                delegateExpression = "${taskDispatcher}";
+                delegateExpression = "${srvBean}";
                 serviceTask.setCamundaDelegateExpression(delegateExpression);
             }
         }
@@ -401,8 +372,8 @@ public class BpmnProcessModelCustomizer {
         String actSkipExpr = String.format("${ act_%s == 'skip' }", subProcId);
         String catchEventId = subProcId + "_ice1";
         String signalId = subProcId + "_sig1";
-        String retCodeOkExpr = String.format("${retCode_%s != 1}",catchEventId);
-        String retCodeNotOkExpr = String.format("${retCode_%s == 1}",catchEventId);
+        String retCodeOkExpr = String.format("${retCode_%s != '1'}", catchEventId);
+        String retCodeNotOkExpr = String.format("${retCode_%s == '1'}", catchEventId);
 
         StartEventBuilder b = subProc.builder().embeddedSubProcess().startEvent(subProcId + "_startEvent1")
                 .name("St1_" + subProcId);
