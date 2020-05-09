@@ -144,6 +144,7 @@ public class WorkflowEngineService {
     }
 
     public void handleServiceInvocationResult(ServiceInvocationEvent event) {
+    	//TODO to complete here
 
         String procInstId = event.getInstanceId();
         String procInstKey = event.getBusinessKey();
@@ -154,9 +155,9 @@ public class WorkflowEngineService {
                     procInstId, procInstKey, executionId, event.getResult());
         }
 
-        int resultCode = event.getResult();
+        String resultCode = event.getResult();
 
-        boolean successful = (resultCode == 0);
+        boolean successful = ("0".equals(resultCode));
 
         ProcessInstance instance = null;
 
