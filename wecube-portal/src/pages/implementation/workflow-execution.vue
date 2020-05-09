@@ -1011,6 +1011,9 @@ export default {
 body {
   color: #e5f173; //#15a043;
 }
+.header-icon {
+  margin: 3px 40px 0 0 !important;
+}
 #graphcontain {
   border: 1px solid #d3cece;
   border-radius: 3px;
