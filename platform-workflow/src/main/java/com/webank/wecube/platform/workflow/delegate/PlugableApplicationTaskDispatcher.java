@@ -28,7 +28,7 @@ import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepositor
  * @author gavin
  *
  */
-@Component("taskDispatcher")
+@Component("srvBean")
 public class PlugableApplicationTaskDispatcher implements JavaDelegate {
     private static final Logger log = LoggerFactory.getLogger(PlugableApplicationTaskDispatcher.class);
 

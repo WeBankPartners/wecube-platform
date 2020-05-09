@@ -32,7 +32,7 @@ public interface ServiceInvocationEvent {
 
     void increaseRetryTimes();
 
-    int getResult();
+    String getResult();
 
     String getMsg();
 

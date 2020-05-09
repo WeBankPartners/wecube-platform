@@ -127,7 +127,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
         try {
             handleResultData(ctx, resultData);
-            result.setResultCode(Integer.parseInt(resultCode));
+            result.setResultCode(resultCode);
             pluginInvocationResultService.responsePluginInterfaceInvocation(result);
             handlePluginInterfaceInvocationSuccess(ctx);
 
