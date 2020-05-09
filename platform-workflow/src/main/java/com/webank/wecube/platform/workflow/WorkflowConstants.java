@@ -5,8 +5,6 @@ public class WorkflowConstants {
 
     public static final String VAR_KEY_SUBPROCESS_WITH_ERROR = "SUBPROCESS_WITH_ERROR";
 
-    public static final String VAR_KEY_SERVICE_OK = "ok";
-
     public static final String VAR_KEY_USER_ACT = "act";
 
     public static final String VAR_USER_ACT_RETRY = "retry";

@@ -30,10 +30,10 @@ public class SubProcessStartListener extends AbstractServiceNodeStartListener im
         }
 
         log.info("remove variables:{} {} {}", WorkflowConstants.VAR_KEY_SUBPROCESS_WITH_ERROR,
-                WorkflowConstants.VAR_KEY_SERVICE_OK, WorkflowConstants.VAR_KEY_USER_ACT);
+                 WorkflowConstants.VAR_KEY_USER_ACT);
 
         execution.removeVariables(Arrays.asList(WorkflowConstants.VAR_KEY_SUBPROCESS_WITH_ERROR,
-                WorkflowConstants.VAR_KEY_SERVICE_OK, WorkflowConstants.VAR_KEY_USER_ACT));
+                 WorkflowConstants.VAR_KEY_USER_ACT));
 
         logServiceNodeStart(execution);
 
