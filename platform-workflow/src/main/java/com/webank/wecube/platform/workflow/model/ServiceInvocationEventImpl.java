@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.workflow.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
 
     private String eventId;
@@ -25,6 +28,8 @@ public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
     private String businessKey;
 
     private EventType eventType;
+    
+    private List<String> allowedOptions = new ArrayList<String>();
 
     public void setEventId(String eventId) {
         this.eventId = eventId;
@@ -165,8 +170,23 @@ public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
     public void setEventType(EventType eventType) {
         this.eventType = eventType;
     }
+    
+    public List<String> getAllowedOptions() {
+        return allowedOptions;
+    }
 
-    @Override
+    public void setAllowedOptions(List<String> allowedOptions) {
+        this.allowedOptions = allowedOptions;
+    }
+    
+    public void addAllowedOption(String option) {
+        if(option == null){
+            return;
+        }
+        this.allowedOptions.add(option);
+    }
+
+	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("ServiceInvocationEventImpl [eventId=");
@@ -203,6 +223,8 @@ public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
 		builder.append(businessKey);
 		builder.append(", eventType=");
 		builder.append(eventType);
+		builder.append(", allowedOptions=");
+		builder.append(allowedOptions);
 		builder.append("]");
 		return builder.toString();
 	}
