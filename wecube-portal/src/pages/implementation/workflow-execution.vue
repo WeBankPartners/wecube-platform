@@ -439,6 +439,7 @@ export default {
 
     orchestrationSelectHandler () {
       this.currentFlowNodeId = ''
+      this.currentModelNodeRefs = []
       this.getFlowOutlineData(this.selectedFlow)
       if (this.selectedFlow && this.isEnqueryPage === false) {
         this.showExcution = true
@@ -513,6 +514,7 @@ export default {
       })
     },
     onTargetSelectHandler () {
+      this.currentModelNodeRefs = []
       this.getModelData()
     },
     async getModelData () {
