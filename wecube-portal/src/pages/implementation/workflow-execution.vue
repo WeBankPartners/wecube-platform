@@ -439,6 +439,7 @@ export default {
 
     orchestrationSelectHandler () {
       this.currentFlowNodeId = ''
+      this.currentModelNodeRefs = []
       this.getFlowOutlineData(this.selectedFlow)
       if (this.selectedFlow && this.isEnqueryPage === false) {
         this.showExcution = true
@@ -513,6 +514,7 @@ export default {
       })
     },
     onTargetSelectHandler () {
+      this.currentModelNodeRefs = []
       this.getModelData()
     },
     async getModelData () {
@@ -1010,6 +1012,9 @@ export default {
 <style lang="scss" scoped>
 body {
   color: #e5f173; //#15a043;
+}
+.header-icon {
+  margin: 3px 40px 0 0 !important;
 }
 #graphcontain {
   border: 1px solid #d3cece;
