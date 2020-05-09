@@ -58,6 +58,8 @@ import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient
  */
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
+	
+	private static final String IS_SENSITIVE_ATTR = "Y";
 
 	@Autowired
 	private PluginInvocationRestClient pluginInvocationRestClient;
@@ -269,7 +271,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			InputParamAttr inputAttr = new InputParamAttr();
 			inputAttr.setName(paramName);
 			inputAttr.setType(paramType);
-			inputAttr.setSensitive("Y".equalsIgnoreCase(param.getSensitiveData()));
+			inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
 
 			List<Object> objectVals = new ArrayList<Object>();
 			//
@@ -385,7 +387,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				InputParamAttr inputAttr = new InputParamAttr();
 				inputAttr.setName(paramName);
 				inputAttr.setType(paramType);
-				inputAttr.setSensitive("Y".equalsIgnoreCase(param.getSensitiveData()));
+				inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
 
 				List<Object> objectVals = new ArrayList<Object>();
 				//
@@ -948,7 +950,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				paramDataType = DATA_TYPE_STRING;
 			} else {
 				paramDataType = p.getDataType();
-				isSensitiveData = ("Y".equalsIgnoreCase(p.getSensitiveData()));
+				isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));
 			}
 
 			TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
