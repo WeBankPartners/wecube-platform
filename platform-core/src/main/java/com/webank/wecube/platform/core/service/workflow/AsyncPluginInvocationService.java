@@ -137,7 +137,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             result.setResultCode(RESULT_CODE_ERR);
             pluginInvocationResultService.responsePluginInterfaceInvocation(result);
             String errMsg = e.getMessage() == null ? "error" : trimWithMaxLength(e.getMessage());
-            handlePluginInterfaceInvocationFailure(ctx, "101", "result data handling failed:" + errMsg);
+            handlePluginInterfaceInvocationFailure(ctx, "5002", "result data handling failed:" + errMsg);
         }
 
         return;
@@ -173,7 +173,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
                         pluginConfigInterface.getServiceName());
                 result.setResultCode(RESULT_CODE_ERR);
                 pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-                handlePluginInterfaceInvocationFailure(ctx, "100", "output is null");
+                handlePluginInterfaceInvocationFailure(ctx, "5003", "output is null");
                 return;
             }
         }
@@ -437,7 +437,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         log.error("system errors:{}", errorMsg);
         result.setResultCode(RESULT_CODE_ERR);
         pluginInvocationResultService.responsePluginInterfaceInvocation(result);
-        handlePluginAsyncInvocationFailure(ctx, "500", "system errors:" + trimWithMaxLength(errorMsg));
+        handlePluginAsyncInvocationFailure(ctx, "5001", "system errors:" + trimWithMaxLength(errorMsg));
 
         return;
     }
