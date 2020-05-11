@@ -1543,6 +1543,32 @@ CREATE TABLE `core_operation_event` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE `core_ru_task_node_exec_req` (
+	`req_id` VARCHAR(255) NOT NULL,
+	`created_by` VARCHAR(255) NULL DEFAULT NULL,
+	`created_time` DATETIME NULL DEFAULT NULL,
+	`updated_by` VARCHAR(255) NULL DEFAULT NULL,
+	`updated_time` DATETIME NULL DEFAULT NULL,
+	`is_completed` BIT(1) NULL DEFAULT NULL,
+	`is_current` BIT(1) NULL DEFAULT NULL,
+	`err_code` VARCHAR(255) NULL DEFAULT NULL,
+	`err_msg` VARCHAR(255) NULL DEFAULT NULL,
+	`node_inst_id` INT(11) NULL DEFAULT NULL,
+	`req_url` VARCHAR(255) NULL DEFAULT NULL,
+	`execution_id` VARCHAR(255) NULL DEFAULT NULL,
+	`node_id` VARCHAR(255) NULL DEFAULT NULL,
+	`node_name` VARCHAR(255) NULL DEFAULT NULL,
+	`proc_def_kernel_id` VARCHAR(255) NULL DEFAULT NULL,
+	`proc_def_kernel_key` VARCHAR(255) NULL DEFAULT NULL,
+	`proc_def_ver` INT(11) NULL DEFAULT NULL,
+	`proc_inst_kernel_id` VARCHAR(255) NULL DEFAULT NULL,
+	`proc_inst_kernel_key` VARCHAR(255) NULL DEFAULT NULL,
+	PRIMARY KEY (`req_id`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+;
+
 delete from `act_ge_property`;
 INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('deployment.lock','0',1);
 INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('history.cleanup.job.lock','0',1);
@@ -1551,6 +1577,5 @@ INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('next.dbid','1',
 INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.history','create(fox)',1);
 INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('schema.version','fox',1);
 INSERT INTO `act_ge_property` (`NAME_`,`VALUE_`,`REV_`) VALUES ('startup.lock','0',1);
-
 
 SET FOREIGN_KEY_CHECKS = 1;
