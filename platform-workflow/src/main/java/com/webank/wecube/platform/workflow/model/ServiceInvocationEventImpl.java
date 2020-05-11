@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.workflow.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
 
     private String eventId;
@@ -13,7 +16,7 @@ public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
     private int retryTimes;
 
     private int direction;
-    private int result;
+    private String result;
     private String msg;
 
     private String eventSourceId;
@@ -25,6 +28,8 @@ public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
     private String businessKey;
 
     private EventType eventType;
+    
+    private List<String> allowedOptions = new ArrayList<String>();
 
     public void setEventId(String eventId) {
         this.eventId = eventId;
@@ -90,11 +95,11 @@ public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
         this.direction = direction;
     }
 
-    public int getResult() {
+    public String getResult() {
         return result;
     }
 
-    public void setResult(int result) {
+    public void setResult(String result) {
         this.result = result;
     }
 
@@ -165,14 +170,62 @@ public class ServiceInvocationEventImpl implements ServiceInvocationEvent {
     public void setEventType(EventType eventType) {
         this.eventType = eventType;
     }
-
-    @Override
-    public String toString() {
-        return "ServiceInvocationEventImpl [eventId=" + eventId + ", requestId=" + requestId + ", instanceId="
-                + instanceId + ", executionId=" + executionId + ", serviceCode=" + serviceCode + ", callbackUrl="
-                + callbackUrl + ", retryTimes=" + retryTimes + ", direction=" + direction + ", result=" + result
-                + ", msg=" + msg + ", eventSourceId=" + eventSourceId + ", eventSourceName=" + eventSourceName
-                + ", definitionId=" + definitionId + ", definitionKey=" + definitionKey + ", definitionVersion="
-                + definitionVersion + ", businessKey=" + businessKey + ", eventType=" + eventType + "]";
+    
+    public List<String> getAllowedOptions() {
+        return allowedOptions;
     }
+
+    public void setAllowedOptions(List<String> allowedOptions) {
+        this.allowedOptions = allowedOptions;
+    }
+    
+    public void addAllowedOption(String option) {
+        if(option == null){
+            return;
+        }
+        this.allowedOptions.add(option);
+    }
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ServiceInvocationEventImpl [eventId=");
+		builder.append(eventId);
+		builder.append(", requestId=");
+		builder.append(requestId);
+		builder.append(", instanceId=");
+		builder.append(instanceId);
+		builder.append(", executionId=");
+		builder.append(executionId);
+		builder.append(", serviceCode=");
+		builder.append(serviceCode);
+		builder.append(", callbackUrl=");
+		builder.append(callbackUrl);
+		builder.append(", retryTimes=");
+		builder.append(retryTimes);
+		builder.append(", direction=");
+		builder.append(direction);
+		builder.append(", result=");
+		builder.append(result);
+		builder.append(", msg=");
+		builder.append(msg);
+		builder.append(", eventSourceId=");
+		builder.append(eventSourceId);
+		builder.append(", eventSourceName=");
+		builder.append(eventSourceName);
+		builder.append(", definitionId=");
+		builder.append(definitionId);
+		builder.append(", definitionKey=");
+		builder.append(definitionKey);
+		builder.append(", definitionVersion=");
+		builder.append(definitionVersion);
+		builder.append(", businessKey=");
+		builder.append(businessKey);
+		builder.append(", eventType=");
+		builder.append(eventType);
+		builder.append(", allowedOptions=");
+		builder.append(allowedOptions);
+		builder.append("]");
+		return builder.toString();
+	}
 }

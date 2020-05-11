@@ -13,10 +13,8 @@ public class ServiceTaskStartListener extends AbstractServiceNodeStartListener i
     
     @Override
     public void notify(DelegateExecution execution) throws Exception {
-        log.info("-----------------------------------------------------------------");
         log.info("ServiceTask START:  {},  {}, {}", execution.getCurrentActivityName(), execution.getCurrentActivityId(),
                 execution.getProcessBusinessKey());
-        log.info("-----------------------------------------------------------------");
 
         if(isCustomServiceTask(execution)){
             return;

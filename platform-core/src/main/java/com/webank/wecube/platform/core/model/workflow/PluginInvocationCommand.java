@@ -1,89 +1,128 @@
 package com.webank.wecube.platform.core.model.workflow;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PluginInvocationCommand {
-    private String procDefId;
-    private String procDefKey;
-    private Integer procDefVersion;
+	private String procDefId;
+	private String procDefKey;
+	private Integer procDefVersion;
 
-    private String procInstId;
-    private String procInstKey;
+	private String procInstId;
+	private String procInstKey;
 
-    private String nodeId;
-    private String nodeName;
-    
-    private String executionId;
+	private String nodeId;
+	private String nodeName;
 
-    public String getProcDefId() {
-        return procDefId;
-    }
+	private String executionId;
 
-    public void setProcDefId(String procDefId) {
-        this.procDefId = procDefId;
-    }
+	private List<String> allowedOptions = new ArrayList<>();
 
-    public String getProcDefKey() {
-        return procDefKey;
-    }
+	public String getProcDefId() {
+		return procDefId;
+	}
 
-    public void setProcDefKey(String procDefKey) {
-        this.procDefKey = procDefKey;
-    }
+	public void setProcDefId(String procDefId) {
+		this.procDefId = procDefId;
+	}
 
-    public Integer getProcDefVersion() {
-        return procDefVersion;
-    }
+	public String getProcDefKey() {
+		return procDefKey;
+	}
 
-    public void setProcDefVersion(Integer procDefVersion) {
-        this.procDefVersion = procDefVersion;
-    }
+	public void setProcDefKey(String procDefKey) {
+		this.procDefKey = procDefKey;
+	}
 
-    public String getProcInstId() {
-        return procInstId;
-    }
+	public Integer getProcDefVersion() {
+		return procDefVersion;
+	}
 
-    public void setProcInstId(String procInstId) {
-        this.procInstId = procInstId;
-    }
+	public void setProcDefVersion(Integer procDefVersion) {
+		this.procDefVersion = procDefVersion;
+	}
 
-    public String getProcInstKey() {
-        return procInstKey;
-    }
+	public String getProcInstId() {
+		return procInstId;
+	}
 
-    public void setProcInstKey(String procInstKey) {
-        this.procInstKey = procInstKey;
-    }
+	public void setProcInstId(String procInstId) {
+		this.procInstId = procInstId;
+	}
 
-    public String getNodeId() {
-        return nodeId;
-    }
+	public String getProcInstKey() {
+		return procInstKey;
+	}
 
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
-    }
+	public void setProcInstKey(String procInstKey) {
+		this.procInstKey = procInstKey;
+	}
 
-    public String getNodeName() {
-        return nodeName;
-    }
+	public String getNodeId() {
+		return nodeId;
+	}
 
-    public void setNodeName(String nodeName) {
-        this.nodeName = nodeName;
-    }
-    
-    
+	public void setNodeId(String nodeId) {
+		this.nodeId = nodeId;
+	}
 
-    public String getExecutionId() {
-        return executionId;
-    }
+	public String getNodeName() {
+		return nodeName;
+	}
 
-    public void setExecutionId(String executionId) {
-        this.executionId = executionId;
-    }
+	public void setNodeName(String nodeName) {
+		this.nodeName = nodeName;
+	}
 
-    @Override
-    public String toString() {
-        return "procDefId=" + procDefId + ", procDefKey=" + procDefKey + ", procDefVersion="
-                + procDefVersion + ", procInstId=" + procInstId + ", procInstKey=" + procInstKey + ", nodeId=" + nodeId
-                + ", nodeName=" + nodeName + ", executionId=" + executionId + "";
-    }
+	public String getExecutionId() {
+		return executionId;
+	}
+
+	public void setExecutionId(String executionId) {
+		this.executionId = executionId;
+	}
+
+	public List<String> getAllowedOptions() {
+		return allowedOptions;
+	}
+
+	public void setAllowedOptions(List<String> allowedOptions) {
+		this.allowedOptions = allowedOptions;
+	}
+	
+	public void addAllowedOptions(List<String> allowedOptions) {
+		if(allowedOptions == null) {
+			return;
+		}
+		if(this.allowedOptions == null) {
+			this.allowedOptions = new ArrayList<>();
+		}
+		this.allowedOptions.addAll(allowedOptions);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("PluginInvocationCommand [procDefId=");
+		builder.append(procDefId);
+		builder.append(", procDefKey=");
+		builder.append(procDefKey);
+		builder.append(", procDefVersion=");
+		builder.append(procDefVersion);
+		builder.append(", procInstId=");
+		builder.append(procInstId);
+		builder.append(", procInstKey=");
+		builder.append(procInstKey);
+		builder.append(", nodeId=");
+		builder.append(nodeId);
+		builder.append(", nodeName=");
+		builder.append(nodeName);
+		builder.append(", executionId=");
+		builder.append(executionId);
+		builder.append(", allowedOptions=");
+		builder.append(allowedOptions);
+		builder.append("]");
+		return builder.toString();
+	}
 
 }

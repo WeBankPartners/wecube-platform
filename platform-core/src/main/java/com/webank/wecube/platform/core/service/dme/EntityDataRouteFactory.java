@@ -18,7 +18,7 @@ public class EntityDataRouteFactory {
         entityDef.setEntityName(packageName);
         entityDef.setHttpPort(parts[1]);
         entityDef.setHttpHost(parts[0]);
-        entityDef.setHttpSchema("http");
+        entityDef.setHttpScheme("http");
         entityDef.setPackageName(entityName);
         
         return entityDef;

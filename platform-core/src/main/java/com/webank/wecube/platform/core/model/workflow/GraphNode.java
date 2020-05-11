@@ -27,7 +27,6 @@ public class GraphNode {
 
     public GraphNode getGraphNodeById(String externald) {
         this.visited();
-        System.out.println(this);
 
         if (id.equals(externald)) {
             return this;

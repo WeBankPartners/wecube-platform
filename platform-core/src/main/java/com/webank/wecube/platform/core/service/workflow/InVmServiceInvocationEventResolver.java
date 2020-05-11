@@ -45,7 +45,7 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
     }
 
     protected void doSendProcessEndNotification(ServiceInvocationEvent event) {
-        log.info("resolve process end notification type event, event={}", event);
+        log.debug("resolve process end notification type event, event={}", event);
 
         resolveProcessInstanceEndEvent(event);
     }
@@ -57,7 +57,7 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
 
         PluginInvocationCommand cmd = pluginInvocationCommand(event);
 
-        log.info("call {} with {}", pluginInvocationService.getClass().getName(), cmd);
+        log.debug("call {} with {}", pluginInvocationService.getClass().getName(), cmd);
         pluginInvocationService.invokePluginInterface(cmd);
     }
 
@@ -72,6 +72,8 @@ public class InVmServiceInvocationEventResolver implements ServiceInvocationEven
         cmd.setNodeId(calculateNodeId(event));
         cmd.setNodeName(event.getEventSourceName());
         cmd.setExecutionId(event.getExecutionId());
+        
+        cmd.addAllowedOptions(event.getAllowedOptions());
 
         return cmd;
     }

@@ -35,7 +35,7 @@ public class SubSystemManagementService {
 				.findOneBySystemCode(subSystemDto.getSystemCode());
 		
 		if(subSystem != null){
-		    log.error("such sub-system already exists,system code {}", subSystemDto.getSystemCode());
+		    log.debug("such sub-system already exists,system code {}", subSystemDto.getSystemCode());
 		    throw new AuthServerException(String.format("Sub-System with code {%s} already exists.", subSystemDto.getSystemCode()));
 		}
 		

@@ -27,7 +27,7 @@ public abstract class AbstractServiceNodeEndListener extends AbstractServiceNode
                 .findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
 
         if (entity == null) {
-            getLogger().error("{} is null for procInstanceBizKey={},nodeId={}", ServiceNodeStatusEntity.class.getSimpleName(),
+            getLogger().warn("{} is null for procInstanceBizKey={},nodeId={}", ServiceNodeStatusEntity.class.getSimpleName(),
                     procInstanceBizKey, nodeId);
             throw new IllegalStateException("service node status entity doesnt exist");
         }

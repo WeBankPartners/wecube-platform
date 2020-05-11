@@ -2,17 +2,17 @@ package com.webank.wecube.platform.core.model.workflow;
 
 public class PluginInvocationResult extends PluginInvocationCommand {
 
-    private int resultCode;
+    private String resultCode;
 
-    public int getResultCode() {
+    public String getResultCode() {
         return resultCode;
     }
 
-    public void setResultCode(int resultCode) {
+    public void setResultCode(String resultCode) {
         this.resultCode = resultCode;
     }
 
-    public PluginInvocationResult withResultCode(int resultCode) {
+    public PluginInvocationResult withResultCode(String resultCode) {
         this.resultCode = resultCode;
         return this;
     }

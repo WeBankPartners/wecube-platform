@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
@@ -40,7 +41,7 @@ public class UserTaskEndListener implements ExecutionListener {
                 execution.getProcessBusinessKey(), execution.getCurrentActivityId(), TraceStatus.InProgress);
 
         if (entity != null) {
-            entity.setUpdatedBy("system");
+            entity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
             entity.setUpdatedTime(currTime);
             entity.setEndTime(currTime);
             entity.setStatus(TraceStatus.Completed);
