@@ -359,6 +359,10 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 			return "E";
 		}
 		
+		if("exclusiveGateway".equals(nodeEntity.getNodeType())) {
+			return "X";
+		}
+		
 		return "";
 	}
 
@@ -492,7 +496,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 					draftEntity = entity;
 				}
 			} else {
-				log.error("Invalid process definition id:{}", originalId);
+				log.warn("Invalid process definition id:{}", originalId);
 				throw new WecubeCoreException("Invalid process definition id");
 			}
 		}
@@ -708,7 +712,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 
 		List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo.findAllDeployedProcDefsByProcDefName(procDefName);
 		if (existingProcDefs != null && !existingProcDefs.isEmpty()) {
-			log.error("such process definition name already exists,procDefName={}", procDefName);
+			log.warn("such process definition name already exists,procDefName={}", procDefName);
 			throw new WecubeCoreException("Process definition name should NOT duplicated.");
 		}
 
@@ -746,7 +750,7 @@ public class WorkflowProcDefService extends AbstractWorkflowService {
 		try {
 			procDef = workflowEngineService.deployProcessDefinition(procDefInfoDto);
 		} catch (BpmnCustomizationException e) {
-			log.error("failed to deploy process definition,msg={}", e.getMessage());
+			log.warn("failed to deploy process definition,msg={}", e.getMessage());
 			deployFailed = true;
 			handleDeployFailure(procDefEntity);
 		}
