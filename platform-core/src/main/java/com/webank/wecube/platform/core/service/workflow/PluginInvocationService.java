@@ -58,6 +58,8 @@ import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient
  */
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
+	
+	private static final String IS_SENSITIVE_ATTR = "Y";
 
 	@Autowired
 	private PluginInvocationRestClient pluginInvocationRestClient;
@@ -112,7 +114,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		}
 
 		if(procInstEntity == null){
-		    log.error("Cannot find process instance entity currently for {}", cmd.getProcInstId());
+		    log.warn("Cannot find process instance entity currently for {}", cmd.getProcInstId());
 		    return;
 		}
 		
@@ -181,7 +183,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			taskNodeInstEntity = retrieveTaskNodeInstInfoEntity(procInstEntity.getId(), cmd.getNodeId());
 			doInvokePluginInterface(procInstEntity, taskNodeInstEntity, cmd);
 		} catch (Exception e) {
-			log.error("errors while processing {} {}", cmd.getClass().getSimpleName(), cmd, e);
+			log.warn("errors while processing {} {}", cmd.getClass().getSimpleName(), cmd, e);
 			pluginInvocationResultService.responsePluginInterfaceInvocation(
 					new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
 
@@ -269,7 +271,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			InputParamAttr inputAttr = new InputParamAttr();
 			inputAttr.setName(paramName);
 			inputAttr.setType(paramType);
-			inputAttr.setSensitive("Y".equalsIgnoreCase(param.getSensitiveData()));
+			inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
 
 			List<Object> objectVals = new ArrayList<Object>();
 			//
@@ -351,11 +353,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		PluginInstance pluginInstance = retrieveAvailablePluginInstance(pluginConfigInterface);
 		String interfacePath = pluginConfigInterface.getPath();
 		if (pluginInstance == null) {
-			log.error("cannot find an available plugin instance for {}", pluginConfigInterface.getServiceName());
+			log.warn("cannot find an available plugin instance for {}", pluginConfigInterface.getServiceName());
 			throw new WecubeCoreException("Cannot find an available plugin instance.");
 		}
-		// String instanceHostAndPort = String.format("%s:%s",
-		// pluginInstance.getHost(), pluginInstance.getPort());
+		
 		String instanceHostAndPort = applicationProperties.getGatewayUrl();
 		ctx.setInstanceHost(instanceHostAndPort);
 		ctx.setInterfacePath(interfacePath);
@@ -385,7 +386,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				InputParamAttr inputAttr = new InputParamAttr();
 				inputAttr.setName(paramName);
 				inputAttr.setType(paramType);
-				inputAttr.setSensitive("Y".equalsIgnoreCase(param.getSensitiveData()));
+				inputAttr.setSensitive(IS_SENSITIVE_ATTR.equalsIgnoreCase(param.getSensitiveData()));
 
 				List<Object> objectVals = new ArrayList<Object>();
 				//
@@ -948,7 +949,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				paramDataType = DATA_TYPE_STRING;
 			} else {
 				paramDataType = p.getDataType();
-				isSensitiveData = ("Y".equalsIgnoreCase(p.getSensitiveData()));
+				isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));
 			}
 
 			TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
