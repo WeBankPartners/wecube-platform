@@ -227,11 +227,12 @@ public class WorkflowEngineService {
 	private void tryEmitSignalEvent(String eventName, EventSubscription signalEventSubscription, String resultCode,
 			String procInstId, String procInstKey, Map<String, Object> boundVariables) {
 		for (int times = 0; times <= 20; times++) {
-			log.debug(
-					"###### {} try delivering {} to execution {}, serviceCode {}, instanceId {}, businessKey {} activityId {}",
-					times, eventName, signalEventSubscription.getId(), resultCode, procInstId, procInstKey,
-					signalEventSubscription.getActivityId());
+			
 			try {
+				log.debug(
+						"###### {} try delivering {} to execution {}, serviceCode {}, instanceId {}, businessKey {} activityId {}",
+						times, eventName, signalEventSubscription.getId(), resultCode, procInstId, procInstKey,
+						signalEventSubscription.getActivityId());
 				runtimeService.createSignalEvent(eventName).executionId(signalEventSubscription.getExecutionId())
 						.setVariables(boundVariables).send();
 				break;
