@@ -21,9 +21,9 @@ public class ApplicationInformationService {
 	private AuthServerRestClient authServerRestClient;
 
 	public void healthCheck() {
-		log.info("health checking...");
+		log.debug("health checking...");
 		List<String> hosts = pluginInstanceService.getAvailableContainerHosts();
-		log.info("Health Check - HOSTS:{}", hosts);
+		log.debug("Health Check - HOSTS:{}", hosts);
 		
 		authServerRestClient.healthCheck();
 	}
