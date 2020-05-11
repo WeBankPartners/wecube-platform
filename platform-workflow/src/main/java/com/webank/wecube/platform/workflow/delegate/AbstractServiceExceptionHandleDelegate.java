@@ -36,7 +36,7 @@ public abstract class AbstractServiceExceptionHandleDelegate {
         ServiceNodeStatusEntity entity = repository.findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
 
         if (entity == null) {
-            getLogger().error("{} doesnt exist for procInstanceBizKey={},nodeId={}",
+            getLogger().warn("{} doesnt exist for procInstanceBizKey={},nodeId={}",
                     ServiceNodeStatusEntity.class.getSimpleName(), procInstanceBizKey, nodeId);
             throw new IllegalStateException("Entity doesnt exist");
         }

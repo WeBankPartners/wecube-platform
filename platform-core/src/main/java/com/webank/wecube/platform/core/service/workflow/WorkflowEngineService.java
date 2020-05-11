@@ -129,7 +129,7 @@ public class WorkflowEngineService {
 				.singleResult();
 
 		if (task == null) {
-			log.error("cannot find task with instanceId {} and taskId {}", instanceId, taskDefKey);
+			log.warn("cannot find task with instanceId {} and taskId {}", instanceId, taskDefKey);
 			throw new WecubeCoreException("process instance restarting failed");
 		} else {
 
@@ -166,7 +166,7 @@ public class WorkflowEngineService {
 			try {
 				Thread.sleep(300);
 			} catch (InterruptedException e) {
-				log.debug("meet exception, InterruptedException: " + e.getMessage());
+				log.debug("Interrupted Exception: " + e.getMessage());
 				Thread.currentThread().interrupt();
 			}
 
@@ -227,7 +227,7 @@ public class WorkflowEngineService {
 	private void tryEmitSignalEvent(String eventName, EventSubscription signalEventSubscription, String resultCode,
 			String procInstId, String procInstKey, Map<String, Object> boundVariables) {
 		for (int times = 0; times <= 20; times++) {
-			log.info(
+			log.debug(
 					"###### {} try delivering {} to execution {}, serviceCode {}, instanceId {}, businessKey {} activityId {}",
 					times, eventName, signalEventSubscription.getId(), resultCode, procInstId, procInstKey,
 					signalEventSubscription.getActivityId());
@@ -236,7 +236,7 @@ public class WorkflowEngineService {
 						.setVariables(boundVariables).send();
 				break;
 			} catch (Exception e) {
-				log.debug("Errors while sending signal " + resultCode);
+				log.debug("Errors while sending signal " + resultCode, e);
 				log.debug(
 						"######Failed {} delivering {} to execution {}, serviceCode {}, instanceId {}, businessKey {} activityId {}",
 						times, eventName, signalEventSubscription.getId(), resultCode, procInstId, procInstKey,

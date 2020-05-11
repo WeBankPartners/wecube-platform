@@ -20,11 +20,9 @@ public class SubProcessEndListener  extends AbstractServiceNodeEndListener imple
     public void notify(DelegateExecution execution) throws Exception {
 
 
-        log.info("-----------------------------------------------------------------");
         log.info("SubProcess END:  {},  {}, {}",
                 execution.getCurrentActivityName(), execution.getCurrentActivityId(),  
                 execution.getProcessBusinessKey());
-        log.info("-----------------------------------------------------------------");
         
         logServiceNodeEnd(execution);
         
