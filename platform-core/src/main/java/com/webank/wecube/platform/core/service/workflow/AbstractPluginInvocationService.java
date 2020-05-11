@@ -27,8 +27,8 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected static final String CALLBACK_PARAMETER_KEY = "callbackParameter";
     protected static final String INPUT_PARAMETER_KEY_OPERATOR = "operator";
 
-    protected static final int RESULT_CODE_OK = 0;
-    protected static final int RESULT_CODE_ERR = 1;
+    protected static final String RESULT_CODE_OK = "0";
+    protected static final String RESULT_CODE_ERR = "1";
     
     protected static final String PLUGIN_RESULT_CODE_FAIL = "1";
     protected static final String PLUGIN_RESULT_CODE_PARTIALLY_FAIL = "1";
