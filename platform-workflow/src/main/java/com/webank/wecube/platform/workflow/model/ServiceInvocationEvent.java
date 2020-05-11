@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.workflow.model;
 
+import java.util.List;
+
 public interface ServiceInvocationEvent {
 
     String getEventId();
@@ -32,11 +34,13 @@ public interface ServiceInvocationEvent {
 
     void increaseRetryTimes();
 
-    int getResult();
+    String getResult();
 
     String getMsg();
 
     EventType getEventType();
+    
+    List<String> getAllowedOptions();
 
     public enum EventType {
         SERVICE_INVOCATION, SERVICE_INVOCATION_RESULT, PROCESS_END_NOTIFICATION;

@@ -56,7 +56,7 @@ class CustomBpmnParse extends BpmnParse {
 
     public CustomBpmnParse(BpmnParser parser) {
         super(parser);
-        logger.info("BpmnParse: {} created", CustomBpmnParse.class.getName());
+        logger.debug("BpmnParse: {} created", CustomBpmnParse.class.getName());
     }
 
     @Override
@@ -69,7 +69,7 @@ class CustomBpmnParse extends BpmnParse {
         signal.setExpression(signalExpression);
 
         signals.put(signal.getId(), signal);
-        logger.info("added default signal,id={},name={}", signal.getId(), DEFAULT_SIGNAL_NAME);
+        logger.debug("added default signal,id={},name={}", signal.getId(), DEFAULT_SIGNAL_NAME);
     }
 
     @Override
@@ -79,7 +79,7 @@ class CustomBpmnParse extends BpmnParse {
 
         String signalRef = signalEventDefinitionElement.attribute("signalRef");
         if (signalRef == null) {
-            logger.info("add default signal {}:{}", DEFAULT_SIGNAL_ID, DEFAULT_SIGNAL_NAME);
+            logger.debug("add default signal {}:{}", DEFAULT_SIGNAL_ID, DEFAULT_SIGNAL_NAME);
             signalRef = DEFAULT_SIGNAL_ID;
         }
 
@@ -387,35 +387,6 @@ class CustomBpmnParse extends BpmnParse {
 
     protected void tryDeduceConditionExpression(Element seqFlowElement, TransitionImpl seqFlow) {
         logger.debug("try deduce condition expression,id={}", seqFlow.getId());
-        ActivityImpl src = seqFlow.getSource();
-        ActivityImpl dst = (ActivityImpl) seqFlow.getDestination();
-
-        if (src == null || dst == null) {
-            return;
-        }
-
-        String srcType = (String) src.getProperty("type");
-        String dstType = (String) dst.getProperty("type");
-
-        if ("exclusiveGateway".equals(srcType)) {
-            if ("errorEndEvent".equals(dstType)) {
-                String expression = "${!ok}";
-                Condition c = new UelExpressionCondition(expressionManager.createExpression(expression));
-                seqFlow.setProperty(PROPERTYNAME_CONDITION_TEXT, expression);
-                seqFlow.setProperty(PROPERTYNAME_CONDITION, c);
-
-                logger.debug("deduced condition expression,id={},expr={}", seqFlow.getId(), expression);
-            } else if ("serviceTask".equals(dstType) || "noneEndEvent".equals(dstType)) {
-                String expression = "${ok}";
-                Condition c = new UelExpressionCondition(expressionManager.createExpression(expression));
-                seqFlow.setProperty(PROPERTYNAME_CONDITION_TEXT, expression);
-                seqFlow.setProperty(PROPERTYNAME_CONDITION, c);
-
-                logger.debug("deduced condition expression,id={},expr={}", seqFlow.getId(), expression);
-            } else {
-                return;
-            }
-        }
     }
 
     protected Condition parseConditionExpression(Element conditionExprElement) {
