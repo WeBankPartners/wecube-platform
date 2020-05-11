@@ -126,14 +126,14 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
 	public void proceedProcessInstance(ProceedProcInstRequestDto request) {
 		if (request == null) {
-			log.error("request is null");
+			log.warn("request is null");
 			throw new WecubeCoreException("Request is null.");
 		}
 
 		Optional<ProcInstInfoEntity> procInstOpt = procInstInfoRepository.findById(request.getProcInstId());
 
 		if (!procInstOpt.isPresent()) {
-			log.error("such process instance does not exist,id={}", request.getProcInstId());
+			log.warn("such process instance does not exist,id={}", request.getProcInstId());
 			throw new WecubeCoreException("Such process instance does not exist.");
 		}
 
@@ -142,7 +142,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
 		Optional<TaskNodeInstInfoEntity> nodeInstOpt = taskNodeInstInfoRepository.findById(request.getNodeInstId());
 		if (!nodeInstOpt.isPresent()) {
-			log.error("such task node instance does not exist,process id :{}, task node id:{}", request.getProcInstId(),
+			log.warn("such task node instance does not exist,process id :{}, task node id:{}", request.getProcInstId(),
 					request.getNodeInstId());
 			throw new WecubeCoreException("Such task node instance does not exist.");
 		}
@@ -150,19 +150,19 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		TaskNodeInstInfoEntity nodeInst = nodeInstOpt.get();
 
 		if (!procInst.getId().equals(nodeInst.getProcInstId())) {
-			log.error("Illegal task node id:{}", nodeInst.getProcInstId());
+			log.warn("Illegal task node id:{}", nodeInst.getProcInstId());
 			throw new WecubeCoreException("Illegal task node id");
 		}
 
 		if (!ProcInstInfoEntity.IN_PROGRESS_STATUS.equals(procInst.getStatus())) {
-			log.error("cannot proceed with such process instance status:{}", procInst.getStatus());
+			log.warn("cannot proceed with such process instance status:{}", procInst.getStatus());
 			throw new WecubeCoreException("Cannot proceed with such process instance status");
 		}
 
 		if (TaskNodeInstInfoEntity.NOT_STARTED_STATUS.equals(nodeInst.getStatus())
 				|| TaskNodeInstInfoEntity.IN_PROGRESS_STATUS.equals(nodeInst.getStatus())
 				|| TaskNodeInstInfoEntity.COMPLETED_STATUS.equals(nodeInst.getStatus())) {
-			log.error("cannot proceed with such task node instance status:{}", procInst.getStatus());
+			log.warn("cannot proceed with such task node instance status:{}", procInst.getStatus());
 			throw new WecubeCoreException("Cannot proceed with such task node instance status");
 		}
 
@@ -369,6 +369,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			return "E";
 		}
 		
+		if("exclusiveGateway".equals(nodeInstEntity.getNodeType())) {
+			return "X";
+		}
+		
 		return "";
 	}
 
@@ -408,13 +412,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
 		ProcDefInfoEntity procDefInfoEntity = procDefInfoEntityOpt.get();
 		if (!ProcDefInfoEntity.DEPLOYED_STATUS.equals(procDefInfoEntity.getStatus())) {
-			log.error("expected status {} but {} for procDefId {}", ProcDefInfoEntity.DEPLOYED_STATUS,
+			log.warn("expected status {} but {} for procDefId {}", ProcDefInfoEntity.DEPLOYED_STATUS,
 					procDefInfoEntity.getStatus(), procDefId);
 			throw new WecubeCoreException(String.format("Invalid process definition ID:%s", procDefId));
 		}
 
 		if (StringUtils.isBlank(procDefInfoEntity.getProcDefKernelId())) {
-			log.error("cannot know process definition id for {}", procDefId);
+			log.warn("cannot know process definition id for {}", procDefId);
 			throw new WecubeCoreException(String.format("Invalid process definition ID:%s", procDefId));
 		}
 
@@ -533,7 +537,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 				.findById(procInstInfoEntity.getId());
 
 		if (!existProcInstInfoEntityOpt.isPresent()) {
-			log.error("such record does not exist,id={},procInstKey={}", procInstInfoEntity.getId(), procInstKey);
+			log.warn("such record does not exist,id={},procInstKey={}", procInstInfoEntity.getId(), procInstKey);
 			throw new WecubeCoreException("Errors while starting process instance.");
 		}
 
