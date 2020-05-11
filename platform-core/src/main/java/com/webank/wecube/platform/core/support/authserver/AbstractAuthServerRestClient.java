@@ -34,7 +34,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
             path = URI_PATH_DELIMITER + path;
         }
         StringBuilder sb = new StringBuilder().append(httpScheme).append(URI_COMPONENTS_DELIMITER)
-                .append(URI_SCHEMA_DELIMITER).append(host).append(URI_COMPONENTS_DELIMITER).append(String.valueOf(port))
+                .append(URI_SCHEME_DELIMITER).append(host).append(URI_COMPONENTS_DELIMITER).append(String.valueOf(port))
                 .append(path);
 
         return sb.toString();
