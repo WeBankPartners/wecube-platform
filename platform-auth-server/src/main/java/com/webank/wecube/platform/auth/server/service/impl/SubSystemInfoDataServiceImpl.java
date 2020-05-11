@@ -38,7 +38,7 @@ public class SubSystemInfoDataServiceImpl implements SubSystemInfoDataService {
     @Override
     public SysSubSystemInfo retrieveSysSubSystemInfoWithSystemCode(String systemCode) {
         if (StringUtils.isBlank(systemCode)) {
-            log.error("system code is blank.");
+            log.debug("system code is blank.");
             throw new IllegalArgumentException("system code cannot be blank.");
         }
 
