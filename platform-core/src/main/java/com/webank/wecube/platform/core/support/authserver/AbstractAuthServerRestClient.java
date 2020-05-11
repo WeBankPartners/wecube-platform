@@ -29,11 +29,11 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
     @Autowired
     protected AuthServerRestClientProperties clientProperties;
     
-    protected String buildFullUriString(String path, String httpSchema, String host, int port) {
+    protected String buildFullUriString(String path, String httpScheme, String host, int port) {
         if (StringUtils.isNotBlank(path) && !path.startsWith(URI_PATH_DELIMITER)) {
             path = URI_PATH_DELIMITER + path;
         }
-        StringBuilder sb = new StringBuilder().append(httpSchema).append(URI_COMPONENTS_DELIMITER)
+        StringBuilder sb = new StringBuilder().append(httpScheme).append(URI_COMPONENTS_DELIMITER)
                 .append(URI_SCHEMA_DELIMITER).append(host).append(URI_COMPONENTS_DELIMITER).append(String.valueOf(port))
                 .append(path);
 
@@ -41,7 +41,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
     }
 
     protected void deleteObject(String path, Object... uriVariables) throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, clientProperties.getHttpSchema(),
+        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(),
                 clientProperties.getHost(), clientProperties.getPort());
 
         URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
@@ -53,7 +53,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
         AuthServerRestResponseDto<Object> responseDto = responseEntity.getBody();
         String status = responseDto.getStatus();
         if (!AuthServerRestResponseDto.STATUS_OK.equalsIgnoreCase(status)) {
-            getLogger().error("rest service invocation failed,status={},message={}", responseDto.getStatus(),
+            getLogger().warn("rest service invocation failed,status={},message={}", responseDto.getStatus(),
                     responseDto.getMessage());
             throw new AuthServerClientException(responseDto.getStatus(), responseDto.getMessage());
         }
@@ -61,7 +61,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
 
     protected <T> T getForObject(String path, ParameterizedTypeReference<AuthServerRestResponseDto<T>> responseType,
             Object... uriVariables) throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, clientProperties.getHttpSchema(),
+        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(),
                 clientProperties.getHost(), clientProperties.getPort());
 
         URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
@@ -70,7 +70,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
         AuthServerRestResponseDto<T> responseDto = responseEntity.getBody();
         String status = responseDto.getStatus();
         if (!AuthServerRestResponseDto.STATUS_OK.equalsIgnoreCase(status)) {
-            getLogger().error("rest service invocation failed,status={},message={}", responseDto.getStatus(),
+            getLogger().warn("rest service invocation failed,status={},message={}", responseDto.getStatus(),
                     responseDto.getMessage());
             throw new AuthServerClientException(responseDto.getStatus(), responseDto.getMessage());
         }
@@ -80,7 +80,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
     protected <T> T postForObject(String path, Object request,
             ParameterizedTypeReference<AuthServerRestResponseDto<T>> responseType, Object... uriVariables)
             throws AuthServerClientException {
-        String requestUri = buildFullUriString(path, clientProperties.getHttpSchema(),
+        String requestUri = buildFullUriString(path, clientProperties.getHttpScheme(),
                 clientProperties.getHost(), clientProperties.getPort());
 
         URI expandedUri = userJwtSsoTokenRestTemplate.getUriTemplateHandler().expand(requestUri, uriVariables);
@@ -89,7 +89,7 @@ public abstract class AbstractAuthServerRestClient implements RestClient {
         AuthServerRestResponseDto<T> responseDto = responseEntity.getBody();
         String status = responseDto.getStatus();
         if (!AuthServerRestResponseDto.STATUS_OK.equalsIgnoreCase(status)) {
-            getLogger().error("rest service invocation failed,status={},message={}", responseDto.getStatus(),
+            getLogger().warn("rest service invocation failed,status={},message={}", responseDto.getStatus(),
                     responseDto.getMessage());
             throw new AuthServerClientException(responseDto.getStatus(), responseDto.getMessage());
         }
