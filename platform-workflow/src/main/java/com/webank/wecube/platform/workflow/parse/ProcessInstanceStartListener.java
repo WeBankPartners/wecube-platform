@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
@@ -41,7 +42,7 @@ public class ProcessInstanceStartListener implements ExecutionListener {
         BpmnModelInstance bpmnModelInstance = execution.getProcessEngine().getRepositoryService()
                 .getBpmnModelInstance(procDef.getId());
 
-        log.info("process starting,procDefId={},procDefName={},procDefKey={},procInstId={},procInstKey={}",
+        log.debug("process starting,procDefId={},procDefName={},procDefKey={},procInstId={},procInstKey={}",
                 procDef.getId(), procDef.getName(), procDef.getKey(), procInstanceId, procInstanceBizKey);
 
         org.camunda.bpm.model.bpmn.instance.Process process = bpmnModelInstance.getModelElementById(procDef.getKey());
@@ -56,7 +57,7 @@ public class ProcessInstanceStartListener implements ExecutionListener {
         
         ProcessInstanceStatusEntity instanceEntity = new ProcessInstanceStatusEntity();
         instanceEntity.setId(LocalIdGenerator.generateId());
-        instanceEntity.setCreatedBy("system");
+        instanceEntity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
         instanceEntity.setCreatedTime(currTime);
         instanceEntity.setProcDefinitionId(procDef.getId());
         instanceEntity.setProcDefinitionKey(procDef.getKey());
@@ -71,7 +72,7 @@ public class ProcessInstanceStartListener implements ExecutionListener {
         for (ServiceTask node : serviceTasks) {
             ServiceNodeStatusEntity entity = new ServiceNodeStatusEntity();
             entity.setId(LocalIdGenerator.generateId());
-            entity.setCreatedBy("system");
+            entity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             entity.setCreatedTime(currTime);
             entity.setNodeId(node.getId());
             entity.setNodeName(node.getName());
@@ -88,7 +89,7 @@ public class ProcessInstanceStartListener implements ExecutionListener {
         for (SubProcess node : subProcesses) {
             ServiceNodeStatusEntity entity = new ServiceNodeStatusEntity();
             entity.setId(LocalIdGenerator.generateId());
-            entity.setCreatedBy("system");
+            entity.setCreatedBy(WorkflowConstants.DEFAULT_USER);
             entity.setCreatedTime(currTime);
             entity.setNodeId(node.getId());
             entity.setNodeName(node.getName());
