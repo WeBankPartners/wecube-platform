@@ -45,7 +45,7 @@ public class UserManagementService {
     public void revokeUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
-            log.error("revoking user roles error:such role entity does not exist, role id {}", roleId);
+            log.debug("revoking user roles error:such role entity does not exist, role id {}", roleId);
             throw new AuthServerException("Such role entity to revoke does not exist.");
         }
 
@@ -72,7 +72,7 @@ public class UserManagementService {
     public void configureUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
-            log.error("configuring user with roles error:such role entity does not exist, role id {}", roleId);
+            log.debug("configuring user with roles error:such role entity does not exist, role id {}", roleId);
             throw new AuthServerException("Such role entity does not exist.");
         }
 
@@ -81,7 +81,7 @@ public class UserManagementService {
         for (SimpleLocalUserDto userDto : userDtos) {
             Optional<SysUserEntity> userOpt = userRepository.findById(userDto.getId());
             if (!userOpt.isPresent()) {
-                log.error("configuring user with roles error:user entity does not exist, user id {}", userDto.getId());
+                log.debug("configuring user with roles error:user entity does not exist, user id {}", userDto.getId());
                 throw new AuthServerException("Such user entity does not exist.");
             }
 
@@ -125,13 +125,13 @@ public class UserManagementService {
         for (UserRoleRsEntity userRole : userRoles) {
             Optional<SysRoleEntity> roleOpt = roleRepository.findById(userRole.getRoleId());
             if (!roleOpt.isPresent()) {
-                log.error("cannot find such role entity with role id {}", userRole.getRoleId());
+                log.debug("cannot find such role entity with role id {}", userRole.getRoleId());
                 continue;
             }
 
             SysRoleEntity role = roleOpt.get();
             if (role.isDeleted()) {
-                log.error("such role entity is deleted,role id {}", role.getId());
+                log.debug("such role entity is deleted,role id {}", role.getId());
                 continue;
             }
 
@@ -171,14 +171,13 @@ public class UserManagementService {
     }
 
     public SimpleLocalUserDto retrieveLocalUserByUsername(String username) {
-        // TODO
         return null;
     }
 
     public SimpleLocalUserDto modifyLocalUserInfomation(String username, SimpleLocalUserDto userDto) {
         SysUserEntity user = userRepository.findNotDeletedUserByUsername(username);
         if (user == null) {
-            log.error("Such user does not exist with username {}", username);
+            log.debug("Such user does not exist with username {}", username);
             throw new AuthServerException(
                     String.format("Failed to modify a none existed user with username {%s}.", username));
         }
@@ -252,13 +251,13 @@ public class UserManagementService {
     public void unregisterLocalUser(String userId) {
         Optional<SysUserEntity> userOpt = userRepository.findById(userId);
         if (!userOpt.isPresent()) {
-            log.error("Such user with ID {} does not exist.", userId);
+            log.debug("Such user with ID {} does not exist.", userId);
             throw new AuthServerException(String.format("Such user with ID {%s} does not exist.", userId));
         }
 
         SysUserEntity user = userOpt.get();
         if (user.isDeleted()) {
-            log.error("Such user with ID {} has already been deleted.", userId);
+            log.debug("Such user with ID {} has already been deleted.", userId);
             throw new AuthServerException(String.format("Such user with ID {%s} does not exist.", userId));
         }
 

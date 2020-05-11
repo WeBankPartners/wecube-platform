@@ -101,7 +101,7 @@ public class StandardEntityOperationRestClient {
 
 	private String buildBaseRequestUri(EntityRouteDescription entityDef) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(entityDef.getHttpSchema()).append("://");
+		builder.append(entityDef.getHttpScheme()).append("://");
 		builder.append(entityDef.getHttpHost());
 		if (entityDef.getHttpPort() != null && entityDef.getHttpPort().trim().length() > 0) {
 			builder.append(":").append(entityDef.getHttpPort().trim());
