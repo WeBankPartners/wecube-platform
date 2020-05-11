@@ -36,7 +36,7 @@ public class ApplicationInformationController {
 	public ResponseEntity<CommonResponseDto> healthCheck() {
 		try {
 			applicationInformationService.dbHealthCheck();
-			log.info("Health Checking finished");
+			log.debug("Health Checking finished");
 			return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(CommonResponseDto.okay());
 		} catch (Exception e) {
 			log.warn("Health checking failed", e);
