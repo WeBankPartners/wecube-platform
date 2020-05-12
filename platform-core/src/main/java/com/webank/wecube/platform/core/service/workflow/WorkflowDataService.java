@@ -258,12 +258,14 @@ public class WorkflowDataService {
 		result.setNodeType(nodeEntity.getNodeType());
 		result.setErrorMessage(nodeEntity.getErrorMessage());
 
-		TaskNodeExecRequestEntity requestEntity = taskNodeExecRequestRepository
+		List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
 				.findCurrentEntityByNodeInstId(nodeEntity.getId());
 
-		if (requestEntity == null) {
+		if (requestEntities == null || requestEntities.isEmpty()) {
 			return result;
 		}
+		
+		TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
 
 		result.setRequestId(requestEntity.getRequestId());
 		result.setErrorCode(requestEntity.getErrorCode());

@@ -321,13 +321,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 	private void buildTaskNodeExecRequestEntity(PluginInterfaceInvocationContext ctx) {
 
-		TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
+		List<TaskNodeExecRequestEntity> formerRequestEntities = taskNodeExecRequestRepository
 				.findCurrentEntityByNodeInstId(ctx.getTaskNodeInstEntity().getId());
 
-		if (formerRequestEntity != null) {
-			formerRequestEntity.setCurrent(false);
-			formerRequestEntity.setUpdatedTime(new Date());
-			taskNodeExecRequestRepository.saveAndFlush(formerRequestEntity);
+		if (formerRequestEntities != null) {
+			for (TaskNodeExecRequestEntity formerRequestEntity : formerRequestEntities) {
+				formerRequestEntity.setCurrent(false);
+				formerRequestEntity.setUpdatedTime(new Date());
+				taskNodeExecRequestRepository.saveAndFlush(formerRequestEntity);
+			}
 		}
 
 		String requestId = UUID.randomUUID().toString();
@@ -477,8 +479,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				throw new WecubeCoreException("Bound node instance entity does not exist.");
 			}
 
-			TaskNodeExecRequestEntity requestEntity = taskNodeExecRequestRepository
+			List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
 					.findCurrentEntityByNodeInstId(bindNodeInstEntity.getId());
+
+			if (requestEntities == null || requestEntities.isEmpty()) {
+				log.error("cannot find request entity for {}", bindNodeInstEntity.getId());
+				throw new WecubeCoreException("Bound request entity does not exist.");
+			}
+
+			if (requestEntities.size() > 1) {
+				log.error("duplicated request entity found for {} ", bindNodeInstEntity.getId());
+				throw new WecubeCoreException("Duplicated request entity found.");
+			}
+
+			TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
 
 			List<TaskNodeExecParamEntity> execParamEntities = taskNodeExecParamRepository
 					.findAllByRequestIdAndParamNameAndParamType(requestEntity.getRequestId(), bindParamName,
@@ -650,13 +664,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		taskNodeInstEntity.setErrorMessage(EMPTY_ERROR_MSG);
 		taskNodeInstEntity = taskNodeInstInfoRepository.saveAndFlush(taskNodeInstEntity);
 
-		TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
+		List<TaskNodeExecRequestEntity> formerRequestEntities = taskNodeExecRequestRepository
 				.findCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
 
-		if (formerRequestEntity != null) {
-			formerRequestEntity.setCurrent(false);
-			formerRequestEntity.setUpdatedTime(currTime);
-			taskNodeExecRequestRepository.saveAndFlush(formerRequestEntity);
+		if (formerRequestEntities != null) {
+			for (TaskNodeExecRequestEntity formerRequestEntity : formerRequestEntities) {
+				formerRequestEntity.setCurrent(false);
+				formerRequestEntity.setUpdatedTime(currTime);
+				taskNodeExecRequestRepository.saveAndFlush(formerRequestEntity);
+			}
 		}
 
 		return taskNodeInstEntity;
@@ -937,7 +953,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			List<TaskNodeExecParamEntity> callbackParameterInputEntities = taskNodeExecParamRepository
 					.findOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
 							TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
-			if( callbackParameterInputEntities != null && !callbackParameterInputEntities.isEmpty()) {
+			if (callbackParameterInputEntities != null && !callbackParameterInputEntities.isEmpty()) {
 				callbackParameterInputEntity = callbackParameterInputEntities.get(0);
 			}
 		}
