@@ -8,6 +8,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import org.junit.Test;
 
@@ -78,4 +79,54 @@ public class PluginPackageServiceTest extends DatabaseBasedTest {
         assertThat(configByIdOptional.isPresent()).isTrue();
         assertThat(configByIdOptional.get().getStatus()).isEqualTo(PluginConfig.Status.DISABLED);
     }
+
+    @Test
+    public void validatePackageVersionTest() {
+        String version1 = "v1.1.1";
+        String version2 = "v1.1.1.1";
+        String version3 = "v0.1.1";
+        String version4 = "v0.1.1.0";
+        String version5 = "1.1.1";
+        String version6 = "version1.1.1";
+        String version7 = "ls";
+        String version8 = "uname";
+        String version9 = "pwd";
+
+        PluginPackageValidator.validatePackageVersion(version1);
+        PluginPackageValidator.validatePackageVersion(version2);
+        PluginPackageValidator.validatePackageVersion(version3);
+        PluginPackageValidator.validatePackageVersion(version4);
+
+        try {
+            PluginPackageValidator.validatePackageVersion(version5);
+        } catch (Exception e) {
+            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version5));
+        }
+
+        try {
+            PluginPackageValidator.validatePackageVersion(version6);
+        } catch (Exception e) {
+            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version6));
+        }
+
+        try {
+            PluginPackageValidator.validatePackageVersion(version7);
+        } catch (Exception e) {
+            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version7));
+        }
+
+        try {
+            PluginPackageValidator.validatePackageVersion(version8);
+        } catch (Exception e) {
+            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version8));
+        }
+
+        try {
+            PluginPackageValidator.validatePackageVersion(version9);
+        } catch (Exception e) {
+            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version9));
+        }
+
+    }
+
 }
