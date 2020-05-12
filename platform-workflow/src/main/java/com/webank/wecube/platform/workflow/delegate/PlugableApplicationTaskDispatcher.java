@@ -40,8 +40,8 @@ public class PlugableApplicationTaskDispatcher implements JavaDelegate {
 
 	@Override
 	public void execute(DelegateExecution execution) throws Exception {
-		if (log.isDebugEnabled()) {
-			log.debug("service processing dispatch,inst={},exec={},nodeId={},instKey={}",
+		if (log.isInfoEnabled()) {
+			log.info("service processing dispatch,inst={},exec={},nodeId={},instKey={}",
 					execution.getProcessInstanceId(), execution.getId(), execution.getCurrentActivityId(),
 					execution.getProcessBusinessKey());
 		}
