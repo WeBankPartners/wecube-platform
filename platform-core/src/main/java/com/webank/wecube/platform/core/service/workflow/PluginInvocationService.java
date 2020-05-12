@@ -647,7 +647,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		}
 
 		taskNodeInstEntity.setUpdatedTime(currTime);
-		taskNodeInstEntity.setErrorMessage("");
+		taskNodeInstEntity.setErrorMessage(EMPTY_ERROR_MSG);
 		taskNodeInstEntity = taskNodeInstInfoRepository.saveAndFlush(taskNodeInstEntity);
 
 		TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
@@ -684,7 +684,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 		ProcInstInfoEntity procInstEntity = null;
 		int round = 0;
-		while (round < 10) {
+		while (round < 15) {
 			procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(procInstKernelId);
 
 			if (procInstEntity != null) {
@@ -692,7 +692,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			}
 
 			try {
-				Thread.sleep(500);
+				Thread.sleep(200);
 			} catch (InterruptedException e) {
 			}
 
@@ -715,7 +715,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 						ProcInstInfoEntity.IN_PROGRESS_STATUS);
 			}
 
-			procInstInfoRepository.save(procInstEntity);
+			procInstInfoRepository.saveAndFlush(procInstEntity);
 		}
 
 		return procInstEntity;
@@ -748,7 +748,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			p.setEntityDataId(entityDataId);
 			p.setEntityTypeId(entityTypeId);
 
-			taskNodeExecParamRepository.save(p);
+			taskNodeExecParamRepository.saveAndFlush(p);
 
 			inputMap.put(INPUT_PARAMETER_KEY_OPERATOR, operator);
 
@@ -765,7 +765,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 				e.setSensitive(attr.isSensitive());
 
-				taskNodeExecParamRepository.save(e);
+				taskNodeExecParamRepository.saveAndFlush(e);
 
 				inputMap.put(attr.getName(), attr.getExpectedValue());
 			}
@@ -932,12 +932,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 		String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 
-		// TODO
 		TaskNodeExecParamEntity callbackParameterInputEntity = null;
 		if (StringUtils.isNotBlank(callbackParameter)) {
-			callbackParameterInputEntity = taskNodeExecParamRepository
+			List<TaskNodeExecParamEntity> callbackParameterInputEntities = taskNodeExecParamRepository
 					.findOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
 							TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
+			if( callbackParameterInputEntities != null && !callbackParameterInputEntities.isEmpty()) {
+				callbackParameterInputEntity = callbackParameterInputEntities.get(0);
+			}
 		}
 
 		if (callbackParameterInputEntity != null) {
