@@ -280,7 +280,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			throw new WecubeCoreException("Unknow kernel process instance.");
 		}
 
-		if (!ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstEntity.getStatus())) {
+//		if (!ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstEntity.getStatus())) {
 
 			ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
 			if (procInstEntity.getStatus().equals(procInstOutline.getStatus())) {
@@ -298,7 +298,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 					taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
 				}
 			}
-		}
+//		}
 
 		ProcExecBindingEntity procInstBindEntity = procExecBindingRepository
 				.findProcInstBindings(procInstEntity.getId());
