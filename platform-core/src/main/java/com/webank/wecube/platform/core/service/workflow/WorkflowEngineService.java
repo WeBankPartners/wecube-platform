@@ -121,7 +121,7 @@ public class WorkflowEngineService {
 		String act = StringUtils.isBlank(userAction) ? PROCEED_ACT_RETRY : userAction;
 
 		if (!(PROCEED_ACT_RETRY.equals(act) || PROCEED_ACT_SKIP.equals(act))) {
-			log.warn("invalid action met for {} {} {}", procInstanceId, nodeId, userAction);
+			log.warn("invalid action for procInstanceId={} nodeId={} userAction={}", procInstanceId, nodeId, userAction);
 			throw new IllegalArgumentException(String.format("action {%s} is invalid.", userAction));
 		}
 
@@ -166,7 +166,7 @@ public class WorkflowEngineService {
 			try {
 				Thread.sleep(300);
 			} catch (InterruptedException e) {
-				log.debug("Interrupted Exception: " + e.getMessage());
+				log.warn("Interrupted Exception: " + e.getMessage());
 				Thread.currentThread().interrupt();
 			}
 
@@ -200,7 +200,7 @@ public class WorkflowEngineService {
 			try {
 				Thread.sleep(300);
 			} catch (InterruptedException e) {
-				log.debug("Interrupt errors", e);
+				log.warn("Interrupt errors", e);
 			}
 		}
 
@@ -219,7 +219,7 @@ public class WorkflowEngineService {
 		try {
 			tryEmitSignalEvent(eventName, signalEventSubscription, resultCode, procInstId, procInstKey, boundVariables);
 		} catch (Exception e) {
-			log.debug("Errors while emitting signal event", e);
+			log.warn("Errors while emitting signal event", e);
 		}
 
 	}
@@ -229,7 +229,7 @@ public class WorkflowEngineService {
 		for (int times = 0; times <= 20; times++) {
 			
 			try {
-				log.debug(
+				log.info(
 						"###### {} try delivering {} to execution {}, serviceCode {}, instanceId {}, businessKey {} activityId {}",
 						times, eventName, signalEventSubscription.getId(), resultCode, procInstId, procInstKey,
 						signalEventSubscription.getActivityId());
@@ -237,8 +237,8 @@ public class WorkflowEngineService {
 						.setVariables(boundVariables).send();
 				break;
 			} catch (Exception e) {
-				log.debug("Errors while sending signal " + resultCode, e);
-				log.debug(
+				log.info("Errors while sending signal " + resultCode, e);
+				log.info(
 						"######Failed {} delivering {} to execution {}, serviceCode {}, instanceId {}, businessKey {} activityId {}",
 						times, eventName, signalEventSubscription.getId(), resultCode, procInstId, procInstKey,
 						signalEventSubscription.getActivityId());
@@ -246,7 +246,7 @@ public class WorkflowEngineService {
 				try {
 					Thread.sleep(300);
 				} catch (InterruptedException e1) {
-					log.debug("Interrupted exceptions", e1);
+					log.warn("Interrupted exceptions", e1);
 				}
 			}
 		}
