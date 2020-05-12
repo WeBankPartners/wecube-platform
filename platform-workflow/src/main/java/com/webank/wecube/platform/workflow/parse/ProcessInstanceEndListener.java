@@ -128,7 +128,7 @@ public class ProcessInstanceEndListener implements ExecutionListener {
         procInstEntity.setEndTime(currTime);
         procInstEntity.setStatus(TraceStatus.Faulted);
 
-        processInstanceStatusRepository.save(procInstEntity);
+        processInstanceStatusRepository.saveAndFlush(procInstEntity);
     }
 
     protected void logProcessInstanceSuccess(ProcessInstanceStatusEntity procInstEntity,
@@ -139,6 +139,6 @@ public class ProcessInstanceEndListener implements ExecutionListener {
         procInstEntity.setEndTime(currTime);
         procInstEntity.setStatus(TraceStatus.Completed);
 
-        processInstanceStatusRepository.save(procInstEntity);
+        processInstanceStatusRepository.saveAndFlush(procInstEntity);
     }
 }
