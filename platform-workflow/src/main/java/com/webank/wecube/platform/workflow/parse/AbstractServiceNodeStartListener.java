@@ -37,7 +37,7 @@ public abstract class AbstractServiceNodeStartListener extends AbstractServiceNo
         entity.setStatus(TraceStatus.InProgress);
         entity.setStartTime(currTime);
         
-        serviceNodeStatusRepository.save(entity);
+        serviceNodeStatusRepository.saveAndFlush(entity);
         
     }
 }
