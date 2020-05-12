@@ -58,7 +58,7 @@ import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient
  */
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
-	
+
 	private static final String IS_SENSITIVE_ATTR = "Y";
 
 	@Autowired
@@ -94,30 +94,30 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		}
 
 		Date currTime = new Date();
-		
+
 		ProcInstInfoEntity procInstEntity = null;
 		int times = 0;
-		
-		while(times < 20){
-		    procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(cmd.getProcInstId());
-		    if(procInstEntity != null){
-		        break;
-		    }
-		    
-		    try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                log.info("exceptions while handling end event.", e.getMessage());
-            }
-		    
-		    times++;
+
+		while (times < 20) {
+			procInstEntity = procInstInfoRepository.findOneByProcInstKernelId(cmd.getProcInstId());
+			if (procInstEntity != null) {
+				break;
+			}
+
+			try {
+				Thread.sleep(300);
+			} catch (InterruptedException e) {
+				log.info("exceptions while handling end event.", e.getMessage());
+			}
+
+			times++;
 		}
 
-		if(procInstEntity == null){
-		    log.warn("Cannot find process instance entity currently for {}", cmd.getProcInstId());
-		    return;
+		if (procInstEntity == null) {
+			log.warn("Cannot find process instance entity currently for {}", cmd.getProcInstId());
+			return;
 		}
-		
+
 		procInstEntity.setUpdatedTime(currTime);
 		procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
 		procInstInfoRepository.save(procInstEntity);
@@ -137,7 +137,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				n.setUpdatedTime(currTime);
 				n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
 
-				taskNodeInstInfoRepository.save(n);
+				taskNodeInstInfoRepository.saveAndFlush(n);
 
 				log.debug("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
 			}
@@ -161,7 +161,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 					prevNodeInst.setUpdatedTime(new Date());
 					prevNodeInst.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
 
-					taskNodeInstInfoRepository.save(prevNodeInst);
+					taskNodeInstInfoRepository.saveAndFlush(prevNodeInst);
 				}
 			}
 		}
@@ -187,17 +187,25 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			pluginInvocationResultService.responsePluginInterfaceInvocation(
 					new PluginInvocationResult().parsePluginInvocationCommand(cmd).withResultCode(RESULT_CODE_ERR));
 
-			if (taskNodeInstEntity != null) {
-				log.debug("mark task node instance {} as {}", taskNodeInstEntity.getId(),
-						TaskNodeInstInfoEntity.FAULTED_STATUS);
-				taskNodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
-				taskNodeInstEntity.setUpdatedTime(new Date());
-				taskNodeInstEntity.setErrorMessage(trimWithMaxLength(e == null ? "errors" : e.getMessage()));
-
-				taskNodeInstInfoRepository.save(taskNodeInstEntity);
-			}
-
+			updateTaskNodeInstInfoEntityFaulted(taskNodeInstEntity, e);
 		}
+	}
+
+	private void updateTaskNodeInstInfoEntityFaulted(TaskNodeInstInfoEntity taskNodeInstEntity, Exception e) {
+		if (taskNodeInstEntity == null) {
+			return;
+		}
+		log.debug("mark task node instance {} as {}", taskNodeInstEntity.getId(),
+				TaskNodeInstInfoEntity.FAULTED_STATUS);
+		Optional<TaskNodeInstInfoEntity> taskNodeInstEntityOpt = taskNodeInstInfoRepository
+				.findById(taskNodeInstEntity.getId());
+		
+		TaskNodeInstInfoEntity toUpdateTaskNodeInstInfoEntity = taskNodeInstEntityOpt.get();
+		toUpdateTaskNodeInstInfoEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
+		toUpdateTaskNodeInstInfoEntity.setUpdatedTime(new Date());
+		toUpdateTaskNodeInstInfoEntity.setErrorMessage(trimWithMaxLength(e == null ? "errors" : e.getMessage()));
+
+		taskNodeInstInfoRepository.saveAndFlush(toUpdateTaskNodeInstInfoEntity);
 	}
 
 	protected void doInvokePluginInterface(ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
@@ -319,7 +327,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		if (formerRequestEntity != null) {
 			formerRequestEntity.setCurrent(false);
 			formerRequestEntity.setUpdatedTime(new Date());
-			taskNodeExecRequestRepository.save(formerRequestEntity);
+			taskNodeExecRequestRepository.saveAndFlush(formerRequestEntity);
 		}
 
 		String requestId = UUID.randomUUID().toString();
@@ -341,7 +349,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		requestEntity.setProcInstKernelId(cmd.getProcInstId());
 		requestEntity.setProcInstKernelKey(cmd.getProcInstKey());
 
-		taskNodeExecRequestRepository.save(requestEntity);
+		requestEntity = taskNodeExecRequestRepository.saveAndFlush(requestEntity);
 
 		ctx.withTaskNodeExecRequestEntity(requestEntity);
 		ctx.setRequestId(requestId);
@@ -356,7 +364,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			log.warn("cannot find an available plugin instance for {}", pluginConfigInterface.getServiceName());
 			throw new WecubeCoreException("Cannot find an available plugin instance.");
 		}
-		
+
 		String instanceHostAndPort = applicationProperties.getGatewayUrl();
 		ctx.setInstanceHost(instanceHostAndPort);
 		ctx.setInterfacePath(interfacePath);
@@ -626,7 +634,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstInfoRepository.findOneByProcInstIdAndNodeId(procInstId,
 				nodeId);
 		if (taskNodeInstEntity == null) {
-			log.error("Task node instance does not exist for {} {}", procInstId, nodeId);
+			log.warn("Task node instance does not exist for {} {}", procInstId, nodeId);
 			throw new WecubeCoreException("Task node instance does not exist.");
 		}
 
@@ -640,7 +648,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 		taskNodeInstEntity.setUpdatedTime(currTime);
 		taskNodeInstEntity.setErrorMessage("");
-		taskNodeInstEntity = taskNodeInstInfoRepository.save(taskNodeInstEntity);
+		taskNodeInstEntity = taskNodeInstInfoRepository.saveAndFlush(taskNodeInstEntity);
 
 		TaskNodeExecRequestEntity formerRequestEntity = taskNodeExecRequestRepository
 				.findCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
@@ -648,7 +656,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		if (formerRequestEntity != null) {
 			formerRequestEntity.setCurrent(false);
 			formerRequestEntity.setUpdatedTime(currTime);
-			taskNodeExecRequestRepository.save(formerRequestEntity);
+			taskNodeExecRequestRepository.saveAndFlush(formerRequestEntity);
 		}
 
 		return taskNodeInstEntity;
@@ -659,7 +667,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				.findOneWithProcessIdAndNodeIdAndStatus(procDefId, nodeId, TaskNodeDefInfoEntity.DEPLOYED_STATUS);
 
 		if (taskNodeDefEntity == null) {
-			log.error("Task node definition does not exist for {} {} {}", procDefId, nodeId,
+			log.warn("Task node definition does not exist for {} {} {}", procDefId, nodeId,
 					TaskNodeDefInfoEntity.DEPLOYED_STATUS);
 			throw new WecubeCoreException("Task node definition does not exist.");
 		}
@@ -923,6 +931,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
 
 		String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
+		
+		//TODO
 		TaskNodeExecParamEntity callbackParameterInputEntity = null;
 		if (StringUtils.isNotBlank(callbackParameter)) {
 			callbackParameterInputEntity = taskNodeExecParamRepository
@@ -964,7 +974,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			paramEntity.setRequestId(requestId);
 			paramEntity.setSensitive(isSensitiveData);
 
-			taskNodeExecParamRepository.save(paramEntity);
+			taskNodeExecParamRepository.saveAndFlush(paramEntity);
 		}
 	}
 
