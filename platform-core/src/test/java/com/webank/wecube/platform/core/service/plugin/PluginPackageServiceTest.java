@@ -80,68 +80,104 @@ public class PluginPackageServiceTest extends DatabaseBasedTest {
         assertThat(configByIdOptional.get().getStatus()).isEqualTo(PluginConfig.Status.DISABLED);
     }
 
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed1() {
+        PluginPackageValidator.validatePackageVersion("version1.1.1");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed2() {
+        PluginPackageValidator.validatePackageVersion("ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed3() {
+        PluginPackageValidator.validatePackageVersion("v&uname");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed4() {
+        PluginPackageValidator.validatePackageVersion("uname");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed5() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0&uanme");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed6() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0 & ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed7() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0;ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed8() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0&' ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed9() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0&\" ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed10() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0'&ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed11() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0\"&ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed12() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0'& ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed13() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0'; ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed14() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0;'ls");
+    }
+
     @Test
-    public void validatePackageVersionTest() {
-        String version1 = "v1.1.1";
-        String version2 = "v1.1.1.1";
-        String version3 = "v0.1.1";
-        String version4 = "v0.1.1.0";
-        String version5 = "1.1.1";
-        String version6 = "version1.1.1";
-        String version7 = "ls";
-        String version8 = "uname";
-        String version9 = "pwd";
-
-        String version10 = "v&uname";
-        String version11 = "v1.0.0&uanme";
-        String version12 = "v1.0.0 & ls";
-        String version13 = "v1.0.0;ls";
-        String version14 = "v1.0.0&' ls";
-        String version15 = "v1.0.0&\" ls";
-        String version16 = "v1.0.0'&ls";
-        String version17 = "v1.0.0\"&ls";
-        String version18 = "v1.0.0'& ls";
-        String version19 = "v1.0.0'; ls";
-        String version20 = "v1.0.0;'ls";
-
-        validateVersionSuccessful(version1);
-        validateVersionSuccessful(version2);
-        validateVersionSuccessful(version3);
-        validateVersionSuccessful(version4);
-
-        validateVersionFailed(version6);
-        validateVersionFailed(version7);
-        validateVersionFailed(version8);
-        validateVersionFailed(version9);
-        validateVersionFailed(version10);
-        validateVersionFailed(version11);
-        validateVersionFailed(version12);
-        validateVersionFailed(version13);
-        validateVersionFailed(version14);
-        validateVersionFailed(version15);
-        validateVersionFailed(version16);
-        validateVersionFailed(version17);
-        validateVersionFailed(version18);
-        validateVersionFailed(version19);
-        validateVersionFailed(version20);
-
+    public void validateVersionShouldSuccess1() {
+        PluginPackageValidator.validatePackageVersion("v1.1.1");
+        assertThat(true).isTrue();
     }
 
-    void validateVersionFailed(String ver) {
-        try {
-            PluginPackageValidator.validatePackageVersion(ver);
-        } catch (Exception e) {
-            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", ver));
-        }
+    @Test
+    public void validateVersionShouldSuccess2() {
+        PluginPackageValidator.validatePackageVersion("v1.1.1.1");
+        assertThat(true).isTrue();
     }
 
-    void validateVersionSuccessful(String ver) {
-        try {
-            PluginPackageValidator.validatePackageVersion(ver);
-            assertThat(true).isTrue();
-        } catch (Exception e) {
-            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", ver));
-        }
+    @Test
+    public void validateVersionShouldSuccess3() {
+        PluginPackageValidator.validatePackageVersion("v0.1.1");
+        assertThat(true).isTrue();
+    }
+
+    @Test
+    public void validateVersionShouldSuccess4() {
+        PluginPackageValidator.validatePackageVersion("v0.1.1.0");
+        assertThat(true).isTrue();
+    }
+
+    @Test
+    public void validateVersionShouldSuccess5() {
+        PluginPackageValidator.validatePackageVersion("v0.1");
+        assertThat(true).isTrue();
     }
 
 }
