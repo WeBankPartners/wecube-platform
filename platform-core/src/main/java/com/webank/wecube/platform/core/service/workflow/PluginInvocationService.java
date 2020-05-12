@@ -199,7 +199,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				TaskNodeInstInfoEntity.FAULTED_STATUS);
 		Optional<TaskNodeInstInfoEntity> taskNodeInstEntityOpt = taskNodeInstInfoRepository
 				.findById(taskNodeInstEntity.getId());
-		
+
 		TaskNodeInstInfoEntity toUpdateTaskNodeInstInfoEntity = taskNodeInstEntityOpt.get();
 		toUpdateTaskNodeInstInfoEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
 		toUpdateTaskNodeInstInfoEntity.setUpdatedTime(new Date());
@@ -931,8 +931,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
 
 		String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
-		
-		//TODO
+
+		// TODO
 		TaskNodeExecParamEntity callbackParameterInputEntity = null;
 		if (StringUtils.isNotBlank(callbackParameter)) {
 			callbackParameterInputEntity = taskNodeExecParamRepository
@@ -1039,34 +1039,19 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			PluginInterfaceInvocationContext ctx) {
 		Date now = new Date();
 		TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
-		Optional<TaskNodeExecRequestEntity> requestEntityOpt = taskNodeExecRequestRepository
-				.findById(requestEntity.getRequestId());
 
-		if (!requestEntityOpt.isPresent()) {
-			log.info("request entity does not exist for {}", requestEntity.getRequestId());
+		requestEntity.setUpdatedTime(now);
+		requestEntity.setCompleted(true);
 
-		} else {
-			requestEntity = requestEntityOpt.get();
-			requestEntity.setUpdatedTime(now);
-			requestEntity.setCompleted(true);
-
-			taskNodeExecRequestRepository.save(requestEntity);
-		}
+		taskNodeExecRequestRepository.saveAndFlush(requestEntity);
 
 		TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
-		Optional<TaskNodeInstInfoEntity> nodeInstEntityOpt = taskNodeInstInfoRepository
-				.findById(nodeInstEntity.getId());
 
-		if (!nodeInstEntityOpt.isPresent()) {
-			log.info("task node instance entity does not exist for {}", nodeInstEntity.getId());
-		} else {
-			nodeInstEntity = nodeInstEntityOpt.get();
-			nodeInstEntity.setUpdatedTime(now);
-			nodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-			nodeInstEntity.setErrorMessage("");
+		nodeInstEntity.setUpdatedTime(now);
+		nodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
+		nodeInstEntity.setErrorMessage(EMPTY_ERROR_MSG);
 
-			taskNodeInstInfoRepository.save(nodeInstEntity);
-		}
+		taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
 	}
 
 	private void handlePluginInterfaceInvocationFailure(PluginInterfaceInvocationResult pluginInvocationResult,
@@ -1074,72 +1059,21 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 		Date now = new Date();
 		TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
-		Optional<TaskNodeExecRequestEntity> requestEntityOpt = taskNodeExecRequestRepository
-				.findById(requestEntity.getRequestId());
 
-		if (!requestEntityOpt.isPresent()) {
-			int round = 0;
-			while (round < 10) {
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-				}
+		requestEntity.setUpdatedTime(now);
+		requestEntity.setErrorCode(errorCode);
+		requestEntity.setErrorMessage(errorMsg);
+		requestEntity.setCompleted(true);
 
-				requestEntityOpt = taskNodeExecRequestRepository.findById(requestEntity.getRequestId());
-
-				if (requestEntityOpt.isPresent()) {
-					break;
-				}
-
-				round++;
-			}
-		}
-
-		if (!requestEntityOpt.isPresent()) {
-			log.info("request entity does not exist for {}", requestEntity.getRequestId());
-
-		} else {
-			requestEntity = requestEntityOpt.get();
-			requestEntity.setUpdatedTime(now);
-			requestEntity.setErrorCode(errorCode);
-			requestEntity.setErrorMessage(errorMsg);
-			requestEntity.setCompleted(true);
-
-			taskNodeExecRequestRepository.save(requestEntity);
-		}
+		taskNodeExecRequestRepository.saveAndFlush(requestEntity);
 
 		TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
-		Optional<TaskNodeInstInfoEntity> nodeInstEntityOpt = taskNodeInstInfoRepository
-				.findById(nodeInstEntity.getId());
 
-		if (!nodeInstEntityOpt.isPresent()) {
-			int round = 0;
-			while (round < 10) {
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-				}
+		nodeInstEntity.setUpdatedTime(now);
+		nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
+		nodeInstEntity.setErrorMessage(errorMsg);
 
-				nodeInstEntityOpt = taskNodeInstInfoRepository.findById(nodeInstEntity.getId());
-
-				if (nodeInstEntityOpt.isPresent()) {
-					break;
-				}
-
-				round++;
-			}
-		}
-
-		if (!nodeInstEntityOpt.isPresent()) {
-			log.info("task node instance entity does not exist for {}", nodeInstEntity.getId());
-		} else {
-			nodeInstEntity = nodeInstEntityOpt.get();
-			nodeInstEntity.setUpdatedTime(now);
-			nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
-			nodeInstEntity.setErrorMessage(errorMsg);
-
-			taskNodeInstInfoRepository.save(nodeInstEntity);
-		}
+		taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
 
 	}
 

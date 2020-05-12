@@ -162,7 +162,7 @@ public class WorkflowDataService {
 					existEntity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
 					existEntity.setUpdatedTime(new Date());
 
-					procExecBindingTmpRepository.save(existEntity);
+					procExecBindingTmpRepository.saveAndFlush(existEntity);
 					continue;
 				}
 
@@ -178,7 +178,7 @@ public class WorkflowDataService {
 			entity.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
 			entity.setUpdatedTime(new Date());
 
-			procExecBindingTmpRepository.save(entity);
+			procExecBindingTmpRepository.saveAndFlush(entity);
 		}
 	}
 
@@ -344,7 +344,7 @@ public class WorkflowDataService {
 			entity.setSucceedingIds(GraphNodeEntity.convertIdsListToString(gNode.getSucceedingIds()));
 			entity.setProcessSessionId(previewDto.getProcessSessionId());
 
-			graphNodeRepository.save(entity);
+			graphNodeRepository.saveAndFlush(entity);
 		}
 	}
 
@@ -360,7 +360,7 @@ public class WorkflowDataService {
 		procInstBindingTmpEntity.setEntityDataName(dataName);
 		procInstBindingTmpEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
 
-		procExecBindingTmpRepository.save(procInstBindingTmpEntity);
+		procExecBindingTmpRepository.saveAndFlush(procInstBindingTmpEntity);
 	}
 
 	protected ProcessDataPreviewDto doFetchProcessPreviewData(ProcDefOutlineDto outline, String dataId,
@@ -500,7 +500,7 @@ public class WorkflowDataService {
 			taskNodeBinding.setOrderedNo(f.getOrderedNo());
 			taskNodeBinding.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
 
-			procExecBindingTmpRepository.save(taskNodeBinding);
+			procExecBindingTmpRepository.saveAndFlush(taskNodeBinding);
 		}
 
 		return;

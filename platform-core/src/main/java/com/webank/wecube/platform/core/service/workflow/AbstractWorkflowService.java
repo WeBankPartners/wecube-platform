@@ -19,6 +19,8 @@ public abstract class AbstractWorkflowService {
     
     public static final String PROC_DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     
+    public static final String EMPTY_ERROR_MSG = "";
+    
     protected static List<String> statelessNodeTypes = Arrays.asList("startEvent", "endEvent", "exclusiveGateway",
             "parallelGateway");
     
