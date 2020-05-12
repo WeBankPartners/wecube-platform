@@ -315,9 +315,12 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 		String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
 		TaskNodeExecParamEntity callbackParameterInputEntity = null;
 		if (StringUtils.isNotBlank(callbackParameter)) {
-			callbackParameterInputEntity = taskNodeExecParamRepository
+			List<TaskNodeExecParamEntity> callbackParameterInputEntities = taskNodeExecParamRepository
 					.findOneByRequestIdAndParamTypeAndParamNameAndValue(requestId,
 							TaskNodeExecParamEntity.PARAM_TYPE_REQUEST, CALLBACK_PARAMETER_KEY, callbackParameter);
+			if (callbackParameterInputEntities != null && !callbackParameterInputEntities.isEmpty()) {
+				callbackParameterInputEntity = callbackParameterInputEntities.get(0);
+			}
 		}
 
 		if (callbackParameterInputEntity != null) {
