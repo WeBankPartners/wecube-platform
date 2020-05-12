@@ -92,41 +92,56 @@ public class PluginPackageServiceTest extends DatabaseBasedTest {
         String version8 = "uname";
         String version9 = "pwd";
 
-        PluginPackageValidator.validatePackageVersion(version1);
-        PluginPackageValidator.validatePackageVersion(version2);
-        PluginPackageValidator.validatePackageVersion(version3);
-        PluginPackageValidator.validatePackageVersion(version4);
+        String version10 = "v&uname";
+        String version11 = "v1.0.0&uanme";
+        String version12 = "v1.0.0 & ls";
+        String version13 = "v1.0.0;ls";
+        String version14 = "v1.0.0&' ls";
+        String version15 = "v1.0.0&\" ls";
+        String version16 = "v1.0.0'&ls";
+        String version17 = "v1.0.0\"&ls";
+        String version18 = "v1.0.0'& ls";
+        String version19 = "v1.0.0'; ls";
+        String version20 = "v1.0.0;'ls";
 
+        validateVersionSuccessful(version1);
+        validateVersionSuccessful(version2);
+        validateVersionSuccessful(version3);
+        validateVersionSuccessful(version4);
+
+        validateVersionFailed(version6);
+        validateVersionFailed(version7);
+        validateVersionFailed(version8);
+        validateVersionFailed(version9);
+        validateVersionFailed(version10);
+        validateVersionFailed(version11);
+        validateVersionFailed(version12);
+        validateVersionFailed(version13);
+        validateVersionFailed(version14);
+        validateVersionFailed(version15);
+        validateVersionFailed(version16);
+        validateVersionFailed(version17);
+        validateVersionFailed(version18);
+        validateVersionFailed(version19);
+        validateVersionFailed(version20);
+
+    }
+
+    void validateVersionFailed(String ver) {
         try {
-            PluginPackageValidator.validatePackageVersion(version5);
+            PluginPackageValidator.validatePackageVersion(ver);
         } catch (Exception e) {
-            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version5));
+            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", ver));
         }
+    }
 
+    void validateVersionSuccessful(String ver) {
         try {
-            PluginPackageValidator.validatePackageVersion(version6);
+            PluginPackageValidator.validatePackageVersion(ver);
+            assertThat(true).isTrue();
         } catch (Exception e) {
-            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version6));
+            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", ver));
         }
-
-        try {
-            PluginPackageValidator.validatePackageVersion(version7);
-        } catch (Exception e) {
-            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version7));
-        }
-
-        try {
-            PluginPackageValidator.validatePackageVersion(version8);
-        } catch (Exception e) {
-            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version8));
-        }
-
-        try {
-            PluginPackageValidator.validatePackageVersion(version9);
-        } catch (Exception e) {
-            assertThat(e.getMessage()).isEqualTo(String.format("Invalid plugin package version [%s].", version9));
-        }
-
     }
 
 }
