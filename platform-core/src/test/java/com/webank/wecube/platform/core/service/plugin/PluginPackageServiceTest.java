@@ -8,6 +8,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import org.junit.Test;
 
@@ -78,4 +79,105 @@ public class PluginPackageServiceTest extends DatabaseBasedTest {
         assertThat(configByIdOptional.isPresent()).isTrue();
         assertThat(configByIdOptional.get().getStatus()).isEqualTo(PluginConfig.Status.DISABLED);
     }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed1() {
+        PluginPackageValidator.validatePackageVersion("version1.1.1");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed2() {
+        PluginPackageValidator.validatePackageVersion("ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed3() {
+        PluginPackageValidator.validatePackageVersion("v&uname");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed4() {
+        PluginPackageValidator.validatePackageVersion("uname");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed5() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0&uanme");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed6() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0 & ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed7() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0;ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed8() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0&' ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed9() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0&\" ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed10() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0'&ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed11() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0\"&ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed12() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0'& ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed13() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0'; ls");
+    }
+
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed14() {
+        PluginPackageValidator.validatePackageVersion("v1.0.0;'ls");
+    }
+
+    @Test
+    public void validateVersionShouldSuccess1() {
+        PluginPackageValidator.validatePackageVersion("v1.1.1");
+        assertThat(true).isTrue();
+    }
+
+    @Test
+    public void validateVersionShouldSuccess2() {
+        PluginPackageValidator.validatePackageVersion("v1.1.1.1");
+        assertThat(true).isTrue();
+    }
+
+    @Test
+    public void validateVersionShouldSuccess3() {
+        PluginPackageValidator.validatePackageVersion("v0.1.1");
+        assertThat(true).isTrue();
+    }
+
+    @Test
+    public void validateVersionShouldSuccess4() {
+        PluginPackageValidator.validatePackageVersion("v0.1.1.0");
+        assertThat(true).isTrue();
+    }
+
+    @Test
+    public void validateVersionShouldSuccess5() {
+        PluginPackageValidator.validatePackageVersion("v0.1");
+        assertThat(true).isTrue();
+    }
+
 }
