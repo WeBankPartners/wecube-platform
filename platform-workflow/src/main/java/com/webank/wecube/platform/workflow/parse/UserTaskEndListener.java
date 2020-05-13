@@ -46,7 +46,7 @@ public class UserTaskEndListener implements ExecutionListener {
             entity.setEndTime(currTime);
             entity.setStatus(TraceStatus.Completed);
 
-            respository.save(entity);
+            respository.saveAndFlush(entity);
         } else {
             log.warn("cannot find user task status entity for processInstBizKey={},nodeId={}",
                     execution.getProcessBusinessKey(), execution.getCurrentActivityId());

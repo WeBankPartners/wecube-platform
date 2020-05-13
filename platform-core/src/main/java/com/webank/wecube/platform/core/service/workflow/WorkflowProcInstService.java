@@ -174,7 +174,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			if (!nodeStatus.equals(nodeInst.getStatus())) {
 				nodeInst.setUpdatedTime(new Date());
 				nodeInst.setStatus(nodeStatus);
-				taskNodeInstInfoRepository.save(nodeInst);
+				taskNodeInstInfoRepository.saveAndFlush(nodeInst);
 			}
 		}
 	}
@@ -194,7 +194,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			if (!nodeStatus.equals(nie.getStatus())) {
 				nie.setStatus(nodeStatus);
 				nie.setUpdatedTime(currTime);
-				taskNodeInstInfoRepository.save(nie);
+				taskNodeInstInfoRepository.saveAndFlush(nie);
 			}
 		}
 	}
@@ -280,12 +280,12 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			throw new WecubeCoreException("Unknow kernel process instance.");
 		}
 
-		if (!ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstEntity.getStatus())) {
+//		if (!ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstEntity.getStatus())) {
 
 			ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
 			if (procInstEntity.getStatus().equals(procInstOutline.getStatus())) {
 				procInstEntity.setStatus(procInstOutline.getStatus());
-				procInstInfoRepository.save(procInstEntity);
+				procInstInfoRepository.saveAndFlush(procInstEntity);
 			}
 
 			List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
@@ -295,10 +295,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 				if (pfni != null && (pfni.getStatus() != null)
 						&& (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
 					nodeInstEntity.setStatus(pfni.getStatus());
-					taskNodeInstInfoRepository.save(nodeInstEntity);
+					taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
 				}
 			}
-		}
+//		}
 
 		ProcExecBindingEntity procInstBindEntity = procExecBindingRepository
 				.findProcInstBindings(procInstEntity.getId());
@@ -432,7 +432,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		procInstInfoEntity.setProcDefName(procDefInfoEntity.getProcDefName());
 		procInstInfoEntity.setProcInstKey(procInstKey);
 
-		procInstInfoRepository.save(procInstInfoEntity);
+		procInstInfoRepository.saveAndFlush(procInstInfoEntity);
 
 		ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
 		procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
@@ -441,7 +441,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		procInstBindEntity.setEntityDataName(rootEntityDataName);
 		procInstBindEntity.setProcDefId(procDefId);
 		procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
-		procExecBindingRepository.save(procInstBindEntity);
+		procExecBindingRepository.saveAndFlush(procInstBindEntity);
 
 		List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.findAllByProcDefId(procDefId);
 
@@ -476,7 +476,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			nodeBindEntity.setEntityDataId(bindInfoDto.getEntityDataId());
 			nodeBindEntity.setEntityDataName(bindInfoDto.getEntityDisplayName());
 
-			procExecBindingRepository.save(nodeBindEntity);
+			procExecBindingRepository.saveAndFlush(nodeBindEntity);
 		}
 	}
 
@@ -495,7 +495,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		taskNodeInstInfoEntity.setNodeType(taskNodeDefInfoEntity.getNodeType());
 		taskNodeInstInfoEntity.setOrderedNo(taskNodeDefInfoEntity.getOrderedNo());
 
-		taskNodeInstInfoRepository.save(taskNodeInstInfoEntity);
+		taskNodeInstInfoRepository.saveAndFlush(taskNodeInstInfoEntity);
 
 		return taskNodeInstInfoEntity;
 	}
@@ -525,7 +525,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			gNode.setUpdatedTime(new Date());
 			gNode.setProcInstId(result.getId());
 
-			graphNodeRepository.save(gNode);
+			graphNodeRepository.saveAndFlush(gNode);
 		}
 	}
 
@@ -549,7 +549,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		procEntity.setProcInstKernelId(processInstance.getId());
 		procEntity.setStatus(ProcInstInfoEntity.IN_PROGRESS_STATUS);
 
-		procInstInfoRepository.save(procEntity);
+		procInstInfoRepository.saveAndFlush(procEntity);
 
 		String entityTypeId = null;
 		String entityDataId = null;
@@ -579,7 +579,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 				n.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
 				n.setUpdatedTime(now);
 				n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-				taskNodeInstInfoRepository.save(n);
+				taskNodeInstInfoRepository.saveAndFlush(n);
 			}
 		}
 

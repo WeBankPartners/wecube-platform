@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
  * @author gavin
  *
  */
-@Component("taskDispatcher")
-public class PlugableApplicationTaskDispatcher extends AbstractServiceTaskHandleDelegate {
-    private static final Logger log = LoggerFactory.getLogger(PlugableApplicationTaskDispatcher.class);
+@Component("srvBean")
+public class ServiceTaskHandleDelegate extends AbstractServiceTaskHandleDelegate {
+    private static final Logger log = LoggerFactory.getLogger(ServiceTaskHandleDelegate.class);
 
     @Override
     protected Logger getLogger() {
