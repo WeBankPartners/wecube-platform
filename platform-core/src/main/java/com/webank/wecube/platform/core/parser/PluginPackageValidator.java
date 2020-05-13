@@ -20,6 +20,7 @@ public class PluginPackageValidator {
                     String.format("Invalid plugin package name [%s] - Only alphanumeric and hyphen('-') are allowed. ",
                             pluginPackage.getName()));
         }
+        validatePackageVersion(pluginPackage.getVersion());
 
         Set<PluginPackageRuntimeResourcesS3> pluginPackageRuntimeResourcesS3s = pluginPackage.getPluginPackageRuntimeResourcesS3();
         if (null != pluginPackageRuntimeResourcesS3s && pluginPackageRuntimeResourcesS3s.size() > 1) {
@@ -46,6 +47,12 @@ public class PluginPackageValidator {
             if (StringUtils.isNotEmpty(volumeBindings) && volumeBindings.indexOf(":") < 0) {
                 throw new WecubeCoreException(String.format("volumeBindings attribute [%s] for docker should contains semi-colon (':')", volumeBindings));
             }
+        }
+    }
+
+    public static void validatePackageVersion(String packageVersion) {
+        if (!Pattern.matches(PACKAGE_VERSION_PATTERN, packageVersion)) {
+            throw new WecubeCoreException(String.format("Invalid plugin package version [%s].", packageVersion));
         }
     }
 }
