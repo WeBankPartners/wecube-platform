@@ -38,7 +38,7 @@ public abstract class AbstractServiceNodeEndListener extends AbstractServiceNode
         entity.setStatus(TraceStatus.Completed);
         entity.setEndTime(currTime);
         
-        serviceNodeStatusRepository.save(entity);
+        serviceNodeStatusRepository.saveAndFlush(entity);
         
     }
     

@@ -26,7 +26,7 @@ public interface TaskNodeExecParamRepository extends JpaRepository<TaskNodeExecP
 
     @Query("select t from TaskNodeExecParamEntity t "
             + " where t.requestId = :requestId and t.paramType = :paramType and t.paramName = :paramName and t.paramDataValue = :paramDataValue")
-    TaskNodeExecParamEntity findOneByRequestIdAndParamTypeAndParamNameAndValue(@Param("requestId") String requestId,
+    List<TaskNodeExecParamEntity> findOneByRequestIdAndParamTypeAndParamNameAndValue(@Param("requestId") String requestId,
             @Param("paramType") String paramType, @Param("paramName") String paramName,
             @Param("paramDataValue") String paramDataValue);
 

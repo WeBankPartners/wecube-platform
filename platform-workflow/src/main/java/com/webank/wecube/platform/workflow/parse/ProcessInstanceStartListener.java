@@ -67,7 +67,7 @@ public class ProcessInstanceStartListener implements ExecutionListener {
         instanceEntity.setStartTime(currTime);
         instanceEntity.setStatus(TraceStatus.InProgress);
         
-        processInstanceStatusRepository.save(instanceEntity);
+        processInstanceStatusRepository.saveAndFlush(instanceEntity);
 
         for (ServiceTask node : serviceTasks) {
             ServiceNodeStatusEntity entity = new ServiceNodeStatusEntity();
@@ -83,7 +83,7 @@ public class ProcessInstanceStartListener implements ExecutionListener {
             entity.setStatus(TraceStatus.NotStarted);
             entity.setTryTimes(0);
 
-            serviceNodeStatusRepository.save(entity);
+            serviceNodeStatusRepository.saveAndFlush(entity);
         }
 
         for (SubProcess node : subProcesses) {
@@ -100,7 +100,7 @@ public class ProcessInstanceStartListener implements ExecutionListener {
             entity.setStatus(TraceStatus.NotStarted);
             entity.setTryTimes(0);
 
-            serviceNodeStatusRepository.save(entity);
+            serviceNodeStatusRepository.saveAndFlush(entity);
         }
     }
 
