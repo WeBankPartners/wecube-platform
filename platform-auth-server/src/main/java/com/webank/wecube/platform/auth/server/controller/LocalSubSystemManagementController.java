@@ -4,6 +4,7 @@ import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okayW
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleSubSystemDto;
+import com.webank.wecube.platform.auth.server.dto.SubSystemTokenDto;
 import com.webank.wecube.platform.auth.server.service.SubSystemManagementService;
 
 @RestController
@@ -26,9 +28,21 @@ public class LocalSubSystemManagementController {
 			{
 		return okayWithData(subSystemManagementService.registerSubSystem(subSystemDto));
 	}
+	
+	@PostMapping("/sub-systems/access-tokens")
+    public CommonResponseDto registerSubSystemAccessToken(@RequestBody SubSystemTokenDto subSystemTokenDto)
+            {
+        return okayWithData(subSystemManagementService.registerSubSystemAccessToken(subSystemTokenDto));
+    }
 
 	@GetMapping("/sub-systems")
 	public CommonResponseDto retrieveAllSubSystems(){
 		return okayWithData(subSystemManagementService.retrieveAllSubSystems());
 	}
+	
+	@GetMapping("/sub-systems/{system-code}/apikeys")
+    public CommonResponseDto retrieveAllSubSystems(@PathVariable("system-code") String systemCode){
+	    //TODO
+        return okayWithData(subSystemManagementService.retrieveAllSubSystems());
+    }
 }
