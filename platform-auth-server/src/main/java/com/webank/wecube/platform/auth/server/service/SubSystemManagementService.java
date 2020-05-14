@@ -11,10 +11,12 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.auth.server.common.AuthServerException;
 import com.webank.wecube.platform.auth.server.dto.SimpleSubSystemDto;
+import com.webank.wecube.platform.auth.server.dto.SubSystemTokenDto;
 import com.webank.wecube.platform.auth.server.encryption.AsymmetricKeyPair;
 import com.webank.wecube.platform.auth.server.encryption.EncryptionUtils;
 import com.webank.wecube.platform.auth.server.entity.SysSubSystemEntity;
 import com.webank.wecube.platform.auth.server.http.AuthenticationContextHolder;
+import com.webank.wecube.platform.auth.server.model.JwtToken;
 import com.webank.wecube.platform.auth.server.repository.SubSystemRepository;
 
 @Service("subSystemManagementService")
@@ -24,6 +26,55 @@ public class SubSystemManagementService {
 
 	@Autowired
 	private SubSystemRepository subSystemRepository;
+	
+	public SubSystemTokenDto registerSubSystemAccessToken(SubSystemTokenDto subSystemDto){
+	    SubSystemTokenDto result = new SubSystemTokenDto();
+	    result.setSystemCode(subSystemDto.getSystemCode());
+	    
+	    if(!validateSubSystemTokenFields(subSystemDto)){
+	        return result;
+	    }
+	    
+	    JwtToken accessToken = tryAuthenticateSubSystem(subSystemDto);
+	    if(accessToken == null){
+	        return result;
+	    }
+	    
+	    result.setAccessToken(accessToken.getToken());
+	    result.setCreateDate(String.valueOf(System.currentTimeMillis()));
+	    result.setExpireDate(String.valueOf(accessToken.getExpiration()));
+	    
+	    return result;
+	}
+	
+	private JwtToken tryAuthenticateSubSystem(SubSystemTokenDto subSystemDto){
+	    //TODO
+	    return null;
+	}
+	
+	private boolean validateSubSystemTokenFields(SubSystemTokenDto dto){
+	    if(dto == null){
+	        return false;
+	    }
+	    
+	    if(StringUtils.isBlank(dto.getSystemCode())){
+	        return false;
+	    }
+	    
+	    if(StringUtils.isBlank(dto.getNonce())){
+	        return false;
+	    }
+	    
+	    if(StringUtils.isBlank(dto.getCreateDate())){
+	        return false;
+	    }
+	    
+	    if(StringUtils.isBlank(dto.getExpireDate())){
+	        return false;
+	    }
+	    
+	    return true;
+	}
 
 	public SimpleSubSystemDto registerSubSystem(SimpleSubSystemDto subSystemDto){
 	    
