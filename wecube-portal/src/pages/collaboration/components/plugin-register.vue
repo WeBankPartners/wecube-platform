@@ -69,6 +69,7 @@
                   :value="inter.action"
                   :disabled="currentPluginObj.status === 'ENABLED'"
                   @on-blur="actionBlurHandler($event, inter)"
+                  @click.stop.native="actionFocus($event)"
                   style="width:200px"
                   size="small"
                 />
@@ -494,7 +495,13 @@ export default {
         this.getInterfacesByPluginConfigId(this.currentPluginObj.id)
       }
     },
+    actionFocus (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    },
     actionBlurHandler (e, i) {
+      e.preventDefault()
+      e.stopPropagation()
       i.action = e.target.value
     },
     copyInterface (interfaces) {
