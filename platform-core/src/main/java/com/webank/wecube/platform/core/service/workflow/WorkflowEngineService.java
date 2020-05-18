@@ -121,7 +121,8 @@ public class WorkflowEngineService {
 		String act = StringUtils.isBlank(userAction) ? PROCEED_ACT_RETRY : userAction;
 
 		if (!(PROCEED_ACT_RETRY.equals(act) || PROCEED_ACT_SKIP.equals(act))) {
-			log.warn("invalid action for procInstanceId={} nodeId={} userAction={}", procInstanceId, nodeId, userAction);
+			log.warn("invalid action for procInstanceId={} nodeId={} userAction={}", procInstanceId, nodeId,
+					userAction);
 			throw new IllegalArgumentException(String.format("action {%s} is invalid.", userAction));
 		}
 
@@ -227,7 +228,7 @@ public class WorkflowEngineService {
 	private void tryEmitSignalEvent(String eventName, EventSubscription signalEventSubscription, String resultCode,
 			String procInstId, String procInstKey, Map<String, Object> boundVariables) {
 		for (int times = 0; times <= 20; times++) {
-			
+
 			try {
 				log.info(
 						"###### {} try delivering {} to execution {}, serviceCode {}, instanceId {}, businessKey {} activityId {}",
@@ -322,38 +323,7 @@ public class WorkflowEngineService {
 				continue;
 			}
 
-			String nodeStatus = null;
-			boolean isAllPreviousFlowNodesCompleted = true;
-
-			for (ProcFlowNode child : n.getPreviousFlowNodes()) {
-				ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
-				if (!TraceStatus.Completed.name().equals(fi.getStatus())) {
-					isAllPreviousFlowNodesCompleted = false;
-					break;
-				}
-			}
-
-			if (isAllPreviousFlowNodesCompleted) {
-				nodeStatus = TraceStatus.Completed.name();
-			} else {
-				nodeStatus = TraceStatus.NotStarted.name();
-			}
-
-			if (!TraceStatus.Completed.name().equals(nodeStatus)) {
-				boolean isOneSucceedingFlowNodeStarted = false;
-
-				for (ProcFlowNode child : n.getSucceedingFlowNodes()) {
-					ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
-					if (fi.getStatus() != null && !TraceStatus.NotStarted.name().equals(fi.getStatus())) {
-						isOneSucceedingFlowNodeStarted = true;
-						break;
-					}
-				}
-
-				if (isOneSucceedingFlowNodeStarted) {
-					nodeStatus = TraceStatus.Completed.name();
-				}
-			}
+			String nodeStatus = tryCalculateStatelessNodeStatus(outline, n);
 
 			if (nodeStatus == null) {
 				Collection<HistoricActivityInstance> activities = historyService.createHistoricActivityInstanceQuery()
@@ -375,6 +345,116 @@ public class WorkflowEngineService {
 			}
 
 		}
+	}
+
+	protected String tryCalculateStatelessNodeStatus(ProcInstOutline outline, ProcFlowNodeInst nodeInst) {
+		String nodeStatus = null;
+
+		if ("startEvent".equalsIgnoreCase(nodeInst.getNodeType())) {
+			nodeStatus = tryCalStartEventNodeStatus(outline, nodeInst);
+			return nodeStatus;
+		}
+
+		if ("endEvent".equalsIgnoreCase(nodeInst.getNodeType())) {
+			nodeStatus = tryCalEndEventNodeStatus(outline, nodeInst);
+			return nodeStatus;
+		}
+
+		if ("exclusiveGateway".equalsIgnoreCase(nodeInst.getNodeType())) {
+			nodeStatus = tryCalExclusiveGatewayNodeStatus(outline, nodeInst);
+			return nodeStatus;
+		}
+
+		if ("parallelGateway".equalsIgnoreCase(nodeInst.getNodeType())) {
+			nodeStatus = tryCalParallelGatewayNodeStatus(outline, nodeInst);
+			return nodeStatus;
+		}
+
+		return null;
+
+	}
+
+	private String tryCalExclusiveGatewayNodeStatus(ProcInstOutline outline, ProcFlowNodeInst nodeInst) {
+		String nodeStatus = null;
+		boolean isOnePreviousFlowNodesCompleted = true;
+
+		for (ProcFlowNode child : nodeInst.getPreviousFlowNodes()) {
+			ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
+			if (TraceStatus.Completed.name().equals(fi.getStatus())) {
+				isOnePreviousFlowNodesCompleted = true;
+				break;
+			}
+		}
+
+		if (isOnePreviousFlowNodesCompleted) {
+			nodeStatus = TraceStatus.Completed.name();
+		} else {
+			nodeStatus = TraceStatus.NotStarted.name();
+		}
+
+		return nodeStatus;
+	}
+
+	private String tryCalParallelGatewayNodeStatus(ProcInstOutline outline, ProcFlowNodeInst nodeInst) {
+		String nodeStatus = null;
+		boolean isAllPreviousFlowNodesCompleted = true;
+
+		for (ProcFlowNode child : nodeInst.getPreviousFlowNodes()) {
+			ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
+			if (!TraceStatus.Completed.name().equals(fi.getStatus())) {
+				isAllPreviousFlowNodesCompleted = false;
+				break;
+			}
+		}
+
+		if (isAllPreviousFlowNodesCompleted) {
+			nodeStatus = TraceStatus.Completed.name();
+		} else {
+			nodeStatus = TraceStatus.NotStarted.name();
+		}
+
+		if (!TraceStatus.Completed.name().equals(nodeStatus)) {
+			boolean isOneSucceedingFlowNodeStarted = false;
+
+			for (ProcFlowNode child : nodeInst.getSucceedingFlowNodes()) {
+				ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
+				if (fi.getStatus() != null && !TraceStatus.NotStarted.name().equals(fi.getStatus())) {
+					isOneSucceedingFlowNodeStarted = true;
+					break;
+				}
+			}
+
+			if (isOneSucceedingFlowNodeStarted) {
+				nodeStatus = TraceStatus.Completed.name();
+			}
+		}
+
+		return nodeStatus;
+	}
+
+	private String tryCalStartEventNodeStatus(ProcInstOutline outline, ProcFlowNodeInst nodeInst) {
+		return TraceStatus.Completed.name();
+	}
+
+	private String tryCalEndEventNodeStatus(ProcInstOutline outline, ProcFlowNodeInst nodeInst) {
+		String nodeStatus = null;
+		boolean isOnePreviousFlowNodesCompleted = true;
+
+		for (ProcFlowNode child : nodeInst.getPreviousFlowNodes()) {
+			ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
+			if (TraceStatus.Completed.name().equals(fi.getStatus())) {
+				isOnePreviousFlowNodesCompleted = true;
+				break;
+			}
+		}
+
+		if (isOnePreviousFlowNodesCompleted) {
+			nodeStatus = TraceStatus.Completed.name();
+		} else {
+			nodeStatus = TraceStatus.NotStarted.name();
+		}
+
+		return nodeStatus;
 	}
 
 	protected void populateFlowNodeInsts(ProcInstOutline outline, FlowNode flowNode) {
