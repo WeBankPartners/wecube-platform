@@ -39,6 +39,15 @@ public class UserManagementServiceImpl implements UserManagementService {
         AsUserDto reqUserDto = new AsUserDto();
         reqUserDto.setUsername(userDto.getUsername());
         reqUserDto.setPassword(userDto.getPassword());
+        
+        String authType = userDto.getAuthType();
+        //TODO calculate auth context
+        
+        
+        reqUserDto.setAuthSource(authType);
+        
+        String authContext = null;//TODO
+        reqUserDto.setAuthContext(authContext);
 
         try {
             AsUserDto respUserDto = authServerRestClient.registerLocalUser(reqUserDto);
@@ -46,6 +55,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             UserDto result = new UserDto();
             result.setUsername(respUserDto.getUsername());
             result.setPassword(respUserDto.getPassword());
+            result.setAuthType(respUserDto.getAuthSource());
             result.setId(respUserDto.getId());
             return result;
         } catch (RestClientException e) {

@@ -7,6 +7,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "AUTH_SYS_USER")
 public class SysUserEntity extends BaseUUIDFeaturedEntity {
+	public static final String AUTH_SOURCE_LOCAL = "LOCAL";
+	public static final String AUTH_SOURCE_UM = "UM";
+	
     @Column(name = "USERNAME")
     private String username;
 
