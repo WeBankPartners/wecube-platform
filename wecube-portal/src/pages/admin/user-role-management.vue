@@ -64,7 +64,13 @@
         <FormItem :label="$t('username')" prop="username">
           <Input v-model="addedUser.username" />
         </FormItem>
-        <FormItem :label="$t('password')" prop="fullName">
+        <FormItem :label="$t('auth_type')" prop="authtype">
+          <RadioGroup v-model="addedUser.authType">
+            <Radio label="LOCAL"></Radio>
+            <Radio label="UM"></Radio>
+          </RadioGroup>
+        </FormItem>
+        <FormItem v-if="addedUser.authType === 'LOCAL'" :label="$t('password')" prop="password">
           <Input type="password" v-model="addedUser.password" />
         </FormItem>
       </Form>
@@ -117,7 +123,9 @@ export default {
     return {
       users: [],
       roles: [],
-      addedUser: {},
+      addedUser: {
+        authType: 'LOCAL'
+      },
       addedRole: {},
       addedRoleValue: '',
       transferTitles: [this.$t('unselected_user'), this.$t('selected_user')],
@@ -336,27 +344,15 @@ export default {
       this.userManageModal = true
     },
     async addUser () {
-      if (!this.addedUser.username) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('username_cannot_empty')
-        })
-        return
-      }
-      if (!this.addedUser.password) {
-        this.$Notice.warning({
-          title: 'Warning',
-          desc: this.$t('password_cannot_empty')
-        })
-        return
-      }
       let { status, message } = await userCreate(this.addedUser)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'success',
           desc: message
         })
-        this.addedUser = {}
+        this.addedUser = {
+          authType: 'LOCAL'
+        }
         this.getAllUsers()
       }
     },
@@ -393,6 +389,14 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.ivu-card-head-inner,
+.ivu-card-head p {
+  height: 30px;
+
+  button {
+    margin-left: 10px;
+  }
+}
 .tagContainers {
   overflow: auto;
   height: calc(100vh - 210px);
