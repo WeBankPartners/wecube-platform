@@ -197,7 +197,7 @@ public class UserManagementService {
         user.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
         user.setUpdatedTime(new Date());
 
-        SysUserEntity modifiedUser = userRepository.save(user);
+        SysUserEntity modifiedUser = userRepository.saveAndFlush(user);
         return convertToSimpleLocalUserDto(modifiedUser);
     }
 
@@ -208,6 +208,8 @@ public class UserManagementService {
             log.info("such username {} to create has already existed.", userDto.getUsername());
             throw new AuthServerException(String.format("User {%s} already exists.", userDto.getUsername()));
         }
+        
+        
 
         userEntity = buildSysUserEntity(userDto);
         userRepository.saveAndFlush(userEntity);
@@ -311,17 +313,31 @@ public class UserManagementService {
         user.setLocalName(dto.getNativeName());
         user.setCellPhoneNo(dto.getCellPhoneNo());
         user.setOfficeTelNo(dto.getOfficeTelNo());
+        
+        user.setAuthSource(dto.getAuthSource());
+        user.setAuthContext(dto.getAuthContext());
 
         return user;
     }
 
     private String encodePassword(String rawPassword) {
+    	
         return passwordEncoder.encode(rawPassword);
     }
 
-    private void validateSimpleLocalUserDto(SimpleLocalUserDto d) {
-        if (StringUtils.isBlank(d.getUsername()) || StringUtils.isBlank(d.getPassword())) {
-            throw new AuthServerException("Username and password cannot be blank.");
+    private void validateSimpleLocalUserDto(SimpleLocalUserDto userDto) {
+    	
+    	if (StringUtils.isBlank(userDto.getUsername())) {
+            throw new AuthServerException("Username cannot be blank.");
         }
+    	
+    	String authSource = SysUserEntity.AUTH_SOURCE_LOCAL;
+        if(!StringUtils.isBlank(userDto.getAuthSource())) {
+        	authSource = userDto.getAuthSource();
+        }
+        
+        if(SysUserEntity.AUTH_SOURCE_LOCAL.equalsIgnoreCase(authSource) && StringUtils.isBlank(userDto.getPassword())) {
+        	throw new AuthServerException("Password cannot be blank.");
+        }        
     }
 }
