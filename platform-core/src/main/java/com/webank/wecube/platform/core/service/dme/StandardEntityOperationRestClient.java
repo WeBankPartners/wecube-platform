@@ -41,8 +41,8 @@ public class StandardEntityOperationRestClient {
 		}
 		StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, querySpec,
 				StandardEntityOperationResponseDto.class);
-		if (log.isInfoEnabled()) {
-			log.info("RECEIVE QUERY post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+		if (log.isDebugEnabled()) {
+			log.debug("RECEIVE QUERY post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
 		}
 		return result;
 	}
@@ -60,7 +60,7 @@ public class StandardEntityOperationRestClient {
 		log.info("SEND UPDATE post [{}] url={}, request={}", timeMilliSeconds, requestUri.toString(), toJson(requestBody));
 		StandardEntityOperationResponseDto result = getRestTemplate().postForObject(requestUri, requestBody,
 				StandardEntityOperationResponseDto.class);
-		log.info("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
+		log.debug("RECEIVE UPDATE post [{}] url={},result={}", timeMilliSeconds, requestUri.toString(), result);
 		return result;
 	}
 
