@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
+import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.support.RestClientException;
 import com.webank.wecube.platform.core.support.authserver.AsRoleDto;
 import com.webank.wecube.platform.core.support.authserver.AsUserDto;
@@ -22,9 +24,16 @@ import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 @Service
 public class UserManagementServiceImpl implements UserManagementService {
     private final static Logger log = LoggerFactory.getLogger(UserManagementServiceImpl.class);
+    
+    public static final String SYS_VAR_LDAP_UM_CTX = "UM_LDAP_CONTEXT";
+    public static final String AUTH_TYPE_LOCAL = "LOCAL";
+    public static final String AUTH_TYPE_UM = "UM";
 
     @Autowired
     private AuthServerRestClient authServerRestClient;
+    
+    @Autowired
+    private SystemVariableService systemVariableService;
 
     @Override
     public UserDto registerUser(UserDto userDto) {
@@ -32,8 +41,8 @@ public class UserManagementServiceImpl implements UserManagementService {
             throw new IllegalArgumentException();
         }
 
-        if (StringUtils.isBlank(userDto.getUsername()) || StringUtils.isBlank(userDto.getPassword())) {
-            throw new WecubeCoreException("Username and password cannot be blank.");
+        if (StringUtils.isBlank(userDto.getUsername())) {
+            throw new WecubeCoreException("Username cannot be blank.");
         }
 
         AsUserDto reqUserDto = new AsUserDto();
@@ -41,12 +50,13 @@ public class UserManagementServiceImpl implements UserManagementService {
         reqUserDto.setPassword(userDto.getPassword());
         
         String authType = userDto.getAuthType();
-        //TODO calculate auth context
-        
+        if(StringUtils.isBlank(authType)) {
+        	authType = AUTH_TYPE_LOCAL;
+        }
         
         reqUserDto.setAuthSource(authType);
         
-        String authContext = null;//TODO
+        String authContext = tryCalculateAuthContext(authType);
         reqUserDto.setAuthContext(authContext);
 
         try {
@@ -62,6 +72,37 @@ public class UserManagementServiceImpl implements UserManagementService {
             log.error("registering user failed", e);
             throw new WecubeCoreException("Failed to register user,caused by: " + e.getErrorMessage());
         }
+    }
+    
+    private String tryCalculateAuthContext(String authType) {
+    	if(StringUtils.isBlank(authType)) {
+    		return null;
+    	}
+    	
+    	if(AUTH_TYPE_LOCAL.equalsIgnoreCase(authType)) {
+    		return null;
+    	}
+    	
+    	if(AUTH_TYPE_UM.equalsIgnoreCase(authType)) {
+    		return tryCalculateUmLdapAuthContext();
+    	}
+    	
+    	return null;
+    }
+    
+    private String tryCalculateUmLdapAuthContext() {
+    	List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_LDAP_UM_CTX);
+    	if(sysVars == null || sysVars.isEmpty()) {
+    		throw new WecubeCoreException(String.format("System variable %s does NOT exist.", SYS_VAR_LDAP_UM_CTX));
+    	}
+    	
+    	String authCtx = sysVars.get(0).getValue();
+    	if(StringUtils.isBlank(authCtx)) {
+    		throw new WecubeCoreException(String.format("The value of system variable %s is blank.", SYS_VAR_LDAP_UM_CTX));
+    	}
+    	
+    	return authCtx;
+    	
     }
 
     @Override
