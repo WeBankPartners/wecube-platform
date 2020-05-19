@@ -72,7 +72,7 @@ public class WorkflowProcInstEndEventNotifier {
             operationEventEntity.setEndTime(new Date());
             operationEventEntity.setUpdatedTime(new Date());
 
-            operationEventRepository.save(operationEventEntity);
+            operationEventRepository.saveAndFlush(operationEventEntity);
         }
     }
 }
