@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "wecube.core.authserver")
 public class AuthServerRestClientProperties {
     private String host = "localhost";
-    private String httpSchema = "http";
+    private String httpScheme = "http";
     private int port = 9090;
 
     private String pathRegisterLocalUser = "/auth/v1/users";
@@ -43,12 +43,12 @@ public class AuthServerRestClientProperties {
         this.port = port;
     }
 
-    public String getHttpSchema() {
-        return httpSchema;
+    public String getHttpScheme() {
+        return httpScheme;
     }
 
-    public void setHttpSchema(String httpSchema) {
-        this.httpSchema = httpSchema;
+    public void setHttpScheme(String httpScheme) {
+        this.httpScheme = httpScheme;
     }
 
     public String getPathRegisterLocalUser() {
