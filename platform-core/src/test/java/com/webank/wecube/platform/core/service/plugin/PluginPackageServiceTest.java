@@ -150,6 +150,11 @@ public class PluginPackageServiceTest extends DatabaseBasedTest {
         PluginPackageValidator.validatePackageVersion("v1.0.0;'ls");
     }
 
+    @Test(expected = WecubeCoreException.class)
+    public void validatePackageVersionTestShouldFailed15() {
+        PluginPackageValidator.validatePackageVersion("v100.1.1.2");
+    }
+
     @Test
     public void validateVersionShouldSuccess1() {
         PluginPackageValidator.validatePackageVersion("v1.1.1");
@@ -177,6 +182,12 @@ public class PluginPackageServiceTest extends DatabaseBasedTest {
     @Test
     public void validateVersionShouldSuccess5() {
         PluginPackageValidator.validatePackageVersion("v0.1");
+        assertThat(true).isTrue();
+    }
+
+    @Test
+    public void validateVersionShouldSuccess6() {
+        PluginPackageValidator.validatePackageVersion("v1.4.2.18");
         assertThat(true).isTrue();
     }
 
