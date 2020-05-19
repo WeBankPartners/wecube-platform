@@ -417,5 +417,6 @@
   "delete_node": "Delete Node",
   "remove": "Remove",
   "completely_deleted": "It Will Be Completely Deleted After Clicking Save",
-  "show_log": "Show Log"
+  "show_log": "Show Log",
+  "auth_type": "Auth Type"
 }
