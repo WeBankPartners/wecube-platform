@@ -126,14 +126,14 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
 	public void proceedProcessInstance(ProceedProcInstRequestDto request) {
 		if (request == null) {
-			log.error("request is null");
+			log.warn("request is null");
 			throw new WecubeCoreException("Request is null.");
 		}
 
 		Optional<ProcInstInfoEntity> procInstOpt = procInstInfoRepository.findById(request.getProcInstId());
 
 		if (!procInstOpt.isPresent()) {
-			log.error("such process instance does not exist,id={}", request.getProcInstId());
+			log.warn("such process instance does not exist,id={}", request.getProcInstId());
 			throw new WecubeCoreException("Such process instance does not exist.");
 		}
 
@@ -142,7 +142,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
 		Optional<TaskNodeInstInfoEntity> nodeInstOpt = taskNodeInstInfoRepository.findById(request.getNodeInstId());
 		if (!nodeInstOpt.isPresent()) {
-			log.error("such task node instance does not exist,process id :{}, task node id:{}", request.getProcInstId(),
+			log.warn("such task node instance does not exist,process id :{}, task node id:{}", request.getProcInstId(),
 					request.getNodeInstId());
 			throw new WecubeCoreException("Such task node instance does not exist.");
 		}
@@ -150,19 +150,19 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		TaskNodeInstInfoEntity nodeInst = nodeInstOpt.get();
 
 		if (!procInst.getId().equals(nodeInst.getProcInstId())) {
-			log.error("Illegal task node id:{}", nodeInst.getProcInstId());
+			log.warn("Illegal task node id:{}", nodeInst.getProcInstId());
 			throw new WecubeCoreException("Illegal task node id");
 		}
 
 		if (!ProcInstInfoEntity.IN_PROGRESS_STATUS.equals(procInst.getStatus())) {
-			log.error("cannot proceed with such process instance status:{}", procInst.getStatus());
+			log.warn("cannot proceed with such process instance status:{}", procInst.getStatus());
 			throw new WecubeCoreException("Cannot proceed with such process instance status");
 		}
 
 		if (TaskNodeInstInfoEntity.NOT_STARTED_STATUS.equals(nodeInst.getStatus())
 				|| TaskNodeInstInfoEntity.IN_PROGRESS_STATUS.equals(nodeInst.getStatus())
 				|| TaskNodeInstInfoEntity.COMPLETED_STATUS.equals(nodeInst.getStatus())) {
-			log.error("cannot proceed with such task node instance status:{}", procInst.getStatus());
+			log.warn("cannot proceed with such task node instance status:{}", procInst.getStatus());
 			throw new WecubeCoreException("Cannot proceed with such task node instance status");
 		}
 
@@ -174,7 +174,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			if (!nodeStatus.equals(nodeInst.getStatus())) {
 				nodeInst.setUpdatedTime(new Date());
 				nodeInst.setStatus(nodeStatus);
-				taskNodeInstInfoRepository.save(nodeInst);
+				taskNodeInstInfoRepository.saveAndFlush(nodeInst);
 			}
 		}
 	}
@@ -194,7 +194,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			if (!nodeStatus.equals(nie.getStatus())) {
 				nie.setStatus(nodeStatus);
 				nie.setUpdatedTime(currTime);
-				taskNodeInstInfoRepository.save(nie);
+				taskNodeInstInfoRepository.saveAndFlush(nie);
 			}
 		}
 	}
@@ -280,12 +280,12 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			throw new WecubeCoreException("Unknow kernel process instance.");
 		}
 
-		if (!ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstEntity.getStatus())) {
+//		if (!ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstEntity.getStatus())) {
 
 			ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
 			if (procInstEntity.getStatus().equals(procInstOutline.getStatus())) {
 				procInstEntity.setStatus(procInstOutline.getStatus());
-				procInstInfoRepository.save(procInstEntity);
+				procInstInfoRepository.saveAndFlush(procInstEntity);
 			}
 
 			List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
@@ -295,10 +295,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 				if (pfni != null && (pfni.getStatus() != null)
 						&& (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
 					nodeInstEntity.setStatus(pfni.getStatus());
-					taskNodeInstInfoRepository.save(nodeInstEntity);
+					taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
 				}
 			}
-		}
+//		}
 
 		ProcExecBindingEntity procInstBindEntity = procExecBindingRepository
 				.findProcInstBindings(procInstEntity.getId());
@@ -369,7 +369,11 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			return "E";
 		}
 		
-		return null;
+		if("exclusiveGateway".equals(nodeInstEntity.getNodeType())) {
+			return "X";
+		}
+		
+		return "";
 	}
 
 	private TaskNodeDefInfoEntity findTaskNodeDefInfoEntityByNodeDefId(List<TaskNodeDefInfoEntity> nodeDefEntities,
@@ -408,13 +412,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
 		ProcDefInfoEntity procDefInfoEntity = procDefInfoEntityOpt.get();
 		if (!ProcDefInfoEntity.DEPLOYED_STATUS.equals(procDefInfoEntity.getStatus())) {
-			log.error("expected status {} but {} for procDefId {}", ProcDefInfoEntity.DEPLOYED_STATUS,
+			log.warn("expected status {} but {} for procDefId {}", ProcDefInfoEntity.DEPLOYED_STATUS,
 					procDefInfoEntity.getStatus(), procDefId);
 			throw new WecubeCoreException(String.format("Invalid process definition ID:%s", procDefId));
 		}
 
 		if (StringUtils.isBlank(procDefInfoEntity.getProcDefKernelId())) {
-			log.error("cannot know process definition id for {}", procDefId);
+			log.warn("cannot know process definition id for {}", procDefId);
 			throw new WecubeCoreException(String.format("Invalid process definition ID:%s", procDefId));
 		}
 
@@ -428,7 +432,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		procInstInfoEntity.setProcDefName(procDefInfoEntity.getProcDefName());
 		procInstInfoEntity.setProcInstKey(procInstKey);
 
-		procInstInfoRepository.save(procInstInfoEntity);
+		procInstInfoRepository.saveAndFlush(procInstInfoEntity);
 
 		ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
 		procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
@@ -437,7 +441,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		procInstBindEntity.setEntityDataName(rootEntityDataName);
 		procInstBindEntity.setProcDefId(procDefId);
 		procInstBindEntity.setProcInstId(procInstInfoEntity.getId());
-		procExecBindingRepository.save(procInstBindEntity);
+		procExecBindingRepository.saveAndFlush(procInstBindEntity);
 
 		List<TaskNodeDefInfoEntity> taskNodeDefInfoEntities = taskNodeDefInfoRepository.findAllByProcDefId(procDefId);
 
@@ -472,7 +476,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			nodeBindEntity.setEntityDataId(bindInfoDto.getEntityDataId());
 			nodeBindEntity.setEntityDataName(bindInfoDto.getEntityDisplayName());
 
-			procExecBindingRepository.save(nodeBindEntity);
+			procExecBindingRepository.saveAndFlush(nodeBindEntity);
 		}
 	}
 
@@ -491,7 +495,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		taskNodeInstInfoEntity.setNodeType(taskNodeDefInfoEntity.getNodeType());
 		taskNodeInstInfoEntity.setOrderedNo(taskNodeDefInfoEntity.getOrderedNo());
 
-		taskNodeInstInfoRepository.save(taskNodeInstInfoEntity);
+		taskNodeInstInfoRepository.saveAndFlush(taskNodeInstInfoEntity);
 
 		return taskNodeInstInfoEntity;
 	}
@@ -521,7 +525,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 			gNode.setUpdatedTime(new Date());
 			gNode.setProcInstId(result.getId());
 
-			graphNodeRepository.save(gNode);
+			graphNodeRepository.saveAndFlush(gNode);
 		}
 	}
 
@@ -533,7 +537,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 				.findById(procInstInfoEntity.getId());
 
 		if (!existProcInstInfoEntityOpt.isPresent()) {
-			log.error("such record does not exist,id={},procInstKey={}", procInstInfoEntity.getId(), procInstKey);
+			log.warn("such record does not exist,id={},procInstKey={}", procInstInfoEntity.getId(), procInstKey);
 			throw new WecubeCoreException("Errors while starting process instance.");
 		}
 
@@ -545,7 +549,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 		procEntity.setProcInstKernelId(processInstance.getId());
 		procEntity.setStatus(ProcInstInfoEntity.IN_PROGRESS_STATUS);
 
-		procInstInfoRepository.save(procEntity);
+		procInstInfoRepository.saveAndFlush(procEntity);
 
 		String entityTypeId = null;
 		String entityDataId = null;
@@ -575,7 +579,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 				n.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
 				n.setUpdatedTime(now);
 				n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-				taskNodeInstInfoRepository.save(n);
+				taskNodeInstInfoRepository.saveAndFlush(n);
 			}
 		}
 
