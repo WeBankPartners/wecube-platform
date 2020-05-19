@@ -51,7 +51,7 @@ public class UserTaskStartListener implements ExecutionListener {
         entity.setStatus(TraceStatus.InProgress);
         entity.setTryTimes(0);
 
-        SpringApplicationContextUtil.getBean(ServiceNodeStatusRepository.class).save(entity);
+        SpringApplicationContextUtil.getBean(ServiceNodeStatusRepository.class).saveAndFlush(entity);
     }
 
 }

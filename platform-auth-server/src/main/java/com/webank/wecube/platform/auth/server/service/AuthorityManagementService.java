@@ -31,7 +31,7 @@ public class AuthorityManagementService {
         SysAuthorityEntity authority = authorityRepository.findNotDeletedOneByCode(authDto.getCode());
 
         if (authority != null) {
-            log.error("authority {} to register already exists.", authDto.getCode());
+            log.debug("authority {} to register already exists.", authDto.getCode());
             throw new AuthServerException(String.format(
                     "Authority registering failed,because authority code {%s} already exist.", authDto.getCode()));
         }

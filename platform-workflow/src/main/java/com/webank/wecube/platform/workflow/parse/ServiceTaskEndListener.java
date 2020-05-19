@@ -13,10 +13,8 @@ public class ServiceTaskEndListener extends AbstractServiceNodeEndListener imple
 
     @Override
     public void notify(DelegateExecution execution) throws Exception {
-        log.info("-----------------------------------------------------------------");
         log.info("ServiceTask END:  {},  {}, {}", execution.getCurrentActivityName(), execution.getCurrentActivityId(),
                 execution.getProcessBusinessKey());
-        log.info("-----------------------------------------------------------------");
 
         if (isCustomServiceTask(execution)) {
             return;

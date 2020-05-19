@@ -26,7 +26,7 @@ public abstract class AbstractServiceNodeStartListener extends AbstractServiceNo
                 .findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
 
         if (entity == null) {
-            getLogger().error("{} is null for procInstanceBizKey={},nodeId={}", ServiceNodeStatusEntity.class.getSimpleName(),
+            getLogger().warn("{} is null for procInstanceBizKey={},nodeId={}", ServiceNodeStatusEntity.class.getSimpleName(),
                     procInstanceBizKey, nodeId);
             throw new IllegalStateException("service node status entity doesnt exist");
         }
@@ -37,7 +37,7 @@ public abstract class AbstractServiceNodeStartListener extends AbstractServiceNo
         entity.setStatus(TraceStatus.InProgress);
         entity.setStartTime(currTime);
         
-        serviceNodeStatusRepository.save(entity);
+        serviceNodeStatusRepository.saveAndFlush(entity);
         
     }
 }

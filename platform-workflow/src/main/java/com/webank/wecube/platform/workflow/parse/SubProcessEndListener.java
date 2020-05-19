@@ -20,13 +20,20 @@ public class SubProcessEndListener  extends AbstractServiceNodeEndListener imple
     public void notify(DelegateExecution execution) throws Exception {
 
 
-        log.info("-----------------------------------------------------------------");
         log.info("SubProcess END:  {},  {}, {}",
                 execution.getCurrentActivityName(), execution.getCurrentActivityId(),  
                 execution.getProcessBusinessKey());
-        log.info("-----------------------------------------------------------------");
         
         logServiceNodeEnd(execution);
+        
+        String retCodeVarName = String.format("retCode_%s_ice1", execution.getCurrentActivityId());
+        Object retCodeVarObj = execution.getVariable(retCodeVarName);
+        String subProcVarName = String.format("subProcRetCode_%s", execution.getCurrentActivityId());
+        if(retCodeVarObj != null && retCodeVarObj instanceof String){
+            String retCode = (String)retCodeVarObj;
+            execution.setVariable(subProcVarName, retCode);
+            log.debug("set variable:{}, {}", subProcVarName, retCode);
+        }
 
     }
 

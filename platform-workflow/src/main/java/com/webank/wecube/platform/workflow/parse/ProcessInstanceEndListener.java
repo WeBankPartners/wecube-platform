@@ -42,7 +42,7 @@ public class ProcessInstanceEndListener implements ExecutionListener {
                 .findOneByprocInstanceId(execution.getId());
 
         if (procInstEntity == null) {
-            log.error("process instance status doesnt exist,procInstanceId={},procIntanceBizKey={}", execution.getId(),
+            log.warn("process instance status doesnt exist,procInstanceId={},procIntanceBizKey={}", execution.getId(),
                     execution.getProcessBusinessKey());
             throw new IllegalStateException("process instance status doesnt exist");
         }
@@ -77,14 +77,13 @@ public class ProcessInstanceEndListener implements ExecutionListener {
         try {
             QueueHolder.putServiceInvocationEvent(event);
         } catch (Throwable e) {
-            log.error("plugin invocation errors", e);
+            log.warn("plugin invocation errors", e);
             throw e;
         }
     }
 
     private boolean hasErrorVariable(DelegateExecution execution) {
         Object processWithError = execution.getVariable(WorkflowConstants.VAR_KEY_PROCESS_WITH_ERROR);
-        log.info("# varibale {} {}", WorkflowConstants.VAR_KEY_PROCESS_WITH_ERROR, processWithError);
 
         if (processWithError != null && (Boolean.class.isAssignableFrom(processWithError.getClass()))) {
             if ((boolean) processWithError) {
@@ -112,7 +111,7 @@ public class ProcessInstanceEndListener implements ExecutionListener {
     }
 
     protected void logErrorEnd(DelegateExecution execution) {
-        log.error("process {}, businessKey {} ended with error", execution.getProcessInstanceId(),
+        log.info("process {}, businessKey {} ended with error", execution.getProcessInstanceId(),
                 execution.getBusinessKey());
     }
 
@@ -129,7 +128,7 @@ public class ProcessInstanceEndListener implements ExecutionListener {
         procInstEntity.setEndTime(currTime);
         procInstEntity.setStatus(TraceStatus.Faulted);
 
-        processInstanceStatusRepository.save(procInstEntity);
+        processInstanceStatusRepository.saveAndFlush(procInstEntity);
     }
 
     protected void logProcessInstanceSuccess(ProcessInstanceStatusEntity procInstEntity,
@@ -140,6 +139,6 @@ public class ProcessInstanceEndListener implements ExecutionListener {
         procInstEntity.setEndTime(currTime);
         procInstEntity.setStatus(TraceStatus.Completed);
 
-        processInstanceStatusRepository.save(procInstEntity);
+        processInstanceStatusRepository.saveAndFlush(procInstEntity);
     }
 }

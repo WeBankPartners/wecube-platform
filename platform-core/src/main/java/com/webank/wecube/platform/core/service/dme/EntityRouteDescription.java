@@ -3,7 +3,7 @@ package com.webank.wecube.platform.core.service.dme;
 public class EntityRouteDescription {
     private String packageName;
     private String entityName;
-    private String httpSchema = "http";
+    private String httpScheme = "http";
     private String httpHost;
     private String httpPort;
 
@@ -23,12 +23,12 @@ public class EntityRouteDescription {
         this.entityName = entityName;
     }
 
-    public String getHttpSchema() {
-        return httpSchema;
+    public String getHttpScheme() {
+        return httpScheme;
     }
 
-    public void setHttpSchema(String httpSchema) {
-        this.httpSchema = httpSchema;
+    public void setHttpScheme(String httpScheme) {
+        this.httpScheme = httpScheme;
     }
 
     public String getHttpHost() {
@@ -54,8 +54,8 @@ public class EntityRouteDescription {
         builder.append(packageName);
         builder.append(", entityName=");
         builder.append(entityName);
-        builder.append(", httpSchema=");
-        builder.append(httpSchema);
+        builder.append(", httpScheme=");
+        builder.append(httpScheme);
         builder.append(", httpHost=");
         builder.append(httpHost);
         builder.append(", httpPort=");
