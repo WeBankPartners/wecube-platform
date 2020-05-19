@@ -109,6 +109,11 @@ req.interceptors.response.use(
     const { response } = err
     if (response.status === 401) {
       window.location.href = window.location.origin + window.location.pathname + '#/login'
+      Vue.prototype.$Notice.warning({
+        title: 'Error',
+        desc: response.data.message || '401',
+        duration: 0
+      })
       // throwInfo(response)
       return response
     }
