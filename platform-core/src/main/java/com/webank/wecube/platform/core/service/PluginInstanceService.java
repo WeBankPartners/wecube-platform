@@ -19,7 +19,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.support.S3Client;
@@ -298,7 +297,7 @@ public class PluginInstanceService {
                 dockerInfo.getContainerName(), portBindingString, volumeBindingString);
 
         if (mysqlInfoSet.size() != 0) {
-            envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost())
+            envVariablesString = envVariablesString.replace(",", "\\,").replace("{{DB_HOST}}", dbInfo.getHost())
                     .replace("{{DB_PORT}}", dbInfo.getPort()).replace("{{DB_SCHEMA}}", dbInfo.getSchema())
                     .replace("{{DB_USER}}", dbInfo.getUser()).replace("{{DB_PWD}}", EncryptionUtils.decryptWithAes(
                             dbInfo.getPassword(), resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema()));
