@@ -1,5 +1,5 @@
 #!/bin/sh
-mkdir -p /log
+mkdir -p /data/auth_server/log
 java -jar /application/platform-auth-server.jar  --server.address=0.0.0.0 --server.port=8080 \
 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver \
 --spring.datasource.url=jdbc:mysql://${MYSQL_SERVER_ADDR}:${MYSQL_SERVER_PORT}/${MYSQL_SERVER_DATABASE_NAME}?serverTimezone=Asia\/Shanghai\&characterEncoding=utf8 \
@@ -8,4 +8,4 @@ java -jar /application/platform-auth-server.jar  --server.address=0.0.0.0 --serv
 --platform.auth.server.jwt-token.user-access-token=${USER_ACCESS_TOKEN} \
 --platform.auth.server.jwt-token.user-refresh-token=${USER_REFRESH_TOKEN} \
 ${AUTH_CUSTOM_PARAM} \
-2>&1 >>/log/platform-auth-server.log 
+2>&1 >>/data/auth_server/log/platform-auth-server.log 
