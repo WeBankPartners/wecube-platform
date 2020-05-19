@@ -27,7 +27,7 @@ public class SpringApplicationContextUtil implements ApplicationContextAware {
             log.error("application context must not be null");
             throw new IllegalStateException("Application Context must not be null");
         }
-        log.info("{} is already with ApplicationContext:{}", SpringApplicationContextUtil.class.getSimpleName(),
+        log.debug("{} is already with ApplicationContext:{}", SpringApplicationContextUtil.class.getSimpleName(),
                 ctx.getClass().getName());
     }
 
