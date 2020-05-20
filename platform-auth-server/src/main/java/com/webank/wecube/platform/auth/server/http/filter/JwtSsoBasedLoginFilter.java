@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,6 +21,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.webank.wecube.platform.auth.server.authentication.CompositeAuthenticationProvider;
 import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationProvider;
 import com.webank.wecube.platform.auth.server.authentication.SubSystemAuthenticationToken;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
@@ -42,20 +42,17 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
 
     private static final String URI_LOGIN = "/v1/api/login";
 
-    private final AuthenticationManager authenticationManager;
     private final AuthServerProperties authServerProperties;
     private ObjectMapper objectMapper = new ObjectMapper();
     private final JwtBuilder jwtBuilder;
 
-    public JwtSsoBasedLoginFilter(AuthenticationManager authenticationManager, AuthServerProperties authServerProperties) {
+    public JwtSsoBasedLoginFilter(AuthServerProperties authServerProperties) {
         super(new AntPathRequestMatcher(URI_LOGIN, "POST"));
-        this.authenticationManager = authenticationManager;
         
         this.authServerProperties = authServerProperties;
 
         if (log.isDebugEnabled()) {
             log.debug("Filter: {} applied", JwtSsoBasedLoginFilter.class.getSimpleName());
-            log.debug("AuthenticationManager: {} applied", authenticationManager.getClass().getSimpleName());
         }
         
         jwtBuilder = new DefaultJwtBuilder(this.authServerProperties.getJwtToken());
@@ -119,7 +116,8 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
         final UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 credential.getUsername(), credential.getPassword());
 
-        return authenticationManager.authenticate(authenticationToken);
+        return SpringApplicationContextUtil
+                .getBean("compositeAuthenticationProvider", CompositeAuthenticationProvider.class).authenticate(authenticationToken);
     }
 
     @Override
