@@ -118,13 +118,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(imageName).withName(containerName)
                 .withVolumes(containerVolumes).withExposedPorts(exposedPorts).withHostConfig(hostConfig);
 
-        List<String> envList = new ArrayList<String>();
-        for (String env : envVariables) {
-            String[] envArray = env.split("=");
-            if (envArray.length == 2 && !envArray[1].trim().isEmpty()) {
-                envList.add(envArray[0].trim() + "=" + envArray[1].trim());
-            }
-        }
+        List<String> envList = filterEnvParameter(envVariables);
 
         if (envList.size() != 0) {
             createContainerCmd = createContainerCmd.withEnv(envList);
@@ -135,6 +129,18 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         additionalProperties.put("containerId", containerId);
         item.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
         return item;
+    }
+
+    private List<String> filterEnvParameter(List<String> envVariables) {
+        List<String> envList = new ArrayList<String>();
+
+        for (String env : envVariables) {
+            String[] envArray = env.split("=");
+            if (envArray.length == 2 && !envArray[1].trim().isEmpty()) {
+                envList.add(envArray[0].trim() + "=" + envArray[1].trim());
+            }
+        }
+        return envList;
     }
 
     @Override
