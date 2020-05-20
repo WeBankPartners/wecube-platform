@@ -1,5 +1,5 @@
 #!/bin/sh
-mkdir -p /log
+mkdir -p /data/wecube/log
 java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=${WECUBE_SERVER_JMX_PORT} -Dcom.sun.management.jmxremote.rmi.port=${WECUBE_SERVER_JMX_PORT} -Dcom.sun.management.jmxremote.authenticate=false \
 -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${WECUBE_CORE_HOST} -Djava.security.egd=file:/dev/urandom \
 -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port=8080 \
@@ -23,4 +23,4 @@ java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=${WECUBE
 --wecube.core.plugin.plugin-deploy-path=${WECUBE_PLUGIN_DEPLOY_PATH} \
 --wecube.core.plugin.plugin-package-bucket-name=${WECUBE_BUCKET} \
 ${WECUBE_CUSTOM_PARAM} \
->>/log/wecube-core.log 
+>>/data/wecube/log/wecube-core.log 
