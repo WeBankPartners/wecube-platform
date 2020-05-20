@@ -125,6 +125,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 envList.add(envArray[0].trim() + "=" + envArray[1].trim());
             }
         }
+
         if (envList.size() != 0) {
             createContainerCmd = createContainerCmd.withEnv(envList);
         }
