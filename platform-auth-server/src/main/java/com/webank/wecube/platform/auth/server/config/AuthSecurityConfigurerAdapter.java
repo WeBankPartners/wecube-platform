@@ -86,7 +86,7 @@ public class AuthSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter 
     }
 
     protected JwtSsoBasedLoginFilter jwtSsoBasedLoginFilter() throws Exception {
-        JwtSsoBasedLoginFilter f = new JwtSsoBasedLoginFilter(authenticationManager(), authServerProperties);
+        JwtSsoBasedLoginFilter f = new JwtSsoBasedLoginFilter(authServerProperties);
         f.setAuthenticationFailureHandler(new JwtSsoBasedAuthenticationFailureHandler());
 
         return f;
