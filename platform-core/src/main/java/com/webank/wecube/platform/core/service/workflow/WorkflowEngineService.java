@@ -376,7 +376,7 @@ public class WorkflowEngineService {
 
 	private String tryCalExclusiveGatewayNodeStatus(ProcInstOutline outline, ProcFlowNodeInst nodeInst) {
 		String nodeStatus = null;
-		boolean isOnePreviousFlowNodesCompleted = true;
+		boolean isOnePreviousFlowNodesCompleted = false;
 
 		for (ProcFlowNode child : nodeInst.getPreviousFlowNodes()) {
 			ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
@@ -438,7 +438,7 @@ public class WorkflowEngineService {
 
 	private String tryCalEndEventNodeStatus(ProcInstOutline outline, ProcFlowNodeInst nodeInst) {
 		String nodeStatus = null;
-		boolean isOnePreviousFlowNodesCompleted = true;
+		boolean isOnePreviousFlowNodesCompleted = false;
 
 		for (ProcFlowNode child : nodeInst.getPreviousFlowNodes()) {
 			ProcFlowNodeInst fi = (ProcFlowNodeInst) child;
