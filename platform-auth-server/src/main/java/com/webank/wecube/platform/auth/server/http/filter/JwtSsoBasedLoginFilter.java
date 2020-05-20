@@ -53,9 +53,9 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
         
         this.authServerProperties = authServerProperties;
 
-        if (log.isInfoEnabled()) {
-            log.info("Filter: {} applied", JwtSsoBasedLoginFilter.class.getSimpleName());
-            log.info("AuthenticationManager: {} applied", authenticationManager.getClass().getSimpleName());
+        if (log.isDebugEnabled()) {
+            log.debug("Filter: {} applied", JwtSsoBasedLoginFilter.class.getSimpleName());
+            log.debug("AuthenticationManager: {} applied", authenticationManager.getClass().getSimpleName());
         }
         
         jwtBuilder = new DefaultJwtBuilder(this.authServerProperties.getJwtToken());
@@ -82,8 +82,8 @@ public class JwtSsoBasedLoginFilter extends AbstractAuthenticationProcessingFilt
             }
 
         } catch (IOException e) {
-            log.error("errors while reading credential:{}", e.getMessage(), e);
-            throw new BadCredentialsException("Bad credentials");
+            log.info("errors while reading credential:{}", e.getMessage(), e);
+            throw new BadCredentialsException("Bad credentials.");
         }
 
     }
