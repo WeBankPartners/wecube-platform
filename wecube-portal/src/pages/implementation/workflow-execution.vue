@@ -736,7 +736,21 @@ export default {
         genEdge() +
         '}'
 
-      this.flowGraph.graphviz.transition().renderDot(nodesString)
+      this.flowGraph.graphviz
+        .transition()
+        .renderDot(nodesString)
+        .on('end', () => {
+          if (this.isEnqueryPage) {
+            removeEvent('.retry', 'click', this.retryHandler)
+            removeEvent('.normal', 'click', this.normalHandler)
+            addEvent('.retry', 'click', this.retryHandler)
+            addEvent('.normal', 'click', this.normalHandler)
+            d3.selectAll('.retry').attr('cursor', 'pointer')
+          } else {
+            removeEvent('.retry', 'click', this.retryHandler)
+            removeEvent('.normal', 'click', this.normalHandler)
+          }
+        })
       this.bindFlowEvent()
     },
     async excutionFlow () {
@@ -899,7 +913,7 @@ export default {
         this.isTargetNodeDetail = false
         this.showNodeDetail = true
         this.tableMaxHeight = 250
-      }, 1000)
+      }, 0)
     },
     replaceParams (obj) {
       let placeholder = new Array(16).fill('&nbsp;')
