@@ -299,7 +299,7 @@
   "create_regist_source": "新增注册源",
   "copy_source": "复制源",
   "notification_title": "通知",
-  "notification_desc": "请等待插件加载完成后再使用插件相关功能",
+  "notification_desc": "请等待插件加载完成",
   "plugin_load": "插件加载完成",
   "get_dynamic_model": "同步数据模型",
   "apply_data_model": "应用数据模型",
