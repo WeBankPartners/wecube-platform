@@ -298,7 +298,7 @@
   "create_regist_source": "Create Regist Source",
   "copy_source": "Copy Source",
   "notification_title": "Notification",
-  "notification_desc": "Please wait a moment until all plugins loaded",
+  "notification_desc": "Please wait until plugins loaded",
   "plugin_load": "plugin loaded",
   "get_dynamic_model": "Sync data model",
   "apply_data_model": "Apply data model",
