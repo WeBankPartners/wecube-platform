@@ -46,7 +46,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -84,6 +84,12 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.forgerock.ce.opendj</groupId>
+            <artifactId>opendj-ldap-sdk</artifactId>
+            <version>2.6.11</version>
         </dependency>
 
         <dependency>
@@ -146,7 +152,7 @@
                 <activatedProperties>dev</activatedProperties>
                 <environment>dev</environment>
             </properties>
-            
+
         </profile>
         <profile>
             <id>mock</id>
@@ -157,7 +163,7 @@
         </profile>
         <profile>
             <id>test</id>
-            
+
             <properties>
                 <activatedProperties>test</activatedProperties>
                 <environment>test</environment>
@@ -174,5 +180,19 @@
             </activation>
         </profile>
     </profiles>
+
+    <repositories>
+        <repository>
+            <id>forgerock</id>
+            <name>opendj</name>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <url>https://maven.forgerock.org/repo/community</url>
+        </repository>
+    </repositories>
 
 </project>
