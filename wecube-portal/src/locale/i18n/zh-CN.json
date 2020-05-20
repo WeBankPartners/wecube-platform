@@ -417,5 +417,6 @@
   "delete_node": "删除此节点",
   "completely_deleted": "点击保存后将完全删除",
   "show_log": "查看日志",
-  "auth_type": "认证类型"
+  "auth_type": "认证类型",
+  "help_docs": "帮助文档"
 }
