@@ -34,14 +34,14 @@ public class DefaultJwtBuilder implements JwtBuilder {
 
     private AuthServerProperties.JwtTokenProperties jwtTokenProperties;
 
-    private final String sigingKey;
+    private final String signingKey;
 
     public DefaultJwtBuilder(AuthServerProperties.JwtTokenProperties jwtTokenProperties) {
         this.jwtTokenProperties = jwtTokenProperties;
-        this.sigingKey = StringUtils.isBlank(jwtTokenProperties.getSigningKey()) ? SIGNING_KEY
+        this.signingKey = StringUtils.isBlank(jwtTokenProperties.getSigningKey()) ? SIGNING_KEY
                 : jwtTokenProperties.getSigningKey();
 
-        log.info("jwtTokenSettings:{}", jwtTokenProperties);
+        log.debug("jwtTokenSettings:{}", jwtTokenProperties);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
                 .setIssuedAt(now) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_TYPE, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType).setExpiration(expireTime) //
-                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(sigingKey)) //
+                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(signingKey)) //
                 .compact(); //
 
         return new JwtToken(refreshToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH, expireTime.getTime());
@@ -80,7 +80,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_CLIENT_TYPE, clientType) //
                 .setExpiration(expireTime) //
                 .claim(ApplicationConstants.JwtInfo.CLAIM_KEY_AUTHORITIES, sAuthorities) //
-                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(sigingKey)) //
+                .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(signingKey)) //
                 .compact(); //
         return new JwtToken(accessToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS, expireTime.getTime());
     }
@@ -138,7 +138,7 @@ public class DefaultJwtBuilder implements JwtBuilder {
 
     @Override
     public Jws<Claims> parseJwt(String token) {
-        return Jwts.parser().setSigningKey(StringUtilsEx.decodeBase64(sigingKey)).parseClaimsJws(token);
+        return Jwts.parser().setSigningKey(StringUtilsEx.decodeBase64(signingKey)).parseClaimsJws(token);
     }
 
 }
