@@ -48,7 +48,7 @@ public class SubSystemManagementService {
 	}
 	
 	private JwtToken tryAuthenticateSubSystem(SubSystemTokenDto subSystemDto){
-	    //TODO
+	    
 	    return null;
 	}
 	
