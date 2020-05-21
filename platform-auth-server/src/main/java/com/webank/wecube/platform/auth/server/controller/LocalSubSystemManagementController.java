@@ -42,7 +42,7 @@ public class LocalSubSystemManagementController {
 	
 	@GetMapping("/sub-systems/{system-code}/apikeys")
     public CommonResponseDto retrieveAllSubSystems(@PathVariable("system-code") String systemCode){
-	    //TODO
+	    
         return okayWithData(subSystemManagementService.retrieveAllSubSystems());
     }
 }
