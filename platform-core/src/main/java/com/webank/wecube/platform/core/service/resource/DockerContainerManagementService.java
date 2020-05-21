@@ -20,6 +20,7 @@ import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.RestartPolicy;
 import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.google.common.collect.Lists;
@@ -69,7 +70,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         List<String> volumeBindings = (StringUtils.isBlank(volumeBindingsString) ? Lists.newArrayList()
                 : Arrays.asList(volumeBindingsString.split(",")));
         List<String> envVariables = (StringUtils.isBlank(envVariablesString) ? Lists.newArrayList()
-                : Arrays.asList(envVariablesString.split(",")));
+                : Arrays.asList(envVariablesString.split("\\\\,")));
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
@@ -109,7 +110,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
             }
         }
 
-        HostConfig hostConfig = new HostConfig();
+        HostConfig hostConfig = new HostConfig().withRestartPolicy(RestartPolicy.alwaysRestart());
         if (hasPortBindings)
             hostConfig.withPortBindings(portMappings);
         if (hasVolumeBindings)
@@ -118,8 +119,10 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         CreateContainerCmd createContainerCmd = dockerClient.createContainerCmd(imageName).withName(containerName)
                 .withVolumes(containerVolumes).withExposedPorts(exposedPorts).withHostConfig(hostConfig);
 
-        if (envVariables.size() != 0) {
-            createContainerCmd = createContainerCmd.withEnv(envVariables);
+        List<String> envList = filterEnvParameter(envVariables);
+
+        if (envList.size() != 0) {
+            createContainerCmd = createContainerCmd.withEnv(envList);
         }
         log.info("createContainerCmd: " + createContainerCmd.toString());
         String containerId = createContainerCmd.exec().getId();
@@ -127,6 +130,18 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         additionalProperties.put("containerId", containerId);
         item.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
         return item;
+    }
+
+    private List<String> filterEnvParameter(List<String> envVariables) {
+        List<String> envList = new ArrayList<String>();
+
+        for (String env : envVariables) {
+            String[] envArray = env.split("=");
+            if (envArray.length == 2 && !envArray[1].trim().isEmpty()) {
+                envList.add(envArray[0].trim() + "=" + envArray[1].trim());
+            }
+        }
+        return envList;
     }
 
     @Override
