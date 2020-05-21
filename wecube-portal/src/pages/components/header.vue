@@ -23,7 +23,7 @@
     <div class="header-right_container">
       <div class="profile">
         <Dropdown style="cursor: pointer">
-          <span style="color: white">{{ username }}</span>
+          <span style="color: white"><Icon style="margin-right:5px" size="16" type="ios-contact" />{{ username }}</span>
           <Icon :size="18" type="ios-arrow-down" color="white"></Icon>
           <DropdownMenu slot="list">
             <DropdownItem name="logout" to="/login">
@@ -47,6 +47,11 @@
             }}</DropdownItem>
           </DropdownMenu>
         </Dropdown>
+      </div>
+      <div class="help">
+        <a target="_blank" href="https://webankpartners.github.io/wecube-docs/"
+          ><Icon style="margin-right:5px" size="16" type="md-book" />{{ $t('help_docs') }}</a
+        >
       </div>
     </div>
   </Header>
@@ -153,8 +158,7 @@ export default {
         //   {relatedPath: 'css/app.44cf8f34.css'}
         // ]
         this.$Notice.info({
-          title: this.$t('notification_title'),
-          desc: this.$t('notification_desc')
+          title: this.$t('notification_desc')
         })
 
         const eleContain = document.getElementsByTagName('body')
@@ -188,8 +192,7 @@ export default {
             script[key].onload = () => {
               setTimeout(() => {
                 this.$Notice.success({
-                  title: this.$t('notification_title'),
-                  desc: `${key} ${this.$t('plugin_load')}`
+                  title: `${key} ${this.$t('plugin_load')}`
                 })
               }, 0)
             }
@@ -270,6 +273,7 @@ export default {
     float: right;
 
     .language,
+    .help,
     .profile {
       float: right;
       display: inline-block;
