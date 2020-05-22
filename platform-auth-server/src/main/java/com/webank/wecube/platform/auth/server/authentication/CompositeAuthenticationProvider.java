@@ -32,7 +32,7 @@ public class CompositeAuthenticationProvider implements AuthenticationProvider {
     @Autowired
     private PasswordEncoder passwordEncoder;
     
-    private LdapUmAuthenticationChecker ldapUmAuthenticationChecker = new LdapUmAuthenticationChecker();
+    private UmAuthenticationChecker ldapUmAuthenticationChecker = new UmAuthenticationChecker();
     
     public CompositeAuthenticationProvider(LocalUserDetailsService localUserDetailsService,
             PasswordEncoder passwordEncoder) {
