@@ -20,6 +20,7 @@ import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.RestartPolicy;
 import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.google.common.collect.Lists;
@@ -109,7 +110,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
             }
         }
 
-        HostConfig hostConfig = new HostConfig();
+        HostConfig hostConfig = new HostConfig().withRestartPolicy(RestartPolicy.alwaysRestart());
         if (hasPortBindings)
             hostConfig.withPortBindings(portMappings);
         if (hasVolumeBindings)
