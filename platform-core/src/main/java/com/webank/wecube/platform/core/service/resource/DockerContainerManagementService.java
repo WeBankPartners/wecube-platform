@@ -65,12 +65,16 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         String volumeBindingsString = additionalProperties.get("volumeBindings");
         String envVariablesString = additionalProperties.get("envVariables");
 
+        log.info(String.format("Receive request to create container[%s] with image[%s] and port[%s] and volume[%s] and env[%s]",
+                containerName, imageName, portBindingsString, volumeBindingsString, envVariablesString));
+
         List<String> portBindings = (StringUtils.isBlank(portBindingsString) ? Lists.newArrayList()
                 : Arrays.asList(portBindingsString.split(",")));
         List<String> volumeBindings = (StringUtils.isBlank(volumeBindingsString) ? Lists.newArrayList()
                 : Arrays.asList(volumeBindingsString.split(",")));
         List<String> envVariables = (StringUtils.isBlank(envVariablesString) ? Lists.newArrayList()
                 : Arrays.asList(envVariablesString.split("\\\\,")));
+        log.info("env list= "+envVariables.toString());
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
@@ -124,7 +128,8 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         if (envList.size() != 0) {
             createContainerCmd = createContainerCmd.withEnv(envList);
         }
-        log.info("createContainerCmd: " + createContainerCmd.toString());
+        log.info(String.format("Create container[%s] with image[%s] and port[%s] and volume[%s] and env[%s]",
+                containerName, imageName, portBindingsString, containerVolumes.toString(), envList.toString()));
         String containerId = createContainerCmd.exec().getId();
         dockerClient.startContainerCmd(containerId).exec();
         additionalProperties.put("containerId", containerId);
