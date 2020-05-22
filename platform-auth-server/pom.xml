@@ -87,12 +87,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.forgerock.ce.opendj</groupId>
-            <artifactId>opendj-ldap-sdk</artifactId>
-            <version>2.6.11</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
             <version>2.9.2</version>
@@ -180,19 +174,5 @@
             </activation>
         </profile>
     </profiles>
-
-    <repositories>
-        <repository>
-            <id>forgerock</id>
-            <name>opendj</name>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <url>https://maven.forgerock.org/repo/community</url>
-        </repository>
-    </repositories>
 
 </project>
