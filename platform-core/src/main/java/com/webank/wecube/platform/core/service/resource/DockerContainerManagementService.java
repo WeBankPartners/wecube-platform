@@ -74,7 +74,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
                 : Arrays.asList(volumeBindingsString.split(",")));
         List<String> envVariables = (StringUtils.isBlank(envVariablesString) ? Lists.newArrayList()
                 : Arrays.asList(envVariablesString.split("\\\\,")));
-        log.info(String.format("env list=", envVariables.toString()));
+        log.info("env list= "+envVariables.toString());
 
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
