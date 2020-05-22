@@ -82,7 +82,7 @@ public class OperationEventProcStarter {
         operEventEntity.setProcInstId(String.valueOf(procInst.getId()));
         operEventEntity.setProcInstKey(procInst.getProcInstKey());
         
-        operationEventRepository.save(operEventEntity);
+        operationEventRepository.saveAndFlush(operEventEntity);
         
     }
 
