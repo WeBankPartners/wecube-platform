@@ -474,13 +474,9 @@ export default {
             flowNodes: data.taskNodeInstances
           }
           this.getTargetOptions()
-          this.initFlowGraph(true)
           removeEvent('.retry', 'click', this.retryHandler)
-          addEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
-          addEvent('.normal', 'click', this.normalHandler)
-          d3.selectAll('.retry').attr('cursor', 'pointer')
-
+          this.initFlowGraph(true)
           this.showExcution = false
         }
         this.getModelData()
@@ -821,12 +817,9 @@ export default {
           ...data,
           flowNodes: data.taskNodeInstances
         }
-        this.initFlowGraph(true)
         removeEvent('.retry', 'click', this.retryHandler)
-        addEvent('.retry', 'click', this.retryHandler)
         removeEvent('.normal', 'click', this.normalHandler)
-        addEvent('.normal', 'click', this.normalHandler)
-        d3.selectAll('.retry').attr('cursor', 'pointer')
+        this.initFlowGraph(true)
         if (data.status === 'Completed') {
           this.stop()
         }
