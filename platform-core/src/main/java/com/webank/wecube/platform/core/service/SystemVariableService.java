@@ -160,19 +160,21 @@ public class SystemVariableService {
     public String variableReplacement(String packageName, String originalString) {
         List<String> varList = StringUtils.findSystemVariableString(originalString);
         for (int i = 0; i < varList.size(); i++) {
+            String varValue = "";
             String varString = varList.get(i);
             String varName = varString.substring(2, varString.length() - 2);
             List<SystemVariable> varObjects = getPluginSystemVariableByPackageNameAndName(packageName, varName);
             if (varObjects.size() == 0) {
                 varObjects = getGlobalSystemVariableByName(varName);
-                if (varObjects.size() == 0) {
-                    throw new WecubeCoreException(String.format("Can not found system variable[%s]", varName));
-                }
             }
-            SystemVariable varObject = varObjects.get(0);
-            String varValue = varObject.getValue() == null || varObject.getValue().isEmpty()
-                    ? varObject.getDefaultValue()
-                    : varObject.getValue();
+
+            if (varObjects.size() != 0) {
+                SystemVariable varObject = varObjects.get(0);
+                varValue = varObject.getValue() == null || varObject.getValue().isEmpty()
+                        ? (varObject.getDefaultValue() == null ? "" : varObject.getDefaultValue())
+                        : varObject.getValue();
+            }
+
             originalString = originalString.replace(varString, varValue);
         }
         return originalString;
