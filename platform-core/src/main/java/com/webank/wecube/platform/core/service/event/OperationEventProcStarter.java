@@ -114,7 +114,7 @@ public class OperationEventProcStarter {
                     return 0;
                 }
 
-                return o1.getProcDefVersion() > o2.getProcDefVersion() ? 1 : -1;
+                return o1.getProcDefVersion() > o2.getProcDefVersion() ? -1 : 1;
             }
 
         });
