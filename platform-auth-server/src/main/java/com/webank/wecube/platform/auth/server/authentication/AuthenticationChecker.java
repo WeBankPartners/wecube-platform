@@ -1,9 +1,8 @@
 package com.webank.wecube.platform.auth.server.authentication;
 
 import org.springframework.security.core.Authentication;
-
-import com.webank.wecube.platform.auth.server.model.AuthContext;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public interface AuthenticationChecker {
-	void checkAuthentication(AuthContext ctx, Authentication authToken);
+	void checkAuthentication(UserDetails user, Authentication token);
 }
