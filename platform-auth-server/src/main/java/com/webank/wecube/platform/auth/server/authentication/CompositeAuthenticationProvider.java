@@ -18,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.webank.wecube.platform.auth.server.model.AuthContext;
-import com.webank.wecube.platform.auth.server.model.LdapUmAuthContext;
+import com.webank.wecube.platform.auth.server.model.UmAuthContext;
 import com.webank.wecube.platform.auth.server.model.SysUser;
 import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 
@@ -131,7 +131,7 @@ public class CompositeAuthenticationProvider implements AuthenticationProvider {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
     
-    private LdapUmAuthContext parseLdapUmAuthContext(String authContext){
+    private UmAuthContext parseLdapUmAuthContext(String authContext){
         String [] keyValuePairs = authContext.split(";");
         Map<String,String> kvMap = new HashMap<>();
         for(String keyValuePair : keyValuePairs){
@@ -141,7 +141,7 @@ public class CompositeAuthenticationProvider implements AuthenticationProvider {
             }
         }
         
-        LdapUmAuthContext ctx = new LdapUmAuthContext();
+        UmAuthContext ctx = new UmAuthContext();
         ctx.setHost(kvMap.get("host"));
         ctx.setPort(Integer.parseInt(kvMap.get("port")));
         
