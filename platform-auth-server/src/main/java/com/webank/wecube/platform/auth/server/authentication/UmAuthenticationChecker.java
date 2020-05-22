@@ -5,15 +5,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
-import com.webank.wecube.platform.auth.server.model.UmAuthContext;
+import com.webank.wecube.platform.auth.server.model.AuthContext;
 
-public class UmAuthenticationChecker {
+public class UmAuthenticationChecker implements AuthenticationChecker{
     private static final Logger log = LoggerFactory.getLogger(UmAuthenticationChecker.class);
 
-    public void checkAuthentication(UmAuthContext ctx, UsernamePasswordAuthenticationToken authToken) {
+    public void checkAuthentication(AuthContext ctx, Authentication authToken) {
 
-        verifyAuthToken(authToken);
+        verifyAuthToken((UsernamePasswordAuthenticationToken)authToken);
 
         
     }
