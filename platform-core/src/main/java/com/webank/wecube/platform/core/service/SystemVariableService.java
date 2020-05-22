@@ -171,7 +171,7 @@ public class SystemVariableService {
             if (varObjects.size() != 0) {
                 SystemVariable varObject = varObjects.get(0);
                 varValue = varObject.getValue() == null || varObject.getValue().isEmpty()
-                        ? (varObject.getDefaultValue() == null ? "" : varObject.getValue())
+                        ? (varObject.getDefaultValue() == null ? "" : varObject.getDefaultValue())
                         : varObject.getValue();
             }
 
