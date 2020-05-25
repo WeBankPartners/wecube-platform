@@ -92,6 +92,7 @@ public class SubSystemInfoDataServiceImpl implements SubSystemInfoDataService {
         m.setPubApiKey(entity.getPubApiKey());
         m.setSystemCode(entity.getSystemCode());
         m.setActive(entity.isActive());
+        m.setBlocked(entity.isBlocked());
         m.setApiKey(entity.getApiKey());
 
         return m;
