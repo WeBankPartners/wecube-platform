@@ -39,9 +39,7 @@ public class AuthServerProperties {
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
     }
-
-
-
+    
     public static class JwtTokenProperties {
         private int userRefreshToken = 30;
         private int userAccessToken = 5;
