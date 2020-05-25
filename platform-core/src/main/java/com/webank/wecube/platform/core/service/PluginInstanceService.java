@@ -296,13 +296,16 @@ public class PluginInstanceService {
         CreateInstanceDto createContainerParameters = new CreateInstanceDto(dockerInfo.getImageName(),
                 dockerInfo.getContainerName(), portBindingString, volumeBindingString);
 
+        envVariablesString = envVariablesString.replace(",", "\\,");
         if (mysqlInfoSet.size() != 0) {
-            envVariablesString = envVariablesString.replace(",", "\\,").replace("{{DB_HOST}}", dbInfo.getHost())
+            envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost())
                     .replace("{{DB_PORT}}", dbInfo.getPort()).replace("{{DB_SCHEMA}}", dbInfo.getSchema())
                     .replace("{{DB_USER}}", dbInfo.getUser()).replace("{{DB_PWD}}", EncryptionUtils.decryptWithAes(
                             dbInfo.getPassword(), resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema()));
         }
+        logger.info("before replace envVariablesString=" + envVariablesString);
         envVariablesString = replaceSystemVariablesForEnvVariables(pluginPackage.getName(), envVariablesString);
+        logger.info("after replace envVariablesString=" + envVariablesString);
 
         createContainerParameters.setEnvVariableParameters(envVariablesString.isEmpty() ? "" : envVariablesString);
 
