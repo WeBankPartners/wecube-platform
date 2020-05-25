@@ -84,21 +84,21 @@ public class UserManagementServiceImpl implements UserManagementService {
     	}
     	
     	if(AUTH_TYPE_UM.equalsIgnoreCase(authType)) {
-    		return tryCalculateUmLdapAuthContext();
+    		return tryCalculateUmAuthContext();
     	}
     	
     	return null;
     }
     
-    private String tryCalculateUmLdapAuthContext() {
+    private String tryCalculateUmAuthContext() {
     	List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_UM_CTX);
     	if(sysVars == null || sysVars.isEmpty()) {
-    		throw new WecubeCoreException(String.format("System variable %s does NOT exist.", SYS_VAR_UM_CTX));
+    		throw new WecubeCoreException(String.format("System variable %s does NOT exist and UM authentication is not supported currently.", SYS_VAR_UM_CTX));
     	}
     	
     	String authCtx = sysVars.get(0).getValue();
     	if(StringUtils.isBlank(authCtx)) {
-    		throw new WecubeCoreException(String.format("The value of system variable %s is blank.", SYS_VAR_UM_CTX));
+    		throw new WecubeCoreException(String.format("The value of system variable %s is blank and UM authentication is not supported currently..", SYS_VAR_UM_CTX));
     	}
     	
     	return authCtx;
