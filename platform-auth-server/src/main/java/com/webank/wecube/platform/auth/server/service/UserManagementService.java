@@ -321,6 +321,9 @@ public class UserManagementService {
     }
 
     private String encodePassword(String rawPassword) {
+    	if(StringUtils.isBlank(rawPassword)) {
+    		return null;
+    	}
     	
         return passwordEncoder.encode(rawPassword);
     }
