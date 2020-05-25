@@ -63,13 +63,11 @@ public class DefaultJwtBuilder implements JwtBuilder {
         return new JwtToken(refreshToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_REFRESH, expireTime.getTime());
 
     }
-
-    @Override
-    public JwtToken buildAccessToken(Authentication authentication) {
-        String sAuthorities = formatAuthorities(authentication.getAuthorities());
+    
+    public JwtToken buildAccessToken(Authentication authentication, Date expireTime) {
+    	String sAuthorities = formatAuthorities(authentication.getAuthorities());
 
         Date now = new Date();
-        Date expireTime = determineAccessTokenDuration(now, authentication);
         String clientType = determineClientType(authentication);
 
         String accessToken = Jwts //
@@ -83,6 +81,15 @@ public class DefaultJwtBuilder implements JwtBuilder {
                 .signWith(SignatureAlgorithm.HS512, StringUtilsEx.decodeBase64(signingKey)) //
                 .compact(); //
         return new JwtToken(accessToken, ApplicationConstants.JwtInfo.TOKEN_TYPE_ACCESS, expireTime.getTime());
+    }
+
+    @Override
+    public JwtToken buildAccessToken(Authentication authentication) {
+
+        Date now = new Date();
+        Date expireTime = determineAccessTokenDuration(now, authentication);
+        
+        return buildAccessToken( authentication,  expireTime);
     }
 
     protected String formatAuthorities(Collection<? extends GrantedAuthority> authorities) {
