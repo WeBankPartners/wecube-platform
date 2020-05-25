@@ -25,7 +25,7 @@ import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 public class UserManagementServiceImpl implements UserManagementService {
     private final static Logger log = LoggerFactory.getLogger(UserManagementServiceImpl.class);
     
-    public static final String SYS_VAR_LDAP_UM_CTX = "UM_LDAP_CONTEXT";
+    public static final String SYS_VAR_UM_CTX = "UM_AUTH_CONTEXT";
     public static final String AUTH_TYPE_LOCAL = "LOCAL";
     public static final String AUTH_TYPE_UM = "UM";
 
@@ -91,14 +91,14 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
     
     private String tryCalculateUmLdapAuthContext() {
-    	List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_LDAP_UM_CTX);
+    	List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_UM_CTX);
     	if(sysVars == null || sysVars.isEmpty()) {
-    		throw new WecubeCoreException(String.format("System variable %s does NOT exist.", SYS_VAR_LDAP_UM_CTX));
+    		throw new WecubeCoreException(String.format("System variable %s does NOT exist.", SYS_VAR_UM_CTX));
     	}
     	
     	String authCtx = sysVars.get(0).getValue();
     	if(StringUtils.isBlank(authCtx)) {
-    		throw new WecubeCoreException(String.format("The value of system variable %s is blank.", SYS_VAR_LDAP_UM_CTX));
+    		throw new WecubeCoreException(String.format("The value of system variable %s is blank.", SYS_VAR_UM_CTX));
     	}
     	
     	return authCtx;
