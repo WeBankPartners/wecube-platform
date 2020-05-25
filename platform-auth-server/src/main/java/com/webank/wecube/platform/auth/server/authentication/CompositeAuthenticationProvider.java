@@ -1,8 +1,5 @@
 package com.webank.wecube.platform.auth.server.authentication;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.webank.wecube.platform.auth.server.model.AuthContext;
-import com.webank.wecube.platform.auth.server.model.UmAuthContext;
 import com.webank.wecube.platform.auth.server.model.SysUser;
 import com.webank.wecube.platform.auth.server.service.LocalUserDetailsService;
 
@@ -32,7 +28,8 @@ public class CompositeAuthenticationProvider implements AuthenticationProvider {
     @Autowired
     private PasswordEncoder passwordEncoder;
     
-    private UmAuthenticationChecker ldapUmAuthenticationChecker = new UmAuthenticationChecker();
+    @Autowired
+    private UmAuthenticationChecker umAuthenticationChecker;
     
     public CompositeAuthenticationProvider(LocalUserDetailsService localUserDetailsService,
             PasswordEncoder passwordEncoder) {
@@ -103,7 +100,7 @@ public class CompositeAuthenticationProvider implements AuthenticationProvider {
         }
         
         if(AuthContext.UM_AUTH_SOURCE.equalsIgnoreCase(authSource)){
-            ldapUmAuthenticationChecker.checkAuthentication(parseLdapUmAuthContext(user.getAuthContext()), authToken);
+            umAuthenticationChecker.checkAuthentication(user, authToken);
             return;
         }
         
@@ -131,21 +128,6 @@ public class CompositeAuthenticationProvider implements AuthenticationProvider {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
     
-    private UmAuthContext parseLdapUmAuthContext(String authContext){
-        String [] keyValuePairs = authContext.split(";");
-        Map<String,String> kvMap = new HashMap<>();
-        for(String keyValuePair : keyValuePairs){
-            String [] keyValue = keyValuePair.split("=");
-            if(keyValue.length == 2){
-                kvMap.put(keyValue[0], keyValue[1]);
-            }
-        }
-        
-        UmAuthContext ctx = new UmAuthContext();
-        ctx.setHost(kvMap.get("host"));
-        ctx.setPort(Integer.parseInt(kvMap.get("port")));
-        
-        return ctx;
-    }
+   
 
 }
