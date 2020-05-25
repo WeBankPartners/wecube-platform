@@ -458,7 +458,6 @@ export default {
       }
     },
     deleteRegisterSource () {
-      console.log(this.currentPluginObj)
       this.$Modal.confirm({
         title: 'Warning',
         content: `${this.$t('delete')} ${this.currentPluginObj.name}(${this.currentPluginObj.registerName}) ?`,
