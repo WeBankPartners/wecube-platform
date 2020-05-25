@@ -79,8 +79,8 @@ public class CompositeAuthenticationProvider implements AuthenticationProvider {
 
         try {
             additionalAuthenticationChecks(user, authToken);
-        } catch (AuthenticationException e) {
-            log.debug("additional authentication checking failed,{}", e.getMessage());
+        } catch (Exception e) {
+            log.info("additional authentication checking failed,{}", e.getMessage());
             throw new BadCredentialsException("Bad credential:bad password.");
         }
         Object principal = user;
