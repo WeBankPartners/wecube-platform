@@ -25,7 +25,7 @@ public class JwtSsoBasedAuthenticationFailureHandler extends SimpleUrlAuthentica
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException exception) throws IOException, ServletException {
 
-        logger.warn("=== authentication failed ===");
+        logger.info("=== authentication failed ===");
 
         response.setHeader(ApplicationConstants.JwtInfo.HEADER_WWW_AUTHENTICATE, translateAuthenticateHeader(exception));
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

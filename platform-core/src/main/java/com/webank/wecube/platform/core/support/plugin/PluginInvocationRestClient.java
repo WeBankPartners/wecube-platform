@@ -42,10 +42,10 @@ public class PluginInvocationRestClient implements RestClient {
 	}
 
 	protected PluginResponse<Object> doCallPluginService(String targetUrl, PluginRequest<?> parameters) {
-		log.info("About to call {} with parameters: {} ", targetUrl, parameters);
+		log.debug("About to call {} with parameters: {} ", targetUrl, parameters);
 		PluginResponse<Object> response = jwtSsoRestTemplate.postForObject(targetUrl, parameters,
 				DefaultPluginResponse.class);
-		log.info("Plugin response: {} ", response);
+		log.debug("Plugin response: {} ", response);
 
 		return response;
 	}

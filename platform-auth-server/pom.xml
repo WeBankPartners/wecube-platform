@@ -46,7 +46,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -146,7 +146,7 @@
                 <activatedProperties>dev</activatedProperties>
                 <environment>dev</environment>
             </properties>
-            
+
         </profile>
         <profile>
             <id>mock</id>
@@ -157,7 +157,7 @@
         </profile>
         <profile>
             <id>test</id>
-            
+
             <properties>
                 <activatedProperties>test</activatedProperties>
                 <environment>test</environment>

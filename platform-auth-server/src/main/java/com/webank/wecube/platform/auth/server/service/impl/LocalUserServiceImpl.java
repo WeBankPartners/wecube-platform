@@ -59,6 +59,8 @@ public class LocalUserServiceImpl implements LocalUserService {
         SysUser user = new SysUser();
         user.setUsername(userEntity.getUsername());
         user.setPassword(userEntity.getPassword());
+        user.setAuthSource(userEntity.getAuthSource());
+        user.setAuthContext(userEntity.getAuthContext());
 
         List<UserRoleRsEntity> userRoles = userRoleRsRepository.findAllByUserId(userEntity.getId());
         if (userRoles == null) {

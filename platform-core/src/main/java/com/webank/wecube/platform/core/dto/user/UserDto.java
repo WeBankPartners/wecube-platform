@@ -4,6 +4,7 @@ public class UserDto {
     private String id;
     private String username;
     private String password;
+    private String authType;//LOCAL,UM
 
     public String getId() {
         return id;
@@ -29,4 +30,12 @@ public class UserDto {
         this.password = password;
     }
 
+	public String getAuthType() {
+		return authType;
+	}
+
+	public void setAuthType(String authType) {
+		this.authType = authType;
+	}
+    
 }
