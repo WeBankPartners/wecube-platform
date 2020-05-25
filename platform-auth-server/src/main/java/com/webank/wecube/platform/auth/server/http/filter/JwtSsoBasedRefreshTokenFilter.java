@@ -152,7 +152,7 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
         String systemCode = claims.getSubject();
         
         if(StringUtils.isBlank(systemCode)){
-            log.error("system code is blank");
+            log.warn("system code is blank");
             throw new BadCredentialsException("system code is blank.");
         }
         
