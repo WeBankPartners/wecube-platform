@@ -29,7 +29,7 @@ public class LocalSubSystemManagementController {
 		return okayWithData(subSystemManagementService.registerSubSystem(subSystemDto));
 	}
 	
-	@PostMapping("/sub-systems/access-tokens")
+	@PostMapping("/sub-systems/tokens")
     public CommonResponseDto registerSubSystemAccessToken(@RequestBody SubSystemTokenDto subSystemTokenDto)
             {
         return okayWithData(subSystemManagementService.registerSubSystemAccessToken(subSystemTokenDto));
@@ -40,7 +40,7 @@ public class LocalSubSystemManagementController {
 		return okayWithData(subSystemManagementService.retrieveAllSubSystems());
 	}
 	
-	@GetMapping("/sub-systems/{system-code}/apikeys")
+	@GetMapping("/sub-systems/{system-code}/tokens")
     public CommonResponseDto retrieveAllSubSystems(@PathVariable("system-code") String systemCode){
 	    
         return okayWithData(subSystemManagementService.retrieveAllSubSystems());
