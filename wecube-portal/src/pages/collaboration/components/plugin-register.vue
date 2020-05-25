@@ -457,19 +457,27 @@ export default {
         }
       }
     },
-    async deleteRegisterSource () {
-      const { status, message } = await deleteRegisterSource(this.currentPluginObj.id)
-      if (status === 'OK') {
-        this.$Notice.success({
-          title: 'Success',
-          desc: message
-        })
-        const { data, status } = await getAllPluginByPkgId(this.pkgId)
-        if (status === 'OK') {
-          this.plugins = data
-        }
-        this.hidePanal = false
-      }
+    deleteRegisterSource () {
+      console.log(this.currentPluginObj)
+      this.$Modal.confirm({
+        title: 'Warning',
+        content: `${this.$t('delete')} ${this.currentPluginObj.name}(${this.currentPluginObj.registerName}) ?`,
+        onOk: async () => {
+          const { status, message } = await deleteRegisterSource(this.currentPluginObj.id)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+            const { data, status } = await getAllPluginByPkgId(this.pkgId)
+            if (status === 'OK') {
+              this.plugins = data
+            }
+            this.hidePanal = false
+          }
+        },
+        onCancel: () => {}
+      })
     },
     addRegistMsg () {
       this.addRegisterName = ''
