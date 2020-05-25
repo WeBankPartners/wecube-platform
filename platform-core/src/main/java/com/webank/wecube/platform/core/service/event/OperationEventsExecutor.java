@@ -39,7 +39,7 @@ public class OperationEventsExecutor {
                 operationEventEntity.setUpdatedTime(new Date());
                 operationEventEntity.setStartTime(new Date());
                 
-                operationEventRepository.save(operationEventEntity);
+                operationEventRepository.saveAndFlush(operationEventEntity);
                 operationEventProcStarter.startOperationEventProcess(operationEventEntity);
             } catch (Exception e) {
                 log.error("operation event process starting failed", e);
