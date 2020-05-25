@@ -189,10 +189,14 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
 				byte b = var8[var6];
 				result.append(String.format("%02x", b));
 			}
-		} catch (NoSuchAlgorithmException var9) {
-		} catch (UnsupportedEncodingException var10) {
+			
+			return result.toString();
+		} catch (NoSuchAlgorithmException e1) {
+			throw new RuntimeException(e1);
+		} catch (UnsupportedEncodingException e2) {
+			throw new RuntimeException(e2);
 		}
-		return result.toString();
+		
 	}
 
 	private String byte2hex(byte[] b) {
@@ -215,8 +219,8 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			md.update(str.getBytes());
 			return byte2hex(md.digest());
-		} catch (NoSuchAlgorithmException var6) {
-			return null;
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
