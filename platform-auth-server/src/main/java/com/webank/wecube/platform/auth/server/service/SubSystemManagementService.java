@@ -214,6 +214,28 @@ public class SubSystemManagementService {
 
 		return dto;
 	}
+	
+	public SimpleSubSystemDto retrieveSubSystemApikey(String systemCode){
+	    SimpleSubSystemDto result = new SimpleSubSystemDto();
+	    if(StringUtils.isBlank(systemCode)){
+	        return result;
+	    }
+	    
+	    SysSubSystemEntity subSystem = subSystemRepository.findOneBySystemCode(systemCode);
+	    if(subSystem == null){
+	        return result;
+	    }
+	    
+	    result.setId(subSystem.getId());
+	    result.setActive(subSystem.isActive());
+	    result.setBlocked(subSystem.isBlocked());
+        result.setDescription(subSystem.getDescription());
+        result.setName(subSystem.getName());
+        result.setSystemCode(subSystem.getSystemCode());
+        result.setApikey(subSystem.getApiKey());
+        
+        return result;
+	}
 
 	public List<SimpleSubSystemDto> retrieveAllSubSystems() {
 		List<SysSubSystemEntity> subSystems = subSystemRepository.findAll();
