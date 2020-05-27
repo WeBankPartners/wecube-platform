@@ -101,6 +101,8 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         if (!TOKEN_TYPE_ACCESS.equals(tokenType)) {
             throw new AccessDeniedException("Access token is required.");
         }
+        
+        log.debug("Subject:{};Authorities:{}", username, sAuthorities);
 
         if (sAuthorities.length() >= 2) {
             sAuthorities = sAuthorities.substring(1);
