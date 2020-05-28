@@ -2,6 +2,9 @@ package com.webank.wecube.platform.auth.server.dto;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SimpleSubSystemDto implements Serializable{
     
     /**
@@ -12,6 +15,7 @@ public class SimpleSubSystemDto implements Serializable{
 	private String name;
 	private String systemCode;
 	private String description;
+	private String apikey;
 	private boolean active;
 	private boolean blocked;
 
@@ -61,6 +65,14 @@ public class SimpleSubSystemDto implements Serializable{
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getApikey() {
+        return apikey;
+    }
+
+    public void setApikey(String apikey) {
+        this.apikey = apikey;
     }
 	
 	
