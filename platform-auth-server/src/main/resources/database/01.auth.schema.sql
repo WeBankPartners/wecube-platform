@@ -133,6 +133,8 @@ CREATE TABLE `auth_sys_user` (
     `password` VARCHAR(255) NULL DEFAULT NULL,
     `title` VARCHAR(255) NULL DEFAULT NULL,
     `username` VARCHAR(255) NULL DEFAULT NULL,
+    `auth_ctx` varchar(512) DEFAULT NULL,
+    `auth_src` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`id`)
 )
  DEFAULT CHARSET=utf8 

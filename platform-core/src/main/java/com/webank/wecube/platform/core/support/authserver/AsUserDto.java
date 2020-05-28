@@ -22,6 +22,9 @@ public class AsUserDto implements Serializable {
     private boolean active;
     private boolean blocked;
     private boolean deleted;
+    
+    private String authSource;
+    private String authContext;
 
     private List<AsRoleDto> roles = new ArrayList<>();
 
@@ -152,6 +155,22 @@ public class AsUserDto implements Serializable {
             }
         }
     }
+
+	public String getAuthSource() {
+		return authSource;
+	}
+
+	public void setAuthSource(String authSource) {
+		this.authSource = authSource;
+	}
+
+	public String getAuthContext() {
+		return authContext;
+	}
+
+	public void setAuthContext(String authContext) {
+		this.authContext = authContext;
+	}
     
     
 }

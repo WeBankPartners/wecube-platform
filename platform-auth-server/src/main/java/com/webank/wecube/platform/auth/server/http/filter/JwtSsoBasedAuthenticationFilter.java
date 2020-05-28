@@ -46,8 +46,8 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager,
             AuthServerProperties authServerProperties) {
         super(authenticationManager);
-        if (log.isInfoEnabled()) {
-            log.info("Filter:{} applied", this.getClass().getSimpleName());
+        if (log.isDebugEnabled()) {
+            log.debug("Filter:{} applied", this.getClass().getSimpleName());
         }
 
         this.authServerProperties = authServerProperties;
@@ -58,7 +58,7 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        log.info("=== doFilterInternal  ===");
+        log.debug("=== doFilterInternal  ===");
 
         String header = request.getHeader(HEADER_AUTHORIZATION);
         if (header == null || !header.startsWith(PREFIX_BEARER_TOKEN)) {
@@ -101,6 +101,8 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
         if (!TOKEN_TYPE_ACCESS.equals(tokenType)) {
             throw new AccessDeniedException("Access token is required.");
         }
+        
+        log.debug("Subject:{};Authorities:{}", username, sAuthorities);
 
         if (sAuthorities.length() >= 2) {
             sAuthorities = sAuthorities.substring(1);

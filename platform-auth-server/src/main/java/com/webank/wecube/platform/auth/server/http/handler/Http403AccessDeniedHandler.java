@@ -26,7 +26,7 @@ public class Http403AccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
             AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        log.warn("=== access denied ===");
+        log.info("=== access denied ===");
 
         response.setHeader(ApplicationConstants.JwtInfo.HEADER_AUTHORIZATION, this.headerValue);
         response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());

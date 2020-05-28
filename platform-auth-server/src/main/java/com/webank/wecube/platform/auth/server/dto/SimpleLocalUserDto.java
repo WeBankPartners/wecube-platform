@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SimpleLocalUserDto implements Serializable {
     /**
      * 
@@ -22,6 +25,9 @@ public class SimpleLocalUserDto implements Serializable {
     private boolean active;
     private boolean blocked;
     private boolean deleted;
+    
+    private String authSource;
+    private String authContext;
 
     private List<SimpleLocalRoleDto> roles = new ArrayList<>();
 
@@ -152,6 +158,20 @@ public class SimpleLocalUserDto implements Serializable {
             }
         }
     }
-    
-    
+
+	public String getAuthSource() {
+		return authSource;
+	}
+
+	public void setAuthSource(String authSource) {
+		this.authSource = authSource;
+	}
+
+	public String getAuthContext() {
+		return authContext;
+	}
+
+	public void setAuthContext(String authContext) {
+		this.authContext = authContext;
+	}
 }

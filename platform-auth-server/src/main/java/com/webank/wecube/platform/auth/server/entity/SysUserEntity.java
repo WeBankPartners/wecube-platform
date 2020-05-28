@@ -7,6 +7,9 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "AUTH_SYS_USER")
 public class SysUserEntity extends BaseUUIDFeaturedEntity {
+	public static final String AUTH_SOURCE_LOCAL = "LOCAL";
+	public static final String AUTH_SOURCE_UM = "UM";
+	
     @Column(name = "USERNAME")
     private String username;
 
@@ -42,6 +45,12 @@ public class SysUserEntity extends BaseUUIDFeaturedEntity {
 
     @Column(name = "IS_DELETED")
     private boolean deleted = false;
+    
+    @Column(name = "AUTH_SRC")
+    private String authSource;
+    
+    @Column(name = "AUTH_CTX")
+    private String authContext;
 
     public SysUserEntity() {
     }
@@ -141,4 +150,21 @@ public class SysUserEntity extends BaseUUIDFeaturedEntity {
     public void setCellPhoneNo(String cellPhoneNo) {
         this.cellPhoneNo = cellPhoneNo;
     }
+
+	public String getAuthSource() {
+		return authSource;
+	}
+
+	public void setAuthSource(String authSource) {
+		this.authSource = authSource;
+	}
+
+	public String getAuthContext() {
+		return authContext;
+	}
+
+	public void setAuthContext(String authContext) {
+		this.authContext = authContext;
+	}
+	
 }
