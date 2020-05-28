@@ -53,6 +53,7 @@
           ><Icon style="margin-right:5px" size="16" type="md-book" />{{ $t('help_docs') }}</a
         >
       </div>
+      <div class="version">v_2.4.0</div>
     </div>
   </Header>
 </template>
@@ -274,11 +275,15 @@ export default {
 
     .language,
     .help,
+    .version,
     .profile {
       float: right;
       display: inline-block;
       vertical-align: middle;
       margin-left: 20px;
+    }
+    .version {
+      color: white;
     }
   }
 }
