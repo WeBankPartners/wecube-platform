@@ -295,6 +295,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 				if (pfni != null && (pfni.getStatus() != null)
 						&& (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
 					nodeInstEntity.setStatus(pfni.getStatus());
+					nodeInstEntity.setUpdatedTime(new Date());
 					taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
 				}
 			}
