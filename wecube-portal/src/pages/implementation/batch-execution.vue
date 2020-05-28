@@ -922,7 +922,7 @@ export default {
       if (status === 'OK') {
         this.tableColumns = data.map((_, i) => {
           return {
-            title: _.description,
+            title: _.name,
             key: _.name,
             displaySeqNo: i + 1
           }
