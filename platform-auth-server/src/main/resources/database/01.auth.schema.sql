@@ -8,7 +8,7 @@ CREATE TABLE `auth_sys_api` (
     `created_time` DATETIME NULL DEFAULT NULL,
     `updated_by` VARCHAR(255) NULL DEFAULT NULL,
     `updated_time` DATETIME NULL DEFAULT NULL,
-    `api_url` VARCHAR(255) NULL DEFAULT NULL,
+    `api_url` VARCHAR(2048) NULL DEFAULT NULL,
     `http_method` VARCHAR(255) NULL DEFAULT NULL,
     `name` VARCHAR(255) NULL DEFAULT NULL,
     `system_id` BIGINT(20) NULL DEFAULT NULL,
@@ -83,11 +83,11 @@ CREATE TABLE `auth_sys_sub_system` (
     `updated_by` VARCHAR(255) NULL DEFAULT NULL,
     `updated_time` DATETIME NULL DEFAULT NULL,
     `is_active` BIT(1) NULL DEFAULT NULL,
-    `api_key` VARCHAR(500) NULL DEFAULT NULL,
+    `api_key` VARCHAR(2048) NULL DEFAULT NULL,
     `is_blocked` BIT(1) NULL DEFAULT NULL,
     `description` VARCHAR(255) NULL DEFAULT NULL,
     `name` VARCHAR(255) NULL DEFAULT NULL,
-    `pub_api_key` VARCHAR(500) NULL DEFAULT NULL,
+    `pub_api_key` VARCHAR(2048) NULL DEFAULT NULL,
     `system_code` VARCHAR(255) NULL DEFAULT NULL,
     PRIMARY KEY (`id`)
 )
@@ -133,7 +133,7 @@ CREATE TABLE `auth_sys_user` (
     `password` VARCHAR(255) NULL DEFAULT NULL,
     `title` VARCHAR(255) NULL DEFAULT NULL,
     `username` VARCHAR(255) NULL DEFAULT NULL,
-    `auth_ctx` varchar(512) DEFAULT NULL,
+    `auth_ctx` varchar(2048) DEFAULT NULL,
     `auth_src` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`id`)
 )
