@@ -1,7 +1,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 drop table if exists plugin_packages;
 CREATE TABLE `plugin_packages` (
-    `id`                    VARCHAR(512) PRIMARY KEY,
+    `id`                    VARCHAR(255) PRIMARY KEY,
     `name`                  VARCHAR(63) NOT NULL,
     `version`               VARCHAR(20) NOT NULL,
     `status`                VARCHAR(20) NOT NULL default 'UNREGISTERED',
@@ -12,16 +12,16 @@ CREATE TABLE `plugin_packages` (
 
 drop table if exists plugin_package_dependencies;
 create table plugin_package_dependencies (
-  id VARCHAR(512) PRIMARY KEY,
-  plugin_package_id VARCHAR(512) not null,
+  id VARCHAR(255) PRIMARY KEY,
+  plugin_package_id VARCHAR(255) not null,
   dependency_package_name VARCHAR(63) not null,
   dependency_package_version varchar(20) not null
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_package_menus;
 create table plugin_package_menus (
-  id VARCHAR(512) PRIMARY KEY,
-  plugin_package_id VARCHAR(512) not null,
+  id VARCHAR(255) PRIMARY KEY,
+  plugin_package_id VARCHAR(255) not null,
   code varchar(64) not null,
   category varchar(64) not null,
   source VARCHAR(255) DEFAULT 'PLUGIN',
@@ -36,7 +36,7 @@ create table plugin_package_menus (
 DROP TABLE IF EXISTS plugin_package_data_model;
 CREATE TABLE plugin_package_data_model
 (
-    id                  VARCHAR(512) PRIMARY KEY,
+    id                  VARCHAR(255) PRIMARY KEY,
     version             INTEGER                        NOT NULL DEFAULT 1,
     package_name        VARCHAR(63)                             NOT NULL,
     is_dynamic          BIT  default 0,
@@ -50,8 +50,8 @@ CREATE TABLE plugin_package_data_model
 DROP TABLE IF EXISTS plugin_package_entities;
 CREATE TABLE plugin_package_entities
 (
-    id                 VARCHAR(512) PRIMARY KEY,
-    data_model_id      VARCHAR(512)                        NOT NULL,
+    id                 VARCHAR(255) PRIMARY KEY,
+    data_model_id      VARCHAR(255)                        NOT NULL,
     data_model_version INTEGER                        NOT NULL,
     package_name        VARCHAR(63)                    NOT NULL,
     name               VARCHAR(100)                   NOT NULL,
@@ -62,8 +62,8 @@ CREATE TABLE plugin_package_entities
 DROP TABLE IF EXISTS plugin_package_attributes;
 CREATE TABLE plugin_package_attributes
 (
-    id           VARCHAR(512) PRIMARY KEY,
-    entity_id    VARCHAR(512)                        NOT NULL,
+    id           VARCHAR(255) PRIMARY KEY,
+    entity_id    VARCHAR(255)                        NOT NULL,
     reference_id VARCHAR(255),
     name         VARCHAR(100)                   NOT NULL,
     description  VARCHAR(256),
@@ -72,7 +72,7 @@ CREATE TABLE plugin_package_attributes
 
 drop table if exists system_variables;
 create table system_variables (
-  id VARCHAR(512) PRIMARY KEY,
+  id VARCHAR(255) PRIMARY KEY,
   package_name VARCHAR(63) ,
   name varchar(255) not null,
   value varchar(2000),
@@ -84,8 +84,8 @@ create table system_variables (
 
 drop table if exists plugin_package_authorities;
 create table plugin_package_authorities (
-  id VARCHAR(512) PRIMARY KEY,
-  plugin_package_id VARCHAR(512) not null,
+  id VARCHAR(255) PRIMARY KEY,
+  plugin_package_id VARCHAR(255) not null,
   role_name varchar(64) not null,
   menu_code varchar(64) not null
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
@@ -93,8 +93,8 @@ create table plugin_package_authorities (
 
 drop table if exists plugin_package_runtime_resources_docker;
 create table plugin_package_runtime_resources_docker (
-  id VARCHAR(512) PRIMARY KEY,
-  plugin_package_id VARCHAR(512) not null,
+  id VARCHAR(255) PRIMARY KEY,
+  plugin_package_id VARCHAR(255) not null,
   image_name varchar(256) not null, 
   container_name varchar(128) not null,
   port_bindings varchar(256) not null, 
@@ -104,8 +104,8 @@ create table plugin_package_runtime_resources_docker (
 
 drop table if exists plugin_package_runtime_resources_mysql;
 create table plugin_package_runtime_resources_mysql (
-  id VARCHAR(512) PRIMARY KEY,
-  plugin_package_id VARCHAR(512) not null,
+  id VARCHAR(255) PRIMARY KEY,
+  plugin_package_id VARCHAR(255) not null,
   schema_name varchar(128) not null,
   init_file_name varchar(256),
   upgrade_file_name varchar(256)
@@ -113,16 +113,16 @@ create table plugin_package_runtime_resources_mysql (
 
 drop table if exists plugin_package_runtime_resources_s3;
 create table plugin_package_runtime_resources_s3 (
-  id VARCHAR(512) PRIMARY KEY,
-  plugin_package_id VARCHAR(512) not null,
+  id VARCHAR(255) PRIMARY KEY,
+  plugin_package_id VARCHAR(255) not null,
   bucket_name varchar(255) not null
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 
 drop table if exists plugin_configs;
 CREATE TABLE `plugin_configs` (
-  id VARCHAR(512) PRIMARY KEY,
-  `plugin_package_id` VARCHAR(512) NOT NULL,
+  id VARCHAR(255) PRIMARY KEY,
+  `plugin_package_id` VARCHAR(255) NOT NULL,
   `name` VARCHAR(100) NOT NULL,
   `target_package` VARCHAR(63) NULL DEFAULT NULL,
   `target_entity` VARCHAR(100) NULL,
@@ -133,8 +133,8 @@ CREATE TABLE `plugin_configs` (
 
 drop table if exists plugin_config_interfaces;
 create table plugin_config_interfaces (
-    `id` VARCHAR(512) PRIMARY KEY,
-    `plugin_config_id` VARCHAR(512) NOT NULL,
+    `id` VARCHAR(255) PRIMARY KEY,
+    `plugin_config_id` VARCHAR(255) NOT NULL,
     `action` VARCHAR(100) NOT NULL,
     `service_name` VARCHAR(500) NOT NULL, 
     `service_display_name` VARCHAR(500) NOT NULL,
@@ -147,8 +147,8 @@ create table plugin_config_interfaces (
 
 drop table if exists plugin_config_interface_parameters;
 CREATE TABLE `plugin_config_interface_parameters` (
-    `id` VARCHAR(512) PRIMARY KEY,
-    `plugin_config_interface_id` VARCHAR(512) NOT NULL,
+    `id` VARCHAR(255) PRIMARY KEY,
+    `plugin_config_interface_id` VARCHAR(255) NOT NULL,
     `type` VARCHAR(50) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `data_type` VARCHAR(50) NOT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE `plugin_config_interface_parameters` (
 drop table if exists menu_items;
 create table menu_items
 (
-    id VARCHAR(512) PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY,
     parent_code VARCHAR(64),
     code        VARCHAR(64) NOT NULL,
     source      VARCHAR(255) NOT NULL,
@@ -177,8 +177,8 @@ create table menu_items
 drop table if exists plugin_package_resource_files;
 create table plugin_package_resource_files
 (
-  id VARCHAR(512) PRIMARY KEY,
-  plugin_package_id VARCHAR(512) not null,
+  id VARCHAR(255) PRIMARY KEY,
+  plugin_package_id VARCHAR(255) not null,
   package_name varchar(63) not null,
   package_version varchar(20) not null,
   source varchar(64) not null,
@@ -187,7 +187,7 @@ create table plugin_package_resource_files
 
 drop table if exists resource_server;
 CREATE TABLE `resource_server` (
-    `id` VARCHAR(512) PRIMARY KEY,
+    `id` VARCHAR(255) PRIMARY KEY,
     `created_by` VARCHAR(255) NULL DEFAULT NULL ,
     `created_date` DATETIME NULL DEFAULT NULL,
     `host` VARCHAR(255) NULL DEFAULT NULL ,
@@ -205,7 +205,7 @@ CREATE TABLE `resource_server` (
 
 drop table if exists resource_item;
 CREATE TABLE `resource_item` (
-    `id` VARCHAR(512) PRIMARY KEY,
+    `id` VARCHAR(255) PRIMARY KEY,
     `additional_properties` text NULL DEFAULT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
     `created_date` DATETIME NULL DEFAULT NULL,
@@ -223,16 +223,16 @@ CREATE TABLE `resource_item` (
 
 drop table if exists plugin_instances;
 CREATE TABLE `plugin_instances` (
-    `id` VARCHAR(512) PRIMARY KEY,
+    `id` VARCHAR(255) PRIMARY KEY,
     `host` VARCHAR(255) NULL DEFAULT NULL,
     `container_name` VARCHAR(255) NULL DEFAULT NULL,
     `port` INT(11) NULL DEFAULT NULL,
     `container_status` VARCHAR(255) NULL DEFAULT NULL,
-    `package_id` VARCHAR(512) DEFAULT NULL,
-    `docker_instance_resource_id` VARCHAR(512) DEFAULT NULL,
+    `package_id` VARCHAR(255) DEFAULT NULL,
+    `docker_instance_resource_id` VARCHAR(255) DEFAULT NULL,
     `instance_name` VARCHAR(255) NULL DEFAULT NULL,
-    `plugin_mysql_instance_resource_id` VARCHAR(512) DEFAULT NULL,
-    `s3bucket_resource_id` VARCHAR(512) DEFAULT NULL,
+    `plugin_mysql_instance_resource_id` VARCHAR(255) DEFAULT NULL,
+    `s3bucket_resource_id` VARCHAR(255) DEFAULT NULL,
     INDEX `FKn8124r2uvtipsy1hfkjmd4jts` (`package_id`),
     INDEX `FKbqqlg3wrp1n0h926v5cojcjk7` (`s3bucket_resource_id`),
     CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
@@ -243,10 +243,10 @@ CREATE TABLE `plugin_instances` (
 
 drop table if exists plugin_mysql_instances;
 CREATE TABLE `plugin_mysql_instances` (
-    `id` VARCHAR(512) PRIMARY KEY,
+    `id` VARCHAR(255) PRIMARY KEY,
     `password` VARCHAR(255) NULL DEFAULT NULL,
-    `plugun_package_id` VARCHAR(512) DEFAULT NULL,
-    `resource_item_id` VARCHAR(512) DEFAULT NULL,
+    `plugun_package_id` VARCHAR(255) DEFAULT NULL,
+    `resource_item_id` VARCHAR(255) DEFAULT NULL,
     `schema_name` VARCHAR(255) NULL DEFAULT NULL,
     `status` VARCHAR(255) NULL DEFAULT NULL,
     `username` VARCHAR(255) NULL DEFAULT NULL,
@@ -258,14 +258,14 @@ CREATE TABLE `plugin_mysql_instances` (
 
 DROP TABLE if EXISTS role_menu;
 CREATE TABLE `role_menu` (
-    `id`      VARCHAR(512) PRIMARY KEY,
+    `id`      VARCHAR(255) PRIMARY KEY,
     `role_name` VARCHAR(64) NOT NULL,
     `menu_code` VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 DROP TABLE if EXISTS core_ru_proc_role_binding;
 CREATE TABLE `core_ru_proc_role_binding` (
-    `id`      VARCHAR(512) PRIMARY KEY,
+    `id`      VARCHAR(255) PRIMARY KEY,
     `proc_id`      VARCHAR(255) NOT NULL,
     `role_id` VARCHAR(512)       NOT NULL,
     `role_name` VARCHAR(255)     NOT NULL,
@@ -274,7 +274,7 @@ CREATE TABLE `core_ru_proc_role_binding` (
 
 drop table if exists batch_execution_jobs;
 CREATE TABLE `batch_execution_jobs` (
-    `id` VARCHAR(512) NOT NULL,
+    `id` VARCHAR(255) NOT NULL,
     `create_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `complete_timestamp` TIMESTAMP NULL DEFAULT NULL,
     `creator` VARCHAR(255) NULL DEFAULT NULL,
@@ -284,17 +284,17 @@ CREATE TABLE `batch_execution_jobs` (
 drop table if exists execution_jobs;
 CREATE TABLE `execution_jobs` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
-    `batch_execution_job_id` VARCHAR(512) NOT NULL,
+    `batch_execution_job_id` VARCHAR(255) NOT NULL,
     `package_name` VARCHAR(63) NOT NULL,
     `entity_name` VARCHAR(100) NOT NULL,
     `business_key` VARCHAR(255) NOT NULL,
-    `root_entity_id` VARCHAR(512) NOT NULL,
+    `root_entity_id` VARCHAR(255) NOT NULL,
     `execute_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `complete_time` TIMESTAMP NULL,
     `error_code` VARCHAR(1) NULL DEFAULT NULL,
     `error_message` TEXT NULL,
     `return_json` LONGTEXT NULL,
-    `plugin_config_interface_id` VARCHAR(512) NULL DEFAULT NULL,
+    `plugin_config_interface_id` VARCHAR(255) NULL DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE INDEX `job_id_and_root_entity_id` (`batch_execution_job_id`, `root_entity_id`),
     CONSTRAINT `FK534bth9hibanrjd5fqdel8u9c` FOREIGN KEY (`batch_execution_job_id`) REFERENCES `batch_execution_jobs` (`id`)
@@ -319,7 +319,7 @@ CREATE TABLE `execution_job_parameters` (
 
 DROP TABLE IF EXISTS `favorites`;
 CREATE TABLE `favorites` (
-  `favorites_id` varchar(512) NOT NULL,
+  `favorites_id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
   `updated_by` varchar(255) DEFAULT NULL,
@@ -331,8 +331,8 @@ CREATE TABLE `favorites` (
 
 DROP TABLE IF EXISTS `favorites_role`;
 CREATE TABLE `favorites_role` (
-  `id` varchar(512) NOT NULL,
-  `favorites_id` varchar(512) DEFAULT NULL,
+  `id` varchar(255) NOT NULL,
+  `favorites_id` varchar(255) DEFAULT NULL,
   `permission` varchar(255) DEFAULT NULL,
   `role_id` varchar(512) DEFAULT NULL,
   `role_name` varchar(255) DEFAULT NULL,
