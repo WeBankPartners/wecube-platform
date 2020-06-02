@@ -32,12 +32,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.SystemVariable;
+import com.webank.wecube.platform.core.domain.plugin.PluginArtifactPullRequestEntity;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
@@ -59,6 +62,7 @@ import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
 import com.webank.wecube.platform.core.dto.S3PluginActifactPullRequestDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
+import com.webank.wecube.platform.core.jpa.PluginArtifactPullRequestRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
@@ -72,8 +76,10 @@ import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.ScpService;
+import com.webank.wecube.platform.core.service.plugin.PluginArtifactOperationExecutor.PluginArtifactPullContext;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
+import com.webank.wecube.platform.core.support.RealS3Client;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
@@ -86,7 +92,15 @@ import com.webank.wecube.platform.core.utils.SystemUtils;
 public class PluginPackageService {
     public static final Set<String> ACCEPTED_FILES = Sets.newHashSet("register.xml", "image.tar", "ui.zip", "init.sql",
             "upgrade.sql");
+
+    public static final String SYS_VAR_REMOTE_PLUGIN_S3_ENDPOINT = "REMOTE_PLUGIN_S3_ENDPOINT";
+    public static final String SYS_VAR_REMOTE_PLUGIN_S3_ACCESS_KEY = "REMOTE_PLUGIN_S3_ACCESS_KEY";
+    public static final String SYS_VAR_REMOTE_PLUGIN_S3_BUCKET_NAME = "REMOTE_PLUGIN_S3_BUCKET_NAME";
+    public static final String SYS_VAR_REMOTE_PLUGIN_S3_SECRET_KEY = "REMOTE_PLUGIN_S3_SECRET_KEY";
+
     public final Logger log = LoggerFactory.getLogger(this.getClass());
+    
+    private static final String DEFAULT_USER = "sys";
 
     @Autowired
     PluginPackageRepository pluginPackageRepository;
@@ -139,17 +153,293 @@ public class PluginPackageService {
 
     @Autowired
     private AuthServerRestClient authServerRestClient;
-    
-    public List<S3PluginActifactDto> listS3PluginActifacts(){
-        return null;
+
+    @Autowired
+    private PluginArtifactPullRequestRepository pluginArtifactPullRequestRepository;
+
+    @Autowired
+    private PluginArtifactOperationExecutor pluginArtifactOperationExecutor;
+
+    public List<S3PluginActifactDto> listS3PluginActifacts() {
+        String remoteEndpoint = getGlobalSystemVariableByName(SYS_VAR_REMOTE_PLUGIN_S3_ENDPOINT);
+        String accessKey = getGlobalSystemVariableByName(SYS_VAR_REMOTE_PLUGIN_S3_ACCESS_KEY);
+        String secretKey = getGlobalSystemVariableByName(SYS_VAR_REMOTE_PLUGIN_S3_SECRET_KEY);
+        String bucketName = getGlobalSystemVariableByName(SYS_VAR_REMOTE_PLUGIN_S3_BUCKET_NAME);
+
+        if (org.apache.commons.lang3.StringUtils.isBlank(remoteEndpoint)
+                || org.apache.commons.lang3.StringUtils.isBlank(accessKey)
+                || org.apache.commons.lang3.StringUtils.isBlank(secretKey)
+                || org.apache.commons.lang3.StringUtils.isBlank(bucketName)) {
+            throw new WecubeCoreException("The S3 server is not properly provided.");
+        }
+
+        S3Client s3Client = new RealS3Client(remoteEndpoint, accessKey, secretKey);
+        List<S3ObjectSummary> s3ObjectSummaries = s3Client.listObjects(bucketName);
+        List<S3PluginActifactDto> results = new ArrayList<>();
+        for (S3ObjectSummary s : s3ObjectSummaries) {
+            S3PluginActifactDto dto = new S3PluginActifactDto();
+            dto.setBucketName(bucketName);
+            dto.setKeyName(s.getKey());
+            dto.setTotalSize(s.getSize());
+
+            results.add(dto);
+        }
+
+        return results;
     }
-    
-    public S3PluginActifactPullRequestDto createS3PluginActifactPullRequest(S3PluginActifactDto pullRequestDto){
-        return null;
+
+    public S3PluginActifactPullRequestDto createS3PluginActifactPullRequest(S3PluginActifactDto pullRequestDto) {
+        if (pullRequestDto == null) {
+            throw new WecubeCoreException("Illegal argument.");
+        }
+
+        if (org.apache.commons.lang3.StringUtils.isBlank(pullRequestDto.getKeyName())) {
+            throw new WecubeCoreException("Key name cannot be blank.");
+        }
+
+        // get system variables
+        String remoteEndpoint = getGlobalSystemVariableByName(SYS_VAR_REMOTE_PLUGIN_S3_ENDPOINT);
+        String accessKey = getGlobalSystemVariableByName(SYS_VAR_REMOTE_PLUGIN_S3_ACCESS_KEY);
+        String secretKey = getGlobalSystemVariableByName(SYS_VAR_REMOTE_PLUGIN_S3_SECRET_KEY);
+        String bucketName = getGlobalSystemVariableByName(SYS_VAR_REMOTE_PLUGIN_S3_BUCKET_NAME);
+
+        if (org.apache.commons.lang3.StringUtils.isBlank(remoteEndpoint)
+                || org.apache.commons.lang3.StringUtils.isBlank(accessKey)
+                || org.apache.commons.lang3.StringUtils.isBlank(secretKey)
+                || org.apache.commons.lang3.StringUtils.isBlank(bucketName)) {
+            throw new WecubeCoreException("The S3 server is not properly provided.");
+        }
+
+        PluginArtifactPullRequestEntity entity = new PluginArtifactPullRequestEntity();
+        entity.setBucketName(bucketName);
+        entity.setKeyName(pullRequestDto.getKeyName());
+        entity.setRev(0);
+        entity.setState(PluginArtifactPullRequestEntity.STATE_IN_PROGRESS);
+        entity.setCreatedTime(new Date());
+        entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+
+        PluginArtifactPullRequestEntity savedEntity = pluginArtifactPullRequestRepository.saveAndFlush(entity);
+
+        PluginArtifactPullContext ctx = new PluginArtifactPullContext();
+        ctx.setAccessKey(accessKey);
+        ctx.setBucketName(bucketName);
+        ctx.setKeyName(pullRequestDto.getKeyName());
+        ctx.setRemoteEndpoint(remoteEndpoint);
+        ctx.setSecretKey(secretKey);
+        ctx.setRequestId(savedEntity.getId());
+
+        pluginArtifactOperationExecutor.pullPluginArtifact(ctx, this);
+
+        return buildS3PluginActifactPullRequestDto(savedEntity);
     }
-    
-    public  S3PluginActifactPullRequestDto queryS3PluginActifactPullRequest(String requestId){
-        return null;
+
+    private String calculatePluginPackageFileName(PluginArtifactPullContext ctx) {
+        String keyName = ctx.getKeyName();
+        int index = keyName.lastIndexOf("/");
+        if (index >= 0) {
+            return keyName.substring(index);
+        } else {
+            return keyName;
+        }
+    }
+
+    public void handlePullPluginArtifactFailure(PluginArtifactPullContext ctx, Exception e) {
+        Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository
+                .findById(ctx.getRequestId());
+        if (!reqOpt.isPresent()) {
+            log.warn("request entity {} does not exist", ctx.getRequestId());
+            return;
+        }
+
+        PluginArtifactPullRequestEntity reqEntity = reqOpt.get();
+
+        if (PluginArtifactPullRequestEntity.STATE_COMPLETED.equals(reqEntity.getState())) {
+            return;
+        }
+        
+        reqEntity.setErrorMsg(e.getMessage());
+        reqEntity.setUpdatedBy(DEFAULT_USER);
+        reqEntity.setUpdatedTime(new Date());
+        reqEntity.setState(PluginArtifactPullRequestEntity.STATE_FAULTED);
+        
+        pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
+    }
+
+    @Transactional
+    public void pullPluginArtifact(PluginArtifactPullContext ctx) throws Exception {
+        //
+        Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository
+                .findById(ctx.getRequestId());
+        if (!reqOpt.isPresent()) {
+            throw new WecubeCoreException(String.format("Request entity %s does not exist", ctx.getRequestId()));
+        }
+
+        PluginArtifactPullRequestEntity reqEntity = reqOpt.get();
+
+        if (PluginArtifactPullRequestEntity.STATE_COMPLETED.equals(reqEntity.getState())) {
+            return;
+        }
+
+        String pluginPackageFileName = calculatePluginPackageFileName(ctx);
+
+        // 1. save package file to local
+        String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
+        log.info("tmpFilePath= {}", localFilePath.getName());
+        if (!localFilePath.exists()) {
+            if (localFilePath.mkdirs()) {
+                log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
+            } else {
+                throw new WecubeCoreException("Create directory [{}] failed");
+            }
+        }
+        File dest = new File(localFilePath + "/" + pluginPackageFileName);
+        log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
+                dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
+
+        S3Client s3Client = new RealS3Client(ctx.getRemoteEndpoint(), ctx.getAccessKey(), ctx.getSecretKey());
+        s3Client.downFile(ctx.getBucketName(), ctx.getKeyName(), dest.getAbsolutePath());
+
+        // 2. unzip local package file
+        unzipLocalFile(dest.getCanonicalPath(), localFilePath.getCanonicalPath() + "/");
+
+        // 3. read xml file in plugin package
+        File registerXmlFile = new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile());
+        if (!registerXmlFile.exists()) {
+            throw new WecubeCoreException(String.format("Plugin package definition file: [%s] does not exist.",
+                    pluginProperties.getRegisterFile()));
+        }
+
+        new PluginConfigXmlValidator().validate(new FileInputStream(registerXmlFile));
+
+        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile))
+                .parsePluginPackage();
+        PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
+
+        pluginPackageValidator.validate(pluginPackage);
+        dataModelValidator.validate(pluginPackageDto.getPluginPackageDataModelDto());
+
+        if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
+            throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
+                    pluginPackage.getName(), pluginPackage.getVersion()));
+        }
+        // 4.
+        File pluginDockerImageFile = new File(localFilePath + "/" + pluginProperties.getImageFile());
+        log.info("pluginDockerImageFile: {}", pluginDockerImageFile.getAbsolutePath());
+
+        if (pluginDockerImageFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginDockerImageFile.getName();
+            log.info("keyName : {}", keyName);
+
+            String dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginDockerImageFile);
+            log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
+        }
+
+        File pluginUiPackageFile = new File(localFilePath + "/" + pluginProperties.getUiFile());
+        log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
+        String uiPackageUrl = "";
+        Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
+        if (pluginUiPackageFile.exists()) {
+
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginUiPackageFile.getName();
+            log.info("keyName : {}", keyName);
+
+            pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage,
+                    pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
+            uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginUiPackageFile);
+            pluginPackage.setUiPackageIncluded(true);
+            log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
+        }
+
+        File pluginInitSqlFile = new File(localFilePath + File.separator + pluginProperties.getInitDbSql());
+        if (pluginInitSqlFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginProperties.getInitDbSql();
+            log.info("Uploading init sql {} to MinIO {}", pluginInitSqlFile.getAbsolutePath(), keyName);
+            String initSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginInitSqlFile);
+            log.info("Init sql {} has been uploaded to MinIO {}", pluginProperties.getInitDbSql(), initSqlUrl);
+        } else {
+            log.info("Init sql {} is not included in package.", pluginProperties.getInitDbSql());
+        }
+
+        File pluginUpgradeSqlFile = new File(localFilePath + File.separator + pluginProperties.getUpgradeDbSql());
+        if (pluginUpgradeSqlFile.exists()) {
+            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+                    + pluginProperties.getUpgradeDbSql();
+            log.info("Uploading upgrade sql {} to MinIO {}", pluginUpgradeSqlFile.getAbsolutePath(), keyName);
+            String upgradeSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+                    pluginUpgradeSqlFile);
+            log.info("Upgrade sql {} has been uploaded to MinIO {}", pluginProperties.getUpgradeDbSql(), upgradeSqlUrl);
+        } else {
+            log.info("Upgrade sql {} is not included in package.", pluginProperties.getUpgradeDbSql());
+        }
+
+        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
+
+        if (null != pluginPackage.getSystemVariables() && pluginPackage.getSystemVariables().size() > 0) {
+            pluginPackage.getSystemVariables().stream()
+                    .forEach(systemVariable -> systemVariable.setSource(savedPluginPackage.getId()));
+            systemVariableRepository.saveAll(pluginPackage.getSystemVariables());
+        }
+
+        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService
+                .register(pluginPackageDto.getPluginPackageDataModelDto());
+
+        savedPluginPackage.setPluginPackageDataModel(PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto));
+        if (pluginPackageResourceFilesOptional.isPresent()) {
+            Set<PluginPackageResourceFile> pluginPackageResourceFiles = newLinkedHashSet(
+                    pluginPackageResourceFileRepository.saveAll(pluginPackageResourceFilesOptional.get()));
+            savedPluginPackage.setPluginPackageResourceFiles(pluginPackageResourceFiles);
+        }
+
+        reqEntity.setUpdatedBy(DEFAULT_USER);
+        reqEntity.setUpdatedTime(new Date());
+        reqEntity.setPackageId(savedPluginPackage.getId());
+        reqEntity.setState(PluginArtifactPullRequestEntity.STATE_COMPLETED);
+
+        pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
+    }
+
+    private String getGlobalSystemVariableByName(String varName) {
+        List<SystemVariable> vars = systemVariableRepository.findByNameAndScopeAndStatus(varName,
+                SystemVariable.SCOPE_GLOBAL, SystemVariable.ACTIVE);
+        if (vars == null || vars.isEmpty()) {
+            return null;
+        }
+
+        SystemVariable var = vars.get(0);
+        return var.getValue();
+    }
+
+    public S3PluginActifactPullRequestDto queryS3PluginActifactPullRequest(String requestId) {
+        if (org.apache.commons.lang3.StringUtils.isBlank(requestId)) {
+            throw new WecubeCoreException("Request ID cannot be null.");
+        }
+
+        Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository.findById(requestId);
+        if (!reqOpt.isPresent()) {
+            throw new WecubeCoreException(String.format("Such request with %s does not exist.", requestId));
+        }
+
+        PluginArtifactPullRequestEntity req = reqOpt.get();
+        return buildS3PluginActifactPullRequestDto(req);
+    }
+
+    private S3PluginActifactPullRequestDto buildS3PluginActifactPullRequestDto(PluginArtifactPullRequestEntity req) {
+        S3PluginActifactPullRequestDto dto = new S3PluginActifactPullRequestDto();
+        dto.setBucketName(req.getBucketName());
+        dto.setKeyName(req.getKeyName());
+        dto.setState(req.getState());
+        dto.setRequestId(req.getId());
+        dto.setTotalSize(req.getTotalSize());
+        dto.setErrorMessage(req.getErrorMsg());
+        dto.setPackageId(req.getPackageId());
+        return dto;
     }
 
     @Transactional
@@ -701,8 +991,8 @@ public class PluginPackageService {
                 + File.separator + pluginPackage.getVersion() + File.separator;
         log.info("Upload UI.zip from local to static server:" + remotePath);
 
-        //get all static resource hosts
-        List<String> staticResourceIps= StringUtils.splitByComma(pluginProperties.getStaticResourceServerIp());
+        // get all static resource hosts
+        List<String> staticResourceIps = StringUtils.splitByComma(pluginProperties.getStaticResourceServerIp());
 
         for (String remoteIp : staticResourceIps) {
 
@@ -743,9 +1033,7 @@ public class PluginPackageService {
         }
 
         log.info("UI package deployment has done...");
-        
-        
-        
+
     }
 
     private void removePluginUiResourcesIfRequired(PluginPackage pluginPackage) {

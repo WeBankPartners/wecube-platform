@@ -9,6 +9,8 @@ public class S3PluginActifactPullRequestDto {
     private Long totalSize;
     private String state;
     private String requestId;
+    private String errorMessage;
+    private String packageId;
 
     public String getBucketName() {
         return bucketName;
@@ -50,4 +52,20 @@ public class S3PluginActifactPullRequestDto {
         this.requestId = requestId;
     }
 
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
+    }
+    
 }
