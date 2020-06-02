@@ -23,6 +23,9 @@ public class PluginArtifactOperationExecutor {
     public static class PluginArtifactOperationWorker implements Callable<Void> {
         private PluginArtifactPullContext pluginArtifactPullContext;
         private PluginPackageService pluginPackageService;
+        
+        
+        
 
         @Override
         public Void call() throws Exception {
