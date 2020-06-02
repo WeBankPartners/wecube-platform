@@ -1,16 +1,69 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.google.common.base.Strings;
+import static com.google.common.collect.Sets.newLinkedHashSet;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.REGISTERED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.SystemVariable;
-import com.webank.wecube.platform.core.domain.plugin.*;
-import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDependency;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageResourceFile;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
+import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.PluginConfigGroupByNameDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDto;
+import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.S3PluginActifactPullRequestDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
-import com.webank.wecube.platform.core.jpa.*;
+import com.webank.wecube.platform.core.jpa.MenuItemRepository;
+import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageResourceFileRepository;
+import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
@@ -27,23 +80,6 @@ import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 import com.webank.wecube.platform.core.utils.StringUtils;
 import com.webank.wecube.platform.core.utils.SystemUtils;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import static com.google.common.collect.Sets.newLinkedHashSet;
-import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
 
 @Service
 @Transactional
@@ -103,6 +139,18 @@ public class PluginPackageService {
 
     @Autowired
     private AuthServerRestClient authServerRestClient;
+    
+    public List<S3PluginActifactDto> listS3PluginActifacts(){
+        return null;
+    }
+    
+    public S3PluginActifactPullRequestDto createS3PluginActifactPullRequest(S3PluginActifactDto pullRequestDto){
+        return null;
+    }
+    
+    public  S3PluginActifactPullRequestDto queryS3PluginActifactPullRequest(String requestId){
+        return null;
+    }
 
     @Transactional
     public PluginPackage uploadPackage(MultipartFile pluginPackageFile) throws Exception {
