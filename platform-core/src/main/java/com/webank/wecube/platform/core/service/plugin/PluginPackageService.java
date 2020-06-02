@@ -264,10 +264,8 @@ public class PluginPackageService {
         
         pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
     }
-
-    @Transactional
-    public void pullPluginArtifact(PluginArtifactPullContext ctx) throws Exception {
-        //
+    
+    private PluginArtifactPullRequestEntity getPluginArtifactPullRequestEntity(PluginArtifactPullContext ctx){
         Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository
                 .findById(ctx.getRequestId());
         if (!reqOpt.isPresent()) {
@@ -275,6 +273,24 @@ public class PluginPackageService {
         }
 
         PluginArtifactPullRequestEntity reqEntity = reqOpt.get();
+        
+        return reqEntity;
+    }
+    
+    private void checkLocalFilePath(File localFilePath){
+        if (!localFilePath.exists()) {
+            if (localFilePath.mkdirs()) {
+                log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
+            } else {
+                throw new WecubeCoreException("Create directory [{}] failed");
+            }
+        }
+    }
+
+    @Transactional
+    public void pullPluginArtifact(PluginArtifactPullContext ctx) throws Exception {
+
+        PluginArtifactPullRequestEntity reqEntity = getPluginArtifactPullRequestEntity(ctx);
 
         if (PluginArtifactPullRequestEntity.STATE_COMPLETED.equals(reqEntity.getState())) {
             return;
@@ -286,13 +302,9 @@ public class PluginPackageService {
         String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
         File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
         log.info("tmpFilePath= {}", localFilePath.getName());
-        if (!localFilePath.exists()) {
-            if (localFilePath.mkdirs()) {
-                log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
-            } else {
-                throw new WecubeCoreException("Create directory [{}] failed");
-            }
-        }
+        
+        checkLocalFilePath(localFilePath);
+        
         File dest = new File(localFilePath + "/" + pluginPackageFileName);
         log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
                 dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
