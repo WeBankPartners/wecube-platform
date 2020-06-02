@@ -99,7 +99,7 @@ public class PluginPackageService {
     public static final String SYS_VAR_REMOTE_PLUGIN_S3_SECRET_KEY = "REMOTE_PLUGIN_S3_SECRET_KEY";
 
     public final Logger log = LoggerFactory.getLogger(this.getClass());
-    
+
     private static final String DEFAULT_USER = "sys";
 
     @Autowired
@@ -256,16 +256,16 @@ public class PluginPackageService {
         if (PluginArtifactPullRequestEntity.STATE_COMPLETED.equals(reqEntity.getState())) {
             return;
         }
-        
+
         reqEntity.setErrorMsg(e.getMessage());
         reqEntity.setUpdatedBy(DEFAULT_USER);
         reqEntity.setUpdatedTime(new Date());
         reqEntity.setState(PluginArtifactPullRequestEntity.STATE_FAULTED);
-        
+
         pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
     }
-    
-    private PluginArtifactPullRequestEntity getPluginArtifactPullRequestEntity(PluginArtifactPullContext ctx){
+
+    private PluginArtifactPullRequestEntity getPluginArtifactPullRequestEntity(PluginArtifactPullContext ctx) {
         Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository
                 .findById(ctx.getRequestId());
         if (!reqOpt.isPresent()) {
@@ -273,11 +273,11 @@ public class PluginPackageService {
         }
 
         PluginArtifactPullRequestEntity reqEntity = reqOpt.get();
-        
+
         return reqEntity;
     }
-    
-    private void checkLocalFilePath(File localFilePath){
+
+    private void checkLocalFilePath(File localFilePath) {
         if (!localFilePath.exists()) {
             if (localFilePath.mkdirs()) {
                 log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
@@ -302,9 +302,9 @@ public class PluginPackageService {
         String tmpFileName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
         File localFilePath = new File(SystemUtils.getTempFolderPath() + tmpFileName + "/");
         log.info("tmpFilePath= {}", localFilePath.getName());
-        
+
         checkLocalFilePath(localFilePath);
-        
+
         File dest = new File(localFilePath + "/" + pluginPackageFileName);
         log.info("new file location: {}, filename: {}, canonicalpath: {}, canonicalfilename: {}",
                 dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
@@ -312,6 +312,17 @@ public class PluginPackageService {
         S3Client s3Client = new RealS3Client(ctx.getRemoteEndpoint(), ctx.getAccessKey(), ctx.getSecretKey());
         s3Client.downFile(ctx.getBucketName(), ctx.getKeyName(), dest.getAbsolutePath());
 
+        PluginPackage savedPluginPackage = parsePackageFile(dest, localFilePath);
+
+        reqEntity.setUpdatedBy(DEFAULT_USER);
+        reqEntity.setUpdatedTime(new Date());
+        reqEntity.setPackageId(savedPluginPackage.getId());
+        reqEntity.setState(PluginArtifactPullRequestEntity.STATE_COMPLETED);
+
+        pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
+    }
+
+    private PluginPackage parsePackageFile(File dest, File localFilePath) throws Exception {
         // 2. unzip local package file
         unzipLocalFile(dest.getCanonicalPath(), localFilePath.getCanonicalPath() + "/");
 
@@ -409,12 +420,7 @@ public class PluginPackageService {
             savedPluginPackage.setPluginPackageResourceFiles(pluginPackageResourceFiles);
         }
 
-        reqEntity.setUpdatedBy(DEFAULT_USER);
-        reqEntity.setUpdatedTime(new Date());
-        reqEntity.setPackageId(savedPluginPackage.getId());
-        reqEntity.setState(PluginArtifactPullRequestEntity.STATE_COMPLETED);
-
-        pluginArtifactPullRequestRepository.saveAndFlush(reqEntity);
+        return savedPluginPackage;
     }
 
     private String getGlobalSystemVariableByName(String varName) {
@@ -474,102 +480,7 @@ public class PluginPackageService {
                 dest.getAbsoluteFile(), dest.getName(), dest.getCanonicalPath(), dest.getCanonicalFile().getName());
         pluginPackageFile.transferTo(dest);
 
-        // 2. unzip local package file
-        unzipLocalFile(dest.getCanonicalPath(), localFilePath.getCanonicalPath() + "/");
-
-        // 3. read xml file in plugin package
-        File registerXmlFile = new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile());
-        if (!registerXmlFile.exists()) {
-            throw new WecubeCoreException(String.format("Plugin package definition file: [%s] does not exist.",
-                    pluginProperties.getRegisterFile()));
-        }
-
-        new PluginConfigXmlValidator().validate(new FileInputStream(registerXmlFile));
-
-        PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(new FileInputStream(registerXmlFile))
-                .parsePluginPackage();
-        PluginPackage pluginPackage = pluginPackageDto.getPluginPackage();
-
-        pluginPackageValidator.validate(pluginPackage);
-        dataModelValidator.validate(pluginPackageDto.getPluginPackageDataModelDto());
-
-        if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
-            throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
-                    pluginPackage.getName(), pluginPackage.getVersion()));
-        }
-        // 4.
-        File pluginDockerImageFile = new File(localFilePath + "/" + pluginProperties.getImageFile());
-        log.info("pluginDockerImageFile: {}", pluginDockerImageFile.getAbsolutePath());
-
-        if (pluginDockerImageFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
-                    + pluginDockerImageFile.getName();
-            log.info("keyName : {}", keyName);
-
-            String dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
-                    pluginDockerImageFile);
-            log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
-        }
-
-        File pluginUiPackageFile = new File(localFilePath + "/" + pluginProperties.getUiFile());
-        log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
-        String uiPackageUrl = "";
-        Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
-        if (pluginUiPackageFile.exists()) {
-
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
-                    + pluginUiPackageFile.getName();
-            log.info("keyName : {}", keyName);
-
-            pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage,
-                    pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
-            uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
-                    pluginUiPackageFile);
-            pluginPackage.setUiPackageIncluded(true);
-            log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
-        }
-
-        File pluginInitSqlFile = new File(localFilePath + File.separator + pluginProperties.getInitDbSql());
-        if (pluginInitSqlFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
-                    + pluginProperties.getInitDbSql();
-            log.info("Uploading init sql {} to MinIO {}", pluginInitSqlFile.getAbsolutePath(), keyName);
-            String initSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
-                    pluginInitSqlFile);
-            log.info("Init sql {} has been uploaded to MinIO {}", pluginProperties.getInitDbSql(), initSqlUrl);
-        } else {
-            log.info("Init sql {} is not included in package.", pluginProperties.getInitDbSql());
-        }
-
-        File pluginUpgradeSqlFile = new File(localFilePath + File.separator + pluginProperties.getUpgradeDbSql());
-        if (pluginUpgradeSqlFile.exists()) {
-            String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
-                    + pluginProperties.getUpgradeDbSql();
-            log.info("Uploading upgrade sql {} to MinIO {}", pluginUpgradeSqlFile.getAbsolutePath(), keyName);
-            String upgradeSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
-                    pluginUpgradeSqlFile);
-            log.info("Upgrade sql {} has been uploaded to MinIO {}", pluginProperties.getUpgradeDbSql(), upgradeSqlUrl);
-        } else {
-            log.info("Upgrade sql {} is not included in package.", pluginProperties.getUpgradeDbSql());
-        }
-
-        PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
-
-        if (null != pluginPackage.getSystemVariables() && pluginPackage.getSystemVariables().size() > 0) {
-            pluginPackage.getSystemVariables().stream()
-                    .forEach(systemVariable -> systemVariable.setSource(savedPluginPackage.getId()));
-            systemVariableRepository.saveAll(pluginPackage.getSystemVariables());
-        }
-
-        PluginPackageDataModelDto pluginPackageDataModelDto = pluginPackageDataModelService
-                .register(pluginPackageDto.getPluginPackageDataModelDto());
-
-        savedPluginPackage.setPluginPackageDataModel(PluginPackageDataModelDto.toDomain(pluginPackageDataModelDto));
-        if (pluginPackageResourceFilesOptional.isPresent()) {
-            Set<PluginPackageResourceFile> pluginPackageResourceFiles = newLinkedHashSet(
-                    pluginPackageResourceFileRepository.saveAll(pluginPackageResourceFilesOptional.get()));
-            savedPluginPackage.setPluginPackageResourceFiles(pluginPackageResourceFiles);
-        }
+        PluginPackage savedPluginPackage = parsePackageFile(dest, localFilePath);
 
         return savedPluginPackage;
     }
