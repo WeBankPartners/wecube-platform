@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,7 +14,10 @@ public class PluginArtifactOperationExecutor {
     private static final Logger log = LoggerFactory.getLogger(PluginArtifactOperationExecutor.class);
     private ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public void pullPluginArtifact(PluginArtifactPullContext ctx, PluginPackageService pluginPackageService) {
+    @Autowired
+    private PluginPackageService pluginPackageService;
+
+    public void pullPluginArtifact(PluginArtifactPullContext ctx) {
         PluginArtifactOperationWorker worker = new PluginArtifactOperationWorker();
         worker.setPluginPackageService(pluginPackageService);
         worker.setPluginArtifactPullContext(ctx);
@@ -23,9 +27,6 @@ public class PluginArtifactOperationExecutor {
     public static class PluginArtifactOperationWorker implements Callable<Void> {
         private PluginArtifactPullContext pluginArtifactPullContext;
         private PluginPackageService pluginPackageService;
-        
-        
-        
 
         @Override
         public Void call() throws Exception {
