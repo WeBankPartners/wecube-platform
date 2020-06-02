@@ -228,7 +228,7 @@ public class PluginPackageService {
         ctx.setSecretKey(secretKey);
         ctx.setRequestId(savedEntity.getId());
 
-        pluginArtifactOperationExecutor.pullPluginArtifact(ctx, this);
+        pluginArtifactOperationExecutor.pullPluginArtifact(ctx);
 
         return buildS3PluginActifactPullRequestDto(savedEntity);
     }
