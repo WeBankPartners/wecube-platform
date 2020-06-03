@@ -45,7 +45,7 @@ public class PluginPackageController {
         return okayWithData(pluginPackageService.createS3PluginActifactPullRequest(pullRequestDto));
     }
 
-    @PostMapping("/plugin-artifacts/pull-requests/{request-id}")
+    @GetMapping("/plugin-artifacts/pull-requests/{request-id}")
     public JsonResponse queryS3PluginActifactPullRequest(@PathVariable(value = "request-id") String requestId) {
         return okayWithData(pluginPackageService.queryS3PluginActifactPullRequest(requestId));
     }
