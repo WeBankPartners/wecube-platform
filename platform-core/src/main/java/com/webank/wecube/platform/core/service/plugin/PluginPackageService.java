@@ -234,7 +234,7 @@ public class PluginPackageService {
 			return;
 		}
 
-		reqEntity.setErrorMsg(e.getMessage());
+		reqEntity.setErrorMsg(stripString(e.getMessage()));
 		reqEntity.setUpdatedBy(DEFAULT_USER);
 		reqEntity.setUpdatedTime(new Date());
 		reqEntity.setState(PluginArtifactPullRequestEntity.STATE_FAULTED);
@@ -1019,6 +1019,18 @@ public class PluginPackageService {
 		dto.setErrorMessage(req.getErrorMsg());
 		dto.setPackageId(req.getPackageId());
 		return dto;
+	}
+	
+	private String stripString(String s) {
+		if(s == null) {
+			return null;
+		}
+		
+		if(s.length() > 250) {
+			return s.substring(0, 250);
+		}
+		
+		return s;
 	}
 
 }
