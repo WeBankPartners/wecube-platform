@@ -354,6 +354,6 @@ CREATE TABLE `plugin_artifact_pull_req` (
   `updated_by` varchar(255) DEFAULT NULL,
   `updated_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS = 1;
