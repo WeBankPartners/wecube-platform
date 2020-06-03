@@ -269,7 +269,7 @@ public class PluginPackageService {
 		log.info("start to download {}", artifactFileUrl);
 		File downloadedFile = restTemplate.execute(artifactFileUrl, HttpMethod.GET, null, clientHttpResponse -> {
 			log.info("");
-			File ret = localFilePath;
+			File ret = dest;
 			StreamUtils.copy(clientHttpResponse.getBody(), new FileOutputStream(ret));
 			return ret;
 		});
