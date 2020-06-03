@@ -899,61 +899,13 @@ public class PluginPackageService {
 			throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
 					pluginPackage.getName(), pluginPackage.getVersion()));
 		}
-		// 4.
-		File pluginDockerImageFile = new File(localFilePath + "/" + pluginProperties.getImageFile());
-		log.info("pluginDockerImageFile: {}", pluginDockerImageFile.getAbsolutePath());
 
-		if (pluginDockerImageFile.exists()) {
-			String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
-					+ pluginDockerImageFile.getName();
-			log.info("keyName : {}", keyName);
+		processPluginDockerImageFile(localFilePath, pluginPackageDto);
 
-			String dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
-					pluginDockerImageFile);
-			log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
-		}
-
-		File pluginUiPackageFile = new File(localFilePath + "/" + pluginProperties.getUiFile());
-		log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
-		String uiPackageUrl = "";
-		Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
-		if (pluginUiPackageFile.exists()) {
-
-			String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
-					+ pluginUiPackageFile.getName();
-			log.info("keyName : {}", keyName);
-
-			pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage,
-					pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
-			uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
-					pluginUiPackageFile);
-			pluginPackage.setUiPackageIncluded(true);
-			log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
-		}
-
-		File pluginInitSqlFile = new File(localFilePath + File.separator + pluginProperties.getInitDbSql());
-		if (pluginInitSqlFile.exists()) {
-			String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
-					+ pluginProperties.getInitDbSql();
-			log.info("Uploading init sql {} to MinIO {}", pluginInitSqlFile.getAbsolutePath(), keyName);
-			String initSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
-					pluginInitSqlFile);
-			log.info("Init sql {} has been uploaded to MinIO {}", pluginProperties.getInitDbSql(), initSqlUrl);
-		} else {
-			log.info("Init sql {} is not included in package.", pluginProperties.getInitDbSql());
-		}
-
-		File pluginUpgradeSqlFile = new File(localFilePath + File.separator + pluginProperties.getUpgradeDbSql());
-		if (pluginUpgradeSqlFile.exists()) {
-			String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
-					+ pluginProperties.getUpgradeDbSql();
-			log.info("Uploading upgrade sql {} to MinIO {}", pluginUpgradeSqlFile.getAbsolutePath(), keyName);
-			String upgradeSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
-					pluginUpgradeSqlFile);
-			log.info("Upgrade sql {} has been uploaded to MinIO {}", pluginProperties.getUpgradeDbSql(), upgradeSqlUrl);
-		} else {
-			log.info("Upgrade sql {} is not included in package.", pluginProperties.getUpgradeDbSql());
-		}
+		Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = processPluginUiPackageFile(
+				localFilePath, pluginPackageDto, pluginPackage);
+		processPluginInitSqlFile(localFilePath, pluginPackageDto);
+		processPluginUpgradeSqlFile(localFilePath, pluginPackageDto);
 
 		PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
 
@@ -974,6 +926,72 @@ public class PluginPackageService {
 		}
 
 		return savedPluginPackage;
+	}
+
+	private void processPluginDockerImageFile(File localFilePath, PluginPackageDto pluginPackageDto) {
+		File pluginDockerImageFile = new File(localFilePath + "/" + pluginProperties.getImageFile());
+		log.info("pluginDockerImageFile: {}", pluginDockerImageFile.getAbsolutePath());
+
+		if (pluginDockerImageFile.exists()) {
+			String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+					+ pluginDockerImageFile.getName();
+			log.info("keyName : {}", keyName);
+
+			String dockerImageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+					pluginDockerImageFile);
+			log.info("Plugin Package has uploaded to MinIO {}", dockerImageUrl.split("\\?")[0]);
+		}
+	}
+
+	private Optional<Set<PluginPackageResourceFile>> processPluginUiPackageFile(File localFilePath,
+			PluginPackageDto pluginPackageDto, PluginPackage pluginPackage) throws Exception {
+		File pluginUiPackageFile = new File(localFilePath + "/" + pluginProperties.getUiFile());
+		log.info("pluginUiPackageFile: {}", pluginUiPackageFile.getAbsolutePath());
+		String uiPackageUrl = "";
+		Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
+		if (pluginUiPackageFile.exists()) {
+
+			String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+					+ pluginUiPackageFile.getName();
+			log.info("keyName : {}", keyName);
+
+			pluginPackageResourceFilesOptional = getAllPluginPackageResourceFile(pluginPackage,
+					pluginUiPackageFile.getAbsolutePath(), pluginUiPackageFile.getName());
+			uiPackageUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+					pluginUiPackageFile);
+			pluginPackage.setUiPackageIncluded(true);
+			log.info("UI static package file has uploaded to MinIO {}", uiPackageUrl.split("\\?")[0]);
+		}
+
+		return pluginPackageResourceFilesOptional;
+	}
+
+	private void processPluginInitSqlFile(File localFilePath, PluginPackageDto pluginPackageDto) {
+		File pluginInitSqlFile = new File(localFilePath + File.separator + pluginProperties.getInitDbSql());
+		if (pluginInitSqlFile.exists()) {
+			String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+					+ pluginProperties.getInitDbSql();
+			log.info("Uploading init sql {} to MinIO {}", pluginInitSqlFile.getAbsolutePath(), keyName);
+			String initSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+					pluginInitSqlFile);
+			log.info("Init sql {} has been uploaded to MinIO {}", pluginProperties.getInitDbSql(), initSqlUrl);
+		} else {
+			log.info("Init sql {} is not included in package.", pluginProperties.getInitDbSql());
+		}
+	}
+
+	private void processPluginUpgradeSqlFile(File localFilePath, PluginPackageDto pluginPackageDto) {
+		File pluginUpgradeSqlFile = new File(localFilePath + File.separator + pluginProperties.getUpgradeDbSql());
+		if (pluginUpgradeSqlFile.exists()) {
+			String keyName = pluginPackageDto.getName() + "/" + pluginPackageDto.getVersion() + "/"
+					+ pluginProperties.getUpgradeDbSql();
+			log.info("Uploading upgrade sql {} to MinIO {}", pluginUpgradeSqlFile.getAbsolutePath(), keyName);
+			String upgradeSqlUrl = s3Client.uploadFile(pluginProperties.getPluginPackageBucketName(), keyName,
+					pluginUpgradeSqlFile);
+			log.info("Upgrade sql {} has been uploaded to MinIO {}", pluginProperties.getUpgradeDbSql(), upgradeSqlUrl);
+		} else {
+			log.info("Upgrade sql {} is not included in package.", pluginProperties.getUpgradeDbSql());
+		}
 	}
 
 	private String getGlobalSystemVariableByName(String varName) {
