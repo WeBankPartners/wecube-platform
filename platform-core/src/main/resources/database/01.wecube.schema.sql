@@ -339,4 +339,21 @@ CREATE TABLE `favorites_role` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `plugin_artifact_pull_req`;
+CREATE TABLE `plugin_artifact_pull_req` (
+  `id` varchar(255) NOT NULL,
+  `bucket_name` varchar(255) DEFAULT NULL,
+  `created_by` varchar(255) DEFAULT NULL,
+  `created_time` datetime DEFAULT NULL,
+  `err_msg` varchar(255) DEFAULT NULL,
+  `key_name` varchar(255) DEFAULT NULL,
+  `pkg_id` varchar(255) DEFAULT NULL,
+  `rev` int(11) DEFAULT NULL,
+  `state` varchar(255) DEFAULT NULL,
+  `total_size` bigint(20) DEFAULT NULL,
+  `updated_by` varchar(255) DEFAULT NULL,
+  `updated_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
 SET FOREIGN_KEY_CHECKS = 1;

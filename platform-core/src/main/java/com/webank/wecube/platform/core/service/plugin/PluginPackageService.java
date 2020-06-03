@@ -98,21 +98,21 @@ public class PluginPackageService {
     public static final String SYS_VAR_REMOTE_PLUGIN_S3_BUCKET_NAME = "REMOTE_PLUGIN_S3_BUCKET_NAME";
     public static final String SYS_VAR_REMOTE_PLUGIN_S3_SECRET_KEY = "REMOTE_PLUGIN_S3_SECRET_KEY";
 
-    public final Logger log = LoggerFactory.getLogger(this.getClass());
+    public static final Logger log = LoggerFactory.getLogger(PluginPackageService.class);
 
     private static final String DEFAULT_USER = "sys";
 
     @Autowired
-    PluginPackageRepository pluginPackageRepository;
+    private PluginPackageRepository pluginPackageRepository;
 
     @Autowired
-    PluginPackageDataModelService pluginPackageDataModelService;
+    private PluginPackageDataModelService pluginPackageDataModelService;
 
     @Autowired
-    PluginPackageDependencyRepository pluginPackageDependencyRepository;
+    private PluginPackageDependencyRepository pluginPackageDependencyRepository;
 
     @Autowired
-    MenuItemRepository menuItemRepository;
+    private MenuItemRepository menuItemRepository;
 
     @Autowired
     private PluginConfigRepository pluginConfigRepository;
@@ -287,7 +287,6 @@ public class PluginPackageService {
         }
     }
 
-    @Transactional
     public void pullPluginArtifact(PluginArtifactPullContext ctx) throws Exception {
 
         PluginArtifactPullRequestEntity reqEntity = getPluginArtifactPullRequestEntity(ctx);
