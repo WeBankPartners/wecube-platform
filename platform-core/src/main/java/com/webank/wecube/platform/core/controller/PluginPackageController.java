@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -52,7 +51,6 @@ public class PluginPackageController {
     }
 
     @PostMapping("/packages")
-    @ResponseBody
     public JsonResponse uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file) throws Exception {
         if (file == null || file.isEmpty())
             throw new IllegalArgumentException("zip-file required.");
@@ -62,7 +60,6 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages")
-    @ResponseBody
     public JsonResponse getAllPluginPackages(
             @RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
         if (ifDistinct) {
@@ -74,7 +71,6 @@ public class PluginPackageController {
     }
 
     @PostMapping("/packages/register/{package-id:.+}")
-    @ResponseBody
     public JsonResponse registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
         PluginPackage pluginPackage = null;
         try {
@@ -86,7 +82,6 @@ public class PluginPackageController {
     }
 
     @PostMapping("/packages/decommission/{package-id:.+}")
-    @ResponseBody
     public JsonResponse decommissionPluginPackage(@PathVariable(value = "package-id") String packageId) {
         try {
             pluginPackageService.decommissionPluginPackage(packageId);
@@ -98,7 +93,6 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/dependencies")
-    @ResponseBody
     public JsonResponse getDependenciesById(@PathVariable(value = "id") String packageId) {
         PluginPackageDependencyDto dependencySetFoundById;
         try {
@@ -110,7 +104,6 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/menus")
-    @ResponseBody
     public JsonResponse getMenusById(@PathVariable(value = "id") String packageId) {
         List<MenuItemDto> menuList;
         try {
@@ -122,7 +115,6 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/system-parameters")
-    @ResponseBody
     public JsonResponse getSystemParamsById(@PathVariable(value = "id") String packageId) {
         List<SystemVariable> systemVariableSet;
         try {
@@ -134,7 +126,6 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/authorities")
-    @ResponseBody
     public JsonResponse getAuthorityById(@PathVariable(value = "id") String packageId) {
         Set<PluginPackageAuthority> authoritySet;
         try {
@@ -146,7 +137,6 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/runtime-resources")
-    @ResponseBody
     public JsonResponse getResourceById(@PathVariable(value = "id") String packageId) {
         PluginPackageRuntimeResouceDto resouceFoundById;
         try {
@@ -158,13 +148,11 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/plugins")
-    @ResponseBody
     public JsonResponse getPluginsById(@PathVariable(value = "id") String packageId) {
         return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, true));
     }
 
     @GetMapping("/packages/{id}/plugin-configs")
-    @ResponseBody
     public JsonResponse getPluginConfigsByPackageId(@PathVariable(value = "id") String packageId) {
         return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, false));
     }
