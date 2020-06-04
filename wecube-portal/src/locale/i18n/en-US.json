@@ -419,5 +419,6 @@
   "completely_deleted": "It Will Be Completely Deleted After Clicking Save",
   "show_log": "Show Log",
   "auth_type": "Auth Type",
-  "help_docs": "Help"
+  "help_docs": "Help",
+  "origin_plugins": "Install From Market"
 }
