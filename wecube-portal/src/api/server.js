@@ -148,3 +148,6 @@ export const getAllBindingsProcessSessionId = ProcessSessionId =>
   req.get(`/platform/v1/process/instances/tasknodes/session/${ProcessSessionId}/tasknode-bindings`)
 export const getTargetModelByProcessDefId = id => req.get(`/platform/v1/process/definitions/${id}/root-entities`)
 export const getPreviewEntitiesByInstancesId = id => req.get(`/platform/v1/process/instances/${id}/preview/entities`)
+export const getPluginArtifacts = () => req.get(`/platform/v1/plugin-artifacts`)
+export const pullPluginArtifact = data => req.post(`/platform/v1/plugin-artifacts/pull-requests`, data)
+export const getPluginArtifactStatus = id => req.get(`/platform/v1/plugin-artifacts/pull-requests/${id}`)
