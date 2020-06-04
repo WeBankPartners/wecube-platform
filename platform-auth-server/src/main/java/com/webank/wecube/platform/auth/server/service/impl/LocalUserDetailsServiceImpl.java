@@ -23,7 +23,7 @@ public class LocalUserDetailsServiceImpl implements LocalUserDetailsService {
         log.info("load user details for {}", username);
         UserDetails user = userService.loadUserByUsername(username);
         if(user == null){
-            throw new UsernameNotFoundException(String.format("%s doesnt exist", username));
+            throw new UsernameNotFoundException(String.format("%s does not exist", username));
         }
         return user;
     }
