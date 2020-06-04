@@ -28,7 +28,7 @@ create table plugin_package_menus (
   display_name VARCHAR(256) not null,
   local_display_name VARCHAR(256) not null,
   menu_order INTEGER NOT NULL AUTO_INCREMENT,
-  path VARCHAR(256) not null,
+  path VARCHAR(512) not null,
   active BIT default 0,
   KEY `plugin_package_menu_order` (`menu_order`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
@@ -115,7 +115,7 @@ drop table if exists plugin_package_runtime_resources_s3;
 create table plugin_package_runtime_resources_s3 (
   id VARCHAR(255) PRIMARY KEY,
   plugin_package_id VARCHAR(255) not null,
-  bucket_name varchar(32) not null
+  bucket_name varchar(255) not null
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 
@@ -126,7 +126,7 @@ CREATE TABLE `plugin_configs` (
   `name` VARCHAR(100) NOT NULL,
   `target_package` VARCHAR(63) NULL DEFAULT NULL,
   `target_entity` VARCHAR(100) NULL,
-  `target_entity_filter_rule` VARCHAR(1024) NULL DEFAULT '',
+  `target_entity_filter_rule` VARCHAR(2048) NULL DEFAULT '',
   `register_name` VARCHAR(100) NULL DEFAULT NULL,
   `status` VARCHAR(20) NOT NULL default 'DISABLED'
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
@@ -142,7 +142,7 @@ create table plugin_config_interfaces (
     `http_method` VARCHAR(10) NOT NULL, 
     `is_async_processing` VARCHAR(1) DEFAULT 'N',
     `type` VARCHAR(16) DEFAULT 'EXECUTION',
-    `filter_rule` VARCHAR(1024) NULL DEFAULT ''
+    `filter_rule` VARCHAR(2048) NULL DEFAULT ''
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ;
 
 drop table if exists plugin_config_interface_parameters;
@@ -153,7 +153,7 @@ CREATE TABLE `plugin_config_interface_parameters` (
     `name` VARCHAR(255) NOT NULL,
     `data_type` VARCHAR(50) NOT NULL,
     `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
-    `mapping_entity_expression` varchar(1024) NULL DEFAULT NULL,
+    `mapping_entity_expression` varchar(2048) NULL DEFAULT NULL,
     `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
     `required` varchar(5),
     `sensitive_data` varchar(5)
@@ -163,7 +163,7 @@ CREATE TABLE `plugin_config_interface_parameters` (
 drop table if exists menu_items;
 create table menu_items
 (
-  id VARCHAR(255) PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY,
     parent_code VARCHAR(64),
     code        VARCHAR(64) NOT NULL,
     source      VARCHAR(255) NOT NULL,
@@ -206,7 +206,7 @@ CREATE TABLE `resource_server` (
 drop table if exists resource_item;
 CREATE TABLE `resource_item` (
     `id` VARCHAR(255) PRIMARY KEY,
-    `additional_properties` VARCHAR(2048) NULL DEFAULT NULL,
+    `additional_properties` text NULL DEFAULT NULL,
     `created_by` VARCHAR(255) NULL DEFAULT NULL,
     `created_date` DATETIME NULL DEFAULT NULL,
     `is_allocated` INT(11) NULL DEFAULT NULL,
@@ -229,10 +229,10 @@ CREATE TABLE `plugin_instances` (
     `port` INT(11) NULL DEFAULT NULL,
     `container_status` VARCHAR(255) NULL DEFAULT NULL,
     `package_id` VARCHAR(255) DEFAULT NULL,
-    `docker_instance_resource_id` VARCHAR(128) DEFAULT NULL,
+    `docker_instance_resource_id` VARCHAR(255) DEFAULT NULL,
     `instance_name` VARCHAR(255) NULL DEFAULT NULL,
-    `plugin_mysql_instance_resource_id` VARCHAR(128) DEFAULT NULL,
-    `s3bucket_resource_id` VARCHAR(128) DEFAULT NULL,
+    `plugin_mysql_instance_resource_id` VARCHAR(255) DEFAULT NULL,
+    `s3bucket_resource_id` VARCHAR(255) DEFAULT NULL,
     INDEX `FKn8124r2uvtipsy1hfkjmd4jts` (`package_id`),
     INDEX `FKbqqlg3wrp1n0h926v5cojcjk7` (`s3bucket_resource_id`),
     CONSTRAINT `FKbqqlg3wrp1n0h926v5cojcjk7` FOREIGN KEY (`s3bucket_resource_id`) REFERENCES `resource_item` (`id`),
@@ -267,8 +267,8 @@ DROP TABLE if EXISTS core_ru_proc_role_binding;
 CREATE TABLE `core_ru_proc_role_binding` (
     `id`      VARCHAR(255) PRIMARY KEY,
     `proc_id`      VARCHAR(255) NOT NULL,
-    `role_id` VARCHAR(64)       NOT NULL,
-    `role_name` VARCHAR(64)     NOT NULL,
+    `role_id` VARCHAR(512)       NOT NULL,
+    `role_name` VARCHAR(255)     NOT NULL,
     `permission` VARCHAR(255) NOT NULL
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
@@ -307,7 +307,7 @@ CREATE TABLE `execution_job_parameters` (
     `name` VARCHAR(255) NOT NULL,
     `data_type` VARCHAR(50) NOT NULL,
     `mapping_type` VARCHAR(50) NULL DEFAULT NULL,
-    `mapping_entity_expression` VARCHAR(1024) NULL DEFAULT NULL,
+    `mapping_entity_expression` VARCHAR(2048) NULL DEFAULT NULL,
     `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
     `required` VARCHAR(5) NULL DEFAULT NULL,
     `constant_value` VARCHAR(255) NULL DEFAULT NULL,
@@ -334,7 +334,7 @@ CREATE TABLE `favorites_role` (
   `id` varchar(255) NOT NULL,
   `favorites_id` varchar(255) DEFAULT NULL,
   `permission` varchar(255) DEFAULT NULL,
-  `role_id` varchar(255) DEFAULT NULL,
+  `role_id` varchar(512) DEFAULT NULL,
   `role_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
