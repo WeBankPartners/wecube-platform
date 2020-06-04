@@ -19,7 +19,7 @@
   "filter_desc_label": "过滤条件(全模糊查询)",
   "cancel": "取消",
   "upload_plugin_pkg_title": "上传插件包",
-  "upload_plugin_btn": "上传插件",
+  "upload_plugin_btn": "上传本地插件",
   "plugins_list": "插件包列表",
   "ip_placeholder": "请输入IP",
   "create": "创建",
@@ -418,5 +418,6 @@
   "completely_deleted": "点击保存后将完全删除",
   "show_log": "查看日志",
   "auth_type": "认证类型",
-  "help_docs": "帮助文档"
+  "help_docs": "帮助文档",
+  "origin_plugins": "选择在线插件"
 }
