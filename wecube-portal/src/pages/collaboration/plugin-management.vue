@@ -8,6 +8,9 @@
       <Row>
         <Card dis-hover>
           <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
+          <Button type="info" :loading="loadingPlugin" @click="showUploadModalHandler">
+            {{ $t('origin_plugins') }}
+          </Button>
           <Button type="info" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
             {{ $t('upload_plugin_btn') }}
           </Button>
@@ -268,6 +271,26 @@
         </div>
       </div>
     </Col>
+    <Modal
+      footer-hide
+      :title="$t('upload_plugin_pkg_title')"
+      v-model="showUploadModal"
+      @on-open-change="modalChangeHandle"
+    >
+      <RadioGroup v-model="selectedOriginPlugin" vertical>
+        <Radio v-for="item in originPlugins" :key="item.keyName" :label="item.keyName">
+          <span>{{ item.keyName }}</span>
+        </Radio>
+      </RadioGroup>
+      <div style="height:30px;text-align: right">
+        <Button style="margin-left:10px;float:right" type="info" @click="uploadHandler">
+          {{ $t('bc_confirm') }}
+        </Button>
+        <Button style="margin-left:10px;float:right" @click="cancelHandler">
+          {{ $t('cancel') }}
+        </Button>
+      </div>
+    </Modal>
   </Row>
 </template>
 <script>
@@ -282,7 +305,10 @@ import {
   registPluginPackage,
   getAvailableInstancesByPackageId,
   queryDataBaseByPackageId,
-  queryStorageFilesByPackageId
+  queryStorageFilesByPackageId,
+  getPluginArtifacts,
+  pullPluginArtifact,
+  getPluginArtifactStatus
 } from '@/api/server.js'
 
 import DataModel from './components/data-model.vue'
@@ -319,6 +345,7 @@ export default {
       isRegisted: false,
       headers: {},
       showSuccess: false,
+      showUploadModal: false,
       isLoading: false,
       plugins: [],
       isShowConfigPanel: false,
@@ -417,10 +444,64 @@ export default {
       selectHosts: [],
       availiableHostsWithPort: [],
       isShowDecomissionedPackage: false,
-      isLoadingPluginList: false
+      isLoadingPluginList: false,
+      originPlugins: [],
+      selectedOriginPlugin: '',
+      pluginTimer: null,
+      loadingPlugin: false
     }
   },
   methods: {
+    modalChangeHandle (v) {
+      if (!v) {
+        this.cancelHandler()
+      }
+    },
+    cancelHandler () {
+      this.showUploadModal = false
+      this.selectedOriginPlugin = ''
+    },
+    async uploadHandler () {
+      const payload = {
+        keyName: this.selectedOriginPlugin
+      }
+      this.isLoading = true
+      const res = await pullPluginArtifact(payload) // getPluginArtifactStatus
+      if (res.status === 'OK') {
+        this.cancelHandler()
+        this.$nextTick(() => {
+          this.pluginTimer = setInterval(async () => {
+            const { status, data } = await getPluginArtifactStatus(res.data.requestId)
+            if (status !== 'OK' || data.state !== 'InProgress') {
+              clearInterval(this.pluginTimer)
+              this.pluginTimer = null
+              this.isLoading = false
+            }
+            if (status === 'OK' && data.state !== 'InProgress') {
+              clearInterval(this.pluginTimer)
+              this.pluginTimer = null
+              this.isLoading = false
+              this.$Notice.info({
+                title: 'Notification',
+                desc: data.state
+              })
+              if (data.state === 'Completed') {
+                this.getAllPluginPkgs()
+              }
+            }
+          }, 5000)
+        })
+      }
+    },
+    async showUploadModalHandler () {
+      this.loadingPlugin = true
+      const { status, data } = await getPluginArtifacts()
+      if (status === 'OK') {
+        this.loadingPlugin = false
+        this.originPlugins = data
+        this.showUploadModal = true
+      }
+    },
     onProgress (event, file, fileList) {
       if (event.percent === 100) {
         this.showSuccess = true
