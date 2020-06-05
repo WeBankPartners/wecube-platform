@@ -12,7 +12,7 @@
             <Button type="info" icon="md-list-box" :loading="loadingPlugin" @click="showUploadModalHandler">
               {{ $t('origin_plugins') }}
             </Button>
-            <Button type="info" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
+            <Button type="info" style="margin-left:20px" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
               {{ $t('upload_plugin_btn') }}
             </Button>
             <Upload
