@@ -8,28 +8,30 @@
       <Row>
         <Card dis-hover>
           <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
-          <Button type="info" icon="md-list-box" :loading="loadingPlugin" @click="showUploadModalHandler">
-            {{ $t('origin_plugins') }}
-          </Button>
-          <Button type="info" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
-            {{ $t('upload_plugin_btn') }}
-          </Button>
-          <Upload
-            ref="uploadButton"
-            show-upload-list
-            accept=".zip"
-            name="zip-file"
-            :on-success="onSuccess"
-            :on-progress="onProgress"
-            :on-error="onError"
-            action="platform/v1/packages"
-            :headers="headers"
-          >
-            <Button style="display:none" icon="ios-cloud-upload-outline">
+          <div style="text-align: center">
+            <Button type="info" icon="md-list-box" :loading="loadingPlugin" @click="showUploadModalHandler">
+              {{ $t('origin_plugins') }}
+            </Button>
+            <Button type="info" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
               {{ $t('upload_plugin_btn') }}
             </Button>
-          </Upload>
-          <span v-if="showSuccess" style="color:#2b85e4">{{ $t('plugin_analysis') }}</span>
+            <Upload
+              ref="uploadButton"
+              show-upload-list
+              accept=".zip"
+              name="zip-file"
+              :on-success="onSuccess"
+              :on-progress="onProgress"
+              :on-error="onError"
+              action="platform/v1/packages"
+              :headers="headers"
+            >
+              <Button style="display:none" icon="ios-cloud-upload-outline">
+                {{ $t('upload_plugin_btn') }}
+              </Button>
+            </Upload>
+            <span v-if="showSuccess" style="color:#2b85e4">{{ $t('plugin_analysis') }}</span>
+          </div>
         </Card>
       </Row>
       <Row class="plugins-tree-container" style="margin-top: 20px">
