@@ -506,8 +506,8 @@ export default {
     async showUploadModalHandler () {
       this.loadingPlugin = true
       const { status, data } = await getPluginArtifacts()
+      this.loadingPlugin = false
       if (status === 'OK') {
-        this.loadingPlugin = false
         this.originPlugins = data
         this.originPluginsFilter = data
         this.showUploadModal = true
