@@ -756,8 +756,8 @@ export default {
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       this.serviceTaskBindInfos.push({
-        nodeDefId: this.currentNode.nodeDefId,
         ...pluginFormCopy,
+        nodeDefId: this.currentNode.nodeDefId,
         nodeId: this.currentNode.id,
         nodeName: this.currentNode.name,
         serviceName: (found && found.serviceName) || '',
@@ -779,7 +779,13 @@ export default {
             this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
           this.prepareDefaultPluginForm()
         this.pluginForm.routineExpression = this.pluginForm.routineExpression || this.currentSelectedEntity
+        // eslint-disable-next-line no-useless-escape
+        const pathList = this.pluginForm.routineExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
+        if (pathList[0] !== this.currentSelectedEntity) {
+          this.pluginForm.routineExpression = this.currentSelectedEntity
+        }
         this.getPluginInterfaceList()
+
         // get flow's params infos
         this.getFlowsNodes()
         this.getFilteredPluginInterfaceList(this.pluginForm.routineExpression)
@@ -805,6 +811,7 @@ export default {
       if (status === 'OK') {
         this.currentflowsNodes = data.filter(_ => _.nodeId !== this.currentNode.id)
         const found = data.find(i => i.nodeId === this.currentNode.id)
+        console.log(found)
         this.currentNode.nodeDefId = found ? found.nodeDefId : ''
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index)
