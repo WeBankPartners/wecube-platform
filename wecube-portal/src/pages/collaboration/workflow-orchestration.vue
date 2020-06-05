@@ -811,7 +811,6 @@ export default {
       if (status === 'OK') {
         this.currentflowsNodes = data.filter(_ => _.nodeId !== this.currentNode.id)
         const found = data.find(i => i.nodeId === this.currentNode.id)
-        console.log(found)
         this.currentNode.nodeDefId = found ? found.nodeDefId : ''
         this.pluginForm.paramInfos.forEach((_, index) => {
           this.onParamsNodeChange(index)
