@@ -9,7 +9,7 @@
         <Card dis-hover>
           <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
           <div style="text-align: center">
-            <Button type="info" icon="md-list-box" :loading="loadingPlugin" @click="showUploadModalHandler">
+            <Button type="info" icon="md-list-box" ghost :loading="loadingPlugin" @click="showUploadModalHandler">
               {{ $t('origin_plugins') }}
             </Button>
             <Button type="info" style="margin-left:20px" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
