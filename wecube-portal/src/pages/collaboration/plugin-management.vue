@@ -4,11 +4,11 @@
       <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
       <div>{{ $t('loading') }}</div>
     </Spin>
-    <Col span="6">
+    <Col span="7">
       <Row>
         <Card dis-hover>
           <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
-          <Button type="info" :loading="loadingPlugin" @click="showUploadModalHandler">
+          <Button type="info" icon="md-list-box" :loading="loadingPlugin" @click="showUploadModalHandler">
             {{ $t('origin_plugins') }}
           </Button>
           <Button type="info" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
@@ -87,7 +87,7 @@
         </Card>
       </Row>
     </Col>
-    <Col span="18" style="padding-left: 20px" v-if="isShowConfigPanel">
+    <Col span="17" style="padding-left: 20px" v-if="isShowConfigPanel">
       <Tabs type="card" :value="currentTab" @on-click="handleTabClick">
         <TabPane name="dependency" :label="$t('dependencies_analysis')">
           <DependencyAnalysis v-if="currentTab === 'dependency'" :pkgId="currentPlugin.id"></DependencyAnalysis>
@@ -271,17 +271,17 @@
         </div>
       </div>
     </Col>
-    <Modal
-      footer-hide
-      :title="$t('upload_plugin_pkg_title')"
-      v-model="showUploadModal"
-      @on-open-change="modalChangeHandle"
-    >
-      <RadioGroup v-model="selectedOriginPlugin" vertical>
-        <Radio v-for="item in originPlugins" :key="item.keyName" :label="item.keyName">
-          <span>{{ item.keyName }}</span>
-        </Radio>
-      </RadioGroup>
+    <Modal footer-hide :title="$t('origin_plugins')" v-model="showUploadModal" @on-open-change="modalChangeHandle">
+      <div>
+        <Input :placeholder="$t('search')" v-model="filterForPkg"></Input>
+      </div>
+      <div style="width:100%;height:350px;overflow: auto;margin-top: 10px">
+        <RadioGroup v-model="selectedOriginPlugin" vertical>
+          <Radio v-for="item in originPluginsFilter" :key="item.keyName" :label="item.keyName">
+            <span>{{ item.keyName }}</span>
+          </Radio>
+        </RadioGroup>
+      </div>
       <div style="height:30px;text-align: right">
         <Button style="margin-left:10px;float:right" type="info" @click="uploadHandler">
           {{ $t('bc_confirm') }}
@@ -342,6 +342,7 @@ export default {
   },
   data () {
     return {
+      filterForPkg: '',
       isRegisted: false,
       headers: {},
       showSuccess: false,
@@ -446,9 +447,17 @@ export default {
       isShowDecomissionedPackage: false,
       isLoadingPluginList: false,
       originPlugins: [],
+      originPluginsFilter: [],
       selectedOriginPlugin: '',
       pluginTimer: null,
       loadingPlugin: false
+    }
+  },
+  watch: {
+    filterForPkg: {
+      handler (v) {
+        this.originPluginsFilter = this.originPlugins.filter(_ => _.keyName.indexOf(v) > -1)
+      }
     }
   },
   methods: {
@@ -460,6 +469,7 @@ export default {
     cancelHandler () {
       this.showUploadModal = false
       this.selectedOriginPlugin = ''
+      this.filterForPkg = ''
     },
     async uploadHandler () {
       const payload = {
@@ -499,6 +509,7 @@ export default {
       if (status === 'OK') {
         this.loadingPlugin = false
         this.originPlugins = data
+        this.originPluginsFilter = data
         this.showUploadModal = true
       }
     },
