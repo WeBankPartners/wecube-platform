@@ -25,8 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.BatchExecutionJob;
@@ -67,6 +68,8 @@ public class BatchExecutionService {
     private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
     @Autowired
     protected StandardEntityOperationService standardEntityOperationService;
+    
+    private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
             throws IOException {
@@ -194,9 +197,8 @@ public class BatchExecutionService {
         log.info("returnJsonString= " + responseData.toString());
         String returnJsonString = JsonUtils.toJsonString(responseData);
         log.info("returnJsonString= " + returnJsonString);
-        ResultData<PluginResponseStationaryOutput> stationaryResultData = JSON.parseObject(returnJsonString,
-                new TypeReference<ResultData<PluginResponseStationaryOutput>>() {
-                });
+        ResultData<PluginResponseStationaryOutput> stationaryResultData = objectMapper.readValue(returnJsonString, new TypeReference<ResultData<PluginResponseStationaryOutput>>() {
+        });
 
         if (stationaryResultData.getOutputs().size() == 0) {
             errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no respond",

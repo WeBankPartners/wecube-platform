@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,9 +11,11 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonUtils {
-
+    
     public static String toJsonString(Object object) {
-        if (object == null) return "";
+        if (object == null) {
+            return "";
+        }
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -25,6 +26,7 @@ public class JsonUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> List<T> toList(String jsonContent, Class<T> clzz) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JavaType javaType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, clzz);
