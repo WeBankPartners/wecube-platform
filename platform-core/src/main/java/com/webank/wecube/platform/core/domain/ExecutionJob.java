@@ -2,12 +2,20 @@ package com.webank.wecube.platform.core.domain;
 
 import java.util.List;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
-import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.webank.wecube.platform.core.support.DomainIdBuilder;
+import com.webank.wecube.platform.core.utils.JsonUtils;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -166,7 +174,7 @@ public class ExecutionJob {
     public void setErrorWithMessage(String errorMessage) {
         this.errorCode = ERROR_CODE_FAILED;
         this.errorMessage = errorMessage;
-        this.returnJson = JSON.toJSONString(this);
+        this.returnJson = JsonUtils.toJsonString(this);
     }
 
     @Override
