@@ -116,7 +116,7 @@
         </TabPane>
       </Tabs>
     </Col>
-    <Col span="18" style="padding-left: 20px" v-if="isShowServicePanel">
+    <Col span="17" style="padding-left: 20px" v-if="isShowServicePanel">
       <Card dis-hover>
         <PluginRegister
           v-if="isShowServicePanel"
@@ -125,7 +125,7 @@
         ></PluginRegister>
       </Card>
     </Col>
-    <Col span="18" style="padding-left: 20px" v-if="isShowRuntimeManagementPanel">
+    <Col span="17" style="padding-left: 20px" v-if="isShowRuntimeManagementPanel">
       <div v-if="Object.keys(currentPlugin).length > 0">
         <div v-if="currentPlugin.children">
           <Row class="instances-container">
