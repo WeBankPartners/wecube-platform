@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.plugin;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -52,6 +52,9 @@ import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
+import com.webank.wecube.platform.core.service.CommandService;
+import com.webank.wecube.platform.core.service.ScpService;
+import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
