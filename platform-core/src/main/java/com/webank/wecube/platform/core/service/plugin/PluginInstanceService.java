@@ -270,6 +270,7 @@ public class PluginInstanceService {
         }
 
         try {
+        	logger.info("try to perform database upgrade for {} {}", pluginPackage.getName(), pluginPackage.getVersion());
             performUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage, latestVersion);
         } catch (IOException e) {
             logger.error("errors while processing upgrade sql", e);
@@ -308,10 +309,11 @@ public class PluginInstanceService {
         populator.setSeparator(";");
         scipts.forEach(populator::addScript);
         try {
+        	logger.info("start to execute sql script file:{}", upgradeSqlFile.getAbsolutePath());
             populator.execute(dataSource);
         } catch (Exception e) {
-            String errorMessage = String.format("Failed to execute init.sql for schema[%s]",
-                    mysqlInstance.getSchemaName());
+            String errorMessage = String.format("Failed to execute [{}] for schema[%s]",
+            		upgradeSqlFile.getName(), mysqlInstance.getSchemaName());
             logger.error(errorMessage);
             throw new WecubeCoreException(errorMessage, e);
         }
@@ -320,7 +322,7 @@ public class PluginInstanceService {
 
     private File parseUpgradeMysqlDataFile(String baseTmpDir, File initSqlFile, PluginPackage pluginPackage,
             String latestVersion) throws IOException {
-        File upgradeSqlFile = new File(baseTmpDir, String.format("upgrade-%s-%s-%s", pluginPackage.getName(),
+        File upgradeSqlFile = new File(baseTmpDir, String.format("upgrade-%s-%s-%s.sql", pluginPackage.getName(),
                 pluginPackage.getVersion(), System.currentTimeMillis()));
         Pattern p = Pattern.compile(VersionTagInfo.VERSION_TAG_PATTERN);
         String foreignCheckOff = "SET FOREIGN_KEY_CHECKS = 0;";
