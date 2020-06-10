@@ -155,8 +155,8 @@ export default {
       const { status, data } = await getAllPluginPackageResourceFiles()
       if (status === 'OK' && data && data.length > 0) {
         // const data = [
-        //   {relatedPath: 'js/app.51566d64.js'},
-        //   {relatedPath: 'css/app.44cf8f34.css'}
+        //   { relatedPath: 'http://localhost:8888/js/app.e4cd4d03.js ' },
+        //   { relatedPath: 'http://localhost:8888/css/app.f724c7a4.css' }
         // ]
         this.$Notice.info({
           title: this.$t('notification_desc')
