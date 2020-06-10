@@ -43,6 +43,9 @@ public class PluginMysqlInstance {
     private String password;
     @Column
     private String status;
+    
+    @Column(name="pre_version")
+    private String latestUpgradeVersion;
 
     public PluginMysqlInstance() {
     }
@@ -140,4 +143,12 @@ public class PluginMysqlInstance {
         this.pluginPackage = pluginPackage;
     }
 
+    public String getLatestUpgradeVersion() {
+        return latestUpgradeVersion;
+    }
+
+    public void setLatestUpgradeVersion(String latestUpgradeVersion) {
+        this.latestUpgradeVersion = latestUpgradeVersion;
+    }
+    
 }
