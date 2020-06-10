@@ -323,6 +323,8 @@ public class PluginInstanceService {
         File upgradeSqlFile = new File(baseTmpDir, String.format("upgrade-%s-%s-%s", pluginPackage.getName(),
                 pluginPackage.getVersion(), System.currentTimeMillis()));
         Pattern p = Pattern.compile(VersionTagInfo.VERSION_TAG_PATTERN);
+        String foreignCheckOff = "SET FOREIGN_KEY_CHECKS = 0;";
+        String foreignCheckOn = "SET FOREIGN_KEY_CHECKS = 1;";
 
         BufferedReader br = null;
         BufferedWriter bw = null;
@@ -332,6 +334,7 @@ public class PluginInstanceService {
             bw = new BufferedWriter(
                     new OutputStreamWriter(new FileOutputStream(upgradeSqlFile), Charset.forName("utf-8")));
 
+            bw.write(foreignCheckOff+"\n");
             long lineNum = 0L;
             String sLine = null;
             boolean shouldStart = false;
@@ -363,6 +366,8 @@ public class PluginInstanceService {
                     break;
                 }
             }
+            
+            bw.write(foreignCheckOn+"\n");
         } finally {
             if (br != null) {
                 try {
