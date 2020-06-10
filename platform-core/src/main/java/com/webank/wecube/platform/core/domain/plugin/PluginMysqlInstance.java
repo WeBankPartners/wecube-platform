@@ -1,16 +1,17 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
-
-import javax.persistence.*;
 
 @Entity
 @Table(name = "plugin_mysql_instances")
@@ -43,15 +44,21 @@ public class PluginMysqlInstance {
     private String password;
     @Column
     private String status;
-    
-    @Column(name="pre_version")
+
+    @Column(name = "pre_version")
     private String latestUpgradeVersion;
+
+    @Column(name = "created_time")
+    private Date createdTime;
+
+    @Column(name = "updated_time")
+    private Date updatedTime;
 
     public PluginMysqlInstance() {
     }
 
     public PluginMysqlInstance(String schemaName, String resourceItemId, String username, String password,
-                               String status, PluginPackage pluginPackage) {
+            String status, PluginPackage pluginPackage) {
         this.schemaName = schemaName;
         this.resourceItemId = resourceItemId;
         this.username = username;
@@ -67,11 +74,8 @@ public class PluginMysqlInstance {
     @PrePersist
     public void initId() {
         if (null == this.id || this.id.trim().equals("")) {
-            this.id = DomainIdBuilder.buildDomainId(
-                    null != pluginPackage ? pluginPackage.getId() : null,
-                    schemaName,
-                    username
-            );
+            this.id = DomainIdBuilder.buildDomainId(null != pluginPackage ? pluginPackage.getId() : null, schemaName,
+                    username);
         }
     }
 
@@ -150,5 +154,21 @@ public class PluginMysqlInstance {
     public void setLatestUpgradeVersion(String latestUpgradeVersion) {
         this.latestUpgradeVersion = latestUpgradeVersion;
     }
-    
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
 }
