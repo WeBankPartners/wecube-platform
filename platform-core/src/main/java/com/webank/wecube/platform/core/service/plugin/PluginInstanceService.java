@@ -330,8 +330,7 @@ public class PluginInstanceService {
 
     private File parseUpgradeMysqlDataFile(String baseTmpDir, File initSqlFile, PluginPackage pluginPackage,
             String latestVersion) throws IOException {
-        File upgradeSqlFile = new File(baseTmpDir, String.format("upgrade-%s-%s-%s.sql", pluginPackage.getName(),
-                pluginPackage.getVersion(), System.currentTimeMillis()));
+        File upgradeSqlFile = new File(baseTmpDir, String.format("upgrade%s.sql", System.currentTimeMillis()));
         Pattern p = Pattern.compile(VersionTagInfo.VERSION_TAG_PATTERN);
         String foreignCheckOff = "SET FOREIGN_KEY_CHECKS = 0;";
         String foreignCheckOn = "SET FOREIGN_KEY_CHECKS = 1;";
