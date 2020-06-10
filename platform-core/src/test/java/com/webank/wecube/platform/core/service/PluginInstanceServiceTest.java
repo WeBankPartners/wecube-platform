@@ -9,6 +9,8 @@ import javax.script.ScriptException;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
+
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
