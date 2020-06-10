@@ -233,12 +233,92 @@ public class PluginInstanceService {
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, pluginPackage.getName());
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
+            tryUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
             return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
                     mysqlInstance.getUsername(), mysqlInstance.getPassword(), mysqlInstance.getResourceItemId());
         }
 
         return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
+    }
+
+    private void tryUpgradeMysqlDatabaseData(PluginMysqlInstance mysqlInstance, PluginPackage pluginPackage) {
+        String latestVersion = mysqlInstance.getLatestUpgradeVersion();
+        if (!shouldUpgradeMysqlDatabaseData(latestVersion, pluginPackage.getVersion())) {
+            logger.info("latest version {} and current version {}, no need to upgrade.", latestVersion,
+                    pluginPackage.getVersion());
+            return;
+        }
+
+        if (isStringBlank(latestVersion)) {
+            latestVersion = pluginPackage.getVersion();
+        }
+
+        performUpgradeMysqlDatabaseData(mysqlInstance,pluginPackage, latestVersion);
+    }
+
+    private void performUpgradeMysqlDatabaseData(PluginMysqlInstance mysqlInstance, PluginPackage pluginPackage,
+            String latestVersion) {
+        String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        String initSqlPath = SystemUtils.getTempFolderPath() + tmpFolderName + "/" + pluginProperties.getInitDbSql();
+
+        String s3KeyName = pluginPackage.getName() + File.separator + pluginPackage.getVersion() + File.separator
+                + pluginProperties.getInitDbSql();
+        logger.info("Download init.sql from S3: {}", s3KeyName);
+        
+        
+
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
+
+        ResourceServer dbServer = resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
+                .getResourceServer();
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
+                        + "?characterEncoding=utf8&serverTimezone=UTC",
+                mysqlInstance.getUsername(), EncryptionUtils.decryptWithAes(mysqlInstance.getPassword(),
+                        resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName()));
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        
+        
+        File upgradeSqlFile = parseUpgradeMysqlDataFile();
+        List<Resource> scipts = newArrayList(new FileSystemResource(upgradeSqlFile));
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+        populator.setContinueOnError(false);
+        populator.setIgnoreFailedDrops(false);
+        populator.setSeparator(";");
+        scipts.forEach(populator::addScript);
+        try {
+            populator.execute(dataSource);
+        } catch (Exception e) {
+            String errorMessage = String.format("Failed to execute init.sql for schema[%s]",
+                    mysqlInstance.getSchemaName());
+            logger.error(errorMessage);
+            throw new WecubeCoreException(errorMessage, e);
+        }
+        logger.info(String.format("Init database[%s] tables has done..", mysqlInstance.getSchemaName()));
+    }
+    
+    private File parseUpgradeMysqlDataFile(){
+        //TODO
+        return null;
+    }
+
+    private boolean isStringBlank(String s) {
+        if (s == null || s.trim().length() < 1) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean shouldUpgradeMysqlDatabaseData(String latestVersion, String currentVersion) {
+        if (isStringBlank(latestVersion)) {
+            return true;
+        }
+
+        // greater than
+        // TODO
+        return true;
     }
 
     private String handleCreateS3Bucket(Set<PluginPackageRuntimeResourcesS3> s3InfoSet, PluginPackage pluginPackage) {
@@ -337,7 +417,8 @@ public class PluginInstanceService {
     private DatabaseInfo initMysqlDatabaseSchema(Set<PluginPackageRuntimeResourcesMysql> mysqlSet,
             PluginPackage pluginPackage) {
         if (mysqlSet.size() != 0) {
-            PluginMysqlInstance mysqlInstance = createPluginMysqlDatabase(mysqlSet.iterator().next());
+            PluginMysqlInstance mysqlInstance = createPluginMysqlDatabase(mysqlSet.iterator().next(),
+                    pluginPackage.getVersion());
 
             ResourceServer dbServer = resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
                     .getResourceServer();
@@ -396,7 +477,8 @@ public class PluginInstanceService {
         return createPluginS3Bucket(s3InfoSet.iterator().next());
     }
 
-    public PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo) {
+    public PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo,
+            String currentPluginVersion) {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.MYSQL);
         List<ResourceServerDto> mysqlServers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (mysqlServers.size() == 0) {
@@ -416,8 +498,9 @@ public class PluginInstanceService {
         createMysqlDto.setResourceServer(mysqlServer);
         createMysqlDto.setIsAllocated(true);
         logger.info("Mysql Database schema creating...");
-        if (logger.isDebugEnabled())
+        if (logger.isDebugEnabled()) {
             logger.info("Request parameters= " + createMysqlDto);
+        }
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
         PluginMysqlInstance mysqlInstance = new PluginMysqlInstance(mysqlInfo.getSchemaName(), result.get(0).getId(),
@@ -425,6 +508,7 @@ public class PluginInstanceService {
                 EncryptionUtils.encryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
                         mysqlInfo.getSchemaName()),
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, mysqlInfo.getPluginPackage());
+        mysqlInstance.setLatestUpgradeVersion(currentPluginVersion);
         pluginMysqlInstanceRepository.save(mysqlInstance);
 
         logger.info("Mysql Database schema creation has done...");
