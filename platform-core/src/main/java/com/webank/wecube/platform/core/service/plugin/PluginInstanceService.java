@@ -302,14 +302,22 @@ public class PluginInstanceService {
         File initSqlFile = new File(initSqlPath);
 
         File upgradeSqlFile = parseUpgradeMysqlDataFile(baseTmpDir, initSqlFile, pluginPackage, latestVersion);
-        List<Resource> scipts = newArrayList(new FileSystemResource(upgradeSqlFile));
+        List<Resource> scripts = newArrayList(new FileSystemResource(upgradeSqlFile));
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         populator.setContinueOnError(false);
         populator.setIgnoreFailedDrops(false);
         populator.setSeparator(";");
-        scipts.forEach(populator::addScript);
+        populator.setCommentPrefix("#");
+        populator.setSqlScriptEncoding("utf-8");
+        for(Resource script : scripts) {
+        	populator.addScript(script);
+        }
         try {
-        	logger.info("start to execute sql script file:{}", upgradeSqlFile.getAbsolutePath());
+        	logger.info("start to execute sql script file:{}, host:{},port:{},schema:{}", 
+        			upgradeSqlFile.getAbsolutePath(),
+        			dbServer.getHost(),
+        			dbServer.getPort(),
+        			mysqlInstance.getSchemaName());
             populator.execute(dataSource);
         } catch (Exception e) {
             String errorMessage = String.format("Failed to execute [{}] for schema[%s]",
