@@ -13,7 +13,7 @@ let router = new Router({
         {
           path: '/homepage',
           name: 'homepage',
-          component: () => import('@/pages/home-page'),
+          component: () => import('@/pages/home-page.js'),
           params: {},
           props: true
         },

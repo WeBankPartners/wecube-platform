@@ -34,9 +34,10 @@ window.request = req
 window.needReLoad = true
 window.routers = []
 
-class WatchRouters {
+class UserWatch {
   constructor () {
     this.handles = {}
+    this.data = []
   }
   on (eventType, handle) {
     if (!this.handles.hasOwnProperty(eventType)) {
@@ -56,7 +57,7 @@ class WatchRouters {
     return this
   }
 }
-let WatchRouter = new WatchRouters()
+let WatchRouter = new UserWatch()
 WatchRouter.on('change', path => {
   if (window.needReLoad) return
   if (path === '/login' || path === '/404') {
@@ -98,6 +99,17 @@ window.addRoutersWithoutPermission = routes => {
 window.implicitRoutes = {}
 window.addImplicitRoute = routes => {
   window.implicitRoutes = Object.assign(window.implicitRoutes, routes)
+}
+window.homepageComponent = new UserWatch()
+window.addHomepageComponent = compObj => {
+  // compObj = {
+  //   name: () => {},
+  //   component: component
+  // }
+  window.homepageComponent.data.push(compObj)
+  if (router.app.$route.path === '/homepage') {
+    window.homepageComponent.emit('change', [])
+  }
 }
 
 window.component = (name, comp) => {
