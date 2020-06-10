@@ -1,6 +1,17 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.apache.commons.lang3.StringUtils.trim;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -21,18 +34,8 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
-import com.webank.wecube.platform.core.support.S3Client;
-import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
-import com.webank.wecube.platform.core.support.gateway.GatewayServiceStub;
-import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
-import com.webank.wecube.platform.core.support.gateway.RouteItem;
-import com.webank.wecube.platform.core.utils.EncryptionUtils;
-import com.webank.wecube.platform.core.utils.JsonUtils;
-import com.webank.wecube.platform.core.utils.StringUtils;
-import com.webank.wecube.platform.core.utils.SystemUtils;
-
-import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
+import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
@@ -58,9 +61,15 @@ import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.apache.commons.lang3.StringUtils.trim;
+import com.webank.wecube.platform.core.support.S3Client;
+import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
+import com.webank.wecube.platform.core.support.gateway.GatewayServiceStub;
+import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
+import com.webank.wecube.platform.core.support.gateway.RouteItem;
+import com.webank.wecube.platform.core.utils.EncryptionUtils;
+import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.core.utils.StringUtils;
+import com.webank.wecube.platform.core.utils.SystemUtils;
 
 @Service
 public class PluginInstanceService {
@@ -257,19 +266,23 @@ public class PluginInstanceService {
             latestVersion = pluginPackage.getVersion();
         }
 
-        performUpgradeMysqlDatabaseData(mysqlInstance,pluginPackage, latestVersion);
+        try {
+            performUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage, latestVersion);
+        } catch (IOException e) {
+            logger.error("errors while processing upgrade sql", e);
+            throw new WecubeCoreException("System error to upgrade plugin database.");
+        }
     }
 
     private void performUpgradeMysqlDatabaseData(PluginMysqlInstance mysqlInstance, PluginPackage pluginPackage,
-            String latestVersion) {
+            String latestVersion) throws IOException {
         String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
-        String initSqlPath = SystemUtils.getTempFolderPath() + tmpFolderName + "/" + pluginProperties.getInitDbSql();
+        String baseTmpDir = SystemUtils.getTempFolderPath() + tmpFolderName + "/";
+        String initSqlPath = baseTmpDir + pluginProperties.getInitDbSql();
 
         String s3KeyName = pluginPackage.getName() + File.separator + pluginPackage.getVersion() + File.separator
                 + pluginProperties.getInitDbSql();
         logger.info("Download init.sql from S3: {}", s3KeyName);
-        
-        
 
         s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
 
@@ -281,9 +294,10 @@ public class PluginInstanceService {
                 mysqlInstance.getUsername(), EncryptionUtils.decryptWithAes(mysqlInstance.getPassword(),
                         resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName()));
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        
-        
-        File upgradeSqlFile = parseUpgradeMysqlDataFile();
+
+        File initSqlFile = new File(initSqlPath);
+
+        File upgradeSqlFile = parseUpgradeMysqlDataFile(baseTmpDir, initSqlFile, pluginPackage, latestVersion);
         List<Resource> scipts = newArrayList(new FileSystemResource(upgradeSqlFile));
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         populator.setContinueOnError(false);
@@ -298,12 +312,121 @@ public class PluginInstanceService {
             logger.error(errorMessage);
             throw new WecubeCoreException(errorMessage, e);
         }
-        logger.info(String.format("Init database[%s] tables has done..", mysqlInstance.getSchemaName()));
+        logger.info(String.format("Upgrade database[%s] finished...", mysqlInstance.getSchemaName()));
     }
-    
-    private File parseUpgradeMysqlDataFile(){
-        //TODO
-        return null;
+
+    private File parseUpgradeMysqlDataFile(String baseTmpDir, File initSqlFile, PluginPackage pluginPackage,
+            String latestVersion) throws IOException {
+        File upgradeSqlFile = new File(baseTmpDir, String.format("upgrade-%s-%s-%s", pluginPackage.getName(),
+                pluginPackage.getVersion(), System.currentTimeMillis()));
+        Pattern p = Pattern.compile(VersionTagInfo.VERSION_TAG_PATTERN);
+
+        BufferedReader br = null;
+        BufferedWriter bw = null;
+        String currentVersion = pluginPackage.getVersion();
+        try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(initSqlFile), Charset.forName("utf-8")));
+            bw = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(upgradeSqlFile), Charset.forName("utf-8")));
+
+            long lineNum = 0L;
+            String sLine = null;
+            boolean shouldStart = false;
+            boolean shouldStop = false;
+            while ((sLine = br.readLine()) != null) {
+                lineNum++;
+                String trimLine = sLine.trim();
+                Matcher m = p.matcher(trimLine);
+                if (m.matches()) {
+                    VersionTagInfo info = VersionTagInfo.parseVersionTagInfo(m, lineNum);
+                    if (!shouldStart) {
+                        if (shouldStart(info, latestVersion, currentVersion)) {
+                            shouldStart = true;
+                        }
+                    }
+
+                    if (!shouldStop) {
+                        if (shouldStop(info, currentVersion)) {
+                            shouldStop = true;
+                        }
+                    }
+                }
+
+                if (shouldStart) {
+                    bw.write(sLine + "\n");
+                }
+
+                if (shouldStop) {
+                    break;
+                }
+            }
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                }
+            }
+
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+        return upgradeSqlFile;
+    }
+
+    private boolean shouldStart(VersionTagInfo info, String latestVersion, String currentVersion) {
+        if (!info.isBegin()) {
+            return false;
+        }
+        if (versionGreaterThan(info.getVersion(), latestVersion)) {
+            return true;
+        }
+
+        if (versionEquals(info.getVersion(), currentVersion)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean shouldStop(VersionTagInfo info, String currentVersion) {
+
+        if (versionGreaterThan(info.getVersion(), currentVersion)) {
+            return true;
+        }
+
+        if (versionEquals(info.getVersion(), currentVersion)) {
+            if (info.isEnd()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean versionGreaterThan(String version, String baseVersion) {
+        VersionComparator vc = new VersionComparator();
+        int compare = vc.compare(version, baseVersion);
+        if (compare > 0) {
+            return true;
+        }
+
+        return false;
+
+    }
+
+    public boolean versionEquals(String version, String baseVersion) {
+        VersionComparator vc = new VersionComparator();
+        int compare = vc.compare(version, baseVersion);
+        if (compare == 0) {
+            return true;
+        }
+
+        return false;
     }
 
     private boolean isStringBlank(String s) {
@@ -318,10 +441,16 @@ public class PluginInstanceService {
         if (isStringBlank(latestVersion)) {
             return true;
         }
+        
+        if(versionEquals(currentVersion, latestVersion)){
+            return false;
+        }
+        
+        if(versionGreaterThan(currentVersion, latestVersion)){
+            return true;
+        }
 
-        // greater than
-        // TODO
-        return true;
+        return false;
     }
 
     private String handleCreateS3Bucket(Set<PluginPackageRuntimeResourcesS3> s3InfoSet, PluginPackage pluginPackage) {
