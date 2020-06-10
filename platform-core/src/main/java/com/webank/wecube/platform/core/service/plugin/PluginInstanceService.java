@@ -246,6 +246,9 @@ public class PluginInstanceService {
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
             tryUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage);
+            mysqlInstance.setLatestUpgradeVersion(pluginPackage.getVersion());
+            mysqlInstance.setUpdatedTime(new Date());
+            pluginMysqlInstanceRepository.save(mysqlInstance);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
             return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
                     mysqlInstance.getUsername(), mysqlInstance.getPassword(), mysqlInstance.getResourceItemId());
@@ -641,6 +644,7 @@ public class PluginInstanceService {
                         mysqlInfo.getSchemaName()),
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, mysqlInfo.getPluginPackage());
         mysqlInstance.setLatestUpgradeVersion(currentPluginVersion);
+        mysqlInstance.setCreatedTime(new Date());
         pluginMysqlInstanceRepository.save(mysqlInstance);
 
         logger.info("Mysql Database schema creation has done...");
