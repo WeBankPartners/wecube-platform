@@ -2,7 +2,7 @@ package com.webank.wecube.platform.core.controller;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.service.PluginInstanceService;
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

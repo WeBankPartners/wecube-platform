@@ -79,7 +79,6 @@ import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageXmlParser;
 import com.webank.wecube.platform.core.service.CommandService;
-import com.webank.wecube.platform.core.service.PluginInstanceService;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
 import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.plugin.PluginArtifactOperationExecutor.PluginArtifactPullContext;
