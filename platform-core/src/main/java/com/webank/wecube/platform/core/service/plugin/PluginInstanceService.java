@@ -368,6 +368,7 @@ public class PluginInstanceService {
                 try {
                     br.close();
                 } catch (IOException e) {
+                    logger.warn("", e);
                 }
             }
 
@@ -375,6 +376,7 @@ public class PluginInstanceService {
                 try {
                     bw.close();
                 } catch (IOException e) {
+                    logger.warn("", e);
                 }
             }
         }
