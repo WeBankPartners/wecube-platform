@@ -1,18 +1,24 @@
 package com.webank.wecube.platform.core.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommand;
 import com.webank.wecube.platform.core.service.cmder.ssh2.RemoteCommandExecutorConfig;
 import com.webank.wecube.platform.core.service.cmder.ssh2.impl.PooledRemoteCommandExecutor;
 import com.webank.wecube.platform.core.service.cmder.ssh2.impl.SimpleRemoteCommand;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.io.*;
 
 @Service
-@Slf4j
 public class CommandService {
+    private static final Logger log = LoggerFactory.getLogger(CommandService.class);
 
     public void runAtLocal(String command) throws Exception {
         String returnString = "";

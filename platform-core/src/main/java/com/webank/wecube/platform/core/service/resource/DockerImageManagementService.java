@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +17,9 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourcePro
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Service
 public class DockerImageManagementService implements ResourceItemService {
+    private static final Logger log = LoggerFactory.getLogger(DockerImageManagementService.class);
 
     @Autowired
     private ResourceProperties resourceProperties;
