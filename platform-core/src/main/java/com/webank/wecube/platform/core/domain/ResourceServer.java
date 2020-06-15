@@ -11,8 +11,6 @@ import javax.validation.constraints.NotBlank;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
-
 @Entity
 @Table(name = "resource_server")
 public class ResourceServer {
@@ -76,7 +74,10 @@ public class ResourceServer {
     public ResourceServer() {
     }
 
-    public ResourceServer(String id, @NotBlank String name, @NotBlank String host, @NotBlank String port, @NotBlank String loginUsername, @NotBlank String loginPassword, @NotBlank String type, Integer isAllocated, @NotBlank String purpose, String status, List<ResourceItem> resourceItems, String createdBy, Timestamp createdDate, String updatedBy, Timestamp updatedDate) {
+    public ResourceServer(String id, @NotBlank String name, @NotBlank String host, @NotBlank String port,
+            @NotBlank String loginUsername, @NotBlank String loginPassword, @NotBlank String type, Integer isAllocated,
+            @NotBlank String purpose, String status, List<ResourceItem> resourceItems, String createdBy,
+            Timestamp createdDate, String updatedBy, Timestamp updatedDate) {
         this.id = id;
         this.name = name;
         this.host = host;
@@ -216,32 +217,32 @@ public class ResourceServer {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ResourceServer that = (ResourceServer) o;
-        return getId().equals(that.getId()) &&
-                getName().equals(that.getName()) &&
-                getHost().equals(that.getHost()) &&
-                getPort().equals(that.getPort()) &&
-                getLoginUsername().equals(that.getLoginUsername()) &&
-                getLoginPassword().equals(that.getLoginPassword()) &&
-                getType().equals(that.getType()) &&
-                Objects.equals(getIsAllocated(), that.getIsAllocated()) &&
-                getPurpose().equals(that.getPurpose()) &&
-                Objects.equals(getStatus(), that.getStatus()) &&
-                Objects.equals(getCreatedBy(), that.getCreatedBy()) &&
-                Objects.equals(getCreatedDate(), that.getCreatedDate()) &&
-                Objects.equals(getUpdatedBy(), that.getUpdatedBy()) &&
-                Objects.equals(getUpdatedDate(), that.getUpdatedDate());
+        return getId().equals(that.getId()) && getName().equals(that.getName()) && getHost().equals(that.getHost())
+                && getPort().equals(that.getPort()) && getLoginUsername().equals(that.getLoginUsername())
+                && getLoginPassword().equals(that.getLoginPassword()) && getType().equals(that.getType())
+                && Objects.equals(getIsAllocated(), that.getIsAllocated()) && getPurpose().equals(that.getPurpose())
+                && Objects.equals(getStatus(), that.getStatus()) && Objects.equals(getCreatedBy(), that.getCreatedBy())
+                && Objects.equals(getCreatedDate(), that.getCreatedDate())
+                && Objects.equals(getUpdatedBy(), that.getUpdatedBy())
+                && Objects.equals(getUpdatedDate(), that.getUpdatedDate());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getName(), getHost(), getPort(), getLoginUsername(), getLoginPassword(), getType(), getIsAllocated(), getPurpose(), getStatus(), getCreatedBy(), getCreatedDate(), getUpdatedBy(), getUpdatedDate());
+        return Objects.hash(getId(), getName(), getHost(), getPort(), getLoginUsername(), getLoginPassword(), getType(),
+                getIsAllocated(), getPurpose(), getStatus(), getCreatedBy(), getCreatedDate(), getUpdatedBy(),
+                getUpdatedDate());
     }
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[] {"resourceItems"});
+        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "resourceItems" });
     }
 }
