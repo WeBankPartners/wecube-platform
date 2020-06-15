@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 
 @Service
