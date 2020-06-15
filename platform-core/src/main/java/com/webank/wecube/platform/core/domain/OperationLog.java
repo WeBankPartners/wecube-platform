@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.domain;
 
-import lombok.ToString;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -9,7 +8,6 @@ import javax.persistence.*;
 
 //@Entity
 //@Table(name = "operation_log")
-@ToString
 public class OperationLog implements Serializable {
     private static final long serialVersionUID = 1L;
     private Integer id;

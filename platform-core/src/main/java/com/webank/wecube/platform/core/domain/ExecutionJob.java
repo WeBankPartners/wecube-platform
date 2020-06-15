@@ -17,9 +17,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 @Entity
 @Table(name = "execution_jobs")
 public class ExecutionJob {
@@ -36,8 +33,6 @@ public class ExecutionJob {
     private BatchExecutionJob batchExecutionJob;
 
     @JsonManagedReference
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @OneToMany(mappedBy = "executionJob", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ExecutionJobParameter> parameters;
 

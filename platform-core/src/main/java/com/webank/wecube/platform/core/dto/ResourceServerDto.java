@@ -14,13 +14,6 @@ import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 public class ResourceServerDto {
     private String id;
@@ -40,6 +33,31 @@ public class ResourceServerDto {
     @JsonIgnore
     private List<ResourceItemDto> resourceItemDtos;
 
+    public ResourceServerDto() {
+        super();
+    }
+
+    public ResourceServerDto(String id, String name, String host, String port, String loginUsername,
+            String loginPassword, String type, Boolean isAllocated, String purpose, String status, String createdBy,
+            long createdDate, String updatedBy, long updatedDate, List<ResourceItemDto> resourceItemDtos) {
+        super();
+        this.id = id;
+        this.name = name;
+        this.host = host;
+        this.port = port;
+        this.loginUsername = loginUsername;
+        this.loginPassword = loginPassword;
+        this.type = type;
+        this.isAllocated = isAllocated;
+        this.purpose = purpose;
+        this.status = status;
+        this.createdBy = createdBy;
+        this.createdDate = createdDate;
+        this.updatedBy = updatedBy;
+        this.updatedDate = updatedDate;
+        this.resourceItemDtos = resourceItemDtos;
+    }
+
     public static ResourceServerDto fromDomain(ResourceServer resourceServer) {
         ResourceServerDto resourceServerDto = new ResourceServerDto();
         resourceServerDto.setId(resourceServer.getId());
@@ -49,7 +67,8 @@ public class ResourceServerDto {
         resourceServerDto.setLoginUsername(resourceServer.getLoginUsername());
         resourceServerDto.setLoginPassword(resourceServer.getLoginPassword());
         resourceServerDto.setType(resourceServer.getType());
-        resourceServerDto.setIsAllocated(resourceServer.getIsAllocated() != null && resourceServer.getIsAllocated() == 1 ? true : false);
+        resourceServerDto.setIsAllocated(
+                resourceServer.getIsAllocated() != null && resourceServer.getIsAllocated() == 1 ? true : false);
         resourceServerDto.setPurpose(resourceServer.getPurpose());
         resourceServerDto.setStatus(resourceServer.getStatus());
         resourceServerDto.setCreatedBy(resourceServer.getCreatedBy());
@@ -57,7 +76,8 @@ public class ResourceServerDto {
         resourceServerDto.setUpdatedBy(resourceServer.getUpdatedBy());
         resourceServerDto.setUpdatedDate(resourceServer.getUpdatedDate().getTime());
         if (resourceServer.getResourceItems() != null) {
-            resourceServerDto.setResourceItemDtos(Lists.transform(resourceServer.getResourceItems(), x -> ResourceItemDto.fromDomain(x)));
+            resourceServerDto.setResourceItemDtos(
+                    Lists.transform(resourceServer.getResourceItems(), x -> ResourceItemDto.fromDomain(x)));
         }
         return resourceServerDto;
     }
@@ -97,7 +117,8 @@ public class ResourceServerDto {
         }
 
         if (resourceServerDto.getIsAllocated() != null) {
-            resourceServer.setIsAllocated(resourceServerDto.getIsAllocated() != null && resourceServerDto.getIsAllocated() ? 1 : 0);
+            resourceServer.setIsAllocated(
+                    resourceServerDto.getIsAllocated() != null && resourceServerDto.getIsAllocated() ? 1 : 0);
         }
 
         if (resourceServerDto.getPurpose() != null) {
@@ -141,5 +162,125 @@ public class ResourceServerDto {
         if (ResourceServerStatus.fromCode(status) == ResourceServerStatus.NONE) {
             throw new WecubeCoreException(String.format("Unsupported resource server status [%s].", status));
         }
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
+    }
+
+    public String getLoginUsername() {
+        return loginUsername;
+    }
+
+    public void setLoginUsername(String loginUsername) {
+        this.loginUsername = loginUsername;
+    }
+
+    public String getLoginPassword() {
+        return loginPassword;
+    }
+
+    public void setLoginPassword(String loginPassword) {
+        this.loginPassword = loginPassword;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Boolean getIsAllocated() {
+        return isAllocated;
+    }
+
+    public void setIsAllocated(Boolean isAllocated) {
+        this.isAllocated = isAllocated;
+    }
+
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public long getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(long createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public long getUpdatedDate() {
+        return updatedDate;
+    }
+
+    public void setUpdatedDate(long updatedDate) {
+        this.updatedDate = updatedDate;
+    }
+
+    public List<ResourceItemDto> getResourceItemDtos() {
+        return resourceItemDtos;
+    }
+
+    public void setResourceItemDtos(List<ResourceItemDto> resourceItemDtos) {
+        this.resourceItemDtos = resourceItemDtos;
     }
 }

@@ -1,8 +1,5 @@
 package com.webank.wecube.platform.core.dto;
 
-import lombok.Data;
-
-@Data
 public class CreateInstanceDto {
     private String imageName;
     private String containerName;
@@ -21,4 +18,45 @@ public class CreateInstanceDto {
 
     public CreateInstanceDto() {
     }
+
+    public String getImageName() {
+        return imageName;
+    }
+
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
+    }
+
+    public String getContainerName() {
+        return containerName;
+    }
+
+    public void setContainerName(String containerName) {
+        this.containerName = containerName;
+    }
+
+    public String getPortBindingParameters() {
+        return portBindingParameters;
+    }
+
+    public void setPortBindingParameters(String portBindingParameters) {
+        this.portBindingParameters = portBindingParameters;
+    }
+
+    public String getVolumeBindingParameters() {
+        return volumeBindingParameters;
+    }
+
+    public void setVolumeBindingParameters(String volumeBindingParameters) {
+        this.volumeBindingParameters = volumeBindingParameters;
+    }
+
+    public String getEnvVariableParameters() {
+        return envVariableParameters;
+    }
+
+    public void setEnvVariableParameters(String envVariableParameters) {
+        this.envVariableParameters = envVariableParameters;
+    }
+
 }

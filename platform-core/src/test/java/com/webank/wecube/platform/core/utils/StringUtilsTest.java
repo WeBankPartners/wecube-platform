@@ -2,16 +2,14 @@ package com.webank.wecube.platform.core.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class StringUtilsTest {
+    private static final Logger log = LoggerFactory.getLogger(StringUtilsTest.class);
 
     @Test
     public void isValidIpTestCase1() {

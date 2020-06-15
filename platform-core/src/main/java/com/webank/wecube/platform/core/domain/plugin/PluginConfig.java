@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,8 +27,6 @@ public class PluginConfig {
     private String id;
 
     @JsonBackReference
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "plugin_package_id")
     private PluginPackage pluginPackage;
@@ -55,14 +51,10 @@ public class PluginConfig {
     private Status status;
 
     @JsonManagedReference
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginConfigInterface> interfaces;
 
     @JsonInclude
-    @EqualsAndHashCode.Include
-    @ToString.Include
     public String getPluginPackageId() {
         return pluginPackage == null ? null : pluginPackage.getId();
     }
@@ -146,7 +138,7 @@ public class PluginConfig {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage" });
+        return ReflectionToStringBuilder.toStringExclude(this, new String[] { "pluginPackage", "interfaces" });
     }
 
     public String getRegisterName() {

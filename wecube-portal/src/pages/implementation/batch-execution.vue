@@ -287,7 +287,7 @@
     </section>
     <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
       <Form :label-width="130" label-colon>
-        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_start_path')">
+        <!-- <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_start_path')">
           <Select v-model="selectedEntityType" ref="select" filterable @on-change="changeEntityType">
             <OptionGroup
               :label="pluginPackage.packageName"
@@ -302,13 +302,19 @@
               ></Option>
             </OptionGroup>
           </Select>
-        </FormItem>
+        </FormItem> -->
         <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
-          <PathExp
+          <!-- <PathExp
             :rootEntity="selectedEntityType"
             :allDataModelsWithAttrs="allEntityType"
             v-model="dataModelExpression"
-          ></PathExp>
+          ></PathExp> -->
+          <FilterRules
+            :allDataModelsWithAttrs="allEntityType"
+            :needNativeAttr="true"
+            :needAttr="true"
+            v-model="dataModelExpression"
+          ></FilterRules>
         </FormItem>
         <FormItem :label="$t('bc_target_type')">
           <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
@@ -431,6 +437,7 @@
 </template>
 
 <script>
+import FilterRules from '../components/filter-rules.vue'
 import PathExp from '@/pages/components/path-exp.vue'
 import {
   getAllDataModels,
@@ -566,9 +573,9 @@ export default {
       }
       const { data, status } = await dmeAllEntities(params)
       if (status === 'OK') {
-        this.currentEntityName = data.slice(-1)[0].entityName
-        this.currentPackageName = data.slice(-1)[0].packageName
-        this.currentEntityAttrList = data.slice(-1)[0].attributes
+        this.currentEntityName = data[0].entityName
+        this.currentPackageName = data[0].packageName
+        this.currentEntityAttrList = data[0].attributes
 
         this.allEntityAttr = []
         data.forEach((single, index) => {
@@ -874,7 +881,7 @@ export default {
       if (document.querySelector('.wecube_attr-ul')) {
         document.querySelector('.wecube_attr-ul').style.width = '530px'
       }
-      this.$refs.select.setQuery(null)
+      // this.$refs.select.setQuery(null)
       this.dataModelExpression = ':'
       this.currentEntityAttr = null
       this.currentEntityAttrList = []
@@ -1182,7 +1189,8 @@ export default {
     }
   },
   components: {
-    PathExp
+    PathExp,
+    FilterRules
   }
 }
 </script>

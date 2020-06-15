@@ -547,6 +547,7 @@ export default {
       const id = plugin.pluginConfigDtoList.find(_ => _.registerName === null).id
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = ''
+      this.selectedEntityType = ''
       this.currentPluginObj.status = 'DISABLED'
       this.$refs.registerName.focus()
     },

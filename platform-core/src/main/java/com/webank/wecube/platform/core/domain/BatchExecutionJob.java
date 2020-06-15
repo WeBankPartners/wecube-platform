@@ -9,9 +9,6 @@ import javax.persistence.*;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
 @Entity
 @Table(name = "batch_execution_jobs")
 public class BatchExecutionJob {
@@ -19,8 +16,6 @@ public class BatchExecutionJob {
     private String id;
 
     @JsonManagedReference
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @OneToMany(mappedBy = "batchExecutionJob", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ExecutionJob> jobs;
 
