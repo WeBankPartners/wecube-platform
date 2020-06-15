@@ -9,7 +9,7 @@ import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
-import com.webank.wecube.platform.core.service.PluginInstanceService;
+
 import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
