@@ -5,15 +5,19 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
+
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
 import com.webank.wecube.platform.core.utils.JsonUtils;
-
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-
-import static com.webank.wecube.platform.core.utils.Constants.KEY_COLUMN_DELIMITER;
 
 @Entity
 @Table(name = "resource_item")
@@ -70,6 +74,7 @@ public class ResourceItem {
         return new HashMap<String, String>();
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, String> convertToMap(String additionalProperties) {
         try {
             return JsonUtils.toObject(additionalProperties, Map.class);
