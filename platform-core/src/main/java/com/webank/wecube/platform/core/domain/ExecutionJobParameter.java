@@ -1,13 +1,7 @@
 package com.webank.wecube.platform.core.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.webank.wecube.platform.core.support.DomainIdBuilder;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-
-import java.util.Random;
 
 import javax.persistence.*;
 
@@ -26,8 +20,6 @@ public class ExecutionJobParameter {
     private Integer id;
 
     @JsonBackReference
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "execution_job_id")
     private ExecutionJob executionJob;
