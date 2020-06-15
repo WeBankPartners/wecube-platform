@@ -14,13 +14,6 @@ import com.webank.wecube.platform.core.service.resource.ResourceItemStatus;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @JsonInclude(Include.NON_NULL)
 public class ResourceItemDto {
     private String id;
@@ -153,7 +146,7 @@ public class ResourceItemDto {
     }
 
     public ResourceItemDto(String name, String type, String additionalProperties, String resourceServerId,
-                           String purpose) {
+            String purpose) {
         super();
         this.name = name;
         this.type = type;
@@ -161,4 +154,132 @@ public class ResourceItemDto {
         this.resourceServerId = resourceServerId;
         this.purpose = purpose;
     }
+
+    public ResourceItemDto(String id, String name, String type, String additionalProperties, String resourceServerId,
+            Boolean isAllocated, String purpose, String status, String createdBy, long createdDate, String updatedBy,
+            long updatedDate, ResourceServerDto resourceServer) {
+        super();
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.additionalProperties = additionalProperties;
+        this.resourceServerId = resourceServerId;
+        this.isAllocated = isAllocated;
+        this.purpose = purpose;
+        this.status = status;
+        this.createdBy = createdBy;
+        this.createdDate = createdDate;
+        this.updatedBy = updatedBy;
+        this.updatedDate = updatedDate;
+        this.resourceServer = resourceServer;
+    }
+
+    public ResourceItemDto() {
+        super();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getAdditionalProperties() {
+        return additionalProperties;
+    }
+
+    public void setAdditionalProperties(String additionalProperties) {
+        this.additionalProperties = additionalProperties;
+    }
+
+    public String getResourceServerId() {
+        return resourceServerId;
+    }
+
+    public void setResourceServerId(String resourceServerId) {
+        this.resourceServerId = resourceServerId;
+    }
+
+    public Boolean getIsAllocated() {
+        return isAllocated;
+    }
+
+    public void setIsAllocated(Boolean isAllocated) {
+        this.isAllocated = isAllocated;
+    }
+
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public long getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(long createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public long getUpdatedDate() {
+        return updatedDate;
+    }
+
+    public void setUpdatedDate(long updatedDate) {
+        this.updatedDate = updatedDate;
+    }
+
+    public ResourceServerDto getResourceServer() {
+        return resourceServer;
+    }
+
+    public void setResourceServer(ResourceServerDto resourceServer) {
+        this.resourceServer = resourceServer;
+    }
+
 }
