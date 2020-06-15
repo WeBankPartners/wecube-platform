@@ -1,6 +1,17 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.plugin;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.apache.commons.lang3.StringUtils.trim;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -21,18 +34,8 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
-import com.webank.wecube.platform.core.support.S3Client;
-import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
-import com.webank.wecube.platform.core.support.gateway.GatewayServiceStub;
-import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
-import com.webank.wecube.platform.core.support.gateway.RouteItem;
-import com.webank.wecube.platform.core.utils.EncryptionUtils;
-import com.webank.wecube.platform.core.utils.JsonUtils;
-import com.webank.wecube.platform.core.utils.StringUtils;
-import com.webank.wecube.platform.core.utils.SystemUtils;
-
-import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
+import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
@@ -52,12 +55,21 @@ import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
+import com.webank.wecube.platform.core.service.CommandService;
+import com.webank.wecube.platform.core.service.ScpService;
+import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.resource.ResourceItemType;
 import com.webank.wecube.platform.core.service.resource.ResourceManagementService;
 import com.webank.wecube.platform.core.service.resource.ResourceServerType;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.apache.commons.lang3.StringUtils.trim;
+import com.webank.wecube.platform.core.support.S3Client;
+import com.webank.wecube.platform.core.support.gateway.GatewayResponse;
+import com.webank.wecube.platform.core.support.gateway.GatewayServiceStub;
+import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
+import com.webank.wecube.platform.core.support.gateway.RouteItem;
+import com.webank.wecube.platform.core.utils.EncryptionUtils;
+import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.core.utils.StringUtils;
+import com.webank.wecube.platform.core.utils.SystemUtils;
 
 @Service
 public class PluginInstanceService {
@@ -233,12 +245,231 @@ public class PluginInstanceService {
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, pluginPackage.getName());
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
+            tryUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage);
+            mysqlInstance.setLatestUpgradeVersion(pluginPackage.getVersion());
+            mysqlInstance.setUpdatedTime(new Date());
+            pluginMysqlInstanceRepository.save(mysqlInstance);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
             return new DatabaseInfo(resourceServer.getHost(), resourceServer.getPort(), mysqlInstance.getSchemaName(),
                     mysqlInstance.getUsername(), mysqlInstance.getPassword(), mysqlInstance.getResourceItemId());
         }
 
         return initMysqlDatabaseSchema(mysqlInfoSet, pluginPackage);
+    }
+
+    private void tryUpgradeMysqlDatabaseData(PluginMysqlInstance mysqlInstance, PluginPackage pluginPackage) {
+        String latestVersion = mysqlInstance.getLatestUpgradeVersion();
+        if (!shouldUpgradeMysqlDatabaseData(latestVersion, pluginPackage.getVersion())) {
+            logger.info("latest version {} and current version {}, no need to upgrade.", latestVersion,
+                    pluginPackage.getVersion());
+            return;
+        }
+
+        if (isStringBlank(latestVersion)) {
+            latestVersion = pluginPackage.getVersion();
+        }
+
+        try {
+        	logger.info("try to perform database upgrade for {} {}", pluginPackage.getName(), pluginPackage.getVersion());
+            performUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage, latestVersion);
+        } catch (IOException e) {
+            logger.error("errors while processing upgrade sql", e);
+            throw new WecubeCoreException("System error to upgrade plugin database.");
+        }
+    }
+
+    private void performUpgradeMysqlDatabaseData(PluginMysqlInstance mysqlInstance, PluginPackage pluginPackage,
+            String latestVersion) throws IOException {
+        String tmpFolderName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
+        String baseTmpDir = SystemUtils.getTempFolderPath() + tmpFolderName + "/";
+        String initSqlPath = baseTmpDir + pluginProperties.getInitDbSql();
+
+        String s3KeyName = pluginPackage.getName() + File.separator + pluginPackage.getVersion() + File.separator
+                + pluginProperties.getInitDbSql();
+        logger.info("Download init.sql from S3: {}", s3KeyName);
+
+        s3Client.downFile(pluginProperties.getPluginPackageBucketName(), s3KeyName, initSqlPath);
+
+        ResourceServer dbServer = resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
+                .getResourceServer();
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
+                        + "?characterEncoding=utf8&serverTimezone=UTC",
+                mysqlInstance.getUsername(), EncryptionUtils.decryptWithAes(mysqlInstance.getPassword(),
+                        resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName()));
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
+        File initSqlFile = new File(initSqlPath);
+
+        File upgradeSqlFile = parseUpgradeMysqlDataFile(baseTmpDir, initSqlFile, pluginPackage, latestVersion);
+        List<Resource> scripts = newArrayList(new FileSystemResource(upgradeSqlFile));
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+        populator.setContinueOnError(false);
+        populator.setIgnoreFailedDrops(false);
+        populator.setSeparator(";");
+        populator.setCommentPrefix("#");
+        populator.setSqlScriptEncoding("utf-8");
+        for(Resource script : scripts) {
+        	populator.addScript(script);
+        }
+        try {
+        	logger.info("start to execute sql script file:{}, host:{},port:{},schema:{}", 
+        			upgradeSqlFile.getAbsolutePath(),
+        			dbServer.getHost(),
+        			dbServer.getPort(),
+        			mysqlInstance.getSchemaName());
+            populator.execute(dataSource);
+        } catch (Exception e) {
+            String errorMessage = String.format("Failed to execute [{}] for schema[%s]",
+            		upgradeSqlFile.getName(), mysqlInstance.getSchemaName());
+            logger.error(errorMessage);
+            throw new WecubeCoreException(errorMessage, e);
+        }
+        logger.info(String.format("Upgrade database[%s] finished...", mysqlInstance.getSchemaName()));
+    }
+
+    private File parseUpgradeMysqlDataFile(String baseTmpDir, File initSqlFile, PluginPackage pluginPackage,
+            String latestVersion) throws IOException {
+        File upgradeSqlFile = new File(baseTmpDir, String.format("upgrade%s.sql", System.currentTimeMillis()));
+        Pattern p = Pattern.compile(VersionTagInfo.VERSION_TAG_PATTERN);
+        String foreignCheckOff = "SET FOREIGN_KEY_CHECKS = 0;";
+        String foreignCheckOn = "SET FOREIGN_KEY_CHECKS = 1;";
+
+        BufferedReader br = null;
+        BufferedWriter bw = null;
+        String currentVersion = pluginPackage.getVersion();
+        try {
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(initSqlFile), Charset.forName("utf-8")));
+            bw = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(upgradeSqlFile), Charset.forName("utf-8")));
+
+            bw.write(foreignCheckOff+"\n");
+            long lineNum = 0L;
+            String sLine = null;
+            boolean shouldStart = false;
+            boolean shouldStop = false;
+            while ((sLine = br.readLine()) != null) {
+                lineNum++;
+                String trimLine = sLine.trim();
+                Matcher m = p.matcher(trimLine);
+                if (m.matches()) {
+                    VersionTagInfo info = VersionTagInfo.parseVersionTagInfo(m, lineNum);
+                    if (!shouldStart) {
+                        if (shouldStart(info, latestVersion, currentVersion)) {
+                            shouldStart = true;
+                        }
+                    }
+
+                    if (!shouldStop) {
+                        if (shouldStop(info, currentVersion)) {
+                            shouldStop = true;
+                        }
+                    }
+                }
+
+                if (shouldStart) {
+                    bw.write(sLine + "\n");
+                }
+
+                if (shouldStop) {
+                    break;
+                }
+            }
+            
+            bw.write(foreignCheckOn+"\n");
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    logger.warn("", e);
+                }
+            }
+
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException e) {
+                    logger.warn("", e);
+                }
+            }
+        }
+        return upgradeSqlFile;
+    }
+
+    private boolean shouldStart(VersionTagInfo info, String latestVersion, String currentVersion) {
+        if (!info.isBegin()) {
+            return false;
+        }
+        if (versionGreaterThan(info.getVersion(), latestVersion)) {
+            return true;
+        }
+
+        if (versionEquals(info.getVersion(), currentVersion)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean shouldStop(VersionTagInfo info, String currentVersion) {
+
+        if (versionGreaterThan(info.getVersion(), currentVersion)) {
+            return true;
+        }
+
+        if (versionEquals(info.getVersion(), currentVersion)) {
+            if (info.isEnd()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean versionGreaterThan(String version, String baseVersion) {
+        VersionComparator vc = new VersionComparator();
+        int compare = vc.compare(version, baseVersion);
+        if (compare > 0) {
+            return true;
+        }
+
+        return false;
+
+    }
+
+    public boolean versionEquals(String version, String baseVersion) {
+        VersionComparator vc = new VersionComparator();
+        int compare = vc.compare(version, baseVersion);
+        if (compare == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isStringBlank(String s) {
+        if (s == null || s.trim().length() < 1) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean shouldUpgradeMysqlDatabaseData(String latestVersion, String currentVersion) {
+        if (isStringBlank(latestVersion)) {
+            return true;
+        }
+        
+        if(versionEquals(currentVersion, latestVersion)){
+            return false;
+        }
+        
+        if(versionGreaterThan(currentVersion, latestVersion)){
+            return true;
+        }
+
+        return false;
     }
 
     private String handleCreateS3Bucket(Set<PluginPackageRuntimeResourcesS3> s3InfoSet, PluginPackage pluginPackage) {
@@ -337,7 +568,8 @@ public class PluginInstanceService {
     private DatabaseInfo initMysqlDatabaseSchema(Set<PluginPackageRuntimeResourcesMysql> mysqlSet,
             PluginPackage pluginPackage) {
         if (mysqlSet.size() != 0) {
-            PluginMysqlInstance mysqlInstance = createPluginMysqlDatabase(mysqlSet.iterator().next());
+            PluginMysqlInstance mysqlInstance = createPluginMysqlDatabase(mysqlSet.iterator().next(),
+                    pluginPackage.getVersion());
 
             ResourceServer dbServer = resourceItemRepository.findById(mysqlInstance.getResourceItemId()).get()
                     .getResourceServer();
@@ -396,7 +628,8 @@ public class PluginInstanceService {
         return createPluginS3Bucket(s3InfoSet.iterator().next());
     }
 
-    public PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo) {
+    public PluginMysqlInstance createPluginMysqlDatabase(PluginPackageRuntimeResourcesMysql mysqlInfo,
+            String currentPluginVersion) {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.MYSQL);
         List<ResourceServerDto> mysqlServers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (mysqlServers.size() == 0) {
@@ -416,8 +649,9 @@ public class PluginInstanceService {
         createMysqlDto.setResourceServer(mysqlServer);
         createMysqlDto.setIsAllocated(true);
         logger.info("Mysql Database schema creating...");
-        if (logger.isDebugEnabled())
+        if (logger.isDebugEnabled()) {
             logger.info("Request parameters= " + createMysqlDto);
+        }
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
         PluginMysqlInstance mysqlInstance = new PluginMysqlInstance(mysqlInfo.getSchemaName(), result.get(0).getId(),
@@ -425,6 +659,8 @@ public class PluginInstanceService {
                 EncryptionUtils.encryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
                         mysqlInfo.getSchemaName()),
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, mysqlInfo.getPluginPackage());
+        mysqlInstance.setLatestUpgradeVersion(currentPluginVersion);
+        mysqlInstance.setCreatedTime(new Date());
         pluginMysqlInstanceRepository.save(mysqlInstance);
 
         logger.info("Mysql Database schema creation has done...");
