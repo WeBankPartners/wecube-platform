@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
@@ -14,11 +16,9 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Service
-@Slf4j
 public class MysqlDatabaseManagementService implements ResourceItemService {
+    private static final Logger log = LoggerFactory.getLogger(MysqlDatabaseManagementService.class);
 
     @Autowired
     private ResourceProperties resourceProperties;
