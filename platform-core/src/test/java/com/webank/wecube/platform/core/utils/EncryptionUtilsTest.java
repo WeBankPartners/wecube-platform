@@ -3,15 +3,15 @@ package com.webank.wecube.platform.core.utils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class EncryptionUtilsTest extends DatabaseBasedTest {
+    private static final Logger log = LoggerFactory.getLogger(EncryptionUtilsTest.class);
 
     @Autowired
     private ResourceProperties resourceProperties;

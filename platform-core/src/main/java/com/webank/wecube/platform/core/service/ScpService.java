@@ -3,17 +3,18 @@ package com.webank.wecube.platform.core.service;
 import java.io.File;
 import java.io.IOException;
 
-import ch.ethz.ssh2.Connection;
-import ch.ethz.ssh2.SCPClient;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+
+import ch.ethz.ssh2.Connection;
+import ch.ethz.ssh2.SCPClient;
+
 @Service
-@Setter
-@Slf4j
 public class ScpService {
+    private static final Logger log = LoggerFactory.getLogger(ScpService.class);
 
     public boolean isAuthedWithPassword(String ip, Integer port, String user, String password) {
         Connection connection = new Connection(ip, port);
