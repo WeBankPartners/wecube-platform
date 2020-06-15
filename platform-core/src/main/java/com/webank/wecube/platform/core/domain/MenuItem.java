@@ -7,12 +7,12 @@ import org.hibernate.annotations.GenerationTime;
 import javax.persistence.*;
 import java.util.Objects;
 
-@Entity @Table(name = "menu_items")
+@Entity
+@Table(name = "menu_items")
 public class MenuItem {
     public static enum Source {
         SYSTEM, PLUGIN
     }
-    private static final long serialVersionUID = -2952735933715107252L;
 
     public final static String ROLE_PREFIX = "MENU_";
 
@@ -60,7 +60,6 @@ public class MenuItem {
     public final static String MENU_ADMIN_BASE_DATA_MANAGEMENT = "ADMIN_BASE_DATA_MANAGEMENT";
     public final static String MENU_ADMIN_OPERATION_LOG = "MENU_ADMIN_OPERATION_LOG";
 
-
     @Id
     private String id;
 
@@ -87,9 +86,10 @@ public class MenuItem {
     public void initId() {
         this.id = DomainIdBuilder.buildDomainId(this);
     }
-//    @JsonIgnore
-//    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<RoleMenu> assignedRoles = new ArrayList<>();
+    // @JsonIgnore
+    // @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
+    // private List<RoleMenu> assignedRoles = new ArrayList<>();
 
     public MenuItem() {
         this(null);
@@ -103,7 +103,8 @@ public class MenuItem {
         this(null, code, parentCode, Source.SYSTEM.name(), description, description, null);
     }
 
-    public MenuItem(String id, String code, String parentCode, String source, String description, String localDisplayName, Integer menuOrder) {
+    public MenuItem(String id, String code, String parentCode, String source, String description,
+            String localDisplayName, Integer menuOrder) {
         this.id = id;
         this.code = code;
         this.parentCode = parentCode;
@@ -175,14 +176,17 @@ public class MenuItem {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         MenuItem menuItem = (MenuItem) o;
-        return getId().equals(menuItem.getId()) &&
-                getCode().equals(menuItem.getCode()) &&
-                Objects.equals(getParentCode(), menuItem.getParentCode()) &&
-                Objects.equals(getDescription(), menuItem.getDescription()) &&
-                Objects.equals(getMenuOrder(), menuItem.getMenuOrder());
+        return getId().equals(menuItem.getId()) && getCode().equals(menuItem.getCode())
+                && Objects.equals(getParentCode(), menuItem.getParentCode())
+                && Objects.equals(getDescription(), menuItem.getDescription())
+                && Objects.equals(getMenuOrder(), menuItem.getMenuOrder());
     }
 
     @Override
