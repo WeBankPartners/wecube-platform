@@ -4,14 +4,15 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.DigestUtils;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class EncryptionUtils {
+    private static final Logger log = LoggerFactory.getLogger(EncryptionUtils.class);
+
     public static String generateKeyFromSeedAndSalt(String seed, String additionalSalt) {
         return String.format("%16s", DigestUtils.md5DigestAsHex((seed + additionalSalt).getBytes()).substring(0, 15));
     }
