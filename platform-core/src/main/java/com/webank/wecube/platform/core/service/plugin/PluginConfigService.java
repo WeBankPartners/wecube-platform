@@ -558,8 +558,6 @@ public class PluginConfigService {
     }
 
     private void handlePluginConfig(PluginPackage pluginPackage, PluginConfigType xmlPluginConfig) {
-        // List<PluginConfig> pluginConfigs = pluginConfigRepository
-        // .findByPluginPackage_idOrderByName(pluginPackage.getId()).get();
 
         Set<PluginConfig> pluginConfigs = pluginPackage.getPluginConfigs();
 
@@ -589,8 +587,6 @@ public class PluginConfigService {
 
     private PluginConfig tryUpdatePluginConfig(PluginPackage pluginPackage, PluginConfig toUpdatePluginConfig,
             PluginConfigType xmlPluginConfig) {
-        // PluginConfig toUpdatePluginConfig =
-        // pluginConfigRepository.findById(existPluginConfig.getId()).get();
         toUpdatePluginConfig.setTargetEntity(xmlPluginConfig.getTargetEntity());
         toUpdatePluginConfig.setTargetEntityFilterRule(xmlPluginConfig.getTargetEntityFilterRule());
         toUpdatePluginConfig.setTargetPackage(xmlPluginConfig.getTargetPackage());
