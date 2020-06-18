@@ -57,7 +57,7 @@ import com.webank.wecube.platform.core.utils.JaxbUtils;
 @Service
 @Transactional
 public class PluginConfigService {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private final static Logger log = LoggerFactory.getLogger(PluginConfigService.class);
 
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
