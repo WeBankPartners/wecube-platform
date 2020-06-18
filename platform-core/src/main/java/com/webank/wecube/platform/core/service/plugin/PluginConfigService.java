@@ -92,8 +92,6 @@ public class PluginConfigService {
         return xmlContent;
     }
 
-    
-
     public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml) {
         if (StringUtils.isBlank(pluginPackageId)) {
             throw new WecubeCoreException("Plugin package ID cannot be blank.");
@@ -102,12 +100,43 @@ public class PluginConfigService {
         if (StringUtils.isBlank(registersAsXml)) {
             throw new WecubeCoreException("XML data is blank.");
         }
-        
-        if(log.isDebugEnabled()){
+
+        if (log.isDebugEnabled()) {
             log.debug(registersAsXml);
         }
 
-        // TODO
+        Optional<PluginPackage> pluginPackageEntityOpt = pluginPackageRepository.findById(pluginPackageId);
+        if (!pluginPackageEntityOpt.isPresent()) {
+            throw new WecubeCoreException("Bad plugin package ID,such package does not exist.");
+        }
+
+        PluginPackage pluginPackage = pluginPackageEntityOpt.get();
+
+        PluginPackageType xmlPluginPackage = JaxbUtils.convertToObject(registersAsXml, PluginPackageType.class);
+
+        if (xmlPluginPackage == null) {
+            throw new WecubeCoreException("Bad xml contents.");
+        }
+        log.info("start to import plugin registries for {} {} from {} {}", pluginPackage.getName(),
+                pluginPackage.getVersion(), xmlPluginPackage.getName(), xmlPluginPackage.getVersion());
+
+        PluginConfigsType xmlPlugins = xmlPluginPackage.getPlugins();
+        if (xmlPlugins == null) {
+            return;
+        }
+
+        List<PluginConfigType> xmlPluginConfigList = xmlPlugins.getPlugin();
+        if (xmlPluginConfigList == null || xmlPluginConfigList.isEmpty()) {
+            return;
+        }
+
+        for (PluginConfigType xmlPluginConfig : xmlPluginConfigList) {
+            importPluginConfig(pluginPackage, xmlPluginConfig);
+        }
+
+    }
+
+    private void importPluginConfig(PluginPackage pluginPackage, PluginConfigType xmlPluginConfig) {
 
     }
 
@@ -426,7 +455,7 @@ public class PluginConfigService {
             throw new WecubeCoreException(String.format("Can not found PluginConfig[%s]", configId));
         }
     }
-    
+
     private PluginConfigsType buildXmlPluginConfigs(PluginPackage pluginPackage, List<PluginConfig> pluginConfigs) {
         PluginConfigsType xmlPluginConfigs = new PluginConfigsType();
         for (PluginConfig pluginConfig : pluginConfigs) {
