@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.service;
+package com.webank.wecube.platform.core.service.plugin;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.assertj.core.api.Assertions.assertThat;

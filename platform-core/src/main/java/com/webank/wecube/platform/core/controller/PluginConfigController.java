@@ -3,9 +3,14 @@ package com.webank.wecube.platform.core.controller;
 import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
 import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
 
+import java.nio.charset.Charset;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,10 +34,17 @@ public class PluginConfigController {
     @Autowired
     private PluginConfigService pluginConfigService;
 
-    @GetMapping("/plugins/packages/export/{plugin-package-id:.+}")
-    public CommonResponseDto exportPluginPackageRegistries(
+    @GetMapping(value = "/plugins/packages/export/{plugin-package-id:.+}", produces = { MediaType.ALL_VALUE })
+    public ResponseEntity<byte[]> exportPluginPackageRegistries(
             @PathVariable(value = "plugin-package-id") String pluginPackageId) {
-        return CommonResponseDto.okay();
+        log.info("request received to export plugin package registries for {}", pluginPackageId);
+        String xmlData = pluginConfigService.exportPluginRegistersForOnePackage(pluginPackageId);
+        byte[] filedataBytes = xmlData.getBytes(Charset.forName("UTF-8"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.add("Content-Disposition", String.format("attachment;filename=%s", "register-config.xml"));
+        return ResponseEntity.ok().headers(headers).contentLength(filedataBytes.length)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(filedataBytes);
     }
 
     @PostMapping("/plugins/packages/import/{plugin-package-id:.+}")
