@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.collect.Lists;
 
-public class StringUtils {
+public class StringUtilsEx {
 
     public static boolean isValidIp(String ip) {
         if (ip != null && !ip.isEmpty()) {
