@@ -28,7 +28,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -164,15 +163,6 @@ public class PluginPackageService {
 	@Autowired
 	private RestTemplate restTemplate;
 	
-	public String exportPluginRegistersForOnePackage(String pluginPackageId){
-	    if(StringUtils.isBlank(pluginPackageId)){
-	        throw new WecubeCoreException("Plugin package ID cannot be blank.");
-	    }
-	    
-	    //TODO
-	    return null;
-	}
-
 	public List<S3PluginActifactDto> listS3PluginActifacts() {
 		String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
 
@@ -435,7 +425,8 @@ public class PluginPackageService {
 		return returnMenuDto;
 	}
 
-	public List<SystemVariable> getSystemVarsById(String packageId) {
+	@SuppressWarnings("unchecked")
+    public List<SystemVariable> getSystemVarsById(String packageId) {
 		Optional<List<SystemVariable>> optionalSystemVariables = systemVariableRepository.findBySource(packageId);
 		if (optionalSystemVariables.isPresent()) {
 			return optionalSystemVariables.get();
@@ -680,7 +671,8 @@ public class PluginPackageService {
 		}
 	}
 
-	private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {
+	@SuppressWarnings("rawtypes")
+    private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {
 		try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
 			Enumeration entries = zipFile.entries();
 
@@ -711,7 +703,8 @@ public class PluginPackageService {
 		log.info("Zip file has uploaded !");
 	}
 
-	private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
+	@SuppressWarnings("rawtypes")
+    private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
 			String sourceZipFile, String sourceZipFileName) throws Exception {
 		Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
 		try (ZipFile zipFile = new ZipFile(sourceZipFile)) {

@@ -1,8 +1,8 @@
 package com.webank.wecube.platform.core.controller;
 
-import static com.webank.wecube.platform.core.domain.JsonResponse.error;
-import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
-import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
+import static com.webank.wecube.platform.core.dto.CommonResponseDto.error;
+import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
+import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
 
 import java.util.List;
 import java.util.Set;
@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
@@ -36,22 +36,22 @@ public class PluginPackageController {
     private PluginPackageService pluginPackageService;
 
     @GetMapping("/plugin-artifacts")
-    public JsonResponse listS3PluginActifacts() {
+    public CommonResponseDto listS3PluginActifacts() {
         return okayWithData(pluginPackageService.listS3PluginActifacts());
     }
 
     @PostMapping("/plugin-artifacts/pull-requests")
-    public JsonResponse createS3PluginActifactPullRequest(@RequestBody S3PluginActifactDto pullRequestDto) {
+    public CommonResponseDto createS3PluginActifactPullRequest(@RequestBody S3PluginActifactDto pullRequestDto) {
         return okayWithData(pluginPackageService.createS3PluginActifactPullRequest(pullRequestDto));
     }
 
     @GetMapping("/plugin-artifacts/pull-requests/{request-id}")
-    public JsonResponse queryS3PluginActifactPullRequest(@PathVariable(value = "request-id") String requestId) {
+    public CommonResponseDto queryS3PluginActifactPullRequest(@PathVariable(value = "request-id") String requestId) {
         return okayWithData(pluginPackageService.queryS3PluginActifactPullRequest(requestId));
     }
 
     @PostMapping("/packages")
-    public JsonResponse uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file) throws Exception {
+    public CommonResponseDto uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file) throws Exception {
         if (file == null || file.isEmpty())
             throw new IllegalArgumentException("zip-file required.");
 
@@ -60,7 +60,7 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages")
-    public JsonResponse getAllPluginPackages(
+    public CommonResponseDto getAllPluginPackages(
             @RequestParam(value = "distinct", required = false, defaultValue = "false") boolean ifDistinct) {
         if (ifDistinct) {
             return okayWithData(pluginPackageService.getAllDistinctPluginPackageNameList());
@@ -71,7 +71,7 @@ public class PluginPackageController {
     }
 
     @PostMapping("/packages/register/{package-id:.+}")
-    public JsonResponse registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
+    public CommonResponseDto registerPluginPackage(@PathVariable(value = "package-id") String packageId) {
         PluginPackage pluginPackage = null;
         try {
             pluginPackage = pluginPackageService.registerPluginPackage(packageId);
@@ -82,7 +82,7 @@ public class PluginPackageController {
     }
 
     @PostMapping("/packages/decommission/{package-id:.+}")
-    public JsonResponse decommissionPluginPackage(@PathVariable(value = "package-id") String packageId) {
+    public CommonResponseDto decommissionPluginPackage(@PathVariable(value = "package-id") String packageId) {
         try {
             pluginPackageService.decommissionPluginPackage(packageId);
         } catch (Exception e) {
@@ -93,7 +93,7 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/dependencies")
-    public JsonResponse getDependenciesById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getDependenciesById(@PathVariable(value = "id") String packageId) {
         PluginPackageDependencyDto dependencySetFoundById;
         try {
             dependencySetFoundById = pluginPackageService.getDependenciesById(packageId);
@@ -104,7 +104,7 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/menus")
-    public JsonResponse getMenusById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getMenusById(@PathVariable(value = "id") String packageId) {
         List<MenuItemDto> menuList;
         try {
             menuList = pluginPackageService.getMenusById(packageId);
@@ -115,7 +115,7 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/system-parameters")
-    public JsonResponse getSystemParamsById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getSystemParamsById(@PathVariable(value = "id") String packageId) {
         List<SystemVariable> systemVariableSet;
         try {
             systemVariableSet = pluginPackageService.getSystemVarsById(packageId);
@@ -126,7 +126,7 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/authorities")
-    public JsonResponse getAuthorityById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getAuthorityById(@PathVariable(value = "id") String packageId) {
         Set<PluginPackageAuthority> authoritySet;
         try {
             authoritySet = pluginPackageService.getAuthoritiesById(packageId);
@@ -137,7 +137,7 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/runtime-resources")
-    public JsonResponse getResourceById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getResourceById(@PathVariable(value = "id") String packageId) {
         PluginPackageRuntimeResouceDto resouceFoundById;
         try {
             resouceFoundById = pluginPackageService.getResourcesById(packageId);
@@ -148,12 +148,12 @@ public class PluginPackageController {
     }
 
     @GetMapping("/packages/{id}/plugins")
-    public JsonResponse getPluginsById(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getPluginsById(@PathVariable(value = "id") String packageId) {
         return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, true));
     }
 
     @GetMapping("/packages/{id}/plugin-configs")
-    public JsonResponse getPluginConfigsByPackageId(@PathVariable(value = "id") String packageId) {
+    public CommonResponseDto getPluginConfigsByPackageId(@PathVariable(value = "id") String packageId) {
         return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, false));
     }
 

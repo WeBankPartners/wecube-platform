@@ -46,6 +46,28 @@ public class PluginConfigService {
     private PluginPackageEntityRepository pluginPackageEntityRepository;
     @Autowired
     private PluginPackageDataModelRepository dataModelRepository;
+    
+    public String exportPluginRegistersForOnePackage(String pluginPackageId){
+        if(StringUtils.isBlank(pluginPackageId)){
+            throw new WecubeCoreException("Plugin package ID cannot be blank.");
+        }
+        
+        //TODO
+        return null;
+    }
+    
+    public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml){
+        if(StringUtils.isBlank(pluginPackageId)){
+            throw new WecubeCoreException("Plugin package ID cannot be blank.");
+        }
+        
+        if(StringUtils.isBlank(registersAsXml)){
+            throw new WecubeCoreException("XML data is blank.");
+        }
+        
+        //TODO
+        
+    }
 
     public List<PluginConfigInterface> getPluginConfigInterfaces(String pluginConfigId) {
         return pluginConfigRepository.findAllPluginConfigInterfacesByConfigIdAndFetchParameters(pluginConfigId);
@@ -252,6 +274,7 @@ public class PluginConfigService {
         return pluginConfigInterfaceDtos;
     }
 
+    @SuppressWarnings("unchecked")
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName,
             String entityName, TargetEntityFilterRuleDto filterRuleDto) {
         Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository
