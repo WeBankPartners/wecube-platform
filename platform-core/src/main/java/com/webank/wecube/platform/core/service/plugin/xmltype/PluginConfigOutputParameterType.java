@@ -11,8 +11,8 @@ import javax.xml.bind.annotation.XmlValue;
 public class PluginConfigOutputParameterType {
     @XmlValue
     protected String value;
-    @XmlAttribute(name = "dataType")
-    protected String dataType;
+    @XmlAttribute(name = "datatype")
+    protected String datatype;
     @XmlAttribute(name = "mappingType")
     protected String mappingType;
     @XmlAttribute(name = "mappingEntityExpression")
@@ -28,12 +28,12 @@ public class PluginConfigOutputParameterType {
         this.value = value;
     }
 
-    public String getDataType() {
-        return dataType;
+    public String getDatatype() {
+        return datatype;
     }
 
-    public void setDataType(String dataType) {
-        this.dataType = dataType;
+    public void setDatatype(String datatype) {
+        this.datatype = datatype;
     }
 
     public String getMappingType() {
