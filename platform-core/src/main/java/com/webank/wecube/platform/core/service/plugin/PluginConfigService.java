@@ -136,41 +136,51 @@ public class PluginConfigService {
             handlePluginConfig(pluginPackage, xmlPluginConfig);
         }
 
+        pluginPackageRepository.saveAndFlush(pluginPackage);
+
         log.info("finished importing plugin registries for {} {} from {} {}", pluginPackage.getName(),
                 pluginPackage.getVersion(), xmlPluginPackage.getName(), xmlPluginPackage.getVersion());
 
     }
 
     private void handlePluginConfig(PluginPackage pluginPackage, PluginConfigType xmlPluginConfig) {
-        List<PluginConfig> pluginConfigs = pluginConfigRepository
-                .findByPluginPackage_idOrderByName(pluginPackage.getId()).get();
+//        List<PluginConfig> pluginConfigs = pluginConfigRepository
+//                .findByPluginPackage_idOrderByName(pluginPackage.getId()).get();
+        
+        Set<PluginConfig> pluginConfigs = pluginPackage.getPluginConfigs();
 
         if (StringUtils.isBlank(xmlPluginConfig.getRegisterName())) {
             throw new WecubeCoreException("Register name is blank for " + xmlPluginConfig.getName());
         }
 
         PluginConfig existPluginConfig = pickoutPluginConfigWithRegisterName(pluginConfigs,
-                xmlPluginConfig.getRegisterName());
+                xmlPluginConfig.getName(),  xmlPluginConfig.getRegisterName());
 
+        PluginConfig pc = null;
         if (existPluginConfig != null) {
             log.debug("such plugin config already exist and try to update,{} {}", pluginPackage.getId(),
                     existPluginConfig.getRegisterName());
-            tryUpdatePluginConfig(pluginPackage, existPluginConfig, xmlPluginConfig);
+            pc = tryUpdatePluginConfig(pluginPackage, existPluginConfig, xmlPluginConfig);
         } else {
             log.debug("try to create a new plugin config for {} {}", pluginPackage.getId(),
                     xmlPluginConfig.getRegisterName());
-            tryCreatePluginConfig(pluginPackage, xmlPluginConfig);
+            pc = tryCreatePluginConfig(pluginPackage, xmlPluginConfig);
+        }
+
+        if (pc != null) {
+            pluginPackage.addPluginConfig(pc);
         }
 
     }
 
-    private PluginConfig tryUpdatePluginConfig(PluginPackage pluginPackage, PluginConfig existPluginConfig,
+    private PluginConfig tryUpdatePluginConfig(PluginPackage pluginPackage, PluginConfig toUpdatePluginConfig,
             PluginConfigType xmlPluginConfig) {
-        existPluginConfig.setTargetEntity(xmlPluginConfig.getTargetEntity());
-        existPluginConfig.setTargetEntityFilterRule(xmlPluginConfig.getTargetEntityFilterRule());
-        existPluginConfig.setTargetPackage(xmlPluginConfig.getTargetPackage());
+//        PluginConfig toUpdatePluginConfig = pluginConfigRepository.findById(existPluginConfig.getId()).get();
+        toUpdatePluginConfig.setTargetEntity(xmlPluginConfig.getTargetEntity());
+        toUpdatePluginConfig.setTargetEntityFilterRule(xmlPluginConfig.getTargetEntityFilterRule());
+        toUpdatePluginConfig.setTargetPackage(xmlPluginConfig.getTargetPackage());
 
-        Set<PluginConfigInterface> interfaces = existPluginConfig.getInterfaces();
+        Set<PluginConfigInterface> interfaces = toUpdatePluginConfig.getInterfaces();
 
         List<PluginConfigInterfaceType> xmlIntfList = xmlPluginConfig.getPluginInterface();
         for (PluginConfigInterfaceType xmlIntf : xmlIntfList) {
@@ -179,21 +189,23 @@ public class PluginConfigService {
             }
             PluginConfigInterface intf = pickoutPluginConfigInterface(interfaces, xmlIntf.getAction());//
             if (intf == null) {
-                log.debug("interface doesnot exist and try to create one,{} {}", existPluginConfig.getId(),
+                log.debug("interface doesnot exist and try to create one,{} {}", toUpdatePluginConfig.getId(),
                         xmlIntf.getAction());
-                intf = tryCreatePluginConfigInterface(existPluginConfig, xmlIntf);
-                existPluginConfig.addPluginConfigInterface(intf);
+                intf = tryCreatePluginConfigInterface(toUpdatePluginConfig, xmlIntf);
+                toUpdatePluginConfig.addPluginConfigInterface(intf);
             } else {
-                log.debug("interface exists and try to update,{} {}", existPluginConfig.getId(), xmlIntf.getAction());
-                tryUpdatePluginConfigInterface(existPluginConfig, intf, xmlIntf);
+                log.debug("interface exists and try to update,{} {}", toUpdatePluginConfig.getId(),
+                        xmlIntf.getAction());
+                tryUpdatePluginConfigInterface(toUpdatePluginConfig, intf, xmlIntf);
             }
         }
 
-        pluginConfigRepository.saveAndFlush(existPluginConfig);
-        log.debug("plugin config updated : {} {} {} {}", existPluginConfig.getId(), existPluginConfig.getTargetEntity(),
-                existPluginConfig.getTargetEntityFilterRule(), existPluginConfig.getTargetPackage());
+        toUpdatePluginConfig = pluginConfigRepository.saveAndFlush(toUpdatePluginConfig);
+        log.debug("plugin config updated : {} {} {} {}", toUpdatePluginConfig.getId(),
+                toUpdatePluginConfig.getTargetEntity(), toUpdatePluginConfig.getTargetEntityFilterRule(),
+                toUpdatePluginConfig.getTargetPackage());
         //
-        return existPluginConfig;
+        return toUpdatePluginConfig;
     }
 
     private PluginConfigInterface tryUpdatePluginConfigInterface(PluginConfig existPluginConfig,
@@ -389,13 +401,13 @@ public class PluginConfigService {
 
     }
 
-    private PluginConfig pickoutPluginConfigWithRegisterName(List<PluginConfig> pluginConfigs, String registerName) {
+    private PluginConfig pickoutPluginConfigWithRegisterName(Set<PluginConfig> pluginConfigs, String name, String registerName) {
         if (pluginConfigs == null || pluginConfigs.isEmpty()) {
             return null;
         }
 
         for (PluginConfig pc : pluginConfigs) {
-            if (registerName.equals(pc.getRegisterName())) {
+            if (registerName.equals(pc.getRegisterName()) && name.equals(pc.getName())) {
                 return pc;
             }
         }
