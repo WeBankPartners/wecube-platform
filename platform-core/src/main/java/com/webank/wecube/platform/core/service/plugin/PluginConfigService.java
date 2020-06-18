@@ -106,17 +106,30 @@ public class PluginConfigService {
         xmlPluginConfig.setTargetEntityFilterRule(pluginConfig.getTargetEntityFilterRule());
         xmlPluginConfig.setTargetPackage(pluginConfig.getTargetPackage());
 
-        PluginConfigInterfaceType xmlInterface = buildXmlPluginConfigInterface(pluginPackage, pluginConfig);
-        xmlPluginConfig.getPluginInterface().add(xmlInterface);
+        Set<PluginConfigInterface> intfs = pluginConfig.getInterfaces();
+        if (intfs != null) {
+            for (PluginConfigInterface intf : intfs) {
+                PluginConfigInterfaceType xmlIntf = buildXmlPluginConfigInterface(pluginPackage, pluginConfig,
+                        intf);
+                xmlPluginConfig.getPluginInterface().add(xmlIntf);
+            }
+        }
+
         return xmlPluginConfig;
 
     }
 
     private PluginConfigInterfaceType buildXmlPluginConfigInterface(PluginPackage pluginPackage,
-            PluginConfig pluginConfig) {
-        PluginConfigInterfaceType xmlInterface = new PluginConfigInterfaceType();
+            PluginConfig pluginConfig, PluginConfigInterface intf) {
+        PluginConfigInterfaceType xmlIntf = new PluginConfigInterfaceType();
+        xmlIntf.setAction(intf.getAction());
+        xmlIntf.setFilterRule(intf.getFilterRule());
+        xmlIntf.setHttpMethod(intf.getHttpMethod());
+        xmlIntf.setIsAsyncProcessing(intf.getIsAsyncProcessing());
+        xmlIntf.setPath(intf.getPath());
+        xmlIntf.setType(intf.getType());
 
-        return xmlInterface;
+        return xmlIntf;
     }
 
     public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml) {
