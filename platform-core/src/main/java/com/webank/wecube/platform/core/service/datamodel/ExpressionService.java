@@ -1,10 +1,8 @@
 package com.webank.wecube.platform.core.service.datamodel;
 
-import com.webank.wecube.platform.core.dto.EntityDto;
-import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
-import com.webank.wecube.platform.core.support.datamodel.dto.TreeNode;
-
 import java.util.List;
+
+import com.webank.wecube.platform.core.dto.EntityDto;
 
 public interface ExpressionService {
 
