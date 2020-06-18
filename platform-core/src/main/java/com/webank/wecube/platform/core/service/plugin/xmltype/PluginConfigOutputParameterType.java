@@ -11,12 +11,14 @@ import javax.xml.bind.annotation.XmlValue;
 public class PluginConfigOutputParameterType {
     @XmlValue
     protected String value;
-    @XmlAttribute(name = "datatype")
-    protected String datatype;
+    @XmlAttribute(name = "dataType")
+    protected String dataType;
     @XmlAttribute(name = "mappingType")
     protected String mappingType;
     @XmlAttribute(name = "mappingEntityExpression")
     protected String mappingEntityExpression;
+    @XmlAttribute(name = "sensitiveData")
+    protected String sensitiveData;
 
     public String getValue() {
         return value;
@@ -26,12 +28,12 @@ public class PluginConfigOutputParameterType {
         this.value = value;
     }
 
-    public String getDatatype() {
-        return datatype;
+    public String getDataType() {
+        return dataType;
     }
 
-    public void setDatatype(String datatype) {
-        this.datatype = datatype;
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     public String getMappingType() {
@@ -48,6 +50,14 @@ public class PluginConfigOutputParameterType {
 
     public void setMappingEntityExpression(String mappingEntityExpression) {
         this.mappingEntityExpression = mappingEntityExpression;
+    }
+
+    public String getSensitiveData() {
+        return sensitiveData;
+    }
+
+    public void setSensitiveData(String sensitiveData) {
+        this.sensitiveData = sensitiveData;
     }
 
 }

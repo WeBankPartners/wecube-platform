@@ -151,13 +151,107 @@ public class PluginConfigService {
         if (existPluginConfig != null) {
             log.debug("such plugin config already exist and try to update,{} {}", pluginPackage.getId(),
                     existPluginConfig.getRegisterName());
-            tryUpdatePluginConfig(pluginPackage, xmlPluginConfig, existPluginConfig);
+            tryUpdatePluginConfig(pluginPackage, existPluginConfig, xmlPluginConfig);
         } else {
             log.debug("try to create a new plugin config for {} {}", pluginPackage.getId(),
-                    existPluginConfig.getRegisterName());
+                    xmlPluginConfig.getRegisterName());
             tryCreatePluginConfig(pluginPackage, xmlPluginConfig);
         }
 
+    }
+
+    private PluginConfig tryUpdatePluginConfig(PluginPackage pluginPackage, PluginConfig existPluginConfig,
+            PluginConfigType xmlPluginConfig) {
+        existPluginConfig.setTargetEntity(xmlPluginConfig.getTargetEntity());
+        existPluginConfig.setTargetEntityFilterRule(xmlPluginConfig.getTargetEntityFilterRule());
+        existPluginConfig.setTargetPackage(xmlPluginConfig.getTargetPackage());
+
+        Set<PluginConfigInterface> interfaces = existPluginConfig.getInterfaces();
+
+        List<PluginConfigInterfaceType> xmlIntfList = xmlPluginConfig.getPluginInterface();
+        for (PluginConfigInterfaceType xmlIntf : xmlIntfList) {
+            if (StringUtils.isBlank(xmlIntf.getAction())) {
+                throw new WecubeCoreException("Action of interface cannot be blank.");
+            }
+            PluginConfigInterface intf = pickoutPluginConfigInterface(interfaces, xmlIntf.getAction());//
+            if (intf == null) {
+                log.debug("interface doesnot exist and try to create one,{} {}", existPluginConfig.getId(),
+                        xmlIntf.getAction());
+                intf = tryCreatePluginConfigInterface(existPluginConfig, xmlIntf);
+                existPluginConfig.addPluginConfigInterface(intf);
+            } else {
+                log.debug("interface exists and try to update,{} {}", existPluginConfig.getId(), xmlIntf.getAction());
+                tryUpdatePluginConfigInterface(existPluginConfig, intf, xmlIntf);
+            }
+        }
+
+        pluginConfigRepository.save(existPluginConfig);
+        //
+        return existPluginConfig;
+    }
+
+    private PluginConfigInterface tryUpdatePluginConfigInterface(PluginConfig existPluginConfig,
+            PluginConfigInterface intf, PluginConfigInterfaceType xmlIntf) {
+        intf.setFilterRule(xmlIntf.getFilterRule());
+        intf.setHttpMethod(xmlIntf.getHttpMethod());
+        intf.setIsAsyncProcessing(xmlIntf.getIsAsyncProcessing());
+        intf.setServiceDisplayName("");
+        intf.setServiceName("");
+        intf.setType(StringUtils.isBlank(xmlIntf.getType()) ? PluginConfigInterface.DEFAULT_INTERFACE_TYPE
+                : xmlIntf.getType());
+
+        Set<PluginConfigInterfaceParameter> inputParameters = intf.getInlineInputParameters();
+        if (xmlIntf.getInputParameters() != null) {
+            for (PluginConfigInputParameterType xmlInputParam : xmlIntf.getInputParameters().getParameter()) {
+
+                PluginConfigInterfaceParameter inputParam = pickoutPluginConfigInterfaceParameter(inputParameters,
+                        xmlInputParam.getValue());
+
+                if (inputParam == null) {
+                    inputParam = tryCreateInputParameter(intf, xmlInputParam);
+                    intf.addInputParameter(inputParam);
+                } else {
+                    tryUpdatePluginConfigInterfaceParameter(existPluginConfig, intf, inputParam, xmlInputParam);
+                }
+            }
+        }
+
+        return intf;
+    }
+
+    private PluginConfigInterfaceParameter pickoutPluginConfigInterfaceParameter(
+            Set<PluginConfigInterfaceParameter> parameters, String name) {
+        if (parameters == null || parameters.isEmpty()) {
+            return null;
+        }
+
+        for (PluginConfigInterfaceParameter p : parameters) {
+            if (name.equals(p.getName())) {
+                return p;
+            }
+        }
+
+        return null;
+    }
+
+    private void tryUpdatePluginConfigInterfaceParameter(PluginConfig existPluginConfig, PluginConfigInterface intf,
+            PluginConfigInterfaceParameter inputParam, PluginConfigInputParameterType xmlParam) {
+
+        //TODO
+    }
+
+    private PluginConfigInterface pickoutPluginConfigInterface(Set<PluginConfigInterface> interfaces, String action) {
+        if (interfaces == null || interfaces.isEmpty()) {
+            return null;
+        }
+
+        for (PluginConfigInterface intf : interfaces) {
+            if (intf.getAction().equals(action)) {
+                return intf;
+            }
+        }
+
+        return null;
     }
 
     private PluginConfig tryCreatePluginConfig(PluginPackage pluginPackage, PluginConfigType xmlPluginConfig) {
@@ -168,6 +262,7 @@ public class PluginConfigService {
         pluginConfig.setTargetEntity(xmlPluginConfig.getTargetEntity());
         pluginConfig.setTargetEntityFilterRule(xmlPluginConfig.getTargetEntityFilterRule());
         pluginConfig.setTargetPackage(xmlPluginConfig.getTargetPackage());
+        pluginConfig.setPluginPackage(pluginPackage);
 
         List<PluginConfigInterfaceType> xmlPluginInterfaceList = xmlPluginConfig.getPluginInterface();
 
@@ -179,7 +274,9 @@ public class PluginConfigService {
         }
 
         pluginConfig.setInterfaces(interfaces);
-        return pluginConfig;
+
+        PluginConfig savedPluginConfig = pluginConfigRepository.save(pluginConfig);
+        return savedPluginConfig;
 
     }
 
@@ -211,9 +308,29 @@ public class PluginConfigService {
         Set<PluginConfigInterfaceParameter> outputParameters = new HashSet<>();
 
         PluginConfigOutputParametersType xmlOutputParameters = xmlIntf.getOutputParameters();
+        if (xmlOutputParameters != null) {
+            for (PluginConfigOutputParameterType xmlOutputParam : xmlOutputParameters.getParameter()) {
+                PluginConfigInterfaceParameter outputParam = tryCreateOutputParameter(intf, xmlOutputParam);
+                outputParameters.add(outputParam);
+            }
+        }
         intf.setOutputParameters(outputParameters);
 
         return intf;
+    }
+
+    private PluginConfigInterfaceParameter tryCreateOutputParameter(PluginConfigInterface intf,
+            PluginConfigOutputParameterType xmlOutputParam) {
+        PluginConfigInterfaceParameter param = new PluginConfigInterfaceParameter();
+        param.setDataType(xmlOutputParam.getDataType());
+        param.setMappingEntityExpression(xmlOutputParam.getMappingEntityExpression());
+        param.setMappingType(xmlOutputParam.getMappingType());
+        param.setName(xmlOutputParam.getValue());
+        param.setPluginConfigInterface(intf);
+        param.setSensitiveData(xmlOutputParam.getSensitiveData());
+        param.setType(PluginConfigInterfaceParameter.TYPE_OUTPUT);
+
+        return param;
     }
 
     private PluginConfigInterfaceParameter tryCreateInputParameter(PluginConfigInterface intf,
@@ -231,13 +348,6 @@ public class PluginConfigService {
 
         return param;
 
-    }
-
-    private PluginConfig tryUpdatePluginConfig(PluginPackage pluginPackage, PluginConfigType xmlPluginConfig,
-            PluginConfig existPluginConfig) {
-
-        //
-        return null;
     }
 
     private PluginConfig pickoutPluginConfigWithRegisterName(List<PluginConfig> pluginConfigs, String registerName) {
@@ -642,10 +752,11 @@ public class PluginConfigService {
 
     private PluginConfigOutputParameterType buildXmlOutputParameter(PluginConfigInterfaceParameter outputParameter) {
         PluginConfigOutputParameterType xmlParam = new PluginConfigOutputParameterType();
-        xmlParam.setDatatype(outputParameter.getDataType());
+        xmlParam.setDataType(outputParameter.getDataType());
         xmlParam.setMappingEntityExpression(outputParameter.getMappingEntityExpression());
         xmlParam.setMappingType(outputParameter.getMappingType());
         xmlParam.setValue(outputParameter.getName());
+        xmlParam.setSensitiveData(outputParameter.getSensitiveData());
 
         return xmlParam;
     }

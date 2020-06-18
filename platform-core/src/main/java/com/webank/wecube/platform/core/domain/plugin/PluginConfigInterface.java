@@ -95,8 +95,7 @@ public class PluginConfigInterface {
     public String generateServiceName() {
         return pluginConfig.getPluginPackage().getName() + SEPARATOR_OF_NAMES + pluginConfig.getName()
                 + (null != pluginConfig.getRegisterName()
-                        ? LEFT_BRACKET_STRING + pluginConfig.getRegisterName() + RIGHT_BRACKET_STRING
-                        : "")
+                        ? LEFT_BRACKET_STRING + pluginConfig.getRegisterName() + RIGHT_BRACKET_STRING : "")
                 + SEPARATOR_OF_NAMES + action;
     }
 
@@ -122,6 +121,30 @@ public class PluginConfigInterface {
 
     public void setHttpMethod(String httpMethod) {
         this.httpMethod = httpMethod;
+    }
+    
+    public void addInputParameter(PluginConfigInterfaceParameter p){
+        if(inputParameters == null){
+            inputParameters =  new LinkedHashSet<PluginConfigInterfaceParameter>();
+        }
+        
+        inputParameters.add(p);
+    }
+    
+    public void addOutputParameter(PluginConfigInterfaceParameter p){
+        if(outputParameters == null){
+            outputParameters = new LinkedHashSet<PluginConfigInterfaceParameter>();
+        }
+        
+        outputParameters.add(p);
+    }
+
+    public Set<PluginConfigInterfaceParameter> getInlineInputParameters() {
+        return inputParameters == null ? new LinkedHashSet<>() : inputParameters;
+    }
+
+    public Set<PluginConfigInterfaceParameter> getInlineOutputParameters() {
+        return outputParameters == null ? new LinkedHashSet<>() : outputParameters;
     }
 
     public Set<PluginConfigInterfaceParameter> getInputParameters() {
