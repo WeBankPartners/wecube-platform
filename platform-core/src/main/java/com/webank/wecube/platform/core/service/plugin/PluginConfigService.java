@@ -134,6 +134,9 @@ public class PluginConfigService {
         for (PluginConfigType xmlPluginConfig : xmlPluginConfigList) {
             handlePluginConfig(pluginPackage, xmlPluginConfig);
         }
+        
+        log.info("finished importing plugin registries for {} {} from {} {}", pluginPackage.getName(),
+                pluginPackage.getVersion(), xmlPluginPackage.getName(), xmlPluginPackage.getVersion());
 
     }
 
@@ -251,7 +254,7 @@ public class PluginConfigService {
 
     private PluginConfigInterfaceParameter tryUpdatePluginConfigInterfaceInputParameter(PluginConfig existPluginConfig,
             PluginConfigInterface intf, PluginConfigInterfaceParameter param, PluginConfigInputParameterType xmlParam) {
-        param.setDataType(xmlParam.getDataType());
+        param.setDataType(xmlParam.getDatatype());
         param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
         param.setMappingSystemVariableName(xmlParam.getMappingSystemVariableName());
         param.setMappingType(xmlParam.getMappingType());
@@ -264,7 +267,7 @@ public class PluginConfigService {
     private PluginConfigInterfaceParameter tryUpdatePluginConfigInterfaceOutputParameter(PluginConfig existPluginConfig,
             PluginConfigInterface intf, PluginConfigInterfaceParameter param,
             PluginConfigOutputParameterType xmlParam) {
-        param.setDataType(xmlParam.getDataType());
+        param.setDataType(xmlParam.getDatatype());
         param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
         param.setMappingType(xmlParam.getMappingType());
         param.setSensitiveData(xmlParam.getSensitiveData());
@@ -355,7 +358,7 @@ public class PluginConfigService {
     private PluginConfigInterfaceParameter tryCreateOutputParameter(PluginConfigInterface intf,
             PluginConfigOutputParameterType xmlOutputParam) {
         PluginConfigInterfaceParameter param = new PluginConfigInterfaceParameter();
-        param.setDataType(xmlOutputParam.getDataType());
+        param.setDataType(xmlOutputParam.getDatatype());
         param.setMappingEntityExpression(xmlOutputParam.getMappingEntityExpression());
         param.setMappingType(xmlOutputParam.getMappingType());
         param.setName(xmlOutputParam.getValue());
@@ -369,7 +372,7 @@ public class PluginConfigService {
     private PluginConfigInterfaceParameter tryCreateInputParameter(PluginConfigInterface intf,
             PluginConfigInputParameterType xmlInputParam) {
         PluginConfigInterfaceParameter param = new PluginConfigInterfaceParameter();
-        param.setDataType(xmlInputParam.getDataType());
+        param.setDataType(xmlInputParam.getDatatype());
         param.setMappingEntityExpression(xmlInputParam.getMappingEntityExpression());
         param.setMappingSystemVariableName(xmlInputParam.getMappingSystemVariableName());
         param.setMappingType(xmlInputParam.getMappingType());
@@ -785,7 +788,7 @@ public class PluginConfigService {
 
     private PluginConfigOutputParameterType buildXmlOutputParameter(PluginConfigInterfaceParameter outputParameter) {
         PluginConfigOutputParameterType xmlParam = new PluginConfigOutputParameterType();
-        xmlParam.setDataType(outputParameter.getDataType());
+        xmlParam.setDatatype(outputParameter.getDataType());
         xmlParam.setMappingEntityExpression(outputParameter.getMappingEntityExpression());
         xmlParam.setMappingType(outputParameter.getMappingType());
         xmlParam.setValue(outputParameter.getName());
@@ -796,7 +799,7 @@ public class PluginConfigService {
 
     private PluginConfigInputParameterType buildXmlInputParameter(PluginConfigInterfaceParameter inputParameter) {
         PluginConfigInputParameterType xmlParam = new PluginConfigInputParameterType();
-        xmlParam.setDataType(inputParameter.getDataType());
+        xmlParam.setDatatype(inputParameter.getDataType());
         xmlParam.setMappingEntityExpression(inputParameter.getMappingEntityExpression());
         xmlParam.setMappingSystemVariableName(inputParameter.getMappingSystemVariableName());
         xmlParam.setMappingType(inputParameter.getMappingType());
