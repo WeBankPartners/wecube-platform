@@ -36,10 +36,15 @@ import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInputParameterType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInputParametersType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInterfaceType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigOutputParameterType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigOutputParametersType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigsType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginPackageType;
+import com.webank.wecube.platform.core.utils.JaxbUtils;
 
 @Service
 @Transactional
@@ -69,6 +74,9 @@ public class PluginConfigService {
 
         PluginPackage pluginPackage = pluginPackageEntityOpt.get();
 
+        log.info("start to export plugin package registry,{} {} {}", pluginPackageId, pluginPackage.getName(),
+                pluginPackage.getVersion());
+
         PluginPackageType xmlPluginPackage = new PluginPackageType();
         xmlPluginPackage.setName(pluginPackage.getName());
         xmlPluginPackage.setVersion(pluginPackage.getVersion());
@@ -79,8 +87,9 @@ public class PluginConfigService {
         PluginConfigsType xmlPluginConfigs = buildXmlPluginConfigs(pluginPackage, pluginConfigs);
         xmlPluginPackage.setPlugins(xmlPluginConfigs);
 
-        // TODO
-        return null;
+        String xmlContent = JaxbUtils.convertToXml(xmlPluginPackage);
+
+        return xmlContent;
     }
 
     private PluginConfigsType buildXmlPluginConfigs(PluginPackage pluginPackage, List<PluginConfig> pluginConfigs) {
@@ -109,8 +118,7 @@ public class PluginConfigService {
         Set<PluginConfigInterface> intfs = pluginConfig.getInterfaces();
         if (intfs != null) {
             for (PluginConfigInterface intf : intfs) {
-                PluginConfigInterfaceType xmlIntf = buildXmlPluginConfigInterface(pluginPackage, pluginConfig,
-                        intf);
+                PluginConfigInterfaceType xmlIntf = buildXmlPluginConfigInterface(pluginPackage, pluginConfig, intf);
                 xmlPluginConfig.getPluginInterface().add(xmlIntf);
             }
         }
@@ -129,7 +137,52 @@ public class PluginConfigService {
         xmlIntf.setPath(intf.getPath());
         xmlIntf.setType(intf.getType());
 
+        PluginConfigInputParametersType xmlInputParameters = new PluginConfigInputParametersType();
+        xmlIntf.setInputParameters(xmlInputParameters);
+
+        Set<PluginConfigInterfaceParameter> inputParameters = intf.getInputParameters();
+        if (inputParameters != null) {
+            for (PluginConfigInterfaceParameter inputParameter : inputParameters) {
+                PluginConfigInputParameterType xmlInputParameter = buildXmlInputParameter(inputParameter);
+                xmlInputParameters.getParameter().add(xmlInputParameter);
+            }
+        }
+
+        PluginConfigOutputParametersType xmlOutputParameters = new PluginConfigOutputParametersType();
+        xmlIntf.setOutputParameters(xmlOutputParameters);
+
+        Set<PluginConfigInterfaceParameter> outputParameters = intf.getOutputParameters();
+        if (outputParameters != null) {
+            for (PluginConfigInterfaceParameter outputParameter : outputParameters) {
+                PluginConfigOutputParameterType xmlOutputParameter = buildXmlOutputParameter(outputParameter);
+                xmlOutputParameters.getParameter().add(xmlOutputParameter);
+            }
+        }
+
         return xmlIntf;
+    }
+
+    private PluginConfigOutputParameterType buildXmlOutputParameter(PluginConfigInterfaceParameter outputParameter) {
+        PluginConfigOutputParameterType xmlParam = new PluginConfigOutputParameterType();
+        xmlParam.setDatatype(outputParameter.getDataType());
+        xmlParam.setMappingEntityExpression(outputParameter.getMappingEntityExpression());
+        xmlParam.setMappingType(outputParameter.getMappingType());
+        xmlParam.setValue(outputParameter.getName());
+
+        return xmlParam;
+    }
+
+    private PluginConfigInputParameterType buildXmlInputParameter(PluginConfigInterfaceParameter inputParameter) {
+        PluginConfigInputParameterType xmlParam = new PluginConfigInputParameterType();
+        xmlParam.setDataType(inputParameter.getDataType());
+        xmlParam.setMappingEntityExpression(inputParameter.getMappingEntityExpression());
+        xmlParam.setMappingSystemVariableName(inputParameter.getMappingSystemVariableName());
+        xmlParam.setMappingType(inputParameter.getMappingType());
+        xmlParam.setRequired(inputParameter.getRequired());
+        xmlParam.setSensitiveData(inputParameter.getSensitiveData());
+        xmlParam.setValue(inputParameter.getName());
+
+        return xmlParam;
     }
 
     public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml) {
