@@ -160,14 +160,6 @@ public class HttpClientConfig {
         return new UserJwtSsoTokenRestTemplate();
     }
     
-//    @Bean("jwtSsoRestTemplate")
-//    public JwtSsoRestTemplate jwtSsoRestTemplate(JwtSsoClientContext ctx)
-//            throws KeyManagementException, KeyStoreException, NoSuchAlgorithmException {
-//        JwtSsoRestTemplate t = new JwtSsoRestTemplate(ctx);
-////        t.setRequestFactory(httpComponentsClientHttpRequestFactory());
-//        return t;
-//    }
-
     @Bean
     public RestTemplateBuilder restTemplateBuilder() {
         return new RestTemplateBuilder(customRestTemplateCustomizer());
