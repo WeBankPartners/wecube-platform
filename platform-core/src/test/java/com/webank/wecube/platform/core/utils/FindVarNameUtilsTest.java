@@ -15,7 +15,7 @@ public class FindVarNameUtilsTest {
     public void findVarNameTestCase1() {
         String str = "{{ALLOCATE_PORT}}:21000";
         log.info("Checking str: " + str);
-        List<String> stringList = StringUtils.findSystemVariableString(str);
+        List<String> stringList = StringUtilsEx.findSystemVariableString(str);
         log.info("Checking stringList: " + stringList);
 
         assertThat(stringList).contains("{{ALLOCATE_PORT}}");
@@ -25,14 +25,14 @@ public class FindVarNameUtilsTest {
     public void findVarNameTestCase2() {
         String str = "{{BASE_MOUNT_PATH}}/service-mgmt/log:/log";
         log.info("Checking str: " + str);
-        assertThat(StringUtils.findSystemVariableString(str)).contains("{{BASE_MOUNT_PATH}}");
+        assertThat(StringUtilsEx.findSystemVariableString(str)).contains("{{BASE_MOUNT_PATH}}");
     }
 
     @Test
     public void findVarNameTestCase3() {
         String str = "DB_HOST={{DB_HOST}},DB_PORT={{DB_PORT}},DB_SCHEMA={{DB_SCHEMA}},DB_USER={{DB_USER}},DB_PWD={{DB_PWD}},CORE_ADDR={{CORE_ADDR}}";
         log.info("Checking str: " + str);
-        assertThat(StringUtils.findSystemVariableString(str)).contains("{{DB_HOST}}", "{{DB_PORT}}", "{{DB_SCHEMA}}", "{{DB_USER}}",
+        assertThat(StringUtilsEx.findSystemVariableString(str)).contains("{{DB_HOST}}", "{{DB_PORT}}", "{{DB_SCHEMA}}", "{{DB_USER}}",
                 "{{DB_PWD}}", "{{CORE_ADDR}}");
     }
 
