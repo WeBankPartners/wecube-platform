@@ -81,8 +81,7 @@ WeCube分为核心功能模块和插件模块。
 APIGateway启动时通过Core获取插件实例列表，并建立路由规则。  
 同时APIGateway会监测Core、Auth Server、Plugins的状态，实现Core、Auth server、Plugins实例的主从类型的高可用。
 
-4, Auth server：主要负责用户认证服务，并返回含用    
-由API gateway实现主从类型的高可用。
+4, Auth server：主要负责用户认证服务，并返回含有用于认证的token。由API gateway实现主从类型的高可用。    
 5, Core：WeCube的核心模块。提供插件注册、编排设计、权限管理、批量任务、插件运行资源管理、数据模型、系统参数等核心功能。
 由API gateway实现主从类型的高可用。  
 6, MYSQL：WeCube Core和Auth server的数据库实例。建议MYSQL主从实现高可用。  
@@ -90,7 +89,7 @@ APIGateway启动时通过Core获取插件实例列表，并建立路由规则。
 8, Plugin instance-Docker：插件运行的容器母机，可以配置多台母机，运行多个插件实例，提供高可用。  
 9, Plugin instance-MYSQL：插件运行所需要的数据库实例，为每个需要数据库的插件建立独立数据库。建议MYSQL主从实现高可用。  
 10, Plugin instance-S3：插件运行所需要的对象存储，为每个需要存储文件的插件分配单独的桶。  
-11, Plugin instance- Squid：插件访问外部资源的代理服务器，按域名放通白名单。在安全要求较高的时建议部署。  
+11, Plugin instance-Squid：插件访问外部资源的代理服务器，按域名放通白名单。在安全要求较高的时建议部署。  
 以上11个组件组成WeCube Platform。
 
 
