@@ -93,6 +93,7 @@ public class PluginConfigService {
         return xmlContent;
     }
 
+    @Transactional
     public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml) {
         if (StringUtils.isBlank(pluginPackageId)) {
             throw new WecubeCoreException("Plugin package ID cannot be blank.");
@@ -134,7 +135,7 @@ public class PluginConfigService {
         for (PluginConfigType xmlPluginConfig : xmlPluginConfigList) {
             handlePluginConfig(pluginPackage, xmlPluginConfig);
         }
-        
+
         log.info("finished importing plugin registries for {} {} from {} {}", pluginPackage.getName(),
                 pluginPackage.getVersion(), xmlPluginPackage.getName(), xmlPluginPackage.getVersion());
 
@@ -188,7 +189,9 @@ public class PluginConfigService {
             }
         }
 
-        pluginConfigRepository.save(existPluginConfig);
+        pluginConfigRepository.saveAndFlush(existPluginConfig);
+        log.debug("plugin config updated : {} {} {} {}", existPluginConfig.getId(), existPluginConfig.getTargetEntity(),
+                existPluginConfig.getTargetEntityFilterRule(), existPluginConfig.getTargetPackage());
         //
         return existPluginConfig;
     }
@@ -311,7 +314,7 @@ public class PluginConfigService {
 
         pluginConfig.setInterfaces(interfaces);
 
-        PluginConfig savedPluginConfig = pluginConfigRepository.save(pluginConfig);
+        PluginConfig savedPluginConfig = pluginConfigRepository.saveAndFlush(pluginConfig);
         return savedPluginConfig;
 
     }
