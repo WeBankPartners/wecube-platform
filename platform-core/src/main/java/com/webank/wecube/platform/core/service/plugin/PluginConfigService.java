@@ -131,13 +131,42 @@ public class PluginConfigService {
         }
 
         for (PluginConfigType xmlPluginConfig : xmlPluginConfigList) {
-            importPluginConfig(pluginPackage, xmlPluginConfig);
+            handlePluginConfig(pluginPackage, xmlPluginConfig);
         }
 
     }
 
-    private void importPluginConfig(PluginPackage pluginPackage, PluginConfigType xmlPluginConfig) {
+    private void handlePluginConfig(PluginPackage pluginPackage, PluginConfigType xmlPluginConfig) {
+        List<PluginConfig> pluginConfigs = pluginConfigRepository
+                .findByPluginPackage_idOrderByName(pluginPackage.getId()).get();
 
+        if (StringUtils.isBlank(xmlPluginConfig.getRegisterName())) {
+            throw new WecubeCoreException("Register name is blank for " + xmlPluginConfig.getName());
+        }
+
+        PluginConfig existPluginConfig = pickoutPluginConfigWithRegisterName(pluginConfigs,
+                xmlPluginConfig.getRegisterName());
+        
+        if(existPluginConfig == null){
+            
+        }else{
+            
+        }
+
+    }
+
+    private PluginConfig pickoutPluginConfigWithRegisterName(List<PluginConfig> pluginConfigs, String registerName) {
+        if (pluginConfigs == null || pluginConfigs.isEmpty()) {
+            return null;
+        }
+
+        for (PluginConfig pc : pluginConfigs) {
+            if (registerName.equals(pc.getRegisterName())) {
+                return pc;
+            }
+        }
+
+        return null;
     }
 
     public List<PluginConfigInterface> getPluginConfigInterfaces(String pluginConfigId) {
