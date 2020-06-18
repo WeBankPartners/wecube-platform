@@ -211,7 +211,22 @@ public class PluginConfigService {
                     inputParam = tryCreateInputParameter(intf, xmlInputParam);
                     intf.addInputParameter(inputParam);
                 } else {
-                    tryUpdatePluginConfigInterfaceParameter(existPluginConfig, intf, inputParam, xmlInputParam);
+                    tryUpdatePluginConfigInterfaceInputParameter(existPluginConfig, intf, inputParam, xmlInputParam);
+                }
+            }
+        }
+
+        Set<PluginConfigInterfaceParameter> outputParameters = intf.getInlineOutputParameters();
+        if (xmlIntf.getOutputParameters() != null) {
+            for (PluginConfigOutputParameterType xmlOutputParam : xmlIntf.getOutputParameters().getParameter()) {
+                PluginConfigInterfaceParameter outputParam = pickoutPluginConfigInterfaceParameter(outputParameters,
+                        xmlOutputParam.getValue());
+
+                if (outputParam == null) {
+                    outputParam = tryCreateOutputParameter(intf, xmlOutputParam);
+                    intf.addOutputParameter(outputParam);
+                } else {
+                    tryUpdatePluginConfigInterfaceOutputParameter(existPluginConfig, intf, outputParam, xmlOutputParam);
                 }
             }
         }
@@ -234,10 +249,28 @@ public class PluginConfigService {
         return null;
     }
 
-    private void tryUpdatePluginConfigInterfaceParameter(PluginConfig existPluginConfig, PluginConfigInterface intf,
-            PluginConfigInterfaceParameter inputParam, PluginConfigInputParameterType xmlParam) {
+    private PluginConfigInterfaceParameter tryUpdatePluginConfigInterfaceInputParameter(PluginConfig existPluginConfig,
+            PluginConfigInterface intf, PluginConfigInterfaceParameter param, PluginConfigInputParameterType xmlParam) {
+        param.setDataType(xmlParam.getDataType());
+        param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
+        param.setMappingSystemVariableName(xmlParam.getMappingSystemVariableName());
+        param.setMappingType(xmlParam.getMappingType());
+        param.setRequired(xmlParam.getRequired());
+        param.setSensitiveData(xmlParam.getSensitiveData());
 
-        //TODO
+        return param;
+    }
+
+    private PluginConfigInterfaceParameter tryUpdatePluginConfigInterfaceOutputParameter(PluginConfig existPluginConfig,
+            PluginConfigInterface intf, PluginConfigInterfaceParameter param,
+            PluginConfigOutputParameterType xmlParam) {
+        param.setDataType(xmlParam.getDataType());
+        param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
+        param.setMappingType(xmlParam.getMappingType());
+        param.setSensitiveData(xmlParam.getSensitiveData());
+
+        return param;
+
     }
 
     private PluginConfigInterface pickoutPluginConfigInterface(Set<PluginConfigInterface> interfaces, String action) {
