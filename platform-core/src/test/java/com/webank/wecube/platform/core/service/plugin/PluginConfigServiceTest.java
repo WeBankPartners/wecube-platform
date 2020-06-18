@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
@@ -10,6 +11,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -84,5 +86,26 @@ public class PluginConfigServiceTest extends DatabaseBasedTest {
         assertThat(pluginConfigInterfaceDtos.get(7).getId()).isEqualTo("qcloud__v1.2__vpc__restart");
         assertThat(pluginConfigInterfaceDtos.get(8).getId()).isEqualTo("qcloud__v1.2__vpc__terminate");
 
+    }
+
+    @Test
+    public void distinctPluginConfigInfDtoShouldSuccess() {
+        PluginConfigInterfaceDto dto1 = new PluginConfigInterfaceDto("a", "pluginConfigId", "action", "serviceName1",
+                "serviceDisplayName", "path", "httpMethod", null, null);
+        PluginConfigInterfaceDto dto2 = new PluginConfigInterfaceDto("b", "pluginConfigId", "action", "serviceName2",
+                "serviceDisplayName", "path", "httpMethod", null, null);
+        PluginConfigInterfaceDto dto3 = new PluginConfigInterfaceDto("c", "pluginConfigId", "action", "serviceName3",
+                "serviceDisplayName", "path", "httpMethod", null, null);
+        PluginConfigInterfaceDto dto4 = new PluginConfigInterfaceDto("d", "pluginConfigId", "action", "serviceName1",
+                "serviceDisplayName", "path", "httpMethod", null, null);
+        PluginConfigInterfaceDto dto5 = new PluginConfigInterfaceDto("e", "pluginConfigId", "action", "serviceName5",
+                "serviceDisplayName", "path", "httpMethod", null, null);
+        List<PluginConfigInterfaceDto> list = Lists.newArrayList(dto1, dto2, dto3, dto4, dto5);
+        List<PluginConfigInterfaceDto> retList = new ArrayList<PluginConfigInterfaceDto>();
+        retList = configService.distinctPluginConfigInfDto(list);
+
+        assertThat(retList.size()).isEqualTo(4);
+        assertThat(retList).contains(dto1, dto2, dto3, dto5);
+        assertThat(retList).doesNotContain(dto4);
     }
 }
