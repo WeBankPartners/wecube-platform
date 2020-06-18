@@ -173,7 +173,7 @@ public class PluginPackageService {
 		try {
 			List<S3PluginActifactDto> results = parseReleaseFile(releaseFileUrl);
 			return results;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new WecubeCoreException("Cannot parse release file properly.Caused by " + e.getMessage());
 		}
 	}
