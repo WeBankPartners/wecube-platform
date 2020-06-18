@@ -8,11 +8,14 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status
 import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.entity;
 import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -690,7 +693,17 @@ public class PluginConfigService {
                     .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                     .collect(Collectors.toList()));
         }
-        return pluginConfigInterfaceDtos;
+
+        return distinctPluginConfigInfDto(pluginConfigInterfaceDtos);
+    }
+    
+    public List<PluginConfigInterfaceDto> distinctPluginConfigInfDto(List<PluginConfigInterfaceDto> dto) {
+        dto = dto.stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toCollection(
+                                () -> new TreeSet<>(Comparator.comparing(PluginConfigInterfaceDto::getServiceName))),
+                        ArrayList::new));
+        return dto;
     }
 
     public void disableAllPluginsForPluginPackage(String pluginPackageId) {
