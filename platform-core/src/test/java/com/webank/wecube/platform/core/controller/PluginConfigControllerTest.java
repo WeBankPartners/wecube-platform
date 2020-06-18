@@ -333,16 +333,16 @@ public class PluginConfigControllerTest extends AbstractControllerTest {
                     .andExpect(jsonPath("$.status", is("OK")))
                     .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.length()", is(3)))
-                    .andExpect(jsonPath("$.data[*].action", contains("update", "confirm", "confirm")))
+                    .andExpect(jsonPath("$.data[*].action", containsInAnyOrder("update", "confirm", "confirm")))
                     .andExpect(jsonPath("$.data[*].serviceName",
-                            contains("service-management/service_request/update",
+                            containsInAnyOrder("service-management/service_request/update",
                                     "service-management/service_request/confirmation",
                                     "service-management/task/confirmation")))
                     .andExpect(jsonPath("$.data[*].path",
-                            contains("/service-management/service-requests/{service-request-id}/done",
+                            containsInAnyOrder("/service-management/service-requests/{service-request-id}/done",
                                     "/service-management/service-requests/confirmation/done",
                                     "/service-management/task/confirmation/done")))
-                    .andExpect(jsonPath("$.data[*].httpMethod", contains("PUT", "POST", "POST"))).andDo(print()).andReturn()
+                    .andExpect(jsonPath("$.data[*].httpMethod", containsInAnyOrder("PUT", "POST", "POST"))).andDo(print()).andReturn()
                     .getResponse().getContentAsString();
         } catch (Exception e) {
             fail(e.getMessage());
