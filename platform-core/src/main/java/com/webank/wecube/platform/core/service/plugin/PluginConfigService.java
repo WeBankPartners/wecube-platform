@@ -18,10 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -317,7 +320,17 @@ public class PluginConfigService {
                     .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                     .collect(Collectors.toList()));
         }
-        return pluginConfigInterfaceDtos;
+
+        return distinctPluginConfigInfDto(pluginConfigInterfaceDtos);
+    }
+    
+    public List<PluginConfigInterfaceDto> distinctPluginConfigInfDto(List<PluginConfigInterfaceDto> dto) {
+        dto = dto.stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toCollection(
+                                () -> new TreeSet<>(Comparator.comparing(PluginConfigInterfaceDto::getServiceName))),
+                        ArrayList::new));
+        return dto;
     }
 
     public void disableAllPluginsForPluginPackage(String pluginPackageId) {
