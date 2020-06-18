@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.Writer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -17,7 +16,6 @@ import javax.xml.transform.stream.StreamResult;
 public class JaxbUtils {
     public static final String DEFAULT_ENCODING = "UTF-8";
 
-    @SuppressWarnings("restriction")
     public static String convertToXml(Object obj) {
         if (obj == null) {
             throw new IllegalArgumentException("Object cannot be null.");
@@ -30,13 +28,13 @@ public class JaxbUtils {
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, DEFAULT_ENCODING);
             // marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.FALSE);
-            marshaller.setProperty("com.sun.xml.internal.bind.marshaller.CharacterEscapeHandler",
-                    new com.sun.xml.internal.bind.marshaller.CharacterEscapeHandler() {
-                        public void escape(char[] chars, int start, int length, boolean isAttVal, Writer writer)
-                                throws IOException {
-                            writer.write(chars, start, length);
-                        }
-                    });
+//            marshaller.setProperty("com.sun.xml.internal.bind.marshaller.CharacterEscapeHandler",
+//                    new com.sun.xml.internal.bind.marshaller.CharacterEscapeHandler() {
+//                        public void escape(char[] chars, int start, int length, boolean isAttVal, Writer writer)
+//                                throws IOException {
+//                            writer.write(chars, start, length);
+//                        }
+//                    });
 
             marshaller.marshal(obj, writer);
             result = writer.toString().replace("standalone=\"yes\"", "");
