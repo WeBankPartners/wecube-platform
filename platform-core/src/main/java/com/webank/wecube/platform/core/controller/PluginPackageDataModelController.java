@@ -1,15 +1,21 @@
 package com.webank.wecube.platform.core.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.JsonResponse;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.DataModelEntityDto;
 import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v1")
@@ -20,40 +26,35 @@ public class PluginPackageDataModelController {
     private PluginPackageDataModelServiceImpl pluginPackageDataModelService;
 
     @GetMapping("/models")
-    @ResponseBody
-    public JsonResponse allDataModels() {
-        return JsonResponse.okayWithData(pluginPackageDataModelService.overview());
+    public CommonResponseDto allDataModels() {
+        return CommonResponseDto.okayWithData(pluginPackageDataModelService.overview());
     }
 
     @GetMapping("/packages/{package-name}/models")
-    @ResponseBody
-    public JsonResponse getDataModelByPackageName(@PathVariable(value = "package-name") String packageName) {
-        return JsonResponse.okayWithData(pluginPackageDataModelService.packageView(packageName));
+    public CommonResponseDto getDataModelByPackageName(@PathVariable(value = "package-name") String packageName) {
+        return CommonResponseDto.okayWithData(pluginPackageDataModelService.packageView(packageName));
     }
 
     @GetMapping("/models/package/{plugin-package-name:.+}")
-    @ResponseBody
-    public JsonResponse pullDynamicDataModel(@PathVariable(value = "plugin-package-name") String packageName) {
-        return JsonResponse.okayWithData(pluginPackageDataModelService.pullDynamicDataModel(packageName));
+    public CommonResponseDto pullDynamicDataModel(@PathVariable(value = "plugin-package-name") String packageName) {
+        return CommonResponseDto.okayWithData(pluginPackageDataModelService.pullDynamicDataModel(packageName));
     }
 
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}/refById")
-    @ResponseBody
-    public JsonResponse getRefByIdInfoByPackageNameAndEntityName(
+    public CommonResponseDto getRefByIdInfoByPackageNameAndEntityName(
             @PathVariable(value = "plugin-package-name") String packageName,
             @PathVariable(value = "entity-name") String entityName
     ) {
-        return JsonResponse.okayWithData(pluginPackageDataModelService.getRefByInfo(packageName, entityName));
+        return CommonResponseDto.okayWithData(pluginPackageDataModelService.getRefByInfo(packageName, entityName));
     }
 
     @PostMapping("/models")
-    public JsonResponse applyNewDataModel(@RequestBody PluginPackageDataModelDto dataModelDto) {
-        return JsonResponse.okayWithData(pluginPackageDataModelService.register(dataModelDto, true));
+    public CommonResponseDto applyNewDataModel(@RequestBody PluginPackageDataModelDto dataModelDto) {
+        return CommonResponseDto.okayWithData(pluginPackageDataModelService.register(dataModelDto, true));
     }
 
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}/attributes")
-    @ResponseBody
-    public JsonResponse getAttributeInfoByPackageNameAndEntityName(
+    public CommonResponseDto getAttributeInfoByPackageNameAndEntityName(
             @PathVariable(value = "plugin-package-name") String packageName,
             @PathVariable(value = "entity-name") String entityName
     ) {
@@ -61,22 +62,21 @@ public class PluginPackageDataModelController {
         try {
             result = pluginPackageDataModelService.entityView(packageName, entityName);
         } catch (WecubeCoreException ex) {
-            return JsonResponse.error(ex.getMessage());
+            return CommonResponseDto.error(ex.getMessage());
         }
-        return JsonResponse.okayWithData(result);
+        return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}")
-    @ResponseBody
-    public JsonResponse getEntityInfoByPackageNameAndEntityName(
+    public CommonResponseDto getEntityInfoByPackageNameAndEntityName(
             @PathVariable(value = "plugin-package-name") String packageName,
             @PathVariable(value = "entity-name") String entityName) {
         try {
             DataModelEntityDto result = pluginPackageDataModelService.getEntityByPackageNameAndName(packageName,
                     entityName);
-            return JsonResponse.okayWithData(result);
+            return CommonResponseDto.okayWithData(result);
         } catch (WecubeCoreException ex) {
-            return JsonResponse.error(ex.getMessage());
+            return CommonResponseDto.error(ex.getMessage());
         }
     }
 }

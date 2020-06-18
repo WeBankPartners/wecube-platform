@@ -1,19 +1,24 @@
 package com.webank.wecube.platform.core.controller;
 
 
-import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
-import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
-import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
-import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
-import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
-import com.webank.wecube.platform.core.support.FakeS3Client;
-import com.webank.wecube.platform.core.utils.JsonUtils;
-import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.iterableWithSize;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.io.File;
+import java.util.Optional;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,20 +33,19 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.File;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.fail;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
+import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
+import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.service.PluginPackageDataModelService;
+import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
+import com.webank.wecube.platform.core.support.FakeS3Client;
+import com.webank.wecube.platform.core.utils.JsonUtils;
+import com.webank.wecube.platform.core.utils.constant.DataModelDataType;
 
 //@WithMockUser(username = "test", authorities = {ROLE_PREFIX + MENU_COLLABORATION_PLUGIN_MANAGEMENT})
 public class PluginPackageDataModelControllerTest extends AbstractControllerTest {
@@ -89,8 +93,8 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
         String packageName = "package1";
         mvc.perform(get("/v1/packages/" + packageName + "/models"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
-                .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
+                .andExpect(jsonPath("$.status", is(CommonResponseDto.STATUS_OK)))
+                .andExpect(jsonPath("$.message", is("Success")))
                 .andExpect(jsonPath("$.data.packageName", is(packageName)))
                 .andExpect(jsonPath("$.data.version", is(1)))
                 .andExpect(jsonPath("$.data.pluginPackageEntities[*].packageName", containsInAnyOrder(packageName, packageName, packageName)))
@@ -223,8 +227,8 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
 
         mvc.perform(post("/v1/models").contentType(MediaType.APPLICATION_JSON).content(JsonUtils.toJsonString(pluginPackageDataModelDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
-                .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
+                .andExpect(jsonPath("$.status", is(CommonResponseDto.STATUS_OK)))
+                .andExpect(jsonPath("$.message", is("Success")))
                 .andExpect(jsonPath("$.data.packageName", is(packageName)))
                 .andExpect(jsonPath("$.data.id", is("DataModel__package1__2")))
                 .andExpect(jsonPath("$.data.version", is(2)))
@@ -285,13 +289,13 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
 
         server.expect(ExpectedCount.manyTimes(), requestTo("http://localhost:9999/" + packageName + "/data-model"))
                 .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(JsonUtils.toJsonString(JsonResponse.okayWithData(pluginPackageDataModelDto.getPluginPackageEntities())), MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess(JsonUtils.toJsonString(CommonResponseDto.okayWithData(pluginPackageDataModelDto.getPluginPackageEntities())), MediaType.APPLICATION_JSON));
 
         try {
             mvc.perform(get("/v1/models/package/" + packageName))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status", is(JsonResponse.STATUS_OK)))
-                    .andExpect(jsonPath("$.message", is(JsonResponse.SUCCESS)))
+                    .andExpect(jsonPath("$.status", is(CommonResponseDto.STATUS_OK)))
+                    .andExpect(jsonPath("$.message", is("Success")))
                     .andExpect(jsonPath("$.data.packageName", is(packageName)))
                     .andExpect(jsonPath("$.data.id", is(nullValue())))
                     .andExpect(jsonPath("$.data.version", is(2)))

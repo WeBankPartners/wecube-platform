@@ -39,7 +39,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     private PluginPackageController pluginPackageController;
 
     @Autowired
-    private HomeController homeController;
+    private ApplicationHomeController homeController;
     @Autowired
     private GlobalExceptionHandler globalExceptionHandler;
 

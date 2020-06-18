@@ -1,16 +1,21 @@
 package com.webank.wecube.platform.core.controller;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.JsonResponse;
-import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
+import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
+import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
-import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 
 @RestController
 @RequestMapping("/v1")
@@ -22,32 +27,29 @@ public class PluginInstanceController {
     private PluginInstanceService pluginInstanceService;
 
     @GetMapping("/available-container-hosts")
-    @ResponseBody
-    public JsonResponse getAvailableContainerHosts() {
+    public CommonResponseDto getAvailableContainerHosts() {
         return okayWithData(pluginInstanceService.getAvailableContainerHosts());
     }
 
     @GetMapping("/hosts/{host-ip}/next-available-port")
-    @ResponseBody
-    public JsonResponse getAvailablePortByHostIp(@PathVariable(value = "host-ip") String hostIp) {
+    public CommonResponseDto getAvailablePortByHostIp(@PathVariable(value = "host-ip") String hostIp) {
         return okayWithData(pluginInstanceService.getAvailablePortByHostIp(hostIp));
     }
 
     @PostMapping("/packages/{package-id}/hosts/{host-ip}/ports/{port}/instance/launch")
-    @ResponseBody
-    public JsonResponse createPluginInstanceByPackageIdAndHostIp(@PathVariable(value = "package-id") String packageId,
-            @PathVariable(value = "host-ip") String hostIp, @PathVariable(value = "port") int port) {
+    public CommonResponseDto createPluginInstanceByPackageIdAndHostIp(
+            @PathVariable(value = "package-id") String packageId, @PathVariable(value = "host-ip") String hostIp,
+            @PathVariable(value = "port") int port) {
         try {
             pluginInstanceService.launchPluginInstance(packageId, hostIp, port);
         } catch (Exception e) {
-            throw new WecubeCoreException("Launch plugin instance failed. Error is " + e.getMessage(),e);
+            throw new WecubeCoreException("Launch plugin instance failed. Error is " + e.getMessage(), e);
         }
         return okay();
     }
 
     @DeleteMapping("/packages/instances/{instance-id}/remove")
-    @ResponseBody
-    public JsonResponse removePluginInstance(@PathVariable(value = "instance-id") String instanceId) {
+    public CommonResponseDto removePluginInstance(@PathVariable(value = "instance-id") String instanceId) {
         try {
             pluginInstanceService.removePluginInstanceById(instanceId);
         } catch (Exception e) {
@@ -57,15 +59,8 @@ public class PluginInstanceController {
         return okay();
     }
 
-//    @GetMapping("/instances/packages/{package-id}")
-//    @ResponseBody
-//    public JsonResponse getInstancesByPackageId() {
-//        return okayWithData(pluginInstanceService.getAllInstances());
-//    }
-
     @GetMapping("/packages/{package-id}/instances")
-    @ResponseBody
-    public JsonResponse getAvailableInstancesByPackageId(@PathVariable(value = "package-id") String packageId) {
+    public CommonResponseDto getAvailableInstancesByPackageId(@PathVariable(value = "package-id") String packageId) {
         return okayWithData(pluginInstanceService.getAvailableInstancesByPackageId(packageId));
     }
 

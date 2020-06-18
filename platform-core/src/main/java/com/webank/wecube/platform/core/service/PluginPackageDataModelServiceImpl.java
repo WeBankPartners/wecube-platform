@@ -1,18 +1,52 @@
 package com.webank.wecube.platform.core.service;
 
+import static com.google.common.collect.Sets.newLinkedHashSet;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.JsonResponse;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
-import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.dto.BindedInterfaceEntityDto;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.DataModelEntityDto;
+import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
+import com.webank.wecube.platform.core.dto.PluginPackageEntityDto;
 import com.webank.wecube.platform.core.dto.PluginPackageEntityDto.TrimmedPluginPackageEntityDto;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageAttributeRepository;
@@ -21,24 +55,6 @@ import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.support.PluginPackageDataModelHelper;
 import com.webank.wecube.platform.core.utils.JsonUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.*;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.common.collect.Sets.newLinkedHashSet;
 
 @Service
 @Transactional
@@ -463,6 +479,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Set<PluginPackageEntityDto> pullDynamicDataModelFromPlugin(PluginPackageDataModel dataModel) {
         Map<String, Object> parametersMap = new HashMap<>();
         String gatewayUrl = applicationProperties.getGatewayUrl();
@@ -484,7 +501,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             if (StringUtils.isBlank(response.getBody()) || response.getStatusCode().isError()) {
                 throw new WecubeCoreException(response.toString());
             }
-            JsonResponse responseDto = JsonUtils.toObject(response.getBody(), JsonResponse.class);
+            CommonResponseDto responseDto = JsonUtils.toObject(response.getBody(), CommonResponseDto.class);
             if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
                 String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
                 logger.error(msg);
