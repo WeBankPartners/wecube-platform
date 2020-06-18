@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.service.plugin.xmltype;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -22,8 +25,8 @@ public class PluginConfigType {
     @XmlAttribute(name = "status")
     protected String status;
     
-    @XmlElement(name = "interface")
-    protected PluginConfigInterfaceType pluginInterface;
+    @XmlElement(name = "interface", required = true)
+    protected List<PluginConfigInterfaceType> pluginInterface;
 
     public String getName() {
         return name;
@@ -73,12 +76,11 @@ public class PluginConfigType {
         this.status = status;
     }
 
-    public PluginConfigInterfaceType getPluginInterface() {
-        return pluginInterface;
-    }
-
-    public void setPluginInterface(PluginConfigInterfaceType pluginInterface) {
-        this.pluginInterface = pluginInterface;
+    public List<PluginConfigInterfaceType> getPluginInterface() {
+        if (pluginInterface == null) {
+            pluginInterface = new ArrayList<PluginConfigInterfaceType>();
+        }
+        return this.pluginInterface;
     }
 
     
