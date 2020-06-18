@@ -28,6 +28,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,6 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
@@ -84,12 +84,11 @@ import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.plugin.PluginArtifactOperationExecutor.PluginArtifactPullContext;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
-import com.webank.wecube.platform.core.support.RealS3Client;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
-import com.webank.wecube.platform.core.utils.StringUtils;
+import com.webank.wecube.platform.core.utils.StringUtilsEx;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 
 @Service
@@ -164,6 +163,15 @@ public class PluginPackageService {
 
 	@Autowired
 	private RestTemplate restTemplate;
+	
+	public String exportPluginRegistersForOnePackage(String pluginPackageId){
+	    if(StringUtils.isBlank(pluginPackageId)){
+	        throw new WecubeCoreException("Plugin package ID cannot be blank.");
+	    }
+	    
+	    //TODO
+	    return null;
+	}
 
 	public List<S3PluginActifactDto> listS3PluginActifacts() {
 		String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
@@ -772,7 +780,7 @@ public class PluginPackageService {
 		log.info("Upload UI.zip from local to static server:" + remotePath);
 
 		// get all static resource hosts
-		List<String> staticResourceIps = StringUtils.splitByComma(pluginProperties.getStaticResourceServerIp());
+		List<String> staticResourceIps = StringUtilsEx.splitByComma(pluginProperties.getStaticResourceServerIp());
 
 		for (String remoteIp : staticResourceIps) {
 
@@ -827,7 +835,7 @@ public class PluginPackageService {
 		if (!remotePath.equals("/") && !remotePath.equals(".")) {
 			String mkdirCmd = String.format("rm -rf %s", remotePath);
 			try {
-				List<String> staticResourceIps = StringUtils.splitByComma(pluginProperties.getStaticResourceServerIp());
+				List<String> staticResourceIps = StringUtilsEx.splitByComma(pluginProperties.getStaticResourceServerIp());
 				for (String staticResourceIp : staticResourceIps) {
 					commandService.runAtRemote(staticResourceIp, pluginProperties.getStaticResourceServerUser(),
 							pluginProperties.getStaticResourceServerPassword(),
