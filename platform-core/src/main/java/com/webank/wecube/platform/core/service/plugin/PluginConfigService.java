@@ -102,6 +102,10 @@ public class PluginConfigService {
         if (StringUtils.isBlank(registersAsXml)) {
             throw new WecubeCoreException("XML data is blank.");
         }
+        
+        if(log.isDebugEnabled()){
+            log.debug(registersAsXml);
+        }
 
         // TODO
 
