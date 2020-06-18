@@ -17,7 +17,7 @@ import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
-import com.webank.wecube.platform.core.utils.StringUtils;
+import com.webank.wecube.platform.core.utils.StringUtilsEx;
 
 @Service
 @Transactional
@@ -158,7 +158,7 @@ public class SystemVariableService {
     }
 
     public String variableReplacement(String packageName, String originalString) {
-        List<String> varList = StringUtils.findSystemVariableString(originalString);
+        List<String> varList = StringUtilsEx.findSystemVariableString(originalString);
         for (int i = 0; i < varList.size(); i++) {
             String varValue = "";
             String varString = varList.get(i);
