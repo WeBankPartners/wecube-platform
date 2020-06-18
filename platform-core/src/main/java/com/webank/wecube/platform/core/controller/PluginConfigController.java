@@ -3,8 +3,10 @@ package com.webank.wecube.platform.core.controller;
 import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
 import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
@@ -47,11 +50,32 @@ public class PluginConfigController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).body(filedataBytes);
     }
 
-    @PostMapping("/plugins/packages/import/{plugin-package-id:.+}")
+    @PostMapping(value = "/plugins/packages/import/{plugin-package-id:.+}", consumes = {
+            MediaType.MULTIPART_FORM_DATA_VALUE })
     public CommonResponseDto importPluginPackageRegistries(
             @PathVariable(value = "plugin-package-id") String pluginPackageId,
             @RequestParam(value = "xml-file") MultipartFile xmlFile) {
-        return CommonResponseDto.okay();
+
+        if (xmlFile == null || xmlFile.getSize() <= 0) {
+            log.error("invalid file content uploaded");
+            throw new WecubeCoreException("Invalid file content uploaded.");
+        }
+
+        if (log.isInfoEnabled()) {
+            log.info("About to import plugin package registries,filename={},size={}", xmlFile.getOriginalFilename(),
+                    xmlFile.getSize());
+        }
+
+        try {
+            String xmlData = IOUtils.toString(xmlFile.getInputStream(), Charset.forName("UTF-8"));
+
+            pluginConfigService.importPluginRegistersForOnePackage(pluginPackageId, xmlData);
+            return CommonResponseDto.okay();
+        } catch (IOException e) {
+            log.error("errors while reading upload file", e);
+            throw new WecubeCoreException("Failed to import plugin package registries.");
+        }
+
     }
 
     @PostMapping("/plugins")
