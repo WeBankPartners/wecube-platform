@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.controller;
 
+import com.webank.wecube.platform.core.controller.plugin.PluginPackageController;
+import com.webank.wecube.platform.core.controller.plugin.PluginPackageResourceFileController;
 import com.webank.wecube.platform.core.handler.GlobalExceptionHandler;
 import org.junit.Before;
 import org.junit.Test;
