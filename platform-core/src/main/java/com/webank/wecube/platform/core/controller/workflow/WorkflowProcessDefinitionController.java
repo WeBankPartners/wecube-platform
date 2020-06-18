@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.controller;
+package com.webank.wecube.platform.core.controller.workflow;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
