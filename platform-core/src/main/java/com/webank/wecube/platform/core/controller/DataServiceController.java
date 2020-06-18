@@ -20,12 +20,8 @@ import com.webank.wecube.platform.core.service.datamodel.NonExpressionServiceImp
 @RequestMapping("/v1")
 public class DataServiceController {
 
-    private NonExpressionServiceImpl nonExpressionService;
-
     @Autowired
-    public DataServiceController(NonExpressionServiceImpl nonExpressionService) {
-        this.nonExpressionService = nonExpressionService;
-    }
+    private NonExpressionServiceImpl nonExpressionService;
 
     @PostMapping("/packages/{package-name}/entities/{entity-name}/create")
     public CommonResponseDto createEntity(@PathVariable("package-name") String packageName,
