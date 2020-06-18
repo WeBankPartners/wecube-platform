@@ -1,22 +1,12 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.domain.plugin.*;
-import com.webank.wecube.platform.core.dto.PluginConfigDto;
-import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
-import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
-import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
-import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
-
-import com.webank.wecube.platform.core.jpa.*;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.ENABLED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
+import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.entity;
+import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,12 +14,32 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.*;
-import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
-import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
-import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.entity;
-import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
+import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
+import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
+import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
+import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInterfaceType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigsType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginPackageType;
 
 @Service
 @Transactional
@@ -46,27 +56,80 @@ public class PluginConfigService {
     private PluginPackageEntityRepository pluginPackageEntityRepository;
     @Autowired
     private PluginPackageDataModelRepository dataModelRepository;
-    
-    public String exportPluginRegistersForOnePackage(String pluginPackageId){
-        if(StringUtils.isBlank(pluginPackageId)){
+
+    public String exportPluginRegistersForOnePackage(String pluginPackageId) {
+        if (StringUtils.isBlank(pluginPackageId)) {
             throw new WecubeCoreException("Plugin package ID cannot be blank.");
         }
-        
-        //TODO
+
+        Optional<PluginPackage> pluginPackageEntityOpt = pluginPackageRepository.findById(pluginPackageId);
+        if (!pluginPackageEntityOpt.isPresent()) {
+            throw new WecubeCoreException("Bad plugin package ID,such package does not exist.");
+        }
+
+        PluginPackage pluginPackage = pluginPackageEntityOpt.get();
+
+        PluginPackageType xmlPluginPackage = new PluginPackageType();
+        xmlPluginPackage.setName(pluginPackage.getName());
+        xmlPluginPackage.setVersion(pluginPackage.getVersion());
+
+        List<PluginConfig> pluginConfigs = pluginConfigRepository.findByPluginPackage_idOrderByName(pluginPackageId)
+                .get();
+
+        PluginConfigsType xmlPluginConfigs = buildXmlPluginConfigs(pluginPackage, pluginConfigs);
+        xmlPluginPackage.setPlugins(xmlPluginConfigs);
+
+        // TODO
         return null;
     }
-    
-    public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml){
-        if(StringUtils.isBlank(pluginPackageId)){
+
+    private PluginConfigsType buildXmlPluginConfigs(PluginPackage pluginPackage, List<PluginConfig> pluginConfigs) {
+        PluginConfigsType xmlPluginConfigs = new PluginConfigsType();
+        for (PluginConfig pluginConfig : pluginConfigs) {
+            if (StringUtils.isBlank(pluginConfig.getRegisterName())) {
+                continue;
+            }
+
+            PluginConfigType xmlPluginConfig = buildXmlPluginConfig(pluginPackage, pluginConfig);
+            xmlPluginConfigs.getPlugin().add(xmlPluginConfig);
+        }
+
+        return xmlPluginConfigs;
+    }
+
+    private PluginConfigType buildXmlPluginConfig(PluginPackage pluginPackage, PluginConfig pluginConfig) {
+        PluginConfigType xmlPluginConfig = new PluginConfigType();
+        xmlPluginConfig.setName(pluginConfig.getName());
+        xmlPluginConfig.setRegisterName(pluginConfig.getRegisterName());
+        xmlPluginConfig.setStatus(pluginConfig.getStatus().name());
+        xmlPluginConfig.setTargetEntity(pluginConfig.getTargetEntity());
+        xmlPluginConfig.setTargetEntityFilterRule(pluginConfig.getTargetEntityFilterRule());
+        xmlPluginConfig.setTargetPackage(pluginConfig.getTargetPackage());
+
+        PluginConfigInterfaceType xmlInterface = buildXmlPluginConfigInterface(pluginPackage, pluginConfig);
+        xmlPluginConfig.getPluginInterface().add(xmlInterface);
+        return xmlPluginConfig;
+
+    }
+
+    private PluginConfigInterfaceType buildXmlPluginConfigInterface(PluginPackage pluginPackage,
+            PluginConfig pluginConfig) {
+        PluginConfigInterfaceType xmlInterface = new PluginConfigInterfaceType();
+
+        return xmlInterface;
+    }
+
+    public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml) {
+        if (StringUtils.isBlank(pluginPackageId)) {
             throw new WecubeCoreException("Plugin package ID cannot be blank.");
         }
-        
-        if(StringUtils.isBlank(registersAsXml)){
+
+        if (StringUtils.isBlank(registersAsXml)) {
             throw new WecubeCoreException("XML data is blank.");
         }
-        
-        //TODO
-        
+
+        // TODO
+
     }
 
     public List<PluginConfigInterface> getPluginConfigInterfaces(String pluginConfigId) {
@@ -159,19 +222,23 @@ public class PluginConfigService {
         }
         ensurePluginConfigUnique(pluginConfigDto);
 
-        ensureEntityIsValid(pluginConfigDto.getName(), pluginConfigDto.getTargetPackage(), pluginConfigDto.getTargetEntity());
+        ensureEntityIsValid(pluginConfigDto.getName(), pluginConfigDto.getTargetPackage(),
+                pluginConfigDto.getTargetEntity());
     }
 
     private void ensureEntityIsValid(String pluginConfigName, String targetPackage, String targetEntity) {
         if (StringUtils.isNotBlank(targetPackage) && StringUtils.isNotBlank(targetEntity)) {
-            Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository.findLatestDataModelByPackageName(targetPackage);
-            if (!dataModelOptional.isPresent()){
+            Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository
+                    .findLatestDataModelByPackageName(targetPackage);
+            if (!dataModelOptional.isPresent()) {
                 throw new WecubeCoreException("Data model not exists for package name [%s]");
             }
 
             Integer dataModelVersion = dataModelOptional.get().getVersion();
-            if (!pluginPackageEntityRepository.existsByPackageNameAndNameAndDataModelVersion(targetPackage, targetEntity, dataModelVersion)) {
-                String errorMessage = String.format("PluginPackageEntity not found for packageName:dataModelVersion:entityName [%s:%s:%s] for plugin config: %s",
+            if (!pluginPackageEntityRepository.existsByPackageNameAndNameAndDataModelVersion(targetPackage,
+                    targetEntity, dataModelVersion)) {
+                String errorMessage = String.format(
+                        "PluginPackageEntity not found for packageName:dataModelVersion:entityName [%s:%s:%s] for plugin config: %s",
                         targetPackage, dataModelVersion, targetEntity, pluginConfigName);
                 log.error(errorMessage);
                 throw new WecubeCoreException(errorMessage);
@@ -332,7 +399,7 @@ public class PluginConfigService {
                 }
             }
         }
-        
+
         Optional<List<PluginConfigInterface>> allEnabledWithEntityNameNullOptional = pluginConfigInterfaceRepository
                 .findAllEnabledWithEntityNameNull();
         if (allEnabledWithEntityNameNullOptional.isPresent()) {
@@ -370,7 +437,8 @@ public class PluginConfigService {
         if (cfgOptional.isPresent()) {
             PluginConfig cfg = cfgOptional.get();
             if (!cfg.getStatus().equals(PluginConfig.Status.DISABLED)) {
-                throw new WecubeCoreException(String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()));
+                throw new WecubeCoreException(
+                        String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()));
             }
             PluginPackage pkg = cfg.getPluginPackage();
             pkg.getPluginConfigs().remove(cfg);
