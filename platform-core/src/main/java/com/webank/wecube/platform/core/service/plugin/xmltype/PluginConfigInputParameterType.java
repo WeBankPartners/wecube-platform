@@ -13,7 +13,7 @@ public class PluginConfigInputParameterType {
     @XmlValue
     protected String value;
     @XmlAttribute(name = "datatype", required = true)
-    protected String dataType;
+    protected String datatype;
     @XmlAttribute(name = "mappingType")
     protected String mappingType;
     @XmlAttribute(name = "mappingEntityExpression")
@@ -33,12 +33,12 @@ public class PluginConfigInputParameterType {
         this.value = value;
     }
 
-    public String getDataType() {
-        return dataType;
+    public String getDatatype() {
+        return datatype;
     }
 
-    public void setDataType(String dataType) {
-        this.dataType = dataType;
+    public void setDatatype(String datatype) {
+        this.datatype = datatype;
     }
 
     public String getMappingType() {
