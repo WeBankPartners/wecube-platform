@@ -92,98 +92,7 @@ public class PluginConfigService {
         return xmlContent;
     }
 
-    private PluginConfigsType buildXmlPluginConfigs(PluginPackage pluginPackage, List<PluginConfig> pluginConfigs) {
-        PluginConfigsType xmlPluginConfigs = new PluginConfigsType();
-        for (PluginConfig pluginConfig : pluginConfigs) {
-            if (StringUtils.isBlank(pluginConfig.getRegisterName())) {
-                continue;
-            }
-
-            PluginConfigType xmlPluginConfig = buildXmlPluginConfig(pluginPackage, pluginConfig);
-            xmlPluginConfigs.getPlugin().add(xmlPluginConfig);
-        }
-
-        return xmlPluginConfigs;
-    }
-
-    private PluginConfigType buildXmlPluginConfig(PluginPackage pluginPackage, PluginConfig pluginConfig) {
-        PluginConfigType xmlPluginConfig = new PluginConfigType();
-        xmlPluginConfig.setName(pluginConfig.getName());
-        xmlPluginConfig.setRegisterName(pluginConfig.getRegisterName());
-        xmlPluginConfig.setStatus(pluginConfig.getStatus().name());
-        xmlPluginConfig.setTargetEntity(pluginConfig.getTargetEntity());
-        xmlPluginConfig.setTargetEntityFilterRule(pluginConfig.getTargetEntityFilterRule());
-        xmlPluginConfig.setTargetPackage(pluginConfig.getTargetPackage());
-
-        Set<PluginConfigInterface> intfs = pluginConfig.getInterfaces();
-        if (intfs != null) {
-            for (PluginConfigInterface intf : intfs) {
-                PluginConfigInterfaceType xmlIntf = buildXmlPluginConfigInterface(pluginPackage, pluginConfig, intf);
-                xmlPluginConfig.getPluginInterface().add(xmlIntf);
-            }
-        }
-
-        return xmlPluginConfig;
-
-    }
-
-    private PluginConfigInterfaceType buildXmlPluginConfigInterface(PluginPackage pluginPackage,
-            PluginConfig pluginConfig, PluginConfigInterface intf) {
-        PluginConfigInterfaceType xmlIntf = new PluginConfigInterfaceType();
-        xmlIntf.setAction(intf.getAction());
-        xmlIntf.setFilterRule(intf.getFilterRule());
-        xmlIntf.setHttpMethod(intf.getHttpMethod());
-        xmlIntf.setIsAsyncProcessing(intf.getIsAsyncProcessing());
-        xmlIntf.setPath(intf.getPath());
-        xmlIntf.setType(intf.getType());
-
-        PluginConfigInputParametersType xmlInputParameters = new PluginConfigInputParametersType();
-        xmlIntf.setInputParameters(xmlInputParameters);
-
-        Set<PluginConfigInterfaceParameter> inputParameters = intf.getInputParameters();
-        if (inputParameters != null) {
-            for (PluginConfigInterfaceParameter inputParameter : inputParameters) {
-                PluginConfigInputParameterType xmlInputParameter = buildXmlInputParameter(inputParameter);
-                xmlInputParameters.getParameter().add(xmlInputParameter);
-            }
-        }
-
-        PluginConfigOutputParametersType xmlOutputParameters = new PluginConfigOutputParametersType();
-        xmlIntf.setOutputParameters(xmlOutputParameters);
-
-        Set<PluginConfigInterfaceParameter> outputParameters = intf.getOutputParameters();
-        if (outputParameters != null) {
-            for (PluginConfigInterfaceParameter outputParameter : outputParameters) {
-                PluginConfigOutputParameterType xmlOutputParameter = buildXmlOutputParameter(outputParameter);
-                xmlOutputParameters.getParameter().add(xmlOutputParameter);
-            }
-        }
-
-        return xmlIntf;
-    }
-
-    private PluginConfigOutputParameterType buildXmlOutputParameter(PluginConfigInterfaceParameter outputParameter) {
-        PluginConfigOutputParameterType xmlParam = new PluginConfigOutputParameterType();
-        xmlParam.setDatatype(outputParameter.getDataType());
-        xmlParam.setMappingEntityExpression(outputParameter.getMappingEntityExpression());
-        xmlParam.setMappingType(outputParameter.getMappingType());
-        xmlParam.setValue(outputParameter.getName());
-
-        return xmlParam;
-    }
-
-    private PluginConfigInputParameterType buildXmlInputParameter(PluginConfigInterfaceParameter inputParameter) {
-        PluginConfigInputParameterType xmlParam = new PluginConfigInputParameterType();
-        xmlParam.setDataType(inputParameter.getDataType());
-        xmlParam.setMappingEntityExpression(inputParameter.getMappingEntityExpression());
-        xmlParam.setMappingSystemVariableName(inputParameter.getMappingSystemVariableName());
-        xmlParam.setMappingType(inputParameter.getMappingType());
-        xmlParam.setRequired(inputParameter.getRequired());
-        xmlParam.setSensitiveData(inputParameter.getSensitiveData());
-        xmlParam.setValue(inputParameter.getName());
-
-        return xmlParam;
-    }
+    
 
     public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml) {
         if (StringUtils.isBlank(pluginPackageId)) {
@@ -512,5 +421,98 @@ public class PluginConfigService {
         } else {
             throw new WecubeCoreException(String.format("Can not found PluginConfig[%s]", configId));
         }
+    }
+    
+    private PluginConfigsType buildXmlPluginConfigs(PluginPackage pluginPackage, List<PluginConfig> pluginConfigs) {
+        PluginConfigsType xmlPluginConfigs = new PluginConfigsType();
+        for (PluginConfig pluginConfig : pluginConfigs) {
+            if (StringUtils.isBlank(pluginConfig.getRegisterName())) {
+                continue;
+            }
+
+            PluginConfigType xmlPluginConfig = buildXmlPluginConfig(pluginPackage, pluginConfig);
+            xmlPluginConfigs.getPlugin().add(xmlPluginConfig);
+        }
+
+        return xmlPluginConfigs;
+    }
+
+    private PluginConfigType buildXmlPluginConfig(PluginPackage pluginPackage, PluginConfig pluginConfig) {
+        PluginConfigType xmlPluginConfig = new PluginConfigType();
+        xmlPluginConfig.setName(pluginConfig.getName());
+        xmlPluginConfig.setRegisterName(pluginConfig.getRegisterName());
+        xmlPluginConfig.setStatus(pluginConfig.getStatus().name());
+        xmlPluginConfig.setTargetEntity(pluginConfig.getTargetEntity());
+        xmlPluginConfig.setTargetEntityFilterRule(pluginConfig.getTargetEntityFilterRule());
+        xmlPluginConfig.setTargetPackage(pluginConfig.getTargetPackage());
+
+        Set<PluginConfigInterface> intfs = pluginConfig.getInterfaces();
+        if (intfs != null) {
+            for (PluginConfigInterface intf : intfs) {
+                PluginConfigInterfaceType xmlIntf = buildXmlPluginConfigInterface(pluginPackage, pluginConfig, intf);
+                xmlPluginConfig.getPluginInterface().add(xmlIntf);
+            }
+        }
+
+        return xmlPluginConfig;
+
+    }
+
+    private PluginConfigInterfaceType buildXmlPluginConfigInterface(PluginPackage pluginPackage,
+            PluginConfig pluginConfig, PluginConfigInterface intf) {
+        PluginConfigInterfaceType xmlIntf = new PluginConfigInterfaceType();
+        xmlIntf.setAction(intf.getAction());
+        xmlIntf.setFilterRule(intf.getFilterRule());
+        xmlIntf.setHttpMethod(intf.getHttpMethod());
+        xmlIntf.setIsAsyncProcessing(intf.getIsAsyncProcessing());
+        xmlIntf.setPath(intf.getPath());
+        xmlIntf.setType(intf.getType());
+
+        PluginConfigInputParametersType xmlInputParameters = new PluginConfigInputParametersType();
+        xmlIntf.setInputParameters(xmlInputParameters);
+
+        Set<PluginConfigInterfaceParameter> inputParameters = intf.getInputParameters();
+        if (inputParameters != null) {
+            for (PluginConfigInterfaceParameter inputParameter : inputParameters) {
+                PluginConfigInputParameterType xmlInputParameter = buildXmlInputParameter(inputParameter);
+                xmlInputParameters.getParameter().add(xmlInputParameter);
+            }
+        }
+
+        PluginConfigOutputParametersType xmlOutputParameters = new PluginConfigOutputParametersType();
+        xmlIntf.setOutputParameters(xmlOutputParameters);
+
+        Set<PluginConfigInterfaceParameter> outputParameters = intf.getOutputParameters();
+        if (outputParameters != null) {
+            for (PluginConfigInterfaceParameter outputParameter : outputParameters) {
+                PluginConfigOutputParameterType xmlOutputParameter = buildXmlOutputParameter(outputParameter);
+                xmlOutputParameters.getParameter().add(xmlOutputParameter);
+            }
+        }
+
+        return xmlIntf;
+    }
+
+    private PluginConfigOutputParameterType buildXmlOutputParameter(PluginConfigInterfaceParameter outputParameter) {
+        PluginConfigOutputParameterType xmlParam = new PluginConfigOutputParameterType();
+        xmlParam.setDatatype(outputParameter.getDataType());
+        xmlParam.setMappingEntityExpression(outputParameter.getMappingEntityExpression());
+        xmlParam.setMappingType(outputParameter.getMappingType());
+        xmlParam.setValue(outputParameter.getName());
+
+        return xmlParam;
+    }
+
+    private PluginConfigInputParameterType buildXmlInputParameter(PluginConfigInterfaceParameter inputParameter) {
+        PluginConfigInputParameterType xmlParam = new PluginConfigInputParameterType();
+        xmlParam.setDataType(inputParameter.getDataType());
+        xmlParam.setMappingEntityExpression(inputParameter.getMappingEntityExpression());
+        xmlParam.setMappingSystemVariableName(inputParameter.getMappingSystemVariableName());
+        xmlParam.setMappingType(inputParameter.getMappingType());
+        xmlParam.setRequired(inputParameter.getRequired());
+        xmlParam.setSensitiveData(inputParameter.getSensitiveData());
+        xmlParam.setValue(inputParameter.getName());
+
+        return xmlParam;
     }
 }
