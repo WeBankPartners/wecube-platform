@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.controller;
+package com.webank.wecube.platform.core.controller.workflow;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
