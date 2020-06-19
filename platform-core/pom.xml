@@ -50,7 +50,7 @@
             <artifactId>platform-workflow</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-        
+
         <dependency>
             <groupId>com.webank.wecube.platform</groupId>
             <artifactId>platform-auth-client</artifactId>
@@ -158,7 +158,6 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.antlr/antlr4-runtime -->
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
@@ -170,15 +169,15 @@
 
     <build>
         <plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<forkCount>1</forkCount>
-					<reuseForks>true</reuseForks>
-					<argLine>-Xmx2048m</argLine>
-				</configuration>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-Xmx2048m</argLine>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
