@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.core.controller;
 
-import static com.webank.wecube.platform.core.domain.JsonResponse.okay;
-import static com.webank.wecube.platform.core.domain.JsonResponse.okayWithData;
+import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
+import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
 
 import java.util.List;
 
@@ -10,11 +10,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.Lists;
-import com.webank.wecube.platform.core.domain.JsonResponse;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.dto.ResourceItemDto;
 import com.webank.wecube.platform.core.dto.ResourceServerDto;
@@ -32,58 +31,49 @@ public class ResourceManagementController {
     private ResourceManagementService resourceService;
 
     @PostMapping("/servers/retrieve")
-    @ResponseBody
-    public JsonResponse retrieveServers(@RequestBody QueryRequest queryRequest) {
+    public CommonResponseDto retrieveServers(@RequestBody QueryRequest queryRequest) {
         return okayWithData(resourceService.retrieveServers(queryRequest));
     }
 
     @PostMapping("/servers/create")
-    @ResponseBody
-    public JsonResponse createServers(@RequestBody List<ResourceServerDto> resourceServers) {
+    public CommonResponseDto createServers(@RequestBody List<ResourceServerDto> resourceServers) {
         return okayWithData(resourceService.createServers(resourceServers));
     }
 
     @PostMapping("/servers/update")
-    @ResponseBody
-    public JsonResponse updateServers(@RequestBody List<ResourceServerDto> resourceServers) {
+    public CommonResponseDto updateServers(@RequestBody List<ResourceServerDto> resourceServers) {
         return okayWithData(resourceService.updateServers(resourceServers));
     }
 
     @PostMapping("/servers/delete")
-    @ResponseBody
-    public JsonResponse deleteServers(@RequestBody List<ResourceServerDto> resourceServers) {
+    public CommonResponseDto deleteServers(@RequestBody List<ResourceServerDto> resourceServers) {
         resourceService.deleteServers(resourceServers);
         return okay();
     }
 
     @PostMapping("/items/retrieve")
-    @ResponseBody
-    public JsonResponse retrieveItems(@RequestBody QueryRequest queryRequest) {
+    public CommonResponseDto retrieveItems(@RequestBody QueryRequest queryRequest) {
         return okayWithData(resourceService.retrieveItems(queryRequest));
     }
 
     @PostMapping("/items/create")
-    @ResponseBody
-    public JsonResponse createItems(@RequestBody List<ResourceItemDto> resourceItems) {
+    public CommonResponseDto createItems(@RequestBody List<ResourceItemDto> resourceItems) {
         return okayWithData(resourceService.createItems(resourceItems));
     }
 
     @PostMapping("/items/update")
-    @ResponseBody
-    public JsonResponse updateItems(@RequestBody List<ResourceItemDto> resourceItems) {
+    public CommonResponseDto updateItems(@RequestBody List<ResourceItemDto> resourceItems) {
         return okayWithData(resourceService.updateItems(resourceItems));
     }
 
     @PostMapping("/items/delete")
-    @ResponseBody
-    public JsonResponse deleteItems(@RequestBody List<ResourceItemDto> resourceItems) {
+    public CommonResponseDto deleteItems(@RequestBody List<ResourceItemDto> resourceItems) {
         resourceService.deleteItems(resourceItems);
         return okay();
     }
 
     @GetMapping("/constants/resource-server-types")
-    @ResponseBody
-    public JsonResponse getResourceServerType() {
+    public CommonResponseDto getResourceServerType() {
         List<String> resourceServerTypes = Lists.newLinkedList();
         for (ResourceServerType type : ResourceServerType.values()) {
             if (ResourceServerType.NONE.equals(type))
@@ -95,8 +85,7 @@ public class ResourceManagementController {
     }
 
     @GetMapping("/constants/resource-item-types")
-    @ResponseBody
-    public JsonResponse getResourceItemType() {
+    public CommonResponseDto getResourceItemType() {
         List<String> resourceItemTypes = Lists.newLinkedList();
         for (ResourceItemType type : ResourceItemType.values()) {
             if (ResourceItemType.NONE.equals(type))
@@ -108,8 +97,7 @@ public class ResourceManagementController {
     }
 
     @GetMapping("/constants/resource-server-status")
-    @ResponseBody
-    public JsonResponse getResourceServerStatus() {
+    public CommonResponseDto getResourceServerStatus() {
         List<String> resourceServerStatus = Lists.newLinkedList();
         for (ResourceServerStatus type : ResourceServerStatus.values()) {
             if (ResourceServerStatus.NONE.equals(type))
@@ -121,8 +109,7 @@ public class ResourceManagementController {
     }
 
     @GetMapping("/constants/resource-item-status")
-    @ResponseBody
-    public JsonResponse getResourceItemStatus() {
+    public CommonResponseDto getResourceItemStatus() {
         List<String> resourceItemStatus = Lists.newLinkedList();
         for (ResourceItemStatus type : ResourceItemStatus.values()) {
             if (ResourceItemStatus.NONE.equals(type))
