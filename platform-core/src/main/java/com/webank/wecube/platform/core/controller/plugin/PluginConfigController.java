@@ -5,6 +5,9 @@ import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -28,6 +31,7 @@ import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
+import com.webank.wecube.platform.core.service.plugin.PluginRegistryInfo;
 
 @RestController
 @RequestMapping("/v1")
@@ -41,11 +45,15 @@ public class PluginConfigController {
     public ResponseEntity<byte[]> exportPluginPackageRegistries(
             @PathVariable(value = "plugin-package-id") String pluginPackageId) {
         log.info("request received to export plugin package registries for {}", pluginPackageId);
-        String xmlData = pluginConfigService.exportPluginRegistersForOnePackage(pluginPackageId);
-        byte[] filedataBytes = xmlData.getBytes(Charset.forName("UTF-8"));
+        PluginRegistryInfo pluginRegistryInfo = pluginConfigService.exportPluginRegistersForOnePackage(pluginPackageId);
+        byte[] filedataBytes = pluginRegistryInfo.getPluginPackageData().getBytes(Charset.forName("UTF-8"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.add("Content-Disposition", String.format("attachment;filename=%s", "register-config.xml"));
+        
+        DateFormat df = new SimpleDateFormat("yyyyMMdd");
+        String sDate = df.format(new Date());
+        String fileName = String.format("register-config-%s-%s.xml", pluginRegistryInfo.getPluginPackageName(), sDate);
+        headers.add("Content-Disposition", String.format("attachment;filename=%s", fileName));
         return ResponseEntity.ok().headers(headers).contentLength(filedataBytes.length)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).body(filedataBytes);
     }
