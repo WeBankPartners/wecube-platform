@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class EntityQueryLinkNode {
     private int index;
     private boolean isHead;
@@ -38,14 +43,14 @@ public class EntityQueryLinkNode {
 
     public List<Object> extractFinalAttributeValues() {
         List<Object> attrValues = new ArrayList<>();
-        if(!hasQueryAttribute()){
+        if (!hasQueryAttribute()) {
             return attrValues;
         }
-        
-        for(EntityDataDelegate delegate : this.getEntityDataDelegates()){
+
+        for (EntityDataDelegate delegate : this.getEntityDataDelegates()) {
             attrValues.add(delegate.getQueryAttrValue());
         }
-        
+
         return attrValues;
     }
 
@@ -60,8 +65,8 @@ public class EntityQueryLinkNode {
     public boolean hasQueryAttribute() {
         return this.getExprNodeInfo().hasQueryAttribute();
     }
-    
-    public String getQueryAttributeName(){
+
+    public String getQueryAttributeName() {
         return this.getExprNodeInfo().getQueryAttrName();
     }
 
@@ -71,9 +76,9 @@ public class EntityQueryLinkNode {
                 if (d.getId() == null) {
                     throw new RuntimeException("Entity data should contain ID.");
                 }
-//                if (contains(d)) {
-//                    continue;
-//                }
+                // if (contains(d)) {
+                // continue;
+                // }
 
                 this.entityDataDelegates.add(d);
             }

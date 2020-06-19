@@ -5,6 +5,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public final class AuthenticationContextHolder {
 
     private static final ThreadLocal<AuthenticatedUser> currentUser = new InheritableThreadLocal<>();

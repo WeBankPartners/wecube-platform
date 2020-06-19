@@ -2,6 +2,11 @@ package com.webank.wecube.platform.core.service.dme;
 
 import java.util.List;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 public class EntityOperationContext {
 
     protected EntityOperationType entityOperationType;

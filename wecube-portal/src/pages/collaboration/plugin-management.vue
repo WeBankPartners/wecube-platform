@@ -9,12 +9,12 @@
         <Card dis-hover>
           <p slot="title">{{ $t('upload_plugin_pkg_title') }}</p>
           <div style="text-align: center">
-            <Button type="info" icon="md-list-box" ghost :loading="loadingPlugin" @click="showUploadModalHandler">
-              {{ $t('origin_plugins') }}
-            </Button>
-            <Button type="info" style="margin-left:20px" ghost icon="ios-cloud-upload-outline" @click="getHeaders">
-              {{ $t('upload_plugin_btn') }}
-            </Button>
+            <Button type="info" icon="md-list-box" ghost :loading="loadingPlugin" @click="showUploadModalHandler">{{
+              $t('origin_plugins')
+            }}</Button>
+            <Button type="info" style="margin-left:20px" ghost icon="ios-cloud-upload-outline" @click="getHeaders">{{
+              $t('upload_plugin_btn')
+            }}</Button>
             <Upload
               ref="uploadButton"
               show-upload-list
@@ -26,9 +26,7 @@
               action="platform/v1/packages"
               :headers="headers"
             >
-              <Button style="display:none" icon="ios-cloud-upload-outline">
-                {{ $t('upload_plugin_btn') }}
-              </Button>
+              <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
             </Upload>
             <span v-if="showSuccess" style="color:#2b85e4">{{ $t('plugin_analysis') }}</span>
           </div>
@@ -39,9 +37,9 @@
           <Row slot="title">
             <Col span="12">{{ $t('plugins_list') }}</Col>
             <Col style="float: right">
-              <Checkbox style="width: max-content" v-model="isShowDecomissionedPackage">{{
-                $t('is_show_decomissioned_pkg')
-              }}</Checkbox>
+              <Checkbox style="width: max-content" v-model="isShowDecomissionedPackage">
+                {{ $t('is_show_decomissioned_pkg') }}
+              </Checkbox>
             </Col>
           </Row>
           <Spin size="large" v-if="isLoadingPluginList">
@@ -49,9 +47,7 @@
             <div>{{ $t('loading') }}</div>
           </Spin>
           <div v-if="!isLoadingPluginList" style="height: 70%; overflow: auto">
-            <span v-if="plugins.length < 1">
-              {{ $t('no_plugin_packages') }}
-            </span>
+            <span v-if="plugins.length < 1">{{ $t('no_plugin_packages') }}</span>
             <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
               <Panel
                 :name="plugin.id + ''"
@@ -59,10 +55,26 @@
                 v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage"
                 :key="plugin.id"
               >
-                <span :class="plugin.status !== 'DECOMMISSIONED' ? '' : 'decomissionedPkgName'">{{
-                  plugin.name + '_' + plugin.version
-                }}</span>
+                <span :class="plugin.status !== 'DECOMMISSIONED' ? '' : 'decomissionedPkgName'">
+                  {{ plugin.name + '_' + plugin.version }}
+                </span>
                 <span style="float: right; margin-right: 10px">
+                  <Button
+                    icon="ios-cloud-upload-outline"
+                    v-if="plugin.status !== 'DECOMMISSIONED'"
+                    size="small"
+                    type="primary"
+                    ghost
+                    @click.stop.prevent="importBestPractices(plugin.id)"
+                  ></Button>
+                  <Button
+                    v-if="plugin.status !== 'DECOMMISSIONED'"
+                    @click.stop.prevent="exportBestPractices(plugin.id)"
+                    size="small"
+                    type="primary"
+                    ghost
+                    icon="md-download"
+                  ></Button>
                   <Button
                     v-if="plugin.status !== 'DECOMMISSIONED'"
                     @click.stop.prevent="deletePlugin(plugin.id)"
@@ -72,16 +84,41 @@
                     icon="ios-trash"
                   ></Button>
                 </span>
+                <Modal
+                  footer-hide
+                  :title="$t('origin_plugins')"
+                  v-model="isShowImportXMLModal"
+                  @on-open-change="modalChangeHandle"
+                >
+                  <div>
+                    <Upload
+                      ref="importXML"
+                      type="drag"
+                      accept=".xml"
+                      name="xml-file"
+                      :on-success="onSuccess"
+                      :on-progress="onProgress"
+                      :on-error="onError"
+                      :action="'platform/v1/plugins/packages/import/' + plugin.id"
+                      :headers="headers"
+                    >
+                      <div style="padding: 20px 0">
+                        <Icon type="ios-cloud-upload" size="52" style="color: #3399ff"></Icon>
+                        <p>Click or drag files here to upload</p>
+                      </div>
+                    </Upload>
+                  </div>
+                </Modal>
                 <p slot="content">
-                  <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">{{
-                    $t('plugin_config_check')
-                  }}</Button>
-                  <Button @click="manageService(plugin.id)" size="small" type="info" ghost icon="ios-construct">{{
-                    $t('service_regist')
-                  }}</Button>
-                  <Button @click="manageRuntimePlugin(plugin.id)" size="small" type="info" ghost icon="ios-settings">{{
-                    $t('runtime_manage')
-                  }}</Button>
+                  <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">
+                    {{ $t('plugin_config_check') }}
+                  </Button>
+                  <Button @click="manageService(plugin.id)" size="small" type="info" ghost icon="ios-construct">
+                    {{ $t('service_regist') }}
+                  </Button>
+                  <Button @click="manageRuntimePlugin(plugin.id)" size="small" type="info" ghost icon="ios-settings">
+                    {{ $t('runtime_manage') }}
+                  </Button>
                 </p>
               </Panel>
             </Collapse>
@@ -110,9 +147,9 @@
           <RuntimesResources v-if="currentTab === 'runtimeResources'" :pkgId="currentPlugin.id"></RuntimesResources>
         </TabPane>
         <TabPane v-if="currentPlugin.status === 'UNREGISTERED'" name="confirm" :label="$t('confirm')">
-          <Button type="info" :disabled="isRegisted" @click="registPackage()">
-            {{ $t('confirm_to_regist_plugin') }}
-          </Button>
+          <Button type="info" :disabled="isRegisted" @click="registPackage()">{{
+            $t('confirm_to_regist_plugin')
+          }}</Button>
         </TabPane>
       </Tabs>
     </Col>
@@ -131,9 +168,7 @@
           <Row class="instances-container">
             <Collapse value="1" @on-change="onRuntimeCollapseChange">
               <Panel name="1">
-                <span style="font-size: 14px; font-weight: 600">
-                  {{ $t('runtime_container') }}
-                </span>
+                <span style="font-size: 14px; font-weight: 600">{{ $t('runtime_container') }}</span>
                 <p slot="content">
                   <Card dis-hover>
                     <Row>
@@ -147,18 +182,16 @@
                       >
                         <Option v-for="item in allAvailiableHosts" :value="item" :key="item">{{ item }}</Option>
                       </Select>
-                      <Button size="small" type="success" @click="getAvailablePortByHostIp">{{
-                        $t('port_preview')
-                      }}</Button>
+                      <Button size="small" type="success" @click="getAvailablePortByHostIp">
+                        {{ $t('port_preview') }}
+                      </Button>
                       <div v-if="availiableHostsWithPort.length > 0">
                         <p style="margin-top: 20px">{{ $t('avaliable_port') }}:</p>
 
                         <div v-for="item in availiableHostsWithPort" :key="item.ip + item.port">
                           <div class="instance-item-container" style="border-bottom: 1px solid gray; padding: 10px 0">
                             <div class="instance-item">
-                              <Col span="4">
-                                {{ item.ip + ':' + item.port }}
-                              </Col>
+                              <Col span="4">{{ item.ip + ':' + item.port }}</Col>
                               <Button
                                 size="small"
                                 type="success"
@@ -172,73 +205,34 @@
                     </Row>
                     <Row>
                       <p style="margin-top: 20px">{{ $t('running_node') }}:</p>
-                      <div v-if="allInstances.length === 0">
-                        {{ $t('no_avaliable_instances') }}
-                      </div>
+                      <div v-if="allInstances.length === 0">{{ $t('no_avaliable_instances') }}</div>
                       <div v-else>
                         <div v-for="item in allInstances" :key="item.id">
                           <div class="instance-item-container">
                             <Col span="4">
-                              <div class="instance-item">
-                                {{ item.displayLabel }}
-                              </div>
+                              <div class="instance-item">{{ item.displayLabel }}</div>
                             </Col>
                             <Col span="4" offset="1">
-                              <Button size="small" type="error" @click="removePluginInstance(item.id)">{{
-                                $t('ternmiante')
-                              }}</Button>
+                              <Button size="small" type="error" @click="removePluginInstance(item.id)">
+                                {{ $t('ternmiante') }}
+                              </Button>
                             </Col>
                           </div>
                         </div>
                       </div>
                     </Row>
                   </Card>
-                  <!--
-                  <Card style="margin-top: 20px">
-                    <p>{{ $t("log_query") }}</p>
-                    <div style="padding: 0 0 50px 0;margin-top: 20px">
-                      <WeTable
-                        :tableData="logTableData"
-                        :tableInnerActions="innerActions"
-                        :tableColumns="logTableColumns"
-                        :pagination="logTablePagination"
-                        @actionFun="actionFun"
-                        @handleSubmit="handleLogTableSubmit"
-                        @pageChange="onLogTableChange"
-                        @pageSizeChange="onLogTablePageSizeChange"
-                        :showCheckbox="false"
-                        tableHeight="650"
-                        ref="table"
-                      ></WeTable>
-                    </div>
-                    <Modal
-                      v-model="logDetailsModalVisible"
-                      :title="$t('log_details')"
-                      footer-hide
-                      width="70"
-                    >
-                      <div
-                        lang="json"
-                        style="white-space: pre-wrap;"
-                        v-html="logDetails"
-                      ></div>
-                    </Modal>
-                  </Card>-->
                 </p>
               </Panel>
               <Panel name="2">
-                <span style="font-size: 14px; font-weight: 600">
-                  {{ $t('database') }}
-                </span>
+                <span style="font-size: 14px; font-weight: 600">{{ $t('database') }}</span>
                 <Row slot="content">
                   <Row>
                     <Col span="16">
                       <Input v-model="dbQueryCommandString" type="textarea" :placeholder="$t('only_select')" />
                     </Col>
                     <Col span="4" offset="1">
-                      <Button @click="getDBTableData">
-                        {{ $t('execute') }}
-                      </Button>
+                      <Button @click="getDBTableData">{{ $t('execute') }}</Button>
                     </Col>
                   </Row>
                   <Row style="margin-top: 20px">
@@ -261,9 +255,7 @@
                 </Row>
               </Panel>
               <Panel name="3">
-                <span style="font-size: 14px; font-weight: 600">
-                  {{ $t('storage_service') }}
-                </span>
+                <span style="font-size: 14px; font-weight: 600">{{ $t('storage_service') }}</span>
                 <Row slot="content">
                   <Table :columns="storageServiceColumns" :data="storageServiceData"></Table>
                 </Row>
@@ -285,12 +277,8 @@
         </RadioGroup>
       </div>
       <div style="height:30px;text-align: right">
-        <Button style="margin-left:10px;float:right" type="info" @click="uploadHandler">
-          {{ $t('bc_confirm') }}
-        </Button>
-        <Button style="margin-left:10px;float:right" @click="cancelHandler">
-          {{ $t('cancel') }}
-        </Button>
+        <Button style="margin-left:10px;float:right" type="info" @click="uploadHandler">{{ $t('bc_confirm') }}</Button>
+        <Button style="margin-left:10px;float:right" @click="cancelHandler">{{ $t('cancel') }}</Button>
       </div>
     </Modal>
   </Row>
@@ -310,7 +298,8 @@ import {
   queryStorageFilesByPackageId,
   getPluginArtifacts,
   pullPluginArtifact,
-  getPluginArtifactStatus
+  getPluginArtifactStatus,
+  exportPluginXMLWithId
 } from '@/api/server.js'
 
 import DataModel from './components/data-model.vue'
@@ -452,7 +441,8 @@ export default {
       originPluginsFilter: [],
       selectedOriginPlugin: '',
       pluginTimer: null,
-      loadingPlugin: false
+      loadingPlugin: false,
+      isShowImportXMLModal: false
     }
   },
   watch: {
@@ -574,6 +564,41 @@ export default {
           desc: this.$t('reload_to_get_ui')
         })
       }
+    },
+    importBestPractices (packageId) {
+      let refreshRequest = null
+      const currentTime = new Date().getTime()
+      const accessToken = getCookie('accessToken')
+      if (accessToken) {
+        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get('/auth/v1/api/token', {
+            headers: {
+              Authorization: 'Bearer ' + getCookie('refreshToken')
+            }
+          })
+          refreshRequest.then(
+            res => {
+              setCookie(res.data.data)
+              this.setUploadActionHeader()
+              this.$refs.uploadButton.handleClick()
+            },
+            // eslint-disable-next-line handle-callback-err
+            err => {
+              refreshRequest = null
+              window.location.href = window.location.origin + window.location.pathname + '#/login'
+            }
+          )
+        } else {
+          this.setUploadActionHeader()
+        }
+      } else {
+        window.location.href = window.location.origin + window.location.pathname + '#/login'
+      }
+      this.isShowImportXMLModal = true
+    },
+    exportBestPractices (packageId) {
+      exportPluginXMLWithId(packageId)
     },
     deletePlugin (packageId) {
       let pkgId = packageId

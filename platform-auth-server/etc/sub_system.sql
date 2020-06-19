@@ -1,8 +1,0 @@
-/*
--- Query: SELECT * FROM weauth.auth_sys_sub_system
-LIMIT 0, 1000
-
--- Date: 2019-10-30 16:13
-*/
-INSERT INTO `auth_sys_sub_system` (`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`api_key`,`is_blocked`,`name`,`pub_api_key`,`system_code`) VALUES (1,NULL,'2019-09-26 10:50:51',NULL,NULL,NULL,'MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAlblsUUH6TLYuHp0UjxY0ahljznG2Ik/bsuQHL3oBTRmbNKYlIHBC4gFKYB0K/ULFvzJbfxCJMKDKD3DpoIec7wIDAQABAkBBZDWBm85E2MB10GcdQzZrLGGh1ZoVjElI7TySKLgOwraHM/SA4kbYJcKEn2AoqSccaUeogWPYhirsObWNWUZhAiEA4WLqPOWZNbTQRYms0UbMZcRyN7dBnFnCyq/wdoI3bTECIQCqD5pxHfQPD1TcI8JL1SnzozRfnefpQOxdx+gcaD6kHwIhALf1l0A7GjD2suN++poZki0iCSOmpJuru8zZi4f+wqSRAiB9YoO8YxlPAT7QEI1w2/nSaMJ0vTgAAp5DhuDcEQAegQIgYKlMPS9E3m2FDsVIF/bvBcOq23Z8pqIGLBO28B0RSVI=',NULL,'wecube core','MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJW5bFFB+ky2Lh6dFI8WNGoZY85xtiJP27LkBy96AU0ZmzSmJSBwQuIBSmAdCv1Cxb8yW38QiTCgyg9w6aCHnO8CAwEAAQ==','WECUBE-CORE');
-INSERT INTO `auth_sys_sub_system` (`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`api_key`,`is_blocked`,`name`,`pub_api_key`,`system_code`) VALUES (2,NULL,NULL,NULL,NULL,NULL,'MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAlblsUUH6TLYuHp0UjxY0ahljznG2Ik/bsuQHL3oBTRmbNKYlIHBC4gFKYB0K/ULFvzJbfxCJMKDKD3DpoIec7wIDAQABAkBBZDWBm85E2MB10GcdQzZrLGGh1ZoVjElI7TySKLgOwraHM/SA4kbYJcKEn2AoqSccaUeogWPYhirsObWNWUZhAiEA4WLqPOWZNbTQRYms0UbMZcRyN7dBnFnCyq/wdoI3bTECIQCqD5pxHfQPD1TcI8JL1SnzozRfnefpQOxdx+gcaD6kHwIhALf1l0A7GjD2suN++poZki0iCSOmpJuru8zZi4f+wqSRAiB9YoO8YxlPAT7QEI1w2/nSaMJ0vTgAAp5DhuDcEQAegQIgYKlMPS9E3m2FDsVIF/bvBcOq23Z8pqIGLBO28B0RSVI=',NULL,'http mock','MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJW5bFFB+ky2Lh6dFI8WNGoZY85xtiJP27LkBy96AU0ZmzSmJSBwQuIBSmAdCv1Cxb8yW38QiTCgyg9w6aCHnO8CAwEAAQ==','HTTP-MOCK');

@@ -38,7 +38,6 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
@@ -84,12 +83,11 @@ import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.plugin.PluginArtifactOperationExecutor.PluginArtifactPullContext;
 import com.webank.wecube.platform.core.service.user.RoleMenuService;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
-import com.webank.wecube.platform.core.support.RealS3Client;
 import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
-import com.webank.wecube.platform.core.utils.StringUtils;
+import com.webank.wecube.platform.core.utils.StringUtilsEx;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 
 @Service
@@ -164,7 +162,7 @@ public class PluginPackageService {
 
 	@Autowired
 	private RestTemplate restTemplate;
-
+	
 	public List<S3PluginActifactDto> listS3PluginActifacts() {
 		String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
 
@@ -175,7 +173,7 @@ public class PluginPackageService {
 		try {
 			List<S3PluginActifactDto> results = parseReleaseFile(releaseFileUrl);
 			return results;
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new WecubeCoreException("Cannot parse release file properly.Caused by " + e.getMessage());
 		}
 	}
@@ -427,7 +425,8 @@ public class PluginPackageService {
 		return returnMenuDto;
 	}
 
-	public List<SystemVariable> getSystemVarsById(String packageId) {
+	@SuppressWarnings("unchecked")
+    public List<SystemVariable> getSystemVarsById(String packageId) {
 		Optional<List<SystemVariable>> optionalSystemVariables = systemVariableRepository.findBySource(packageId);
 		if (optionalSystemVariables.isPresent()) {
 			return optionalSystemVariables.get();
@@ -672,7 +671,8 @@ public class PluginPackageService {
 		}
 	}
 
-	private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {
+	@SuppressWarnings("rawtypes")
+    private void unzipLocalFile(String sourceZipFile, String destFilePath) throws Exception {
 		try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
 			Enumeration entries = zipFile.entries();
 
@@ -703,7 +703,8 @@ public class PluginPackageService {
 		log.info("Zip file has uploaded !");
 	}
 
-	private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
+	@SuppressWarnings("rawtypes")
+    private Optional<Set<PluginPackageResourceFile>> getAllPluginPackageResourceFile(PluginPackage pluginPackage,
 			String sourceZipFile, String sourceZipFileName) throws Exception {
 		Optional<Set<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = Optional.empty();
 		try (ZipFile zipFile = new ZipFile(sourceZipFile)) {
@@ -772,7 +773,7 @@ public class PluginPackageService {
 		log.info("Upload UI.zip from local to static server:" + remotePath);
 
 		// get all static resource hosts
-		List<String> staticResourceIps = StringUtils.splitByComma(pluginProperties.getStaticResourceServerIp());
+		List<String> staticResourceIps = StringUtilsEx.splitByComma(pluginProperties.getStaticResourceServerIp());
 
 		for (String remoteIp : staticResourceIps) {
 
@@ -827,7 +828,7 @@ public class PluginPackageService {
 		if (!remotePath.equals("/") && !remotePath.equals(".")) {
 			String mkdirCmd = String.format("rm -rf %s", remotePath);
 			try {
-				List<String> staticResourceIps = StringUtils.splitByComma(pluginProperties.getStaticResourceServerIp());
+				List<String> staticResourceIps = StringUtilsEx.splitByComma(pluginProperties.getStaticResourceServerIp());
 				for (String staticResourceIp : staticResourceIps) {
 					commandService.runAtRemote(staticResourceIp, pluginProperties.getStaticResourceServerUser(),
 							pluginProperties.getStaticResourceServerPassword(),
