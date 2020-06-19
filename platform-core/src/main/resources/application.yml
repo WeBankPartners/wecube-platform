@@ -6,6 +6,10 @@ spring:
    profiles:
       active: dev
    datasource:
+      initial-size: 20
+      min-idle: 20
+      max-idle: 100
+      max-active: 200
       driver-class-name: com.mysql.cj.jdbc.Driver
 #    url: jdbc:mysql://<db-server>:3306/<database>?characterEncoding=utf8&serverTimezone=UTC
 #    username: <db-user>
