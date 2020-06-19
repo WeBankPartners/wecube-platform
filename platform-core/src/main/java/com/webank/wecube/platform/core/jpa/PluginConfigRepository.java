@@ -3,19 +3,27 @@ package com.webank.wecube.platform.core.jpa;
 import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.ENABLED;
 import static com.webank.wecube.platform.core.utils.CollectionUtils.pickLastOne;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.utils.VersionUtils;
 
-public interface PluginConfigRepository extends CrudRepository<PluginConfig, String> {
+public interface PluginConfigRepository extends JpaRepository<PluginConfig, String> {
     
     boolean existsByPluginPackage_idAndNameAndRegisterName(String pluginPackageId, String name, String registerName);
 
