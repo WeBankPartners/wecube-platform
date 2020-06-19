@@ -72,7 +72,7 @@ public class PluginConfigService {
     @Autowired
     private PluginPackageDataModelRepository dataModelRepository;
 
-    public String exportPluginRegistersForOnePackage(String pluginPackageId) {
+    public PluginRegistryInfo exportPluginRegistersForOnePackage(String pluginPackageId) {
         if (StringUtils.isBlank(pluginPackageId)) {
             throw new WecubeCoreException("Plugin package ID cannot be blank.");
         }
@@ -105,7 +105,13 @@ public class PluginConfigService {
 
         String comments = buildXmlComments(pluginPackage);
 
-        return xmlContent + comments;
+        
+        PluginRegistryInfo prInfo = new PluginRegistryInfo();
+        prInfo.setPluginPackageData(xmlContent + comments);
+        prInfo.setPluginPackageName(pluginPackage.getName());
+        prInfo.setPluginPackageVersion(pluginPackage.getVersion());
+        
+        return prInfo;
     }
 
     @Transactional
