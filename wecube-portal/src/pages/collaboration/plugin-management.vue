@@ -66,8 +66,7 @@
                     type="primary"
                     ghost
                     @click.stop.prevent="importBestPractices(plugin.id)"
-                    >import XML</Button
-                  >
+                  ></Button>
                   <Button
                     v-if="plugin.status !== 'DECOMMISSIONED'"
                     @click.stop.prevent="exportBestPractices(plugin.id)"
@@ -75,8 +74,7 @@
                     type="primary"
                     ghost
                     icon="md-download"
-                    >export XML</Button
-                  >
+                  ></Button>
                   <Button
                     v-if="plugin.status !== 'DECOMMISSIONED'"
                     @click.stop.prevent="deletePlugin(plugin.id)"
@@ -568,11 +566,38 @@ export default {
       }
     },
     importBestPractices (packageId) {
-      console.log(packageId, 'import')
+      let refreshRequest = null
+      const currentTime = new Date().getTime()
+      const accessToken = getCookie('accessToken')
+      if (accessToken) {
+        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
+        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
+          refreshRequest = axios.get('/auth/v1/api/token', {
+            headers: {
+              Authorization: 'Bearer ' + getCookie('refreshToken')
+            }
+          })
+          refreshRequest.then(
+            res => {
+              setCookie(res.data.data)
+              this.setUploadActionHeader()
+              this.$refs.uploadButton.handleClick()
+            },
+            // eslint-disable-next-line handle-callback-err
+            err => {
+              refreshRequest = null
+              window.location.href = window.location.origin + window.location.pathname + '#/login'
+            }
+          )
+        } else {
+          this.setUploadActionHeader()
+        }
+      } else {
+        window.location.href = window.location.origin + window.location.pathname + '#/login'
+      }
       this.isShowImportXMLModal = true
     },
     exportBestPractices (packageId) {
-      console.log(packageId, 'export')
       exportPluginXMLWithId(packageId)
     },
     deletePlugin (packageId) {
