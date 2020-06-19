@@ -2,6 +2,11 @@ package com.webank.wecube.platform.core.service.dme;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+/**
+ * 
+ * @author gavin
+ *
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EntityQueryFilter {
     public static final String OP_EQUALS = "eq";
