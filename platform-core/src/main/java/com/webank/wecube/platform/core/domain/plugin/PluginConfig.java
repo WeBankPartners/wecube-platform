@@ -111,6 +111,14 @@ public class PluginConfig {
     public void setStatus(Status status) {
         this.status = status;
     }
+    
+    public void addPluginConfigInterface(PluginConfigInterface intf){
+        if(interfaces == null){
+            interfaces = new LinkedHashSet<PluginConfigInterface>();
+        }
+        
+        interfaces.add(intf);
+    }
 
     public Set<PluginConfigInterface> getInterfaces() {
         // TODO: need to optimize

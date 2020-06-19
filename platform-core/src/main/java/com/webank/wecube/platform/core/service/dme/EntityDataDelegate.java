@@ -75,7 +75,7 @@ public class EntityDataDelegate {
 
     public void setPreviousEntity(EntityDataDelegate previousEntity) {
         this.previousEntity = previousEntity;
-        if(previousEntity != null){
+        if (previousEntity != null) {
             previousEntity.addSucceedingEntities(this);
         }
     }
@@ -93,27 +93,27 @@ public class EntityDataDelegate {
             if (entity == null) {
                 continue;
             }
-            
-            if(contains(entity)){
+
+            if (contains(entity)) {
                 continue;
             }
 
             this.succeedingEntities.add(entity);
-            
-            if(entity.getPreviousEntity() == null){
+
+            if (entity.getPreviousEntity() == null) {
                 entity.setPreviousEntity(this);
             }
         }
     }
-    
-    public void removeSucceedingEntities(EntityDataDelegate... succeedingEntitiesToRemove){
-        for(EntityDataDelegate removeEntity : succeedingEntitiesToRemove){
-            if(removeEntity == null){
+
+    public void removeSucceedingEntities(EntityDataDelegate... succeedingEntitiesToRemove) {
+        for (EntityDataDelegate removeEntity : succeedingEntitiesToRemove) {
+            if (removeEntity == null) {
                 continue;
             }
-            
+
             EntityDataDelegate entityToRemove = findFromSucceedings(removeEntity);
-            if(entityToRemove != null){
+            if (entityToRemove != null) {
                 this.succeedingEntities.remove(entityToRemove);
             }
         }
@@ -134,24 +134,24 @@ public class EntityDataDelegate {
     public void setEntityName(String entityName) {
         this.entityName = entityName;
     }
-    
-    private boolean contains(EntityDataDelegate entity){
-        for(EntityDataDelegate  elmt : this.succeedingEntities){
-            if(elmt.equals(entity)){
+
+    private boolean contains(EntityDataDelegate entity) {
+        for (EntityDataDelegate elmt : this.succeedingEntities) {
+            if (elmt.equals(entity)) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
-    private EntityDataDelegate findFromSucceedings(EntityDataDelegate entity){
-        for(EntityDataDelegate succeed : this.getSucceedingEntities()){
-            if(succeed.equals(entity)){
+
+    private EntityDataDelegate findFromSucceedings(EntityDataDelegate entity) {
+        for (EntityDataDelegate succeed : this.getSucceedingEntities()) {
+            if (succeed.equals(entity)) {
                 return succeed;
             }
         }
-        
+
         return null;
     }
 
@@ -167,30 +167,38 @@ public class EntityDataDelegate {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         EntityDataDelegate other = (EntityDataDelegate) obj;
         if (entityName == null) {
-            if (other.entityName != null)
+            if (other.entityName != null) {
                 return false;
-        } else if (!entityName.equals(other.entityName))
+            }
+        } else if (!entityName.equals(other.entityName)) {
             return false;
+        }
         if (id == null) {
-            if (other.id != null)
+            if (other.id != null) {
                 return false;
-        } else if (!id.equals(other.id))
+            }
+        } else if (!id.equals(other.id)) {
             return false;
+        }
         if (packageName == null) {
-            if (other.packageName != null)
+            if (other.packageName != null) {
                 return false;
-        } else if (!packageName.equals(other.packageName))
+            }
+        } else if (!packageName.equals(other.packageName)) {
             return false;
+        }
         return true;
     }
-    
-    
+
 }

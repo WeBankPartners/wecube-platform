@@ -151,3 +151,7 @@ export const getPreviewEntitiesByInstancesId = id => req.get(`/platform/v1/proce
 export const getPluginArtifacts = () => req.get(`/platform/v1/plugin-artifacts`)
 export const pullPluginArtifact = data => req.post(`/platform/v1/plugin-artifacts/pull-requests`, data)
 export const getPluginArtifactStatus = id => req.get(`/platform/v1/plugin-artifacts/pull-requests/${id}`)
+
+export const exportPluginXMLWithId = id => {
+  req.get(`/platform/v1/plugins/packages/export/${id}`)
+}

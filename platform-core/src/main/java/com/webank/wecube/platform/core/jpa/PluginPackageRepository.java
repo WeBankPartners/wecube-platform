@@ -1,18 +1,26 @@
 package com.webank.wecube.platform.core.jpa;
 
-import com.google.common.collect.Sets;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.utils.VersionUtils;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static com.webank.wecube.platform.core.utils.CollectionUtils.pickLastOne;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-public interface PluginPackageRepository extends CrudRepository<PluginPackage, String> {
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.google.common.collect.Sets;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.utils.VersionUtils;
+
+public interface PluginPackageRepository extends JpaRepository<PluginPackage, String> {
 
     @Query("SELECT p FROM PluginPackage p WHERE p.status IN :statuses")
     Optional<List<PluginPackage>> findAllByStatus(PluginPackage.Status... statuses);
