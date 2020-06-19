@@ -68,7 +68,7 @@ import com.webank.wecube.platform.core.support.gateway.RegisterRouteItemsDto;
 import com.webank.wecube.platform.core.support.gateway.RouteItem;
 import com.webank.wecube.platform.core.utils.EncryptionUtils;
 import com.webank.wecube.platform.core.utils.JsonUtils;
-import com.webank.wecube.platform.core.utils.StringUtils;
+import com.webank.wecube.platform.core.utils.StringUtilsEx;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 
 @Service
@@ -120,7 +120,7 @@ public class PluginInstanceService {
     }
 
     public Integer getAvailablePortByHostIp(String hostIp) {
-        if (!(StringUtils.isValidIp(hostIp))) {
+        if (!(StringUtilsEx.isValidIp(hostIp))) {
             throw new RuntimeException("Invalid host ip");
         }
         ResourceServer resourceServer = resourceServerRepository
@@ -181,7 +181,7 @@ public class PluginInstanceService {
     }
 
     private boolean isContainerHostValid(String hostIp) {
-        if (StringUtils.isValidIp(hostIp) && isHostIpAvailable(hostIp)) {
+        if (StringUtilsEx.isValidIp(hostIp) && isHostIpAvailable(hostIp)) {
             return true;
         }
         return false;
