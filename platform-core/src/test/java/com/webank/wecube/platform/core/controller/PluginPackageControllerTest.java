@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.controller;
 
+import com.webank.wecube.platform.core.controller.plugin.PluginPackageController;
 import com.webank.wecube.platform.core.handler.GlobalExceptionHandler;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 import com.webank.wecube.platform.core.support.FakeS3Client;
@@ -39,7 +40,7 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
     private PluginPackageController pluginPackageController;
 
     @Autowired
-    private HomeController homeController;
+    private ApplicationHomeController homeController;
     @Autowired
     private GlobalExceptionHandler globalExceptionHandler;
 
