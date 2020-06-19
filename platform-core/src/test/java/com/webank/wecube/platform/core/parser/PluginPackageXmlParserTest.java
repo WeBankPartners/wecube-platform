@@ -21,9 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PluginPackageXmlParserTest {
 
+    
     @Test
     public void givenNormalRegisterXmlWhenParseThenReturnPluginPackageDto() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
-        InputSource inputSource = new InputSource(Resources.getResource("register-for-parser-test.xml").openStream());
+        InputSource inputSource = new InputSource(Resources.getResource("plugin/register-for-parser-test.xml").openStream());
         PluginPackageDto pluginPackageDto = PluginPackageXmlParser.newInstance(inputSource).parsePluginPackage();
 
         assertThat(pluginPackageDto.getName()).isEqualTo("service-management");
