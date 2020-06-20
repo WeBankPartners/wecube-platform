@@ -6,10 +6,15 @@ spring:
    profiles:
       active: dev
    datasource:
-      initial-size: 20
-      min-idle: 20
-      max-idle: 100
-      max-active: 200
+    hikari:
+      pool-name: Retail_HikariCP
+      minimum-idle: 20
+      idle-timeout: 180000
+      maximum-pool-size: 200
+      auto-commit: true
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
       driver-class-name: com.mysql.cj.jdbc.Driver
 #    url: jdbc:mysql://<db-server>:3306/<database>?characterEncoding=utf8&serverTimezone=UTC
 #    username: <db-user>
