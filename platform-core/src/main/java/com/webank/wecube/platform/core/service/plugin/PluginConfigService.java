@@ -91,8 +91,14 @@ public class PluginConfigService {
         xmlPluginPackage.setName(pluginPackage.getName());
         xmlPluginPackage.setVersion(pluginPackage.getVersion());
 
-        List<PluginConfig> pluginConfigs = pluginConfigRepository.findByPluginPackage_idOrderByName(pluginPackageId)
-                .get();
+        Optional<List<PluginConfig>> pluginConfigsOpt = pluginConfigRepository.findByPluginPackage_idOrderByName(pluginPackageId)
+                ;
+        
+        if(!pluginConfigsOpt.isPresent()){
+            throw new WecubeCoreException("Such package ID has no plugin configs.");
+        }
+        
+        List<PluginConfig> pluginConfigs = pluginConfigsOpt.get();
 
         PluginConfigsType xmlPluginConfigs = buildXmlPluginConfigs(pluginPackage, pluginConfigs);
         xmlPluginPackage.setPlugins(xmlPluginConfigs);
