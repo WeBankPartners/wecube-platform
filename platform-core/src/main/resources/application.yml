@@ -1,95 +1,93 @@
 server:
-   port: 8080
-   servlet:
-      context-path: /platform
+  port: 8080
+  servlet:
+    context-path: /platform
 spring:
-   profiles:
-      active: dev
-   datasource:
-      initial-size: 20
-      min-idle: 20
-      max-idle: 100
-      max-active: 200
+  profiles:
+    active: dev
+  datasource:
+    hikari:
+      pool-name: Retail_HikariCP
+      minimum-idle: 20
+      idle-timeout: 180000
+      maximum-pool-size: 200
+      auto-commit: true
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
       driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://<db-server>:3306/<database>?characterEncoding=utf8&serverTimezone=UTC
-#    username: <db-user>
-#    password: <db-password>
-   banner:
-      location: classpath:/banner.txt
-   jpa:
-      database: mysql
-      show-sql: false
-      hibernate:
-         ddl-auto: update
-         use-new-id-generator-mappings: false
-         naming:
-            physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
-#    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-      open-in-view: false
-   servlet:
-      multipart:
-         max-file-size: 2GB
-         max-request-size: 2GB
+  banner:
+    location: classpath:/banner.txt
+  jpa:
+    database: mysql
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+      use-new-id-generator-mappings: false
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
 camunda:
-   bpm:
+  bpm:
+    enabled: true
+    application:
+      delete-upon-undeploy: false
+      scan-for-process-definitions: false
+      deploy-changed-only: true
+      resume-previous-versions: true
+      resume-previous-by: a value
+    history-level: full
+    database:
+      schema-update: true
+    filter:
+      create: All tasks
+    job-execution:
       enabled: true
-      application:
-         delete-upon-undeploy: false
-         scan-for-process-definitions: false
-         deploy-changed-only: true
-         resume-previous-versions: true
-         resume-previous-by: a value
-      history-level: full
-      database:
-         schema-update: true
-      filter:
-         create: All tasks
-      job-execution:
-         enabled: true
-      auto-deployment-enabled: true
-      generate-unique-process-application-name: true
-      generate-unique-process-engine-name: true
+    auto-deployment-enabled: true
+    generate-unique-process-application-name: true
+    generate-unique-process-engine-name: true
 wecube:
-   core:
-      security-enabled: true
-      httpclient:
-         max-total-connections: 200
-      gateway-url: 127.0.0.1:19110
-      authserver:
-        host: 127.0.0.1
-        port: 19110
-      plugin:
-         plugin-deploy-path: /opt
-         plugin-package-bucket-name: wecube-plugin-package-bucket
-         register-file: register.xml
-         image-file: image.tar
-         ui-file: ui.zip
-         init-db-sql: init.sql
-         upgrade-db-sql: upgrade.sql
-         static-resource-server-ip: 127.0.0.1
-         static-resource-server-user: root
-         static-resource-server-password: password
-         static-resource-server-port: 22
-         static-resource-server-path: /root/app/ui-resources
-         base-mount-path: /data
-      s3:
-         endpoint: http://s3-server:9000
-         access-key: access_key
-         secret-key: secret_key
-      resource:
-         dockerPullImageTimeout: 300
-         passwordEncryptionSeed: defaultSeed
-      docker-remote:
-         port: 2375
-         enable-tls: false
-         cert-path: /root/docker/cert
-
+  core:
+    security-enabled: true
+    httpclient:
+      max-total-connections: 200
+    gateway-url: 127.0.0.1:19110
+    authserver:
+      host: 127.0.0.1
+      port: 19110
+    plugin:
+      plugin-deploy-path: /opt
+      plugin-package-bucket-name: wecube-plugin-package-bucket
+      register-file: register.xml
+      image-file: image.tar
+      ui-file: ui.zip
+      init-db-sql: init.sql
+      upgrade-db-sql: upgrade.sql
+      static-resource-server-ip: 127.0.0.1
+      static-resource-server-user: root
+      static-resource-server-password: password
+      static-resource-server-port: 22
+      static-resource-server-path: /root/app/ui-resources
+      base-mount-path: /data
+    s3:
+      endpoint: http://s3-server:9000
+      access-key: access_key
+      secret-key: secret_key
+    resource:
+      dockerPullImageTimeout: 300
+      passwordEncryptionSeed: defaultSeed
+    docker-remote:
+      port: 2375
+      enable-tls: false
+      cert-path: /root/docker/cert
 platform:
-   auth:
-      jwt-sso-authentication-uri: http://localhost:9090/auth/v1/api/login
-      jwt-sso-access-token-uri: http://localhost:9090/auth/v1/api/token
-      sub-system-code: SYS_PLATFORM
-      sub-system-private-key: MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAwnTN7JDXFcSoikXuNOQDtAjic1Wu6oAtCQJquCJmXrBTqB7hwS2mK6TuT8P7Jx60BQcaRL12hPLi6cOiCawuVwIDAQABAkB9NORazDARjhzPW5OzbpWL2KSmiqcjywA0at/4S/4KPPM8vwRjzEMs7pV9nSJ2M+/YOqPMBDl8iBUSLpfKf/uxAiEA52UroIvo2URlmAycaJm7+e4QqqfhEnM9wlGCJwL2jTsCIQDXIh2zwN7KQEIypmOL+uXvlZUjmx0Tj29mWOwP/fBBlQIhAI9+VLSlror1eE73GxNeqoxNznYVz2RCpLzZEO4iT0S7AiARg0Z1tpKsVjTNWLwrzf3f1gZxApSIXhnMdBqrZpmjTQIhAJhgYctlaydmggTPCqWLGub9WqEyH2HrrcabRvpWdEcV
-      auth-server-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKds8XUHglF0703p8H+IPQCTE+31A6t+eyTzF+6kHEpLp7YeDu7OZCqIH6pYWmxD0TmQLobjPNA7IME93wq8HX0CAwEAAQ==
-      
-######   The End  ######
+  auth:
+    jwt-sso-authentication-uri: http://localhost:9090/auth/v1/api/login
+    jwt-sso-access-token-uri: http://localhost:9090/auth/v1/api/token
+    sub-system-code: SYS_PLATFORM
+    sub-system-private-key: MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAwnTN7JDXFcSoikXuNOQDtAjic1Wu6oAtCQJquCJmXrBTqB7hwS2mK6TuT8P7Jx60BQcaRL12hPLi6cOiCawuVwIDAQABAkB9NORazDARjhzPW5OzbpWL2KSmiqcjywA0at/4S/4KPPM8vwRjzEMs7pV9nSJ2M+/YOqPMBDl8iBUSLpfKf/uxAiEA52UroIvo2URlmAycaJm7+e4QqqfhEnM9wlGCJwL2jTsCIQDXIh2zwN7KQEIypmOL+uXvlZUjmx0Tj29mWOwP/fBBlQIhAI9+VLSlror1eE73GxNeqoxNznYVz2RCpLzZEO4iT0S7AiARg0Z1tpKsVjTNWLwrzf3f1gZxApSIXhnMdBqrZpmjTQIhAJhgYctlaydmggTPCqWLGub9WqEyH2HrrcabRvpWdEcV
+    auth-server-public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKds8XUHglF0703p8H+IPQCTE+31A6t+eyTzF+6kHEpLp7YeDu7OZCqIH6pYWmxD0TmQLobjPNA7IME93wq8HX0CAwEAAQ==

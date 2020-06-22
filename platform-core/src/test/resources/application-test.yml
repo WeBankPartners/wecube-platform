@@ -3,14 +3,16 @@ spring:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:wecube-core;MODE=MYSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false;MV_STORE=FALSE;MVCC=true
     username: sa
-    password:
+    password: null
+    hikari:
+      driver-class-name: org.h2.Driver
+
   jpa:
     database: H2
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
     hibernate:
       ddl-auto: update
-
 wecube:
   core:
     security-enabled: false
