@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.boot;
+package com.webank.wecube.platform.auth.server.boot;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
