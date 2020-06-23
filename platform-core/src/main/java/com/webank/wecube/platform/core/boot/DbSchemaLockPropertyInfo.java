@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.boot;
 class DbSchemaLockPropertyInfo extends AppPropertyInfo {
     public static final String PROPERTY_NAME = "db.schema.lock";
     public static final String VAL_UNLOCK = "0";
+    public static final String VAL_LOCK = "1";
 
     public DbSchemaLockPropertyInfo() {
         super();
