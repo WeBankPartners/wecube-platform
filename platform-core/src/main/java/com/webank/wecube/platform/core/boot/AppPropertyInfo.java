@@ -44,6 +44,10 @@ public class AppPropertyInfo {
     public int getNextRev() {
         return this.getRev() + 1;
     }
+    
+    public Object[] unpack(){
+        return new Object[]{this.getName(), this.getVal(), this.getRev()};
+    }
 
     @Override
     public String toString() {
