@@ -1,45 +1,41 @@
 package com.webank.wecube.platform.core.boot;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * NOT thread-safe
+ * 
  * @author gavin
  *
  */
-final class MysqlDatabaseInitializer implements DatabaseInitializer {
-    
-    private static final Logger log = LoggerFactory.getLogger(MysqlDatabaseInitializer.class);
-    
+final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
+
     public static final String CREATE_SQL_NAME = "1.wecube.mysql.create.sql";
     public static final String DROP_SQL_NAME = "1.wecube.mysql.drop.sql";
-    
-    
-    
-    private String strategy;
-    private DataSource dataSource;
-    
-    private Connection connection;
-    
-    public MysqlDatabaseInitializer(String strategy, DataSource dataSource) {
-        super();
-        this.strategy = strategy;
-        this.dataSource = dataSource;
+
+    MysqlDatabaseInitializer(String strategy, DataSource dataSource) {
+        super(strategy, dataSource);
+
     }
 
-    @Override
-    public void initialize() {
-        
-    }
+    protected String tryCalculateDbSchema() {
+        Connection conn = null;
+        try {
+            conn = this.dataSource.getConnection();
+            String jdbcUrl = connection.getMetaData().getURL().toString();
+            String strSchema = jdbcUrl.substring(0, jdbcUrl.indexOf("?"));
+            strSchema = strSchema.substring(strSchema.lastIndexOf("/") + 1);
+            return strSchema;
+        } catch (SQLException e) {
+            log.error("", e);
+            throw new ApplicationInitializeException(e);
+        } finally {
+            closeSilently(conn);
+        }
 
-    @Override
-    public String getInitializeStrategy() {
-        return null;
     }
 
 }
