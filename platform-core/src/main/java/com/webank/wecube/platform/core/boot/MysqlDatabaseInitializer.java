@@ -7,7 +7,12 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MysqlDatabaseInitializer implements DatabaseInitializer {
+/**
+ * NOT thread-safe
+ * @author gavin
+ *
+ */
+final class MysqlDatabaseInitializer implements DatabaseInitializer {
     
     private static final Logger log = LoggerFactory.getLogger(MysqlDatabaseInitializer.class);
     
@@ -21,15 +26,19 @@ public class MysqlDatabaseInitializer implements DatabaseInitializer {
     
     private Connection connection;
     
+    public MysqlDatabaseInitializer(String strategy, DataSource dataSource) {
+        super();
+        this.strategy = strategy;
+        this.dataSource = dataSource;
+    }
+
     @Override
     public void initialize() {
-        // TODO Auto-generated method stub
         
     }
 
     @Override
     public String getInitializeStrategy() {
-        // TODO Auto-generated method stub
         return null;
     }
 
