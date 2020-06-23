@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.boot;
 
-class StatementInfo {
+public class StatementInfo {
     private DbOperationType operType;
     private String tableName;
     private String statement;
