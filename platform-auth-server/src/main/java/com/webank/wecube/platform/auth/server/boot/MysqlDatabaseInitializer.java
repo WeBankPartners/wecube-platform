@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.boot;
+package com.webank.wecube.platform.auth.server.boot;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -19,9 +19,9 @@ import javax.sql.DataSource;
  */
 final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
 
-    public static final String CREATE_SCHEMA_NAME = "01.wecube.mysql.create.sql";
-    public static final String DROP_SCHEMA_NAME = "01.wecube.mysql.drop.sql";
-    public static final String CREATE_DATA_NAME = "02.wecube.mysql.create.data.sql";
+    public static final String CREATE_SCHEMA_NAME = "01.auth.mysql.create.sql";
+    public static final String DROP_SCHEMA_NAME = "01.auth.mysql.drop.sql";
+    public static final String CREATE_DATA_NAME = "02.auth.mysql.create.data.sql";
 
     private String createAppPropertyInfoSql;
     private String insertAppPropertyInfoSql;
