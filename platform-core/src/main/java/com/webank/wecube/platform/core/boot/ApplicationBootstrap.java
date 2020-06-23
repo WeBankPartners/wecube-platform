@@ -16,14 +16,28 @@ public class ApplicationBootstrap {
 
     @Autowired
     private DataSource dataSource;
-    
+
     @Autowired
     private ApplicationProperties applicationProperties;
-    
+
     private DatabaseInitializer databaseInitializer;
-    
+
     @PostConstruct
-    public void afterPropertiesSetting() throws Exception{
-        
+    public void afterPropertiesSetting() throws Exception {
+        try {
+            databaseInitializer = new MysqlDatabaseInitializer(applicationProperties.getDbInitStrategy(), dataSource);
+            bootstrap();
+        } catch (Exception e) {
+            log.error("", e);
+            throw e;
+        }
+    }
+
+    private void bootstrap() {
+        initDatabaseSchema();
+    }
+
+    private void initDatabaseSchema() {
+        databaseInitializer.initialize();
     }
 }
