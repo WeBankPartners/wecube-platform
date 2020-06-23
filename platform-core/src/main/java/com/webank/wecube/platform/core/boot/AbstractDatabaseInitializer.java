@@ -1,7 +1,10 @@
 package com.webank.wecube.platform.core.boot;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,7 +28,7 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
 
     protected Connection connection;
     protected String dbSchema;
-    
+
     protected List<String> existsTableNames = new ArrayList<String>();
 
     public AbstractDatabaseInitializer(String strategy, DataSource dataSource) {
@@ -71,16 +74,19 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
             log.info("Did not aquired database initialization lock.");
             return;
         }
-        
-        getTableNamesPresent();
 
+        log.info("try to initialize database:{}", dbSchema);
+        
         if (STRATEGY_DROP_CREATE.equals(strategy)) {
             executeDbDropTables();
         }
+        
+        getTableNamesPresent();
 
         executeDbCreateTables();
 
         tryReleaseDbInitLock(lockInfo);
+
     }
 
     protected void executeDbCreateTables() {
@@ -88,7 +94,6 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
     }
 
     protected void executeDbDropTables() {
-        return;
     }
 
     protected void validateStrategy() {
@@ -161,10 +166,14 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
     }
 
     protected void dbCreateTable(String createStatement) throws SQLException {
+        executeStatement(createStatement);
+    }
+    
+    protected void executeStatement(String statement) throws SQLException {
         Statement jdbcStatement = null;
         try {
             jdbcStatement = connection.createStatement();
-            jdbcStatement.execute(createStatement);
+            jdbcStatement.execute(statement);
         } finally {
             closeSilently(jdbcStatement);
         }
@@ -201,6 +210,37 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
         return results;
     }
 
+    protected String readNextTrimmedLine(BufferedReader reader) throws IOException {
+        String line = reader.readLine();
+        if (line != null) {
+            line = line.trim();
+        }
+        return line;
+    }
+
+    protected String addSqlStatementPiece(String sqlStatement, String line) {
+        if (sqlStatement == null) {
+            return line;
+        }
+        return sqlStatement + " \n" + line;
+    }
+
+    protected byte[] readInputStream(InputStream inputStream, String inputStreamName) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[16 * 1024];
+        try {
+            int bytesRead = inputStream.read(buffer);
+            while (bytesRead != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+                bytesRead = inputStream.read(buffer);
+            }
+        } catch (Exception e) {
+            log.error("", e);
+            throw new ApplicationInitializeException(e);
+        }
+        return outputStream.toByteArray();
+    }
+
     protected abstract String tryCalculateDbSchema();
 
     protected abstract DbSchemaLockPropertyInfo tryAquireDbInitLock();
@@ -208,7 +248,7 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
     protected abstract void tryReleaseDbInitLock(DbSchemaLockPropertyInfo lockInfo);
 
     protected abstract boolean isTablePresent(String tableName);
-    
+
     protected abstract void getTableNamesPresent() throws SQLException;
 
 }

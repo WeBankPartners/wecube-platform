@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.boot;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,6 +26,8 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
     private String insertAppPropertyInfoSql;
     private String queryAppPropertyInfoSql;
     private String updateAppPropertyInfoSql;
+
+    private StatementInfoParser statementInfoParser = new MysqlStatementInfoParser();
 
     MysqlDatabaseInitializer(String strategy, DataSource dataSource) {
         super(strategy, dataSource);
@@ -131,12 +136,16 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
 
     @Override
     protected void tryReleaseDbInitLock(DbSchemaLockPropertyInfo lockInfo) {
+        log.info("try to release databse init lock:{}", lockInfo);
         try {
             int ret = dbUpdateTable(updateAppPropertyInfoSql, new Object[] { DbSchemaLockPropertyInfo.VAL_UNLOCK,
                     lockInfo.getNextRev(), lockInfo.getName(), lockInfo.getRev() });
             if (ret <= 0) {
+                log.error("unlock failed,{}", lockInfo);
                 throw new ApplicationInitializeException("Update table failed");
             }
+
+            log.info("unlocked:{}", lockInfo);
         } catch (SQLException e) {
             throw new ApplicationInitializeException(e);
         }
@@ -183,6 +192,107 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
         }
 
         this.existsTableNames.addAll(tableNames);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("EXISTS TABLES:\n");
+        for (String tableName : this.existsTableNames) {
+            sb.append(tableName).append("\n");
+        }
+
+        log.info(sb.toString());
+    }
+    
+    protected void executeDbDropTables() {
+        log.info("start to execute drop tables");
+        InputStream inputStream = null;
+        String fileName = String.format("db/drop/%s", DROP_SQL_NAME);
+        try {
+            inputStream = DatabaseInitializer.class.getClassLoader().getResourceAsStream(fileName);
+            if (inputStream == null) {
+                throw new ApplicationInitializeException("Can not read create table file:" + fileName);
+            }
+            executeSchemaResource("Drop", "core", "core", inputStream);
+        } finally {
+            closeSilently(inputStream);
+        }
+        
+    }
+
+    protected void executeDbCreateTables() {
+        log.info("start to execute creating tables");
+        InputStream inputStream = null;
+        String fileName = String.format("db/create/%s", CREATE_SQL_NAME);
+        try {
+            inputStream = DatabaseInitializer.class.getClassLoader().getResourceAsStream(fileName);
+            if (inputStream == null) {
+                throw new ApplicationInitializeException("Can not read create table file:" + fileName);
+            }
+            executeSchemaResource("Create", "core", "core", inputStream);
+        } finally {
+            closeSilently(inputStream);
+        }
+    }
+
+    private void processStatementInfo(StatementInfo info) throws SQLException {
+        if (DbOperationType.Create == info.getOperType()
+                && this.existsTableNames.contains(info.getTableName().toUpperCase())) {
+            log.info("table {} already exists", info.getTableName());
+            return;
+        }
+        
+        log.info("process {}", info);
+        executeStatement(info.getStatement());
+    }
+
+    private void executeSchemaResource(String operation, String component, String resourceName,
+            InputStream inputStream) {
+        String sqlStatement = null;
+        try {
+            Exception exception = null;
+            byte[] bytes = readInputStream(inputStream, resourceName);
+            String ddlStatements = new String(bytes);
+            BufferedReader reader = new BufferedReader(new StringReader(ddlStatements));
+            String line = readNextTrimmedLine(reader);
+
+            List<String> logLines = new ArrayList<>();
+            long lineNum = 0L;
+            while (line != null) {
+                lineNum++;
+                if (line.startsWith("# ")) {
+                    logLines.add(line.substring(2));
+                } else if (line.startsWith("-- ")) {
+                    logLines.add(line.substring(3));
+                } else if (line.length() > 0) {
+
+                    if (line.endsWith(";")) {
+                        sqlStatement = addSqlStatementPiece(sqlStatement, line.substring(0, line.length() - 1));
+                        StatementInfo statementInfo = statementInfoParser.parseStatement(sqlStatement, lineNum);
+                        try {
+                            // no logging needed as the connection will log it
+                            logLines.add(sqlStatement);
+                            processStatementInfo(statementInfo);
+                        } catch (Exception e) {
+                            if (exception == null) {
+                                exception = e;
+                            }
+                        } finally {
+                            sqlStatement = null;
+                        }
+                    } else {
+                        sqlStatement = addSqlStatementPiece(sqlStatement, line);
+                    }
+                }
+
+                line = readNextTrimmedLine(reader);
+            }
+
+            if (exception != null) {
+                throw exception;
+            }
+
+        } catch (Exception e) {
+            throw new ApplicationInitializeException("execute sql errors", e);
+        }
     }
 
 }
