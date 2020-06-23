@@ -18,9 +18,7 @@
           size="small"
           >{{ $t('copy') }}</Button
         >
-        <Button v-if="pathList.length === 0" type="primary" ghost icon="md-add-circle" long size="small">{{
-          $t('please_choose')
-        }}</Button>
+        <Button v-if="pathList.length === 0" class="arrow-icon" icon="ios-arrow-down" long size="small"></Button>
       </div>
       <div slot="content">
         <div v-if="!disabled" class="filter_rules_path_options">
@@ -45,16 +43,23 @@
             >
               {{ $t('add_filter_rule') }}
             </li>
+            <li v-if="pathList.length > 0 && needAttr">
+              <Input prefix="ios-search" v-model="filterString" size="small" style="width:100%" />
+            </li>
           </ul>
-          <hr />
-          <div style="max-height: 145px;overflow: auto;">
-            <ul v-if="!needNativeAttr" v-for="opt in currentLeafOptiongs" :key="opt.pathExp + Math.random() * 1000">
+          <hr style="margin-top:5px;" />
+          <div style="max-height: 145px;overflow: auto;margin-top:5px;">
+            <ul
+              v-if="!needNativeAttr"
+              v-for="opt in filterCurrentLeafOptiongs"
+              :key="opt.pathExp + Math.random() * 1000"
+            >
               <li style="color:rgb(49, 104, 4)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
             </ul>
-            <ul v-for="opt in currentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
+            <ul v-for="opt in filterCurrentRefOptiongs" :key="opt.pathExp + Math.random() * 1000">
               <li style="color:rgb(64, 141, 218)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
             </ul>
-            <ul v-for="opt in currentOptiongs" :key="opt.pathExp + Math.random() * 1000">
+            <ul v-for="opt in filterCurrentOptiongs" :key="opt.pathExp + Math.random() * 1000">
               <li style="color:rgb(211, 82, 32)" @click="optClickHandler(opt)">{{ opt.pathExp }}</li>
             </ul>
           </div>
@@ -110,13 +115,17 @@ export default {
       currentOptiongs: [],
       currentRefOptiongs: [],
       currentLeafOptiongs: [],
+      filterCurrentOptiongs: [],
+      filterCurrentRefOptiongs: [],
+      filterCurrentLeafOptiongs: [],
       modelVisable: false,
       poptipVisable: false,
       optionsFilter: '',
       currentNodeIndex: -1,
       currentNode: {},
       currentNodeEntityAttrs: [],
-      pasteValue: ''
+      pasteValue: '',
+      filterString: ''
     }
   },
   props: {
@@ -138,6 +147,13 @@ export default {
     allDataModelsWithAttrs: {}
   },
   watch: {
+    filterString: {
+      handler (val) {
+        this.filterCurrentOptiongs = this.currentOptiongs.filter(opt => opt.pathExp.indexOf(val) > -1)
+        this.filterCurrentRefOptiongs = this.currentRefOptiongs.filter(opt => opt.pathExp.indexOf(val) > -1)
+        this.filterCurrentLeafOptiongs = this.currentLeafOptiongs.filter(opt => opt.pathExp.indexOf(val) > -1)
+      }
+    },
     value: {
       handler (val) {
         // if (val === this.fullPathExp) return
@@ -481,6 +497,10 @@ export default {
           }
         }
       }
+      this.filterString = ''
+      this.filterCurrentOptiongs = this.currentOptiongs
+      this.filterCurrentRefOptiongs = this.currentRefOptiongs
+      this.filterCurrentLeafOptiongs = this.currentLeafOptiongs
     }
   },
   mounted () {
@@ -511,7 +531,7 @@ export default {
   width: 100%;
   z-index: 3000;
   background: white;
-  max-height: 200px;
+  max-height: 250px;
   overflow: auto;
 }
 .filter_rules_contain .ivu-poptip {
@@ -522,6 +542,16 @@ export default {
 }
 .filter_rules_path_contains {
   width: 100%;
+  border: 1px solid #dcdee2;
+  border-radius: 4px;
+  padding-left: 10px;
+  padding-right: 10px;
+  position: relative;
+  min-height: 32px;
+  &:hover {
+    border-color: rgb(39, 166, 240);
+    cursor: pointer;
+  }
   .path_exp {
     // text-decoration:underline;
     word-wrap: break-word;
@@ -536,6 +566,13 @@ export default {
   }
   .even_span {
     color: rgb(39, 25, 17);
+  }
+  button {
+    border: none;
+  }
+  .arrow-icon {
+    position: absolute;
+    right: 0;
   }
 }
 .filter_rules_path_options ul {
