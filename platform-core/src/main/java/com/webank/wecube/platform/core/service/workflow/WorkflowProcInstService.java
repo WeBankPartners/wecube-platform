@@ -1,10 +1,9 @@
 package com.webank.wecube.platform.core.service.workflow;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import com.webank.wecube.platform.core.dto.workflow.*;
+import com.webank.wecube.platform.core.entity.workflow.*;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.slf4j.Logger;
@@ -14,19 +13,6 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.ProcInstOutlineDto;
-import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
-import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
-import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstDto;
-import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
-import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
-import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
-import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
-import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.jpa.workflow.GraphNodeRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
@@ -76,7 +62,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     @Autowired
     private ProcRoleBindingRepository procRoleBindingRepository;
 
-    @Autowired
     private ProcExecBindingTmpRepository procExecBindingTmpRepository;
 
     @Autowired
@@ -265,7 +250,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     }
 
     public ProcInstInfoDto getProcessInstanceById(Integer id) {
-
         Optional<ProcInstInfoEntity> procInstEntityOpt = procInstInfoRepository.findById(id);
         if (!procInstEntityOpt.isPresent()) {
             throw new WecubeCoreException(String.format("Such entity with id [%s] does not exist.", id));
@@ -273,15 +257,28 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         ProcInstInfoEntity procInstEntity = procInstEntityOpt.get();
 
+        List<String> roleIdList = this.userManagementService
+                .getRoleIdsByUsername(AuthenticationContextHolder.getCurrentUsername());
+        if (roleIdList.size() == 0) {
+            throw new WecubeCoreException("No access to this resource.");
+        }
+
+        List<String> procDefIds = procRoleBindingRepository.findDistinctProcIdByRoleIdsAndPermissionIsUse(roleIdList);
+        if (procDefIds.size() == 0) {
+            throw new WecubeCoreException("No access to this resource.");
+        }
+
+        if (!procDefIds.contains(procInstEntity.getProcDefId())) {
+            throw new WecubeCoreException("No access to this resource.");
+        }
+
+        ProcInstInfoDto result = new ProcInstInfoDto();
+
         String procInstanceKernelId = procInstEntity.getProcInstKernelId();
 
         if (StringUtils.isBlank(procInstanceKernelId)) {
             throw new WecubeCoreException("Unknow kernel process instance.");
         }
-
-        // if
-        // (!ProcInstInfoEntity.COMPLETED_STATUS.equals(procInstEntity.getStatus()))
-        // {
 
         ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
         if (procInstEntity.getStatus().equals(procInstOutline.getStatus())) {
@@ -299,7 +296,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
             }
         }
-        // }
 
         ProcExecBindingEntity procInstBindEntity = procExecBindingRepository
                 .findProcInstBindings(procInstEntity.getId());
@@ -312,7 +308,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             entityDataId = procInstBindEntity.getEntityDataId();
         }
 
-        ProcInstInfoDto result = new ProcInstInfoDto();
         result.setId(procInstEntity.getId());
         result.setOperator(procInstEntity.getOperator());
         result.setProcDefId(procInstEntity.getProcDefId());
@@ -497,7 +492,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 return true;
             }
         }
-        
+
         return false;
     }
 
