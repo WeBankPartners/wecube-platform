@@ -52,7 +52,7 @@ camunda:
     generate-unique-process-engine-name: true
 wecube:
   core:
-    db-init-strategy: drop-create
+    db-init-strategy: update
     gateway-url: 127.0.0.1:19110
     security-enabled: true
     httpclient:
