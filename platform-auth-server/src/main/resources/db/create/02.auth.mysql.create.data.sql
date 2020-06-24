@@ -1,5 +1,5 @@
 SET FOREIGN_KEY_CHECKS=0;
-insert  into `auth_sys_authority`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`code`,`description`,`display_name`,`scope`) values
+insert  into `auth_sys_authority`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`code`,`description`,`display_name`,`scope`) values 
 ('2c9280827019695c017019c28b0f001e','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_WORKFLOW_EXECUTION',NULL,'IMPLEMENTATION_WORKFLOW_EXECUTION','GLOBAL'),
 ('2c9280827019695c017019c28b130020','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_BATCH_EXECUTION',NULL,'IMPLEMENTATION_BATCH_EXECUTION','GLOBAL'),
 ('2c9280827019695c017019c28b170022','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_ARTIFACT_MANAGEMENT',NULL,'IMPLEMENTATION_ARTIFACT_MANAGEMENT','GLOBAL'),
@@ -18,7 +18,7 @@ insert  into `auth_sys_authority`(`id`,`created_by`,`created_time`,`updated_by`,
 ('2c9280827019695c017019c2a87b003c','umadmin','2020-02-06 17:09:12',NULL,NULL,b'1',b'0','ADMIN_QUERY_LOG',NULL,'ADMIN_QUERY_LOG','GLOBAL'),
 ('2c9280827019695c017019c2a87f003e','umadmin','2020-02-06 17:09:12',NULL,NULL,b'1',b'0','MENU_ADMIN_PERMISSION_MANAGEMENT',NULL,'MENU_ADMIN_PERMISSION_MANAGEMENT','GLOBAL');
 
-insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) values
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) values 
 ('2c9280827019695c017019ac974f001c','system','2019-12-09 17:19:22',NULL,NULL,b'1',b'0','SUPER_ADMIN','SUPER_ADMIN',NULL,'SUPER_ADMIN'),
 ('2c9280836f78a84b016f794c3a270000','system','2020-01-06 13:20:36',NULL,NULL,b'1',b'0','CMDB管理员','CMDB管理员',NULL,'CMDB_ADMIN'),
 ('2c9280836f78a84b016f794cd6dd0001','system','2020-01-06 13:21:16',NULL,NULL,b'1',b'0','监控管理员','监控管理员',NULL,'MONITOR_ADMIN'),
@@ -31,7 +31,7 @@ insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`upda
 
 INSERT INTO `auth_sys_role` (`id`, `created_by`, `created_time`, `updated_by`, `updated_time`, `is_active`, `is_deleted`, `description`, `display_name`, `email_addr`, `name`) VALUES ('8ab86ba0723a78fe01723a790ceb0000', 'system', '2020-5-22 11:48:37', NULL, NULL, '', '\0', '子系统', '子系统', NULL, 'SUB_SYSTEM');
 
-insert  into `auth_sys_role_authority`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`authority_code`,`authority_id`,`role_id`,`role_name`) values
+insert  into `auth_sys_role_authority`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`authority_code`,`authority_id`,`role_id`,`role_name`) values 
 ('2c9280827019695c017019c28b10001f','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_WORKFLOW_EXECUTION','2c9280827019695c017019c28b0f001e','2c9280827019695c017019ac974f001c','admin'),
 ('2c9280827019695c017019c28b140021','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_BATCH_EXECUTION','2c9280827019695c017019c28b130020','2c9280827019695c017019ac974f001c','admin'),
 ('2c9280827019695c017019c28b180023','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_ARTIFACT_MANAGEMENT','2c9280827019695c017019c28b170022','2c9280827019695c017019ac974f001c','admin'),
@@ -55,11 +55,11 @@ INSERT INTO `auth_sys_sub_system` (`id`, `created_by`, `created_time`, `updated_
 INSERT INTO `auth_sys_sub_system` (`id`, `created_by`, `created_time`, `updated_by`, `updated_time`, `is_active`, `api_key`, `is_blocked`, `description`, `name`, `pub_api_key`, `system_code`) VALUES ('8ab86ba0723a776201723a7772a10000', 'system', '2020-5-22 11:53:34', NULL, NULL, '', 'MIIBUwIBADANBgkqhkiG9w0BAQEFAASCAT0wggE5AgEAAkEAiV9cxCoaixsNg2ItLcmxwIT3dTuRlY4EIlM1ytwnbxO1912i4gMddCWcwLMJdpdMLsCBp9nJRQ/4pJeIppLm7QIDAQABAkAVs3PjJUeWLArhc3PxpMgowpiY83UXLB0pEv4PcuHj4Pr1Op/mBIL8sRrfEcOr1V5HRxNACTSdiPwqFuflnU99AiEA87csRj/hs1+KX293rlouLtVA1qhwqgAlEHRv4+vfoJcCIQCQS/knZ5dc2LC2pidh/rywiMSrGAcQHi4ZGLY4b7KhGwIgN5KtJderP5upkdl5EOi/Xy6BenEuP5WI3heu6+n9NEECIHtyw+HWWkRwjh5039SSntNY7wiBMem0KDQIVDzMMsJpAiA+2F3+x+QuV09Dz826IRV639XKhp0J9aDsxRsypS6PRA==', '\0', NULL, 'Wecube Monitor', 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIlfXMQqGosbDYNiLS3JscCE93U7kZWOBCJTNcrcJ28TtfddouIDHXQlnMCzCXaXTC7AgafZyUUP+KSXiKaS5u0CAwEAAQ==', 'SYS_MONITOR');
 INSERT INTO `auth_sys_sub_system` (`id`, `created_by`, `created_time`, `updated_by`, `updated_time`, `is_active`, `api_key`, `is_blocked`, `description`, `name`, `pub_api_key`, `system_code`) VALUES ('8ab86ba0723a785001723a7860670000', 'system', '2020-5-22 11:55:51', NULL, NULL, '', 'MIIBUwIBADANBgkqhkiG9w0BAQEFAASCAT0wggE5AgEAAkEAl3pjii24Rof+0EiEeez5P4ZxKeUccE933qmyiZgKwdcwaesMrTSf833OQsS2LzfqSkHq+Vm/mhlDOyTMSsw36wIDAQABAkAGmebMlsF5EWQhX4emaJVUF1/HG5zpqAzpPyvwoxeU6uKcBPLphRmzOgpUOxA7yDddZLLydG7UGolHiwXmyIABAiEAzM1xOdPTooiPeRpWESAf1ANM9YnExI+bicWyBkvj7+sCIQC9WGRoI/Rr0dswvdHrb9xJZ5QfGk3fvluJ8dX14O7YAQIgezca6OSljkLEtuJ+Z31BSOfXdF43sN6JgGEdkyYzc5MCIAQtfRmnIW93k+SBa65MK4obFPOSuwEizBZBFb11FxABAiBfQlaOi6OJ0m3qc2e9iaOQaJEbkydUCX0QasNelklu0g==', '\0', NULL, 'Wecube Saltstack', 'MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJd6Y4otuEaH/tBIhHns+T+GcSnlHHBPd96psomYCsHXMGnrDK00n/N9zkLEti836kpB6vlZv5oZQzskzErMN+sCAwEAAQ==', 'SYS_SALTSTACK');
 
-insert  into `auth_sys_user`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_blocked`,`cell_phone_no`,`is_deleted`,`dept`,`email_addr`,`english_name`,`local_name`,`office_tel_no`,`password`,`title`,`username`) values
+insert  into `auth_sys_user`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_blocked`,`cell_phone_no`,`is_deleted`,`dept`,`email_addr`,`english_name`,`local_name`,`office_tel_no`,`password`,`title`,`username`) values 
 ('2c9280827019695c017019a2d5ac001b','system','2020-02-06 12:05:03',NULL,NULL,b'1',b'0','10000000000',b'0','OPT',NULL,'UM ADMIN','UM管理员','0755-12345678','$2a$10$XH7kL/aIjCKwZZ2CXd5Nk.dFxyP4UubHa7vqekT1IYB1dX./0Hr8m','运维岗','umadmin'),
 ('2c9280827019695c017019dac0ea0040','umadmin','2020-02-06 17:35:31',NULL,NULL,b'1',b'0',NULL,b'0',NULL,NULL,NULL,NULL,NULL,'$2a$10$YOyZUonK23qiPS03MeZQL.T.4LHje8FRbp6dhV2wHBGeVWdm9hwtu',NULL,'admin');
 
-insert  into `auth_sys_user_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`role_id`,`role_name`,`user_id`,`username`) values
+insert  into `auth_sys_user_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`role_id`,`role_name`,`user_id`,`username`) values 
 ('2c9280827019695c017019aec87f001d','system','2020-02-06 16:47:29',NULL,NULL,b'1',b'0','2c9280827019695c017019ac974f001c','admin','2c9280827019695c017019a2d5ac001b','umadmin'),
 ('2c9280827019695c017019daf64f0041','umadmin','2020-02-06 17:35:45',NULL,NULL,b'1',b'0','2c9280827019695c017019ac974f001c','admin','2c9280827019695c017019dac0ea0040','admin');
 
