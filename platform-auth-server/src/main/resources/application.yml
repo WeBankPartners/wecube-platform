@@ -21,7 +21,7 @@ spring:
       database: mysql
       show-sql: true
       hibernate:
-         ddl-auto: update
+         ddl-auto: none
          use-new-id-generator-mappings: false
 platform:
    auth:

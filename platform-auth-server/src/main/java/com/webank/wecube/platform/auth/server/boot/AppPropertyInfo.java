@@ -1,7 +1,7 @@
 package com.webank.wecube.platform.auth.server.boot;
 
 public class AppPropertyInfo {
-    public static final String TABLE_NAME = "core_app_property";
+    public static final String TABLE_NAME = "auth_app_property";
     protected String name;
     protected String val;
     protected Integer rev;
