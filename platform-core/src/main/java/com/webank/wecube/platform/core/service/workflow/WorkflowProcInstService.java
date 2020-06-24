@@ -340,7 +340,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         return result;
     }
 
-    private void checkCurrentUserRole(String procDefId) {
+    public void checkCurrentUserRole(String procDefId) {
         List<String> roleIdList = this.userManagementService
                 .getRoleIdsByUsername(AuthenticationContextHolder.getCurrentUsername());
         if (roleIdList.size() == 0) {
@@ -397,10 +397,6 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             throw new WecubeCoreException("Process definition ID is blank.");
         }
 
-        String procDefId = requestDto.getProcDefId();
-
-        this.checkCurrentUserRole(procDefId);
-
         String rootEntityTypeId = requestDto.getEntityTypeId();
         String rootEntityDataId = requestDto.getEntityDataId();
         String rootEntityDataName = requestDto.getEntityDisplayName();
@@ -409,6 +405,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             rootEntityDataName = tryCalEntityDataName(requestDto);
         }
 
+        String procDefId = requestDto.getProcDefId();
         Optional<ProcDefInfoEntity> procDefInfoEntityOpt = processDefInfoRepository.findById(procDefId);
 
         if (!procDefInfoEntityOpt.isPresent()) {

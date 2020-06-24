@@ -2,6 +2,10 @@ package com.webank.wecube.platform.core.controller.workflow;
 
 import java.util.List;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +38,11 @@ public class WorkflowProcessInstanceController {
 
 	@PostMapping("/process/instances")
 	public CommonResponseDto createProcessInstance(@RequestBody StartProcInstRequestDto requestDto) {
+		if (StringUtils.isBlank(requestDto.getProcDefId())) {
+			throw new WecubeCoreException("Process definition ID is blank.");
+		}
+		procInstService.checkCurrentUserRole(requestDto.getProcDefId());
+
 		ProcInstInfoDto result = procInstService.createProcessInstance(requestDto);
 		return CommonResponseDto.okayWithData(result);
 	}
