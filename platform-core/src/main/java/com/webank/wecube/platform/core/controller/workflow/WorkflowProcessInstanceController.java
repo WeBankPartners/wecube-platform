@@ -38,12 +38,7 @@ public class WorkflowProcessInstanceController {
 
 	@PostMapping("/process/instances")
 	public CommonResponseDto createProcessInstance(@RequestBody StartProcInstRequestDto requestDto) {
-		if (StringUtils.isBlank(requestDto.getProcDefId())) {
-			throw new WecubeCoreException("Process definition ID is blank.");
-		}
-		procInstService.checkCurrentUserRole(requestDto.getProcDefId());
-
-		ProcInstInfoDto result = procInstService.createProcessInstance(requestDto);
+		ProcInstInfoDto result = procInstService.createProcessInstanceAndRole(requestDto);
 		return CommonResponseDto.okayWithData(result);
 	}
 
