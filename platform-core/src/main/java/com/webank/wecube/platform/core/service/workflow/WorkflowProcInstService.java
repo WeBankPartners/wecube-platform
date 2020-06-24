@@ -389,6 +389,14 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         return null;
     }
 
+    public ProcInstInfoDto createProcessInstanceAndRole(StartProcInstRequestDto requestDto){
+        if (StringUtils.isBlank(requestDto.getProcDefId())) {
+            throw new WecubeCoreException("Process definition ID is blank.");
+        }
+        this.checkCurrentUserRole(requestDto.getProcDefId());
+        return this.createProcessInstance(requestDto);
+    }
+
     public ProcInstInfoDto createProcessInstance(StartProcInstRequestDto requestDto) {
         if (StringUtils.isBlank(requestDto.getProcDefId())) {
             if (log.isDebugEnabled()) {
