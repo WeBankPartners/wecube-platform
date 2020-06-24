@@ -52,10 +52,11 @@ camunda:
     generate-unique-process-engine-name: true
 wecube:
   core:
+    db-init-strategy: update
+    gateway-url: 127.0.0.1:19110
     security-enabled: true
     httpclient:
       max-total-connections: 200
-    gateway-url: 127.0.0.1:19110
     authserver:
       host: 127.0.0.1
       port: 19110
