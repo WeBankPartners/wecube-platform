@@ -75,8 +75,8 @@ create table system_variables (
   id VARCHAR(255) PRIMARY KEY,
   package_name VARCHAR(63) ,
   name varchar(255) not null,
-  value varchar(2000),
-  default_value varchar(2000) null,
+  value varchar(4096),
+  default_value varchar(4096) null,
   scope varchar(50) not null default 'global',
   source varchar(500) null default 'system',
   status varchar(50) null default 'active'
