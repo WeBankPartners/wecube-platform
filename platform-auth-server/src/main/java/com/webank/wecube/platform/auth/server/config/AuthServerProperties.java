@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 public class AuthServerProperties {
     private String privateKey;
     private String publicKey;
+    private String dbInitStrategy = "update";
 
     @NestedConfigurationProperty
     private JwtTokenProperties jwtToken = new JwtTokenProperties();
@@ -23,7 +24,7 @@ public class AuthServerProperties {
     public void setJwtToken(JwtTokenProperties jwtToken) {
         this.jwtToken = jwtToken;
     }
-    
+
     public String getPrivateKey() {
         return privateKey;
     }
@@ -39,13 +40,13 @@ public class AuthServerProperties {
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
     }
-    
+
     public static class JwtTokenProperties {
         private int userRefreshToken = 30;
         private int userAccessToken = 5;
         private int subSystemRefreshToken = 1440;
         private int subSystemAccessToken = 60;
-        
+
         private String signingKey = "Platform+Auth+Server+Secret";
 
         public int getUserRefreshToken() {
@@ -79,7 +80,7 @@ public class AuthServerProperties {
         public void setSubSystemAccessToken(int subSystemAccessToken) {
             this.subSystemAccessToken = subSystemAccessToken;
         }
-        
+
         public String getSigningKey() {
             return signingKey;
         }
@@ -94,9 +95,15 @@ public class AuthServerProperties {
                     + ", subSystemRefreshToken=" + subSystemRefreshToken + ", subSystemAccessToken="
                     + subSystemAccessToken + "";
         }
-        
-        
 
+    }
+
+    public String getDbInitStrategy() {
+        return dbInitStrategy;
+    }
+
+    public void setDbInitStrategy(String dbInitStrategy) {
+        this.dbInitStrategy = dbInitStrategy;
     }
 
 }

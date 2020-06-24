@@ -96,13 +96,22 @@ public class UserManagementServiceImpl implements UserManagementService {
     		throw new WecubeCoreException(String.format("System variable %s does NOT exist and UM authentication is not supported currently.", SYS_VAR_UM_CTX));
     	}
     	
-    	String authCtx = sysVars.get(0).getValue();
+    	String authCtx = getSystemVariableValue(sysVars.get(0));
     	if(StringUtils.isBlank(authCtx)) {
     		throw new WecubeCoreException(String.format("The value of system variable %s is blank and UM authentication is not supported currently..", SYS_VAR_UM_CTX));
     	}
     	
     	return authCtx;
     	
+    }
+    
+    private String getSystemVariableValue(SystemVariable var){
+        String varVal = var.getValue();
+        if(StringUtils.isBlank(varVal)){
+            varVal = var.getDefaultValue();
+        }
+        
+        return varVal;
     }
 
     @Override
