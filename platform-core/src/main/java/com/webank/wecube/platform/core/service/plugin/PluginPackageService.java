@@ -28,6 +28,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1002,7 +1003,11 @@ public class PluginPackageService {
 		}
 
 		SystemVariable var = vars.get(0);
-		return var.getValue();
+		String varVal = var.getValue();
+		if(StringUtils.isBlank(varVal)){
+		    varVal = var.getDefaultValue();
+		}
+		return varVal;
 	}
 
 	private boolean isPluginPackageExists(String name, String version) {
