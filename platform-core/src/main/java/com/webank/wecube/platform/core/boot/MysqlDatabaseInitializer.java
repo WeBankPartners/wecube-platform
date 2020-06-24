@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.boot;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +20,7 @@ import javax.sql.DataSource;
  */
 final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
 
-    public static final String CREATE_SCHEMA_NAME = "01.wecube.mysql.create.sql";
+    public static final String CREATE_SCHEMA_NAME = "01.wecube.mysql.create.schema.sql";
     public static final String DROP_SCHEMA_NAME = "01.wecube.mysql.drop.sql";
     public static final String CREATE_DATA_NAME = "02.wecube.mysql.create.data.sql";
 
@@ -272,7 +273,7 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
         try {
             Exception exception = null;
             byte[] bytes = readInputStream(inputStream, resourceName);
-            String ddlStatements = new String(bytes);
+            String ddlStatements = new String(bytes, Charset.forName("utf-8"));
             BufferedReader reader = new BufferedReader(new StringReader(ddlStatements));
             String line = readNextTrimmedLine(reader);
 
@@ -280,9 +281,9 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
             long lineNum = 0L;
             while (line != null) {
                 lineNum++;
-                if (line.startsWith("# ")) {
+                if (line.startsWith("#")) {
                     logLines.add(line.substring(2));
-                } else if (line.startsWith("-- ")) {
+                } else if (line.startsWith("--")) {
                     logLines.add(line.substring(3));
                 } else if (line.length() > 0) {
 
