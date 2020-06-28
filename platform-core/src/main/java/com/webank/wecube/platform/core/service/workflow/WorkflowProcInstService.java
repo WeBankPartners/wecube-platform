@@ -62,6 +62,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     @Autowired
     private ProcRoleBindingRepository procRoleBindingRepository;
 
+    @Autowired
     private ProcExecBindingTmpRepository procExecBindingTmpRepository;
 
     @Autowired
