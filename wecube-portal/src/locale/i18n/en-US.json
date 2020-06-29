@@ -420,5 +420,6 @@
   "show_log": "Show Log",
   "auth_type": "Auth Type",
   "help_docs": "Help",
-  "origin_plugins": "Install From Market"
+  "origin_plugins": "Install From Market",
+  "best_practices": "Best Practices"
 }
