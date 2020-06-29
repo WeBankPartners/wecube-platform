@@ -240,7 +240,7 @@
         </div>
       </div>
     </Col>
-    <Modal footer-hide :title="$t('origin_plugins')" v-model="isShowImportXMLModal" @on-open-change="modalChangeHandle">
+    <Modal footer-hide :title="$t('best_practices')" v-model="isShowImportXMLModal" @on-open-change="modalChangeHandle">
       <div>
         <Upload
           ref="importXML"
