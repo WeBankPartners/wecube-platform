@@ -4,7 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "wecube.core")
 public class ApplicationProperties {
-    private String gatewayUrl;
+    private String gatewayUrl = "127.0.0.1:19110";
+    private String dbInitStrategy = "update";
 
     @ConfigurationProperties(prefix = "wecube.core.httpclient")
     public class HttpClientProperties {
@@ -261,7 +262,7 @@ public class ApplicationProperties {
     }
 
     @ConfigurationProperties(prefix = "wecube.core.docker-remote")
-    public class DockerRemoteProperties{
+    public class DockerRemoteProperties {
         private Integer port = 2375;
         private Boolean enableTls = false;
         private String certPath;
@@ -291,12 +292,20 @@ public class ApplicationProperties {
         }
     }
 
+    public String getDbInitStrategy() {
+        return dbInitStrategy;
+    }
+
+    public void setDbInitStrategy(String dbInitStrategy) {
+        this.dbInitStrategy = dbInitStrategy;
+    }
+
     public String getGatewayUrl() {
         return gatewayUrl;
     }
 
-    public String setGatewayUrl(String gatewayUrl) {
-        return this.gatewayUrl = gatewayUrl;
+    public void setGatewayUrl(String gatewayUrl) {
+        this.gatewayUrl = gatewayUrl;
     }
 
 }
