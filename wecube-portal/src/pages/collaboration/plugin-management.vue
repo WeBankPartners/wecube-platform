@@ -84,31 +84,6 @@
                     icon="ios-trash"
                   ></Button>
                 </span>
-                <Modal
-                  footer-hide
-                  :title="$t('origin_plugins')"
-                  v-model="isShowImportXMLModal"
-                  @on-open-change="modalChangeHandle"
-                >
-                  <div>
-                    <Upload
-                      ref="importXML"
-                      type="drag"
-                      accept=".xml"
-                      name="xml-file"
-                      :on-success="onSuccess"
-                      :on-progress="onProgress"
-                      :on-error="onError"
-                      :action="'platform/v1/plugins/packages/import/' + plugin.id"
-                      :headers="headers"
-                    >
-                      <div style="padding: 20px 0">
-                        <Icon type="ios-cloud-upload" size="52" style="color: #3399ff"></Icon>
-                        <p>Click or drag files here to upload</p>
-                      </div>
-                    </Upload>
-                  </div>
-                </Modal>
                 <p slot="content">
                   <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">
                     {{ $t('plugin_config_check') }}
@@ -265,6 +240,25 @@
         </div>
       </div>
     </Col>
+    <Modal footer-hide :title="$t('origin_plugins')" v-model="isShowImportXMLModal" @on-open-change="modalChangeHandle">
+      <div>
+        <Upload
+          ref="importXML"
+          type="drag"
+          accept=".xml"
+          name="xml-file"
+          :on-success="onImportSuccess"
+          :on-error="onError"
+          :action="'platform/v1/plugins/packages/import/' + currentPluginId"
+          :headers="headers"
+        >
+          <div style="padding: 20px 0">
+            <Icon type="ios-cloud-upload" size="52" style="color: #3399ff"></Icon>
+            <p>Click or drag files here to upload</p>
+          </div>
+        </Upload>
+      </div>
+    </Modal>
     <Modal footer-hide :title="$t('origin_plugins')" v-model="showUploadModal" @on-open-change="modalChangeHandle">
       <div>
         <Input :placeholder="$t('search')" v-model="filterForPkg"></Input>
@@ -333,6 +327,7 @@ export default {
   },
   data () {
     return {
+      currentPluginId: '',
       filterForPkg: '',
       isRegisted: false,
       headers: {},
@@ -510,6 +505,22 @@ export default {
         this.showSuccess = true
       }
     },
+    async onImportSuccess (response, file, filelist) {
+      if (response.status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: response.message || ''
+        })
+        this.getAllPluginPkgs()
+      } else {
+        this.$Notice.warning({
+          title: 'Warning',
+          desc: response.message || ''
+        })
+      }
+      this.isShowImportXMLModal = false
+      this.$refs.importXML.clearFiles()
+    },
     async onSuccess (response, file, filelist) {
       if (response.status === 'OK') {
         this.$Notice.success({
@@ -567,6 +578,7 @@ export default {
     },
     importBestPractices (packageId) {
       let refreshRequest = null
+      this.currentPluginId = packageId
       const currentTime = new Date().getTime()
       const accessToken = getCookie('accessToken')
       if (accessToken) {
@@ -581,7 +593,7 @@ export default {
             res => {
               setCookie(res.data.data)
               this.setUploadActionHeader()
-              this.$refs.uploadButton.handleClick()
+              // this.$refs.importXML.handleClick()
             },
             // eslint-disable-next-line handle-callback-err
             err => {
