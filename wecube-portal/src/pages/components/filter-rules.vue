@@ -23,7 +23,7 @@
       <div slot="content">
         <div v-if="!disabled" class="filter_rules_path_options">
           <ul>
-            <li id="paste" v-if="pathList.length === 0">
+            <li id="paste" style="margin-bottom: 5px;" v-if="pathList.length === 0">
               <input
                 class="paste_input"
                 v-model="pasteValue"
@@ -43,7 +43,7 @@
             >
               {{ $t('add_filter_rule') }}
             </li>
-            <li v-if="pathList.length > 0 && needAttr">
+            <li>
               <Input prefix="ios-search" v-model="filterString" size="small" style="width:100%" />
             </li>
           </ul>
@@ -393,7 +393,7 @@ export default {
         }
         return 0
       }
-      this.filterCurrentOptiongs = this.allEntity
+      this.currentOptiongs = this.allEntity
         .map(_ => {
           return {
             pkg: _.packageName,
@@ -403,6 +403,7 @@ export default {
           }
         })
         .sort(compare)
+      this.filterCurrentOptiongs = this.currentOptiongs
     },
     formatFirstCurrentOptions () {
       this.pathList = []
@@ -524,7 +525,9 @@ export default {
 }
 .paste_input {
   width: 100%;
-  border: none;
+  border: 1px solid #dcdee2;
+  border-radius: 4px;
+  margin-bottom: 10px;
   outline: none;
 }
 .filter_rules_path_options {
