@@ -43,7 +43,7 @@
             >
               {{ $t('add_filter_rule') }}
             </li>
-            <li v-if="pathList.length > 0 && needAttr">
+            <li>
               <Input prefix="ios-search" v-model="filterString" size="small" style="width:100%" />
             </li>
           </ul>
@@ -393,7 +393,7 @@ export default {
         }
         return 0
       }
-      this.filterCurrentOptiongs = this.allEntity
+      this.currentOptiongs = this.allEntity
         .map(_ => {
           return {
             pkg: _.packageName,
@@ -403,6 +403,7 @@ export default {
           }
         })
         .sort(compare)
+      this.filterCurrentOptiongs = this.currentOptiongs
     },
     formatFirstCurrentOptions () {
       this.pathList = []
