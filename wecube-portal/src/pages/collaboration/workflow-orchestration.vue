@@ -146,6 +146,8 @@
               :key="index"
             >
               <Select
+                filterable
+                clearable
                 v-model="item.bindNodeId"
                 style="width:30%"
                 v-if="item.bindType === 'context'"
