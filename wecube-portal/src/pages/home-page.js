@@ -1,4 +1,4 @@
-import defaultComp from './home-page.vue'
+import defaultComp from './home.vue'
 export default {
   name: 'homepage',
   data () {
@@ -7,6 +7,7 @@ export default {
     }
   },
   created () {
+    this.comps = window.homepageComponent.data
     window.homepageComponent.on('change', v => {
       this.comps = window.homepageComponent.data
     })
