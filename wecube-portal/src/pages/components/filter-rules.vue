@@ -393,7 +393,7 @@ export default {
         }
         return 0
       }
-      this.currentOptiongs = this.allEntity
+      this.filterCurrentOptiongs = this.allEntity
         .map(_ => {
           return {
             pkg: _.packageName,
