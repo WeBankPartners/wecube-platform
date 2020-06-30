@@ -23,7 +23,7 @@
       <div slot="content">
         <div v-if="!disabled" class="filter_rules_path_options">
           <ul>
-            <li id="paste" v-if="pathList.length === 0">
+            <li id="paste" style="margin-bottom: 5px;" v-if="pathList.length === 0">
               <input
                 class="paste_input"
                 v-model="pasteValue"
@@ -525,7 +525,9 @@ export default {
 }
 .paste_input {
   width: 100%;
-  border: none;
+  border: 1px solid #dcdee2;
+  border-radius: 4px;
+  margin-bottom: 10px;
   outline: none;
 }
 .filter_rules_path_options {
