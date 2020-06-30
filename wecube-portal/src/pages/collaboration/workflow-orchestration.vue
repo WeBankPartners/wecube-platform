@@ -35,7 +35,7 @@
       </Col>
       <Col span="8" offset="1">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
-        <div style="width:70%;display: inline-block;">
+        <div style="width:70%;display: inline-block;vertical-align: middle;">
           <FilterRules
             @change="onEntitySelect"
             v-model="currentSelectedEntity"
