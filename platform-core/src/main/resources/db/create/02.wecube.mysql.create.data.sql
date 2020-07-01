@@ -1,19 +1,19 @@
 SET FOREIGN_KEY_CHECKS = 0;
-delete from menu_items wehre id = 'JOBS';
-delete from menu_items wehre id = 'DESIGNING';
-delete from menu_items wehre id = 'IMPLEMENTATION';
-delete from menu_items wehre id = 'MONITORING';
-delete from menu_items wehre id = 'ADJUSTMENT';
-delete from menu_items wehre id = 'INTELLIGENCE_OPS';
-delete from menu_items wehre id = 'COLLABORATION';
-delete from menu_items wehre id = 'ADMIN';
-delete from menu_items wehre id = 'IMPLEMENTATION__IMPLEMENTATION_WORKFLOW_EXECUTION';
-delete from menu_items wehre id = 'COLLABORATION__COLLABORATION_PLUGIN_MANAGEMENT';
-delete from menu_items wehre id = 'COLLABORATION__COLLABORATION_WORKFLOW_ORCHESTRATION';
-delete from menu_items wehre id = 'ADMIN__ADMIN_SYSTEM_PARAMS';
-delete from menu_items wehre id = 'ADMIN__ADMIN_RESOURCES_MANAGEMENT';
-delete from menu_items wehre id = 'ADMIN__ADMIN_USER_ROLE_MANAGEMENT';
-delete from menu_items wehre id = 'IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION';
+delete from menu_items where id = 'JOBS';
+delete from menu_items where id = 'DESIGNING';
+delete from menu_items where id = 'IMPLEMENTATION';
+delete from menu_items where id = 'MONITORING';
+delete from menu_items where id = 'ADJUSTMENT';
+delete from menu_items where id = 'INTELLIGENCE_OPS';
+delete from menu_items where id = 'COLLABORATION';
+delete from menu_items where id = 'ADMIN';
+delete from menu_items where id = 'IMPLEMENTATION__IMPLEMENTATION_WORKFLOW_EXECUTION';
+delete from menu_items where id = 'COLLABORATION__COLLABORATION_PLUGIN_MANAGEMENT';
+delete from menu_items where id = 'COLLABORATION__COLLABORATION_WORKFLOW_ORCHESTRATION';
+delete from menu_items where id = 'ADMIN__ADMIN_SYSTEM_PARAMS';
+delete from menu_items where id = 'ADMIN__ADMIN_RESOURCES_MANAGEMENT';
+delete from menu_items where id = 'ADMIN__ADMIN_USER_ROLE_MANAGEMENT';
+delete from menu_items where id = 'IMPLEMENTATION__IMPLEMENTATION_BATCH_EXECUTION';
 
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('JOBS',null,'JOBS','SYSTEM', 1, '', '任务');
