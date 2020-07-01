@@ -41,7 +41,7 @@
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
         </Spin>
-        <Form :model="form" v-show="hidePanal">
+        <Form :model="form" v-if="hidePanal">
           <Row style="border-bottom: 1px solid #bbb7b7; margin-top: 20px">
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
