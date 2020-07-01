@@ -513,7 +513,7 @@ export default {
       return
     }
     this.formatFirstCurrentOptions()
-    this.$refs.filter_rules_path_options.style.width = (this.$refs.filter_rules_contain.offsetWidth - 32) / 2 + 'px'
+    this.$refs.filter_rules_path_options.style.width = this.$refs.filter_rules_contain.offsetWidth - 32 + 'px'
   }
 }
 </script>
