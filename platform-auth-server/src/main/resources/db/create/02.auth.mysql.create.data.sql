@@ -18,19 +18,54 @@ insert  into `auth_sys_authority`(`id`,`created_by`,`created_time`,`updated_by`,
 ('2c9280827019695c017019c2a87b003c','umadmin','2020-02-06 17:09:12',NULL,NULL,b'1',b'0','ADMIN_QUERY_LOG',NULL,'ADMIN_QUERY_LOG','GLOBAL'),
 ('2c9280827019695c017019c2a87f003e','umadmin','2020-02-06 17:09:12',NULL,NULL,b'1',b'0','MENU_ADMIN_PERMISSION_MANAGEMENT',NULL,'MENU_ADMIN_PERMISSION_MANAGEMENT','GLOBAL');
 
-insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) values 
-('2c9280827019695c017019ac974f001c','system','2019-12-09 17:19:22',NULL,NULL,b'1',b'0','SUPER_ADMIN','SUPER_ADMIN',NULL,'SUPER_ADMIN'),
-('2c9280836f78a84b016f794c3a270000','system','2020-01-06 13:20:36',NULL,NULL,b'1',b'0','CMDB管理员','CMDB管理员',NULL,'CMDB_ADMIN'),
-('2c9280836f78a84b016f794cd6dd0001','system','2020-01-06 13:21:16',NULL,NULL,b'1',b'0','监控管理员','监控管理员',NULL,'MONITOR_ADMIN'),
-('2c9280836f78a84b016f794d6bb50002','system','2020-01-06 13:21:54',NULL,NULL,b'1',b'0','生产运维','生产运维',NULL,'PRD_OPS'),
-('2c9280836f78a84b016f794e0d3b0003','system','2020-01-06 13:22:35',NULL,NULL,b'1',b'0','测试运维','测试运维',NULL,'STG_OPS'),
-('2c9280836f78a84b016f794e9b170004','system','2020-01-06 13:23:12',NULL,NULL,b'1',b'0','应用架构师','应用架构师',NULL,'APP_ARC'),
-('2c9280836f78a84b016f794f20440005','system','2020-01-06 13:23:46',NULL,NULL,b'1',b'0','基础架构师','基础架构师',NULL,'IFA_ARC'),
-('2c9280836f78a84b016f794ff45e0006','system','2020-01-06 13:24:40',NULL,NULL,b'1',b'0','应用开发人员','应用开发人员',NULL,'APP_DEV'),
-('2c9280836f78a84b016f795068870007','system','2020-01-06 13:25:10',NULL,NULL,b'1',b'0','基础架构运维人员','基础架构运维人员',NULL,'IFA_OPS');
+delete from `auth_sys_role` where `id`='2c9280827019695c017019ac974f001c';
+delete from `auth_sys_role` where `id`='2c9280836f78a84b016f794c3a270000';
+delete from `auth_sys_role` where `id`='2c9280836f78a84b016f794cd6dd0001';
+delete from `auth_sys_role` where `id`='2c9280836f78a84b016f794d6bb50002';
+delete from `auth_sys_role` where `id`='2c9280836f78a84b016f794e0d3b0003';
+delete from `auth_sys_role` where `id`='2c9280836f78a84b016f794e9b170004';
+delete from `auth_sys_role` where `id`='2c9280836f78a84b016f794f20440005';
+delete from `auth_sys_role` where `id`='2c9280836f78a84b016f794ff45e0006';
+delete from `auth_sys_role` where `id`='2c9280836f78a84b016f795068870007';
+delete from `auth_sys_role` where `id`='8ab86ba0723a78fe01723a790ceb0000';
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values ('2c9280827019695c017019ac974f001c','system','2019-12-09 17:19:22',NULL,NULL,b'1',b'0','SUPER_ADMIN','SUPER_ADMIN',NULL,'SUPER_ADMIN');
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values('2c9280836f78a84b016f794c3a270000','system','2020-01-06 13:20:36',NULL,NULL,b'1',b'0','CMDB管理员','CMDB管理员',NULL,'CMDB_ADMIN');
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values('2c9280836f78a84b016f794cd6dd0001','system','2020-01-06 13:21:16',NULL,NULL,b'1',b'0','监控管理员','监控管理员',NULL,'MONITOR_ADMIN');
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values('2c9280836f78a84b016f794d6bb50002','system','2020-01-06 13:21:54',NULL,NULL,b'1',b'0','生产运维','生产运维',NULL,'PRD_OPS');
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values('2c9280836f78a84b016f794e0d3b0003','system','2020-01-06 13:22:35',NULL,NULL,b'1',b'0','测试运维','测试运维',NULL,'STG_OPS');
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values('2c9280836f78a84b016f794e9b170004','system','2020-01-06 13:23:12',NULL,NULL,b'1',b'0','应用架构师','应用架构师',NULL,'APP_ARC');
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values('2c9280836f78a84b016f794f20440005','system','2020-01-06 13:23:46',NULL,NULL,b'1',b'0','基础架构师','基础架构师',NULL,'IFA_ARC');
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values('2c9280836f78a84b016f794ff45e0006','system','2020-01-06 13:24:40',NULL,NULL,b'1',b'0','应用开发人员','应用开发人员',NULL,'APP_DEV');
+insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
+values('2c9280836f78a84b016f795068870007','system','2020-01-06 13:25:10',NULL,NULL,b'1',b'0','基础架构运维人员','基础架构运维人员',NULL,'IFA_OPS');
+insert into `auth_sys_role`(`id`, `created_by`, `created_time`, `updated_by`, `updated_time`, `is_active`, `is_deleted`, `description`, `display_name`, `email_addr`, `name`) 
+values ('8ab86ba0723a78fe01723a790ceb0000', 'system', '2020-5-22 11:48:37', NULL, NULL, b'1',b'0', '子系统', '子系统', NULL, 'SUB_SYSTEM');
 
-INSERT INTO `auth_sys_role` (`id`, `created_by`, `created_time`, `updated_by`, `updated_time`, `is_active`, `is_deleted`, `description`, `display_name`, `email_addr`, `name`) VALUES ('8ab86ba0723a78fe01723a790ceb0000', 'system', '2020-5-22 11:48:37', NULL, NULL, '', '\0', '子系统', '子系统', NULL, 'SUB_SYSTEM');
-
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28b10001f';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28b140021';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28b180023';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28f640025';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28f680027';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28f6b0029';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28f73002b';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28f77002d';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a087002f';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a08b0031';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a86a0033';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a86e0035';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a8710037';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a8750039';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a878003b';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a87c003d';
+delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c2a880003f';
 insert  into `auth_sys_role_authority`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`authority_code`,`authority_id`,`role_id`,`role_name`) values 
 ('2c9280827019695c017019c28b10001f','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_WORKFLOW_EXECUTION','2c9280827019695c017019c28b0f001e','2c9280827019695c017019ac974f001c','admin'),
 ('2c9280827019695c017019c28b140021','umadmin','2020-02-06 17:09:04',NULL,NULL,b'1',b'0','IMPLEMENTATION_BATCH_EXECUTION','2c9280827019695c017019c28b130020','2c9280827019695c017019ac974f001c','admin'),
