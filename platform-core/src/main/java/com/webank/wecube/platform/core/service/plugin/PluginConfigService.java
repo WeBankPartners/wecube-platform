@@ -720,6 +720,8 @@ public class PluginConfigService {
         if (xmlParam == null) {
             return param;
         }
+        param.setMappingType(xmlParam.getMappingType());
+        param.setSensitiveData(xmlParam.getSensitiveData());
         param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
         param.setMappingSystemVariableName(xmlParam.getMappingSystemVariableName());
 
@@ -732,6 +734,8 @@ public class PluginConfigService {
         if (xmlParam == null) {
             return param;
         }
+        param.setMappingType(xmlParam.getMappingType());
+        param.setSensitiveData(xmlParam.getSensitiveData());
         param.setMappingEntityExpression(xmlParam.getMappingEntityExpression());
 
         return param;
@@ -906,15 +910,17 @@ public class PluginConfigService {
         PluginConfigInterfaceParameter param = new PluginConfigInterfaceParameter();
         param.setName(defOutputParam.getName());
         param.setDataType(defOutputParam.getDataType());
-        param.setMappingType(defOutputParam.getMappingType());
-        param.setSensitiveData(defOutputParam.getSensitiveData());
         param.setType(PluginConfigInterfaceParameter.TYPE_OUTPUT);
         param.setPluginConfigInterface(intf);
 
         if (xmlOutputParam != null) {
             param.setMappingEntityExpression(xmlOutputParam.getMappingEntityExpression());
+            param.setMappingType(xmlOutputParam.getMappingType());
+            param.setSensitiveData(xmlOutputParam.getSensitiveData());
         } else {
             param.setMappingEntityExpression(defOutputParam.getMappingEntityExpression());
+            param.setMappingType(defOutputParam.getMappingType());
+            param.setSensitiveData(defOutputParam.getSensitiveData());
         }
 
         return param;
@@ -929,15 +935,17 @@ public class PluginConfigService {
         param.setType(PluginConfigInterfaceParameter.TYPE_INPUT);
         param.setPluginConfigInterface(intf);
         param.setRequired(defInputParam.getRequired());
-        param.setSensitiveData(defInputParam.getSensitiveData());
-        param.setMappingType(defInputParam.getMappingType());
-
+        
         if (xmlInputParam != null) {
             param.setMappingEntityExpression(xmlInputParam.getMappingEntityExpression());
             param.setMappingSystemVariableName(xmlInputParam.getMappingSystemVariableName());
+            param.setMappingType(xmlInputParam.getMappingType());
+            param.setSensitiveData(xmlInputParam.getSensitiveData());
         } else {
             param.setMappingEntityExpression(defInputParam.getMappingEntityExpression());
             param.setMappingSystemVariableName(defInputParam.getMappingSystemVariableName());
+            param.setMappingType(defInputParam.getMappingType());
+            param.setSensitiveData(defInputParam.getSensitiveData());
         }
 
         return param;
