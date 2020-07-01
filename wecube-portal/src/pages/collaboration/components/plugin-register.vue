@@ -41,14 +41,14 @@
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
         </Spin>
-        <Form :model="form" v-if="hidePanal">
+        <Form :model="form" v-show="hidePanal">
           <Row style="border-bottom: 1px solid #bbb7b7; margin-top: 20px">
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
                 <Input v-model="registerName" ref="registerName" :disabled="currentPluginObj.status === 'ENABLED'" />
               </FormItem>
             </Col>
-            <Col span="12" offset="0">
+            <Col span="12" v-if="hidePanal" offset="0">
               <FormItem :label-width="100" :label="$t('target_type')">
                 <FilterRules
                   v-model="selectedEntityType"
