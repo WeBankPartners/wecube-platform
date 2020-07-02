@@ -62,6 +62,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     @Autowired
     private ProcRoleBindingRepository procRoleBindingRepository;
 
+    @Autowired
     private ProcExecBindingTmpRepository procExecBindingTmpRepository;
 
     @Autowired
@@ -257,20 +258,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         ProcInstInfoEntity procInstEntity = procInstEntityOpt.get();
 
-        List<String> roleIdList = this.userManagementService
-                .getRoleIdsByUsername(AuthenticationContextHolder.getCurrentUsername());
-        if (roleIdList.size() == 0) {
-            throw new WecubeCoreException("No access to this resource.");
-        }
-
-        List<String> procDefIds = procRoleBindingRepository.findDistinctProcIdByRoleIdsAndPermissionIsUse(roleIdList);
-        if (procDefIds.size() == 0) {
-            throw new WecubeCoreException("No access to this resource.");
-        }
-
-        if (!procDefIds.contains(procInstEntity.getProcDefId())) {
-            throw new WecubeCoreException("No access to this resource.");
-        }
+        this.checkCurrentUserRole(procInstEntity.getProcDefId());
 
         ProcInstInfoDto result = new ProcInstInfoDto();
 
@@ -352,6 +340,24 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         return result;
     }
 
+    public void checkCurrentUserRole(String procDefId) {
+        List<String> roleIdList = this.userManagementService
+                .getRoleIdsByUsername(AuthenticationContextHolder.getCurrentUsername());
+        if (roleIdList.size() == 0) {
+            throw new WecubeCoreException("No access to this resource.");
+        }
+
+        List<String> procDefIds = procRoleBindingRepository.findDistinctProcIdByRoleIdsAndPermissionIsUse(roleIdList);
+        if (procDefIds.size() == 0) {
+            throw new WecubeCoreException("No access to this resource.");
+        }
+
+        if (!procDefIds.contains(procDefId)) {
+            throw new WecubeCoreException("No access to this resource.");
+        }
+
+    }
+
     private String reduceTaskNodeName(TaskNodeInstInfoEntity nodeInstEntity) {
         if (!StringUtils.isBlank(nodeInstEntity.getNodeName())) {
             return nodeInstEntity.getNodeName();
@@ -381,6 +387,14 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         return null;
+    }
+
+    public ProcInstInfoDto createProcessInstanceAndRole(StartProcInstRequestDto requestDto){
+        if (StringUtils.isBlank(requestDto.getProcDefId())) {
+            throw new WecubeCoreException("Process definition ID is blank.");
+        }
+        this.checkCurrentUserRole(requestDto.getProcDefId());
+        return this.createProcessInstance(requestDto);
     }
 
     public ProcInstInfoDto createProcessInstance(StartProcInstRequestDto requestDto) {
