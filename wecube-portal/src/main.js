@@ -106,7 +106,10 @@ window.addHomepageComponent = compObj => {
   //   name: () => {},
   //   component: component
   // }
-  window.homepageComponent.data.push(compObj)
+  const found = window.homepageComponent.data.find(_ => _.name() === compObj.name())
+  if (!found) {
+    window.homepageComponent.data.push(compObj)
+  }
   if (router.app.$route.path === '/homepage') {
     window.homepageComponent.emit('change', [])
   }
