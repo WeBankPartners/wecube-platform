@@ -1,5 +1,8 @@
 package com.webank.wecube.platform.core.support.plugin.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PluginResponseStationaryOutput {
     public static final String ERROR_CODE_SUCCESSFUL = "0";
     public static final String ERROR_CODE_FAILED = "1";
@@ -26,8 +29,16 @@ public class PluginResponseStationaryOutput {
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
+    
+    public String getCallbackParameter() {
+		return callbackParameter;
+	}
 
-    public PluginResponseStationaryOutput(String errorCode, String errorMessage, String callbackParameter) {
+	public void setCallbackParameter(String callbackParameter) {
+		this.callbackParameter = callbackParameter;
+	}
+
+	public PluginResponseStationaryOutput(String errorCode, String errorMessage, String callbackParameter) {
         super();
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
