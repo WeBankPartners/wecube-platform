@@ -303,7 +303,12 @@
             </OptionGroup>
           </Select>
         </FormItem> -->
-        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
+        <FormItem
+          v-if="isShowSearchConditions"
+          :rules="{ required: true }"
+          :show-message="false"
+          :label="$t('bc_query_path')"
+        >
           <!-- <PathExp
             :rootEntity="selectedEntityType"
             :allDataModelsWithAttrs="allEntityType"
