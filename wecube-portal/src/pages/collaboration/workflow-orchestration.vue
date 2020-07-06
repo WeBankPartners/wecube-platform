@@ -541,27 +541,35 @@ export default {
       }
     },
     async getFilteredPluginInterfaceList (path) {
-      if (!path) return
-      // eslint-disable-next-line no-useless-escape
-      const pathList = path.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
-      const last = pathList[pathList.length - 1]
-      const index = pathList[pathList.length - 1].indexOf('{')
       let pkg = ''
       let entity = ''
-      const isBy = last.indexOf(')')
-      const current = last.split(':')
-      const ruleIndex = current[1].indexOf('{')
-      if (isBy > 0) {
-        entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
-        pkg = current[0].split(')')[1]
+      let payload = {}
+      if (path) {
+        // eslint-disable-next-line no-useless-escape
+        const pathList = path.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
+        const last = pathList[pathList.length - 1]
+        const index = pathList[pathList.length - 1].indexOf('{')
+        const isBy = last.indexOf(')')
+        const current = last.split(':')
+        const ruleIndex = current[1].indexOf('{')
+        if (isBy > 0) {
+          entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
+          pkg = current[0].split(')')[1]
+        } else {
+          entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
+          pkg = last.match(/[^>]+(?=:)/)[0]
+        }
+        payload = {
+          pkgName: pkg,
+          entityName: entity,
+          targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+        }
       } else {
-        entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
-        pkg = last.match(/[^>]+(?=:)/)[0]
-      }
-      const payload = {
-        pkgName: pkg,
-        entityName: entity,
-        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+        payload = {
+          pkgName: '',
+          entityName: '',
+          targetEntityFilterRule: ''
+        }
       }
       const { status, data } = await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
