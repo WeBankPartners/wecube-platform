@@ -4,8 +4,7 @@ java -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=${WECUBE
 -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=${WECUBE_CORE_HOST} -Djava.security.egd=file:/dev/urandom \
 -jar /application/platform-core.jar  --server.address=0.0.0.0 --server.port=8080 \
 --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver \
---spring.datasource.url=jdbc:mysql://${MYSQL_SERVER_ADDR}:${MYSQL_SERVER_PORT}/${MYSQL_SERVER_DATABASE_NAME}?\
-serverTimezone=Asia\/Shanghai\&characterEncoding=utf8&nullCatalogMeansCurrent=true \
+--spring.datasource.url=jdbc:mysql://${MYSQL_SERVER_ADDR}:${MYSQL_SERVER_PORT}/${MYSQL_SERVER_DATABASE_NAME}?serverTimezone=Asia\/Shanghai\&characterEncoding=utf8\&nullCatalogMeansCurrent=true \
 --spring.datasource.username=${MYSQL_USER_NAME} \
 --spring.datasource.password=${MYSQL_USER_PASSWORD}  \
 --wecube.core.s3.endpoint=${S3_ENDPOINT} \
