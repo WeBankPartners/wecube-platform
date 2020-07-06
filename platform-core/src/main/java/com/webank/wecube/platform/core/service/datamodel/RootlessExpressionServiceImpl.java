@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.DmeFilterDto;
 import com.webank.wecube.platform.core.dto.DmeLinkFilterDto;
@@ -29,7 +28,6 @@ import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.service.dme.EntityQueryFilter;
 import com.webank.wecube.platform.core.service.dme.EntityQueryLinkNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
-import com.webank.wecube.platform.core.support.datamodel.DataModelServiceStub;
 
 /**
  * @author howechen
@@ -38,12 +36,6 @@ import com.webank.wecube.platform.core.support.datamodel.DataModelServiceStub;
 public class RootlessExpressionServiceImpl implements RootlessExpressionService {
 
     private static final Logger log = LoggerFactory.getLogger(RootlessExpressionServiceImpl.class);
-
-    @Autowired
-    private ApplicationProperties applicationProperties;
-
-    @Autowired
-    private DataModelServiceStub dataModelServiceStub;
 
     @Autowired
     private EntityQueryExpressionParser entityQueryExpressionParser;
@@ -60,6 +52,9 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
     private EntityDataRouteFactory entityDataRouteFactory;
 
     public List<Object> fetchDataWithFilter(DmeFilterDto dmeFilterDto) {
+        if(log.isInfoEnabled()){
+            log.info("start to fetch data with filter:{}", dmeFilterDto);
+        }
         List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser
                 .parse(dmeFilterDto.getDataModelExpression());
 
