@@ -104,12 +104,13 @@ public class PluginConfigController {
                 pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(packageName, entityName, null));
     }
 
-    @PostMapping("/plugins/interfaces/package/{package-name}/entity/{entity-name}/enabled/query-by-target-entity-filter-rule")
+    @PostMapping("/plugins/interfaces/enabled/query-by-target-entity-filter-rule")
     public CommonResponseDto queryAllEnabledPluginConfigInterfaceByEntityNameAndFilterRule(
             @PathVariable(value = "package-name") String packageName,
-            @PathVariable(value = "entity-name") String entityName, @RequestBody TargetEntityFilterRuleDto filterRule) {
+            @PathVariable(value = "entity-name") String entityName,
+            @RequestBody TargetEntityFilterRuleDto filterRuleDto) {
         return okayWithData(
-                pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntity(packageName, entityName, filterRule));
+                pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(filterRuleDto));
     }
 
     @PostMapping("/plugins/enable/{plugin-config-id:.+}")
