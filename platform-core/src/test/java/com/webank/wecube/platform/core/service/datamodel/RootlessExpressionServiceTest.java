@@ -43,6 +43,10 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
         server = MockRestServiceServer.bindTo(jwtSsoRestTemplate).build();
         gatewayUrl = this.applicationProperties.getGatewayUrl();
     }
+    
+    public void testParseFilters(){
+//        String expr = ""
+    }
 
     @Test
     public void givenExpressionWithWrongIndexFilterShouldSucceed() {
