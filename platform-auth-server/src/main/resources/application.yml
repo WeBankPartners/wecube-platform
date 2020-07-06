@@ -5,7 +5,7 @@ server:
 logging:
    config: classpath:logback-spring.xml
 spring:
-#   datasource:
+   datasource:
 #      url: jdbc:mysql://127.0.0.1:3306/weauth?useUnicode=true&characterEncoding=UTF8&useJDBCTCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai&useSSL=false
 #      username: root
 #      ***REMOVED***
