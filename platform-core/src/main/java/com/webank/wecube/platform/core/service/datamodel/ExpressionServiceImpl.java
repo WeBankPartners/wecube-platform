@@ -1,5 +1,24 @@
 package com.webank.wecube.platform.core.service.datamodel;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import java.util.Stack;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
@@ -14,36 +33,32 @@ import com.webank.wecube.platform.core.jpa.PluginPackageEntityRepository;
 import com.webank.wecube.platform.core.model.datamodel.DataModelExpressionToRootData;
 import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
 import com.webank.wecube.platform.core.parser.datamodel.antlr4.DataModelParser;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExprNodeInfo;
+import com.webank.wecube.platform.core.service.dme.EntityQueryExpressionParser;
 import com.webank.wecube.platform.core.support.datamodel.DataModelServiceStub;
 import com.webank.wecube.platform.core.support.datamodel.dto.DataFlowTreeDto;
 import com.webank.wecube.platform.core.support.datamodel.dto.DataModelExpressionDto;
 import com.webank.wecube.platform.core.support.datamodel.dto.TreeNode;
 import com.webank.wecube.platform.core.support.datamodel.dto.WriteBackTargetDto;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
 
 @Service
 public class ExpressionServiceImpl implements ExpressionService {
+    private static final Logger log = LoggerFactory.getLogger(ExpressionServiceImpl.class);
     @Autowired
     private PluginPackageEntityRepository pluginPackageEntityRepository;
     @Autowired
     private PluginPackageDataModelRepository pluginPackageDataModelRepository;
 
+    @Autowired
     private ApplicationProperties applicationProperties;
-    private static final Logger logger = LoggerFactory.getLogger(ExpressionServiceImpl.class);
+    
+    @Autowired
     private DataModelServiceStub dataModelServiceStub;
 
-
     @Autowired
-    public ExpressionServiceImpl(ApplicationProperties applicationProperties, DataModelServiceStub dataModelServiceStub) {
-        this.applicationProperties = applicationProperties;
-        this.dataModelServiceStub = dataModelServiceStub;
-    }
+    private EntityQueryExpressionParser entityQueryExpressionParser;
+
 
 
 //    @Override
@@ -85,7 +100,7 @@ public class ExpressionServiceImpl implements ExpressionService {
     private Stack<DataModelExpressionDto> chainRequest(DataFlowTreeDto dataFlowTreeDto, DataModelExpressionToRootData dataModelExpressionToRootData) {
         String dataModelExpression = dataModelExpressionToRootData.getDataModelExpression();
         String rootIdData = dataModelExpressionToRootData.getRootData();
-        logger.info(String.format("Setting up chain request process, the DME is [%s] and the root id data is [%s].", dataModelExpression, rootIdData));
+        log.info(String.format("Setting up chain request process, the DME is [%s] and the root id data is [%s].", dataModelExpression, rootIdData));
         Stack<DataModelExpressionDto> resultDtoStack = new Stack<>();
 
         Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser().parse(dataModelExpression);
@@ -116,7 +131,7 @@ public class ExpressionServiceImpl implements ExpressionService {
      * @param rootIdData    root data id data
      */
     private void resolveLink(DataFlowTreeDto dataFlowTreeDto, DataModelExpressionDto expressionDto, String rootIdData) {
-        logger.info(String.format("Resolving first link [%s] with root id data [%s]", expressionDto.getExpression(), rootIdData));
+        log.info(String.format("Resolving first link [%s] with root id data [%s]", expressionDto.getExpression(), rootIdData));
 
         DataModelParser.EntityContext entity = expressionDto.getEntity();
         UrlToResponseDto urlToResponseDto;
@@ -266,7 +281,7 @@ public class ExpressionServiceImpl implements ExpressionService {
      * @param lastExpressionDto the expression dto from last link
      */
     private void resolveLink(DataFlowTreeDto dataFlowTreeDto, DataModelExpressionDto expressionDto, DataModelExpressionDto lastExpressionDto) {
-        logger.info(String.format("Entering resolving subsequent link process, the last expression is [%s], now resolving new subsequent link [%s].", lastExpressionDto.getExpression(), expressionDto.getExpression()));
+        log.info(String.format("Entering resolving subsequent link process, the last expression is [%s], now resolving new subsequent link [%s].", lastExpressionDto.getExpression(), expressionDto.getExpression()));
 
         List<CommonResponseDto> lastRequestResultList = lastExpressionDto.getJsonResponseStack().peek();
         List<TreeNode> newAnchorTreeNodeList = new ArrayList<>();
@@ -473,43 +488,28 @@ public class ExpressionServiceImpl implements ExpressionService {
         String writeBackAttr = Objects.requireNonNull(finalFetchDto.getOpFetch()).attr().getText();
         return new WriteBackTargetDto(lastRequestResponse, writeBackPackageName, writeBackEntityName, writeBackAttr);
     }
-
-    @Override
-    public List<EntityDto> getAllEntities(String dataModelExpression) {
-        if (dataModelExpression.isEmpty() || !dataModelExpression.contains(":")) {
-            throw new WecubeCoreException(String.format("Illegal data model expression[%s]", dataModelExpression));
+    
+    public List<EntityDto> getAllEntities(String dataModelExpression){
+        if(StringUtils.isBlank(dataModelExpression)){
+            throw new WecubeCoreException("Data model expression cannot be blank.");
         }
-
-        Iterable<String> split = Splitter.onPattern("([>~])").split(dataModelExpression);
-        Iterable<String> firstSection = Splitter.onPattern("([:.])").splitToList((split.iterator().next()));
-        List<String> firstSectionStrings = new ArrayList<String>();
-        Iterator<String> firstSectionStringIterator = firstSection.iterator();
-        while (firstSectionStringIterator.hasNext()) {
-            firstSectionStrings.add(firstSectionStringIterator.next());
-        }
-        if (firstSectionStrings.size() < 2) {
-            throw new WecubeCoreException(String.format("Illegal data model expression[%s]", dataModelExpression));
-        }
-
-        Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser()
-                .parseAll(dataModelExpression);
-
+        
+        List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser.parse(dataModelExpression);
         List<EntityDto> entityDtos = new ArrayList<EntityDto>();
-        DataModelExpressionDto dataModelExpressionDtoFirst = expressionDtoQueue.poll();
-        entityDtos = resolveFirstLinkReturnEntities(dataModelExpressionDtoFirst);
-
-        for (int i = expressionDtoQueue.size(); i > 1; i--) {
-            DataModelExpressionDto dataModelExpressionDto = expressionDtoQueue.poll();
-            EntityDto entityDto = resolveLinkReturnEntity(dataModelExpressionDto);
-            if (null != entityDto) {
-                entityDtos.add(entityDto);
-            }
+        
+        for(EntityQueryExprNodeInfo exprNodeInfo : exprNodeInfos){
+            EntityDto entityDto = new EntityDto();
+            entityDto.setPackageName(exprNodeInfo.getPackageName());
+            entityDto.setEntityName(exprNodeInfo.getEntityName());
+            
+            entityDtos.add(entityDto);
         }
-
+        
         entityDtos.forEach(entity -> {
             Optional<PluginPackageDataModel> dataModelOptional = pluginPackageDataModelRepository
                     .findLatestDataModelByPackageName(entity.getPackageName());
             if (dataModelOptional.isPresent()) {
+                
                 Optional<PluginPackageEntity> entityOptional = pluginPackageEntityRepository
                         .findByPackageNameAndNameAndDataModelVersion(entity.getPackageName(), entity.getEntityName(),
                                 dataModelOptional.get().getVersion());
@@ -518,9 +518,57 @@ public class ExpressionServiceImpl implements ExpressionService {
                 }
             }
         });
-
+        
         return entityDtos;
     }
+
+//    @Override
+//    public List<EntityDto> getAllEntities(String dataModelExpression) {
+//        if (dataModelExpression.isEmpty() || !dataModelExpression.contains(":")) {
+//            throw new WecubeCoreException(String.format("Illegal data model expression[%s]", dataModelExpression));
+//        }
+//
+//        Iterable<String> split = Splitter.onPattern("([>~])").split(dataModelExpression);
+//        Iterable<String> firstSection = Splitter.onPattern("([:.])").splitToList((split.iterator().next()));
+//        List<String> firstSectionStrings = new ArrayList<String>();
+//        Iterator<String> firstSectionStringIterator = firstSection.iterator();
+//        while (firstSectionStringIterator.hasNext()) {
+//            firstSectionStrings.add(firstSectionStringIterator.next());
+//        }
+//        if (firstSectionStrings.size() < 2) {
+//            throw new WecubeCoreException(String.format("Illegal data model expression[%s]", dataModelExpression));
+//        }
+//
+//        Queue<DataModelExpressionDto> expressionDtoQueue = new DataModelExpressionParser()
+//                .parseAll(dataModelExpression);
+//
+//        List<EntityDto> entityDtos = new ArrayList<EntityDto>();
+//        DataModelExpressionDto dataModelExpressionDtoFirst = expressionDtoQueue.poll();
+//        entityDtos = resolveFirstLinkReturnEntities(dataModelExpressionDtoFirst);
+//
+//        for (int i = expressionDtoQueue.size(); i > 1; i--) {
+//            DataModelExpressionDto dataModelExpressionDto = expressionDtoQueue.poll();
+//            EntityDto entityDto = resolveLinkReturnEntity(dataModelExpressionDto);
+//            if (null != entityDto) {
+//                entityDtos.add(entityDto);
+//            }
+//        }
+//
+//        entityDtos.forEach(entity -> {
+//            Optional<PluginPackageDataModel> dataModelOptional = pluginPackageDataModelRepository
+//                    .findLatestDataModelByPackageName(entity.getPackageName());
+//            if (dataModelOptional.isPresent()) {
+//                Optional<PluginPackageEntity> entityOptional = pluginPackageEntityRepository
+//                        .findByPackageNameAndNameAndDataModelVersion(entity.getPackageName(), entity.getEntityName(),
+//                                dataModelOptional.get().getVersion());
+//                if (entityOptional.isPresent()) {
+//                    entity.setAttributes(entityOptional.get().getPluginPackageAttributeList());
+//                }
+//            }
+//        });
+//
+//        return entityDtos;
+//    }
 
     private EntityDto buildEntityForEntityFetch(DataModelExpressionDto expressionDto) {
         DataModelParser.EntityContext entity = expressionDto.getEntity();
