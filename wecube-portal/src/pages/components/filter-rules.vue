@@ -1,5 +1,5 @@
 <template>
-  <div class="filter_rules_contain">
+  <div class="filter_rules_contain" ref="filter_rules_contain">
     <Poptip v-model="poptipVisable" placement="bottom">
       <div ref="wecube_cmdb_attr" class="filter_rules_path_contains">
         <span
@@ -21,9 +21,9 @@
         <Button v-if="pathList.length === 0" class="arrow-icon" icon="ios-arrow-down" long size="small"></Button>
       </div>
       <div slot="content">
-        <div v-if="!disabled" class="filter_rules_path_options">
+        <div v-if="!disabled" ref="filter_rules_path_options" class="filter_rules_path_options">
           <ul>
-            <li id="paste" v-if="pathList.length === 0">
+            <li id="paste" style="margin-bottom: 5px;" v-if="pathList.length === 0">
               <input
                 class="paste_input"
                 v-model="pasteValue"
@@ -43,7 +43,7 @@
             >
               {{ $t('add_filter_rule') }}
             </li>
-            <li v-if="pathList.length > 0 && needAttr">
+            <li>
               <Input prefix="ios-search" v-model="filterString" size="small" style="width:100%" />
             </li>
           </ul>
@@ -403,6 +403,7 @@ export default {
           }
         })
         .sort(compare)
+      this.filterCurrentOptiongs = this.currentOptiongs
     },
     formatFirstCurrentOptions () {
       this.pathList = []
@@ -512,6 +513,7 @@ export default {
       return
     }
     this.formatFirstCurrentOptions()
+    this.$refs.filter_rules_path_options.style.width = this.$refs.filter_rules_contain.offsetWidth - 32 + 'px'
   }
 }
 </script>
@@ -524,13 +526,16 @@ export default {
 }
 .paste_input {
   width: 100%;
-  border: none;
+  border: 1px solid #dcdee2;
+  border-radius: 4px;
+  margin-bottom: 10px;
   outline: none;
 }
 .filter_rules_path_options {
   width: 100%;
   z-index: 3000;
   background: white;
+  min-height: 10px;
   max-height: 250px;
   overflow: auto;
 }
