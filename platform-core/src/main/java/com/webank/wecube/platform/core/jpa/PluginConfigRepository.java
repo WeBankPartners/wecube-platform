@@ -92,7 +92,7 @@ public interface PluginConfigRepository extends JpaRepository<PluginConfig, Stri
 
     default String buildPackageConfigInterfaceMapKey(PluginConfigInterface pluginConfigInterface) {
         PluginConfig pluginConfig = pluginConfigInterface.getPluginConfig();
-        return String.join(":", pluginConfig.getPluginPackage().getName(), pluginConfig.getName(), pluginConfig.getTargetEntity(), pluginConfigInterface.getAction());
+        return String.join(":", pluginConfig.getPluginPackage().getName(), pluginConfig.getName(),pluginConfig.getRegisterName(), pluginConfig.getTargetEntity(), pluginConfigInterface.getAction());
     }
 
     class PluginConfigInterfaceComparator implements Comparator<PluginConfigInterface> {
