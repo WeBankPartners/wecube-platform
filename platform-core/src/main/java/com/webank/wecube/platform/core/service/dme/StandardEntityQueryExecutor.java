@@ -109,6 +109,33 @@ public class StandardEntityQueryExecutor implements EntityQueryExecutor {
 		StandardEntityOperationRestClient restClient = ctx.getStandardEntityOperationRestClient();
 		restClient.update(entityDef, entityDataRecordsToUpdate);
 	}
+	
+	public EntityQueryLinkNode buildEntityQueryLinkNode(List<EntityQueryExprNodeInfo> exprNodeInfos) {
+        if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+            return null;
+        }
+        EntityQueryExprNodeInfo nodeInfo = exprNodeInfos.get(0);
+        EntityQueryLinkNode headLinkNode = new EntityQueryLinkNode();
+        headLinkNode.setIndex(0);
+        headLinkNode.setExprNodeInfo(nodeInfo);
+        headLinkNode.setHead(true);
+        headLinkNode.setPreviousNode(null);
+
+        EntityQueryLinkNode previousLinkNode = headLinkNode;
+        for (int i = 1; i < exprNodeInfos.size(); i++) {
+            EntityQueryExprNodeInfo ni = exprNodeInfos.get(i);
+            EntityQueryLinkNode linkNode = new EntityQueryLinkNode();
+            linkNode.setIndex(i);
+            linkNode.setExprNodeInfo(ni);
+            linkNode.setHead(false);
+            linkNode.setPreviousNode(previousLinkNode);
+            linkNode.setSucceedingNode(null);
+            
+            previousLinkNode = linkNode;
+        }
+
+        return headLinkNode;
+    }
 
 	public List<Object> executeQueryLeafAttributes(EntityOperationContext ctx) {
 		doExecuteQuery(ctx);
