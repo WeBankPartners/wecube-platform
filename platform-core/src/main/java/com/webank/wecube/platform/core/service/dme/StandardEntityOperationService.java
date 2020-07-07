@@ -106,38 +106,12 @@ public class StandardEntityOperationService {
         ctx.setOriginalEntityLinkExpression(condition.getEntityLinkExpr());
         ctx.setOriginalEntityData(condition.getEntityIdentity());
         ctx.setStandardEntityOperationRestClient(new StandardEntityOperationRestClient(jwtSsoRestTemplate));
-        ctx.setHeadEntityQueryLinkNode(buildEntityQueryLinkNode(exprNodeInfos));
+        ctx.setHeadEntityQueryLinkNode(standardEntityQueryExcutor.buildEntityQueryLinkNode(exprNodeInfos));
         ctx.setEntityDataRouteFactory(entityDataRouteFactory);
 
         return ctx;
     }
 
-    protected EntityQueryLinkNode buildEntityQueryLinkNode(List<EntityQueryExprNodeInfo> exprNodeInfos) {
-        if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
-            return null;
-        }
-        EntityQueryExprNodeInfo nodeInfo = exprNodeInfos.get(0);
-        EntityQueryLinkNode headLinkNode = new EntityQueryLinkNode();
-        headLinkNode.setIndex(0);
-        headLinkNode.setExprNodeInfo(nodeInfo);
-        headLinkNode.setHead(true);
-        headLinkNode.setPreviousNode(null);
-
-        EntityQueryLinkNode previousLinkNode = headLinkNode;
-        for (int i = 1; i < exprNodeInfos.size(); i++) {
-            EntityQueryExprNodeInfo ni = exprNodeInfos.get(i);
-            EntityQueryLinkNode linkNode = new EntityQueryLinkNode();
-            linkNode.setIndex(i);
-            linkNode.setExprNodeInfo(ni);
-            linkNode.setHead(false);
-            linkNode.setPreviousNode(previousLinkNode);
-            linkNode.setSucceedingNode(null);
-            
-            previousLinkNode = linkNode;
-        }
-
-        return headLinkNode;
-    }
 
     public RestTemplate getRestTemplate() {
         return jwtSsoRestTemplate;
