@@ -52,4 +52,19 @@ public class Filter {
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Filter [name=");
+        builder.append(name);
+        builder.append(", operator=");
+        builder.append(operator);
+        builder.append(", value=");
+        builder.append(value);
+        builder.append("]");
+        return builder.toString();
+    }
+    
+    
 }
