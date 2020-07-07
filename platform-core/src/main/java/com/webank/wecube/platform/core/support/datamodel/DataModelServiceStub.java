@@ -1,12 +1,16 @@
 package com.webank.wecube.platform.core.support.datamodel;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.Filter;
-import com.webank.wecube.platform.core.dto.UrlToResponseDto;
-import com.webank.wecube.platform.core.parser.datamodel.DataModelExpressionParser;
-import com.webank.wecube.platform.core.utils.FilterUtils;
-import com.webank.wecube.platform.core.utils.RestTemplateUtils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +22,17 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.Filter;
+import com.webank.wecube.platform.core.dto.UrlToResponseDto;
+import com.webank.wecube.platform.core.utils.FilterUtils;
+import com.webank.wecube.platform.core.utils.RestTemplateUtils;
 
 @Service
 public class DataModelServiceStub {
+    public final static String FETCH_ALL = "ALL";
+    public final static String FETCH_NONE = "NONE";
 
     public static final String CHAIN_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}?filter={attributeName},{value}";
     public static final String CREATE_REQUEST_URL = "http://{gatewayUrl}/{packageName}/entities/{entityName}/create";
@@ -44,12 +53,13 @@ public class DataModelServiceStub {
     @Qualifier(value = "userJwtSsoTokenRestTemplate")
     private RestTemplate userJwtSsoTokenRestTemplate;
 
-
     /**
      * Issue a request from request url with place holders and param map
      *
-     * @param requestUrl request url with place holders
-     * @param paramMap   generated param map
+     * @param requestUrl
+     *            request url with place holders
+     * @param paramMap
+     *            generated param map
      * @return common response dto
      */
     public UrlToResponseDto initiateGetRequest(String requestUrl, Map<String, Object> paramMap) {
@@ -67,11 +77,14 @@ public class DataModelServiceStub {
     /**
      * Issue a request from request url with place holders and param map
      *
-     * @param requestUrl request url with place holders
-     * @param paramMap   generated param map
+     * @param requestUrl
+     *            request url with place holders
+     * @param paramMap
+     *            generated param map
      * @Param chainRequestDto chain request dto scope
      */
-    public UrlToResponseDto initiatePostRequest(String requestUrl, Map<String, Object> paramMap, List<Map<String, Object>> requestBodyParamMap) {
+    public UrlToResponseDto initiatePostRequest(String requestUrl, Map<String, Object> paramMap,
+            List<Map<String, Object>> requestBodyParamMap) {
         UrlToResponseDto urlToResponseDto;
         // combine url with param map
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestUrl);
@@ -84,7 +97,8 @@ public class DataModelServiceStub {
     /**
      * Send request then transfer the response to common response dto
      *
-     * @param uriStr bind and expanded uri string
+     * @param uriStr
+     *            bind and expanded uri string
      * @return common response dto
      */
     private UrlToResponseDto sendGetRequest(String uriStr) {
@@ -101,15 +115,18 @@ public class DataModelServiceStub {
     /**
      * Send request then transfer the response to common response dto
      *
-     * @param uriStr bind and expanded uri string
+     * @param uriStr
+     *            bind and expanded uri string
      * @return common response dto
      */
     private UrlToResponseDto sendPostRequest(String uriStr, List<Map<String, Object>> postRequestBodyParamMap) {
         HttpHeaders httpHeaders = new HttpHeaders();
-        logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr, postRequestBodyParamMap));
+        logger.info(String.format("Sending POST request to target url: [%s] with request body: [%s]", uriStr,
+                postRequestBodyParamMap));
         ResponseEntity<String> response;
         CommonResponseDto responseDto;
-        response = RestTemplateUtils.sendPostRequestWithBody(this.jwtSsoRestTemplate, uriStr, httpHeaders, postRequestBodyParamMap);
+        response = RestTemplateUtils.sendPostRequestWithBody(this.jwtSsoRestTemplate, uriStr, httpHeaders,
+                postRequestBodyParamMap);
         responseDto = RestTemplateUtils.checkResponse(response);
         return new UrlToResponseDto(uriStr, responseDto);
     }
@@ -117,18 +134,20 @@ public class DataModelServiceStub {
     /**
      * Generation of fetch data url param map
      *
-     * @param gatewayUrl    gate way url
-     * @param packageName   package name
-     * @param entityName    entity name
-     * @param attributeName attribute name
-     * @param value         value
+     * @param gatewayUrl
+     *            gate way url
+     * @param packageName
+     *            package name
+     * @param entityName
+     *            entity name
+     * @param attributeName
+     *            attribute name
+     * @param value
+     *            value
      * @return response map
      */
-    public Map<String, Object> generateGetUrlParamMap(Object gatewayUrl,
-                                                      Object packageName,
-                                                      Object entityName,
-                                                      Object attributeName,
-                                                      Object value) {
+    public Map<String, Object> generateGetUrlParamMap(Object gatewayUrl, Object packageName, Object entityName,
+            Object attributeName, Object value) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
@@ -141,14 +160,15 @@ public class DataModelServiceStub {
     /**
      * Generation of fetch all entity data url param map
      *
-     * @param gatewayUrl  gate way url
-     * @param packageName package name
-     * @param entityName  entity name
+     * @param gatewayUrl
+     *            gate way url
+     * @param packageName
+     *            package name
+     * @param entityName
+     *            entity name
      * @return response map
      */
-    public Map<String, Object> generateGetAllParamMap(Object gatewayUrl,
-                                                      Object packageName,
-                                                      Object entityName) {
+    public Map<String, Object> generateGetAllParamMap(Object gatewayUrl, Object packageName, Object entityName) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
@@ -156,29 +176,31 @@ public class DataModelServiceStub {
         return paramMap;
     }
 
-    public Map<String, Object> generateGetUrlParamMapWithFilters(String gatewayUrl, String packageName, String entityName, Map<String, String> allFilters) {
+    public Map<String, Object> generateGetUrlParamMapWithFilters(String gatewayUrl, String packageName,
+            String entityName, Map<String, String> allFilters) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
         paramMap.put("entityName", entityName);
-        paramMap.put("requestParams", allFilters.entrySet()
-                .stream()
-                .map(stringStringEntry -> stringStringEntry.getKey() + "=" + stringStringEntry.getValue())
-                .collect(Collectors.joining("&")));
+        paramMap.put("requestParams",
+                allFilters.entrySet().stream()
+                        .map(stringStringEntry -> stringStringEntry.getKey() + "=" + stringStringEntry.getValue())
+                        .collect(Collectors.joining("&")));
         return paramMap;
     }
 
     /**
      * Generation of data write back url param map
      *
-     * @param gatewayUrl  gateway url
-     * @param packageName package name
-     * @param entityName  entity name
+     * @param gatewayUrl
+     *            gateway url
+     * @param packageName
+     *            package name
+     * @param entityName
+     *            entity name
      * @return generated param map for url binding
      */
-    public Map<String, Object> generatePostUrlParamMap(Object gatewayUrl,
-                                                       Object packageName,
-                                                       Object entityName) {
+    public Map<String, Object> generatePostUrlParamMap(Object gatewayUrl, Object packageName, Object entityName) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("gatewayUrl", gatewayUrl);
         paramMap.put("packageName", packageName);
@@ -190,14 +212,16 @@ public class DataModelServiceStub {
     /**
      * Generation of data write back body param map
      *
-     * @param entityId       gateway url
-     * @param attributeName  package name
-     * @param attributeValue entity name
+     * @param entityId
+     *            gateway url
+     * @param attributeName
+     *            package name
+     * @param attributeValue
+     *            entity name
      * @return generated param map for url binding
      */
-    public List<Map<String, Object>> generatePostBodyParamMap(Object entityId,
-                                                              String attributeName,
-                                                              Object attributeValue) {
+    public List<Map<String, Object>> generatePostBodyParamMap(Object entityId, String attributeName,
+            Object attributeValue) {
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put(UNIQUE_IDENTIFIER, entityId);
         paramMap.put(attributeName, attributeValue);
@@ -208,16 +232,22 @@ public class DataModelServiceStub {
     /**
      * Get response's id data from given attribute key and value
      *
-     * @param lastRequestResponseDto last request's response dto
-     * @param requestAttributeName   key of filter
-     * @param requestAttributeValue  value of filter
+     * @param lastRequestResponseDto
+     *            last request's response dto
+     * @param requestAttributeName
+     *            key of filter
+     * @param requestAttributeValue
+     *            value of filter
      * @return found responseId list
-     * @throws WecubeCoreException throws exception when there is an error converting response to LinkedHashMap
+     * @throws WecubeCoreException
+     *             throws exception when there is an error converting response
+     *             to LinkedHashMap
      */
     @SuppressWarnings("unchecked")
-    public List<Object> getResponseIdFromAttribute(CommonResponseDto lastRequestResponseDto, String requestAttributeName, Object requestAttributeValue) throws WecubeCoreException {
+    public List<Object> getResponseIdFromAttribute(CommonResponseDto lastRequestResponseDto,
+            String requestAttributeName, Object requestAttributeValue) throws WecubeCoreException {
         List<Object> result = new ArrayList<>();
-        List<Object> requestResponseDataList = this.extractValueFromResponse(lastRequestResponseDto, DataModelExpressionParser.FETCH_ALL);
+        List<Object> requestResponseDataList = this.extractValueFromResponse(lastRequestResponseDto, FETCH_ALL);
         requestResponseDataList.forEach(o -> {
 
             if (!(o instanceof LinkedHashMap<?, ?>)) {
@@ -237,40 +267,41 @@ public class DataModelServiceStub {
     /**
      * Handle response and resolve it to list of objects
      *
-     * @param responseDto common response dto
-     * @param keyName     the key name the expression want to fetch
+     * @param responseDto
+     *            common response dto
+     * @param keyName
+     *            the key name the expression want to fetch
      * @return list of value fetched from expression
      */
     public List<Object> extractValueFromResponse(CommonResponseDto responseDto, String keyName) {
         // transfer dto to List<LinkedTreeMap>
         List<Map<String, Object>> dataArray = responseToMapList(responseDto);
 
-        logger.info(String.format("Extract value from given http request's response [%s] by attribute name: [%s]", dataArray, keyName));
+        logger.info(String.format("Extract value from given http request's response [%s] by attribute name: [%s]",
+                dataArray, keyName));
 
         List<Object> returnList;
         switch (keyName) {
-            case DataModelExpressionParser.FETCH_ALL: {
-                returnList = Objects.requireNonNull(dataArray)
-                        .stream()
-                        .sorted(Comparator.comparing(o -> String.valueOf(o.get(DataModelServiceStub.UNIQUE_IDENTIFIER))))
-                        .collect(Collectors.toList());
-                break;
-            }
-            case DataModelExpressionParser.FETCH_NONE: {
-                returnList = new ArrayList<>();
-                break;
-            }
-            default: {
-                returnList = Objects.requireNonNull(dataArray)
-                        .stream()
-                        .sorted(Comparator.comparing(o -> String.valueOf(o.get(DataModelServiceStub.UNIQUE_IDENTIFIER))))
-                        .map(linkedTreeMap -> linkedTreeMap.get(keyName))
-                        .collect(Collectors.toList());
-                break;
-            }
+        case FETCH_ALL: {
+            returnList = Objects.requireNonNull(dataArray).stream()
+                    .sorted(Comparator.comparing(o -> String.valueOf(o.get(DataModelServiceStub.UNIQUE_IDENTIFIER))))
+                    .collect(Collectors.toList());
+            break;
+        }
+        case FETCH_NONE: {
+            returnList = new ArrayList<>();
+            break;
+        }
+        default: {
+            returnList = Objects.requireNonNull(dataArray).stream()
+                    .sorted(Comparator.comparing(o -> String.valueOf(o.get(DataModelServiceStub.UNIQUE_IDENTIFIER))))
+                    .map(linkedTreeMap -> linkedTreeMap.get(keyName)).collect(Collectors.toList());
+            break;
+        }
         }
 
-        logger.info(String.format("The extraction from request's response by given attribute name [%s] is [%s]", keyName, returnList));
+        logger.info(String.format("The extraction from request's response by given attribute name [%s] is [%s]",
+                keyName, returnList));
 
         return returnList;
     }
@@ -278,7 +309,8 @@ public class DataModelServiceStub {
     /**
      * Handle response and resolve it to list of objects
      *
-     * @param responseDto common response dto
+     * @param responseDto
+     *            common response dto
      * @return list of value fetched from expression
      */
     @SuppressWarnings("unchecked")
@@ -308,16 +340,19 @@ public class DataModelServiceStub {
         return result;
     }
 
-    private List<Map<String, Object>> filterData(List<Map<String, Object>> jsonData, List<Filter> filterList) throws WecubeCoreException {
+    private List<Map<String, Object>> filterData(List<Map<String, Object>> jsonData, List<Filter> filterList)
+            throws WecubeCoreException {
         List<Predicate<Map<String, Object>>> predicateFilters;
         try {
             predicateFilters = FilterUtils.getPredicateList(filterList);
         } catch (IllegalAccessException e) {
-            String msg = String.format("Cannot get filter predicate class from given filter list: [%s]", filterList.toString());
+            String msg = String.format("Cannot get filter predicate class from given filter list: [%s]",
+                    filterList.toString());
             logger.error(msg);
             throw new WecubeCoreException(msg);
         }
-        return jsonData.stream().filter(predicateFilters.stream().reduce(p -> true, Predicate::and)).collect(Collectors.toList());
+        return jsonData.stream().filter(predicateFilters.stream().reduce(p -> true, Predicate::and))
+                .collect(Collectors.toList());
     }
 
     private List<Map<String, Object>> filterData(Map<String, Object> jsonData, List<Filter> filterList) {
