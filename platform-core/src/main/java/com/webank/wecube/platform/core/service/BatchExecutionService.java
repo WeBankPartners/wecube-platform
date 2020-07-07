@@ -69,7 +69,7 @@ public class BatchExecutionService {
     private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
     @Autowired
     protected StandardEntityOperationService standardEntityOperationService;
-    
+
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
@@ -80,9 +80,16 @@ public class BatchExecutionService {
         Map<String, ExecutionJobResponseDto> executionResults = new HashMap<>();
         for (ExecutionJob job : batchExecutionJob.getJobs()) {
             ResultData<?> executionResult = runExecutionJob(job);
-            Object resultObject = executionResult.getOutputs().get(0);
-            executionResults.put(job.getBusinessKey(), new ExecutionJobResponseDto(
-                    job.getErrorCode() == null ? RESULT_CODE_ERROR : job.getErrorCode(), resultObject));
+            if (executionResult == null) {
+                if(job.getPrepareException() != null){
+                    executionResults.put(job.getBusinessKey(), new ExecutionJobResponseDto(
+                            RESULT_CODE_ERROR , job.getPrepareException().getMessage()));
+                }
+            } else {
+                Object resultObject = executionResult.getOutputs().get(0);
+                executionResults.put(job.getBusinessKey(), new ExecutionJobResponseDto(
+                        job.getErrorCode() == null ? RESULT_CODE_ERROR : job.getErrorCode(), resultObject));
+            }
         }
 
         completeBatchExecutionJob(batchExecutionJob);
@@ -155,6 +162,11 @@ public class BatchExecutionService {
         String errorMessage;
         prepareInputParameterValues(executionJob);
 
+        if (executionJob.getPrepareException() != null) {
+            log.error("Errors to calculate input parameters", executionJob.getPrepareException());
+            return null;
+        }
+
         Map<String, Object> callInterfaceParameterMap = new HashMap<String, Object>();
 
         for (ExecutionJobParameter parameter : executionJob.getParameters()) {
@@ -198,8 +210,9 @@ public class BatchExecutionService {
         log.info("returnJsonString= " + responseData.toString());
         String returnJsonString = JsonUtils.toJsonString(responseData);
         log.info("returnJsonString= " + returnJsonString);
-        ResultData<PluginResponseStationaryOutput> stationaryResultData = objectMapper.readValue(returnJsonString, new TypeReference<ResultData<PluginResponseStationaryOutput>>() {
-        });
+        ResultData<PluginResponseStationaryOutput> stationaryResultData = objectMapper.readValue(returnJsonString,
+                new TypeReference<ResultData<PluginResponseStationaryOutput>>() {
+                });
 
         if (stationaryResultData.getOutputs().size() == 0) {
             errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no response",
@@ -246,6 +259,7 @@ public class BatchExecutionService {
                             parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity());
                     log.error(errorMessage);
                     executionJob.setErrorWithMessage(errorMessage);
+                    executionJob.setPrepareException(new WecubeCoreException(errorMessage));
                     break;
                 }
                 parameter.setValue(attrValsPerExpr.get(0).toString());
@@ -259,6 +273,7 @@ public class BatchExecutionService {
                     errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
                     log.error(errorMessage);
                     executionJob.setErrorWithMessage(errorMessage);
+                    executionJob.setPrepareException(new WecubeCoreException(errorMessage));
                     return;
                 }
 
@@ -271,6 +286,7 @@ public class BatchExecutionService {
                     errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
                     log.error(errorMessage);
                     executionJob.setErrorWithMessage(errorMessage);
+                    executionJob.setPrepareException(new WecubeCoreException(errorMessage));
                     return;
                 }
                 parameter.setValue(sVal);
