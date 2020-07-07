@@ -32,7 +32,7 @@ public class PluginRequest<DATATYPE> {
 	}
 
 	public PluginRequest<DATATYPE> withDueDate(String dueDate){
-		if(dueDate.isEmpty()){
+		if(dueDate==null || dueDate.isEmpty()){
 			this.dueDate = "30";
 		}
 		this.dueDate = dueDate;
