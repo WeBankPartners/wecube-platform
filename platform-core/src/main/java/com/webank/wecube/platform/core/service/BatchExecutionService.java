@@ -202,7 +202,7 @@ public class BatchExecutionService {
         });
 
         if (stationaryResultData.getOutputs().size() == 0) {
-            errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no respond",
+            errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no response",
                     executionJob.getPluginConfigInterfaceId(), pluginInstance.getHost(), pluginInstance.getPort(),
                     pluginConfigInterface.getPath(), callInterfaceParameterMap);
             log.error(errorMessage);

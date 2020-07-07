@@ -172,14 +172,7 @@ public class ExecutionJob {
         this.returnJson = JsonUtils.toJsonString(this);
     }
 
-    @Override
-    public String toString() {
-        return "ExecutionJob [id=" + id + ", batchExecutionJob=" + batchExecutionJob + ", parameters=" + parameters
-                + ", pluginConfigInterfaceId=" + pluginConfigInterfaceId + ", packageName=" + packageName
-                + ", entityName=" + entityName + ", rootEntityId=" + businessKey + ", executeTime=" + executeTime
-                + ", completeTime=" + completeTime + ", errorCode=" + errorCode + ", errorMessage=" + errorMessage
-                + ", returnJson=" + returnJson + "]";
-    }
+    
 
     public String getRootEntityId() {
         return rootEntityId;
@@ -188,5 +181,40 @@ public class ExecutionJob {
     public void setRootEntityId(String rootEntityId) {
         this.rootEntityId = rootEntityId;
     }
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ExecutionJob [id=");
+		builder.append(id);
+		builder.append(", batchExecutionJob=");
+		builder.append(batchExecutionJob);
+		builder.append(", parameters=");
+		builder.append(parameters);
+		builder.append(", pluginConfigInterfaceId=");
+		builder.append(pluginConfigInterfaceId);
+		builder.append(", packageName=");
+		builder.append(packageName);
+		builder.append(", entityName=");
+		builder.append(entityName);
+		builder.append(", businessKey=");
+		builder.append(businessKey);
+		builder.append(", rootEntityId=");
+		builder.append(rootEntityId);
+		builder.append(", executeTime=");
+		builder.append(executeTime);
+		builder.append(", completeTime=");
+		builder.append(completeTime);
+		builder.append(", errorCode=");
+		builder.append(errorCode);
+		builder.append(", errorMessage=");
+		builder.append(errorMessage);
+		builder.append(", returnJson=");
+		builder.append(returnJson);
+		builder.append("]");
+		return builder.toString();
+	}
+    
+    
 
 }

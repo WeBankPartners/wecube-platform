@@ -1,9 +1,14 @@
 package com.webank.wecube.platform.core.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
-import javax.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "execution_job_parameters")
@@ -98,10 +103,7 @@ public class ExecutionJobParameter {
         this.required = required;
     }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toStringExclude(this, "pluginConfigInterface");
-    }
+    
 
     public ExecutionJob getExecutionJob() {
         return executionJob;
@@ -146,4 +148,29 @@ public class ExecutionJobParameter {
         this.required = required;
         this.value = value;
     }
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ExecutionJobParameter [id=");
+		builder.append(id);
+		builder.append(", name=");
+		builder.append(name);
+		builder.append(", dataType=");
+		builder.append(dataType);
+		builder.append(", mappingType=");
+		builder.append(mappingType);
+		builder.append(", mappingEntityExpression=");
+		builder.append(mappingEntityExpression);
+		builder.append(", mappingSystemVariableName=");
+		builder.append(mappingSystemVariableName);
+		builder.append(", required=");
+		builder.append(required);
+		builder.append(", value=");
+		builder.append(value);
+		builder.append("]");
+		return builder.toString();
+	}
+    
+    
 }
