@@ -90,7 +90,7 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
 
 				if (!addedIds.contains(record.get(EntityDataDelegate.UNIQUE_IDENTIFIER))) {
 					results.add(record);
-					results.add(record.get(EntityDataDelegate.UNIQUE_IDENTIFIER));
+					addedIds.add((String)record.get(EntityDataDelegate.UNIQUE_IDENTIFIER));
 				}
 			}
 
