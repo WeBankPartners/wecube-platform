@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PluginRequest<DATATYPE> {
 	private String requestId;
+	private String dueDate;
 	private List<String> allowedOptions;
 	private List<DATATYPE> inputs;
 
@@ -29,6 +30,15 @@ public class PluginRequest<DATATYPE> {
 		this.allowedOptions.addAll(allowedOptions);
 		return this;
 	}
+
+	public PluginRequest<DATATYPE> withDueDate(String dueDate){
+		if(dueDate == null && dueDate.isEmpty()){
+			this.dueDate = "30";
+		}
+		this.dueDate = dueDate;
+		return this;
+	}
+
 
 	public String getRequestId() {
 		return requestId;
@@ -54,11 +64,19 @@ public class PluginRequest<DATATYPE> {
 		this.allowedOptions = allowedOptions;
 	}
 
+	public void setDueDate(String dueDate) { this.dueDate = dueDate; }
+
+	public String getDueDate() {
+		return dueDate;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("PluginRequest [requestId=");
 		builder.append(requestId);
+		builder.append(", dueDate=");
+		builder.append(dueDate);
 		builder.append(", allowedOptions=");
 		builder.append(allowedOptions);
 		builder.append(", inputs=");
