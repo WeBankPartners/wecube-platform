@@ -59,6 +59,8 @@ public class ExecutionJob {
     private String errorMessage;
     @Column
     private String returnJson;
+    
+    private transient Exception prepareException;
 
     public Integer getId() {
         return id;
@@ -181,6 +183,7 @@ public class ExecutionJob {
     public void setRootEntityId(String rootEntityId) {
         this.rootEntityId = rootEntityId;
     }
+    
 
 	@Override
 	public String toString() {
@@ -214,6 +217,14 @@ public class ExecutionJob {
 		builder.append("]");
 		return builder.toString();
 	}
+
+    public Exception getPrepareException() {
+        return prepareException;
+    }
+
+    public void setPrepareException(Exception prepareException) {
+        this.prepareException = prepareException;
+    }
     
     
 
