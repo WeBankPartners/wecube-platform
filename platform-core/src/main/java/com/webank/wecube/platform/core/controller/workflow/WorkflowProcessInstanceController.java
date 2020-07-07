@@ -2,10 +2,6 @@ package com.webank.wecube.platform.core.controller.workflow;
 
 import java.util.List;
 
-import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
