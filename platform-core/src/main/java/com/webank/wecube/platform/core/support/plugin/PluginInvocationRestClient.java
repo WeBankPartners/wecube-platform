@@ -25,11 +25,14 @@ public class PluginInvocationRestClient implements RestClient {
 	private RestTemplate jwtSsoRestTemplate;
 
 	public PluginResponse<Object> callPluginService(String instanceAddress, String path,
-			List<Map<String, Object>> parameters, String requestId, List<String> allowedOptions) {
+			List<Map<String, Object>> parameters, String requestId, List<String> allowedOptions, String dueDate) {
 		PluginRequest<Map<String, Object>> requestObj = new DefaultPluginRequest().withInputs(parameters)
 				.withRequestId(requestId);
 		if (allowedOptions != null && !allowedOptions.isEmpty()) {
 			requestObj = requestObj.withAllowedOptions(allowedOptions);
+		}
+		if (!dueDate.isEmpty()) {
+			requestObj = requestObj.withDueDate(dueDate);
 		}
 
 		return doCallPluginService(asPluginServerUrl(instanceAddress, path), requestObj);

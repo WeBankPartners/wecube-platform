@@ -357,6 +357,12 @@ public class PluginConfigService {
         }
         return pluginConfigInterfaceDtos;
     }
+    
+    public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(
+            TargetEntityFilterRuleDto filterRuleDto) {
+        return distinctPluginConfigInfDto(queryAllEnabledPluginConfigInterfaceForEntity(filterRuleDto.getPkgName(), filterRuleDto.getEntityName(),
+                filterRuleDto));
+    }
 
     @SuppressWarnings("unchecked")
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntity(String packageName,
@@ -425,7 +431,7 @@ public class PluginConfigService {
                     .collect(Collectors.toList()));
         }
 
-        return distinctPluginConfigInfDto(pluginConfigInterfaceDtos);
+        return pluginConfigInterfaceDtos;
     }
 
     @SuppressWarnings("unchecked")

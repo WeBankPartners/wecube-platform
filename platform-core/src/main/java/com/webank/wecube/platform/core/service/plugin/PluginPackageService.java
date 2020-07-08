@@ -212,6 +212,7 @@ public class PluginPackageService {
 		ctx.setRemoteEndpoint(releaseFileUrl);
 		ctx.setSecretKey(null);
 		ctx.setRequestId(savedEntity.getId());
+		ctx.setEntity(savedEntity);
 
 		pluginArtifactOperationExecutor.pullPluginArtifact(ctx);
 
@@ -502,11 +503,18 @@ public class PluginPackageService {
 	private PluginArtifactPullRequestEntity getPluginArtifactPullRequestEntity(PluginArtifactPullContext ctx) {
 		Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository
 				.findById(ctx.getRequestId());
-		if (!reqOpt.isPresent()) {
+		
+		PluginArtifactPullRequestEntity reqEntity = null;
+		if(reqOpt.isPresent()){
+		    reqEntity = reqOpt.get();
+		}
+		
+		if(reqEntity == null){
+		    reqEntity = ctx.getEntity();
+		}
+		if (reqEntity == null) {
 			throw new WecubeCoreException(String.format("Request entity %s does not exist", ctx.getRequestId()));
 		}
-
-		PluginArtifactPullRequestEntity reqEntity = reqOpt.get();
 
 		return reqEntity;
 	}

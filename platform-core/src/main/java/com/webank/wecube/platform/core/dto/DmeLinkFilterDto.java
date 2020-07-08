@@ -51,4 +51,21 @@ public class DmeLinkFilterDto {
     public void setAttributeFilters(List<Filter> attributeFilters) {
         this.attributeFilters = attributeFilters;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DmeLinkFilterDto [index=");
+        builder.append(index);
+        builder.append(", packageName=");
+        builder.append(packageName);
+        builder.append(", entityName=");
+        builder.append(entityName);
+        builder.append(", attributeFilters=");
+        builder.append(attributeFilters);
+        builder.append("]");
+        return builder.toString();
+    }
+    
+    
 }
