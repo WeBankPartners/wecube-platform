@@ -578,9 +578,9 @@ export default {
       }
       const { data, status } = await dmeAllEntities(params)
       if (status === 'OK') {
-        this.currentEntityName = data[0].entityName
-        this.currentPackageName = data[0].packageName
-        this.currentEntityAttrList = data[0].attributes
+        this.currentEntityName = data.slice(-1)[0].entityName
+        this.currentPackageName = data.slice(-1)[0].packageName
+        this.currentEntityAttrList = data.slice(-1)[0].attributes
 
         this.allEntityAttr = []
         data.forEach((single, index) => {
