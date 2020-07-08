@@ -153,7 +153,7 @@ public class PluginInvocationProcessor {
 			try {
 				List<String> allowedOptions = getAllowedOptions();
 				response = getPluginInvocationRestClient().callPluginService(getInstanceHost(), getInterfacePath(),
-						getPluginParameters(), this.requestId, allowedOptions);
+						getPluginParameters(), this.requestId, allowedOptions, getDueDate());
 			} catch (Exception e) {
 				log.warn("errors while operating {} {}", getInstanceHost(), getInterfacePath(), e);
 				PluginInterfaceInvocationResult errResult = new PluginInterfaceInvocationResult();
@@ -230,6 +230,16 @@ public class PluginInvocationProcessor {
 			}
 
 			return pluginInterfaceInvocationContext.getPluginInvocationCommand().getAllowedOptions();
+		}
+
+		private String getDueDate(){
+			if (pluginInterfaceInvocationContext == null) {
+				return null;
+			}
+			if(pluginInterfaceInvocationContext.getTaskNodeDefEntity() == null){
+				return null;
+			}
+			return  pluginInterfaceInvocationContext.getTaskNodeDefEntity().getTimeoutExpression();
 		}
 
 		private void handleResult(PluginInterfaceInvocationResult result) {
