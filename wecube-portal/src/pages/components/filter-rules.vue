@@ -404,6 +404,8 @@ export default {
         })
         .sort(compare)
       this.filterCurrentOptiongs = this.currentOptiongs
+      this.filterCurrentRefOptiongs = this.currentRefOptiongs
+      this.filterCurrentLeafOptiongs = this.currentLeafOptiongs
     },
     formatFirstCurrentOptions () {
       this.pathList = []
