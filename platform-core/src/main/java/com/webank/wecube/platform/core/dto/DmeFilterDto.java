@@ -29,4 +29,17 @@ public class DmeFilterDto {
     public void setFilters(List<DmeLinkFilterDto> filters) {
         this.filters = filters;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DmeFilterDto [dataModelExpression=");
+        builder.append(dataModelExpression);
+        builder.append(", filters=");
+        builder.append(filters);
+        builder.append("]");
+        return builder.toString();
+    }
+    
+    
 }
