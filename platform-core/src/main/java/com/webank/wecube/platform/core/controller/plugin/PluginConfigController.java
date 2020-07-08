@@ -106,8 +106,6 @@ public class PluginConfigController {
 
     @PostMapping("/plugins/interfaces/enabled/query-by-target-entity-filter-rule")
     public CommonResponseDto queryAllEnabledPluginConfigInterfaceByEntityNameAndFilterRule(
-            @PathVariable(value = "package-name") String packageName,
-            @PathVariable(value = "entity-name") String entityName,
             @RequestBody TargetEntityFilterRuleDto filterRuleDto) {
         return okayWithData(
                 pluginConfigService.queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(filterRuleDto));
