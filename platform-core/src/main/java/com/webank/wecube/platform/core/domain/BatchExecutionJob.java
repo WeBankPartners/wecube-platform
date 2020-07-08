@@ -80,4 +80,21 @@ public class BatchExecutionJob {
 
     public BatchExecutionJob() {
     }
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("BatchExecutionJob [id=");
+		builder.append(id);
+		builder.append(", createTimestamp=");
+		builder.append(createTimestamp);
+		builder.append(", creator=");
+		builder.append(creator);
+		builder.append(", completeTimestamp=");
+		builder.append(completeTimestamp);
+		builder.append("]");
+		return builder.toString();
+	}
+    
+    
 }

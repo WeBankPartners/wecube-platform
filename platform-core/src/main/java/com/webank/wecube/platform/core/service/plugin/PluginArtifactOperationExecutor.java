@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.domain.plugin.PluginArtifactPullRequestEntity;
+
 @Service
 public class PluginArtifactOperationExecutor {
     private static final Logger log = LoggerFactory.getLogger(PluginArtifactOperationExecutor.class);
@@ -58,6 +60,7 @@ public class PluginArtifactOperationExecutor {
 
         private String keyName;
         private String requestId;
+        private PluginArtifactPullRequestEntity entity;
 
         public String getRemoteEndpoint() {
             return remoteEndpoint;
@@ -105,6 +108,14 @@ public class PluginArtifactOperationExecutor {
 
         public void setRequestId(String requestId) {
             this.requestId = requestId;
+        }
+
+        public PluginArtifactPullRequestEntity getEntity() {
+            return entity;
+        }
+
+        public void setEntity(PluginArtifactPullRequestEntity entity) {
+            this.entity = entity;
         }
 
     }

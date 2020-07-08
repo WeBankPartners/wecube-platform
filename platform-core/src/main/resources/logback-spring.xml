@@ -32,9 +32,16 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
+    
+    <logger name="com.webank.wecube" level="debug" 
+        additivity="false"> 
+        <appender-ref ref="rollingFile" /> 
+    </logger>
          
     <root level="info">
-       <!-- <appender-ref ref="console"/>-->
+        <!-- 
+        <appender-ref ref="console"/>
+         -->
         <appender-ref ref="rollingFile"/>
     </root>
 </configuration>
