@@ -262,7 +262,10 @@ public class BatchExecutionService {
                     executionJob.setPrepareException(new WecubeCoreException(errorMessage));
                     break;
                 }
+                
+                if(attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
                 parameter.setValue(attrValsPerExpr.get(0).toString());
+                }
             }
 
             if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
