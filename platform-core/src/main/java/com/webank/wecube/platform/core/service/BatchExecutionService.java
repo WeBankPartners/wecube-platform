@@ -74,33 +74,52 @@ public class BatchExecutionService {
 
 	public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
 			throws IOException {
-		checkParameters(batchExecutionRequest.getInputParameterDefinitions());
-		BatchExecutionJob batchExecutionJob = saveToDb(batchExecutionRequest);
+		verifyParameters(batchExecutionRequest.getInputParameterDefinitions());
+		BatchExecutionJob batchExeJob = saveToDb(batchExecutionRequest);
 
-		Map<String, ExecutionJobResponseDto> executionResults = new HashMap<>();
-		for (ExecutionJob job : batchExecutionJob.getJobs()) {
-			ResultData<?> executionResult = runExecutionJob(job);
-			if (executionResult == null) {
-				if (job.getPrepareException() != null) {
-					executionResults.put(job.getBusinessKey(),
-							new ExecutionJobResponseDto(RESULT_CODE_ERROR, job.getPrepareException().getMessage()));
+		Map<String, ExecutionJobResponseDto> exeResults = new HashMap<>();
+		for (ExecutionJob exeJob : batchExeJob.getJobs()) {
+			ResultData<?> exeResult = null;
+			try {
+				exeResult = performExecutionJob(exeJob);
+				if (exeResult == null) {
+					if (exeJob.getPrepareException() != null) {
+						exeResult = buildResultDataWithError(exeJob.getPrepareException().getMessage());
+						Object resultObject = exeResult.getOutputs().get(0);
+						ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR,
+								resultObject);
+						exeResults.put(exeJob.getBusinessKey(), respDataObj);
+					}
+				} else {
+					Object resultObject = exeResult.getOutputs().get(0);
+					String errorCode = exeJob.getErrorCode() == null ? RESULT_CODE_ERROR : exeJob.getErrorCode();
+					ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(errorCode, resultObject);
+					exeResults.put(exeJob.getBusinessKey(), respDataObj);
 				}
-			} else {
-				Object resultObject = executionResult.getOutputs().get(0);
-				executionResults.put(job.getBusinessKey(), new ExecutionJobResponseDto(
-						job.getErrorCode() == null ? RESULT_CODE_ERROR : job.getErrorCode(), resultObject));
+			} catch (Exception e) {
+				log.error("errors to run execution job,{} {} {}, errorMsg:{} ", exeJob.getPackageName(),
+						exeJob.getEntityName(), exeJob.getRootEntityId(), e.getMessage());
+				exeResult = buildResultDataWithError(e.getMessage());
+				Object resultObject = exeResult.getOutputs().get(0);
+				ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR, resultObject);
+				exeResults.put(exeJob.getBusinessKey(), respDataObj);
 			}
+
 		}
 
-		completeBatchExecutionJob(batchExecutionJob);
-		return executionResults;
+		try {
+			postProcessBatchExecutionJob(batchExeJob);
+		} catch (Exception e) {
+			log.error("errors while post processing batch execution job", e);
+		}
+		return exeResults;
 	}
 
-	private void checkParameters(List<InputParameterDefinition> inputParameterDefinitions) {
+	private void verifyParameters(List<InputParameterDefinition> inputParameterDefinitions) {
 		inputParameterDefinitions.forEach(inputParameterDefinition -> {
 			PluginConfigInterfaceParameter inputParameter = inputParameterDefinition.getInputParameter();
-			if (inputParameter.getRequired().equals(FIELD_REQUIRED)
-					&& inputParameter.getMappingType().equals(MAPPING_TYPE_CONTEXT)) {
+			if (FIELD_REQUIRED.equalsIgnoreCase(inputParameter.getRequired())
+					&& MAPPING_TYPE_CONTEXT.equalsIgnoreCase(inputParameter.getMappingType())) {
 				throw new WecubeCoreException(String.format(
 						"Batch execution job does not support input parameter[%s] with [mappingType=%s] and [required=%s]",
 						inputParameter.getName(), inputParameter.getMappingType(), inputParameter.getRequired()));
@@ -108,25 +127,29 @@ public class BatchExecutionService {
 		});
 	}
 
-	private BatchExecutionJob saveToDb(BatchExecutionRequestDto batchExecutionRequest) {
-		BatchExecutionJob batchExecutionJob = new BatchExecutionJob();
-		List<ExecutionJob> executionJobs = new ArrayList<ExecutionJob>();
-		batchExecutionJob.setJobs(executionJobs);
-		batchExecutionRequest.getResourceDatas().forEach(resourceData -> {
-			ExecutionJob executionJob = new ExecutionJob(resourceData.getId(),
-					batchExecutionRequest.getPluginConfigInterface().getId(), batchExecutionRequest.getPackageName(),
-					batchExecutionRequest.getEntityName(), resourceData.getBusinessKeyValue().toString());
-			executionJob.setParameters(transFromInputParameterDefinitionToExecutionJobParameter(
-					batchExecutionRequest.getInputParameterDefinitions(), executionJob));
-			executionJob.setBatchExecutionJob(batchExecutionJob);
-			executionJobs.add(executionJob);
+	private BatchExecutionJob saveToDb(BatchExecutionRequestDto batchExeRequest) {
+		BatchExecutionJob batchExeJob = new BatchExecutionJob();
+		List<ExecutionJob> exeJobs = new ArrayList<ExecutionJob>();
+		batchExeRequest.getResourceDatas().forEach(resourceData -> {
+
+			ExecutionJob exeJob = new ExecutionJob();
+			exeJob.setRootEntityId(resourceData.getId());
+			exeJob.setPluginConfigInterfaceId(batchExeRequest.getPluginConfigInterface().getId());
+			exeJob.setPackageName(batchExeRequest.getPackageName());
+			exeJob.setEntityName(batchExeRequest.getEntityName());
+			exeJob.setBusinessKey(resourceData.getBusinessKeyValue().toString());
+			exeJob.setParameters(transFromInputParameterDefinitionToExecutionJobParameter(
+					batchExeRequest.getInputParameterDefinitions(), exeJob));
+			exeJob.setBatchExecutionJob(batchExeJob);
+			exeJobs.add(exeJob);
 		});
-		return batchExecutionJobRepository.save(batchExecutionJob);
+		batchExeJob.setJobs(exeJobs);
+		return batchExecutionJobRepository.save(batchExeJob);
 	}
 
-	private void completeBatchExecutionJob(BatchExecutionJob batchExecutionJob) {
-		batchExecutionJob.setCompleteTimestamp(new Timestamp(System.currentTimeMillis()));
-		batchExecutionJobRepository.save(batchExecutionJob);
+	private void postProcessBatchExecutionJob(BatchExecutionJob batchExeJob) {
+		batchExeJob.setCompleteTimestamp(new Timestamp(System.currentTimeMillis()));
+		batchExecutionJobRepository.save(batchExeJob);
 	}
 
 	private List<ExecutionJobParameter> transFromInputParameterDefinitionToExecutionJobParameter(
@@ -155,38 +178,42 @@ public class BatchExecutionService {
 		return executionJobParameters;
 	}
 
-	public ResultData<?> runExecutionJob(ExecutionJob executionJob) throws IOException {
+	public ResultData<?> performExecutionJob(ExecutionJob exeJob) throws IOException {
+		if (exeJob == null) {
+			throw new IllegalArgumentException("execution job as input argument cannot be null.");
+		}
 		if (log.isInfoEnabled()) {
-			log.info("run batch execution with:{}", executionJob);
+			log.info("perform batch execution job:{} {} {}", exeJob.getPackageName(), exeJob.getEntityName(),
+					exeJob.getRootEntityId());
 		}
-		String errorMessage;
-		prepareInputParameterValues(executionJob);
+		tryPrepareInputParamValues(exeJob);
 
-		if (executionJob.getPrepareException() != null) {
-			log.error("Errors to calculate input parameters", executionJob.getPrepareException());
-			return null;
+		if (exeJob.getPrepareException() != null) {
+			log.error("Errors to calculate input parameters", exeJob.getPrepareException());
+			throw new WecubeCoreException(
+					"Failed to prepare input parameter due to error:" + exeJob.getPrepareException().getMessage());
 		}
 
-		Map<String, Object> callInterfaceParameterMap = new HashMap<String, Object>();
+		Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
 
-		for (ExecutionJobParameter parameter : executionJob.getParameters()) {
+		for (ExecutionJobParameter parameter : exeJob.getParameters()) {
 			if (DATA_TYPE_STRING.equals(parameter.getDataType())
 					|| MAPPING_TYPE_SYSTEM_VARIABLE.equals(parameter.getMappingEntityExpression())) {
-				callInterfaceParameterMap.put(parameter.getName(), parameter.getValue());
+				pluginInputParamMap.put(parameter.getName(), parameter.getValue());
 			}
 			if (DATA_TYPE_NUMBER.equals(parameter.getDataType())) {
-				callInterfaceParameterMap.put(parameter.getName(), Integer.valueOf(parameter.getValue()));
+				pluginInputParamMap.put(parameter.getName(), Integer.valueOf(parameter.getValue()));
 			}
 		}
 
-		callInterfaceParameterMap.put(CALLBACK_PARAMETER_KEY, executionJob.getRootEntityId());
+		pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
 		Optional<PluginConfigInterface> pluginConfigInterfaceOptional = pluginConfigInterfaceRepository
-				.findById(executionJob.getPluginConfigInterfaceId());
+				.findById(exeJob.getPluginConfigInterfaceId());
 		if (!pluginConfigInterfaceOptional.isPresent()) {
-			errorMessage = String.format("Can not found plugin config interface[%s]",
-					executionJob.getPluginConfigInterfaceId());
+			String errorMessage = String.format("Can not found plugin config interface[%s]",
+					exeJob.getPluginConfigInterfaceId());
 			log.error(errorMessage);
-			executionJob.setErrorWithMessage(errorMessage);
+			exeJob.setErrorWithMessage(errorMessage);
 
 			return buildResultDataWithError(errorMessage);
 		}
@@ -199,13 +226,12 @@ public class BatchExecutionService {
 		try {
 			responseData = pluginServiceStub.callPluginInterface(
 					String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort()),
-					pluginConfigInterface.getPath(), Lists.newArrayList(callInterfaceParameterMap),
+					pluginConfigInterface.getPath(), Lists.newArrayList(pluginInputParamMap),
 					"RequestId-" + Long.toString(System.currentTimeMillis()));
 		} catch (Exception e) {
-			errorMessage = e.getMessage();
-			log.error(errorMessage);
-			executionJob.setErrorWithMessage(errorMessage);
-			return buildResultDataWithError(errorMessage);
+			log.error("errors while call plugin interface", e);
+			exeJob.setErrorWithMessage(e.getMessage());
+			return buildResultDataWithError(e.getMessage());
 		}
 		log.info("returnJsonString= " + responseData.toString());
 		String returnJsonString = JsonUtils.toJsonString(responseData);
@@ -215,17 +241,17 @@ public class BatchExecutionService {
 				});
 
 		if (stationaryResultData.getOutputs().size() == 0) {
-			errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no response",
-					executionJob.getPluginConfigInterfaceId(), pluginInstance.getHost(), pluginInstance.getPort(),
-					pluginConfigInterface.getPath(), callInterfaceParameterMap);
+			String errorMessage = String.format("Call interface[%s][%s:%s%s] with parameters[%s] has no response",
+					exeJob.getPluginConfigInterfaceId(), pluginInstance.getHost(), pluginInstance.getPort(),
+					pluginConfigInterface.getPath(), pluginInputParamMap);
 			log.error(errorMessage);
-			executionJob.setErrorWithMessage(errorMessage);
+			exeJob.setErrorWithMessage(errorMessage);
 			return buildResultDataWithError(errorMessage);
 		}
 		PluginResponseStationaryOutput stationaryOutput = stationaryResultData.getOutputs().get(0);
-		executionJob.setReturnJson(returnJsonString);
-		executionJob.setErrorCode(stationaryOutput.getErrorCode() == null ? RESULT_CODE_ERROR : RESULT_CODE_OK);
-		executionJob.setErrorMessage(stationaryOutput.getErrorMessage());
+		exeJob.setReturnJson(returnJsonString);
+		exeJob.setErrorCode(stationaryOutput.getErrorCode() == null ? RESULT_CODE_ERROR : RESULT_CODE_OK);
+		exeJob.setErrorMessage(stationaryOutput.getErrorMessage());
 		return responseData;
 	}
 
@@ -236,65 +262,77 @@ public class BatchExecutionService {
 		return errorReultData;
 	}
 
-	private void prepareInputParameterValues(ExecutionJob executionJob) {
-		String errorMessage;
+	private void tryPrepareInputParamValues(ExecutionJob exeJob) {
+		if (log.isDebugEnabled()) {
+			log.debug("try prepare input param values for {} {} {}", exeJob.getPackageName(), exeJob.getEntityName(),
+					exeJob.getRootEntityId());
+		}
 
-		for (ExecutionJobParameter parameter : executionJob.getParameters()) {
-			String mappingType = parameter.getMappingType();
+		for (ExecutionJobParameter param : exeJob.getParameters()) {
+			String mappingType = param.getMappingType();
 			if (MAPPING_TYPE_ENTITY.equals(mappingType)) {
-				String mappingEntityExpression = parameter.getMappingEntityExpression();
-				if (log.isDebugEnabled()) {
-					log.debug("expression:{}", mappingEntityExpression);
-				}
-
-				EntityOperationRootCondition criteria = new EntityOperationRootCondition(mappingEntityExpression,
-						executionJob.getRootEntityId());
-
-				List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria);
-
-				if ((attrValsPerExpr == null || attrValsPerExpr.size() == 0)
-						&& FIELD_REQUIRED.equals(parameter.getRequired())) {
-					errorMessage = String.format(
-							"returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
-							parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity());
-					log.error(errorMessage);
-					executionJob.setErrorWithMessage(errorMessage);
-					executionJob.setPrepareException(new WecubeCoreException(errorMessage));
-					break;
-				}
-
-				if (attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
-					parameter.setValue(attrValsPerExpr.get(0) == null ? null : attrValsPerExpr.get(0).toString());
-				}
+				calculateInputParamValueFromExpr(exeJob, param);
 			}
 
 			if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
-				SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
-						executionJob.getPackageName(), parameter.getMappingSystemVariableName());
-
-				if (sVariable == null && FIELD_REQUIRED.equals(parameter.getRequired())) {
-					errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
-					log.error(errorMessage);
-					executionJob.setErrorWithMessage(errorMessage);
-					executionJob.setPrepareException(new WecubeCoreException(errorMessage));
-					return;
-				}
-
-				String sVal = sVariable.getValue();
-				if (StringUtils.isBlank(sVal)) {
-					sVal = sVariable.getDefaultValue();
-				}
-
-				if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(parameter.getRequired())) {
-					errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
-					log.error(errorMessage);
-					executionJob.setErrorWithMessage(errorMessage);
-					executionJob.setPrepareException(new WecubeCoreException(errorMessage));
-					return;
-				}
-				parameter.setValue(sVal);
+				calculateInputParamValueFromSystemVariable(exeJob, param);
 			}
 		}
 		return;
+	}
+
+	private void calculateInputParamValueFromSystemVariable(ExecutionJob executionJob,
+			ExecutionJobParameter parameter) {
+		SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
+				executionJob.getPackageName(), parameter.getMappingSystemVariableName());
+
+		if (sVariable == null && FIELD_REQUIRED.equals(parameter.getRequired())) {
+			String errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
+			log.error(errorMessage);
+			executionJob.setErrorWithMessage(errorMessage);
+			executionJob.setPrepareException(new WecubeCoreException(errorMessage));
+			return;
+		}
+
+		String sVal = sVariable.getValue();
+		if (StringUtils.isBlank(sVal)) {
+			sVal = sVariable.getDefaultValue();
+		}
+
+		if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(parameter.getRequired())) {
+			String errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
+			log.error(errorMessage);
+			executionJob.setErrorWithMessage(errorMessage);
+			executionJob.setPrepareException(new WecubeCoreException(errorMessage));
+			return;
+		}
+		parameter.setValue(sVal);
+	}
+
+	private void calculateInputParamValueFromExpr(ExecutionJob executionJob, ExecutionJobParameter parameter) {
+		String mappingEntityExpression = parameter.getMappingEntityExpression();
+		if (log.isDebugEnabled()) {
+			log.debug("expression:{}", mappingEntityExpression);
+		}
+
+		EntityOperationRootCondition criteria = new EntityOperationRootCondition(mappingEntityExpression,
+				executionJob.getRootEntityId());
+
+		List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria);
+
+		if ((attrValsPerExpr == null || attrValsPerExpr.size() == 0)
+				&& FIELD_REQUIRED.equals(parameter.getRequired())) {
+			String errorMessage = String.format(
+					"returned empty data while fetch the mandatory input parameter[%s] with expression[%s] and root entity ID[%s]",
+					parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity());
+			log.error(errorMessage);
+			executionJob.setErrorWithMessage(errorMessage);
+			executionJob.setPrepareException(new WecubeCoreException(errorMessage));
+			throw new WecubeCoreException(errorMessage);
+		}
+
+		if (attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
+			parameter.setValue(attrValsPerExpr.get(0) == null ? null : attrValsPerExpr.get(0).toString());
+		}
 	}
 }
