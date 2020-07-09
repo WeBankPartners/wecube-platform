@@ -20,170 +20,171 @@ import com.webank.wecube.platform.core.utils.JsonUtils;
 @Entity
 @Table(name = "execution_jobs")
 public class ExecutionJob {
-    public static final String ERROR_CODE_SUCCESSFUL = "0";
-    public static final String ERROR_CODE_FAILED = "1";
+	public static final String ERROR_CODE_SUCCESSFUL = "0";
+	public static final String ERROR_CODE_FAILED = "1";
 
-    @Id
-    @GeneratedValue
-    private Integer id;
+	@Id
+	@GeneratedValue
+	private Integer id;
 
-    @JsonBackReference
-    @ManyToOne
-    @JoinColumn(name = "batch_execution_job_id")
-    private BatchExecutionJob batchExecutionJob;
+	@JsonBackReference
+	@ManyToOne
+	@JoinColumn(name = "batch_execution_job_id")
+	private BatchExecutionJob batchExecutionJob;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "executionJob", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<ExecutionJobParameter> parameters;
+	@JsonManagedReference
+	@OneToMany(mappedBy = "executionJob", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+	private List<ExecutionJobParameter> parameters;
 
-    @Column
-    private String pluginConfigInterfaceId;
-    @Column
-    private String packageName;
-    @Column
-    private String entityName;
+	@Column
+	private String pluginConfigInterfaceId;
+	@Column
+	private String packageName;
+	@Column
+	private String entityName;
 
-    @Column
-    private String businessKey;
-    @Column
-    private String rootEntityId;
+	@Column
+	private String businessKey;
+	@Column
+	private String rootEntityId;
 
-    @Column
-    private String executeTime;
+	@Column
+	private String executeTime;
 
-    @Column
-    private String completeTime;
-    @Column
-    private String errorCode;
-    @Column
-    private String errorMessage;
-    @Column
-    private String returnJson;
-    
-    private transient Exception prepareException;
+	@Column
+	private String completeTime;
+	@Column
+	private String errorCode;
+	@Column
+	private String errorMessage;
+	@Column
+	private String returnJson;
 
-    public Integer getId() {
-        return id;
-    }
+	private transient Exception prepareException;
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+	public ExecutionJob() {
 
-    public String getPluginConfigInterfaceId() {
-        return pluginConfigInterfaceId;
-    }
+	}
 
-    public void setPluginConfigInterfaceId(String pluginConfigInterfaceId) {
-        this.pluginConfigInterfaceId = pluginConfigInterfaceId;
-    }
+	public ExecutionJob(String rootEntityid, String pluginConfigInterfaceId, String packageName, String entityName,
+			String businessKey) {
+		super();
+		this.pluginConfigInterfaceId = pluginConfigInterfaceId;
+		this.packageName = packageName;
+		this.entityName = entityName;
+		this.businessKey = businessKey;
+		this.rootEntityId = rootEntityid;
+	}
 
-    public String getPackageName() {
-        return packageName;
-    }
+	public Integer getId() {
+		return id;
+	}
 
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
-    }
+	public void setId(Integer id) {
+		this.id = id;
+	}
 
-    public String getEntityName() {
-        return entityName;
-    }
+	public String getPluginConfigInterfaceId() {
+		return pluginConfigInterfaceId;
+	}
 
-    public void setEntityName(String entityName) {
-        this.entityName = entityName;
-    }
+	public void setPluginConfigInterfaceId(String pluginConfigInterfaceId) {
+		this.pluginConfigInterfaceId = pluginConfigInterfaceId;
+	}
 
-    public String getExecuteTime() {
-        return executeTime;
-    }
+	public String getPackageName() {
+		return packageName;
+	}
 
-    public void setExecuteTime(String executeTime) {
-        this.executeTime = executeTime;
-    }
+	public void setPackageName(String packageName) {
+		this.packageName = packageName;
+	}
 
-    public String getCompleteTime() {
-        return completeTime;
-    }
+	public String getEntityName() {
+		return entityName;
+	}
 
-    public void setCompleteTime(String completeTime) {
-        this.completeTime = completeTime;
-    }
+	public void setEntityName(String entityName) {
+		this.entityName = entityName;
+	}
 
-    public BatchExecutionJob getBatchExecutionJob() {
-        return batchExecutionJob;
-    }
+	public String getExecuteTime() {
+		return executeTime;
+	}
 
-    public void setBatchExecutionJob(BatchExecutionJob batchExecutionJob) {
-        this.batchExecutionJob = batchExecutionJob;
-    }
+	public void setExecuteTime(String executeTime) {
+		this.executeTime = executeTime;
+	}
 
-    public List<ExecutionJobParameter> getParameters() {
-        return parameters;
-    }
+	public String getCompleteTime() {
+		return completeTime;
+	}
 
-    public void setParameters(List<ExecutionJobParameter> parameters) {
-        this.parameters = parameters;
-    }
+	public void setCompleteTime(String completeTime) {
+		this.completeTime = completeTime;
+	}
 
-    public String getBusinessKey() {
-        return businessKey;
-    }
+	public BatchExecutionJob getBatchExecutionJob() {
+		return batchExecutionJob;
+	}
 
-    public void setBusinessKey(String businessKey) {
-        this.businessKey = businessKey;
-    }
+	public void setBatchExecutionJob(BatchExecutionJob batchExecutionJob) {
+		this.batchExecutionJob = batchExecutionJob;
+	}
 
-    public ExecutionJob(String rootEntityid, String pluginConfigInterfaceId, String packageName, String entityName,
-            String businessKey) {
-        super();
-        this.pluginConfigInterfaceId = pluginConfigInterfaceId;
-        this.packageName = packageName;
-        this.entityName = entityName;
-        this.businessKey = businessKey;
-        this.rootEntityId = rootEntityid;
-    }
+	public List<ExecutionJobParameter> getParameters() {
+		return parameters;
+	}
 
-    public String getErrorCode() {
-        return errorCode;
-    }
+	public void setParameters(List<ExecutionJobParameter> parameters) {
+		this.parameters = parameters;
+	}
 
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
+	public String getBusinessKey() {
+		return businessKey;
+	}
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	public void setBusinessKey(String businessKey) {
+		this.businessKey = businessKey;
+	}
 
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
+	public String getErrorCode() {
+		return errorCode;
+	}
 
-    public String getReturnJson() {
-        return returnJson;
-    }
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
 
-    public void setReturnJson(String returnJson) {
-        this.returnJson = returnJson;
-    }
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    public void setErrorWithMessage(String errorMessage) {
-        this.errorCode = ERROR_CODE_FAILED;
-        this.errorMessage = errorMessage;
-        this.returnJson = JsonUtils.toJsonString(this);
-    }
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
 
-    
+	public String getReturnJson() {
+		return returnJson;
+	}
 
-    public String getRootEntityId() {
-        return rootEntityId;
-    }
+	public void setReturnJson(String returnJson) {
+		this.returnJson = returnJson;
+	}
 
-    public void setRootEntityId(String rootEntityId) {
-        this.rootEntityId = rootEntityId;
-    }
-    
+	public void setErrorWithMessage(String errorMessage) {
+		this.errorCode = ERROR_CODE_FAILED;
+		this.errorMessage = errorMessage;
+		this.returnJson = JsonUtils.toJsonString(this);
+	}
+
+	public String getRootEntityId() {
+		return rootEntityId;
+	}
+
+	public void setRootEntityId(String rootEntityId) {
+		this.rootEntityId = rootEntityId;
+	}
 
 	@Override
 	public String toString() {
@@ -218,14 +219,12 @@ public class ExecutionJob {
 		return builder.toString();
 	}
 
-    public Exception getPrepareException() {
-        return prepareException;
-    }
+	public Exception getPrepareException() {
+		return prepareException;
+	}
 
-    public void setPrepareException(Exception prepareException) {
-        this.prepareException = prepareException;
-    }
-    
-    
+	public void setPrepareException(Exception prepareException) {
+		this.prepareException = prepareException;
+	}
 
 }
