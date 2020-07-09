@@ -3,7 +3,6 @@ package com.webank.wecube.platform.core.dto;
 import java.util.List;
 
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 
 public class BatchExecutionRequestDto {
 
@@ -65,4 +64,24 @@ public class BatchExecutionRequestDto {
         this.resourceDatas = resourceDatas;
     }
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("BatchExecutionRequestDto [pluginConfigInterface=");
+		builder.append(pluginConfigInterface);
+		builder.append(", packageName=");
+		builder.append(packageName);
+		builder.append(", entityName=");
+		builder.append(entityName);
+		builder.append(", inputParameterDefinitions=");
+		builder.append(inputParameterDefinitions);
+		builder.append(", businessKeyAttribute=");
+		builder.append(businessKeyAttribute);
+		builder.append(", resourceDatas=");
+		builder.append(resourceDatas);
+		builder.append("]");
+		return builder.toString();
+	}
+
+    
 }
