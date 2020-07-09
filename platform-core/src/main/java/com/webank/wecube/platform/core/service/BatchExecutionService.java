@@ -107,7 +107,11 @@ public class BatchExecutionService {
 
 		}
 
-		postProcessBatchExecutionJob(batchExeJob);
+		try {
+			postProcessBatchExecutionJob(batchExeJob);
+		} catch (Exception e) {
+			log.error("errors while post processing batch execution job", e);
+		}
 		return exeResults;
 	}
 
@@ -175,17 +179,19 @@ public class BatchExecutionService {
 	}
 
 	public ResultData<?> performExecutionJob(ExecutionJob exeJob) throws IOException {
-		if(exeJob == null) {
+		if (exeJob == null) {
 			throw new IllegalArgumentException("execution job as input argument cannot be null.");
 		}
 		if (log.isInfoEnabled()) {
-			log.info("perform batch execution job:{} {} {}", exeJob.getPackageName(), exeJob.getEntityName(), exeJob.getRootEntityId());
+			log.info("perform batch execution job:{} {} {}", exeJob.getPackageName(), exeJob.getEntityName(),
+					exeJob.getRootEntityId());
 		}
 		tryPrepareInputParamValues(exeJob);
 
 		if (exeJob.getPrepareException() != null) {
 			log.error("Errors to calculate input parameters", exeJob.getPrepareException());
-			throw new WecubeCoreException("Failed to prepare input parameter due to error:"+exeJob.getPrepareException().getMessage());
+			throw new WecubeCoreException(
+					"Failed to prepare input parameter due to error:" + exeJob.getPrepareException().getMessage());
 		}
 
 		Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
