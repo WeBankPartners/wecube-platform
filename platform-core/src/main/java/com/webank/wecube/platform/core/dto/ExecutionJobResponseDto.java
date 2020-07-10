@@ -30,4 +30,16 @@ public class ExecutionJobResponseDto {
         this.result = result;
     }
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ExecutionJobResponseDto [errorCode=");
+		builder.append(errorCode);
+		builder.append(", result=");
+		builder.append(result);
+		builder.append("]");
+		return builder.toString();
+	}
+
+    
 }
