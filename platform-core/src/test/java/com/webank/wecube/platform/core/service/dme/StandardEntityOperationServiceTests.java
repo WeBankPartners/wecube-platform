@@ -28,6 +28,7 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
     private RestTemplate jwtSsoRestTemplate;
     @Autowired
     private ApplicationProperties applicationProperties;
+    
     private String gatewayUrl = "localhost:8080";
     private MockRestServiceServer server;
     
@@ -39,7 +40,6 @@ public class StandardEntityOperationServiceTests extends BaseSpringBootTest {
         gatewayUrl = this.applicationProperties.getGatewayUrl();
         mockers = new StandardEntityOperationServiceTestsMockers(gatewayUrl);
     }
-    
     
     @Test
     public void wecmdbMultipleRefToLinksWithOpToOnlyExpressionFetchShouldSucceed() {
