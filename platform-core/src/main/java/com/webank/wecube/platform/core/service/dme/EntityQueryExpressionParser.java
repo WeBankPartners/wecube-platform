@@ -96,31 +96,43 @@ public class EntityQueryExpressionParser {
             expr = expr.substring(expr.indexOf(PKG_DELIMITER) + 1);
         }
         
-        if(expr.indexOf(".") > 0){
-            String attrName = expr.substring(expr.indexOf(".") + 1);
-            nodeInfo.setQueryAttrName(attrName);
-            
-            expr = expr.substring(0, expr.indexOf("."));
-        }
-
-        if(expr.indexOf("{") > 0){
-            String filterExpr = expr.substring(expr.indexOf("{"));
+       
+        
+        int idxFirstBraceSt = expr.indexOf("{");
+        int idxLastBraceEd = expr.lastIndexOf("}");
+        
+        String attrNameExpr = null;
+        
+        if(idxFirstBraceSt > 0 && (idxLastBraceEd > 0) && (idxLastBraceEd > idxFirstBraceSt)) {
+        	String filterExpr = expr.substring(idxFirstBraceSt,idxLastBraceEd+1);
             nodeInfo.setEntityFilterExpr(filterExpr);
             
-            expr = expr.substring(0,expr.indexOf("{"));
+            expr = expr.substring(0,idxFirstBraceSt);
             nodeInfo.setEntityInfoExpr(entityQueryNodeExpr.substring(0, entityQueryNodeExpr.indexOf("{")) );
             
             parseAdditionalFilters(nodeInfo, filterExpr);
-        }else{
-            nodeInfo.setEntityInfoExpr(entityQueryNodeExpr);
+            
+            attrNameExpr = entityQueryNodeExpr.substring(entityQueryNodeExpr.lastIndexOf("}")+1);
+            
+            if(attrNameExpr != null && attrNameExpr.indexOf(".") >= 0){
+                String attrName = attrNameExpr.substring(attrNameExpr.indexOf(".") + 1);
+                nodeInfo.setQueryAttrName(attrName);
+            }
+        }else {
+        	nodeInfo.setEntityInfoExpr(entityQueryNodeExpr);
+        	
+        	if(expr.indexOf(".") >= 0){
+                String attrName = expr.substring(expr.indexOf(".") + 1);
+                nodeInfo.setQueryAttrName(attrName);
+                
+                expr = expr.substring(0, expr.indexOf("."));
+            }
         }
         
-        if(expr.indexOf(".") > 0){
-            String attrName = expr.substring(expr.indexOf(".") + 1);
-            nodeInfo.setQueryAttrName(attrName);
-            
-            expr = expr.substring(0, expr.indexOf("."));
-        }
+//        if(nodeInfo.getQueryAttrName() == null && expr.indexOf(".") > 0){
+//            String attrName = expr.substring(expr.lastIndexOf(".") + 1);
+//            nodeInfo.setQueryAttrName(attrName);
+//        }
         
         nodeInfo.setEntityName(expr);
     }
