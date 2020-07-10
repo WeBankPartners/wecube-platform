@@ -102,6 +102,7 @@ public class BatchExecutionService {
 				exeResult = buildResultDataWithError(e.getMessage());
 				Object resultObject = exeResult.getOutputs().get(0);
 				ExecutionJobResponseDto respDataObj = new ExecutionJobResponseDto(RESULT_CODE_ERROR, resultObject);
+				log.info("biz key:{}, respDataObj:{}", exeJob.getBusinessKey(), respDataObj);
 				exeResults.put(exeJob.getBusinessKey(), respDataObj);
 			}
 
@@ -186,7 +187,21 @@ public class BatchExecutionService {
 			log.info("perform batch execution job:{} {} {}", exeJob.getPackageName(), exeJob.getEntityName(),
 					exeJob.getRootEntityId());
 		}
-		tryPrepareInputParamValues(exeJob);
+		
+		Optional<PluginConfigInterface> pluginConfigInterfaceOptional = pluginConfigInterfaceRepository
+				.findById(exeJob.getPluginConfigInterfaceId());
+		if (!pluginConfigInterfaceOptional.isPresent()) {
+			String errorMessage = String.format("Can not found plugin config interface[%s]",
+					exeJob.getPluginConfigInterfaceId());
+			log.error(errorMessage);
+			exeJob.setErrorWithMessage(errorMessage);
+
+			return buildResultDataWithError(errorMessage);
+		}
+		
+		PluginConfigInterface pluginConfigInterface = pluginConfigInterfaceOptional.get();
+		
+		tryPrepareInputParamValues(exeJob, pluginConfigInterface);
 
 		if (exeJob.getPrepareException() != null) {
 			log.error("Errors to calculate input parameters", exeJob.getPrepareException());
@@ -207,18 +222,6 @@ public class BatchExecutionService {
 		}
 
 		pluginInputParamMap.put(CALLBACK_PARAMETER_KEY, exeJob.getRootEntityId());
-		Optional<PluginConfigInterface> pluginConfigInterfaceOptional = pluginConfigInterfaceRepository
-				.findById(exeJob.getPluginConfigInterfaceId());
-		if (!pluginConfigInterfaceOptional.isPresent()) {
-			String errorMessage = String.format("Can not found plugin config interface[%s]",
-					exeJob.getPluginConfigInterfaceId());
-			log.error(errorMessage);
-			exeJob.setErrorWithMessage(errorMessage);
-
-			return buildResultDataWithError(errorMessage);
-		}
-
-		PluginConfigInterface pluginConfigInterface = pluginConfigInterfaceOptional.get();
 
 		PluginInstance pluginInstance = pluginInstanceService
 				.getRunningPluginInstance(pluginConfigInterface.getPluginConfig().getPluginPackage().getName());
@@ -262,11 +265,13 @@ public class BatchExecutionService {
 		return errorReultData;
 	}
 
-	private void tryPrepareInputParamValues(ExecutionJob exeJob) {
+	private void tryPrepareInputParamValues(ExecutionJob exeJob, PluginConfigInterface pluginConfigInterface) {
 		if (log.isDebugEnabled()) {
 			log.debug("try prepare input param values for {} {} {}", exeJob.getPackageName(), exeJob.getEntityName(),
 					exeJob.getRootEntityId());
 		}
+		
+		String pluginPackageName = pluginConfigInterface.getPluginConfig().getPluginPackage().getName();
 
 		for (ExecutionJobParameter param : exeJob.getParameters()) {
 			String mappingType = param.getMappingType();
@@ -275,44 +280,53 @@ public class BatchExecutionService {
 			}
 
 			if (MAPPING_TYPE_SYSTEM_VARIABLE.equals(mappingType)) {
-				calculateInputParamValueFromSystemVariable(exeJob, param);
+				calculateInputParamValueFromSystemVariable(exeJob, param, pluginPackageName);
 			}
 		}
 		return;
 	}
 
 	private void calculateInputParamValueFromSystemVariable(ExecutionJob executionJob,
-			ExecutionJobParameter parameter) {
+			ExecutionJobParameter parameter, String pluginPackageName) {
+		if (log.isDebugEnabled()) {
+			log.debug("calculate param value from system variable and paramName={},systemVarName={}", parameter.getName(), parameter.getMappingSystemVariableName());
+		}
 		SystemVariable sVariable = systemVariableService.getSystemVariableByPackageNameAndName(
-				executionJob.getPackageName(), parameter.getMappingSystemVariableName());
+				pluginPackageName, parameter.getMappingSystemVariableName());
 
 		if (sVariable == null && FIELD_REQUIRED.equals(parameter.getRequired())) {
-			String errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
+			String errorMessage = String.format("variable is null but is mandatory for paramName=%s, systemVarName=%s ",
+					parameter.getName(), parameter.getMappingSystemVariableName());
 			log.error(errorMessage);
 			executionJob.setErrorWithMessage(errorMessage);
 			executionJob.setPrepareException(new WecubeCoreException(errorMessage));
 			return;
 		}
 
-		String sVal = sVariable.getValue();
-		if (StringUtils.isBlank(sVal)) {
-			sVal = sVariable.getDefaultValue();
-		}
+		if (sVariable != null) {
 
-		if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(parameter.getRequired())) {
-			String errorMessage = String.format("variable is null but is mandatory for %s", parameter.getName());
-			log.error(errorMessage);
-			executionJob.setErrorWithMessage(errorMessage);
-			executionJob.setPrepareException(new WecubeCoreException(errorMessage));
-			return;
+			String sVal = sVariable.getValue();
+			if (StringUtils.isBlank(sVal)) {
+				sVal = sVariable.getDefaultValue();
+			}
+
+			if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(parameter.getRequired())) {
+				String errorMessage = String.format(
+						"variable is null but is mandatory for paramName=%s, systemVarName=%s", parameter.getName(),
+						parameter.getMappingSystemVariableName());
+				log.error(errorMessage);
+				executionJob.setErrorWithMessage(errorMessage);
+				executionJob.setPrepareException(new WecubeCoreException(errorMessage));
+				return;
+			}
+			parameter.setValue(sVal);
 		}
-		parameter.setValue(sVal);
 	}
 
 	private void calculateInputParamValueFromExpr(ExecutionJob executionJob, ExecutionJobParameter parameter) {
 		String mappingEntityExpression = parameter.getMappingEntityExpression();
 		if (log.isDebugEnabled()) {
-			log.debug("expression:{}", mappingEntityExpression);
+			log.debug("calculate param value from entity, name={} ,expression={}", parameter.getName(), mappingEntityExpression);
 		}
 
 		EntityOperationRootCondition criteria = new EntityOperationRootCondition(mappingEntityExpression,
