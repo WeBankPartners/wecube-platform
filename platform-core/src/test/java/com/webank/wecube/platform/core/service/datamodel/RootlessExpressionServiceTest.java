@@ -1,29 +1,25 @@
 package com.webank.wecube.platform.core.service.datamodel;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
+
 import com.webank.wecube.platform.core.BaseSpringBootTest;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.DmeFilterDto;
 import com.webank.wecube.platform.core.dto.DmeLinkFilterDto;
 import com.webank.wecube.platform.core.dto.Filter;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.client.ExpectedCount;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 
@@ -43,11 +39,18 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 		gatewayUrl = this.applicationProperties.getGatewayUrl();
 	}
 
-	public void testParseFilters() {
-//        String expr = ""
-	}
+	@Test
+	public void givenExpressionWithWrongNameFilterShouldSucceedWithFilter() {
+		new RootlessExpressionServiceMocker(this.gatewayUrl)
+				.mockPackageNameWithDashAndFwdNodeExpressionServerWithFilter(server);
+		List<Object> resultOne = rootlessExpressionService
+				.fetchDataWithFilter(new DmeFilterDto("wecmdb:system_design{ip_address eq 'localhost'}", null));
 
-	
+		Assert.assertNotNull(resultOne);
+		Assert.assertEquals(1, resultOne.size());
+		Assert.assertNotNull(resultOne.get(0));
+		server.verify();
+	}
 
 	@Test
 	public void givenExpressionWithWrongNameFilterShouldSucceed() {
@@ -107,8 +110,6 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 
 		server.verify();
 	}
-
-	
 
 	@Test
 	public void wecmdbOneLinkWithOpToExpressionAndCorrectFiltersShouldSucceed() {
@@ -185,7 +186,4 @@ public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 		server.verify();
 	}
 
-	
-
-	
 }
