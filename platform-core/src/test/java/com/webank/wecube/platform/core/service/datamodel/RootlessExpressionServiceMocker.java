@@ -16,6 +16,21 @@ public class RootlessExpressionServiceMocker {
 		super();
 		this.gatewayUrl = gatewayUrl;
 	}
+	
+	public void mockPackageNameWithDashAndFwdNodeExpressionServerWithFilter(MockRestServiceServer server) {
+		// mockFwdNodeExpression
+		server.expect(ExpectedCount.once(),
+				requestTo(String.format("http://%s/wecmdb/entities/system_design/query", this.gatewayUrl)))
+				.andExpect(method(HttpMethod.POST))
+				.andRespond(withSuccess("{\n" + "    \"status\": \"OK\",\n" + "    \"message\": \"Success\",\n"
+						+ "    \"data\": [\n" + "        {\n" + "            \"key_name\": \"DEMO1\",\n"
+						+ "            \"p_guid\": null,\n" + "            \"business_group\": \"business_group_A\",\n"
+						+ "            \"code\": \"DEMO1\",\n" + "            \"r_guid\": \"0001_0000000001\",\n"
+						+ "            \"name\": \"演示系统1\",\n" + "            \"description\": \"1\",\n"
+						+ "            \"id\": \"0001_0000000001\",\n" + "            \"state\": \"new\",\n"
+						+ "            \"fixed_date\": \"\"\n" + "        }\n]}", MediaType.APPLICATION_JSON));
+
+	}
 
 	public  void mockMultipleLinksWithMixedOpExpressionServer(MockRestServiceServer server) {
 
