@@ -107,21 +107,21 @@ public class EntityQueryExpressionParser {
         	String filterExpr = expr.substring(idxFirstBraceSt,idxLastBraceEd+1);
             nodeInfo.setEntityFilterExpr(filterExpr);
             
-            expr = expr.substring(0,expr.indexOf("{"));
+            expr = expr.substring(0,idxFirstBraceSt);
             nodeInfo.setEntityInfoExpr(entityQueryNodeExpr.substring(0, entityQueryNodeExpr.indexOf("{")) );
             
             parseAdditionalFilters(nodeInfo, filterExpr);
             
-            attrNameExpr = entityQueryNodeExpr.substring(idxLastBraceEd+1);
+            attrNameExpr = entityQueryNodeExpr.substring(entityQueryNodeExpr.lastIndexOf("}")+1);
             
-            if(attrNameExpr != null && attrNameExpr.indexOf(".") > 0){
+            if(attrNameExpr != null && attrNameExpr.indexOf(".") >= 0){
                 String attrName = attrNameExpr.substring(attrNameExpr.indexOf(".") + 1);
                 nodeInfo.setQueryAttrName(attrName);
             }
         }else {
         	nodeInfo.setEntityInfoExpr(entityQueryNodeExpr);
         	
-        	if(expr.indexOf(".") > 0){
+        	if(expr.indexOf(".") >= 0){
                 String attrName = expr.substring(expr.indexOf(".") + 1);
                 nodeInfo.setQueryAttrName(attrName);
                 
@@ -129,10 +129,10 @@ public class EntityQueryExpressionParser {
             }
         }
         
-        if(attrNameExpr != null && attrNameExpr.indexOf(".") > 0){
-            String attrName = attrNameExpr.substring(attrNameExpr.indexOf(".") + 1);
-            nodeInfo.setQueryAttrName(attrName);
-        }
+//        if(nodeInfo.getQueryAttrName() == null && expr.indexOf(".") > 0){
+//            String attrName = expr.substring(expr.lastIndexOf(".") + 1);
+//            nodeInfo.setQueryAttrName(attrName);
+//        }
         
         nodeInfo.setEntityName(expr);
     }
