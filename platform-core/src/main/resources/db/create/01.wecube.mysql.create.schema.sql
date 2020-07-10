@@ -314,7 +314,7 @@ CREATE TABLE `execution_job_parameters` (
     `mapping_system_variable_name` VARCHAR(500) NULL DEFAULT NULL,
     `required` VARCHAR(5) NULL DEFAULT NULL,
     `constant_value` VARCHAR(255) NULL DEFAULT NULL,
-    `value` VARCHAR(255) NULL DEFAULT NULL,
+    `value` TEXT NULL DEFAULT NULL,
     PRIMARY KEY (`id`),
     INDEX `FK_execution_job_parameters_execution_jobs` (`execution_job_id`),
     CONSTRAINT `FK_execution_job_parameters_execution_jobs` FOREIGN KEY (`execution_job_id`) REFERENCES `execution_jobs` (`id`)
