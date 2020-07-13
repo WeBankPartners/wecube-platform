@@ -39,15 +39,11 @@ public class PluginRouteItemService {
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
     
-    private AtomicLong tryCalculateInterfaceRoutesCount = new AtomicLong();
+    private AtomicLong refreshCounter = new AtomicLong();
     
-    private AtomicLong tryCalculatePluginRouteItemCount = new AtomicLong();
-    
-    private AtomicLong getRunningPluginInstancesCount = new AtomicLong();
-
     public List<PluginRouteItemDto> getAllPluginRouteItems() {
     	if(log.isInfoEnabled()) {
-    		log.info("ROUTE:try to get all plugin route items.");
+    		log.info("ROUTE:try to get all plugin route items.---{}", refreshCounter.incrementAndGet());
     	}
     	
     	long startTime = System.currentTimeMillis();
@@ -85,7 +81,6 @@ public class PluginRouteItemService {
     }
 
     private void tryCalculateInterfaceRoutes(List<PluginRouteItemDto> resultList) {
-    	log.info("COUNT:tryCalculateInterfaceRoutesCount:{}", tryCalculateInterfaceRoutesCount.incrementAndGet());
 
         List<PluginConfigInterface> interfaces = pluginConfigInterfaceRepository.findAllEnabledInterfaces();
         if (interfaces == null || interfaces.isEmpty()) {
@@ -119,7 +114,6 @@ public class PluginRouteItemService {
     }
 
     private List<PluginRouteItemDto> tryCalculatePluginRouteItem(PluginConfigInterface intf) {
-    	log.info("COUNT:tryCalculatePluginRouteItemCount:{}", tryCalculatePluginRouteItemCount.incrementAndGet());
         PluginConfig pluginConfig = intf.getPluginConfig();
         PluginPackage pluginPackage = pluginConfig.getPluginPackage();
         String packageName = pluginPackage.getName();
@@ -183,7 +177,6 @@ public class PluginRouteItemService {
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
-    	log.info("COUNT:getRunningPluginInstancesCount:{}", getRunningPluginInstancesCount.incrementAndGet());
         Optional<PluginPackage> pkg = pluginPackageRepository.findLatestActiveVersionByName(pluginName);
         if (!pkg.isPresent()) {
             log.info("Plugin package [{}] not found.", pluginName);

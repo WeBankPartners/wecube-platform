@@ -7,7 +7,7 @@ spring:
     active: dev
   datasource:
     hikari:
-      pool-name: Retail_HikariCP
+      pool-name: We3_HikariCP
       minimum-idle: 20
       idle-timeout: 180000
       maximum-pool-size: 200
