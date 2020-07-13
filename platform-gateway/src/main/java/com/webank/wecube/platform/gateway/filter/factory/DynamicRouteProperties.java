@@ -9,7 +9,7 @@ public class DynamicRouteProperties {
     private String routeConfigAccessKey;
 
     private boolean enableRetry = true;
-    private int retryIntervalOfSeconds = 5;
+    private int retryIntervalOfSeconds = 60;
     private int refreshIntervalOfMinutes = 10;
 
     public String getRouteConfigServer() {

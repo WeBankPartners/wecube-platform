@@ -66,6 +66,8 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     private Map<String, Object> loadedContexts = new ConcurrentHashMap<>();
 
     private volatile boolean isDynamicRouteLoaded = false;
+    
+    private volatile boolean isDynamicRouteLoading = false;
 
     private ReentrantLock loadLock = new ReentrantLock();
 
@@ -158,6 +160,11 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
                 return;
             }
+            
+            if(isDynamicRouteLoading) {
+        		log.debug("Dynamic route is loading... {}", time);
+        		return;
+        	}
 
             log.debug("try to load dynamic routes --- {}", time);
             doLoadRoutes();
@@ -174,6 +181,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
         try {
 
+        	isDynamicRouteLoading = true;
             Mono<RouteConfigInfoResponseDto> mono = fetchAllRouteItemsWithWebClient();
             mono.subscribe(this::handleLoadRouteConfigInfoResponseDto, this::handleLoadErrors);
 
@@ -185,6 +193,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     private void handleLoadErrors(Throwable e) {
         log.info("errors while loading routes...", e);
+        isDynamicRouteLoading = false;
         isDynamicRouteLoaded = false;
     }
 
@@ -220,6 +229,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
             DynamicRouteItemInfoHolder.refresh(routeItemInfos);
             initContextRouteConfigs();
 
+            isDynamicRouteLoading = false;
             isDynamicRouteLoaded = true;
         } finally {
             loadLock.unlock();
