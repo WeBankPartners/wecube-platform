@@ -47,9 +47,10 @@ public class PluginRouteItemService {
 
         List<PluginRouteItemDto> resultList = new LinkedList<>();
 
-        List<PluginInstanceEntity> pluginInstances = fetchPluginInstanceEntities();
+        List<PluginInstanceEntity> pluginInstances = fetchRunningPluginInstanceInfo();
 
-        Map<String,List<PluginInstanceEntity>> packageId2PluginInstances = new HashMap<>();
+        //packageId -> PluginInstanceEntity
+        Map<String,List<PluginInstanceEntity>> pluginInstanceMap = new HashMap<>();
         // 1 assemble default route for each context
         if (pluginInstances != null) {
             pluginInstances.forEach(pi -> {
@@ -63,11 +64,11 @@ public class PluginRouteItemService {
 
                 String packageId = pi.getPackageId();
                 List<PluginInstanceEntity> pluginInstanceList = null;
-                if(packageId2PluginInstances.containsKey(packageId)){
-                    pluginInstanceList = packageId2PluginInstances.get(packageId);
+                if(pluginInstanceMap.containsKey(packageId)){
+                    pluginInstanceList = pluginInstanceMap.get(packageId);
                 }else{
                     pluginInstanceList = new ArrayList<>();
-                    packageId2PluginInstances.put(packageId,pluginInstanceList);
+                    pluginInstanceMap.put(packageId,pluginInstanceList);
                 }
                 pluginInstanceList.add(pi);
             });
@@ -83,7 +84,7 @@ public class PluginRouteItemService {
         }
 
         // 2 assemble routes for each interface
-        tryCalculateInterfaceRoutes(resultList,packageId2PluginInstances,latestActivePluginPackageMap);
+        tryCalculateInterfaceRoutes(resultList,pluginInstanceMap,latestActivePluginPackageMap);
 
         if (log.isInfoEnabled()) {
             log.info("total {} routes got to push.", resultList.size());
@@ -102,14 +103,14 @@ public class PluginRouteItemService {
         return (List<PluginPackageEntity>) pluginPackageQuery.getResultList();
     }
 
-    private List<PluginInstanceEntity> fetchPluginInstanceEntities() {
+    private List<PluginInstanceEntity> fetchRunningPluginInstanceInfo() {
         Query pliginInsQuery = entityManager.createNativeQuery("SELECT i.id,i.package_id,i.instance_name,i.container_name,i.host,i.port,i.container_status, " +
                 "p.`name` AS package_name FROM plugin_instances i " +
                 "JOIN plugin_packages p ON i.`package_id`=p.`id` WHERE i.`container_status` = 'RUNNING'", PluginInstanceEntity.class);
         return (List<PluginInstanceEntity>) pliginInsQuery.getResultList();
     }
 
-    private void tryCalculateInterfaceRoutes(List<PluginRouteItemDto> resultList, Map<String,List<PluginInstanceEntity>> packageId2PluginInstances,Map<String,PluginPackageEntity> latestActivePluginPackageMap) {
+    private void tryCalculateInterfaceRoutes(List<PluginRouteItemDto> resultList, Map<String,List<PluginInstanceEntity>> pluginInstanceMap,Map<String,PluginPackageEntity> latestActivePluginPackageMap) {
 
         List<PluginConfigInterfaceEntity> interfaces = fetchPluginConfigInterfaceInfo();
 
@@ -133,7 +134,7 @@ public class PluginRouteItemService {
                 continue;
             }
 
-            List<PluginRouteItemDto> routeItems = tryCalculatePluginRouteItem(intf, packageId2PluginInstances, latestActivePluginPackageMap);
+            List<PluginRouteItemDto> routeItems = tryCalculatePluginRouteItem(intf, pluginInstanceMap, latestActivePluginPackageMap);
             if(!routeItems.isEmpty()){
                 resultList.addAll(routeItems);
                 calculatedServiceNames.put(intf.getServiceName(), mapValue);
