@@ -53,7 +53,7 @@
           ><Icon style="margin-right:5px" size="16" type="md-book" />{{ $t('help_docs') }}</a
         >
       </div>
-      <div class="version">v2.4.0</div>
+      <div class="version">v2.5.0</div>
     </div>
   </Header>
 </template>
