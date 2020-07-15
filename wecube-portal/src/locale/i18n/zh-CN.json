@@ -403,6 +403,7 @@
   "bc_mgmt_role_cannot_empty": "属主角色不能为空",
   "bc_name_cannot_empty": "收藏名称不能为空",
   "bc_edit_role": "角色配置",
+  "bc_exect_tip": "操作已提交，请等待执行结果！",
   "plugin_type": "插件类型",
   "sstn": "自动节点",
   "sutn": "人工审批节点",
