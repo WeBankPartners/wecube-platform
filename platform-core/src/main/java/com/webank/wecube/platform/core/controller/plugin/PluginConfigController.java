@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.service.plugin.PluginRegistryInfo;
@@ -137,6 +138,28 @@ public class PluginConfigController {
             return CommonResponseDto.error(e.getMessage());
         }
         return okay();
+    }
+    
+    @PostMapping("/plugins/roles/configs/{plugin-config-id:.+}")
+    public CommonResponseDto updateProcRoleBinding(@PathVariable("proc-id") String procId,
+            @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
+        try {
+            pluginConfigService.updateProcRoleBinding(procId, pluginConfigRoleRequestDto);
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
+        }
+        return CommonResponseDto.okay();
+    }
+
+    @DeleteMapping("/plugins/roles/configs/{plugin-config-id:.+}")
+    public CommonResponseDto deleteProcRoleBinding(@PathVariable("proc-id") String procId,
+            @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
+        try {
+            pluginConfigService.deleteProcRoleBinding(procId, pluginConfigRoleRequestDto);
+        } catch (WecubeCoreException ex) {
+            return CommonResponseDto.error(ex.getMessage());
+        }
+        return CommonResponseDto.okay();
     }
 
 }
