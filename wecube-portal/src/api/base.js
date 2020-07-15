@@ -122,7 +122,7 @@ req.interceptors.response.use(
 
     return new Promise((resolve, reject) => {
       resolve({
-        data: throwError(err)
+        data: throwError(response)
       })
     })
   }
