@@ -42,6 +42,8 @@ import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.PluginAuthRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
@@ -56,6 +58,7 @@ import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigOutput
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigsType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginPackageType;
+import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
 
 @Service
@@ -73,9 +76,12 @@ public class PluginConfigService {
     private PluginPackageEntityRepository pluginPackageEntityRepository;
     @Autowired
     private PluginPackageDataModelRepository dataModelRepository;
-    
+
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
+
+    @Autowired
+    private UserManagementServiceImpl userManagementService;
 
     public PluginRegistryInfo exportPluginRegistersForOnePackage(String pluginPackageId) {
         if (StringUtils.isBlank(pluginPackageId)) {
@@ -159,6 +165,7 @@ public class PluginConfigService {
     }
 
     public PluginConfigDto savePluginConfig(PluginConfigDto pluginConfigDto) throws WecubeCoreException {
+        validatePermission(pluginConfigDto.getPermissionToRole());
         if (pluginConfigDto.getId() == null) {
             return createPluginConfig(pluginConfigDto);
         }
@@ -175,47 +182,124 @@ public class PluginConfigService {
 
         pluginConfig.setStatus(DISABLED);
         PluginConfig savedPluginConfig = pluginConfigRepository.save(pluginConfig);
-        
-        //store permission and roles
 
-        return PluginConfigDto.fromDomain(savedPluginConfig);
+        PluginConfigDto results = PluginConfigDto.fromDomain(savedPluginConfig);
+
+        Map<String, List<String>> addedPermissionToRole = processCreatePluginConfigRoleBindings(savedPluginConfig.getId(),
+                pluginConfigDto.getPermissionToRole());
+        
+        results.addAllPermissionToRole(addedPermissionToRole);
+
+        return results;
+    }
+
+    private void validatePermission(Map<String, List<String>> permissionToRole) {
+        if (permissionToRole == null || permissionToRole.isEmpty()) {
+            throw new WecubeCoreException("Permission configuration should provide.");
+        }
+        List<String> mgmtRoleIds = permissionToRole.get(PluginAuthEntity.PERM_TYPE_MGMT);
+        if (mgmtRoleIds == null || mgmtRoleIds.isEmpty()) {
+            throw new WecubeCoreException("At least one management role should provide.");
+        }
+
+        return;
     }
     
-    @SuppressWarnings("unused")
-    public void updateProcRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
-//        String permissionStr = pluginConfigRoleRequestDto.getPermission();
-//        List<String> roleIdList = pluginConfigRoleRequestDto.getRoles();
-//        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
-//
-//        // check if user's roles has permission to manage this process
-//        checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
-//        batchSaveData(procId, roleIdList, permissionStr);
+    private Map<String, List<String>> processUpdatePluginConfigRoleBindings(String pluginConfigId,
+            Map<String, List<String>> permissionToRole) {
+        Map<String, List<String>> boundPermissionToRole = new HashMap<String, List<String>>();
+        if (permissionToRole == null || permissionToRole.isEmpty()) {
+            return boundPermissionToRole;
+        }
+        
+        for(String permission : boundPermissionToRole.keySet()){
+            List<String> existRoleIds = null;
+            
+        }
+        
+        return null;
+    }
+    
+
+    private Map<String, List<String>> processCreatePluginConfigRoleBindings(String pluginConfigId,
+            Map<String, List<String>> permissionToRole) {
+        Map<String, List<String>> boundPermissionToRole = new HashMap<String, List<String>>();
+        if (permissionToRole == null || permissionToRole.isEmpty()) {
+            return boundPermissionToRole;
+        }
+
+        for (String permission : boundPermissionToRole.keySet()) {
+            List<String> roleIds = boundPermissionToRole.get(permission);
+            if (roleIds != null) {
+                List<String> addedRoleIds = new ArrayList<String>();
+                for (String roleId : roleIds) {
+                    RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
+                    PluginAuthEntity pluginAuthEntity = new PluginAuthEntity();
+                    pluginAuthEntity.setActive(true);
+                    pluginAuthEntity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+                    pluginAuthEntity.setCreatedTime(new Date());
+                    pluginAuthEntity.setPermissionType(permission);
+                    pluginAuthEntity.setPluginConfigId(pluginConfigId);
+                    pluginAuthEntity.setRoleId(roleId);
+                    pluginAuthEntity.setRoleName(roleDto.getName());
+                    pluginAuthRepository.saveAndFlush(pluginAuthEntity);
+
+                    addedRoleIds.add(roleId);
+                }
+
+                boundPermissionToRole.put(permission, addedRoleIds);
+            }
+
+        }
+
+        return boundPermissionToRole;
     }
 
-    public void deleteProcRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
-//        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(
-//                pluginConfigRoleRequestDto.getPermission());
+    @SuppressWarnings("unused")
+    public void updatePluginConfigRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto)
+            throws WecubeCoreException {
+        // String permissionStr = pluginConfigRoleRequestDto.getPermission();
+        // List<String> roleIdList = pluginConfigRoleRequestDto.getRoles();
+        // ProcRoleBindingEntity.permissionEnum permissionEnum =
+        // transferPermissionStrToEnum(permissionStr);
+        //
+        // // check if user's roles has permission to manage this process
+        // checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
+        // batchSaveData(procId, roleIdList, permissionStr);
+    }
+
+    public void deletePluginConfigRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto)
+            throws WecubeCoreException {
+        // ProcRoleBindingEntity.permissionEnum permissionEnum =
+        // transferPermissionStrToEnum(
+        // pluginConfigRoleRequestDto.getPermission());
 
         // check if the current user has the role to manage such process
-//        checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
-//
-//        // assure corresponding data has at least one row of MGMT permission
-//        if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum)) {
-//            Optional<List<ProcRoleBindingEntity>> foundMgmtData = this.procRoleBindingRepository
-//                    .findAllByProcIdAndPermission(procId, permissionEnum);
-//            foundMgmtData.ifPresent(procRoleBindingEntities -> {
-//                if (procRoleBindingEntities.size() <= pluginConfigRoleRequestDto.getRoleIdList().size()) {
-//                    String msg = "The process's management permission should have at least one role.";
-//                    logger.info(String.format(
-//                            "The DELETE management roles operation was blocked, the process id is [%s].", procId));
-//                    throw new WecubeCoreException(msg);
-//                }
-//            });
-//        }
-//
-//        for (String roleId : procRoleRequestDto.getRoleIdList()) {
-//            this.procRoleBindingRepository.deleteByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
-//        }
+        // checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
+        //
+        // // assure corresponding data has at least one row of MGMT permission
+        // if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum))
+        // {
+        // Optional<List<ProcRoleBindingEntity>> foundMgmtData =
+        // this.procRoleBindingRepository
+        // .findAllByProcIdAndPermission(procId, permissionEnum);
+        // foundMgmtData.ifPresent(procRoleBindingEntities -> {
+        // if (procRoleBindingEntities.size() <=
+        // pluginConfigRoleRequestDto.getRoleIdList().size()) {
+        // String msg = "The process's management permission should have at
+        // least one role.";
+        // logger.info(String.format(
+        // "The DELETE management roles operation was blocked, the process id is
+        // [%s].", procId));
+        // throw new WecubeCoreException(msg);
+        // }
+        // });
+        // }
+        //
+        // for (String roleId : procRoleRequestDto.getRoleIdList()) {
+        // this.procRoleBindingRepository.deleteByProcIdAndRoleIdAndPermission(procId,
+        // roleId, permissionEnum);
+        // }
     }
 
     private void ensurePluginConfigIdNotExisted(PluginConfig pluginConfig) {
@@ -401,11 +485,11 @@ public class PluginConfigService {
         }
         return pluginConfigInterfaceDtos;
     }
-    
+
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(
             TargetEntityFilterRuleDto filterRuleDto) {
-        return distinctPluginConfigInfDto(queryAllEnabledPluginConfigInterfaceForEntity(filterRuleDto.getPkgName(), filterRuleDto.getEntityName(),
-                filterRuleDto));
+        return distinctPluginConfigInfDto(queryAllEnabledPluginConfigInterfaceForEntity(filterRuleDto.getPkgName(),
+                filterRuleDto.getEntityName(), filterRuleDto));
     }
 
     @SuppressWarnings("unchecked")
@@ -730,7 +814,6 @@ public class PluginConfigService {
 
     };
 
-
     private PluginConfigInterface tryUpdatePluginConfigInterface(PluginConfig existPluginConfig,
             PluginConfigInterface toUpdateIntf, PluginConfigInterfaceType xmlIntf) {
         if (xmlIntf == null) {
@@ -985,7 +1068,7 @@ public class PluginConfigService {
         param.setType(PluginConfigInterfaceParameter.TYPE_INPUT);
         param.setPluginConfigInterface(intf);
         param.setRequired(defInputParam.getRequired());
-        
+
         if (xmlInputParam != null) {
             param.setMappingEntityExpression(xmlInputParam.getMappingEntityExpression());
             param.setMappingSystemVariableName(xmlInputParam.getMappingSystemVariableName());
