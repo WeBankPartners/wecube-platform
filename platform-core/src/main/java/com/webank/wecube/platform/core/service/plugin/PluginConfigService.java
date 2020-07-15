@@ -40,7 +40,9 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
+import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
+import com.webank.wecube.platform.core.jpa.PluginAuthRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageDataModelRepository;
@@ -71,6 +73,9 @@ public class PluginConfigService {
     private PluginPackageEntityRepository pluginPackageEntityRepository;
     @Autowired
     private PluginPackageDataModelRepository dataModelRepository;
+    
+    @Autowired
+    private PluginAuthRepository pluginAuthRepository;
 
     public PluginRegistryInfo exportPluginRegistersForOnePackage(String pluginPackageId) {
         if (StringUtils.isBlank(pluginPackageId)) {
@@ -170,8 +175,47 @@ public class PluginConfigService {
 
         pluginConfig.setStatus(DISABLED);
         PluginConfig savedPluginConfig = pluginConfigRepository.save(pluginConfig);
+        
+        //store permission and roles
 
         return PluginConfigDto.fromDomain(savedPluginConfig);
+    }
+    
+    @SuppressWarnings("unused")
+    public void updateProcRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
+//        String permissionStr = pluginConfigRoleRequestDto.getPermission();
+//        List<String> roleIdList = pluginConfigRoleRequestDto.getRoles();
+//        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(permissionStr);
+//
+//        // check if user's roles has permission to manage this process
+//        checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
+//        batchSaveData(procId, roleIdList, permissionStr);
+    }
+
+    public void deleteProcRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
+//        ProcRoleBindingEntity.permissionEnum permissionEnum = transferPermissionStrToEnum(
+//                pluginConfigRoleRequestDto.getPermission());
+
+        // check if the current user has the role to manage such process
+//        checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
+//
+//        // assure corresponding data has at least one row of MGMT permission
+//        if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum)) {
+//            Optional<List<ProcRoleBindingEntity>> foundMgmtData = this.procRoleBindingRepository
+//                    .findAllByProcIdAndPermission(procId, permissionEnum);
+//            foundMgmtData.ifPresent(procRoleBindingEntities -> {
+//                if (procRoleBindingEntities.size() <= pluginConfigRoleRequestDto.getRoleIdList().size()) {
+//                    String msg = "The process's management permission should have at least one role.";
+//                    logger.info(String.format(
+//                            "The DELETE management roles operation was blocked, the process id is [%s].", procId));
+//                    throw new WecubeCoreException(msg);
+//                }
+//            });
+//        }
+//
+//        for (String roleId : procRoleRequestDto.getRoleIdList()) {
+//            this.procRoleBindingRepository.deleteByProcIdAndRoleIdAndPermission(procId, roleId, permissionEnum);
+//        }
     }
 
     private void ensurePluginConfigIdNotExisted(PluginConfig pluginConfig) {
