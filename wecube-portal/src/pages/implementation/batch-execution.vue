@@ -1083,6 +1083,11 @@ export default {
         }
       }
       this.batchActionModalVisible = false
+      this.$Notice.success({
+        title: 'Success',
+        desc: this.$t('bc_exect_tip'),
+        duration: 1
+      })
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
@@ -1131,6 +1136,11 @@ export default {
       })
       let requestBody = this.activeExecuteHistory.requestBody
       requestBody.inputParameterDefinitions = inputParameterDefinitions
+      this.$Notice.success({
+        title: 'Success',
+        desc: this.$t('bc_exect_tip'),
+        duration: 1
+      })
       const { status, data } = await batchExecution(requestBody)
       this.seletedRows = []
       if (status === 'OK') {
