@@ -59,6 +59,7 @@ import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigsType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginPackageType;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
+import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
 
 @Service
@@ -213,11 +214,37 @@ public class PluginConfigService {
         }
         
         for(String permission : boundPermissionToRole.keySet()){
-            List<String> existRoleIds = null;
+            List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
+            List<String> inputRoleIds = boundPermissionToRole.get(permission);
+            
+            
+            List<String> roleIdsToAdd = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
+            List<String> roleIdsToRemove = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
+            
+            addPluginConfigRoleBindings( pluginConfigId,  permission,  roleIdsToAdd);
+            deletePluginConfigRoleBindings( pluginConfigId,  permission, roleIdsToRemove);
             
         }
         
-        return null;
+        return permissionToRole;
+    }
+    
+    private void addPluginConfigRoleBindings(String pluginConfigId, String permission, List<String> roleIdsToAdd){
+        //TODO
+    }
+    
+    private void deletePluginConfigRoleBindings(String pluginConfigId, String permission, List<String> roleIdsToRemove){
+        //TODO
+    }
+    
+    private List<String> getExistRoleIdsOfPluginConfigAndPermission(String pluginConfigId, String permission){
+        List<String> existRoleIds = new ArrayList<String>();
+        List<PluginAuthEntity> entities = this.pluginAuthRepository.findAllByPluginConfigIdAndPermission(pluginConfigId, permission);
+        for(PluginAuthEntity e : entities){
+            existRoleIds.add(e.getRoleId());
+        }
+        
+        return existRoleIds;
     }
     
 
@@ -349,7 +376,13 @@ public class PluginConfigService {
         pluginConfig.setStatus(DISABLED);
 
         PluginConfig savedPluginConfig = pluginConfigRepository.save(pluginConfig);
-        return PluginConfigDto.fromDomain(savedPluginConfig);
+        PluginConfigDto results = PluginConfigDto.fromDomain(savedPluginConfig);
+        
+        Map<String, List<String>> addedPermissionToRole = processUpdatePluginConfigRoleBindings( savedPluginConfig.getId(),
+                pluginConfigDto.getPermissionToRole());
+        
+        results.addAllPermissionToRole(addedPermissionToRole);
+        return results;
     }
 
     private void ensurePluginConfigIsValid(PluginConfigDto pluginConfigDto) {
