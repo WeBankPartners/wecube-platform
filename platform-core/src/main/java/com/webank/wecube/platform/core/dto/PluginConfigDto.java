@@ -7,6 +7,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -21,6 +22,21 @@ public class PluginConfigDto {
     private String registerName;
     private String status;
     private List<PluginConfigInterfaceDto> interfaces;
+
+    private Map<String, List<String>> permissionToRole;
+
+    public PluginConfigDto() {
+    }
+
+    public PluginConfigDto(String id, String pluginPackageId, String name, String targetEntityWithFilterRule,
+            String status, List<PluginConfigInterfaceDto> interfaces) {
+        this.id = id;
+        this.pluginPackageId = pluginPackageId;
+        this.name = name;
+        this.targetEntityWithFilterRule = targetEntityWithFilterRule;
+        this.status = status;
+        this.interfaces = interfaces;
+    }
 
     public String getId() {
         return id;
@@ -67,19 +83,6 @@ public class PluginConfigDto {
     }
 
     public void setInterfaces(List<PluginConfigInterfaceDto> interfaces) {
-        this.interfaces = interfaces;
-    }
-
-    public PluginConfigDto() {
-    }
-
-    public PluginConfigDto(String id, String pluginPackageId, String name, String targetEntityWithFilterRule,
-            String status, List<PluginConfigInterfaceDto> interfaces) {
-        this.id = id;
-        this.pluginPackageId = pluginPackageId;
-        this.name = name;
-        this.targetEntityWithFilterRule = targetEntityWithFilterRule;
-        this.status = status;
         this.interfaces = interfaces;
     }
 
@@ -166,6 +169,14 @@ public class PluginConfigDto {
     public String getFilterRule() {
         return splitTargetEntityWithFilterRule().getFilterRule();
     }
+    
+    public Map<String, List<String>> getPermissionToRole() {
+        return permissionToRole;
+    }
+
+    public void setPermissionToRole(Map<String, List<String>> permissionToRole) {
+        this.permissionToRole = permissionToRole;
+    }
 
     public class TargetEntityWithFilterRule {
         private String targetPackage;
@@ -218,5 +229,7 @@ public class PluginConfigDto {
 
         return new TargetEntityWithFilterRule(packageString, entity, filterRule);
     }
+
+    
 
 }
