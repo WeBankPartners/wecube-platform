@@ -1,17 +1,20 @@
 package com.webank.wecube.platform.core.dto;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.StringUtils;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
+
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 
 public class PluginConfigDto {
 
@@ -176,6 +179,22 @@ public class PluginConfigDto {
 
     public void setPermissionToRole(Map<String, List<String>> permissionToRole) {
         this.permissionToRole = permissionToRole;
+    }
+    
+    public void addAllPermissionToRole(Map<String, List<String>> inputPermissionToRole){
+        if(permissionToRole == null){
+            permissionToRole = new HashMap<String,List<String>>();
+        }
+        
+        for(String inputPerm : inputPermissionToRole.keySet()){
+            List<String> roleIds = permissionToRole.get(inputPerm);
+            if(roleIds == null){
+                roleIds = new ArrayList<String>();
+                permissionToRole.put(inputPerm, roleIds);
+            }
+            
+            roleIds.addAll(inputPermissionToRole.get(inputPerm));
+        }
     }
 
     public class TargetEntityWithFilterRule {
