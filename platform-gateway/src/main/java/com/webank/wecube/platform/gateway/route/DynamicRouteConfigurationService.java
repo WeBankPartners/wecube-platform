@@ -66,7 +66,9 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     private Map<String, Object> loadedContexts = new ConcurrentHashMap<>();
 
     private volatile boolean isDynamicRouteLoaded = false;
-
+    
+    private volatile boolean isDynamicRouteLoading = false;
+    
     private ReentrantLock loadLock = new ReentrantLock();
 
     private ReentrantLock refreshLock = new ReentrantLock();
@@ -142,24 +144,29 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     }
 
     protected void loadRoutes(Long time) {
-        log.debug("load routes  ------  {}", time);
+        log.info("load routes  ------  {}", time);
         if (!loadLock.tryLock()) {
             log.debug("cannot acquire the lock.");
             return;
         }
         try {
             if (isDynamicRouteLoaded) {
-                log.debug("isDynamicRouteLoaded:{}, isDisposed:{}", isDynamicRouteLoaded, loadDisposable.isDisposed());
+                log.info("isDynamicRouteLoaded:{}, isDisposed:{}", isDynamicRouteLoaded, loadDisposable.isDisposed());
 
                 if (!loadDisposable.isDisposed()) {
-                    log.debug("to dispose load tasks.");
+                    log.info("to dispose load tasks.");
                     loadDisposable.dispose();
                 }
 
                 return;
             }
-
-            log.debug("try to load dynamic routes --- {}", time);
+            
+            if(isDynamicRouteLoading){
+                log.info("Routes is loading ...{}", time);
+                return;
+            }
+            
+            log.info("try to do load routes --- {}", time);
             doLoadRoutes();
         } finally {
             loadLock.unlock();
@@ -168,12 +175,13 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     }
 
     protected void doLoadRoutes() {
-        log.debug("start to load routes...");
+        log.info("start to load routes...");
 
         loadLock.lock();
 
         try {
 
+            isDynamicRouteLoading = true;
             Mono<RouteConfigInfoResponseDto> mono = fetchAllRouteItemsWithWebClient();
             mono.subscribe(this::handleLoadRouteConfigInfoResponseDto, this::handleLoadErrors);
 
@@ -185,6 +193,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
 
     private void handleLoadErrors(Throwable e) {
         log.info("errors while loading routes...", e);
+        isDynamicRouteLoading = false;
         isDynamicRouteLoaded = false;
     }
 
@@ -220,7 +229,10 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
             DynamicRouteItemInfoHolder.refresh(routeItemInfos);
             initContextRouteConfigs();
 
+            isDynamicRouteLoading = false;
             isDynamicRouteLoaded = true;
+            
+            log.info("ROUTES loaded successfully, total size:{}", routeItemInfoDtos.size());
         } finally {
             loadLock.unlock();
         }
@@ -425,6 +437,7 @@ public class DynamicRouteConfigurationService implements ApplicationEventPublish
     protected Mono<RouteConfigInfoResponseDto> fetchAllRouteItemsWithWebClient() {
         
         String url = dynamicRouteProperties.getRouteConfigServer() + dynamicRouteProperties.getRouteConfigUri();
+        log.debug("HTTP invoke:{}", url);
         Mono<RouteConfigInfoResponseDto> bodyMono = WebClient.create().get().uri(url)
                 .header("Content-Type", "application/json").accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", String.format("Bearer %s", dynamicRouteProperties.getRouteConfigAccessKey()))
