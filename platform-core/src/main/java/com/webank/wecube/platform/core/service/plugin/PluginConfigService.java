@@ -229,11 +229,11 @@ public class PluginConfigService {
 	}
 
 	private void addPluginConfigRoleBindings(String pluginConfigId, String permission, List<String> roleIdsToAdd) {
-		if(log.isDebugEnabled()) {
+		if (log.isDebugEnabled()) {
 			log.debug("roles to add for {} {}:{}", pluginConfigId, permission, roleIdsToAdd);
 		}
-		
-		for(String roleId : roleIdsToAdd) {
+
+		for (String roleId : roleIdsToAdd) {
 			RoleDto roleDto = userManagementService.retrieveRoleById(roleId);
 			PluginAuthEntity pluginAuthEntity = new PluginAuthEntity();
 			pluginAuthEntity.setActive(true);
@@ -250,14 +250,14 @@ public class PluginConfigService {
 
 	private void deletePluginConfigRoleBindings(String pluginConfigId, String permission,
 			List<String> roleIdsToRemove) {
-		if(log.isDebugEnabled()) {
+		if (log.isDebugEnabled()) {
 			log.debug("roles to remove for {} {}:{}", pluginConfigId, permission, roleIdsToRemove);
 		}
 		List<PluginAuthEntity> entities = this.pluginAuthRepository.findAllByPluginConfigIdAndPermission(pluginConfigId,
 				permission);
 		for (String roleId : roleIdsToRemove) {
 			PluginAuthEntity entity = pickoutPluginAuthEntityByRoleId(entities, roleId);
-			if(entity != null) {
+			if (entity != null) {
 				this.pluginAuthRepository.delete(entity);
 			}
 		}
@@ -319,17 +319,56 @@ public class PluginConfigService {
 		return boundPermissionToRole;
 	}
 
-	@SuppressWarnings("unused")
-	public void updatePluginConfigRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto)
-			throws WecubeCoreException {
-		// String permissionStr = pluginConfigRoleRequestDto.getPermission();
-		// List<String> roleIdList = pluginConfigRoleRequestDto.getRoles();
-		// ProcRoleBindingEntity.permissionEnum permissionEnum =
-		// transferPermissionStrToEnum(permissionStr);
-		//
-		// // check if user's roles has permission to manage this process
-		// checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
-		// batchSaveData(procId, roleIdList, permissionStr);
+	public void updatePluginConfigRoleBinding(String pluginConfigId,
+			PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
+		String permission = pluginConfigRoleRequestDto.getPermission();
+		List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+		validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
+
+		List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
+
+		List<String> roleIdsToAdd = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
+		List<String> roleIdsToRemove = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
+
+		addPluginConfigRoleBindings(pluginConfigId, permission, roleIdsToAdd);
+		deletePluginConfigRoleBindings(pluginConfigId, permission, roleIdsToRemove);
+	}
+
+	public void validateCurrentUserPermission(String pluginConfigId, String permission) throws WecubeCoreException {
+		String currentUsername = AuthenticationContextHolder.getCurrentUsername();
+		if (StringUtils.isBlank(currentUsername)) {
+			throw new WecubeCoreException("Current user did not login in.");
+		}
+
+		Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+		if (currUserRoles == null || currUserRoles.isEmpty()) {
+			throw new WecubeCoreException("Lack of permission to update user permission configuration.");
+		}
+
+		List<PluginAuthEntity> pluginAuthConfigEntities = this.pluginAuthRepository
+				.findAllByPluginConfigIdAndPermission(pluginConfigId, permission);
+
+		if (pluginAuthConfigEntities == null || pluginAuthConfigEntities.isEmpty()) {
+			throw new WecubeCoreException(
+					String.format("None plugin authority configured for [%s] [%s]", pluginConfigId, permission));
+		}
+
+		boolean hasAuthority = false;
+		for (PluginAuthEntity auth : pluginAuthConfigEntities) {
+			String authRole = auth.getRoleName();
+			if (StringUtils.isBlank(authRole)) {
+				continue;
+			}
+			if (CollectionUtils.collectionContains(currUserRoles, authRole)) {
+				hasAuthority = true;
+				break;
+			}
+		}
+
+		if (!hasAuthority) {
+			throw new WecubeCoreException(
+					String.format("Current user do not have privilege to update [%s]", pluginConfigId));
+		}
 	}
 
 	public void deletePluginConfigRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto)
