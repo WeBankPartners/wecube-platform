@@ -403,6 +403,7 @@
   "bc_mgmt_role_cannot_empty": "MGMT role cannot empty",
   "bc_name_cannot_empty": "name cannot empty",
   "bc_edit_role": "Edit Role",
+  "bc_exect_tip": "The operation has been submitted, please wait for the execution result!",
   "plugin_type": "Plugin Type",
   "sstn": "Automatic Node",
   "sutn": "Manual Approval Node",
