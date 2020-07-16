@@ -4,6 +4,7 @@ import static com.webank.wecube.platform.core.utils.CollectionUtils.pickLastOne;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,16 @@ public interface PluginPackageRepository extends JpaRepository<PluginPackage, St
 
         List<PluginPackage> packageList=pluginPackages.get();
         return Optional.ofNullable(packageList.get(packageList.size()-1));
+    }
+    
+    default List<PluginPackage> findLatestActiveVersionPluginPackagesByName(String name) {
+        Optional<List<PluginPackage>> pluginPackagesOpt = findAllActiveByNameOrderByUploadTimestampAsc(name);
+        if (!pluginPackagesOpt.isPresent()) {
+        	return Collections.emptyList();
+        }
+        
+        return pluginPackagesOpt.get();
+
     }
 
     default Optional<PluginPackage> findLatestVersionByName(String name, String... excludeVersions) {
