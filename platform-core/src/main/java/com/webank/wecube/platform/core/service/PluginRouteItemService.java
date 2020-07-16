@@ -99,7 +99,7 @@ public class PluginRouteItemService {
 
     private List<PluginPackageEntity> fetchAllActivePluginPackageEntities() {
         Query pluginPackageQuery = entityManager.createNativeQuery(
-                "SELECT id,name FROM plugin_packages WHERE STATUS IN ('REGISTERED','RUNNING','STOPPED') ORDER BY NAME, version DESC", PluginPackageEntity.class);
+                "SELECT id,name FROM plugin_packages WHERE STATUS IN ('REGISTERED','RUNNING','STOPPED') ORDER BY NAME, upload_timestamp DESC", PluginPackageEntity.class);
         return (List<PluginPackageEntity>) pluginPackageQuery.getResultList();
     }
 
