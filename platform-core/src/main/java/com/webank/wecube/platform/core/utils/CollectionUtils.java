@@ -33,7 +33,7 @@ public final class CollectionUtils {
         }
 
         for (T t : minuend) {
-            if (listContains(extraction, t)) {
+            if (collectionContains(extraction, t)) {
                 // nothing
             } else {
                 results.add(t);
@@ -43,7 +43,7 @@ public final class CollectionUtils {
         return results;
     }
 
-    public static boolean listContains(List<?> list, Object t) {
+    public static boolean collectionContains(Collection<?> list, Object t) {
         for (Object e : list) {
             if (Objects.equals(e, t)) {
                 return true;
