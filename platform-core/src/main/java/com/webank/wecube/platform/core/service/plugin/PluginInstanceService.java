@@ -167,17 +167,29 @@ public class PluginInstanceService {
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
-        Optional<PluginPackage> pkg = pluginPackageRepository.findLatestActiveVersionByName(pluginName);
-        if (!pkg.isPresent()) {
+        List<PluginPackage> activePluginPackages = pluginPackageRepository.findLatestActiveVersionPluginPackagesByName(pluginName);
+        if (activePluginPackages == null || activePluginPackages.isEmpty()) {
             throw new WecubeCoreException(String.format("Plugin package [%s] not found.", pluginName));
         }
+        
+        List<PluginInstance> runningInstances = new ArrayList<PluginInstance>();
+        for(PluginPackage pkg : activePluginPackages) {
+        	List<PluginInstance> instances = pluginInstanceRepository
+                    .findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.getId());
+        	if(instances != null && (!instances.isEmpty())) {
+        		runningInstances.addAll(instances);
+        	}
+        	
+        	if(runningInstances.size() > 0) {
+        		break;
+        	}
+        }
 
-        List<PluginInstance> instances = pluginInstanceRepository
-                .findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.get().getId());
-        if (instances == null || instances.size() == 0) {
+        
+        if (runningInstances.isEmpty()) {
             throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
         }
-        return instances;
+        return runningInstances;
     }
 
     private boolean isContainerHostValid(String hostIp) {
