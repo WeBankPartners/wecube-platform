@@ -41,7 +41,7 @@
       </Row>
       <Row>
         <Row id="graphcontain">
-          <Col span="6" style="border-right:1px solid #d3cece; text-align: center;height:100%">
+          <Col span="6" style="border-right:1px solid #d3cece; text-align: center;height:100%;position: relative;">
             <div class="excution-serach">
               <Form>
                 <FormItem :label-width="100" :label="$t('select_orch')">
@@ -62,8 +62,9 @@
             </div>
 
             <div class="graph-container" id="flow" style="height:90%"></div>
+            <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
           </Col>
-          <Col span="18" style="text-align: center;margin-top: 5px;text-align: center;height:100%;">
+          <Col span="18" style="text-align: center;margin-top: 5px;text-align: center;height:100%; position: relative;">
             <div>
               <Form>
                 <FormItem :label-width="100" :label="$t('target_object')">
@@ -82,6 +83,7 @@
               </Form>
             </div>
             <div class="graph-container" id="graph" style="height:90%"></div>
+            <Button class="reset-button" size="small" @click="ResetModel">ResetZoom</Button>
             <Spin size="large" fix v-show="isLoading">
               <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
               <div>{{ $t('loading') }}</div>
@@ -669,6 +671,16 @@ export default {
       clearTimeout(this.modelDetailTimer)
       this.modelDetailLeaveHandler(e)
     },
+    ResetFlow () {
+      if (this.flowGraph.graphviz) {
+        this.flowGraph.graphviz.resetZoom()
+      }
+    },
+    ResetModel () {
+      if (this.graph.graphviz) {
+        this.graph.graphviz.resetZoom()
+      }
+    },
     renderFlowGraph (excution) {
       const statusColor = {
         Completed: '#5DB400',
@@ -1065,5 +1077,10 @@ body {
 .header-icon {
   float: right;
   margin: 3px 20px 0 0;
+}
+.reset-button {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
 }
 </style>
