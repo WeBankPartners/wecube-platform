@@ -5,7 +5,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.Id;
+import javax.persistence.Query;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -17,11 +21,8 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PluginRouteItemDto;
-import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.jpa.PluginInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
-
-import javax.persistence.*;
 
 @Service
 public class PluginRouteItemService {
@@ -31,9 +32,6 @@ public class PluginRouteItemService {
 
     @Autowired
     private PluginInstanceRepository pluginInstanceRepository;
-
-    @Autowired
-    private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
 
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
@@ -97,13 +95,15 @@ public class PluginRouteItemService {
         return resultList;
     }
 
-    private List<PluginPackageEntity> fetchAllActivePluginPackageEntities() {
+    @SuppressWarnings("unchecked")
+	private List<PluginPackageEntity> fetchAllActivePluginPackageEntities() {
         Query pluginPackageQuery = entityManager.createNativeQuery(
                 "SELECT id,name FROM plugin_packages WHERE STATUS IN ('REGISTERED','RUNNING','STOPPED') ORDER BY NAME, upload_timestamp DESC", PluginPackageEntity.class);
         return (List<PluginPackageEntity>) pluginPackageQuery.getResultList();
     }
 
-    private List<PluginInstanceEntity> fetchRunningPluginInstanceInfo() {
+    @SuppressWarnings("unchecked")
+	private List<PluginInstanceEntity> fetchRunningPluginInstanceInfo() {
         Query pliginInsQuery = entityManager.createNativeQuery("SELECT i.id,i.package_id,i.instance_name,i.container_name,i.host,i.port,i.container_status, " +
                 "p.`name` AS package_name FROM plugin_instances i " +
                 "JOIN plugin_packages p ON i.`package_id`=p.`id` WHERE i.`container_status` = 'RUNNING'", PluginInstanceEntity.class);
@@ -142,7 +142,8 @@ public class PluginRouteItemService {
         }
     }
 
-    private List<PluginConfigInterfaceEntity> fetchPluginConfigInterfaceInfo() {
+    @SuppressWarnings("unchecked")
+	private List<PluginConfigInterfaceEntity> fetchPluginConfigInterfaceInfo() {
         Query query = entityManager.createNativeQuery("SELECT i.id,i.service_name,i.path,i.http_method,pp.`name` as package_name " +
                 "FROM plugin_config_interfaces i JOIN plugin_configs c ON i.`plugin_config_id` = c.`id` " +
                 "JOIN plugin_configs pc ON i.`plugin_config_id`=pc.`id` " +
@@ -219,18 +220,27 @@ public class PluginRouteItemService {
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
-        Optional<PluginPackage> pkg = pluginPackageRepository.findLatestActiveVersionByName(pluginName);
-        if (!pkg.isPresent()) {
+        List<PluginPackage> activePluginPackages = pluginPackageRepository.findLatestActiveVersionPluginPackagesByName(pluginName);
+        if (!activePluginPackages.isEmpty()) {
             log.info("Plugin package [{}] not found.", pluginName);
             return null;
         }
-
-        List<PluginInstance> instances = pluginInstanceRepository
-                .findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.get().getId());
-        if (instances == null || instances.size() == 0) {
+        List<PluginInstance> runningInstances = new ArrayList<PluginInstance>();
+        for(PluginPackage pkg : activePluginPackages) {
+        	List<PluginInstance> instances = pluginInstanceRepository
+                    .findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.getId());
+        	if(instances != null && (!instances.isEmpty())) {
+        		runningInstances.addAll(instances);
+        	}
+        	
+        	if(runningInstances.size() > 0) {
+        		break;
+        	}
+        }
+        if (runningInstances.isEmpty()) {
             log.info("No instance for plugin [{}] is available.", pluginName);
         }
-        return instances;
+        return runningInstances;
     }
 
     public List<PluginRouteItemDto> getPluginRouteItemsByName(String name) {
