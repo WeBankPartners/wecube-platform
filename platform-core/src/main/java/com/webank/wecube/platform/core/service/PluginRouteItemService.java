@@ -221,7 +221,7 @@ public class PluginRouteItemService {
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
         List<PluginPackage> activePluginPackages = pluginPackageRepository.findLatestActiveVersionPluginPackagesByName(pluginName);
-        if (!activePluginPackages.isEmpty()) {
+        if (activePluginPackages == null || activePluginPackages.isEmpty()) {
             log.info("Plugin package [{}] not found.", pluginName);
             return null;
         }
