@@ -334,7 +334,7 @@ public class PluginConfigService {
 		deletePluginConfigRoleBindings(pluginConfigId, permission, roleIdsToRemove);
 	}
 
-	public void validateCurrentUserPermission(String pluginConfigId, String permission) throws WecubeCoreException {
+	public void validateCurrentUserPermission(String pluginConfigId, String permission) {
 		String currentUsername = AuthenticationContextHolder.getCurrentUsername();
 		if (StringUtils.isBlank(currentUsername)) {
 			throw new WecubeCoreException("Current user did not login in.");
@@ -371,38 +371,19 @@ public class PluginConfigService {
 		}
 	}
 
-	public void deletePluginConfigRoleBinding(String procId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto)
+	public void deletePluginConfigRoleBinding(String pluginConfigId, PluginConfigRoleRequestDto pluginConfigRoleRequestDto)
 			throws WecubeCoreException {
-		// ProcRoleBindingEntity.permissionEnum permissionEnum =
-		// transferPermissionStrToEnum(
-		// pluginConfigRoleRequestDto.getPermission());
-
-		// check if the current user has the role to manage such process
-		// checkPermission(procId, ProcRoleBindingEntity.permissionEnum.MGMT);
-		//
-		// // assure corresponding data has at least one row of MGMT permission
-		// if (ProcRoleBindingEntity.permissionEnum.MGMT.equals(permissionEnum))
-		// {
-		// Optional<List<ProcRoleBindingEntity>> foundMgmtData =
-		// this.procRoleBindingRepository
-		// .findAllByProcIdAndPermission(procId, permissionEnum);
-		// foundMgmtData.ifPresent(procRoleBindingEntities -> {
-		// if (procRoleBindingEntities.size() <=
-		// pluginConfigRoleRequestDto.getRoleIdList().size()) {
-		// String msg = "The process's management permission should have at
-		// least one role.";
-		// logger.info(String.format(
-		// "The DELETE management roles operation was blocked, the process id is
-		// [%s].", procId));
-		// throw new WecubeCoreException(msg);
-		// }
-		// });
-		// }
-		//
-		// for (String roleId : procRoleRequestDto.getRoleIdList()) {
-		// this.procRoleBindingRepository.deleteByProcIdAndRoleIdAndPermission(procId,
-		// roleId, permissionEnum);
-		// }
+	    
+	    String permission = pluginConfigRoleRequestDto.getPermission();
+	    List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
+	    
+	    validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
+	    
+	    if(inputRoleIds == null || inputRoleIds.isEmpty()){
+	        return;
+	    }
+	    
+	    deletePluginConfigRoleBindings(pluginConfigId, permission, inputRoleIds);
 	}
 
 	private void ensurePluginConfigIdNotExisted(PluginConfig pluginConfig) {
