@@ -334,7 +334,7 @@ public class PluginConfigService {
 		deletePluginConfigRoleBindings(pluginConfigId, permission, roleIdsToRemove);
 	}
 
-	public void validateCurrentUserPermission(String pluginConfigId, String permission) {
+	private void validateCurrentUserPermission(String pluginConfigId, String permission) {
 		String currentUsername = AuthenticationContextHolder.getCurrentUsername();
 		if (StringUtils.isBlank(currentUsername)) {
 			throw new WecubeCoreException("Current user did not login in.");
