@@ -141,10 +141,10 @@ public class PluginConfigController {
     }
     
     @PostMapping("/plugins/roles/configs/{plugin-config-id:.+}")
-    public CommonResponseDto updateProcRoleBinding(@PathVariable("proc-id") String procId,
+    public CommonResponseDto updateProcRoleBinding(@PathVariable("plugin-config-id") String pluginConfigId,
             @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
         try {
-            pluginConfigService.updatePluginConfigRoleBinding(procId, pluginConfigRoleRequestDto);
+            pluginConfigService.updatePluginConfigRoleBinding(pluginConfigId, pluginConfigRoleRequestDto);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
@@ -152,10 +152,10 @@ public class PluginConfigController {
     }
 
     @DeleteMapping("/plugins/roles/configs/{plugin-config-id:.+}")
-    public CommonResponseDto deleteProcRoleBinding(@PathVariable("proc-id") String procId,
+    public CommonResponseDto deleteProcRoleBinding(@PathVariable("plugin-config-id") String pluginConfigId,
             @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
         try {
-            pluginConfigService.deletePluginConfigRoleBinding(procId, pluginConfigRoleRequestDto);
+            pluginConfigService.deletePluginConfigRoleBinding(pluginConfigId, pluginConfigRoleRequestDto);
         } catch (WecubeCoreException ex) {
             return CommonResponseDto.error(ex.getMessage());
         }
