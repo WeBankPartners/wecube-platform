@@ -89,4 +89,5 @@ DROP TABLE IF EXISTS core_ru_proc_role_binding;
 DROP TABLE IF EXISTS core_ru_task_node_exec_param;
 DROP TABLE IF EXISTS core_ru_task_node_exec_req;
 DROP TABLE IF EXISTS core_ru_task_node_inst_info;
+DROP TABLE IF EXISTS plugin_config_roles;
 SET FOREIGN_KEY_CHECKS = 1;
