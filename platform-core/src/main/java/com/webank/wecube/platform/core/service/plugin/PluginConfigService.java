@@ -684,7 +684,7 @@ public class PluginConfigService {
         }
         List<PluginAuthEntity> entities = pluginAuthRepository.findAllByPluginConfigIdAndPermission(pluginConfigInterfaceDto.getPluginConfigId(), permission);
         if(entities.isEmpty()){
-            return true;
+            return false;
         }
         
         for(PluginAuthEntity entity : entities){
