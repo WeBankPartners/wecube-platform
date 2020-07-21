@@ -13,4 +13,12 @@ public interface PluginAuthRepository extends JpaRepository<PluginAuthEntity, St
     @Query("select t from PluginAuthEntity t where t.pluginConfigId = :pluginConfigId and t.permissionType =:permission")
     List<PluginAuthEntity> findAllByPluginConfigIdAndPermission(@Param("pluginConfigId") String pluginConfigId,
             @Param("permission")String permission);
+    
+    @Query("select t from PluginAuthEntity t where t.pluginConfigId = :pluginConfigId")
+    List<PluginAuthEntity> findAllByPluginConfigId(@Param("pluginConfigId") String pluginConfigId);
+    
+    @Query("select t from PluginAuthEntity t "
+    +"where t.pluginConfigId = :pluginConfigId and t.permissionType =:permission and t.roleName = :roleName")
+    List<PluginAuthEntity> findAllByPluginConfigIdAndPermissionAndRoleName(@Param("pluginConfigId") String pluginConfigId,
+            @Param("permission")String permission, @Param("roleName")String roleName);
 }
