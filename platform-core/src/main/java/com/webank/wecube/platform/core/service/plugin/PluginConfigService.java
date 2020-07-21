@@ -497,6 +497,8 @@ public class PluginConfigService {
         if (ENABLED == pluginConfig.getStatus()) {
             throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
         }
+        
+        validateCurrentUserPermission(pluginConfigId,PluginAuthEntity.PERM_TYPE_MGMT);
 
         ensureEntityIsValid(pluginConfig.getName(), pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity());
 
@@ -549,6 +551,8 @@ public class PluginConfigService {
         }
 
         PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
+        
+        validateCurrentUserPermission(pluginConfigId,PluginAuthEntity.PERM_TYPE_MGMT);
 
         pluginConfig.setStatus(DISABLED);
         return PluginConfigDto.fromDomain(pluginConfigRepository.save(pluginConfig));
@@ -738,6 +742,8 @@ public class PluginConfigService {
                 throw new WecubeCoreException(
                         String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()));
             }
+            
+            validateCurrentUserPermission(configId,PluginAuthEntity.PERM_TYPE_MGMT);
             PluginPackage pkg = cfg.getPluginPackage();
             pkg.getPluginConfigs().remove(cfg);
             pluginPackageRepository.save(pkg);

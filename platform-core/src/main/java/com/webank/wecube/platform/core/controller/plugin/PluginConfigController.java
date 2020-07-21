@@ -141,7 +141,7 @@ public class PluginConfigController {
     }
     
     @PostMapping("/plugins/roles/configs/{plugin-config-id:.+}")
-    public CommonResponseDto updateProcRoleBinding(@PathVariable("plugin-config-id") String pluginConfigId,
+    public CommonResponseDto updatePluginConfigRoleBinding(@PathVariable("plugin-config-id") String pluginConfigId,
             @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
         try {
             pluginConfigService.updatePluginConfigRoleBinding(pluginConfigId, pluginConfigRoleRequestDto);
@@ -152,7 +152,7 @@ public class PluginConfigController {
     }
 
     @DeleteMapping("/plugins/roles/configs/{plugin-config-id:.+}")
-    public CommonResponseDto deleteProcRoleBinding(@PathVariable("plugin-config-id") String pluginConfigId,
+    public CommonResponseDto deletePluginConfigRoleBinding(@PathVariable("plugin-config-id") String pluginConfigId,
             @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
         try {
             pluginConfigService.deletePluginConfigRoleBinding(pluginConfigId, pluginConfigRoleRequestDto);
