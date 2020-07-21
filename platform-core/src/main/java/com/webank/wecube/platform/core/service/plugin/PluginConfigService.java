@@ -58,6 +58,8 @@ import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigOutput
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigsType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginPackageType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginRoleBindingType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.PluginRoleBindingsType;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
@@ -497,8 +499,8 @@ public class PluginConfigService {
         if (ENABLED == pluginConfig.getStatus()) {
             throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
         }
-        
-        validateCurrentUserPermission(pluginConfigId,PluginAuthEntity.PERM_TYPE_MGMT);
+
+        validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
 
         ensureEntityIsValid(pluginConfig.getName(), pluginConfig.getTargetPackage(), pluginConfig.getTargetEntity());
 
@@ -551,8 +553,8 @@ public class PluginConfigService {
         }
 
         PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
-        
-        validateCurrentUserPermission(pluginConfigId,PluginAuthEntity.PERM_TYPE_MGMT);
+
+        validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
 
         pluginConfig.setStatus(DISABLED);
         return PluginConfigDto.fromDomain(pluginConfigRepository.save(pluginConfig));
@@ -577,7 +579,7 @@ public class PluginConfigService {
             pluginConfigInterfaces.forEach(pluginConfigInterface -> pluginConfigInterfaceDtos
                     .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
         }
-        
+
         return filterWithPermissionValidation(pluginConfigInterfaceDtos, PluginAuthEntity.PERM_TYPE_USE);
     }
 
@@ -654,14 +656,12 @@ public class PluginConfigService {
                     .collect(Collectors.toList()));
         }
 
-
-        return filterWithPermissionValidation(
-                pluginConfigInterfaceDtos, PluginAuthEntity.PERM_TYPE_USE);
+        return filterWithPermissionValidation(pluginConfigInterfaceDtos, PluginAuthEntity.PERM_TYPE_USE);
     }
 
     private List<PluginConfigInterfaceDto> filterWithPermissionValidation(
             List<PluginConfigInterfaceDto> srcPluginConfigInterfaceDtos, String permission) {
-        if(srcPluginConfigInterfaceDtos == null || srcPluginConfigInterfaceDtos.isEmpty()){
+        if (srcPluginConfigInterfaceDtos == null || srcPluginConfigInterfaceDtos.isEmpty()) {
             log.warn("interfaces is empty and return it directly.");
             return srcPluginConfigInterfaceDtos;
         }
@@ -673,7 +673,7 @@ public class PluginConfigService {
 
         List<PluginConfigInterfaceDto> privilegedPluginConfigInterfaceDtos = new ArrayList<>();
         for (PluginConfigInterfaceDto pluginConfigInterfaceDto : srcPluginConfigInterfaceDtos) {
-            if(verifyPluginConfigInterfacePrivilege(pluginConfigInterfaceDto, permission, currUserRoles)){
+            if (verifyPluginConfigInterfacePrivilege(pluginConfigInterfaceDto, permission, currUserRoles)) {
                 privilegedPluginConfigInterfaceDtos.add(pluginConfigInterfaceDto);
             }
         }
@@ -683,24 +683,23 @@ public class PluginConfigService {
 
     private boolean verifyPluginConfigInterfacePrivilege(PluginConfigInterfaceDto pluginConfigInterfaceDto,
             String permission, Set<String> currUserRoles) {
-        if(StringUtils.isBlank(pluginConfigInterfaceDto.getPluginConfigId())){
+        if (StringUtils.isBlank(pluginConfigInterfaceDto.getPluginConfigId())) {
             throw new WecubeCoreException("Plugin config ID cannot be blank.");
         }
-        List<PluginAuthEntity> entities = pluginAuthRepository.findAllByPluginConfigIdAndPermission(pluginConfigInterfaceDto.getPluginConfigId(), permission);
-        if(entities.isEmpty()){
+        List<PluginAuthEntity> entities = pluginAuthRepository
+                .findAllByPluginConfigIdAndPermission(pluginConfigInterfaceDto.getPluginConfigId(), permission);
+        if (entities.isEmpty()) {
             return false;
         }
-        
-        for(PluginAuthEntity entity : entities){
-            if(CollectionUtils.collectionContains(currUserRoles, entity.getRoleName())){
+
+        for (PluginAuthEntity entity : entities) {
+            if (CollectionUtils.collectionContains(currUserRoles, entity.getRoleName())) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
-    
 
     @SuppressWarnings("unchecked")
     public List<PluginConfigInterfaceDto> distinctPluginConfigInfDto(List<PluginConfigInterfaceDto> dto) {
@@ -742,8 +741,8 @@ public class PluginConfigService {
                 throw new WecubeCoreException(
                         String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()));
             }
-            
-            validateCurrentUserPermission(configId,PluginAuthEntity.PERM_TYPE_MGMT);
+
+            validateCurrentUserPermission(configId, PluginAuthEntity.PERM_TYPE_MGMT);
             PluginPackage pkg = cfg.getPluginPackage();
             pkg.getPluginConfigs().remove(cfg);
             pluginPackageRepository.save(pkg);
@@ -783,8 +782,30 @@ public class PluginConfigService {
             }
         }
 
+        PluginRoleBindingsType xmlRoleBinds = buildXmlPluginRoleBindingsType(pluginConfig);
+        xmlPluginConfig.setRoleBinds(xmlRoleBinds);
         return xmlPluginConfig;
 
+    }
+
+    private PluginRoleBindingsType buildXmlPluginRoleBindingsType(PluginConfig pluginConfig) {
+        PluginRoleBindingsType xmlRoleBinds = new PluginRoleBindingsType();
+
+        List<PluginAuthEntity> authEntities = pluginAuthRepository.findAllByPluginConfigId(pluginConfig.getId());
+        if (authEntities == null || authEntities.isEmpty()) {
+            return xmlRoleBinds;
+        }
+
+        for (PluginAuthEntity entity : authEntities) {
+            PluginRoleBindingType xmlRoleBind = new PluginRoleBindingType();
+            xmlRoleBind.setPermission(entity.getPermissionType());
+            xmlRoleBind.setRoleId(entity.getRoleId());
+            xmlRoleBind.setRoleName(entity.getRoleName());
+
+            xmlRoleBinds.getRoleBind().add(xmlRoleBind);
+        }
+
+        return xmlRoleBinds;
     }
 
     private PluginConfigInterfaceType buildXmlPluginConfigInterface(PluginPackage pluginPackage,
@@ -922,7 +943,38 @@ public class PluginConfigService {
                 toUpdatePluginConfig.getTargetEntity(), toUpdatePluginConfig.getTargetEntityFilterRule(),
                 toUpdatePluginConfig.getTargetPackage());
         //
+        tryUpdatePluginConfigRoleBinds(xmlPluginConfig, pluginConfigDef, toUpdatePluginConfig);
         return toUpdatePluginConfig;
+    }
+
+    private void tryUpdatePluginConfigRoleBinds(PluginConfigType xmlPluginConfig, PluginConfig pluginConfigDef,
+            PluginConfig toUpdatePluginConfig) {
+        PluginRoleBindingsType xmlRoleBinds = xmlPluginConfig.getRoleBinds();
+        if (xmlRoleBinds == null || xmlRoleBinds.getRoleBind().isEmpty()) {
+            return;
+        }
+
+        String pluginConfigId = toUpdatePluginConfig.getId();
+        for (PluginRoleBindingType xmlRoleBind : xmlRoleBinds.getRoleBind()) {
+            List<PluginAuthEntity> existsEntities = pluginAuthRepository
+                    .findAllByPluginConfigIdAndPermissionAndRoleName(pluginConfigId, xmlRoleBind.getPermission(),
+                            xmlRoleBind.getRoleName());
+            
+            if(existsEntities != null && !existsEntities.isEmpty()){
+                continue;
+            }
+            
+            PluginAuthEntity entity = new PluginAuthEntity();
+            entity.setActive(true);
+            entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            entity.setCreatedTime(new Date());
+            entity.setPermissionType(xmlRoleBind.getPermission());
+            entity.setPluginConfigId(pluginConfigId);
+            entity.setRoleId(xmlRoleBind.getRoleId());
+            entity.setRoleName(xmlRoleBind.getRoleName());
+
+            pluginAuthRepository.saveAndFlush(entity);
+        }
     }
 
     private PluginConfigInterface pickoutDefPluginConfigInterface(PluginConfig pluginConfigDef, String path) {
@@ -1059,8 +1111,30 @@ public class PluginConfigService {
         pluginConfig.setInterfaces(createdInterfaces);
 
         PluginConfig savedPluginConfig = pluginConfigRepository.saveAndFlush(pluginConfig);
+
+        tryCreatePluginConfigRoleBinds(xmlPluginConfig, savedPluginConfig);
         return savedPluginConfig;
 
+    }
+
+    private void tryCreatePluginConfigRoleBinds(PluginConfigType xmlPluginConfig, PluginConfig savedPluginConfig) {
+        PluginRoleBindingsType xmlRoleBinds = xmlPluginConfig.getRoleBinds();
+        if (xmlRoleBinds == null || xmlRoleBinds.getRoleBind().isEmpty()) {
+            return;
+        }
+
+        for (PluginRoleBindingType xmlRoleBind : xmlRoleBinds.getRoleBind()) {
+            PluginAuthEntity entity = new PluginAuthEntity();
+            entity.setActive(true);
+            entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            entity.setCreatedTime(new Date());
+            entity.setPermissionType(xmlRoleBind.getPermission());
+            entity.setPluginConfigId(savedPluginConfig.getId());
+            entity.setRoleId(xmlRoleBind.getRoleId());
+            entity.setRoleName(xmlRoleBind.getRoleName());
+
+            pluginAuthRepository.saveAndFlush(entity);
+        }
     }
 
     private Map<String, PluginConfigInterfaceType> pickoutPluginConfigInterfaceTypeByPath(
@@ -1257,9 +1331,9 @@ public class PluginConfigService {
             return;
         }
 
-        Map<String, PluginConfig> pluginConfigDefs = pickoutPluginConfigDefinitions(pluginPackage);
+        Map<String, PluginConfig> regNamedPluginConfigDefs = pickoutPluginConfigDefinitions(pluginPackage);
         if (log.isDebugEnabled()) {
-            log.debug("total {} plugin config declarations found.", pluginConfigDefs.size());
+            log.debug("total {} plugin config declarations found.", regNamedPluginConfigDefs.size());
         }
 
         for (PluginConfigType xmlPluginConfig : xmlPluginConfigList) {
@@ -1271,7 +1345,7 @@ public class PluginConfigService {
                 throw new WecubeCoreException("Register name is blank for " + xmlPluginConfig.getName());
             }
 
-            PluginConfig pluginConfigDef = pluginConfigDefs.get(xmlPluginConfig.getName());
+            PluginConfig pluginConfigDef = regNamedPluginConfigDefs.get(xmlPluginConfig.getName());
             handlePluginConfig(pluginPackage, xmlPluginConfig, pluginConfigDef);
         }
 
