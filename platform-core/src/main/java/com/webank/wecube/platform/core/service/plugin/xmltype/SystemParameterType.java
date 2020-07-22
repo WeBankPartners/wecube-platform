@@ -81,4 +81,26 @@ public class SystemParameterType {
         this.packageName = packageName;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SystemParameterType [name=");
+        builder.append(name);
+        builder.append(", scopeType=");
+        builder.append(scopeType);
+        builder.append(", defaultValue=");
+        builder.append(defaultValue);
+        builder.append(", value=");
+        builder.append(value);
+        builder.append(", status=");
+        builder.append(status);
+        builder.append(", source=");
+        builder.append(source);
+        builder.append(", packageName=");
+        builder.append(packageName);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    
 }
