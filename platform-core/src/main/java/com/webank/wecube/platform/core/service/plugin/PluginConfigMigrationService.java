@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
@@ -29,6 +30,7 @@ import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.PluginAuthRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
+import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInputParameterType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInputParametersType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigInterfaceType;
@@ -39,6 +41,8 @@ import com.webank.wecube.platform.core.service.plugin.xmltype.PluginConfigsType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginPackageType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginRoleBindingType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginRoleBindingsType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.SystemParameterType;
+import com.webank.wecube.platform.core.service.plugin.xmltype.SystemParametersType;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
 
 @Service
@@ -50,6 +54,8 @@ public class PluginConfigMigrationService {
     private PluginConfigRepository pluginConfigRepository;
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
+    @Autowired
+    private SystemVariableRepository systemVariableRepository;
 
     public PluginRegistryInfo exportPluginRegistersForOnePackage(String pluginPackageId) {
         if (StringUtils.isBlank(pluginPackageId)) {
@@ -81,6 +87,9 @@ public class PluginConfigMigrationService {
 
         PluginConfigsType xmlPluginConfigs = buildXmlPluginConfigs(pluginPackage, pluginConfigs);
         xmlPluginPackage.setPlugins(xmlPluginConfigs);
+
+        SystemParametersType xmlSystemVariables = buildSystemParametersType(pluginPackage);
+        xmlPluginPackage.setSystemParameters(xmlSystemVariables);
 
         String xmlContent = JaxbUtils.convertToXml(xmlPluginPackage);
 
@@ -126,6 +135,30 @@ public class PluginConfigMigrationService {
         }
 
         performImportPluginRegistersForOnePackage(pluginPackage, xmlPluginPackage);
+        performImportSystemParametersForOnePackage(pluginPackage, xmlPluginPackage);
+    }
+
+    private SystemParametersType buildSystemParametersType(PluginPackage pluginPackage) {
+        SystemParametersType xmlSystemParameters = new SystemParametersType();
+        List<SystemVariable> sysVars = systemVariableRepository.findBySource(pluginPackage.getId());
+        if (sysVars == null || sysVars.isEmpty()) {
+            return xmlSystemParameters;
+        }
+
+        for (SystemVariable sysVar : sysVars) {
+            SystemParameterType xmlSysVar = new SystemParameterType();
+            xmlSysVar.setDefaultValue(sysVar.getDefaultValue());
+            xmlSysVar.setName(sysVar.getName());
+            xmlSysVar.setPackageName(sysVar.getPackageName());
+            xmlSysVar.setScopeType(sysVar.getScope());
+            xmlSysVar.setSource(sysVar.getSource());
+            xmlSysVar.setStatus(sysVar.getStatus());
+            xmlSysVar.setValue(sysVar.getValue());
+
+            xmlSystemParameters.getSystemParameter().add(xmlSysVar);
+        }
+
+        return xmlSystemParameters;
     }
 
     private PluginConfigsType buildXmlPluginConfigs(PluginPackage pluginPackage, List<PluginConfig> pluginConfigs) {
@@ -370,6 +403,51 @@ public class PluginConfigMigrationService {
             entity.setRoleName(xmlRoleBind.getRoleName());
 
             pluginAuthRepository.saveAndFlush(entity);
+        }
+    }
+
+    private void performImportSystemParametersForOnePackage(PluginPackage pluginPackage,
+            PluginPackageType xmlPluginPackage) {
+        SystemParametersType xmlSystemParameters = xmlPluginPackage.getSystemParameters();
+        if (xmlSystemParameters == null || xmlSystemParameters.getSystemParameter() == null
+                || xmlSystemParameters.getSystemParameter().isEmpty()) {
+            return;
+        }
+
+        for (SystemParameterType xmlSysVar : xmlSystemParameters.getSystemParameter()) {
+            if (StringUtils.isBlank(xmlSysVar.getName())) {
+                log.info("System variable name is blank:{} ", xmlSysVar);
+                continue;
+            }
+
+            if (StringUtils.isBlank(xmlSysVar.getScopeType())) {
+                log.info("System variable scope is blank:{}", xmlSysVar);
+                continue;
+            }
+
+            SystemVariable sysVarEntity = null;
+            List<SystemVariable> existSysVars = systemVariableRepository
+                    .findByNameAndScopeAndSource(xmlSysVar.getName(), xmlSysVar.getScopeType(), pluginPackage.getId());
+            if(existSysVars != null && !existSysVars.isEmpty()){
+                sysVarEntity = existSysVars.get(0);
+            }
+            
+            if(sysVarEntity == null){
+                sysVarEntity = new SystemVariable();
+                sysVarEntity.setDefaultValue(xmlSysVar.getDefaultValue());
+                sysVarEntity.setPackageName(xmlSysVar.getPackageName());
+                sysVarEntity.setName(xmlSysVar.getName());
+                sysVarEntity.setScope(xmlSysVar.getScopeType());
+                sysVarEntity.setSource(pluginPackage.getId());
+                sysVarEntity.setStatus(xmlSysVar.getStatus());
+                sysVarEntity.setValue(xmlSysVar.getValue());
+            }else{
+                sysVarEntity.setDefaultValue(xmlSysVar.getDefaultValue());
+                sysVarEntity.setValue(xmlSysVar.getValue());
+                sysVarEntity.setStatus(xmlSysVar.getStatus());
+            }
+            
+            systemVariableRepository.saveAndFlush(sysVarEntity);
         }
     }
 
