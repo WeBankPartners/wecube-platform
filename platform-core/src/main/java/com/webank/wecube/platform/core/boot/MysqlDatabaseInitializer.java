@@ -30,6 +30,8 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
     public static final String CREATE_SCHEMA_NAME = "01.wecube.mysql.create.schema.sql";
     public static final String DROP_SCHEMA_NAME = "01.wecube.mysql.drop.sql";
     public static final String CREATE_DATA_NAME = "02.wecube.mysql.create.data.sql";
+    
+    public static final String UPGRADE_SQL_FILE_PREFIX = "wecube_platform_core_";
 
     private String createAppPropertyInfoSql;
     private String insertAppPropertyInfoSql;
@@ -489,7 +491,7 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
         List<PathAndVersion> filteredPaths = new ArrayList<PathAndVersion>();
         for (Path p : upgradeFilePaths) {
             String fileName = p.getFileName().toString();
-            String versionInFile = fileName.substring("anyway_".length(), fileName.lastIndexOf(".sql"));
+            String versionInFile = fileName.substring(UPGRADE_SQL_FILE_PREFIX.length(), fileName.lastIndexOf(".sql"));
             log.info("versionInFile:{}", versionInFile);
             if (StringUtils.isBlank(versionInFile)) {
                 continue;
