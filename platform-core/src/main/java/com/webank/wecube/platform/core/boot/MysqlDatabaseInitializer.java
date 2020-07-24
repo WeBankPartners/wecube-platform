@@ -362,7 +362,7 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
                     throw new ApplicationInitializeException("Failed to log db version.");
                 }
             } else {
-                updateDbVersion(dbVersion);
+                updateDbVersionToAppVersion(dbVersion);
             }
         } catch (SQLException e) {
             throw new ApplicationInitializeException(e);
@@ -414,7 +414,13 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
 
         log.info("start to upgrade DB from : {} to : {}", dbVersion.getVal(), applicationVersionInfo.getVersion());
 
-        if (applicationVersionInfo.getVersion().equals(dbVersion.getVal())) {
+        if(StringUtils.isBlank(dbVersion.getVal())){
+            dbVersion.setVal("0.0.0");
+        }
+        
+        String appVersion = applicationVersionInfo.getVersion();
+        String lastDbVersion = dbVersion.getVal();
+        if(versionComparator.compare(appVersion, lastDbVersion) <= 0){
             log.info("no need to upgrade DB data.");
             return;
         }
@@ -422,12 +428,15 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
         List<Path> rawUpgradeFilePaths = listUpgradeFiles();
         if (rawUpgradeFilePaths == null || rawUpgradeFilePaths.isEmpty()) {
             log.info("There is no upgrade files.");
+            updateDbVersionToAppVersion(dbVersion);
             return;
         }
 
         List<PathAndVersion> upgradeFilePaths = determineUpgradeFilePaths(dbVersion, rawUpgradeFilePaths);
 
         if (upgradeFilePaths.isEmpty()) {
+            log.info("There is no filtered upgrade files.");
+            updateDbVersionToAppVersion(dbVersion);
             return;
         }
 
@@ -453,10 +462,10 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
             }
         }
 
-        updateDbVersion(dbVersion);
+        updateDbVersionToAppVersion(dbVersion);
     }
 
-    private void updateDbVersion(AppPropertyInfo dbVersion) {
+    private void updateDbVersionToAppVersion(AppPropertyInfo dbVersion) {
         try {
             if (dbVersion != null) {
                 int ret = dbUpdateTable(updateAppPropertyInfoSql, new Object[] { applicationVersionInfo.getVersion(),
