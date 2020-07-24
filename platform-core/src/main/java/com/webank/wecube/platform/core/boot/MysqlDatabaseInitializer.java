@@ -1,16 +1,23 @@
 package com.webank.wecube.platform.core.boot;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.sql.DataSource;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * NOT thread-safe
@@ -31,8 +38,10 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
 
     private StatementInfoParser statementInfoParser = new MysqlStatementInfoParser();
 
-    MysqlDatabaseInitializer(String strategy, DataSource dataSource) {
-        super(strategy, dataSource);
+    private VersionComparator versionComparator = new VersionComparator();
+
+    MysqlDatabaseInitializer(String strategy, DataSource dataSource, ApplicationVersionInfo applicationVersionInfo) {
+        super(strategy, dataSource, applicationVersionInfo);
         this.createAppPropertyInfoSql = createAppPropertyInfoSql();
         this.insertAppPropertyInfoSql = insertAppPropertyInfoSql();
         this.queryAppPropertyInfoSql = queryAppPropertyInfoSql();
@@ -345,15 +354,233 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
     protected void logDbVersion(AppPropertyInfo dbVersion) {
         try {
             if (dbVersion == null) {
-                AppPropertyInfo newDbVersion = new AppPropertyInfo(PROPERTY_NAME_DB_VERSION, "2.0", 1);
+                AppPropertyInfo newDbVersion = new AppPropertyInfo(PROPERTY_NAME_DB_VERSION,
+                        applicationVersionInfo.getVersion(), AppPropertyInfo.REV_INIT);
                 int ret = dbInsertData(insertAppPropertyInfoSql, newDbVersion.unpack());
-                
-                if(ret <= 0){
+
+                if (ret <= 0) {
                     throw new ApplicationInitializeException("Failed to log db version.");
+                }
+            } else {
+                updateDbVersion(dbVersion);
+            }
+        } catch (SQLException e) {
+            throw new ApplicationInitializeException(e);
+        }
+
+    }
+
+    protected void tryExecuteDbUpgrade() {
+        List<Path> upgradeFilePaths = listUpgradeFiles();
+        if (upgradeFilePaths == null || upgradeFilePaths.isEmpty()) {
+            log.info("There is no upgrade files.");
+            return;
+        }
+
+        log.info("upgradeFilePaths size:{}, and upgrade files:", upgradeFilePaths.size());
+
+        for (Path path : upgradeFilePaths) {
+            log.info("upgrade file:{}, {}", path.getFileName(), path.toAbsolutePath());
+        }
+
+        for (Path path : upgradeFilePaths) {
+            try {
+                doExecuteDbUpgrade(path);
+            } catch (IOException e) {
+                log.error("failed to execute:" + path.getFileName(), e);
+            }
+        }
+    }
+
+    private void doExecuteDbUpgrade(Path path) throws IOException {
+        log.info("start to execute DB upgrade for :{}", path.getFileName());
+        InputStream inputStream = null;
+        try {
+            inputStream = Files.newInputStream(path);
+            if (inputStream != null) {
+                executeSchemaResource("Upgrade", "core", "data", inputStream);
+            } else {
+                log.warn("Can not upgrade DB data file:{}", path.getFileName());
+            }
+        } finally {
+            closeSilently(inputStream);
+        }
+    }
+
+    protected void tryExecuteDbUpgrade(AppPropertyInfo dbVersion) {
+        if (dbVersion == null) {
+            return;
+        }
+
+        log.info("start to upgrade DB from : {} to : {}", dbVersion.getVal(), applicationVersionInfo.getVersion());
+
+        if (applicationVersionInfo.getVersion().equals(dbVersion.getVal())) {
+            log.info("no need to upgrade DB data.");
+            return;
+        }
+
+        List<Path> rawUpgradeFilePaths = listUpgradeFiles();
+        if (rawUpgradeFilePaths == null || rawUpgradeFilePaths.isEmpty()) {
+            log.info("There is no upgrade files.");
+            return;
+        }
+
+        List<PathAndVersion> upgradeFilePaths = determineUpgradeFilePaths(dbVersion, rawUpgradeFilePaths);
+
+        if (upgradeFilePaths.isEmpty()) {
+            return;
+        }
+
+        Collections.sort(upgradeFilePaths, new Comparator<PathAndVersion>() {
+
+            @Override
+            public int compare(PathAndVersion p1, PathAndVersion p2) {
+                return versionComparator.compare(p1.getVersion(), p2.getVersion());
+            }
+
+        });
+
+        log.info("upgradeFilePaths size:{}, and upgrade files:", upgradeFilePaths.size());
+        for (PathAndVersion pv : upgradeFilePaths) {
+            log.info("upgrade file:{}, {}", pv.getPath().getFileName(), pv.getPath().toAbsolutePath());
+        }
+
+        for (PathAndVersion pv : upgradeFilePaths) {
+            try {
+                doExecuteDbUpgrade(pv.getPath());
+            } catch (IOException e) {
+                log.error("failed to execute:" + pv.getPath().getFileName(), e);
+            }
+        }
+
+        updateDbVersion(dbVersion);
+    }
+
+    private void updateDbVersion(AppPropertyInfo dbVersion) {
+        try {
+            if (dbVersion != null) {
+                int ret = dbUpdateTable(updateAppPropertyInfoSql, new Object[] { applicationVersionInfo.getVersion(),
+                        dbVersion.getNextRev(), dbVersion.getName(), dbVersion.getRev() });
+                if (ret <= 0) {
+                    throw new ApplicationInitializeException("Update table failed");
                 }
             }
         } catch (SQLException e) {
             throw new ApplicationInitializeException(e);
+        }
+    }
+
+    private List<PathAndVersion> determineUpgradeFilePaths(AppPropertyInfo dbVersion, List<Path> upgradeFilePaths) {
+        String lastDbVersion = dbVersion.getVal();
+        if (StringUtils.isBlank(lastDbVersion)) {
+            lastDbVersion = "0.0.0";
+        }
+
+        String currDbVersion = applicationVersionInfo.getVersion();
+        List<PathAndVersion> filteredPaths = new ArrayList<PathAndVersion>();
+        for (Path p : upgradeFilePaths) {
+            String fileName = p.getFileName().toString();
+            String versionInFile = fileName.substring("anyway_".length(), fileName.lastIndexOf(".sql"));
+            log.info("versionInFile:{}", versionInFile);
+            if (StringUtils.isBlank(versionInFile)) {
+                continue;
+            }
+
+            if (!verifyVersionFormat(versionInFile)) {
+                continue;
+            }
+
+            if (needUpgrade(versionInFile, lastDbVersion, currDbVersion)) {
+                PathAndVersion pv = new PathAndVersion(p, versionInFile);
+                filteredPaths.add(pv);
+            } else {
+                log.info("abandoned to upgrade:{}", p.getFileName());
+            }
+        }
+        return filteredPaths;
+    }
+
+    private boolean needUpgrade(String versionInFile, String lastDbVersion, String currDbVersion) {
+        if (lastDbVersion.equals(currDbVersion)) {
+            return false;
+        }
+
+        int compareToLastDbVersion = versionComparator.compare(versionInFile, lastDbVersion);
+        int compareToCurrDbVersion = versionComparator.compare(versionInFile, currDbVersion);
+        if (compareToLastDbVersion > 0 && compareToCurrDbVersion <= 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static class PathAndVersion {
+        private Path path;
+        private String version;
+
+        public PathAndVersion(Path path, String version) {
+            super();
+            this.path = path;
+            this.version = version;
+        }
+
+        public Path getPath() {
+            return path;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+    }
+
+    public static class VersionComparator implements Comparator<String> {
+        private static final String VERSION_PREFIX = "v";
+
+        /**
+         * 
+         */
+        @Override
+        public int compare(String v1, String v2) {
+
+            int[] v1Nums = tidyVersion(v1);
+            int[] v2Nums = tidyVersion(v2);
+
+            int compare = 0;
+            for (int i = 0; i < v1Nums.length; i++) {
+                compare = (v1Nums[i] - v2Nums[i]);
+                if (compare != 0) {
+                    break;
+                }
+            }
+
+            return compare;
+        }
+
+        private int[] tidyVersion(String versionStr) {
+            if (isBlank(versionStr)) {
+                throw new IllegalArgumentException();
+            }
+
+            if (VERSION_PREFIX.equalsIgnoreCase(versionStr.substring(0, 1))) {
+                versionStr = versionStr.substring(1);
+            }
+
+            String[] vStrNums = versionStr.split("\\.");
+            int[] vNums = new int[] { 0, 0, 0, 0 };
+            for (int i = 0; i < vStrNums.length && i < vNums.length; i++) {
+                vNums[i] = Integer.parseInt(vStrNums[i]);
+            }
+
+            return vNums;
+        }
+
+        private boolean isBlank(String s) {
+            if ((s == null) || (s.trim().length() < 1)) {
+                return true;
+            }
+
+            return false;
         }
 
     }
