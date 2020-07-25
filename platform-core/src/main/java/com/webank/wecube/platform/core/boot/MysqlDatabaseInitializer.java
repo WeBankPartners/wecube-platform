@@ -491,6 +491,10 @@ final class MysqlDatabaseInitializer extends AbstractDatabaseInitializer {
         List<PathAndVersion> filteredPaths = new ArrayList<PathAndVersion>();
         for (Path p : upgradeFilePaths) {
             String fileName = p.getFileName().toString();
+            if(!fileName.startsWith(UPGRADE_SQL_FILE_PREFIX)){
+                log.info("unexpected upgrade file:{}", fileName);
+                continue;
+            }
             String versionInFile = fileName.substring(UPGRADE_SQL_FILE_PREFIX.length(), fileName.lastIndexOf(".sql"));
             log.info("versionInFile:{}", versionInFile);
             if (StringUtils.isBlank(versionInFile)) {
