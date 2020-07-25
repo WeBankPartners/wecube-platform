@@ -13,12 +13,12 @@ CREATE TABLE  IF NOT EXISTS `plugin_config_roles` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 
-delete from plugin_config_roles where created_by = 'init';
+delete from plugin_config_roles where created_by = 'bootScript';
 
 insert into plugin_config_roles
 (id,created_by,created_time,is_active,perm_type,plugin_cfg_id,role_id,role_name)
 select uuid() as id,
-'init' as created_by,
+'bootScript' as created_by,
 sysdate(),
 1 as is_actvie,
 'MGMT' as perm_type,
