@@ -429,9 +429,9 @@ public class PluginPackageService {
 
 	@SuppressWarnings("unchecked")
     public List<SystemVariable> getSystemVarsById(String packageId) {
-		Optional<List<SystemVariable>> optionalSystemVariables = systemVariableRepository.findBySource(packageId);
-		if (optionalSystemVariables.isPresent()) {
-			return optionalSystemVariables.get();
+		List<SystemVariable> optionalSystemVariables = systemVariableRepository.findBySource(packageId);
+		if (optionalSystemVariables != null) {
+			return optionalSystemVariables;
 		}
 		return Collections.EMPTY_LIST;
 	}
@@ -627,10 +627,9 @@ public class PluginPackageService {
 	}
 
 	private void deactivateSystemVariables(PluginPackage pluginPackage) {
-		Optional<List<SystemVariable>> systemVariablesOptional = systemVariableRepository
+		List<SystemVariable> systemVariablesFromDb = systemVariableRepository
 				.findBySource(pluginPackage.getId());
-		if (systemVariablesOptional.isPresent()) {
-			List<SystemVariable> systemVariablesFromDb = systemVariablesOptional.get();
+		if (systemVariablesFromDb != null) {
 			if (systemVariablesFromDb.size() > 0) {
 				Set<SystemVariable> systemVariables = systemVariablesFromDb.stream()
 						.filter(systemVariable -> SystemVariable.ACTIVE.equals(systemVariable.getStatus())
