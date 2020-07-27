@@ -68,6 +68,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
                 .antMatchers("/v1/health-check").permitAll() //
                 .antMatchers("/v1/appinfo/loggers/query").permitAll() //
                 .antMatchers("/v1/appinfo/loggers/update").permitAll() //
+                .antMatchers("/v1/appinfo/version").permitAll() //
                 .anyRequest().authenticated() //
                 .and()//
                 .addFilter(jwtSsoBasedAuthenticationFilter())//
