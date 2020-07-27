@@ -1,5 +1,9 @@
 <template>
   <div>
+    <Spin size="large" fix style="margin-top: 100px;" v-show="isLoading">
+      <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+      <div>{{ $t('loading') }}</div>
+    </Spin>
     <section v-if="displaySearchZone" class="search">
       <Card v-if="displaySearchZone">
         <div class="search-zone">
@@ -465,6 +469,7 @@ export default {
   name: '',
   data () {
     return {
+      isLoading: false,
       displaySearchZone: false,
       displayResultTableZone: false,
       displayExecuteResultZone: false,
@@ -978,6 +983,7 @@ export default {
           }
         }
       })
+      this.isLoading = true
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
         if (data.length) {
@@ -993,6 +999,7 @@ export default {
         } else {
           this.$Message.warning(this.$t('bc_warn_empty'))
         }
+        this.isLoading = false
       }
     },
     clearParametes () {
