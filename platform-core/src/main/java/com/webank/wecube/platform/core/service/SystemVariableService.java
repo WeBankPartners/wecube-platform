@@ -185,9 +185,9 @@ public class SystemVariableService {
     }
 
     public List<SystemVariable> getPluginSystemVariableByPackageId(String packageId) {
-        Optional<List<SystemVariable>> systemVariablesOptional = systemVariableRepository.findBySource(packageId);
-        if (systemVariablesOptional.isPresent()) {
-            return systemVariablesOptional.get();
+        List<SystemVariable> systemVariables = systemVariableRepository.findBySource(packageId);
+        if (systemVariables != null) {
+            return systemVariables;
         }
         return Collections.emptyList();
     }

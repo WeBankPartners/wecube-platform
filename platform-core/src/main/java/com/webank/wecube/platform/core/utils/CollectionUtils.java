@@ -3,14 +3,55 @@ package com.webank.wecube.platform.core.utils;
 import static java.util.function.Function.identity;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import org.apache.poi.ss.formula.functions.T;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 
-public class CollectionUtils {
+public final class CollectionUtils {
+
+    @SuppressWarnings("hiding")
+    public static <T> List<T> listMinus(List<T> minuend, List<T> extraction) {
+        List<T> results = new ArrayList<T>();
+        if (minuend == null) {
+            return results;
+        }
+        if (extraction == null || extraction.isEmpty()) {
+            results.addAll(minuend);
+            return results;
+        }
+
+        for (T t : minuend) {
+            if (collectionContains(extraction, t)) {
+                // nothing
+            } else {
+                results.add(t);
+            }
+        }
+
+        return results;
+    }
+
+    public static boolean collectionContains(Collection<?> list, Object t) {
+        for (Object e : list) {
+            if (Objects.equals(e, t)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public static <K, V> Map<K, V> asMap(Collection<V> list, Function<? super V, K> keyFunction) {
         if (list == null || list.isEmpty()) {
@@ -50,13 +91,12 @@ public class CollectionUtils {
         }
     }
 
-    public static <G, E> List<G> groupUp(List<G> groups,
-                                         List<E> elements,
-                                         Function<? super G, Object> keyMapperOfGroup,
-                                         Function<? super G, List<E>> childrenMapperOfGroup,
-                                         Function<? super E, Object> parentMapperOfElement) {
-        if (isEmpty(groups)) return groups;
-        if (isEmpty(elements)) return groups;
+    public static <G, E> List<G> groupUp(List<G> groups, List<E> elements, Function<? super G, Object> keyMapperOfGroup,
+            Function<? super G, List<E>> childrenMapperOfGroup, Function<? super E, Object> parentMapperOfElement) {
+        if (isEmpty(groups))
+            return groups;
+        if (isEmpty(elements))
+            return groups;
         if (keyMapperOfGroup == null)
             throw new WecubeCoreException("Key mapper of Group Object cannot be null for grouping function.");
         if (childrenMapperOfGroup == null)
@@ -68,29 +108,36 @@ public class CollectionUtils {
 
         elements.forEach(element -> {
             Object parentId = parentMapperOfElement.apply(element);
-            if (parentId == null) return;
+            if (parentId == null)
+                return;
             G group = groupMap.get(parentId);
-            if (group == null) return;
+            if (group == null)
+                return;
             List<E> children = childrenMapperOfGroup.apply(group);
-            if (children == null) throw new WecubeCoreException("Children property should not be null.");
+            if (children == null)
+                throw new WecubeCoreException("Children property should not be null.");
             children.add(element);
         });
         return resultGroups;
     }
 
     public static <E> E pickRandomOne(List<E> collection) {
-        if (isEmpty(collection)) return null;
+        if (isEmpty(collection))
+            return null;
         return collection.get(new Random().nextInt(collection.size()));
     }
 
     public static <E> E pickLastOne(List<E> collection, Comparator<E> comparator) {
-        if (isEmpty(collection)) return null;
-        if (comparator != null) collection.sort(comparator);
+        if (isEmpty(collection))
+            return null;
+        if (comparator != null)
+            collection.sort(comparator);
         return collection.get(collection.size() - 1);
     }
 
     public static <K, V> Map<K, V> zipToMap(List<K> keys, List<V> values) {
-        // check if the input is null, but will tolerate the data in the list can be null
+        // check if the input is null, but will tolerate the data in the list
+        // can be null
         if (keys == null || values == null) {
             throw new WecubeCoreException("Each input list should not be NULL");
         }
