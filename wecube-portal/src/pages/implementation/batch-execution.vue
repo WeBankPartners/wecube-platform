@@ -981,7 +981,13 @@ export default {
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
         if (data.length) {
+          const selectTag = this.seletedRows.map(item => item.id)
           this.tableData = data
+          this.tableData.forEach(item => {
+            if (selectTag.includes(item.id)) {
+              item._checked = true
+            }
+          })
           this.displaySearchZone = false
           this.displayResultTableZone = true
         } else {
@@ -1089,7 +1095,7 @@ export default {
         duration: 1
       })
       const { status, data } = await batchExecution(requestBody)
-      this.seletedRows = []
+      // this.seletedRows = []
       if (status === 'OK') {
         this.executeResult = data
         this.filterBusinessKeySet = []
@@ -1142,7 +1148,7 @@ export default {
         duration: 1
       })
       const { status, data } = await batchExecution(requestBody)
-      this.seletedRows = []
+      // this.seletedRows = []
       if (status === 'OK') {
         this.setPluginParamsModal = false
         this.executeResult = data
