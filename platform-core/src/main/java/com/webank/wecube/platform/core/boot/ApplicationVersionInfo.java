@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ApplicationVersionInfo {
-    private String version = "1.0.0";
+    private String version = "2.6.0";
     
     private Resource versionInfoFile;
     
