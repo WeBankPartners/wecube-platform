@@ -1,5 +1,20 @@
 package com.webank.wecube.platform.core.service.plugin;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.ENABLED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.REGISTERED;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.google.common.collect.Lists;
 import com.webank.wecube.platform.core.DatabaseBasedTest;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
@@ -7,17 +22,6 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.dto.PluginConfigInterfaceDto;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.*;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class PluginConfigServiceTest extends DatabaseBasedTest {
     @Autowired
@@ -26,6 +30,7 @@ public class PluginConfigServiceTest extends DatabaseBasedTest {
     @Autowired
     private PluginConfigService configService;
 
+    @Ignore
     @Test
     public void givenMultiplePluginConfigWithDifferentStatusForMultipleVersionPackageWhenQueryAllLatestEnabledPluginConfigInterfaceThenShouldReturnCorrectInterfaces() {
         long now = System.currentTimeMillis();
