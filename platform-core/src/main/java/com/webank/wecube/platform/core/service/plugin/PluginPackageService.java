@@ -4,6 +4,8 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.REGISTERED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.ENABLED;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -172,14 +174,64 @@ public class PluginPackageService {
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
 
-    public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginConfigDto> pluginConfigs) {
-        // TODO
-        return;
+    public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginConfigDto> pluginConfigDtos) {
+        List<PluginConfig> pluginConfigList = pluginConfigRepository.findByPluginPackageIdAndRegisterNameIsNotNull(packageId);
+        if(pluginConfigList == null || pluginConfigList.size()<0){
+            throw new WecubeCoreException("PluginConfig not found for id: " + packageId);
+        }
+
+        List<PluginConfig> disabledPluginConfigs = new ArrayList<>();
+        List<PluginConfig> enablepluginConfigs = new ArrayList<>();
+        for (PluginConfig pluginConfig : pluginConfigList) {
+            for (PluginConfigDto config : pluginConfigDtos) {
+                if(pluginConfig.getId().equals(config.getId())){
+                    enablepluginConfigs.add(pluginConfig);
+                }else{
+                    disabledPluginConfigs.add(pluginConfig);
+                }
+            }
+        }
+        enablepluginConfigs.forEach(enablepluginConfig ->{
+            if (enablepluginConfig.getPluginPackage() == null || UNREGISTERED == enablepluginConfig.getPluginPackage().getStatus()
+                    || DECOMMISSIONED == enablepluginConfig.getPluginPackage().getStatus()) {
+                throw new WecubeCoreException(
+                        "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
+            }
+            enablepluginConfig.setStatus(ENABLED);
+            pluginConfigRepository.save(enablepluginConfig);
+        });
+
+        disabledPluginConfigs.forEach(disabledPluginConfig ->{
+            disabledPluginConfig.setStatus(DISABLED);
+            pluginConfigRepository.save(disabledPluginConfig);
+        });
     }
 
     public List<PluginDeclarationDto> getPluginConfigOutlinesByPackageId(String packageId) {
-        // TODO
-        return null;
+        List<PluginDeclarationDto> pluginDeclarationDtos = new ArrayList<>();
+
+        List<PluginConfig> configs = pluginConfigRepository.findByPluginPackageIdAndRegisterNameIsNull(packageId);
+        if(configs == null || configs.size()<0){
+            throw new WecubeCoreException("PluginConfig not found for id: " + packageId);
+        }
+
+        configs.forEach(pluginConfig -> {
+            PluginDeclarationDto pdDto = PluginDeclarationDto.fromDomain(pluginConfig);
+            List<PluginConfig> pluginPackageIdAndNames = pluginConfigRepository.
+                    findByPluginPackageIdAndNameAndRegisterNameIsNotNull(pluginConfig.getPluginPackageId(), pluginConfig.getName());
+
+            List<PluginConfigDto> childPdDtos = new ArrayList<>();
+            if(pluginPackageIdAndNames != null && pluginPackageIdAndNames.size() > 0){
+                pluginPackageIdAndNames.forEach(pluginConfigDto -> {
+                    PluginConfigDto pcDto = PluginConfigDto.fromDomainWithoutInterfaces(pluginConfigDto);
+                    childPdDtos.add(pcDto);
+                });
+            }
+            pdDto.setPluginConfigs(childPdDtos);
+            pluginDeclarationDtos.add(pdDto);
+         });
+
+        return pluginDeclarationDtos;
     }
 
     public List<S3PluginActifactDto> listS3PluginActifacts() {
@@ -468,7 +520,7 @@ public class PluginPackageService {
     }
 
     public List<PluginConfigGroupByNameDto> getPluginConfigsByPackageId(String packageId, boolean needInterfaceInfo) {
-        List<PluginConfigGroupByNameDto> pluginConfigGroupByNameDtos = new ArrayList<PluginConfigGroupByNameDto>();
+        List<PluginConfigGroupByNameDto> pluginConfigGroupByNameDtos = new ArrayList<>();
         List<PluginConfigDto> pluginConfigDtos = new ArrayList<PluginConfigDto>();
         Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
         if (!packageFoundById.isPresent()) {
