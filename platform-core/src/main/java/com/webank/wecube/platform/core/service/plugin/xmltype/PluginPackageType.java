@@ -3,19 +3,23 @@ package com.webank.wecube.platform.core.service.plugin.xmltype;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-@XmlRootElement(name="package", namespace="")
+@XmlRootElement(name = "package", namespace = "")
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "packageType", propOrder = { "name", "version", "plugins" })
+@XmlType(name = "packageType", propOrder = { "name", "version", "plugins", "systemParameters" })
 public class PluginPackageType {
     @XmlAttribute(name = "name")
     protected String name;
     @XmlAttribute(name = "version")
     protected String version;
 
+    @XmlElement(name = "plugins", required = false)
     protected PluginConfigsType plugins;
+    @XmlElement(name = "systemParameters", required = false)
+    protected SystemParametersType systemParameters;
 
     public String getName() {
         return name;
@@ -39,6 +43,14 @@ public class PluginPackageType {
 
     public void setPlugins(PluginConfigsType plugins) {
         this.plugins = plugins;
+    }
+
+    public SystemParametersType getSystemParameters() {
+        return systemParameters;
+    }
+
+    public void setSystemParameters(SystemParametersType systemParameters) {
+        this.systemParameters = systemParameters;
     }
 
 }
