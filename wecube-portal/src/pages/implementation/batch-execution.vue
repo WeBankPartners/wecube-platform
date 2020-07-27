@@ -1,5 +1,9 @@
 <template>
   <div>
+    <Spin size="large" fix style="margin-top: 100px;" v-show="isLoading">
+      <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
+      <div>{{ $t('loading') }}</div>
+    </Spin>
     <section v-if="displaySearchZone" class="search">
       <Card v-if="displaySearchZone">
         <div class="search-zone">
@@ -465,6 +469,7 @@ export default {
   name: '',
   data () {
     return {
+      isLoading: false,
       displaySearchZone: false,
       displayResultTableZone: false,
       displayExecuteResultZone: false,
@@ -978,15 +983,23 @@ export default {
           }
         }
       })
+      this.isLoading = true
       const { status, data } = await dmeIntegratedQuery(requestParameter)
       if (status === 'OK') {
         if (data.length) {
+          const selectTag = this.seletedRows.map(item => item.id)
           this.tableData = data
+          this.tableData.forEach(item => {
+            if (selectTag.includes(item.id)) {
+              item._checked = true
+            }
+          })
           this.displaySearchZone = false
           this.displayResultTableZone = true
         } else {
           this.$Message.warning(this.$t('bc_warn_empty'))
         }
+        this.isLoading = false
       }
     },
     clearParametes () {
@@ -1089,7 +1102,7 @@ export default {
         duration: 1
       })
       const { status, data } = await batchExecution(requestBody)
-      this.seletedRows = []
+      // this.seletedRows = []
       if (status === 'OK') {
         this.executeResult = data
         this.filterBusinessKeySet = []
@@ -1142,7 +1155,7 @@ export default {
         duration: 1
       })
       const { status, data } = await batchExecution(requestBody)
-      this.seletedRows = []
+      // this.seletedRows = []
       if (status === 'OK') {
         this.setPluginParamsModal = false
         this.executeResult = data
