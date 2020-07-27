@@ -62,6 +62,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
 import com.webank.wecube.platform.core.dto.PluginConfigGroupByNameDto;
+import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
 import com.webank.wecube.platform.core.dto.PluginPackageDto;
@@ -167,9 +168,19 @@ public class PluginPackageService {
 
     @Autowired
     private RestTemplate restTemplate;
-    
+
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
+
+    public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginConfigDto> pluginConfigs) {
+        // TODO
+        return;
+    }
+
+    public List<PluginDeclarationDto> getPluginConfigOutlinesByPackageId(String packageId) {
+        // TODO
+        return null;
+    }
 
     public List<S3PluginActifactDto> listS3PluginActifacts() {
         String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
@@ -503,25 +514,25 @@ public class PluginPackageService {
         }
         return pluginConfigGroupByNameDtos;
     }
-    
-    private Map<String, List<String>> fetchPermissionToRoles(PluginConfig pluginConfig){
-        if(pluginConfig == null){
+
+    private Map<String, List<String>> fetchPermissionToRoles(PluginConfig pluginConfig) {
+        if (pluginConfig == null) {
             return null;
         }
-        
-        if(StringUtils.isBlank(pluginConfig.getId())){
+
+        if (StringUtils.isBlank(pluginConfig.getId())) {
             return null;
         }
-        
+
         List<PluginAuthEntity> permissionEntities = pluginAuthRepository.findAllByPluginConfigId(pluginConfig.getId());
         Map<String, List<String>> permissionToRoles = new HashMap<String, List<String>>();
-        if(permissionEntities == null || permissionEntities.isEmpty()){
+        if (permissionEntities == null || permissionEntities.isEmpty()) {
             return permissionToRoles;
         }
-        
-        for(PluginAuthEntity permEntity:permissionEntities ){
+
+        for (PluginAuthEntity permEntity : permissionEntities) {
             List<String> roleIdsOfPerm = permissionToRoles.get(permEntity.getPermissionType());
-            if(roleIdsOfPerm == null){
+            if (roleIdsOfPerm == null) {
                 roleIdsOfPerm = new ArrayList<String>();
                 permissionToRoles.put(permEntity.getPermissionType(), roleIdsOfPerm);
             }
