@@ -1784,20 +1784,4 @@ CREATE TABLE IF NOT EXISTS `core_ru_task_node_inst_info` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
-CREATE TABLE IF NOT EXISTS `plugin_config_roles` (
-  `id` varchar(255) NOT NULL,
-  `created_by` varchar(255) DEFAULT NULL,
-  `created_time` datetime DEFAULT NULL,
-  `updated_by` varchar(255) DEFAULT NULL,
-  `updated_time` datetime DEFAULT NULL,
-  `is_active` bit(1) DEFAULT NULL,
-  `perm_type` varchar(255) DEFAULT NULL,
-  `plugin_cfg_id` varchar(255) DEFAULT NULL,
-  `role_id` varchar(255) DEFAULT NULL,
-  `role_name` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
 SET FOREIGN_KEY_CHECKS = 1;
