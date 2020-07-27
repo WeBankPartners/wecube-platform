@@ -1,35 +1,62 @@
 package com.webank.wecube.platform.core.boot;
 
+import java.util.Iterator;
+
+import com.alibaba.druid.sql.ast.SQLStatement;
+import com.alibaba.druid.sql.ast.statement.SQLAlterTableStatement;
+import com.alibaba.druid.sql.ast.statement.SQLCreateTableStatement;
+import com.alibaba.druid.sql.ast.statement.SQLDeleteStatement;
+import com.alibaba.druid.sql.ast.statement.SQLDropTableStatement;
+import com.alibaba.druid.sql.ast.statement.SQLInsertStatement;
+import com.alibaba.druid.sql.ast.statement.SQLUpdateStatement;
+import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
+import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
+import com.alibaba.druid.stat.TableStat;
+
+/**
+ * 
+ * @author gavin
+ *
+ */
 class MysqlStatementInfoParser extends StatementInfoParser {
 
-    @Override
-    public StatementInfo parseStatement(String statement, Long lineNum) {
-        String trimStatement = statement.trim();
-        int index = trimStatement.indexOf(" ");
-        if (index <= 0) {
-            index = trimStatement.indexOf("\n");
+    public StatementInfo parseStatement(String singleSql, Long lineNum){
+        MySqlStatementParser parser = new MySqlStatementParser(singleSql);
+        SQLStatement sqlStatement = parser.parseStatement();
+        MySqlSchemaStatVisitor visitor = new MySqlSchemaStatVisitor();
+        sqlStatement.accept(visitor);
+        
+        DbOperationType operType = null;
+        if(SQLCreateTableStatement.class.isAssignableFrom(sqlStatement.getClass())){
+            operType = DbOperationType.Create;
+        }else if(SQLInsertStatement.class.isAssignableFrom(sqlStatement.getClass())){
+            operType = DbOperationType.Insert;
+        }else if(SQLDeleteStatement.class.isAssignableFrom(sqlStatement.getClass())){
+            operType = DbOperationType.Delete;
+        }else if(SQLUpdateStatement.class.isAssignableFrom(sqlStatement.getClass())){
+            operType = DbOperationType.Update;
+        }else if(SQLAlterTableStatement.class.isAssignableFrom(sqlStatement.getClass())){
+            operType = DbOperationType.Alter;
+        }else if(SQLDropTableStatement.class.isAssignableFrom(sqlStatement.getClass())){
+            operType = DbOperationType.Drop;
         }
-
-        String strOperType = trimStatement.substring(0, index);
-        DbOperationType operType = DbOperationType.convert(strOperType);
-        if (DbOperationType.Create == operType) {
-            return parseCreateStatemennt(statement, lineNum, trimStatement);
+        else{
+            operType = DbOperationType.Any;
         }
-
-        StatementInfo si = new StatementInfo(DbOperationType.Any, "", statement, lineNum);
+        
+        StatementInfo si = new StatementInfo(operType, getTableName(visitor), singleSql, lineNum);
         return si;
     }
-
-    private StatementInfo parseCreateStatemennt(String statement, Long lineNum, String trimStatement) {
-        trimStatement = trimStatement.replaceAll("\\s+|\n", " ").toLowerCase();
-        int st = trimStatement.indexOf("table");
-        st = st + "table".length();
-        int ed = trimStatement.indexOf("(");
-
-        String tableName = trimStatement.substring(st, ed);
-        tableName = tableName.replace("`", "").trim();
-        StatementInfo si = new StatementInfo(DbOperationType.Create, tableName, statement, lineNum);
-        return si;
+    
+    protected String getTableName(MySqlSchemaStatVisitor visitor){
+        String tableName = null;
+        Iterator<TableStat.Name> nameIt = visitor.getTables().keySet().iterator();
+        if(nameIt.hasNext()){
+            TableStat.Name name = visitor.getTables().keySet().iterator().next();
+            tableName = name.getName();
+        }
+        
+        return tableName;
     }
 
 }
