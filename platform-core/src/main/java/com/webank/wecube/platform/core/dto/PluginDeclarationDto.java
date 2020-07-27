@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.dto;
 
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,5 +73,16 @@ public class PluginDeclarationDto {
 
         this.pluginConfigs.add(inputPluginConfig);
     }
+
+    public static PluginDeclarationDto fromDomain(PluginConfig pluginConfig) {
+        PluginDeclarationDto pluginDeclarationDto = new PluginDeclarationDto();
+        pluginDeclarationDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
+        pluginDeclarationDto.setName(pluginConfig.getName());
+        pluginDeclarationDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
+        pluginDeclarationDto.setRegisterName(pluginConfig.getRegisterName());
+        pluginDeclarationDto.setStatus(pluginConfig.getStatus().name());
+        return pluginDeclarationDto;
+    }
+
 
 }
