@@ -172,7 +172,7 @@ public class PluginConfigDto {
     public String getFilterRule() {
         return splitTargetEntityWithFilterRule().getFilterRule();
     }
-    
+
     public Map<String, List<String>> getPermissionToRole() {
         return permissionToRole;
     }
@@ -180,20 +180,26 @@ public class PluginConfigDto {
     public void setPermissionToRole(Map<String, List<String>> permissionToRole) {
         this.permissionToRole = permissionToRole;
     }
-    
-    public void addAllPermissionToRole(Map<String, List<String>> inputPermissionToRole){
-        if(permissionToRole == null){
-            permissionToRole = new HashMap<String,List<String>>();
+
+    public void addAllPermissionToRole(Map<String, List<String>> inputPermissionToRole) {
+        if (inputPermissionToRole == null) {
+            return;
         }
-        
-        for(String inputPerm : inputPermissionToRole.keySet()){
+        if (permissionToRole == null) {
+            permissionToRole = new HashMap<String, List<String>>();
+        }
+
+        for (String inputPerm : inputPermissionToRole.keySet()) {
             List<String> roleIds = permissionToRole.get(inputPerm);
-            if(roleIds == null){
+            if (roleIds == null) {
                 roleIds = new ArrayList<String>();
                 permissionToRole.put(inputPerm, roleIds);
             }
-            
-            roleIds.addAll(inputPermissionToRole.get(inputPerm));
+
+            List<String> inputRoleIds = inputPermissionToRole.get(inputPerm);
+            if (inputRoleIds != null) {
+                roleIds.addAll(inputPermissionToRole.get(inputPerm));
+            }
         }
     }
 
@@ -248,7 +254,5 @@ public class PluginConfigDto {
 
         return new TargetEntityWithFilterRule(packageString, entity, filterRule);
     }
-
-    
 
 }
