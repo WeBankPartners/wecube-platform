@@ -20,6 +20,8 @@ public interface UserManagementService {
     List<RoleDto> retrieveAllRoles();
 
     RoleDto retrieveRoleById(String roleId);
+    
+    RoleDto retrieveRoleByRoleName(String roleName);
 
     void unregisterLocalRoleById(String roleId);
 
