@@ -119,14 +119,13 @@ public class PluginConfigService {
 
     private Map<String, List<String>> processUpdatePluginConfigRoleBindings(String pluginConfigId,
             Map<String, List<String>> permissionToRole) {
-        Map<String, List<String>> boundPermissionToRole = new HashMap<String, List<String>>();
         if (permissionToRole == null || permissionToRole.isEmpty()) {
-            return boundPermissionToRole;
+            return permissionToRole;
         }
 
-        for (String permission : boundPermissionToRole.keySet()) {
+        for (String permission : permissionToRole.keySet()) {
             List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
-            List<String> inputRoleIds = boundPermissionToRole.get(permission);
+            List<String> inputRoleIds = permissionToRole.get(permission);
 
             List<String> roleIdsToAdd = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
             List<String> roleIdsToRemove = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
@@ -198,13 +197,18 @@ public class PluginConfigService {
 
     private Map<String, List<String>> processCreatePluginConfigRoleBindings(String pluginConfigId,
             Map<String, List<String>> permissionToRole) {
+        
+        if(log.isInfoEnabled()){
+            log.info("start to create plugin config role bindings:{}, {}", pluginConfigId,permissionToRole);
+        }
         Map<String, List<String>> boundPermissionToRole = new HashMap<String, List<String>>();
         if (permissionToRole == null || permissionToRole.isEmpty()) {
+            log.warn("Inputted permission roles is empty for {}", pluginConfigId);
             return boundPermissionToRole;
         }
 
-        for (String permission : boundPermissionToRole.keySet()) {
-            List<String> roleIds = boundPermissionToRole.get(permission);
+        for (String permission : permissionToRole.keySet()) {
+            List<String> roleIds = permissionToRole.get(permission);
             if (roleIds != null) {
                 List<String> addedRoleIds = new ArrayList<String>();
                 for (String roleId : roleIds) {
@@ -222,6 +226,7 @@ public class PluginConfigService {
                     addedRoleIds.add(roleId);
                 }
 
+                log.info("plugin config roles bound:{}, {}, {}", pluginConfigId, permission, addedRoleIds.size());
                 boundPermissionToRole.put(permission, addedRoleIds);
             }
 

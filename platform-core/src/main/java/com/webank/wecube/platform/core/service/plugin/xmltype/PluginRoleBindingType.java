@@ -6,13 +6,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "roleBindType", propOrder = { "permission" , "roleId", "roleName"})
+@XmlType(name = "roleBindType", propOrder = { "permission" , "roleName"})
 public class PluginRoleBindingType {
     
     @XmlAttribute(name = "permission")
     protected String permission;
-    @XmlAttribute(name = "roleId")
-    protected String roleId;
     @XmlAttribute(name = "roleName")
     protected String roleName;
 
@@ -22,14 +20,6 @@ public class PluginRoleBindingType {
 
     public void setPermission(String permission) {
         this.permission = permission;
-    }
-
-    public String getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(String roleId) {
-        this.roleId = roleId;
     }
 
     public String getRoleName() {
