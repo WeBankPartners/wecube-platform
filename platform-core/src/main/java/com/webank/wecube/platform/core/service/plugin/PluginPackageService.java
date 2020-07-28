@@ -4,6 +4,8 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.REGISTERED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
+import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.ENABLED;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -15,20 +17,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
+import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.dto.workflow.PluginConfigOutlineDto;
+import com.webank.wecube.platform.core.utils.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -59,15 +58,6 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageResourceFile;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginConfigDto;
-import com.webank.wecube.platform.core.dto.PluginConfigGroupByNameDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
-import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
-import com.webank.wecube.platform.core.dto.S3PluginActifactPullRequestDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
@@ -109,6 +99,9 @@ public class PluginPackageService {
 
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
+
+    @Autowired
+    private LazyPluginPackageRepository lazyPluginPackageRepository;
 
     @Autowired
     private PluginPackageDataModelService pluginPackageDataModelService;
@@ -167,9 +160,180 @@ public class PluginPackageService {
 
     @Autowired
     private RestTemplate restTemplate;
-    
+
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
+
+    public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginDeclarationDto> pluginConfigDtos) {
+        if (StringUtils.isBlank(packageId)) {
+            throw new WecubeCoreException("Package ID is blank.");
+        }
+        PluginPackage pluginPackage = pluginPackageRepository.getOne(packageId);
+        if (pluginPackage == null) {
+            throw new WecubeCoreException(String.format("Such plugin package with ID %s does not exist.", packageId));
+        }
+        if (pluginPackage.getStatus() == UNREGISTERED || pluginPackage.getStatus() == DECOMMISSIONED) {
+            throw new WecubeCoreException(
+                    "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
+        }
+
+        List<PluginConfigOutlineDto> privilegedPluginConfigs = new ArrayList<>();
+
+        for (PluginDeclarationDto pluginConfigDto : pluginConfigDtos) {
+            List<PluginConfigOutlineDto> pluginConfigOutlineDto = pluginConfigDto.getPluginConfigs();
+            for (PluginConfigOutlineDto configOutlineDto : pluginConfigOutlineDto) {
+                if (configOutlineDto.getHasMgmtPermission()) {
+                    privilegedPluginConfigs.add(configOutlineDto);
+                }
+            }
+        }
+
+        if (privilegedPluginConfigs == null || privilegedPluginConfigs.size() <= 0) {
+            return;
+        }
+
+        for (PluginConfigOutlineDto privilegedPluginConfig : privilegedPluginConfigs) {
+            if (!validateCurrentUserPermission(privilegedPluginConfig.getId(), PluginAuthEntity.PERM_TYPE_MGMT)) {
+                throw new WecubeCoreException("Lack of privilege to perform such operation.");
+            }
+        }
+
+        for (PluginConfigOutlineDto privilegedPluginConfig : privilegedPluginConfigs) {
+            PluginConfig pluginConfig = pluginConfigRepository.getOne(privilegedPluginConfig.getId());
+            if (pluginConfig != null) {
+                pluginConfig.setStatus(privilegedPluginConfig.getStatus());
+                pluginConfigRepository.save(pluginConfig);
+            }
+
+        }
+
+    }
+
+    public List<PluginDeclarationDto> getPluginConfigOutlinesByPackageId(String packageId) {
+        List<PluginDeclarationDto> pluginDeclarationDtos = new ArrayList<>();
+
+        List<PluginConfig> configs = pluginConfigRepository.findByPluginPackageIdAndRegisterNameIsNull(packageId);
+        if (configs == null || configs.isEmpty()) {
+            return pluginDeclarationDtos;
+        }
+
+        for (PluginConfig pluginConfig : configs) {
+            PluginDeclarationDto pdDto = fromDomain(pluginConfig);
+            List<PluginConfig> pluginPackageIdAndNames = pluginConfigRepository
+                    .findByPluginPackageIdAndNameAndRegisterNameIsNotNull(pluginConfig.getPluginPackageId(),
+                            pluginConfig.getName());
+
+            List<PluginConfigOutlineDto> childPdDtos = new ArrayList<>();
+            if (pluginPackageIdAndNames != null && pluginPackageIdAndNames.size() > 0) {
+                pluginPackageIdAndNames.forEach(pluginConfigDto -> {
+                    PluginConfigOutlineDto pcDto = fromDomainEnablePluginConfigDto(pluginConfigDto);
+                    childPdDtos.add(pcDto);
+                });
+            }
+            pdDto.setPluginConfigs(childPdDtos);
+            pluginDeclarationDtos.add(pdDto);
+        }
+
+        return pluginDeclarationDtos;
+    }
+
+    public PluginConfigOutlineDto fromDomainEnablePluginConfigDto(PluginConfig pluginConfig) {
+        PluginConfigOutlineDto enablePluginConfigDto = new PluginConfigOutlineDto();
+        enablePluginConfigDto.setId(pluginConfig.getId());
+        enablePluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
+        enablePluginConfigDto.setName(pluginConfig.getName());
+        enablePluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
+        enablePluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
+        enablePluginConfigDto.setStatus(pluginConfig.getStatus());
+        enablePluginConfigDto.setHasMgmtPermission(
+                validateCurrentUserPermission(pluginConfig.getId(), PluginAuthEntity.PERM_TYPE_MGMT));
+        return enablePluginConfigDto;
+    }
+
+    public PluginDeclarationDto fromDomain(PluginConfig pluginConfig) {
+        PluginDeclarationDto pluginDeclarationDto = new PluginDeclarationDto();
+        pluginDeclarationDto.setId(pluginConfig.getId());
+        pluginDeclarationDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
+        pluginDeclarationDto.setName(pluginConfig.getName());
+        pluginDeclarationDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
+        pluginDeclarationDto.setRegisterName(pluginConfig.getRegisterName());
+        pluginDeclarationDto.setStatus(pluginConfig.getStatus().name());
+        return pluginDeclarationDto;
+    }
+
+    private Boolean validateCurrentUserPermission(String pluginConfigId, String permission) {
+        String currentUsername = AuthenticationContextHolder.getCurrentUsername();
+        if (StringUtils.isBlank(currentUsername)) {
+            return false;
+        }
+
+        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+        if (currUserRoles == null || currUserRoles.isEmpty()) {
+            return false;
+        }
+
+        List<PluginAuthEntity> pluginAuthConfigEntities = this.pluginAuthRepository
+                .findAllByPluginConfigIdAndPermission(pluginConfigId, permission);
+
+        if (pluginAuthConfigEntities == null || pluginAuthConfigEntities.isEmpty()) {
+            return false;
+        }
+
+        boolean hasAuthority = false;
+        for (PluginAuthEntity auth : pluginAuthConfigEntities) {
+            String authRole = auth.getRoleName();
+            if (StringUtils.isBlank(authRole)) {
+                continue;
+            }
+            if (CollectionUtils.collectionContains(currUserRoles, authRole)) {
+                hasAuthority = true;
+                break;
+            }
+        }
+
+        return hasAuthority;
+    }
+
+    private List<PluginConfig> filterWithPermissionValidation(List<PluginConfig> pluginConfigs, String permission) {
+        if (pluginConfigs == null || pluginConfigs.isEmpty()) {
+            log.warn("Plugin config is empty.");
+            return pluginConfigs;
+        }
+        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+        if (currUserRoles == null || currUserRoles.isEmpty()) {
+            log.warn("roles of current user is empty.");
+            throw new WecubeCoreException("Lack of permission to perform such operation.");
+        }
+
+        List<PluginConfig> privilegedPluginConfigs = new ArrayList<>();
+        for (PluginConfig pluginConfig : pluginConfigs) {
+            if (verifyPluginConfigPrivilege(pluginConfig, permission, currUserRoles)) {
+                privilegedPluginConfigs.add(pluginConfig);
+            }
+        }
+
+        return privilegedPluginConfigs;
+    }
+
+    private boolean verifyPluginConfigPrivilege(PluginConfig pluginConfig, String permission,
+            Set<String> currUserRoles) {
+        if (StringUtils.isBlank(pluginConfig.getId())) {
+            throw new WecubeCoreException("Plugin config ID cannot be blank.");
+        }
+        List<PluginAuthEntity> entities = pluginAuthRepository
+                .findAllByPluginConfigIdAndPermission(pluginConfig.getId(), permission);
+        if (entities.isEmpty()) {
+            return false;
+        }
+
+        for (PluginAuthEntity entity : entities) {
+            if (CollectionUtils.collectionContains(currUserRoles, entity.getRoleName())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public List<S3PluginActifactDto> listS3PluginActifacts() {
         String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
@@ -331,8 +495,15 @@ public class PluginPackageService {
         return savedPluginPackage;
     }
 
-    public Iterable<PluginPackage> getPluginPackages() {
-        return pluginPackageRepository.findAll();
+    public List<PluginPackageInfoDto> getPluginPackages() {
+        List<PluginPackageInfoDto> pluginPackageInfoDtos = null;
+        List<LazyPluginPackage> pluginPackages = lazyPluginPackageRepository.findAll();
+        if(pluginPackages!=null && pluginPackages.size()>0){
+            pluginPackageInfoDtos = pluginPackages.stream().map(PluginPackageInfoDto::fromDomain).collect(Collectors.toList());
+        }else{
+            pluginPackageInfoDtos = Lists.newArrayList();
+        }
+        return pluginPackageInfoDtos;
     }
 
     public List<String> getAllDistinctPluginPackageNameList() {
@@ -457,7 +628,7 @@ public class PluginPackageService {
     }
 
     public List<PluginConfigGroupByNameDto> getPluginConfigsByPackageId(String packageId, boolean needInterfaceInfo) {
-        List<PluginConfigGroupByNameDto> pluginConfigGroupByNameDtos = new ArrayList<PluginConfigGroupByNameDto>();
+        List<PluginConfigGroupByNameDto> pluginConfigGroupByNameDtos = new ArrayList<>();
         List<PluginConfigDto> pluginConfigDtos = new ArrayList<PluginConfigDto>();
         Optional<PluginPackage> packageFoundById = pluginPackageRepository.findById(packageId);
         if (!packageFoundById.isPresent()) {
@@ -503,25 +674,25 @@ public class PluginPackageService {
         }
         return pluginConfigGroupByNameDtos;
     }
-    
-    private Map<String, List<String>> fetchPermissionToRoles(PluginConfig pluginConfig){
-        if(pluginConfig == null){
+
+    private Map<String, List<String>> fetchPermissionToRoles(PluginConfig pluginConfig) {
+        if (pluginConfig == null) {
             return null;
         }
-        
-        if(StringUtils.isBlank(pluginConfig.getId())){
+
+        if (StringUtils.isBlank(pluginConfig.getId())) {
             return null;
         }
-        
+
         List<PluginAuthEntity> permissionEntities = pluginAuthRepository.findAllByPluginConfigId(pluginConfig.getId());
         Map<String, List<String>> permissionToRoles = new HashMap<String, List<String>>();
-        if(permissionEntities == null || permissionEntities.isEmpty()){
+        if (permissionEntities == null || permissionEntities.isEmpty()) {
             return permissionToRoles;
         }
-        
-        for(PluginAuthEntity permEntity:permissionEntities ){
+
+        for (PluginAuthEntity permEntity : permissionEntities) {
             List<String> roleIdsOfPerm = permissionToRoles.get(permEntity.getPermissionType());
-            if(roleIdsOfPerm == null){
+            if (roleIdsOfPerm == null) {
                 roleIdsOfPerm = new ArrayList<String>();
                 permissionToRoles.put(permEntity.getPermissionType(), roleIdsOfPerm);
             }

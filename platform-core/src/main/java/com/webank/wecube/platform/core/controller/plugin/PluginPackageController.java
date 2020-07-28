@@ -7,6 +7,7 @@ import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData
 import java.util.List;
 import java.util.Set;
 
+import com.webank.wecube.platform.core.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,11 +22,6 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
-import com.webank.wecube.platform.core.dto.CommonResponseDto;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
-import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 
 @RestController
@@ -51,7 +47,8 @@ public class PluginPackageController {
     }
 
     @PostMapping("/packages")
-    public CommonResponseDto uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file) throws Exception {
+    public CommonResponseDto uploadPluginPackage(@RequestParam(value = "zip-file") MultipartFile file)
+            throws Exception {
         if (file == null || file.isEmpty())
             throw new IllegalArgumentException("zip-file required.");
 
@@ -155,6 +152,18 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/plugin-configs")
     public CommonResponseDto getPluginConfigsByPackageId(@PathVariable(value = "id") String packageId) {
         return okayWithData(pluginPackageService.getPluginConfigsByPackageId(packageId, false));
+    }
+
+    @GetMapping("/packages/{package-id}/plugin-config-outlines")
+    public CommonResponseDto getPluginConfigOutlinesByPackageId(@PathVariable(value = "package-id") String packageId) {
+        return okayWithData(pluginPackageService.getPluginConfigOutlinesByPackageId(packageId));
+    }
+
+    @PostMapping("/packages/{package-id}/plugin-configs/enable-in-batch")
+    public CommonResponseDto enablePluginConfigInBatch(@PathVariable(value = "package-id") String packageId,
+            @RequestBody List<PluginDeclarationDto> pluginDeclarationDtos) {
+        pluginPackageService.enablePluginConfigInBatchByPackageId(packageId, pluginDeclarationDtos);
+        return okay();
     }
 
 }
