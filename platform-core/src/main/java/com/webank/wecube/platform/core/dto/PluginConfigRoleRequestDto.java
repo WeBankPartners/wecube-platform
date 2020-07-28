@@ -23,4 +23,16 @@ public class PluginConfigRoleRequestDto {
         this.roleIds = roleIds;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("PluginConfigRoleRequestDto [permission=");
+        builder.append(permission);
+        builder.append(", roleIds=");
+        builder.append(roleIds);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    
 }
