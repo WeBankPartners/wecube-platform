@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
 
 import java.sql.Timestamp;
@@ -17,6 +18,8 @@ public class PluginPackageInfoDto {
 
     private boolean uiPackageIncluded;
 
+    private String status;
+
     //TODO: to be removed.
     private List pluginConfigs;
 
@@ -27,6 +30,7 @@ public class PluginPackageInfoDto {
         dto.setUiPackageIncluded(pluginPackage.isUiPackageIncluded());
         dto.setVersion(pluginPackage.getVersion());
         dto.setUploadTimestamp(pluginPackage.getUploadTimestamp());
+        dto.setStatus(pluginPackage.getStatus().toString());
         return dto;
     }
 
@@ -76,5 +80,13 @@ public class PluginPackageInfoDto {
 
     public void setPluginConfigs(List pluginConfigs) {
         this.pluginConfigs = pluginConfigs;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
