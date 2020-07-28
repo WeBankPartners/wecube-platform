@@ -316,14 +316,14 @@ public class PluginPackageService {
             throw new WecubeCoreException("Lack of permission to perform such operation.");
         }
 
-        List<PluginConfig> privilegedPluginConfigDtos = new ArrayList<>();
+        List<PluginConfig> privilegedPluginConfigs = new ArrayList<>();
         for (PluginConfig pluginConfig : pluginConfigs) {
             if (verifyPluginConfigPrivilege(pluginConfig, permission, currUserRoles)) {
-                privilegedPluginConfigDtos.add(pluginConfig);
+                privilegedPluginConfigs.add(pluginConfig);
             }
         }
 
-        return privilegedPluginConfigDtos;
+        return privilegedPluginConfigs;
     }
 
     private boolean verifyPluginConfigPrivilege(PluginConfig pluginConfig,
