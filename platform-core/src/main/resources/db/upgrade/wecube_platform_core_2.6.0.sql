@@ -1,4 +1,4 @@
-CREATE TABLE  IF NOT EXISTS `plugin_config_roles` (
+CREATE TABLE IF NOT EXISTS `plugin_config_roles` (
   `id` varchar(255) NOT NULL,
   `created_by` varchar(255) DEFAULT NULL,
   `created_time` datetime DEFAULT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE  IF NOT EXISTS `plugin_config_roles` (
   `role_id` varchar(255) DEFAULT NULL,
   `role_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 delete from plugin_config_roles where created_by = 'bootScript';
