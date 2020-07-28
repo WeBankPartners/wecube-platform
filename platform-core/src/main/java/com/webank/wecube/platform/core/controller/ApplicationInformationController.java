@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.webank.wecube.platform.core.boot.ApplicationVersionInfo;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.LoggerInfoDto;
 import com.webank.wecube.platform.core.service.ApplicationInformationService;
@@ -30,6 +31,9 @@ public class ApplicationInformationController {
 	
 	@Autowired
 	private ApplicationInformationService applicationInformationService;
+	
+	@Autowired
+	private ApplicationVersionInfo applicationVersionInfo;
 
 	@GetMapping("/health-check")
 	public ResponseEntity<CommonResponseDto> healthCheck() {
@@ -41,6 +45,12 @@ public class ApplicationInformationController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON)
 					.body(CommonResponseDto.error(e.getMessage()));
 		}
+	}
+	
+	@GetMapping("/appinfo/version")
+    public CommonResponseDto getApplicationVersion() {
+	    String version = String.format("v%s", applicationVersionInfo.getVersion());
+	    return CommonResponseDto.okayWithData(version);
 	}
 	
 	@GetMapping("/appinfo/loggers/query")
