@@ -42,6 +42,20 @@ public class RoleManagementService {
 
 	@Autowired
 	private AuthorityRepository authorityRepository;
+	
+	public SimpleLocalRoleDto retriveLocalRoleByRoleName(String roleName){
+	    if(StringUtils.isBlank(roleName)){
+	        throw new AuthServerException("Role name as input argument cannot be blank.");
+	    }
+	    
+	    SysRoleEntity existedRole = roleRepository.findNotDeletedRoleByName(roleName);
+
+        if (existedRole != null) {
+            throw new AuthServerException(String.format("Role with name {%s} does not exist.", roleName));
+        }
+        
+        return convertToSimpleLocalRoleDto(existedRole);
+	}
 
 	public SimpleLocalRoleDto registerLocalRole(SimpleLocalRoleDto roleDto) {
 		validateSimpleLocalRoleDto(roleDto);
