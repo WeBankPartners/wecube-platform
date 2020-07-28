@@ -15,43 +15,14 @@ clean:
 
 .PHONY:build
 
-wecube_docs_dirname=wecube-docs
-wecube_docs_url=https://github.com/WeBankPartners/wecube-docs.git
-wecube_docs_branch=gh-pages
+
 doc:
-	# run make doc before make build, to build local docs within portal 
-	repo_ready=0
-	# check if repo dir ready
-	if [ -d "$wecube_docs_dirname" ]; then
-		pushd "$wecube_docs_dirname"
-		git status
-		[[ $? -eq 0 ]] && repo_ready=1 || repo_ready=0
-		popd
-	fi
-	# try to clone repo
-	if [ $repo_ready -eq 0 ]; then
-		git clone "$wecube_docs_url" "$wecube_docs_dirname"
-		[[ $? -ne 0 ]] && echo "wecube docs repo clone failed" || repo_ready=1
-	fi
-	# try to checkout branch
-	if [ $repo_ready -eq 1 ]; then
-		pushd "$wecube_docs_dirname"
-		doc_cur_branch=`git symbolic-ref --short -q HEAD`
-		if [ "$doc_cur_branch" != "$wecube_docs_branch" ];then
-			git checkout -b "$wecube_docs_branch" "origin/$wecube_docs_branch" || git checkout "$wecube_docs_branch"
-		fi
-		git reset --hard "origin/$wecube_docs_branch"
-		git pull
-		popd
-		echo "wecube docs repo is ready"
-	else
-		echo "wecube docs repo is not ready, docs will be empty..."
-	fi
+	/bin/bash -ex build/get_wecube_docs.sh
 
 build_name=wecube-build
 build:
 	# make sure dir exists, even if make doc failed/never exec before
-	mkdir -p "$wecube_docs_dirname"
+	mkdir -p $(wecube_docs_dirname)
 	mkdir -p repository
 	docker run --rm --name $(build_name)  -e SASS_BINARY_SITE=https://npm.taobao.org/mirrors/node-sass -v /data/wecube_repository:/usr/src/mymaven/repository -v $(current_dir)/build/maven_settings.xml:/usr/share/maven/ref/settings-docker.xml  -v $(current_dir):/usr/src/mymaven -w /usr/src/mymaven maven:3.3-jdk-8 mvn -U clean install -Dmaven.test.skip=true -s /usr/share/maven/ref/settings-docker.xml dependency:resolve
 	docker run --rm --name $(build_name)_node  -v $(current_dir)/wecube-portal:/home/node/app -w /home/node/app node:12.13.1 npm --registry https://registry.npm.taobao.org install --unsafe-perm
