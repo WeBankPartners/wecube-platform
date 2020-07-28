@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PluginDeclarationDto {
+    private String id;
     private String pluginPackageId;
     private String name;
     private String targetEntityWithFilterRule;
@@ -61,6 +62,8 @@ public class PluginDeclarationDto {
     public void setPluginConfigs(List<PluginConfigDto> pluginConfigs) {
         this.pluginConfigs = pluginConfigs;
     }
+    
+    
 
     public void addPluginConfig(PluginConfigDto inputPluginConfig) {
         if (inputPluginConfig == null) {
@@ -82,6 +85,14 @@ public class PluginDeclarationDto {
         pluginDeclarationDto.setRegisterName(pluginConfig.getRegisterName());
         pluginDeclarationDto.setStatus(pluginConfig.getStatus().name());
         return pluginDeclarationDto;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
 
