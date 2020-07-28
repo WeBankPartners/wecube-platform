@@ -48,55 +48,57 @@
           </Spin>
           <div v-if="!isLoadingPluginList" style="height: 70%; overflow: auto">
             <span v-if="plugins.length < 1">{{ $t('no_plugin_packages') }}</span>
-            <Collapse v-else accordion @on-change="pluginPackageChangeHandler">
-              <Panel
-                :name="plugin.id + ''"
-                v-for="plugin in plugins"
-                v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage"
-                :key="plugin.id"
-              >
-                <span :class="plugin.status !== 'DECOMMISSIONED' ? '' : 'decomissionedPkgName'">
-                  {{ plugin.name + '_' + plugin.version }}
-                </span>
-                <span style="float: right; margin-right: 10px">
-                  <Button
-                    icon="ios-cloud-upload-outline"
-                    v-if="plugin.status !== 'DECOMMISSIONED'"
-                    size="small"
-                    type="primary"
-                    ghost
-                    @click.stop.prevent="importBestPractices(plugin.id)"
-                  ></Button>
-                  <Button
-                    v-if="plugin.status !== 'DECOMMISSIONED'"
-                    @click.stop.prevent="exportBestPractices(plugin.id)"
-                    size="small"
-                    type="primary"
-                    ghost
-                    icon="md-download"
-                  ></Button>
-                  <Button
-                    v-if="plugin.status !== 'DECOMMISSIONED'"
-                    @click.stop.prevent="deletePlugin(plugin.id)"
-                    size="small"
-                    type="error"
-                    ghost
-                    icon="ios-trash"
-                  ></Button>
-                </span>
-                <p slot="content">
-                  <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">
-                    {{ $t('plugin_config_check') }}
-                  </Button>
-                  <Button @click="manageService(plugin.id)" size="small" type="info" ghost icon="ios-construct">
-                    {{ $t('service_regist') }}
-                  </Button>
-                  <Button @click="manageRuntimePlugin(plugin.id)" size="small" type="info" ghost icon="ios-settings">
-                    {{ $t('runtime_manage') }}
-                  </Button>
-                </p>
-              </Panel>
-            </Collapse>
+            <div style="height: calc(100vh - 359px);overflow:auto" v-else>
+              <Collapse accordion @on-change="pluginPackageChangeHandler">
+                <Panel
+                  :name="plugin.id + ''"
+                  v-for="plugin in plugins"
+                  v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage"
+                  :key="plugin.id"
+                >
+                  <span :class="plugin.status !== 'DECOMMISSIONED' ? '' : 'decomissionedPkgName'">
+                    {{ plugin.name + '_' + plugin.version }}
+                  </span>
+                  <span style="float: right; margin-right: 10px">
+                    <Button
+                      icon="ios-cloud-upload-outline"
+                      v-if="plugin.status !== 'DECOMMISSIONED'"
+                      size="small"
+                      type="primary"
+                      ghost
+                      @click.stop.prevent="importBestPractices(plugin.id)"
+                    ></Button>
+                    <Button
+                      v-if="plugin.status !== 'DECOMMISSIONED'"
+                      @click.stop.prevent="exportBestPractices(plugin.id)"
+                      size="small"
+                      type="primary"
+                      ghost
+                      icon="md-download"
+                    ></Button>
+                    <Button
+                      v-if="plugin.status !== 'DECOMMISSIONED'"
+                      @click.stop.prevent="deletePlugin(plugin.id)"
+                      size="small"
+                      type="error"
+                      ghost
+                      icon="ios-trash"
+                    ></Button>
+                  </span>
+                  <p slot="content">
+                    <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">
+                      {{ $t('plugin_config_check') }}
+                    </Button>
+                    <Button @click="manageService(plugin.id)" size="small" type="info" ghost icon="ios-construct">
+                      {{ $t('service_regist') }}
+                    </Button>
+                    <Button @click="manageRuntimePlugin(plugin.id)" size="small" type="info" ghost icon="ios-settings">
+                      {{ $t('runtime_manage') }}
+                    </Button>
+                  </p>
+                </Panel>
+              </Collapse>
+            </div>
           </div>
         </Card>
       </Row>
@@ -139,7 +141,7 @@
     </Col>
     <Col span="17" style="padding-left: 20px" v-if="isShowRuntimeManagementPanel">
       <div v-if="Object.keys(currentPlugin).length > 0">
-        <div v-if="currentPlugin.children">
+        <div>
           <Row class="instances-container">
             <Collapse value="1" @on-change="onRuntimeCollapseChange">
               <Panel name="1">
@@ -647,11 +649,11 @@ export default {
       let currentPlugin = this.plugins.find(_ => _.id === packageId)
       this.selectedCiType = currentPlugin.cmdbCiTypeId || ''
       this.currentPlugin = currentPlugin
-      if (currentPlugin.pluginConfigs) {
-        this.selectHosts = []
-        this.availiableHostsWithPort = []
-        this.getAvailableInstancesByPackageId(this.currentPlugin.id)
-      }
+      // if (currentPlugin.pluginConfigs) {
+      this.selectHosts = []
+      this.availiableHostsWithPort = []
+      this.getAvailableInstancesByPackageId(this.currentPlugin.id)
+      // }
       this.dbQueryData = []
       this.dbQueryColumns = []
       this.getAvailableContainerHosts()
@@ -844,16 +846,16 @@ export default {
             title: `${_.name}[${_.version}]`,
             id: _.id,
             expand: false,
-            checked: false,
-            children: _.pluginConfigs.map(i => {
-              return {
-                ...i,
-                title: i.name,
-                id: i.id,
-                expand: true,
-                checked: false
-              }
-            })
+            checked: false
+            // children: _.pluginConfigs.map(i => {
+            //   return {
+            //     ...i,
+            //     title: i.name,
+            //     id: i.id,
+            //     expand: true,
+            //     checked: false
+            //   }
+            // })
           }
         })
       }

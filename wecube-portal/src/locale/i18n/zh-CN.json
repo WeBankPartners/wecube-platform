@@ -341,8 +341,10 @@
   "selected_role": "选中角色",
   "unselected_role": "未选中角色",
   "edit_role": "选择该编排的属主角色",
+  "edit_config_role": "选择该服务的属主角色",
   "mgmt_role": "属主角色",
   "mgmt_role_warning": "属主角色不能为空",
+  "no_permission_to_mgmt": "你没有操作权限",
   "use_role": "使用角色",
   "source": "归属",
   "cube_front": "任务",
@@ -421,5 +423,8 @@
   "auth_type": "认证类型",
   "help_docs": "帮助文档",
   "origin_plugins": "选择在线插件",
-  "best_practices": "选择最佳实践"
+  "best_practices": "选择最佳实践",
+  "config_permission": "权限",
+  "batch_regist": "批量注册",
+  "modal_close": "关闭"
 }
