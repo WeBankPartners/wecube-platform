@@ -40,6 +40,15 @@ public interface PluginConfigRepository extends JpaRepository<PluginConfig, Stri
 
     Optional<List<PluginConfig>> findByStatus(Status status);
 
+    @Query("SELECT cfg FROM PluginConfig cfg WHERE cfg.pluginPackage.id = :pluginPackageId AND cfg.registerName IS NULL")
+    List<PluginConfig> findByPluginPackageIdAndRegisterNameIsNull(@Param("pluginPackageId")String pluginPackageId);
+
+    @Query("SELECT cfg FROM PluginConfig cfg WHERE cfg.pluginPackage.id = :pluginPackageId AND cfg.registerName IS NOT NULL")
+    List<PluginConfig> findByPluginPackageIdAndRegisterNameIsNotNull(@Param("pluginPackageId")String pluginPackageId);
+
+    @Query("SELECT cfg FROM PluginConfig cfg WHERE cfg.pluginPackage.id = :pluginPackageId AND cfg.name =:name AND cfg.registerName IS NOT NULL")
+    List<PluginConfig> findByPluginPackageIdAndNameAndRegisterNameIsNotNull(@Param("pluginPackageId")String pluginPackageId ,@Param("name")String name);
+
     Optional<List<PluginConfig>> findByPluginPackage_idOrderByName(String pluginPackageId);
 
     default Optional<PluginConfigInterface> findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(String serviceName) {
