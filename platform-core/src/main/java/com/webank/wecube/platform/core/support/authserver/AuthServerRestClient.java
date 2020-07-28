@@ -169,6 +169,17 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 }, roleId);
         return role;
     }
+    
+    public AsRoleDto retrieveRoleByName(String roleName) {
+        if (StringUtils.isBlank(roleName)) {
+            return null;
+        }
+
+        AsRoleDto role = getForObject(clientProperties.getPathRetrieveRoleByName(),
+                new ParameterizedTypeReference<AuthServerRestResponseDto<AsRoleDto>>() {
+                }, roleName);
+        return role;
+    }
 
     public List<AsRoleDto> retrieveGrantedRolesByUsername(String username) {
         if (StringUtils.isBlank(username)) {
