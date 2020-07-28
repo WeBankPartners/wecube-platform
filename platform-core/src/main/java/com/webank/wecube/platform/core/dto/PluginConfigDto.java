@@ -1,16 +1,20 @@
 package com.webank.wecube.platform.core.dto;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
-import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newLinkedHashSet;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 
 public class PluginConfigDto {
 
@@ -21,6 +25,21 @@ public class PluginConfigDto {
     private String registerName;
     private String status;
     private List<PluginConfigInterfaceDto> interfaces;
+
+    private Map<String, List<String>> permissionToRole;
+
+    public PluginConfigDto() {
+    }
+
+    public PluginConfigDto(String id, String pluginPackageId, String name, String targetEntityWithFilterRule,
+            String status, List<PluginConfigInterfaceDto> interfaces) {
+        this.id = id;
+        this.pluginPackageId = pluginPackageId;
+        this.name = name;
+        this.targetEntityWithFilterRule = targetEntityWithFilterRule;
+        this.status = status;
+        this.interfaces = interfaces;
+    }
 
     public String getId() {
         return id;
@@ -67,19 +86,6 @@ public class PluginConfigDto {
     }
 
     public void setInterfaces(List<PluginConfigInterfaceDto> interfaces) {
-        this.interfaces = interfaces;
-    }
-
-    public PluginConfigDto() {
-    }
-
-    public PluginConfigDto(String id, String pluginPackageId, String name, String targetEntityWithFilterRule,
-            String status, List<PluginConfigInterfaceDto> interfaces) {
-        this.id = id;
-        this.pluginPackageId = pluginPackageId;
-        this.name = name;
-        this.targetEntityWithFilterRule = targetEntityWithFilterRule;
-        this.status = status;
         this.interfaces = interfaces;
     }
 
@@ -165,6 +171,36 @@ public class PluginConfigDto {
 
     public String getFilterRule() {
         return splitTargetEntityWithFilterRule().getFilterRule();
+    }
+
+    public Map<String, List<String>> getPermissionToRole() {
+        return permissionToRole;
+    }
+
+    public void setPermissionToRole(Map<String, List<String>> permissionToRole) {
+        this.permissionToRole = permissionToRole;
+    }
+
+    public void addAllPermissionToRole(Map<String, List<String>> inputPermissionToRole) {
+        if (inputPermissionToRole == null) {
+            return;
+        }
+        if (permissionToRole == null) {
+            permissionToRole = new HashMap<String, List<String>>();
+        }
+
+        for (String inputPerm : inputPermissionToRole.keySet()) {
+            List<String> roleIds = permissionToRole.get(inputPerm);
+            if (roleIds == null) {
+                roleIds = new ArrayList<String>();
+                permissionToRole.put(inputPerm, roleIds);
+            }
+
+            List<String> inputRoleIds = inputPermissionToRole.get(inputPerm);
+            if (inputRoleIds != null) {
+                roleIds.addAll(inputPermissionToRole.get(inputPerm));
+            }
+        }
     }
 
     public class TargetEntityWithFilterRule {
