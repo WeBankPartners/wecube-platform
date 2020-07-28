@@ -175,6 +175,10 @@ public class PluginPackageService {
     private PluginAuthRepository pluginAuthRepository;
 
     public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginConfigDto> pluginConfigDtos) {
+        if(StringUtils.isBlank(packageId) ){
+            throw new WecubeCoreException("Package ID is blank.");
+        }
+        
         List<PluginConfig> pluginConfigList = pluginConfigRepository.findByPluginPackageIdAndRegisterNameIsNotNull(packageId);
         if(pluginConfigList == null || pluginConfigList.size()<0){
             throw new WecubeCoreException("PluginConfig not found for id: " + packageId);
