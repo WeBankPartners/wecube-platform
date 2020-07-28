@@ -7,6 +7,7 @@ import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
 import com.webank.wecube.platform.core.utils.Constants;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +33,13 @@ public class DomainIdBuilder {
     }
 
     public static String buildDomainId(PluginPackage pluginPackage) {
+        return StringUtils.isNotBlank(pluginPackage.getId())
+                ? pluginPackage.getId()
+                : buildDomainId(pluginPackage.getName(), pluginPackage.getVersion()
+        );
+    }
+
+    public static String buildDomainId(LazyPluginPackage pluginPackage) {
         return StringUtils.isNotBlank(pluginPackage.getId())
                 ? pluginPackage.getId()
                 : buildDomainId(pluginPackage.getName(), pluginPackage.getVersion()
