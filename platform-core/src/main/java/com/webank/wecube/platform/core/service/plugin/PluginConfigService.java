@@ -232,17 +232,28 @@ public class PluginConfigService {
 
     public void updatePluginConfigRoleBinding(String pluginConfigId,
             PluginConfigRoleRequestDto pluginConfigRoleRequestDto) throws WecubeCoreException {
+        if (log.isDebugEnabled()) {
+            log.debug("start to update plugin config role binding:{},{}", pluginConfigId, pluginConfigRoleRequestDto);
+        }
         String permission = pluginConfigRoleRequestDto.getPermission();
         List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
         validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
-
+        
+        if(inputRoleIds == null || inputRoleIds.isEmpty()){
+            log.info("input role IDs is empty");
+            return;
+        }
         List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
-
-        List<String> roleIdsToAdd = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
-        List<String> roleIdsToRemove = CollectionUtils.listMinus(inputRoleIds, existRoleIds);
+        List<String> roleIdsToAdd = new ArrayList<String>();
+        for(String roleId:inputRoleIds){
+            if(existRoleIds.contains(roleId)){
+                continue;
+            }
+            
+            roleIdsToAdd.add(roleId);
+        }
 
         addPluginConfigRoleBindings(pluginConfigId, permission, roleIdsToAdd);
-        deletePluginConfigRoleBindings(pluginConfigId, permission, roleIdsToRemove);
     }
 
     private void validateCurrentUserPermission(String pluginConfigId, String permission) {
