@@ -10,6 +10,7 @@ import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageMenuRepository;
 import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 import org.apache.commons.lang3.StringUtils;
@@ -195,6 +196,17 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
 
     public MenuItemDto transferPackageMenuToMenuItemDto(PluginPackageMenu packageMenu) throws WecubeCoreException {
+        MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
+        if (null == menuItem) {
+            String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
+                    packageMenu.getCategory());
+            logger.error(msg);
+            throw new WecubeCoreException(msg);
+        }
+        return MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
+    }
+
+    public MenuItemDto transferPackageMenuToMenuItemDto(LazyPluginPackageMenu packageMenu) throws WecubeCoreException {
         MenuItem menuItem = menuItemRepository.findByCode(packageMenu.getCategory());
         if (null == menuItem) {
             String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
