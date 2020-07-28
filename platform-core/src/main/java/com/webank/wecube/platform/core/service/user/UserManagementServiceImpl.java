@@ -34,6 +34,30 @@ public class UserManagementServiceImpl implements UserManagementService {
     
     @Autowired
     private SystemVariableService systemVariableService;
+    
+    public RoleDto retrieveRoleByRoleName(String roleName){
+        if(StringUtils.isBlank(roleName)){
+            return null;
+        }
+        
+        try {
+            AsRoleDto asRole = authServerRestClient.retrieveRoleByName(roleName);
+            if (asRole == null) {
+                throw new WecubeCoreException("No such role.");
+            }
+
+            RoleDto r = new RoleDto();
+            r.setDisplayName(asRole.getDisplayName());
+            r.setEmail(asRole.getEmail());
+            r.setId(asRole.getId());
+            r.setName(asRole.getName());
+
+            return r;
+        } catch (RestClientException e) {
+            log.error("retrieving role error", e);
+            throw new WecubeCoreException(e.getErrorMessage());
+        }
+    }
 
     @Override
     public UserDto registerUser(UserDto userDto) {
