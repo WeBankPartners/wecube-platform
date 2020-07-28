@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -59,15 +62,6 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageResourceFile;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
-import com.webank.wecube.platform.core.dto.MenuItemDto;
-import com.webank.wecube.platform.core.dto.PluginConfigDto;
-import com.webank.wecube.platform.core.dto.PluginConfigGroupByNameDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
-import com.webank.wecube.platform.core.dto.PluginPackageDto;
-import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
-import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
-import com.webank.wecube.platform.core.dto.S3PluginActifactPullRequestDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
@@ -109,6 +103,9 @@ public class PluginPackageService {
 
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
+
+    @Autowired
+    private LazyPluginPackageRepository lazyPluginPackageRepository;
 
     @Autowired
     private PluginPackageDataModelService pluginPackageDataModelService;
@@ -331,8 +328,15 @@ public class PluginPackageService {
         return savedPluginPackage;
     }
 
-    public Iterable<PluginPackage> getPluginPackages() {
-        return pluginPackageRepository.findAll();
+    public List<PluginPackageInfoDto> getPluginPackages() {
+        List<PluginPackageInfoDto> pluginPackageInfoDtos = null;
+        List<LazyPluginPackage> pluginPackages = lazyPluginPackageRepository.findAll();
+        if(pluginPackages!=null && pluginPackages.size()>0){
+            pluginPackageInfoDtos = pluginPackages.stream().map(PluginPackageInfoDto::fromDomain).collect(Collectors.toList());
+        }else{
+            pluginPackageInfoDtos = Lists.newArrayList();
+        }
+        return pluginPackageInfoDtos;
     }
 
     public List<String> getAllDistinctPluginPackageNameList() {
