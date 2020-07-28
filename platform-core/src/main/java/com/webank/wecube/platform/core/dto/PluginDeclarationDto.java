@@ -1,6 +1,6 @@
 package com.webank.wecube.platform.core.dto;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
+import com.webank.wecube.platform.core.dto.workflow.PluginConfigOutlineDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ public class PluginDeclarationDto {
     private String registerName;
     private String status;
 
-    private List<PluginConfigDto> pluginConfigs = new ArrayList<PluginConfigDto>();
+    private List<PluginConfigOutlineDto> pluginConfigs = new ArrayList<>();
 
     public String getPluginPackageId() {
         return pluginPackageId;
@@ -55,37 +55,14 @@ public class PluginDeclarationDto {
         this.status = status;
     }
 
-    public List<PluginConfigDto> getPluginConfigs() {
+    public List<PluginConfigOutlineDto> getPluginConfigs() {
         return pluginConfigs;
     }
 
-    public void setPluginConfigs(List<PluginConfigDto> pluginConfigs) {
+    public void setPluginConfigs(List<PluginConfigOutlineDto> pluginConfigs) {
         this.pluginConfigs = pluginConfigs;
     }
-    
-    
 
-    public void addPluginConfig(PluginConfigDto inputPluginConfig) {
-        if (inputPluginConfig == null) {
-            return;
-        }
-
-        if (this.pluginConfigs == null) {
-            this.pluginConfigs = new ArrayList<PluginConfigDto>();
-        }
-
-        this.pluginConfigs.add(inputPluginConfig);
-    }
-
-    public static PluginDeclarationDto fromDomain(PluginConfig pluginConfig) {
-        PluginDeclarationDto pluginDeclarationDto = new PluginDeclarationDto();
-        pluginDeclarationDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
-        pluginDeclarationDto.setName(pluginConfig.getName());
-        pluginDeclarationDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
-        pluginDeclarationDto.setRegisterName(pluginConfig.getRegisterName());
-        pluginDeclarationDto.setStatus(pluginConfig.getStatus().name());
-        return pluginDeclarationDto;
-    }
 
     public String getId() {
         return id;
