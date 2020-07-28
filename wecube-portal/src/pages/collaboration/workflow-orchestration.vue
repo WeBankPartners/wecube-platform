@@ -31,7 +31,12 @@
             </span>
           </Option>
         </Select>
-        <Button @click="createNewDiagram()" icon="md-add" type="success"></Button>
+        <Tooltip placement="top" content="Create New Diagram" :delay="500">
+          <Button @click="createNewDiagram()" icon="md-add" type="success"></Button>
+        </Tooltip>
+        <Tooltip placement="top" content="Set Flow Permission" :delay="500">
+          <Button @click="setFlowPermission(selectedFlow)" v-if="selectedFlow" icon="ios-build" type="primary"></Button>
+        </Tooltip>
       </Col>
       <Col span="8" offset="1">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
