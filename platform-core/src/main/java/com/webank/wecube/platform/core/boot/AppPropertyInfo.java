@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.boot;
 
 public class AppPropertyInfo {
     public static final String TABLE_NAME = "core_app_property";
+    public static final int REV_INIT = 1;
     protected String name;
     protected String val;
     protected Integer rev;

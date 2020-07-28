@@ -423,6 +423,8 @@
   "show_log": "Show Log",
   "auth_type": "Auth Type",
   "help_docs": "Help",
+  "online": "Online",
+  "offline": "Offline",
   "origin_plugins": "Install From Market",
   "best_practices": "Best Practices",
   "config_permission": "Permission",

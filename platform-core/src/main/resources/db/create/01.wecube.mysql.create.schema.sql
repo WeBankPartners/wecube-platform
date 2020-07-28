@@ -1784,6 +1784,4 @@ CREATE TABLE IF NOT EXISTS `core_ru_task_node_inst_info` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
-
 SET FOREIGN_KEY_CHECKS = 1;

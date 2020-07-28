@@ -29,7 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.PluginConfigRoleRequestDto;
 import com.webank.wecube.platform.core.dto.TargetEntityFilterRuleDto;
+import com.webank.wecube.platform.core.service.plugin.PluginConfigMigrationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.service.plugin.PluginRegistryInfo;
 
@@ -41,15 +43,19 @@ public class PluginConfigController {
     @Autowired
     private PluginConfigService pluginConfigService;
 
+    @Autowired
+    private PluginConfigMigrationService pluginConfigMigrationService;
+
     @GetMapping(value = "/plugins/packages/export/{plugin-package-id:.+}", produces = { MediaType.ALL_VALUE })
     public ResponseEntity<byte[]> exportPluginPackageRegistries(
             @PathVariable(value = "plugin-package-id") String pluginPackageId) {
         log.info("request received to export plugin package registries for {}", pluginPackageId);
-        PluginRegistryInfo pluginRegistryInfo = pluginConfigService.exportPluginRegistersForOnePackage(pluginPackageId);
+        PluginRegistryInfo pluginRegistryInfo = pluginConfigMigrationService
+                .exportPluginRegistersForOnePackage(pluginPackageId);
         byte[] filedataBytes = pluginRegistryInfo.getPluginPackageData().getBytes(Charset.forName("UTF-8"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        
+
         DateFormat df = new SimpleDateFormat("yyyyMMdd");
         String sDate = df.format(new Date());
         String fileName = String.format("register-config-%s-%s.xml", pluginRegistryInfo.getPluginPackageName(), sDate);
@@ -77,7 +83,7 @@ public class PluginConfigController {
         try {
             String xmlData = IOUtils.toString(xmlFile.getInputStream(), Charset.forName("UTF-8"));
 
-            pluginConfigService.importPluginRegistersForOnePackage(pluginPackageId, xmlData);
+            pluginConfigMigrationService.importPluginRegistersForOnePackage(pluginPackageId, xmlData);
             return CommonResponseDto.okay();
         } catch (IOException e) {
             log.error("errors while reading upload file", e);
@@ -137,6 +143,20 @@ public class PluginConfigController {
             return CommonResponseDto.error(e.getMessage());
         }
         return okay();
+    }
+
+    @PostMapping("/plugins/roles/configs/{plugin-config-id:.+}")
+    public CommonResponseDto updatePluginConfigRoleBinding(@PathVariable("plugin-config-id") String pluginConfigId,
+            @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
+        pluginConfigService.updatePluginConfigRoleBinding(pluginConfigId, pluginConfigRoleRequestDto);
+        return CommonResponseDto.okay();
+    }
+
+    @DeleteMapping("/plugins/roles/configs/{plugin-config-id:.+}")
+    public CommonResponseDto deletePluginConfigRoleBinding(@PathVariable("plugin-config-id") String pluginConfigId,
+            @RequestBody PluginConfigRoleRequestDto pluginConfigRoleRequestDto) {
+        pluginConfigService.deletePluginConfigRoleBinding(pluginConfigId, pluginConfigRoleRequestDto);
+        return CommonResponseDto.okay();
     }
 
 }
