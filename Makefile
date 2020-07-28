@@ -19,6 +19,7 @@ clean:
 doc:
 	/bin/bash -ex build/get_wecube_docs.sh
 
+wecube_docs_dirname=wecube-docs
 build_name=wecube-build
 build:
 	# make sure dir exists, even if make doc failed/never exec before
