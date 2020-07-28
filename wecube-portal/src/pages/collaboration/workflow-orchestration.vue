@@ -31,7 +31,12 @@
             </span>
           </Option>
         </Select>
-        <Button @click="createNewDiagram()" icon="md-add" type="success"></Button>
+        <Tooltip placement="top" content="Create New Diagram" :delay="500">
+          <Button @click="createNewDiagram()" icon="md-add" type="success"></Button>
+        </Tooltip>
+        <Tooltip placement="top" content="Set Flow Permission" :delay="500">
+          <Button @click="setFlowPermission(selectedFlow)" v-if="selectedFlow" icon="ios-build" type="primary"></Button>
+        </Tooltip>
       </Col>
       <Col span="8" offset="1">
         <span style="margin-right: 10px">{{ $t('instance_type') }}</span>
@@ -275,10 +280,7 @@ export default {
     return {
       splitPanal: 1,
       show: false,
-      taskCategoryList: [
-        { value: 'SSTN', label: this.$t('sstn') },
-        { value: 'SUTN', label: this.$t('sutn') }
-      ],
+      taskCategoryList: [{ value: 'SSTN', label: this.$t('sstn') }, { value: 'SUTN', label: this.$t('sutn') }],
       isSaving: false,
       headers: {},
       isShowUploadList: false,
@@ -365,10 +367,7 @@ export default {
           label: '3 ' + this.$t('days')
         }
       ],
-      paramsTypes: [
-        { value: 'INPUT', label: this.$t('input') },
-        { value: 'OUTPUT', label: this.$t('output') }
-      ],
+      paramsTypes: [{ value: 'INPUT', label: this.$t('input') }, { value: 'OUTPUT', label: this.$t('output') }],
       currentflowsNodes: [],
       currentFlow: null
     }
