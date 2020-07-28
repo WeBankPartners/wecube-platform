@@ -32,6 +32,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import com.webank.wecube.platform.core.dto.*;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
+import com.webank.wecube.platform.core.dto.*;
 import com.webank.wecube.platform.core.dto.workflow.PluginConfigOutlineDto;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -105,6 +108,9 @@ public class PluginPackageService {
 
     @Autowired
     private PluginPackageRepository pluginPackageRepository;
+
+    @Autowired
+    private LazyPluginPackageRepository lazyPluginPackageRepository;
 
     @Autowired
     private PluginPackageDataModelService pluginPackageDataModelService;
@@ -506,8 +512,15 @@ public class PluginPackageService {
         return savedPluginPackage;
     }
 
-    public Iterable<PluginPackage> getPluginPackages() {
-        return pluginPackageRepository.findAll();
+    public List<PluginPackageInfoDto> getPluginPackages() {
+        List<PluginPackageInfoDto> pluginPackageInfoDtos = null;
+        List<LazyPluginPackage> pluginPackages = lazyPluginPackageRepository.findAll();
+        if(pluginPackages!=null && pluginPackages.size()>0){
+            pluginPackageInfoDtos = pluginPackages.stream().map(PluginPackageInfoDto::fromDomain).collect(Collectors.toList());
+        }else{
+            pluginPackageInfoDtos = Lists.newArrayList();
+        }
+        return pluginPackageInfoDtos;
     }
 
     public List<String> getAllDistinctPluginPackageNameList() {
