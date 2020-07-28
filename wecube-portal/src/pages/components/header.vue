@@ -53,13 +53,13 @@
           ><Icon style="margin-right:5px" size="16" type="md-book" />{{ $t('help_docs') }}</a
         >
       </div>
-      <div class="version">v2.5.0</div>
+      <div class="version">{{ version }}</div>
     </div>
   </Header>
 </template>
 <script>
 import Vue from 'vue'
-import { getMyMenus, getAllPluginPackageResourceFiles } from '@/api/server.js'
+import { getMyMenus, getAllPluginPackageResourceFiles, getApplicationVersion } from '@/api/server.js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 
@@ -73,10 +73,17 @@ export default {
         'en-US': 'English'
       },
       menus: [],
-      needLoad: true
+      needLoad: true,
+      version: ''
     }
   },
   methods: {
+    async getApplicationVersion () {
+      const { status, data } = await getApplicationVersion()
+      if (status === 'OK') {
+        this.version = data
+      }
+    },
     logout () {
       window.location.href = window.location.origin + window.location.pathname + '#/login'
     },
@@ -204,6 +211,7 @@ export default {
   },
   async created () {
     this.getLocalLang()
+    this.getApplicationVersion()
     this.getMyMenus()
     this.username = window.sessionStorage.getItem('username')
   },
