@@ -5,6 +5,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PluginPackageInfoDto {
@@ -21,7 +22,7 @@ public class PluginPackageInfoDto {
     private String status;
 
     //TODO: to be removed.
-    private List pluginConfigs;
+    private List pluginConfigs = new ArrayList();
 
     public static PluginPackageInfoDto fromDomain(LazyPluginPackage pluginPackage){
         PluginPackageInfoDto dto = new PluginPackageInfoDto();
