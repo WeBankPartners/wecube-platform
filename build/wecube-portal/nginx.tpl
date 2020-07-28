@@ -36,7 +36,8 @@ http {
                 root /root/app;
         }
 	location /docs {
-                root /root/wecube-docs/;
+		index index.html;
+		alias /root/wecube-docs/;
         }
 	location /platform {
 		proxy_pass http://core;
