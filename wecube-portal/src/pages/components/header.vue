@@ -88,7 +88,7 @@ export default {
         },
         {
           name: 'offline',
-          url: '/docs'
+          url: '/docs/index.html'
         }
       ],
       menus: [],
