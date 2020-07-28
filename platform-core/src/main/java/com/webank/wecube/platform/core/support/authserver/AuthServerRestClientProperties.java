@@ -13,6 +13,7 @@ public class AuthServerRestClientProperties {
     private String pathDeleteUserAccountByUserId = "/auth/v1/users/{user-id}";
     private String pathRetrieveGrantedRolesByUsername = "/auth/v1/users/{username}/roles";
     private String pathRetrieveRoleById = "/auth/v1/roles/{role-id}";
+    private String pathRetrieveRoleByName = "/auth/v1/roles/name/{role-name}";
     private String pathRegisterLocalRole = "/auth/v1/roles";
     private String pathRetrieveAllRoles = "/auth/v1/roles";
     private String pathDeleteLocalRoleByRoleId = "/auth/v1/roles/{role-id}";
@@ -23,9 +24,8 @@ public class AuthServerRestClientProperties {
     private String pathConfigureRoleAuthorities = "/auth/v1/roles/{role-id}/authorities";
     private String pathConfigureRoleAuthoritiesWithRoleName = "/auth/v1/roles/authorities-grant";
     private String pathRevokeRoleAuthoritiesWithRoleName = "/auth/v1/roles/authorities-revocation";
-    
-    private String pathHealthCheck = "/auth/v1/health-check";
 
+    private String pathHealthCheck = "/auth/v1/health-check";
 
     public String getHost() {
         return host;
@@ -171,11 +171,20 @@ public class AuthServerRestClientProperties {
         this.pathRevokeRoleAuthoritiesWithRoleName = pathRevokeRoleAuthoritiesWithRoleName;
     }
 
-	public String getPathHealthCheck() {
-		return pathHealthCheck;
-	}
+    public String getPathHealthCheck() {
+        return pathHealthCheck;
+    }
 
-	public void setPathHealthCheck(String pathHealthCheck) {
-		this.pathHealthCheck = pathHealthCheck;
-	}
+    public void setPathHealthCheck(String pathHealthCheck) {
+        this.pathHealthCheck = pathHealthCheck;
+    }
+
+    public String getPathRetrieveRoleByName() {
+        return pathRetrieveRoleByName;
+    }
+
+    public void setPathRetrieveRoleByName(String pathRetrieveRoleByName) {
+        this.pathRetrieveRoleByName = pathRetrieveRoleByName;
+    }
+
 }
