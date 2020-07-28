@@ -26,6 +26,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginConfig;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterface;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.PluginAuthRepository;
 import com.webank.wecube.platform.core.jpa.PluginConfigRepository;
@@ -43,6 +44,7 @@ import com.webank.wecube.platform.core.service.plugin.xmltype.PluginRoleBindingT
 import com.webank.wecube.platform.core.service.plugin.xmltype.PluginRoleBindingsType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.SystemParameterType;
 import com.webank.wecube.platform.core.service.plugin.xmltype.SystemParametersType;
+import com.webank.wecube.platform.core.service.user.UserManagementService;
 import com.webank.wecube.platform.core.utils.JaxbUtils;
 
 @Service
@@ -56,6 +58,9 @@ public class PluginConfigMigrationService {
     private PluginAuthRepository pluginAuthRepository;
     @Autowired
     private SystemVariableRepository systemVariableRepository;
+
+    @Autowired
+    private UserManagementService userManagementService;
 
     public PluginRegistryInfo exportPluginRegistersForOnePackage(String pluginPackageId) {
         if (StringUtils.isBlank(pluginPackageId)) {
@@ -209,7 +214,6 @@ public class PluginConfigMigrationService {
         for (PluginAuthEntity entity : authEntities) {
             PluginRoleBindingType xmlRoleBind = new PluginRoleBindingType();
             xmlRoleBind.setPermission(entity.getPermissionType());
-            xmlRoleBind.setRoleId(entity.getRoleId());
             xmlRoleBind.setRoleName(entity.getRoleName());
 
             xmlRoleBinds.getRoleBind().add(xmlRoleBind);
@@ -386,6 +390,18 @@ public class PluginConfigMigrationService {
 
     }
 
+    private RoleDto fetchRoleWithRoleName(String roleName) {
+        RoleDto role = null;
+        try {
+            role = userManagementService.retrieveRoleByRoleName(roleName);
+        } catch (Exception e) {
+            log.warn("errors while fetch role with role name:{}", roleName);
+            role = null;
+        }
+
+        return role;
+    }
+
     private void tryCreatePluginConfigRoleBinds(PluginConfigType xmlPluginConfig, PluginConfig savedPluginConfig) {
         PluginRoleBindingsType xmlRoleBinds = xmlPluginConfig.getRoleBinds();
         if (xmlRoleBinds == null || xmlRoleBinds.getRoleBind().isEmpty()) {
@@ -399,7 +415,10 @@ public class PluginConfigMigrationService {
             entity.setCreatedTime(new Date());
             entity.setPermissionType(xmlRoleBind.getPermission());
             entity.setPluginConfigId(savedPluginConfig.getId());
-            entity.setRoleId(xmlRoleBind.getRoleId());
+            RoleDto roleDto = fetchRoleWithRoleName(xmlRoleBind.getRoleName());
+            if (roleDto != null) {
+                entity.setRoleId(roleDto.getId());
+            }
             entity.setRoleName(xmlRoleBind.getRoleName());
 
             pluginAuthRepository.saveAndFlush(entity);
@@ -428,11 +447,11 @@ public class PluginConfigMigrationService {
             SystemVariable sysVarEntity = null;
             List<SystemVariable> existSysVars = systemVariableRepository
                     .findByNameAndScopeAndSource(xmlSysVar.getName(), xmlSysVar.getScopeType(), pluginPackage.getId());
-            if(existSysVars != null && !existSysVars.isEmpty()){
+            if (existSysVars != null && !existSysVars.isEmpty()) {
                 sysVarEntity = existSysVars.get(0);
             }
-            
-            if(sysVarEntity == null){
+
+            if (sysVarEntity == null) {
                 sysVarEntity = new SystemVariable();
                 sysVarEntity.setDefaultValue(xmlSysVar.getDefaultValue());
                 sysVarEntity.setPackageName(xmlSysVar.getPackageName());
@@ -441,12 +460,12 @@ public class PluginConfigMigrationService {
                 sysVarEntity.setSource(pluginPackage.getId());
                 sysVarEntity.setStatus(xmlSysVar.getStatus());
                 sysVarEntity.setValue(xmlSysVar.getValue());
-            }else{
+            } else {
                 sysVarEntity.setDefaultValue(xmlSysVar.getDefaultValue());
                 sysVarEntity.setValue(xmlSysVar.getValue());
                 sysVarEntity.setStatus(xmlSysVar.getStatus());
             }
-            
+
             systemVariableRepository.saveAndFlush(sysVarEntity);
         }
     }
@@ -597,7 +616,10 @@ public class PluginConfigMigrationService {
             entity.setCreatedTime(new Date());
             entity.setPermissionType(xmlRoleBind.getPermission());
             entity.setPluginConfigId(pluginConfigId);
-            entity.setRoleId(xmlRoleBind.getRoleId());
+            RoleDto roleDto = fetchRoleWithRoleName(xmlRoleBind.getRoleName());
+            if (roleDto != null) {
+                entity.setRoleId(roleDto.getId());
+            }
             entity.setRoleName(xmlRoleBind.getRoleName());
 
             pluginAuthRepository.saveAndFlush(entity);
