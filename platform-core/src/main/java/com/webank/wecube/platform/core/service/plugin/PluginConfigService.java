@@ -197,9 +197,9 @@ public class PluginConfigService {
 
     private Map<String, List<String>> processCreatePluginConfigRoleBindings(String pluginConfigId,
             Map<String, List<String>> permissionToRole) {
-        
-        if(log.isInfoEnabled()){
-            log.info("start to create plugin config role bindings:{}, {}", pluginConfigId,permissionToRole);
+
+        if (log.isInfoEnabled()) {
+            log.info("start to create plugin config role bindings:{}, {}", pluginConfigId, permissionToRole);
         }
         Map<String, List<String>> boundPermissionToRole = new HashMap<String, List<String>>();
         if (permissionToRole == null || permissionToRole.isEmpty()) {
@@ -243,18 +243,18 @@ public class PluginConfigService {
         String permission = pluginConfigRoleRequestDto.getPermission();
         List<String> inputRoleIds = pluginConfigRoleRequestDto.getRoleIds();
         validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
-        
-        if(inputRoleIds == null || inputRoleIds.isEmpty()){
+
+        if (inputRoleIds == null || inputRoleIds.isEmpty()) {
             log.info("input role IDs is empty");
             return;
         }
         List<String> existRoleIds = getExistRoleIdsOfPluginConfigAndPermission(pluginConfigId, permission);
         List<String> roleIdsToAdd = new ArrayList<String>();
-        for(String roleId:inputRoleIds){
-            if(existRoleIds.contains(roleId)){
+        for (String roleId : inputRoleIds) {
+            if (existRoleIds.contains(roleId)) {
                 continue;
             }
-            
+
             roleIdsToAdd.add(roleId);
         }
 
@@ -293,8 +293,14 @@ public class PluginConfigService {
         }
 
         if (!hasAuthority) {
-            throw new WecubeCoreException(
-                    String.format("Current user do not have privilege to update [%s]", pluginConfigId));
+            StringBuilder rolesStr = new StringBuilder();
+            for (PluginAuthEntity auth : pluginAuthConfigEntities) {
+                rolesStr.append(auth.getRoleName());
+            }
+            String errorMsg = String.format(
+                    "Current user do not have privilege to update [%s].Must have one of the roles:%s", pluginConfigId,
+                    rolesStr.toString());
+            throw new WecubeCoreException(errorMsg);
         }
     }
 
