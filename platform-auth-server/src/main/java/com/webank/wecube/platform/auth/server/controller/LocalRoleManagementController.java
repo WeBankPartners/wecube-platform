@@ -45,6 +45,12 @@ public class LocalRoleManagementController {
 		SimpleLocalRoleDto result = roleManagementService.retriveLocalRoleByRoleId(roleId);
 		return okayWithData(result);
 	}
+	
+	@GetMapping("/roles/name/{role-name}")
+    public CommonResponseDto retrieveRoleInfoByRoleName(@PathVariable(value = "role-name") String roleName) {
+        SimpleLocalRoleDto result = roleManagementService.retriveLocalRoleByRoleName(roleName);
+        return okayWithData(result);
+    }
 
 	@DeleteMapping("/roles/{role-id}")
 	public CommonResponseDto unregisterLocalRoleById(@PathVariable(value = "role-id") String roleId) {
