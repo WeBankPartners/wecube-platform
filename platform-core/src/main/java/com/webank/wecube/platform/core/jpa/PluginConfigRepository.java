@@ -43,7 +43,7 @@ public interface PluginConfigRepository extends JpaRepository<PluginConfig, Stri
     @Query("SELECT cfg FROM PluginConfig cfg WHERE cfg.plugin_package_id = :pluginPackageId AND cfg.registerName IS NULL")
     List<PluginConfig> findByPluginPackageIdAndRegisterNameIsNull(@Param("pluginPackageId")String pluginPackageId);
 
-    @Query("SELECT cfg FROM PluginConfig cfg JOIN cfg.pluginPackage pg WHERE cfg.plugin_package_id = :pluginPackageId AND cfg.registerName IS NOT NULL")
+    @Query("SELECT cfg FROM PluginConfig cfg WHERE cfg.plugin_package_id = :pluginPackageId AND cfg.registerName IS NOT NULL")
     List<PluginConfig> findByPluginPackageIdAndRegisterNameIsNotNull(@Param("pluginPackageId")String pluginPackageId);
 
     @Query("SELECT cfg FROM PluginConfig cfg WHERE cfg.plugin_package_id = :pluginPackageId AND cfg.name =:name AND cfg.registerName IS NOT NULL")
