@@ -163,13 +163,14 @@
               </Select>
               <Select
                 v-model="item.bindParamType"
+                filterable
                 v-if="item.bindType === 'context'"
                 style="width:30%"
                 @on-change="onParamsNodeChange(index)"
               >
                 <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
               </Select>
-              <Select v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
+              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
                 <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
               </Select>
               <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
@@ -280,7 +281,10 @@ export default {
     return {
       splitPanal: 1,
       show: false,
-      taskCategoryList: [{ value: 'SSTN', label: this.$t('sstn') }, { value: 'SUTN', label: this.$t('sutn') }],
+      taskCategoryList: [
+        { value: 'SSTN', label: this.$t('sstn') },
+        { value: 'SUTN', label: this.$t('sutn') }
+      ],
       isSaving: false,
       headers: {},
       isShowUploadList: false,
@@ -367,7 +371,10 @@ export default {
           label: '3 ' + this.$t('days')
         }
       ],
-      paramsTypes: [{ value: 'INPUT', label: this.$t('input') }, { value: 'OUTPUT', label: this.$t('output') }],
+      paramsTypes: [
+        { value: 'INPUT', label: this.$t('input') },
+        { value: 'OUTPUT', label: this.$t('output') }
+      ],
       currentflowsNodes: [],
       currentFlow: null
     }

@@ -152,3 +152,10 @@ export const getPluginArtifactStatus = id => req.get(`/platform/v1/plugin-artifa
 export const exportPluginXMLWithId = id => {
   req.get(`/platform/v1/plugins/packages/export/${id}`)
 }
+export const updatePluginConfigRoleBinding = (id, data) => req.post(`/platform/v1/plugins/roles/configs/${id}`, data)
+export const deletePluginConfigRoleBinding = (id, data) =>
+  req.delete(`/platform/v1/plugins/roles/configs/${id}`, { data })
+export const getApplicationVersion = id => req.get(`/platform/v1/appinfo/version`)
+export const getConfigByPkgId = id => req.get(`/platform/v1/packages/${id}/plugin-config-outlines`)
+export const updateConfigStatus = (id, data) =>
+  req.post(`/platform/v1/packages/${id}/plugin-configs/enable-in-batch`, data)
