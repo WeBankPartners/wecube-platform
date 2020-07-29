@@ -340,6 +340,8 @@
   "selected_role": "Selected Role",
   "unselected_role": "Unselected Role",
   "edit_role": "Select Orchestrations Host Roles",
+  "edit_config_role": "Select Configs Host Roles",
+  "no_permission_to_mgmt": "You Don't Have Permission",
   "mgmt_role": "Owner Role",
   "mgmt_role_warning": "Owner Role Cannot Empty",
   "use_role": "Executor Role",
@@ -424,5 +426,8 @@
   "online": "Online",
   "offline": "Offline",
   "origin_plugins": "Install From Market",
-  "best_practices": "Best Practices"
+  "best_practices": "Best Practices",
+  "config_permission": "Permission",
+  "batch_regist": "Batch Regist",
+  "modal_close": "Close"
 }
