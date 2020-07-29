@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAttribute;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageDataModel;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageEntity;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageEntity;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -40,6 +41,22 @@ public class PluginPackageEntityDto {
      * @param pluginPackageEntity input entity domain object
      * @return entity dto exposed to the server
      */
+    public static PluginPackageEntityDto fromDomain(LazyPluginPackageEntity pluginPackageEntity) {
+        PluginPackageEntityDto pluginPackageEntityDto = new PluginPackageEntityDto();
+        pluginPackageEntityDto.setId(pluginPackageEntity.getId());
+        pluginPackageEntityDto.setPackageName(pluginPackageEntity.getPluginPackageDataModel().getPackageName());
+        pluginPackageEntityDto.setName(pluginPackageEntity.getName());
+        pluginPackageEntityDto.setDisplayName(pluginPackageEntity.getDisplayName());
+        pluginPackageEntityDto.setDescription(pluginPackageEntity.getDescription());
+        pluginPackageEntityDto.setDataModelVersion(pluginPackageEntity.getPluginPackageDataModel().getVersion());
+        if (pluginPackageEntity.getPluginPackageAttributeList() != null) {
+            pluginPackageEntity.getPluginPackageAttributeList()
+                    .forEach(pluginPackageAttribute -> pluginPackageEntityDto.attributes
+                            .add(PluginPackageAttributeDto.fromDomain(pluginPackageAttribute)));
+        }
+        return pluginPackageEntityDto;
+    }
+
     public static PluginPackageEntityDto fromDomain(PluginPackageEntity pluginPackageEntity) {
         PluginPackageEntityDto pluginPackageEntityDto = new PluginPackageEntityDto();
         pluginPackageEntityDto.setId(pluginPackageEntity.getId());
