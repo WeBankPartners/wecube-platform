@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row style="margin-bottom: 10px">
-      <Col span="7">
+      <Col span="8">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select clearable v-model="selectedFlow" style="width: 70%" @on-open-change="getAllFlows" filterable>
           <Option
@@ -184,14 +184,7 @@
         </div>
       </Split>
     </div>
-    <Modal
-      v-model="flowRoleManageModal"
-      width="700"
-      :title="$t('edit_role')"
-      :mask-closable="false"
-      @on-ok="confirmRole"
-      @on-cancel="confirmRole"
-    >
+    <Modal v-model="flowRoleManageModal" width="700" :title="$t('edit_role')" :mask-closable="false">
       <div>
         <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
         <Transfer
@@ -215,6 +208,9 @@
           @on-change="handleUseRoleTransferChange"
           filterable
         ></Transfer>
+      </div>
+      <div slot="footer">
+        <Button type="primary" @click="confirmRole">{{ $t('close') }}</Button>
       </div>
     </Modal>
   </div>
@@ -479,14 +475,36 @@ export default {
         permission: type,
         roleId: roleId
       }
-      await updateFlowPermission(proId, payload)
+      const { status, message } = await updateFlowPermission(proId, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
+      }
     },
     async deleteFlowPermission (proId, roleId, type) {
       const payload = {
         permission: type,
         roleId: roleId
       }
-      await deleteFlowPermission(proId, payload)
+      const { status, message } = await deleteFlowPermission(proId, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
+      }
     },
     setFlowPermission (id) {
       this.getPermissionByProcess(id)
