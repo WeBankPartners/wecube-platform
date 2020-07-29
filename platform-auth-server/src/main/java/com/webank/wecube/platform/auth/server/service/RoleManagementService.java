@@ -50,7 +50,7 @@ public class RoleManagementService {
 	    
 	    SysRoleEntity existedRole = roleRepository.findNotDeletedRoleByName(roleName);
 
-        if (existedRole != null) {
+        if (existedRole == null) {
             throw new AuthServerException(String.format("Role with name {%s} does not exist.", roleName));
         }
         

@@ -18,14 +18,14 @@
           ></Button
         ></Col>
         <Col span="8" offset="1">
-          <Select :disabled="disabled" v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
+          <Select filterable :disabled="disabled" v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
               attr.name
             }}</Option>
           </Select>
         </Col>
         <Col span="4" offset="1">
-          <Select :disabled="disabled" v-model="rule.op" @on-change="opChangeHandler($event, rule)">
+          <Select filterable :disabled="disabled" v-model="rule.op" @on-change="opChangeHandler($event, rule)">
             <Option v-for="(op, index) in filterRuleOp" :key="index" :value="op">{{ op }}</Option>
           </Select>
         </Col>
@@ -36,6 +36,7 @@
             v-model="rule.value"
           ></Input>
           <Select
+            filterable
             :disabled="disabled"
             v-if="rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')"
             v-model="rule.value"
