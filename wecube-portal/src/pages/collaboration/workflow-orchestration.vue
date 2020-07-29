@@ -1,7 +1,7 @@
 <template>
   <div>
     <Row style="margin-bottom: 10px">
-      <Col span="7">
+      <Col span="8">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select clearable v-model="selectedFlow" style="width: 70%" @on-open-change="getAllFlows" filterable>
           <Option
@@ -163,13 +163,14 @@
               </Select>
               <Select
                 v-model="item.bindParamType"
+                filterable
                 v-if="item.bindType === 'context'"
                 style="width:30%"
                 @on-change="onParamsNodeChange(index)"
               >
                 <Option v-for="i in paramsTypes" :value="i.value" :key="i.value">{{ i.label }}</Option>
               </Select>
-              <Select v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
+              <Select filterable v-if="item.bindType === 'context'" v-model="item.bindParamName" style="width:30%">
                 <Option v-for="i in item.currentParamNames" :value="i.name" :key="i.name">{{ i.name }}</Option>
               </Select>
               <Input v-if="item.bindType === 'constant'" v-model="item.bindValue" />
@@ -183,14 +184,7 @@
         </div>
       </Split>
     </div>
-    <Modal
-      v-model="flowRoleManageModal"
-      width="700"
-      :title="$t('edit_role')"
-      :mask-closable="false"
-      @on-ok="confirmRole"
-      @on-cancel="confirmRole"
-    >
+    <Modal v-model="flowRoleManageModal" width="700" :title="$t('edit_role')" :mask-closable="false">
       <div>
         <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
         <Transfer
@@ -214,6 +208,9 @@
           @on-change="handleUseRoleTransferChange"
           filterable
         ></Transfer>
+      </div>
+      <div slot="footer">
+        <Button type="primary" @click="confirmRole">{{ $t('close') }}</Button>
       </div>
     </Modal>
   </div>
@@ -280,7 +277,10 @@ export default {
     return {
       splitPanal: 1,
       show: false,
-      taskCategoryList: [{ value: 'SSTN', label: this.$t('sstn') }, { value: 'SUTN', label: this.$t('sutn') }],
+      taskCategoryList: [
+        { value: 'SSTN', label: this.$t('sstn') },
+        { value: 'SUTN', label: this.$t('sutn') }
+      ],
       isSaving: false,
       headers: {},
       isShowUploadList: false,
@@ -367,7 +367,10 @@ export default {
           label: '3 ' + this.$t('days')
         }
       ],
-      paramsTypes: [{ value: 'INPUT', label: this.$t('input') }, { value: 'OUTPUT', label: this.$t('output') }],
+      paramsTypes: [
+        { value: 'INPUT', label: this.$t('input') },
+        { value: 'OUTPUT', label: this.$t('output') }
+      ],
       currentflowsNodes: [],
       currentFlow: null
     }
@@ -472,14 +475,36 @@ export default {
         permission: type,
         roleId: roleId
       }
-      await updateFlowPermission(proId, payload)
+      const { status, message } = await updateFlowPermission(proId, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
+      }
     },
     async deleteFlowPermission (proId, roleId, type) {
       const payload = {
         permission: type,
         roleId: roleId
       }
-      await deleteFlowPermission(proId, payload)
+      const { status, message } = await deleteFlowPermission(proId, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: message
+        })
+      } else {
+        this.$Notice.error({
+          title: 'Fail',
+          desc: message
+        })
+      }
     },
     setFlowPermission (id) {
       this.getPermissionByProcess(id)
