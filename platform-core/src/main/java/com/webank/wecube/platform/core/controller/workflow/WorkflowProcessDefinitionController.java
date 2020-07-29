@@ -41,6 +41,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcessDataPreviewDto;
 import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefBriefDto;
 import com.webank.wecube.platform.core.service.workflow.ProcessRoleServiceImpl;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
+import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefMigrationService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcDefService;
 
 @RestController
@@ -50,6 +51,9 @@ public class WorkflowProcessDefinitionController {
 
     @Autowired
     private WorkflowProcDefService procDefService;
+    
+    @Autowired
+    private WorkflowProcDefMigrationService procDefMigrationService;
 
     @Autowired
     private WorkflowDataService workflowDataService;
@@ -171,7 +175,7 @@ public class WorkflowProcessDefinitionController {
     @GetMapping(value = "/process/definitions/{proc-def-id}/export", produces = { MediaType.ALL_VALUE })
     public ResponseEntity<byte[]> exportProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
 
-        ProcDefInfoExportImportDto result = procDefService.exportProcessDefinition(procDefId);
+        ProcDefInfoExportImportDto result = procDefMigrationService.exportProcessDefinition(procDefId);
         String filename = assembleProcessExportFilename(result);
 
         String filedata = convertResult(result);
@@ -207,9 +211,7 @@ public class WorkflowProcessDefinitionController {
             String jsonData = new String(StringUtilsEx.decodeBase64(filedata), Charset.forName("utf-8"));
             ProcDefInfoExportImportDto importDto = convertImportData(jsonData);
 
-            String token = request.getHeader("Authorization");
-
-            ProcDefInfoExportImportDto result = procDefService.importProcessDefinition(importDto, token);
+            ProcDefInfoExportImportDto result = procDefMigrationService.importProcessDefinition(importDto);
             return CommonResponseDto.okayWithData(result);
         } catch (IOException e) {
             log.error("errors while reading upload file", e);
