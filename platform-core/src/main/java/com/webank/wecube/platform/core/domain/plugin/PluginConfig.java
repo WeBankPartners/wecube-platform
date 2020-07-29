@@ -1,18 +1,33 @@
 package com.webank.wecube.platform.core.domain.plugin;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.Table;
+
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webank.wecube.platform.core.support.DomainIdBuilder;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.persistence.*;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @JsonIgnoreType
 @Entity
@@ -53,6 +68,8 @@ public class PluginConfig {
     @JsonManagedReference
     @OneToMany(mappedBy = "pluginConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PluginConfigInterface> interfaces;
+    
+    private transient List<RoleBind> roleBinds = new ArrayList<RoleBind>();
 
     @JsonInclude
     public String getPluginPackageId() {
@@ -168,5 +185,15 @@ public class PluginConfig {
     public String getTargetEntityWithFilterRule() {
         return StringUtils.join(targetPackage, ":", targetEntity, targetEntityFilterRule);
     }
+
+    public List<RoleBind> getRoleBinds() {
+        return roleBinds;
+    }
+
+    public void setRoleBinds(List<RoleBind> roleBinds) {
+        this.roleBinds = roleBinds;
+    }
+    
+    
 
 }
