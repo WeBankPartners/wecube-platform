@@ -291,33 +291,12 @@
     </section>
     <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
       <Form :label-width="130" label-colon>
-        <!-- <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_start_path')">
-          <Select v-model="selectedEntityType" ref="select" filterable @on-change="changeEntityType">
-            <OptionGroup
-              :label="pluginPackage.packageName"
-              v-for="(pluginPackage, index) in allEntityType"
-              :key="index"
-            >
-              <Option
-                v-for="item in pluginPackage.pluginPackageEntities"
-                :value="item.name"
-                :key="item.name"
-                :label="item.name"
-              ></Option>
-            </OptionGroup>
-          </Select>
-        </FormItem> -->
         <FormItem
           v-if="isShowSearchConditions"
           :rules="{ required: true }"
           :show-message="false"
           :label="$t('bc_query_path')"
         >
-          <!-- <PathExp
-            :rootEntity="selectedEntityType"
-            :allDataModelsWithAttrs="allEntityType"
-            v-model="dataModelExpression"
-          ></PathExp> -->
           <FilterRules
             :allDataModelsWithAttrs="allEntityType"
             :needNativeAttr="true"
@@ -326,7 +305,7 @@
           ></FilterRules>
         </FormItem>
         <FormItem :label="$t('bc_target_type')">
-          <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
+          <span v-if="currentPackageName">{{ currentPackageName + ':' + currentEntityName }}</span>
         </FormItem>
         <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
           <Select filterable v-model="currentEntityAttr">
@@ -447,7 +426,6 @@
 
 <script>
 import FilterRules from '../components/filter-rules.vue'
-import PathExp from '@/pages/components/path-exp.vue'
 import {
   getAllDataModels,
   dmeAllEntities,
@@ -1217,7 +1195,6 @@ export default {
     }
   },
   components: {
-    PathExp,
     FilterRules
   }
 }
