@@ -21,7 +21,7 @@
         <Button v-if="pathList.length === 0" class="arrow-icon" icon="ios-arrow-down" long size="small"></Button>
       </div>
       <div slot="content">
-        <div v-if="!disabled" ref="filter_rules_path_options" class="filter_rules_path_options">
+        <div v-show="!disabled" ref="filter_rules_path_options" class="filter_rules_path_options">
           <ul>
             <li id="paste" style="margin-bottom: 5px;" v-if="pathList.length === 0">
               <input
@@ -72,20 +72,21 @@
           ><Button type="error" icon="ios-trash-outline" @click="deleteFilterRule(index)" size="small"></Button
         ></Col>
         <Col span="8" offset="1">
-          <Select v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
+          <Select filterable v-model="rule.attr" @on-change="attrChangeHandler($event, rule)">
             <Option v-for="(attr, index) in currentNodeEntityAttrs" :key="index" :value="attr.name">{{
               attr.name
             }}</Option>
           </Select>
         </Col>
         <Col span="4" offset="1">
-          <Select v-model="rule.op" @on-change="opChangeHandler($event, rule)">
+          <Select filterable v-model="rule.op" @on-change="opChangeHandler($event, rule)">
             <Option v-for="(op, index) in filterRuleOp" :key="index" :value="op">{{ op }}</Option>
           </Select>
         </Col>
         <Col span="8" offset="1">
           <Input v-if="!rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')" v-model="rule.value"></Input>
           <Select
+            filterable
             v-if="rule.isRef && !(rule.op === 'is' || rule.op === 'isnot')"
             v-model="rule.value"
             :multiple="rule.op === 'in' || rule.op === 'like'"
