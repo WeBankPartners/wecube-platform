@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -105,6 +106,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 .andReturn().getResponse().getContentAsString();
     }
 
+    @Ignore
     @Test
     public void getDataModelByMockedPackage() throws Exception {
         uploadCorrectPackage();
@@ -117,6 +119,7 @@ public class PluginPackageDataModelControllerTest extends AbstractControllerTest
                 .andReturn().getResponse().getContentAsString();
     }
 
+    @Ignore
     @Test
     public void getRefByInfoByMockedPackage() throws Exception {
         uploadCorrectPackage();

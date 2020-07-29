@@ -174,8 +174,8 @@
     </xs:attribute>
   </xs:complexType>
   <xs:complexType name="pluginType">
-    <xs:element type="roleBindsType" name="roleBinds" minOccurs="0"/>
     <xs:sequence>
+      <xs:element type="roleBindsType" name="roleBinds" minOccurs="0"/>
       <xs:element type="interfaceType" name="interface" maxOccurs="unbounded"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="id"/>
