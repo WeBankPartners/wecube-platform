@@ -3,45 +3,68 @@
     <Row>
       <Col span="6">
         <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
-        <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
-          <Submenu v-for="(plugin, index) in plugins" :name="plugin.pluginConfigName" style="padding: 0;" :key="index">
-            <template slot="title">
-              <Icon type="md-flower" />
-              <span style="font-size: 17px; font-weight:500">{{ plugin.pluginConfigName }}</span>
-              <Button
-                size="small"
-                type="text"
-                style="color: #2d8cf0;"
-                icon="md-add-circle"
-                @click.stop.prevent="addPluginConfigDto(plugin)"
-                >{{ $t('add') }}</Button
-              >
-            </template>
-            <MenuItem
-              v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
-              :name="dto.id"
+        <div style="height: calc(100vh - 180px);overflow:auto">
+          <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
+            <Submenu
+              v-for="(plugin, index) in plugins"
+              :name="plugin.pluginConfigName"
+              style="padding: 0;"
               :key="index"
-              style="padding: 5px 30px;"
             >
-              <span style="font-size: 15px; font-weight:400">{{ dto.name }}-({{ dto.registerName }})</span>
-              <Button
-                size="small"
-                type="text"
-                style="color: #19be6b;"
-                icon="md-copy"
-                @click.stop.prevent="copyPluginConfigDto(dto.id)"
-                >{{ $t('copy') }}</Button
+              <template slot="title">
+                <Icon type="md-flower" />
+                <span style="font-size: 17px; font-weight:500">{{ plugin.pluginConfigName }}</span>
+                <Button
+                  size="small"
+                  type="text"
+                  style="color: #2d8cf0;"
+                  icon="md-add-circle"
+                  @click.stop.prevent="addPluginConfigDto(plugin)"
+                  >{{ $t('add') }}</Button
+                >
+              </template>
+              <MenuItem
+                v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
+                :name="dto.id"
+                :key="index"
+                style="padding: 5px 30px;"
               >
-            </MenuItem>
-          </Submenu>
-        </Menu>
+                <span
+                  style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;font-size: 15px; font-weight:400"
+                  >{{ dto.name }}-({{ dto.registerName }})</span
+                >
+                <div>
+                  <Button
+                    size="small"
+                    type="text"
+                    style="color: #19be6b;"
+                    icon="md-copy"
+                    @click.stop.prevent="copyPluginConfigDto(dto.id)"
+                    >{{ $t('copy') }}</Button
+                  >
+                  <Button
+                    size="small"
+                    type="text"
+                    style="color: #2db7f5;"
+                    icon="md-contacts"
+                    @click="permissionsHandler(dto)"
+                    >{{ $t('config_permission') }}</Button
+                  >
+                </div>
+              </MenuItem>
+            </Submenu>
+          </Menu>
+        </div>
+        <div style="padding-right: 20px;margin-top: 10px;">
+          <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
+        </div>
       </Col>
       <Col span="18" offset="0" style="padding-left: 10px">
         <Spin size="large" fix style="margin-top: 200px;" v-show="isLoading">
           <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
           <div>{{ $t('loading') }}</div>
         </Spin>
-        <Form :model="form" v-show="hidePanal">
+        <Form :model="form" v-if="hidePanal">
           <Row style="border-bottom: 1px solid #bbb7b7; margin-top: 20px">
             <Col span="12" offset="0">
               <FormItem :label-width="100" :label="$t('regist_name')">
@@ -58,7 +81,7 @@
               </FormItem>
             </Col>
           </Row>
-          <div id="paramsContainer">
+          <div style="height: calc(100vh - 275px);overflow:auto" id="paramsContainer">
             <Collapse v-model="activePanel" accordion>
               <Panel
                 v-for="(inter, index) in currentPluginObj.interfaces"
@@ -153,6 +176,7 @@
                             <FormItem :label-width="0">
                               <Select
                                 v-model="param.sensitiveData"
+                                filterable
                                 size="small"
                                 style="width:50px"
                                 :disabled="currentPluginObj.status === 'ENABLED'"
@@ -175,6 +199,7 @@
                                 :needAttr="true"
                               ></FilterRules>
                               <Select
+                                filterable
                                 v-if="param.mappingType === 'system_variable'"
                                 v-model="param.mappingSystemVariableName"
                                 :disabled="currentPluginObj.status === 'ENABLED'"
@@ -197,6 +222,7 @@
                             <FormItem :label-width="0">
                               <Select
                                 size="small"
+                                filterable
                                 :disabled="currentPluginObj.status === 'ENABLED'"
                                 v-model="param.mappingType"
                                 @on-change="mappingTypeChange($event, param)"
@@ -238,6 +264,7 @@
                           <Col span="3" offset="0">
                             <FormItem :label-width="0">
                               <Select
+                                filterable
                                 v-model="outPut.sensitiveData"
                                 size="small"
                                 style="width:50px"
@@ -283,18 +310,18 @@
               </Panel>
             </Collapse>
           </div>
-          <Row v-if="currentPluginObjKeysLength > 1" style="margin:20px auto">
+          <Row v-if="currentPluginObjKeysLength > 1" style="margin:20px auto;margin-bottom:0;">
             <Col span="9" offset="8">
-              <Button type="primary" v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
+              <Button type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
                 $t('save')
               }}</Button>
-              <Button type="primary" v-if="currentPluginObj.status === 'DISABLED'" @click="regist">{{
+              <Button type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="regist">{{
                 $t('regist')
               }}</Button>
-              <Button type="error" v-if="currentPluginObj.status === 'DISABLED'" @click="deleteRegisterSource">{{
+              <Button type="error" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="deleteRegisterSource">{{
                 $t('delete')
               }}</Button>
-              <Button type="error" v-if="currentPluginObj.status === 'ENABLED'" @click="removePlugin">{{
+              <Button type="error" ghost v-if="currentPluginObj.status === 'ENABLED'" @click="removePlugin">{{
                 $t('decommission')
               }}</Button>
             </Col>
@@ -302,6 +329,53 @@
         </Form>
       </Col>
     </Row>
+    <Modal
+      v-model="configTreeManageModal"
+      width="700"
+      :title="$t('edit_config_role')"
+      :mask-closable="false"
+      @on-ok="setConfigTreeHandler"
+      @on-cancel="closeTreeModal"
+    >
+      <div style="height:500px;overflow:auto">
+        <Tree ref="configTree" :data="configTree" show-checkbox multiple></Tree>
+      </div>
+    </Modal>
+    <Modal
+      v-model="configRoleManageModal"
+      width="700"
+      :title="$t('edit_config_role')"
+      :mask-closable="false"
+      footer-hide
+    >
+      <div>
+        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRolesBackUp"
+          :target-keys="mgmtRolesKey"
+          :render-format="renderRoleNameForTransfer"
+          @on-change="handleMgmtRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div style="margin-top: 30px">
+        <div class="role-transfer-title">{{ $t('use_role') }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRolesBackUp"
+          :target-keys="useRolesKey"
+          :render-format="renderRoleNameForTransfer"
+          @on-change="handleUseRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div style="margin-top:20px;text-align:right">
+        <Button type="primary" @click="confirmRole">{{ $t('modal_close') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -316,17 +390,34 @@ import {
   savePluginConfig,
   retrieveSystemVariables,
   getPluginConfigsByPackageId,
-  getInterfacesByPluginConfigId
+  getInterfacesByPluginConfigId,
+  getRoleList,
+  updatePluginConfigRoleBinding,
+  deletePluginConfigRoleBinding,
+  getRolesByCurrentUser,
+  getConfigByPkgId,
+  updateConfigStatus
 } from '@/api/server'
 
 export default {
   data () {
     return {
+      configTreeManageModal: false,
+      configTree: [],
+      isAdd: false,
+      currentPluginForPermission: {},
       isLoading: false,
       activePanel: null,
       allDataModelsWithAttrs: {},
       currentPlugin: '',
       plugins: [],
+      configRoleManageModal: false,
+      currentUserRoles: [],
+      transferTitles: [this.$t('unselected_role'), this.$t('selected_role')],
+      transferStyle: { width: '300px' },
+      mgmtRolesKey: [],
+      useRolesKey: [],
+      allRolesBackUp: [],
       addRegistModal: false,
       currentPluginObj: {},
       sourceList: [],
@@ -385,6 +476,165 @@ export default {
     }
   },
   methods: {
+    async setConfigTreeHandler () {
+      console.log(this.$refs.configTree)
+      const payload = this.$refs.configTree.data.map(_ => {
+        return {
+          ..._,
+          pluginConfigs: _.children.map(child => {
+            return {
+              ...child,
+              status: child.checked ? 'ENABLED' : 'DISABLED'
+            }
+          })
+        }
+      })
+      const { status } = await updateConfigStatus(this.pkgId, payload)
+      if (status === 'OK') {
+        this.getAllPluginByPkgId()
+        if (this.currentPlugin) {
+          this.getInterfacesByPluginConfigId(this.currentPlugin)
+        }
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+      }
+    },
+    closeTreeModal () {
+      this.configTreeManageModal = false
+    },
+    batchRegist () {
+      this.getConfigByPkgId()
+      this.configTreeManageModal = true
+    },
+    async getConfigByPkgId () {
+      const { status, data } = await getConfigByPkgId(this.pkgId)
+      if (status === 'OK') {
+        this.configTree = data.map(_ => {
+          const hasPermission = _.pluginConfigs.find(i => i.hasMgmtPermission === true)
+          return {
+            ..._,
+            title: _.name,
+            expand: true,
+            disabled: !hasPermission,
+            children: _.pluginConfigs.map(config => {
+              return {
+                ...config,
+                title: `${config.name}-(${config.registerName})`,
+                expand: true,
+                checked: config.status === 'ENABLED',
+                disabled: !config.hasMgmtPermission
+              }
+            })
+          }
+        })
+      }
+    },
+    renderRoleNameForTransfer (item) {
+      return item.label
+    },
+    async getRolesByCurrentUser () {
+      const { status, data } = await getRolesByCurrentUser()
+      if (status === 'OK') {
+        this.currentUserRoles = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          }
+        })
+      }
+    },
+    permissionsHandler (config) {
+      this.mgmtRolesKey = config.permissionToRole.MGMT || []
+      this.useRolesKey = config.permissionToRole.USE || []
+      let hasPermission = false
+      this.mgmtRolesKey.forEach(_ => {
+        const found = this.currentUserRoles.find(role => role.id === _)
+        if (found) {
+          hasPermission = true
+        }
+      })
+      if (hasPermission) {
+        this.configRoleManageModal = true
+        this.currentPluginForPermission = config
+        this.isAdd = false
+      } else {
+        this.$Message.warning(this.$t('no_permission_to_mgmt'))
+      }
+    },
+    confirmRole () {
+      if (this.mgmtRolesKey.length) {
+        this.configRoleManageModal = false
+      } else {
+        this.$Message.warning(this.$t('mgmt_role_warning'))
+      }
+    },
+    async getRoleList () {
+      const { status, data } = await getRoleList()
+      if (status === 'OK') {
+        this.allRolesBackUp = data.map(_ => {
+          return {
+            ..._,
+            key: _.id,
+            label: _.displayName
+          }
+        })
+      }
+    },
+    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      if (this.hasNewSource) {
+        this.mgmtRolesKey = newTargetKeys
+      } else {
+        if (direction === 'right') {
+          this.updateConfigPermission(this.currentPluginForPermission.id, moveKeys, 'MGMT')
+        } else {
+          this.deleteConfigPermission(this.currentPluginForPermission.id, moveKeys, 'MGMT')
+        }
+        this.mgmtRolesKey = newTargetKeys
+      }
+    },
+    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+      if (this.hasNewSource) {
+        this.useRolesKey = newTargetKeys
+      } else {
+        if (direction === 'right') {
+          this.updateConfigPermission(this.currentPluginForPermission.id, moveKeys, 'USE')
+        } else {
+          this.deleteConfigPermission(this.currentPluginForPermission.id, moveKeys, 'USE')
+        }
+        this.useRolesKey = newTargetKeys
+      }
+    },
+    async updateConfigPermission (proId, roleId, type) {
+      const payload = {
+        permission: type,
+        roleIds: roleId
+      }
+      const { status } = await updatePluginConfigRoleBinding(proId, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+      }
+      this.getAllPluginByPkgId()
+    },
+    async deleteConfigPermission (proId, roleId, type) {
+      const payload = {
+        permission: type,
+        roleIds: roleId
+      }
+      const { status } = await deletePluginConfigRoleBinding(proId, payload)
+      if (status === 'OK') {
+        this.$Notice.success({
+          title: 'Success',
+          desc: 'Success'
+        })
+      }
+      this.getAllPluginByPkgId()
+    },
     async retrieveSystemVariables () {
       const { data, status } = await retrieveSystemVariables({
         filters: [],
@@ -402,6 +652,10 @@ export default {
           desc: '输入注册名称'
         })
         return
+      }
+      if (this.hasNewSource) {
+        this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
+        this.currentPluginObj.permissionToRole.USE = this.useRolesKey
       }
       let currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
       currentPluginForSave.registerName = this.registerName
@@ -432,6 +686,10 @@ export default {
       }
     },
     async regist () {
+      if (this.hasNewSource) {
+        this.currentPluginObj.permissionToRole.MGMT = this.mgmtRolesKey
+        this.currentPluginObj.permissionToRole.USE = this.useRolesKey
+      }
       this.currentPluginObj.registerName = this.registerName
       let currentPluginForSave = JSON.parse(JSON.stringify(this.currentPluginObj))
       currentPluginForSave.targetEntityWithFilterRule = this.selectedEntityType
@@ -537,6 +795,9 @@ export default {
     async copyPluginConfigDto (id) {
       this.currentPlugin = ''
       this.hasNewSource = true
+      this.configRoleManageModal = true
+      this.mgmtRolesKey = []
+      this.useRolesKey = []
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = this.currentPluginObj.registerName + '-(copy)'
       this.currentPluginObj.status = 'DISABLED'
@@ -544,6 +805,9 @@ export default {
     },
     async addPluginConfigDto (plugin) {
       this.hasNewSource = true
+      this.configRoleManageModal = true
+      this.mgmtRolesKey = []
+      this.useRolesKey = []
       const id = plugin.pluginConfigDtoList.find(_ => _.registerName === null).id
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = ''
@@ -599,9 +863,11 @@ export default {
     }
   },
   created () {
+    this.getRoleList()
     this.getAllPluginByPkgId()
     this.getAllDataModels()
     this.retrieveSystemVariables()
+    this.getRolesByCurrentUser()
   }
 }
 </script>
@@ -625,6 +891,13 @@ export default {
       background: rgb(224, 230, 231);
       border-radius: 5px;
     }
+  }
+  .role-transfer-title {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    background-color: rgb(226, 222, 222);
+    margin-bottom: 5px;
   }
 }
 </style>

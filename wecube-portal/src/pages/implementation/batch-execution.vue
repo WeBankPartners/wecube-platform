@@ -261,7 +261,7 @@
               <Col span="18" class="excute-result excute-result-json">
                 <Row>
                   <Col span="4">
-                    <Select v-model="filterType" @on-change="filterTypeChange">
+                    <Select filterable v-model="filterType" @on-change="filterTypeChange">
                       <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{
                         item.label
                       }}</Option>
@@ -291,33 +291,12 @@
     </section>
     <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
       <Form :label-width="130" label-colon>
-        <!-- <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_start_path')">
-          <Select v-model="selectedEntityType" ref="select" filterable @on-change="changeEntityType">
-            <OptionGroup
-              :label="pluginPackage.packageName"
-              v-for="(pluginPackage, index) in allEntityType"
-              :key="index"
-            >
-              <Option
-                v-for="item in pluginPackage.pluginPackageEntities"
-                :value="item.name"
-                :key="item.name"
-                :label="item.name"
-              ></Option>
-            </OptionGroup>
-          </Select>
-        </FormItem> -->
         <FormItem
           v-if="isShowSearchConditions"
           :rules="{ required: true }"
           :show-message="false"
           :label="$t('bc_query_path')"
         >
-          <!-- <PathExp
-            :rootEntity="selectedEntityType"
-            :allDataModelsWithAttrs="allEntityType"
-            v-model="dataModelExpression"
-          ></PathExp> -->
           <FilterRules
             :allDataModelsWithAttrs="allEntityType"
             :needNativeAttr="true"
@@ -326,7 +305,7 @@
           ></FilterRules>
         </FormItem>
         <FormItem :label="$t('bc_target_type')">
-          <span>{{ currentPackageName }}:{{ currentEntityName }}</span>
+          <span v-if="currentPackageName">{{ currentPackageName + ':' + currentEntityName }}</span>
         </FormItem>
         <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
           <Select filterable v-model="currentEntityAttr">
@@ -447,7 +426,6 @@
 
 <script>
 import FilterRules from '../components/filter-rules.vue'
-import PathExp from '@/pages/components/path-exp.vue'
 import {
   getAllDataModels,
   dmeAllEntities,
@@ -713,7 +691,7 @@ export default {
       this.collectionRoleManageModal = true
       this.editCollectionName = false
     },
-    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    async handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
       if (this.isAddCollect) {
         this.MGMT = newTargetKeys
       } else {
@@ -722,19 +700,41 @@ export default {
           roleId: moveKeys
         }
         if (direction === 'right') {
-          addCollectionsRole(this.selectedCollection.favoritesId, params)
+          const { status, message } = await addCollectionsRole(this.selectedCollection.favoritesId, params)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+          } else {
+            this.$Notice.error({
+              title: 'Fail',
+              desc: message
+            })
+          }
         } else {
           if (newTargetKeys.length === 0) {
             this.$Message.warning(this.$t('bc_mgmt_role_cannot_empty'))
           } else {
-            deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+            const { status, message } = await deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+            if (status === 'OK') {
+              this.$Notice.success({
+                title: 'Success',
+                desc: message
+              })
+            } else {
+              this.$Notice.error({
+                title: 'Fail',
+                desc: message
+              })
+            }
           }
         }
       }
 
       this.MGMT = newTargetKeys
     },
-    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    async handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
       if (this.isAddCollect) {
         this.USE = newTargetKeys
       } else {
@@ -743,15 +743,35 @@ export default {
           roleId: moveKeys
         }
         if (direction === 'right') {
-          addCollectionsRole(this.selectedCollection.favoritesId, params)
+          const { status, message } = await addCollectionsRole(this.selectedCollection.favoritesId, params)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+          } else {
+            this.$Notice.error({
+              title: 'Fail',
+              desc: message
+            })
+          }
         } else {
-          deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          const { status, message } = await deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+          } else {
+            this.$Notice.error({
+              title: 'Fail',
+              desc: message
+            })
+          }
         }
       }
       this.USE = newTargetKeys
     },
-    async addCollectionsRole () {},
-    async deleteCollectionsRole () {},
     showDeleteConfirm (id, name) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),
@@ -1217,7 +1237,6 @@ export default {
     }
   },
   components: {
-    PathExp,
     FilterRules
   }
 }

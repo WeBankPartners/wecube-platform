@@ -17,16 +17,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -173,57 +164,47 @@ public class PluginPackageService {
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
 
-    public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginConfigDto> pluginConfigDtos) {
-        if(StringUtils.isBlank(packageId) ){
+    public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginDeclarationDto> pluginConfigDtos) {
+        if (StringUtils.isBlank(packageId)) {
             throw new WecubeCoreException("Package ID is blank.");
         }
         PluginPackage pluginPackage = pluginPackageRepository.getOne(packageId);
-        if(pluginPackage == null){
-            throw new WecubeCoreException(String.format("Such plugin package with ID %s does not exist.",packageId));
+        if (pluginPackage == null) {
+            throw new WecubeCoreException(String.format("Such plugin package with ID %s does not exist.", packageId));
         }
-        if (  pluginPackage.getStatus() == UNREGISTERED || pluginPackage.getStatus() == DECOMMISSIONED ) {
+        if (pluginPackage.getStatus() == UNREGISTERED || pluginPackage.getStatus() == DECOMMISSIONED) {
             throw new WecubeCoreException(
                     "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
-        List<PluginConfig> pluginConfigEntities = pluginConfigRepository.findByPluginPackageIdAndRegisterNameIsNotNull(packageId);
-        if(pluginConfigEntities == null || pluginConfigEntities.isEmpty()){
-            log.warn("Inputted plugin configs is empty for package ID:{}", packageId);
-            return;
-        }
+        List<PluginConfigOutlineDto> privilegedPluginConfigs = new ArrayList<>();
 
-        List<PluginConfig> privilegedPluginConfigEntities = filterWithPermissionValidation(pluginConfigEntities,PluginAuthEntity.PERM_TYPE_MGMT);
-
-        List<PluginConfig> enablepluginConfigs = new ArrayList<>();
-        List<PluginConfig> disabledPluginConfigs = new ArrayList<>();
-
-        if(pluginConfigDtos ==null || pluginConfigDtos.size() <= 0){
-            disabledPluginConfigs = privilegedPluginConfigEntities ;
-        }else {
-            List<String> pluginConfigIds = new ArrayList<>();
-            for (PluginConfigDto pluginConfigDto : pluginConfigDtos) {
-                pluginConfigIds.add(pluginConfigDto.getId());
-            }
-
-            for(PluginConfig privilegedPluginConfig:privilegedPluginConfigEntities){
-                if(pluginConfigIds.contains(privilegedPluginConfig.getId())){
-                    enablepluginConfigs.add(privilegedPluginConfig);
-                }else{
-                    disabledPluginConfigs.add(privilegedPluginConfig);
+        for (PluginDeclarationDto pluginConfigDto : pluginConfigDtos) {
+            List<PluginConfigOutlineDto> pluginConfigOutlineDto = pluginConfigDto.getPluginConfigs();
+            for (PluginConfigOutlineDto configOutlineDto : pluginConfigOutlineDto) {
+                if (configOutlineDto.getHasMgmtPermission()) {
+                    privilegedPluginConfigs.add(configOutlineDto);
                 }
             }
         }
-        if(enablepluginConfigs != null && !enablepluginConfigs.isEmpty()){
-            enablepluginConfigs.forEach(enablepluginConfig ->{
-                enablepluginConfig.setStatus(ENABLED);
-                pluginConfigRepository.save(enablepluginConfig);
-            });
+
+        if (privilegedPluginConfigs == null || privilegedPluginConfigs.size() <= 0) {
+            return;
         }
-        if(disabledPluginConfigs != null && !disabledPluginConfigs.isEmpty()){
-            disabledPluginConfigs.forEach(disabledPluginConfig ->{
-                disabledPluginConfig.setStatus(DISABLED);
-                pluginConfigRepository.save(disabledPluginConfig);
-            });
+
+        for (PluginConfigOutlineDto privilegedPluginConfig : privilegedPluginConfigs) {
+            if (!validateCurrentUserPermission(privilegedPluginConfig.getId(), PluginAuthEntity.PERM_TYPE_MGMT)) {
+                throw new WecubeCoreException("Lack of privilege to perform such operation.");
+            }
+        }
+
+        for (PluginConfigOutlineDto privilegedPluginConfig : privilegedPluginConfigs) {
+            PluginConfig pluginConfig = pluginConfigRepository.getOne(privilegedPluginConfig.getId());
+            if (pluginConfig != null) {
+                pluginConfig.setStatus(privilegedPluginConfig.getStatus());
+                pluginConfigRepository.save(pluginConfig);
+            }
+
         }
 
     }
@@ -232,17 +213,18 @@ public class PluginPackageService {
         List<PluginDeclarationDto> pluginDeclarationDtos = new ArrayList<>();
 
         List<PluginConfig> configs = pluginConfigRepository.findByPluginPackageIdAndRegisterNameIsNull(packageId);
-        if(configs == null || configs.isEmpty()){
+        if (configs == null || configs.isEmpty()) {
             return pluginDeclarationDtos;
         }
 
-        for(PluginConfig pluginConfig : configs) {
+        for (PluginConfig pluginConfig : configs) {
             PluginDeclarationDto pdDto = fromDomain(pluginConfig);
-            List<PluginConfig> pluginPackageIdAndNames = pluginConfigRepository.
-                    findByPluginPackageIdAndNameAndRegisterNameIsNotNull(pluginConfig.getPluginPackageId(), pluginConfig.getName());
+            List<PluginConfig> pluginPackageIdAndNames = pluginConfigRepository
+                    .findByPluginPackageIdAndNameAndRegisterNameIsNotNull(pluginConfig.getPluginPackageId(),
+                            pluginConfig.getName());
 
             List<PluginConfigOutlineDto> childPdDtos = new ArrayList<>();
-            if(pluginPackageIdAndNames != null && pluginPackageIdAndNames.size() > 0){
+            if (pluginPackageIdAndNames != null && pluginPackageIdAndNames.size() > 0) {
                 pluginPackageIdAndNames.forEach(pluginConfigDto -> {
                     PluginConfigOutlineDto pcDto = fromDomainEnablePluginConfigDto(pluginConfigDto);
                     childPdDtos.add(pcDto);
@@ -262,12 +244,13 @@ public class PluginPackageService {
         enablePluginConfigDto.setName(pluginConfig.getName());
         enablePluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
         enablePluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
-        enablePluginConfigDto.setStatus(pluginConfig.getStatus().name());
-        enablePluginConfigDto.setHasMgmtPermission(validateCurrentUserPermission(pluginConfig.getId(), PluginAuthEntity.PERM_TYPE_MGMT));
+        enablePluginConfigDto.setStatus(pluginConfig.getStatus());
+        enablePluginConfigDto.setHasMgmtPermission(
+                validateCurrentUserPermission(pluginConfig.getId(), PluginAuthEntity.PERM_TYPE_MGMT));
         return enablePluginConfigDto;
     }
 
-    public  PluginDeclarationDto fromDomain(PluginConfig pluginConfig) {
+    public PluginDeclarationDto fromDomain(PluginConfig pluginConfig) {
         PluginDeclarationDto pluginDeclarationDto = new PluginDeclarationDto();
         pluginDeclarationDto.setId(pluginConfig.getId());
         pluginDeclarationDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
@@ -332,13 +315,13 @@ public class PluginPackageService {
         return privilegedPluginConfigs;
     }
 
-    private boolean verifyPluginConfigPrivilege(PluginConfig pluginConfig,
-                                                         String permission, Set<String> currUserRoles) {
+    private boolean verifyPluginConfigPrivilege(PluginConfig pluginConfig, String permission,
+            Set<String> currUserRoles) {
         if (StringUtils.isBlank(pluginConfig.getId())) {
             throw new WecubeCoreException("Plugin config ID cannot be blank.");
         }
         List<PluginAuthEntity> entities = pluginAuthRepository
-                .findAllByPluginConfigIdAndPermission(pluginConfig.getId() ,permission);
+                .findAllByPluginConfigIdAndPermission(pluginConfig.getId(), permission);
         if (entities.isEmpty()) {
             return false;
         }
