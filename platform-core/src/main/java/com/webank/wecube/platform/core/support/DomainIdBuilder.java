@@ -7,8 +7,7 @@ import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.*;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
+import com.webank.wecube.platform.core.lazyDomain.plugin.*;
 import com.webank.wecube.platform.core.utils.Constants;
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,6 +88,16 @@ public class DomainIdBuilder {
         );
     }
 
+    public static String buildDomainId(LazyPluginPackageDataModel pluginPackageDataModel) {
+        return StringUtils.isNotBlank(pluginPackageDataModel.getId())
+                ? pluginPackageDataModel.getId()
+                : buildDomainId(
+                "DataModel",
+                pluginPackageDataModel.getPackageName(),
+                String.valueOf(pluginPackageDataModel.getVersion())
+        );
+    }
+
     public static String buildDomainId(PluginPackageEntity pluginPackageEntity) {
         return StringUtils.isNotBlank(pluginPackageEntity.getId())
                 ? pluginPackageEntity.getId()
@@ -99,7 +108,28 @@ public class DomainIdBuilder {
         );
     }
 
+    public static String buildDomainId(LazyPluginPackageEntity pluginPackageEntity) {
+        return StringUtils.isNotBlank(pluginPackageEntity.getId())
+                ? pluginPackageEntity.getId()
+                : buildDomainId(
+                pluginPackageEntity.getPackageName(),
+                String.valueOf(pluginPackageEntity.getDataModelVersion()),
+                pluginPackageEntity.getName()
+        );
+    }
+
     public static String buildDomainId(PluginPackageAttribute pluginPackageAttribute) {
+        return StringUtils.isNotBlank(pluginPackageAttribute.getId())
+                ? pluginPackageAttribute.getId()
+                : buildDomainId(
+                null != pluginPackageAttribute.getPluginPackageEntity() ? pluginPackageAttribute.getPluginPackageEntity().getPackageName() : null,
+                null != pluginPackageAttribute.getPluginPackageEntity() ? String.valueOf(pluginPackageAttribute.getPluginPackageEntity().getDataModelVersion()) : null,
+                null != pluginPackageAttribute.getPluginPackageEntity() ? pluginPackageAttribute.getPluginPackageEntity().getName() : null,
+                pluginPackageAttribute.getName()
+        );
+    }
+
+    public static String buildDomainId(LazyPluginPackageAttribute pluginPackageAttribute) {
         return StringUtils.isNotBlank(pluginPackageAttribute.getId())
                 ? pluginPackageAttribute.getId()
                 : buildDomainId(
