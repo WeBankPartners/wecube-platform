@@ -261,7 +261,7 @@
               <Col span="18" class="excute-result excute-result-json">
                 <Row>
                   <Col span="4">
-                    <Select v-model="filterType" @on-change="filterTypeChange">
+                    <Select filterable v-model="filterType" @on-change="filterTypeChange">
                       <Option v-for="item in filterTypeList" :value="item.value" :key="item.value">{{
                         item.label
                       }}</Option>

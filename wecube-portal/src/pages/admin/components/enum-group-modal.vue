@@ -17,7 +17,7 @@
           </Col>
           <Col offset="1" span="6">
             <FormItem :label-width="90" :label="$t('enum_type')">
-              <Select :disabled="!!category" v-model="form.catTypeId">
+              <Select filterable :disabled="!!category" v-model="form.catTypeId">
                 <Option v-for="item in catTypes" :value="item.value" :key="item.value">{{ item.label }}</Option>
               </Select>
             </FormItem>
