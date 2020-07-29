@@ -691,7 +691,7 @@ export default {
       this.collectionRoleManageModal = true
       this.editCollectionName = false
     },
-    handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    async handleMgmtRoleTransferChange (newTargetKeys, direction, moveKeys) {
       if (this.isAddCollect) {
         this.MGMT = newTargetKeys
       } else {
@@ -700,19 +700,41 @@ export default {
           roleId: moveKeys
         }
         if (direction === 'right') {
-          addCollectionsRole(this.selectedCollection.favoritesId, params)
+          const { status, message } = await addCollectionsRole(this.selectedCollection.favoritesId, params)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+          } else {
+            this.$Notice.error({
+              title: 'Fail',
+              desc: message
+            })
+          }
         } else {
           if (newTargetKeys.length === 0) {
             this.$Message.warning(this.$t('bc_mgmt_role_cannot_empty'))
           } else {
-            deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+            const { status, message } = await deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+            if (status === 'OK') {
+              this.$Notice.success({
+                title: 'Success',
+                desc: message
+              })
+            } else {
+              this.$Notice.error({
+                title: 'Fail',
+                desc: message
+              })
+            }
           }
         }
       }
 
       this.MGMT = newTargetKeys
     },
-    handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
+    async handleUseRoleTransferChange (newTargetKeys, direction, moveKeys) {
       if (this.isAddCollect) {
         this.USE = newTargetKeys
       } else {
@@ -721,15 +743,35 @@ export default {
           roleId: moveKeys
         }
         if (direction === 'right') {
-          addCollectionsRole(this.selectedCollection.favoritesId, params)
+          const { status, message } = await addCollectionsRole(this.selectedCollection.favoritesId, params)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+          } else {
+            this.$Notice.error({
+              title: 'Fail',
+              desc: message
+            })
+          }
         } else {
-          deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          const { status, message } = await deleteCollectionsRole(this.selectedCollection.favoritesId, params)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: message
+            })
+          } else {
+            this.$Notice.error({
+              title: 'Fail',
+              desc: message
+            })
+          }
         }
       }
       this.USE = newTargetKeys
     },
-    async addCollectionsRole () {},
-    async deleteCollectionsRole () {},
     showDeleteConfirm (id, name) {
       this.$Modal.confirm({
         title: this.$t('confirm_to_delete'),

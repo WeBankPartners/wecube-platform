@@ -88,7 +88,7 @@
         </FormItem>
       </Form>
     </Modal>
-    <Modal v-model="userManageModal" width="700" :title="$t('edit_user')" @on-ok="confirmUser" @on-cancel="confirmUser">
+    <Modal v-model="userManageModal" width="700" :title="$t('edit_user')">
       <Transfer
         :titles="transferTitles"
         :list-style="transferStyle"
@@ -98,6 +98,9 @@
         @on-change="handleUserTransferChange"
         filterable
       ></Transfer>
+      <div slot="footer">
+        <Button type="primary" @click="confirmUser">{{ $t('close') }}</Button>
+      </div>
     </Modal>
   </div>
 </template>
@@ -121,6 +124,7 @@ import { MENUS } from '@/const/menus.js'
 export default {
   data () {
     return {
+      currentRoleId: 0,
       users: [],
       roles: [],
       addedUser: {
@@ -325,6 +329,7 @@ export default {
       if (this.currentRoleId !== 0) {
         this.handleRoleClick(true, this.currentRoleId)
       }
+      this.userManageModal = false
     },
     async openUserManageModal (id) {
       this.usersKeyBySelectedRole = []

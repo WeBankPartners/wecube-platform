@@ -345,6 +345,7 @@
   "mgmt_role": "Owner Role",
   "mgmt_role_warning": "Owner Role Cannot Empty",
   "use_role": "Executor Role",
+  "close": "Close",
   "source": "Source",
   "cube_front": "Tasks",
   "cube_back": "Design",
