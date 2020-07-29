@@ -62,13 +62,13 @@
           </DropdownMenu>
         </Dropdown>
       </div>
-      <div class="version">v2.5.0</div>
+      <div class="version">{{ version }}</div>
     </div>
   </Header>
 </template>
 <script>
 import Vue from 'vue'
-import { getMyMenus, getAllPluginPackageResourceFiles } from '@/api/server.js'
+import { getMyMenus, getAllPluginPackageResourceFiles, getApplicationVersion } from '@/api/server.js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 
@@ -92,10 +92,17 @@ export default {
         }
       ],
       menus: [],
-      needLoad: true
+      needLoad: true,
+      version: ''
     }
   },
   methods: {
+    async getApplicationVersion () {
+      const { status, data } = await getApplicationVersion()
+      if (status === 'OK') {
+        this.version = data
+      }
+    },
     changeDocs (url) {
       window.open(url)
     },
@@ -226,6 +233,7 @@ export default {
   },
   async created () {
     this.getLocalLang()
+    this.getApplicationVersion()
     this.getMyMenus()
     this.username = window.sessionStorage.getItem('username')
   },
