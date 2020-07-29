@@ -9,7 +9,7 @@ public class PluginConfigOutlineDto {
     private String name;
     private String targetEntityWithFilterRule;
     private String registerName;
-    private String status;
+    private PluginConfig.Status status;
     private Boolean hasMgmtPermission;
 
     public String getId() {
@@ -44,11 +44,11 @@ public class PluginConfigOutlineDto {
         this.targetEntityWithFilterRule = targetEntityWithFilterRule;
     }
 
-    public String getStatus() {
+    public PluginConfig.Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(PluginConfig.Status status) {
         this.status = status;
     }
 
@@ -75,7 +75,7 @@ public class PluginConfigOutlineDto {
         pluginConfigDto.setTargetEntityWithFilterRule(pluginConfig.getTargetEntityWithFilterRule());
         pluginConfigDto.setRegisterName(pluginConfig.getRegisterName());
         pluginConfigDto.setPluginPackageId(pluginConfig.getPluginPackage().getId());
-        pluginConfigDto.setStatus(pluginConfig.getStatus().name());
+        pluginConfigDto.setStatus(pluginConfig.getStatus());
         return pluginConfigDto;
     }
 }

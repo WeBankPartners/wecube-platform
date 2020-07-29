@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageMenuRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,9 @@ public class MenuService {
 
     @Autowired
     private PluginPackageMenuRepository pluginPackageMenuRepository;
+
+    @Autowired
+    private LazyPluginPackageMenuRepository lazyPluginPackageMenuRepository;
 
     @Autowired
     private RoleMenuServiceImpl roleMenuService;
@@ -103,7 +108,7 @@ public class MenuService {
                     foundMenusByMenuCode.add(menuItemDto);
                 } else {
                     // given menu code belongs to a package menu
-                    Optional<PluginPackageMenu> foundPackageMenuByCode = this.pluginPackageMenuRepository.findAndMergePluginMenus(menuCode);
+                    Optional<LazyPluginPackageMenu> foundPackageMenuByCode = this.lazyPluginPackageMenuRepository.findAndMergePluginMenus(menuCode);
                     foundPackageMenuByCode.ifPresent(pluginPackageMenus -> foundMenusByMenuCode.add(roleMenuService.transferPackageMenuToMenuItemDto(pluginPackageMenus)));
                 }
             }

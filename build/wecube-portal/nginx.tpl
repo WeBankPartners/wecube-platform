@@ -35,6 +35,10 @@ http {
 	location / {
                 root /root/app;
         }
+	location /docs {
+		index index.html;
+		alias /root/wecube-docs/;
+        }
 	location /platform {
 		proxy_pass http://core;
 		proxy_set_header Host ${PUBLIC_DOMAIN};

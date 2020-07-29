@@ -2,6 +2,7 @@ package com.webank.wecube.platform.core.dto;
 
 import com.webank.wecube.platform.core.domain.MenuItem;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageMenu;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageMenu;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class MenuItemDto implements Comparable<MenuItemDto> {
@@ -49,6 +50,20 @@ public class MenuItemDto implements Comparable<MenuItemDto> {
     }
 
     public static MenuItemDto fromPackageMenuItem(PluginPackageMenu packageMenu, MenuItem menuItem) {
+        MenuItemDto pluginPackageMenuDto = new MenuItemDto();
+        pluginPackageMenuDto.setId(packageMenu.getId());
+        pluginPackageMenuDto.setCategory(packageMenu.getCategory());
+        pluginPackageMenuDto.setCode(packageMenu.getCode());
+        pluginPackageMenuDto.setSource(packageMenu.getSource());
+        pluginPackageMenuDto.setMenuOrder(menuItem.getMenuOrder() * 10000 + packageMenu.getMenuOrder());
+        pluginPackageMenuDto.setDisplayName(packageMenu.getDisplayName());
+        pluginPackageMenuDto.setLocalDisplayName(packageMenu.getLocalDisplayName());
+        pluginPackageMenuDto.setPath(packageMenu.getPath());
+        pluginPackageMenuDto.setActive(packageMenu.isActive());
+        return pluginPackageMenuDto;
+    }
+
+    public static MenuItemDto fromPackageMenuItem(LazyPluginPackageMenu packageMenu, MenuItem menuItem) {
         MenuItemDto pluginPackageMenuDto = new MenuItemDto();
         pluginPackageMenuDto.setId(packageMenu.getId());
         pluginPackageMenuDto.setCategory(packageMenu.getCategory());
