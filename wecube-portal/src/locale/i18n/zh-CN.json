@@ -346,6 +346,7 @@
   "mgmt_role_warning": "属主角色不能为空",
   "no_permission_to_mgmt": "你没有操作权限",
   "use_role": "使用角色",
+  "close": "关闭",
   "source": "归属",
   "cube_front": "任务",
   "cube_back": "设计",
