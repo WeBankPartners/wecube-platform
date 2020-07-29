@@ -48,18 +48,27 @@
           </DropdownMenu>
         </Dropdown>
       </div>
-      <div class="help">
-        <a target="_blank" href="https://webankpartners.github.io/wecube-docs/"
-          ><Icon style="margin-right:5px" size="16" type="md-book" />{{ $t('help_docs') }}</a
-        >
+      <div class="language">
+        <Dropdown>
+          <a href="javascript:void(0)">
+            <Icon style="margin-right:5px" size="16" type="md-book" />
+            {{ $t('help_docs') }}
+            <Icon type="ios-arrow-down"></Icon>
+          </a>
+          <DropdownMenu slot="list">
+            <DropdownItem v-for="(item, key) in docs" :key="key" @click.native="changeDocs(item.url)">
+              {{ $t(item.name) }}
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
       </div>
-      <div class="version">v2.5.0</div>
+      <div class="version">{{ version }}</div>
     </div>
   </Header>
 </template>
 <script>
 import Vue from 'vue'
-import { getMyMenus, getAllPluginPackageResourceFiles } from '@/api/server.js'
+import { getMyMenus, getAllPluginPackageResourceFiles, getApplicationVersion } from '@/api/server.js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 
@@ -72,11 +81,31 @@ export default {
         'zh-CN': '简体中文',
         'en-US': 'English'
       },
+      docs: [
+        {
+          name: 'online',
+          url: 'https://webankpartners.github.io/wecube-docs/'
+        },
+        {
+          name: 'offline',
+          url: '/docs/index.html'
+        }
+      ],
       menus: [],
-      needLoad: true
+      needLoad: true,
+      version: ''
     }
   },
   methods: {
+    async getApplicationVersion () {
+      const { status, data } = await getApplicationVersion()
+      if (status === 'OK') {
+        this.version = data
+      }
+    },
+    changeDocs (url) {
+      window.open(url)
+    },
     logout () {
       window.location.href = window.location.origin + window.location.pathname + '#/login'
     },
@@ -204,6 +233,7 @@ export default {
   },
   async created () {
     this.getLocalLang()
+    this.getApplicationVersion()
     this.getMyMenus()
     this.username = window.sessionStorage.getItem('username')
   },
