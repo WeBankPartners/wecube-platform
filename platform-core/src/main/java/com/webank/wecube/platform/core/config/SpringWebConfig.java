@@ -2,7 +2,9 @@ package com.webank.wecube.platform.core.config;
 
 import javax.servlet.Filter;
 
+import com.webank.wecube.platform.core.support.cache.CacheHandlerInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -23,15 +25,19 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @Profile({ "default", "smoke", "uat", "prod", "dev" })
 @Configuration
+@EnableCaching
 @EnableWebMvc
 @EnableSwagger2
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
-@ComponentScan({ "com.webank.wecube.platform.core.controller" })
+@ComponentScan({ "com.webank.wecube.platform.core.controller", "com.webank.wecube.platform.core.support.cache"})
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     @Autowired
     private AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
+
+    @Autowired
+    private CacheHandlerInterceptor cacheHandlerInterceptor;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -54,6 +60,7 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authenticationRequestContextInterceptor).addPathPatterns("/**");
+        registry.addInterceptor(cacheHandlerInterceptor).addPathPatterns("/**");
         WebMvcConfigurer.super.addInterceptors(registry);
     }
 
