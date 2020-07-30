@@ -332,7 +332,7 @@
     <Modal
       v-model="configTreeManageModal"
       width="700"
-      :title="$t('edit_config_role')"
+      :title="$t('batch_regist')"
       :mask-closable="false"
       @on-ok="setConfigTreeHandler"
       @on-cancel="closeTreeModal"
@@ -477,7 +477,6 @@ export default {
   },
   methods: {
     async setConfigTreeHandler () {
-      console.log(this.$refs.configTree)
       const payload = this.$refs.configTree.data.map(_ => {
         return {
           ..._,
@@ -491,7 +490,7 @@ export default {
       })
       const { status } = await updateConfigStatus(this.pkgId, payload)
       if (status === 'OK') {
-        this.getAllPluginByPkgId()
+        await this.getAllPluginByPkgId()
         if (this.currentPlugin) {
           this.getInterfacesByPluginConfigId(this.currentPlugin)
         }
