@@ -432,10 +432,32 @@ public class PluginPackageXmlParser {
                 pluginConfig.setInterfaces(
                         new HashSet<>(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig)));
             }
+            
+            NodeList roleBindNodes = xPathEvaluator.getNodeList("./roleBinds/roleBind", pluginConfigNode);
+            if (roleBindNodes != null && roleBindNodes.getLength() > 0) {
+                List<RoleBind> roleBinds = parseRoleBinds(roleBindNodes, pluginConfig);
+                pluginConfig.setRoleBinds(roleBinds);
+            }
 
             pluginConfigs.add(pluginConfig);
         }
         return pluginConfigs;
+    }
+    
+    private List<RoleBind> parseRoleBinds(NodeList roleBindNodes,
+            PluginConfig pluginConfig) throws XPathExpressionException{
+        List<RoleBind> roleBinds = new ArrayList<RoleBind>();
+        for (int i = 0; i < roleBindNodes.getLength(); i++) {
+            Node roleBindNode = roleBindNodes.item(i);
+            RoleBind roleBind = new RoleBind();
+            roleBind.setPermission(getStringAttribute(roleBindNode, "./@permission"));
+            roleBind.setRoleName(getStringAttribute(roleBindNode, "./@roleName"));
+            
+            roleBinds.add(roleBind);
+        }
+        
+        
+        return roleBinds;
     }
 
     private List<PluginConfigInterface> parsePluginConfigInterfaces(NodeList interfaceNodeList,
