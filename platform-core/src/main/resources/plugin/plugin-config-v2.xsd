@@ -175,6 +175,7 @@
   </xs:complexType>
   <xs:complexType name="pluginType">
     <xs:sequence>
+      <xs:element type="roleBindsType" name="roleBinds" minOccurs="0"/>
       <xs:element type="interfaceType" name="interface" maxOccurs="unbounded"/>
     </xs:sequence>
     <xs:attribute type="xs:string" name="id"/>
@@ -187,6 +188,15 @@
   <xs:complexType name="pluginsType">
     <xs:sequence minOccurs="0">
       <xs:element type="pluginType" name="plugin" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="roleBindType">
+    <xs:attribute type="xs:string" name="permission"/>
+    <xs:attribute type="xs:string" name="roleName"/>
+  </xs:complexType>
+  <xs:complexType name="roleBindsType">
+    <xs:sequence minOccurs="0">
+      <xs:element type="roleBindType" name="roleBind" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="packageType">
