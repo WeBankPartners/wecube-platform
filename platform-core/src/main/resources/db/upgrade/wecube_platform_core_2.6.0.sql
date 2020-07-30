@@ -17,12 +17,12 @@ delete from plugin_config_roles where created_by = 'bootScript';
 
 insert into plugin_config_roles
 (id,created_by,created_time,is_active,perm_type,plugin_cfg_id,role_id,role_name)
-select uuid() as id, 'bootScript' as created_by, sysdate(), 1 as is_actvie, 'MGMT' as perm_type, t.id as plugin_cfg_id, '2c9280827019695c017019ac974f001c' as role_id, 'SUPER_ADMIN' as role_name
+select uuid() as id, 'bootScript' as created_by, sysdate(), 1 as is_active, 'MGMT' as perm_type, t.id as plugin_cfg_id, '2c9280827019695c017019ac974f001c' as role_id, 'SUPER_ADMIN' as role_name
 from plugin_configs t
 where t.register_name is not null;
 
 insert into plugin_config_roles
 (id,created_by,created_time,is_active,perm_type,plugin_cfg_id,role_id,role_name)
-select uuid() as id, 'bootScript' as created_by, sysdate(), 1 as is_actvie, 'USE' as perm_type, t.id as plugin_cfg_id, '2c9280827019695c017019ac974f001c' as role_id, 'SUPER_ADMIN' as role_name
+select uuid() as id, 'bootScript' as created_by, sysdate(), 1 as is_active, 'USE' as perm_type, t.id as plugin_cfg_id, '2c9280827019695c017019ac974f001c' as role_id, 'SUPER_ADMIN' as role_name
 from plugin_configs t
 where t.register_name is not null;
