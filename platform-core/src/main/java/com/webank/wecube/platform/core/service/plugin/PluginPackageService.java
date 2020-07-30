@@ -58,6 +58,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageResourceFile;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesDocker;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
+import com.webank.wecube.platform.core.domain.plugin.RoleBind;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
@@ -498,9 +499,10 @@ public class PluginPackageService {
     public List<PluginPackageInfoDto> getPluginPackages() {
         List<PluginPackageInfoDto> pluginPackageInfoDtos = null;
         List<LazyPluginPackage> pluginPackages = lazyPluginPackageRepository.findAll();
-        if(pluginPackages!=null && pluginPackages.size()>0){
-            pluginPackageInfoDtos = pluginPackages.stream().map(PluginPackageInfoDto::fromDomain).collect(Collectors.toList());
-        }else{
+        if (pluginPackages != null && pluginPackages.size() > 0) {
+            pluginPackageInfoDtos = pluginPackages.stream().map(PluginPackageInfoDto::fromDomain)
+                    .collect(Collectors.toList());
+        } else {
             pluginPackageInfoDtos = Lists.newArrayList();
         }
         return pluginPackageInfoDtos;
@@ -1131,6 +1133,15 @@ public class PluginPackageService {
 
         PluginPackage savedPluginPackage = pluginPackageRepository.save(pluginPackage);
 
+        log.info("start to process role binds");
+        Set<PluginConfig> pluginConfigs = savedPluginPackage.getPluginConfigs();
+        for (PluginConfig plgCfg : pluginConfigs) {
+            log.info("process plgCfg id={} , name={} , regName={}", plgCfg.getId(), plgCfg.getName(),
+                    plgCfg.getRegisterName());
+
+            saveRoleBinds(plgCfg);
+        }
+
         if (null != pluginPackage.getSystemVariables() && pluginPackage.getSystemVariables().size() > 0) {
             pluginPackage.getSystemVariables().stream()
                     .forEach(systemVariable -> systemVariable.setSource(savedPluginPackage.getId()));
@@ -1148,6 +1159,45 @@ public class PluginPackageService {
         }
 
         return savedPluginPackage;
+    }
+
+    private void saveRoleBinds(PluginConfig plgCfg) {
+        List<RoleBind> roleBinds = plgCfg.getRoleBinds();
+        if (roleBinds == null || roleBinds.isEmpty()) {
+            log.info("role binds is empty for plugin config:id={} , name={} , regName={}", plgCfg.getId(),
+                    plgCfg.getName(), plgCfg.getRegisterName());
+            return;
+        }
+
+        for (RoleBind roleBind : roleBinds) {
+            PluginAuthEntity entity = new PluginAuthEntity();
+            entity.setActive(true);
+            entity.setCreatedBy(AuthenticationContextHolder.getCurrentUsername());
+            entity.setCreatedTime(new Date());
+            entity.setPermissionType(roleBind.getPermission());
+            entity.setPluginConfigId(plgCfg.getId());
+            RoleDto roleDto = fetchRoleWithRoleName(roleBind.getRoleName());
+            if (roleDto != null) {
+                entity.setRoleId(roleDto.getId());
+            }
+            entity.setRoleName(roleBind.getRoleName());
+
+            pluginAuthRepository.saveAndFlush(entity);
+            log.info("role bind saved:plugin={},perm={},role={},roleId={}", entity.getPluginConfigId(),
+                    entity.getPermissionType(), entity.getRoleName(), entity.getRoleId());
+        }
+    }
+
+    private RoleDto fetchRoleWithRoleName(String roleName) {
+        RoleDto role = null;
+        try {
+            role = userManagementService.retrieveRoleByRoleName(roleName);
+        } catch (Exception e) {
+            log.warn("errors while fetch role with role name:{}", roleName);
+            role = null;
+        }
+
+        return role;
     }
 
     private void processPluginDockerImageFile(File localFilePath, PluginPackageDto pluginPackageDto) {
