@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Row style="margin-bottom: 10px">
+    <Row style="margin-bottom: 10px;height:40px">
       <Col span="8">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select clearable v-model="selectedFlow" style="width: 70%" @on-open-change="getAllFlows" filterable>
