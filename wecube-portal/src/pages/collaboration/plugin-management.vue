@@ -15,19 +15,21 @@
             <Button type="info" style="margin-left:20px" ghost icon="ios-cloud-upload-outline" @click="getHeaders">{{
               $t('upload_plugin_btn')
             }}</Button>
-            <Upload
-              ref="uploadButton"
-              show-upload-list
-              accept=".zip"
-              name="zip-file"
-              :on-success="onSuccess"
-              :on-progress="onProgress"
-              :on-error="onError"
-              action="platform/v1/packages"
-              :headers="headers"
-            >
-              <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
-            </Upload>
+            <div v-show="showUpload">
+              <Upload
+                ref="uploadButton"
+                show-upload-list
+                accept=".zip"
+                name="zip-file"
+                :on-success="onSuccess"
+                :on-progress="onProgress"
+                :on-error="onError"
+                action="platform/v1/packages"
+                :headers="headers"
+              >
+                <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
+              </Upload>
+            </div>
             <span v-if="showSuccess" style="color:#2b85e4">{{ $t('plugin_analysis') }}</span>
           </div>
         </Card>
@@ -35,9 +37,13 @@
       <Row class="plugins-tree-container" style="margin-top: 20px">
         <Card dis-hover>
           <Row slot="title">
-            <Col span="12">{{ $t('plugins_list') }}</Col>
+            <Col span="12">
+              <span style="line-height:19px">
+                {{ $t('plugins_list') }}
+              </span>
+            </Col>
             <Col style="float: right">
-              <Checkbox style="width: max-content" v-model="isShowDecomissionedPackage">
+              <Checkbox style="width: max-content;" class="clear-default-css" v-model="isShowDecomissionedPackage">
                 {{ $t('is_show_decomissioned_pkg') }}
               </Checkbox>
             </Col>
@@ -85,7 +91,7 @@
                       icon="ios-trash"
                     ></Button>
                   </span>
-                  <p slot="content">
+                  <p slot="content" class="button-group">
                     <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">
                       {{ $t('plugin_config_check') }}
                     </Button>
@@ -329,6 +335,7 @@ export default {
   },
   data () {
     return {
+      showUpload: false,
       currentPluginId: '',
       filterForPkg: '',
       isRegisted: false,
@@ -861,6 +868,7 @@ export default {
       }
     },
     getHeaders () {
+      this.showUpload = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
       const accessToken = getCookie('accessToken')
@@ -908,5 +916,12 @@ export default {
 .decomissionedPkgName {
   font-style: italic;
   text-decoration: line-through;
+}
+.button-group {
+  display: flex;
+  justify-content: space-around;
+}
+.clear-default-css {
+  margin-bottom: 0;
 }
 </style>
