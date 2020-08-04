@@ -66,30 +66,36 @@
                     {{ plugin.name + '_' + plugin.version }}
                   </span>
                   <span style="float: right; margin-right: 10px">
-                    <Button
-                      icon="ios-cloud-upload-outline"
-                      v-if="plugin.status !== 'DECOMMISSIONED'"
-                      size="small"
-                      type="primary"
-                      ghost
-                      @click.stop.prevent="importBestPractices(plugin.id)"
-                    ></Button>
-                    <Button
-                      v-if="plugin.status !== 'DECOMMISSIONED'"
-                      @click.stop.prevent="exportBestPractices(plugin.id)"
-                      size="small"
-                      type="primary"
-                      ghost
-                      icon="md-download"
-                    ></Button>
-                    <Button
-                      v-if="plugin.status !== 'DECOMMISSIONED'"
-                      @click.stop.prevent="deletePlugin(plugin.id)"
-                      size="small"
-                      type="error"
-                      ghost
-                      icon="ios-trash"
-                    ></Button>
+                    <Tooltip :content="$t('configuration_import')">
+                      <Button
+                        icon="ios-cloud-upload-outline"
+                        v-if="plugin.status !== 'DECOMMISSIONED'"
+                        size="small"
+                        type="primary"
+                        ghost
+                        @click.stop.prevent="importBestPractices(plugin.id)"
+                      ></Button>
+                    </Tooltip>
+                    <Tooltip :content="$t('configuration_export')">
+                      <Button
+                        v-if="plugin.status !== 'DECOMMISSIONED'"
+                        @click.stop.prevent="exportBestPractices(plugin.id)"
+                        size="small"
+                        type="primary"
+                        ghost
+                        icon="md-download"
+                      ></Button>
+                    </Tooltip>
+                    <Tooltip :content="$t('delete')">
+                      <Button
+                        v-if="plugin.status !== 'DECOMMISSIONED'"
+                        @click.stop.prevent="deletePlugin(plugin.id)"
+                        size="small"
+                        type="error"
+                        ghost
+                        icon="ios-trash"
+                      ></Button>
+                    </Tooltip>
                   </span>
                   <p slot="content" class="button-group">
                     <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">
