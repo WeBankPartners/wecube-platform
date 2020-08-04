@@ -1,9 +1,9 @@
 <template>
   <div class="plugin-register-page">
     <Row>
-      <Col span="6">
+      <Col span="6" style="border-right: 1px solid #e8eaec">
         <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
-        <div style="height: calc(100vh - 180px);overflow:auto">
+        <div style="min-height: calc(100vh - 180px);overflow:auto;">
           <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
             <Submenu
               v-for="(plugin, index) in plugins"
@@ -12,16 +12,15 @@
               :key="index"
             >
               <template slot="title">
-                <Icon type="md-flower" />
-                <span style="font-size: 17px; font-weight:500">{{ plugin.pluginConfigName }}</span>
+                <Icon type="md-grid" />
+                <span style="font-size: 15px;">{{ plugin.pluginConfigName }}</span>
                 <Button
                   size="small"
                   type="text"
-                  style="color: #2d8cf0;"
-                  icon="md-add-circle"
+                  style="color: #2d8cf0;float: right;margin-right:20px"
+                  icon="md-add"
                   @click.stop.prevent="addPluginConfigDto(plugin)"
-                  >{{ $t('add') }}</Button
-                >
+                ></Button>
               </template>
               <MenuItem
                 v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
@@ -30,26 +29,28 @@
                 style="padding: 5px 30px;"
               >
                 <span
-                  style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 90%;font-size: 15px; font-weight:400"
-                  >{{ dto.name }}-({{ dto.registerName }})</span
+                  style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;font-size: 15px; font-weight:400"
+                  >{{ dto.registerName }}</span
                 >
-                <div>
-                  <Button
-                    size="small"
-                    type="text"
-                    style="color: #19be6b;"
-                    icon="md-copy"
-                    @click.stop.prevent="copyPluginConfigDto(dto.id)"
-                    >{{ $t('copy') }}</Button
-                  >
-                  <Button
-                    size="small"
-                    type="text"
-                    style="color: #2db7f5;"
-                    icon="md-contacts"
-                    @click="permissionsHandler(dto)"
-                    >{{ $t('config_permission') }}</Button
-                  >
+                <div style="vertical-align: top;display: inline-block;float: right;">
+                  <Tooltip :content="$t('copy')">
+                    <Button
+                      size="small"
+                      type="text"
+                      style="color: #19be6b;"
+                      icon="md-copy"
+                      @click.stop.prevent="copyPluginConfigDto(dto.id)"
+                    ></Button>
+                  </Tooltip>
+                  <Tooltip :content="$t('config_permission')">
+                    <Button
+                      size="small"
+                      type="text"
+                      style="color: #2db7f5;"
+                      icon="md-contacts"
+                      @click="permissionsHandler(dto)"
+                    ></Button>
+                  </Tooltip>
                 </div>
               </MenuItem>
             </Submenu>
