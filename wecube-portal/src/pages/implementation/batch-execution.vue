@@ -119,7 +119,11 @@
             <ul>
               <li
                 @click="changeActiveExecuteHistory(keyIndex)"
-                :class="[activeExecuteHistoryKey === keyIndex ? 'active-key' : '', 'business-key']"
+                :class="[
+                  activeExecuteHistoryKey === keyIndex ? 'active-key' : '',
+                  'business-key',
+                  'clear-default-style'
+                ]"
                 v-for="(key, keyIndex) in executeHistory"
                 :key="keyIndex"
               >
@@ -248,7 +252,8 @@
                     :class="[
                       activeResultKey === key ? 'active-key' : '',
                       'business-key',
-                      catchExecuteResult[key].errorCode === '1' ? 'error-key' : ''
+                      catchExecuteResult[key].errorCode === '1' ? 'error-key' : '',
+                      'clear-default-style'
                     ]"
                     v-for="(key, keyIndex) in catchFilterBusinessKeySet"
                     :key="keyIndex"
@@ -1263,7 +1268,9 @@ textarea:focus {
 .search-btn {
   margin-top: 8px;
 }
-
+.clear-default-style {
+  list-style: none;
+}
 .execute-history {
   border-left: $border-config;
   border-bottom: $border-config;
