@@ -279,9 +279,12 @@
       </div>
       <div style="width:100%;height:350px;overflow: auto;margin-top: 10px">
         <RadioGroup v-model="selectedOriginPlugin" vertical>
-          <Radio v-for="item in originPluginsFilter" :key="item.keyName" :label="item.keyName">
-            <span>{{ item.keyName }}</span>
-          </Radio>
+          <template v-for="(item, index) in Object.keys(originPluginsGroupFilter)">
+            <span :key="index" style="color: #999;line-height:30px">{{ item }}</span>
+            <Radio v-for="plugin in originPluginsGroupFilter[item]" :key="plugin.keyName" :label="plugin.keyName">
+              <span>{{ plugin.keyName }}</span>
+            </Radio>
+          </template>
         </RadioGroup>
       </div>
       <div style="height:30px;text-align: right">
@@ -448,8 +451,8 @@ export default {
       isShowDecomissionedPackage: false,
       isLoadingPluginList: false,
       originPlugins: [],
-      originPluginsFilter: [],
       selectedOriginPlugin: '',
+      originPluginsGroupFilter: {},
       pluginTimer: null,
       loadingPlugin: false,
       isShowImportXMLModal: false
@@ -458,7 +461,16 @@ export default {
   watch: {
     filterForPkg: {
       handler (v) {
-        this.originPluginsFilter = this.originPlugins.filter(_ => _.keyName.indexOf(v) > -1)
+        this.originPluginsGroupFilter = []
+        this.originPlugins
+          .filter(_ => _.keyName.indexOf(v) > -1)
+          .forEach(item => {
+            if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
+              this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
+            } else {
+              this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
+            }
+          })
       }
     }
   },
@@ -511,7 +523,14 @@ export default {
       this.loadingPlugin = false
       if (status === 'OK') {
         this.originPlugins = data
-        this.originPluginsFilter = data
+        this.originPluginsGroupFilter = []
+        data.forEach(item => {
+          if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
+            this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
+          } else {
+            this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
+          }
+        })
         this.showUploadModal = true
       }
     },
