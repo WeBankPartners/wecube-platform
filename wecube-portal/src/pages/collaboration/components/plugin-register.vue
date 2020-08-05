@@ -14,13 +14,11 @@
               <template slot="title">
                 <Icon type="md-grid" />
                 <span style="font-size: 15px;">{{ plugin.pluginConfigName }}</span>
-                <Button
-                  size="small"
-                  type="text"
-                  style="color: #2d8cf0;float: right;margin-right:20px"
-                  icon="md-add"
-                  @click.stop.prevent="addPluginConfigDto(plugin)"
-                ></Button>
+                <div style="float:right;color: #2d8cf0;margin-right:30px">
+                  <Tooltip :content="$t('add')" :delay="1000">
+                    <Icon @click.stop.prevent="addPluginConfigDto(plugin)" style="" type="md-add" />
+                  </Tooltip>
+                </div>
               </template>
               <MenuItem
                 v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
@@ -33,23 +31,16 @@
                   >{{ dto.registerName }}</span
                 >
                 <div style="vertical-align: top;display: inline-block;float: right;">
-                  <Tooltip :content="$t('copy')">
-                    <Button
-                      size="small"
-                      type="text"
+                  <Tooltip :content="$t('copy')" :delay="500">
+                    <Icon
+                      size="16"
                       style="color: #19be6b;"
-                      icon="md-copy"
                       @click.stop.prevent="copyPluginConfigDto(dto.id)"
-                    ></Button>
+                      type="md-copy"
+                    />
                   </Tooltip>
-                  <Tooltip :content="$t('config_permission')">
-                    <Button
-                      size="small"
-                      type="text"
-                      style="color: #2db7f5;"
-                      icon="md-contacts"
-                      @click="permissionsHandler(dto)"
-                    ></Button>
+                  <Tooltip :content="$t('config_permission')" :delay="500">
+                    <Icon size="16" style="color: #2db7f5;" @click="permissionsHandler(dto)" type="md-contacts" />
                   </Tooltip>
                 </div>
               </MenuItem>
