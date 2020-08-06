@@ -15,19 +15,21 @@
             <Button type="info" style="margin-left:20px" ghost icon="ios-cloud-upload-outline" @click="getHeaders">{{
               $t('upload_plugin_btn')
             }}</Button>
-            <Upload
-              ref="uploadButton"
-              show-upload-list
-              accept=".zip"
-              name="zip-file"
-              :on-success="onSuccess"
-              :on-progress="onProgress"
-              :on-error="onError"
-              action="platform/v1/packages"
-              :headers="headers"
-            >
-              <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
-            </Upload>
+            <div v-show="showUpload">
+              <Upload
+                ref="uploadButton"
+                show-upload-list
+                accept=".zip"
+                name="zip-file"
+                :on-success="onSuccess"
+                :on-progress="onProgress"
+                :on-error="onError"
+                action="platform/v1/packages"
+                :headers="headers"
+              >
+                <Button style="display:none" icon="ios-cloud-upload-outline">{{ $t('upload_plugin_btn') }}</Button>
+              </Upload>
+            </div>
             <span v-if="showSuccess" style="color:#2b85e4">{{ $t('plugin_analysis') }}</span>
           </div>
         </Card>
@@ -35,9 +37,13 @@
       <Row class="plugins-tree-container" style="margin-top: 20px">
         <Card dis-hover>
           <Row slot="title">
-            <Col span="12">{{ $t('plugins_list') }}</Col>
+            <Col span="12">
+              <span style="line-height:19px">
+                {{ $t('plugins_list') }}
+              </span>
+            </Col>
             <Col style="float: right">
-              <Checkbox style="width: max-content" v-model="isShowDecomissionedPackage">
+              <Checkbox style="width: max-content;" class="clear-default-css" v-model="isShowDecomissionedPackage">
                 {{ $t('is_show_decomissioned_pkg') }}
               </Checkbox>
             </Col>
@@ -60,32 +66,38 @@
                     {{ plugin.name + '_' + plugin.version }}
                   </span>
                   <span style="float: right; margin-right: 10px">
-                    <Button
-                      icon="ios-cloud-upload-outline"
-                      v-if="plugin.status !== 'DECOMMISSIONED'"
-                      size="small"
-                      type="primary"
-                      ghost
-                      @click.stop.prevent="importBestPractices(plugin.id)"
-                    ></Button>
-                    <Button
-                      v-if="plugin.status !== 'DECOMMISSIONED'"
-                      @click.stop.prevent="exportBestPractices(plugin.id)"
-                      size="small"
-                      type="primary"
-                      ghost
-                      icon="md-download"
-                    ></Button>
-                    <Button
-                      v-if="plugin.status !== 'DECOMMISSIONED'"
-                      @click.stop.prevent="deletePlugin(plugin.id)"
-                      size="small"
-                      type="error"
-                      ghost
-                      icon="ios-trash"
-                    ></Button>
+                    <Tooltip :content="$t('configuration_import')">
+                      <Button
+                        icon="ios-cloud-upload-outline"
+                        v-if="plugin.status !== 'DECOMMISSIONED'"
+                        size="small"
+                        type="primary"
+                        ghost
+                        @click.stop.prevent="importBestPractices(plugin.id)"
+                      ></Button>
+                    </Tooltip>
+                    <Tooltip :content="$t('configuration_export')">
+                      <Button
+                        v-if="plugin.status !== 'DECOMMISSIONED'"
+                        @click.stop.prevent="exportBestPractices(plugin.id)"
+                        size="small"
+                        type="primary"
+                        ghost
+                        icon="md-download"
+                      ></Button>
+                    </Tooltip>
+                    <Tooltip :content="$t('delete')">
+                      <Button
+                        v-if="plugin.status !== 'DECOMMISSIONED'"
+                        @click.stop.prevent="deletePlugin(plugin.id)"
+                        size="small"
+                        type="error"
+                        ghost
+                        icon="ios-trash"
+                      ></Button>
+                    </Tooltip>
                   </span>
-                  <p slot="content">
+                  <p slot="content" class="button-group">
                     <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">
                       {{ $t('plugin_config_check') }}
                     </Button>
@@ -267,9 +279,12 @@
       </div>
       <div style="width:100%;height:350px;overflow: auto;margin-top: 10px">
         <RadioGroup v-model="selectedOriginPlugin" vertical>
-          <Radio v-for="item in originPluginsFilter" :key="item.keyName" :label="item.keyName">
-            <span>{{ item.keyName }}</span>
-          </Radio>
+          <template v-for="(item, index) in Object.keys(originPluginsGroupFilter)">
+            <span :key="index" style="color: #999;line-height:30px">{{ item }}</span>
+            <Radio v-for="plugin in originPluginsGroupFilter[item]" :key="plugin.keyName" :label="plugin.keyName">
+              <span>{{ plugin.keyName }}</span>
+            </Radio>
+          </template>
         </RadioGroup>
       </div>
       <div style="height:30px;text-align: right">
@@ -329,6 +344,7 @@ export default {
   },
   data () {
     return {
+      showUpload: false,
       currentPluginId: '',
       filterForPkg: '',
       isRegisted: false,
@@ -435,8 +451,8 @@ export default {
       isShowDecomissionedPackage: false,
       isLoadingPluginList: false,
       originPlugins: [],
-      originPluginsFilter: [],
       selectedOriginPlugin: '',
+      originPluginsGroupFilter: {},
       pluginTimer: null,
       loadingPlugin: false,
       isShowImportXMLModal: false
@@ -445,7 +461,16 @@ export default {
   watch: {
     filterForPkg: {
       handler (v) {
-        this.originPluginsFilter = this.originPlugins.filter(_ => _.keyName.indexOf(v) > -1)
+        this.originPluginsGroupFilter = []
+        this.originPlugins
+          .filter(_ => _.keyName.indexOf(v) > -1)
+          .forEach(item => {
+            if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
+              this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
+            } else {
+              this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
+            }
+          })
       }
     }
   },
@@ -498,7 +523,14 @@ export default {
       this.loadingPlugin = false
       if (status === 'OK') {
         this.originPlugins = data
-        this.originPluginsFilter = data
+        this.originPluginsGroupFilter = []
+        data.forEach(item => {
+          if (item.keyName.split('-v')[0] in this.originPluginsGroupFilter) {
+            this.originPluginsGroupFilter[item.keyName.split('-v')[0]].push(item)
+          } else {
+            this.originPluginsGroupFilter[item.keyName.split('-v')[0]] = [item]
+          }
+        })
         this.showUploadModal = true
       }
     },
@@ -861,6 +893,7 @@ export default {
       }
     },
     getHeaders () {
+      this.showUpload = true
       let refreshRequest = null
       const currentTime = new Date().getTime()
       const accessToken = getCookie('accessToken')
@@ -908,5 +941,12 @@ export default {
 .decomissionedPkgName {
   font-style: italic;
   text-decoration: line-through;
+}
+.button-group {
+  display: flex;
+  justify-content: space-around;
+}
+.clear-default-css {
+  margin-bottom: 0;
 }
 </style>

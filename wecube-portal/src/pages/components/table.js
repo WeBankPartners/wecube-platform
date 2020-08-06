@@ -395,10 +395,13 @@ export default {
                 return this.renderFormItem(_, index)
               })}
             <Col span={6}>
-              <div style="display: flex; margin-bottom: 20px">
+              <div style="display: flex;">
                 {this.tableColumns.filter(_ => !!_.searchSeqNo).sort(compare).length > DEFAULT_FILTER_NUMBER &&
                   (!this.isShowHiddenFilters ? (
-                    <FormItem style="position: relative; bottom: -22px;">
+                    <FormItem>
+                      <div slot="label" style="visibility: hidden;">
+                        <span>Placeholder</span>
+                      </div>
                       <Button
                         type="info"
                         ghost
@@ -412,7 +415,10 @@ export default {
                       </Button>
                     </FormItem>
                   ) : (
-                    <FormItem style="position: relative; bottom: -22px;">
+                    <FormItem>
+                      <div slot="label" style="visibility: hidden;">
+                        <span>Placeholder</span>
+                      </div>
                       <Button
                         type="info"
                         ghost
@@ -427,12 +433,18 @@ export default {
                     </FormItem>
                   ))}
 
-                <FormItem style="position: relative; bottom: -22px;">
+                <FormItem>
+                  <div slot="label" style="visibility: hidden;">
+                    <span>Placeholder</span>
+                  </div>
                   <Button type="primary" icon="ios-search" onClick={() => this.handleSubmit('form')}>
                     {this.$t('search')}
                   </Button>
                 </FormItem>
-                <FormItem style="position: relative; bottom: -22px;">
+                <FormItem>
+                  <div slot="label" style="visibility: hidden;">
+                    <span>Placeholder</span>
+                  </div>
                   <Button icon="md-refresh" onClick={() => this.reset('form')}>
                     {this.$t('reset')}
                   </Button>

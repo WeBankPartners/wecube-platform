@@ -194,6 +194,8 @@
   "amdb_attr": "CMDB Attribute",
   "input_params": "Input Param",
   "output_params": "Output Param",
+  "configuration_import": "Configuration Import",
+  "configuration_export": "Configuration Export",
   "regist": "Regist",
   "decommission": "Decommission",
   "sensitive": "Sensitive",

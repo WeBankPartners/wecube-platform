@@ -195,6 +195,8 @@
   "amdb_attr": "CMDB属性",
   "input_params": "输入参数",
   "output_params": "输出参数",
+  "configuration_import": "配置导入",
+  "configuration_export": "配置导出",
   "regist": "注册",
   "decommission": "注销",
   "sensitive": "敏感",
