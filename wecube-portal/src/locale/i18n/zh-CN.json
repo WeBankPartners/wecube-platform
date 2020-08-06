@@ -206,6 +206,8 @@
   "replace_key_in_params": "请替换启动参数中的差异化参数",
   "for_example": "e.g.:",
   "flow_name": "编排名称",
+  "create_new_diagram": "新建流程",
+  "set_flow_permission": "权限设置",
   "ci_type": "CI类型",
   "release_flow": "发布编排",
   "calc_form": "表单计算",
