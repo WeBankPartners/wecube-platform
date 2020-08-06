@@ -25,10 +25,10 @@ http {
   }
 
   server {
-        listen  8080;
-        server_name     localhost;
-        client_max_body_size 9999999m;
-        client_header_timeout 99999999999s;
+			listen  8080;
+			server_name     localhost;
+			client_max_body_size 9999999m;
+			client_header_timeout 99999999999s;
 	    keepalive_timeout 999999999s;
 	    proxy_read_timeout 180s;
 
@@ -65,6 +65,9 @@ http {
 		proxy_pass http://core;
 	}
 	location /adaptor-webank {
+		proxy_pass http://core;
+	}
+	location /capacity {
 		proxy_pass http://core;
 	}
    }
