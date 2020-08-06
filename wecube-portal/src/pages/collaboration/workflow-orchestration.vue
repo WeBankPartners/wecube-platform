@@ -1060,6 +1060,10 @@ export default {
 // hide toolbar
 .bpmn-icon-data-object,
 .bpmn-icon-data-store,
+.bpmn-icon-subprocess-expanded,
+.bpmn-icon-task,
+.bpmn-icon-gateway-none,
+.bpmn-icon-intermediate-event-none,
 .bpmn-icon-participant {
   display: none;
 }
@@ -1099,6 +1103,9 @@ export default {
   display: none;
 }
 
+[data-action='append.append-task'] {
+  display: none !important;
+}
 .ivu-transfer-list-body {
   margin-top: 10px;
 }
