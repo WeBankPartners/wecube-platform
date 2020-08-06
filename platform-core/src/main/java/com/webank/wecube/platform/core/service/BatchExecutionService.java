@@ -124,8 +124,8 @@ public class BatchExecutionService {
 			PluginConfigInterfaceParameter inputParameter = inputParameterDefinition.getInputParameter();
 			if (FIELD_REQUIRED.equalsIgnoreCase(inputParameter.getRequired())
 					&& MAPPING_TYPE_CONTEXT.equalsIgnoreCase(inputParameter.getMappingType())) {
-				throw new WecubeCoreException("platform.core.msg.errorcode.3001",environment.getProperty("platform.core.msg.errorcode.3001"),
-						new Object[]{inputParameter.getName(), inputParameter.getMappingType(), inputParameter.getRequired()} );
+				throw new WecubeCoreException("3001","Batch execution job does not support input parameter[%s] with [mappingType=%s] and [required=%s]",
+						inputParameter.getName(), inputParameter.getMappingType(), inputParameter.getRequired() );
 			}
 		});
 	}
@@ -183,7 +183,7 @@ public class BatchExecutionService {
 
 	public ResultData<?> performExecutionJob(ExecutionJob exeJob) throws IOException {
 		if (exeJob == null) {
-			throw new WecubeCoreException("platform.core.msg.errorcode.3002",environment.getProperty("platform.core.msg.errorcode.3002"));
+			throw new WecubeCoreException("3002","execution job as input argument cannot be null.");
 		}
 		if (log.isInfoEnabled()) {
 			log.info("perform batch execution job:{} {} {}", exeJob.getPackageName(), exeJob.getEntityName(),
@@ -207,7 +207,7 @@ public class BatchExecutionService {
 
 		if (exeJob.getPrepareException() != null) {
 			log.error("Errors to calculate input parameters", exeJob.getPrepareException());
-			throw new WecubeCoreException("platform.core.msg.errorcode.3003",null,environment.getProperty("platform.core.msg.errorcode.3003"),exeJob.getPrepareException());
+			throw new WecubeCoreException("3003","Failed to prepare input parameter due to error:" + exeJob.getPrepareException().getMessage());
 		}
 
 		Map<String, Object> pluginInputParamMap = new HashMap<String, Object>();
@@ -300,8 +300,7 @@ public class BatchExecutionService {
 					parameter.getName(), parameter.getMappingSystemVariableName());
 			log.error(errorMessage);
 			executionJob.setErrorWithMessage(errorMessage);
-			executionJob.setPrepareException(new WecubeCoreException("platform.core.msg.errorcode.3004",environment.getProperty("platform.core.msg.errorcode.3004"),
-					new Object[]{parameter.getName(), parameter.getMappingSystemVariableName()}));
+			executionJob.setPrepareException(new WecubeCoreException("3004",errorMessage));
 			return;
 		}
 
@@ -344,8 +343,7 @@ public class BatchExecutionService {
 			log.error(errorMessage);
 			executionJob.setErrorWithMessage(errorMessage);
 			executionJob.setPrepareException(new WecubeCoreException(errorMessage));
-			throw new WecubeCoreException("platform.core.msg.errorcode.3004",environment.getProperty("platform.core.msg.errorcode.3004"),
-					new Object[]{parameter.getName(), mappingEntityExpression, criteria.getEntityIdentity()});
+			throw new WecubeCoreException("3004",errorMessage);
 		}
 
 		if (attrValsPerExpr != null && (!attrValsPerExpr.isEmpty())) {
