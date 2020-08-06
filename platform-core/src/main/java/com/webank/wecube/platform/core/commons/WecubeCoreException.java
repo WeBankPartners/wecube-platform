@@ -18,8 +18,22 @@ public class WecubeCoreException extends RuntimeException {
         this.applyMessage = true;
     }
 
-    public WecubeCoreException(String errorCode, String messageKey, Object... objects) {
-        super();
+    public WecubeCoreException(String errorCode, String message, Object... objects) {
+        this(errorCode, null, message, null, false, objects);
+    }
+
+    public WecubeCoreException(String errorCode, String messageKey, String message, Object... objects) {
+        this(errorCode, messageKey, message, null, false, objects);
+    }
+
+    public WecubeCoreException(String errorCode, String messageKey, String message, Throwable cause,
+            Object... objects) {
+        this(errorCode, messageKey, message, cause, false, objects);
+    }
+
+    WecubeCoreException(String errorCode, String messageKey, String message, Throwable cause,
+            boolean applyMessage, Object... objects) {
+        super(message, cause);
         this.errorCode = errorCode;
         this.messageKey = messageKey;
         if (objects != null && (this.args == null)) {
@@ -30,7 +44,7 @@ public class WecubeCoreException extends RuntimeException {
                 index++;
             }
         }
-        this.applyMessage = false;
+        this.applyMessage = applyMessage;
     }
 
     public String getErrorCode() {
