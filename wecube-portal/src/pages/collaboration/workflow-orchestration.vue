@@ -894,7 +894,7 @@ export default {
       canvas.onmouseup = e => {
         this.show = false
         this.bindCurrentNode(e)
-        if (this.currentNode.id.startsWith('SubProcess_')) {
+        if (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_')) {
           this.openPluginModal(e)
         }
       }
