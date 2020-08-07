@@ -95,11 +95,11 @@ public class ScpService {
                 scpClient.put(localFile, remoteTargetDirectory, "7777");
             } else {
                 log.info("User or password incorrect");
-                throw new WecubeCoreException("User or password incorrect");
+                throw new WecubeCoreException("3222","User or password incorrect");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new WecubeCoreException("Run 'scp' command meet error: " + e.getMessage());
+            throw new WecubeCoreException("3223",String.format("Run 'scp' command meet error: %s" , e.getMessage()));
         } finally {
             conn.close();
         }

@@ -172,7 +172,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
 
             if (!(obj instanceof Map)) {
                 log.error("unexpected data type:returned object is not a instance of map, obj={}", obj);
-                throw new WecubeCoreException("Unexpected data type");
+                throw new WecubeCoreException("3163","Unexpected data type");
             }
 
             @SuppressWarnings("unchecked")

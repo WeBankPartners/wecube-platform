@@ -198,7 +198,7 @@ public class WorkflowProcessDefinitionController {
             HttpServletRequest request) {
         if (file == null || file.getSize() <= 0) {
             log.error("invalid file content uploaded");
-            throw new WecubeCoreException("Invalid file content uploaded.");
+            throw new WecubeCoreException("3128","Invalid file content uploaded.");
         }
 
         if (log.isInfoEnabled()) {
@@ -215,7 +215,7 @@ public class WorkflowProcessDefinitionController {
             return CommonResponseDto.okayWithData(result);
         } catch (IOException e) {
             log.error("errors while reading upload file", e);
-            throw new WecubeCoreException("Failed to import process definition.");
+            throw new WecubeCoreException("3129","Failed to import process definition.");
         }
 
     }
@@ -237,7 +237,7 @@ public class WorkflowProcessDefinitionController {
             content = objectMapper.writeValueAsString(result);
         } catch (JsonProcessingException e) {
             log.error("errors while converting result", e);
-            throw new WecubeCoreException("Failed to convert result.");
+            throw new WecubeCoreException("3130","Failed to convert result.");
         }
 
         return content;

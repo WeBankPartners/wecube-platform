@@ -162,10 +162,10 @@ public class ResourceDataQueryService {
                 int totalCount = rs.getInt(1);
                 return totalCount;
             }else {
-                throw new WecubeCoreException("3011","Failed to get total count of query: %s",sqlQuery);
+                throw new WecubeCoreException("3011",String.format("Failed to get total count of query: %s",sqlQuery));
             }
         }catch(Exception ex) {
-            throw new WecubeCoreException("3011","Failed to get total count of query: %s",sqlQuery);
+            throw new WecubeCoreException("3011",String.format("Failed to get total count of query: %s",sqlQuery));
         }
     }
 
@@ -173,12 +173,12 @@ public class ResourceDataQueryService {
     private DataSource getDataSource(String packageId) {
         Optional<PluginPackage> pluginPackageOpt = pluginPackageRepository.findById(packageId);
         if(!pluginPackageOpt.isPresent()) {
-            throw new WecubeCoreException("3012","Can not find out PluginPackage for package id:%s",packageId );
+            throw new WecubeCoreException("3012",String.format("Can not find out PluginPackage for package id:%s",packageId));
         }
         
         PluginMysqlInstance pluginMysqlInstance = pluginMysqlInstanceRepository.findByPluginPackage_name(pluginPackageOpt.get().getName());
         if(pluginMysqlInstance == null) {
-            throw new WecubeCoreException("3013","Can not find out PluginMysqlInstance for package name:%s",pluginPackageOpt.get().getName());
+            throw new WecubeCoreException("3013",String.format("Can not find out PluginMysqlInstance for package name:%s",pluginPackageOpt.get().getName()));
         }
         
         String dbUsername = pluginMysqlInstance.getUsername();
@@ -186,12 +186,12 @@ public class ResourceDataQueryService {
         
         ResourceItem resourceItem = pluginMysqlInstance.getResourceItem();
         if(resourceItem == null) {
-            throw new WecubeCoreException("3014","Can not find out ResourceItem for packageId:%d", packageId);
+            throw new WecubeCoreException("3014",String.format("Can not find out ResourceItem for packageId:%d", packageId));
         }
         
         ResourceServer resourceServer = resourceItem.getResourceServer();
         if(resourceServer == null) {
-            throw new WecubeCoreException("3015","Can not find out mysql ResourceServer for packageId:%d", packageId );
+            throw new WecubeCoreException("3015",String.format("Can not find out mysql ResourceServer for packageId:%d", packageId));
         }
         
         String mysqlHost = resourceServer.getHost();

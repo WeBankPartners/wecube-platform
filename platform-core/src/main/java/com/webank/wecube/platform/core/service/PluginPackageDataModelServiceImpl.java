@@ -103,7 +103,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         if (!latestPackageByName.isPresent()) {
             String msg = String.format("Cannot find the package [%s] while registering data model", pluginPackageDataModelDto.getPackageName());
             logger.error(msg);
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3116",msg);
         }
 
         if (fromDynamicUpdate) {
@@ -116,7 +116,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         if (pluginPackageDataModelOptional.isPresent()) {
             PluginPackageDataModel existingDataModelDomain = pluginPackageDataModelOptional.get();
             if (PluginPackageDataModelHelper.isDataModelSameAsAnother(pluginPackageDataModelDto, existingDataModelDomain)) {
-                throw new WecubeCoreException("Refreshed data model is same as existing latest one.");
+                throw new WecubeCoreException("3117","Refreshed data model is same as existing latest one.");
             }
             newDataModelVersion = existingDataModelDomain.getVersion() + 1;
         }
@@ -249,7 +249,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         if (!latestDataModelByPackageName.isPresent()) {
             String errorMessage = String.format("Data model not found for package name=[%s]", packageName);
             logger.error(errorMessage);
-            throw new WecubeCoreException(errorMessage);
+            throw new WecubeCoreException("3118",errorMessage);
         }
 
         return convertDataModelDomainToDto(latestDataModelByPackageName.get());
@@ -292,7 +292,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                         if (Iterables.size(splitResult) != 3) {
                             String msg = String.format("The reference name [%s] is illegal", referenceName);
                             logger.error(msg);
-                            throw new WecubeCoreException(msg);
+                            throw new WecubeCoreException("3119",msg);
                         }
                         // fetch the packageName, packageVersion, entityName, attributeName
                         Iterator<String> splitResultIterator = splitResult.iterator();
@@ -303,7 +303,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                         if (!latestDataModelByPackageName.isPresent()) {
                             String msg = String.format("Cannot found the specified data model with package name: [%s]", referencePackageName);
                             logger.error(msg);
-                            throw new WecubeCoreException(msg);
+                            throw new WecubeCoreException("3120",msg);
                         }
                         PluginPackageDataModel dataModel = latestDataModelByPackageName.get();
                         Optional<PluginPackageEntity> foundReferenceEntityOptional = dataModel.getPluginPackageEntities().stream().filter(entity -> referenceEntityName.equals(entity.getName())).findAny();
@@ -311,7 +311,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                         if (!foundReferenceEntityOptional.isPresent()) {
                             String msg = String.format("Cannot found the specified plugin model entity with package name: [%s], entity name: [%s]", referencePackageName, referenceEntityName);
                             logger.error(msg);
-                            throw new WecubeCoreException(msg);
+                            throw new WecubeCoreException("3121",msg);
                         }
 
                         Optional<PluginPackageAttribute> pluginPackageAttributeOptional = foundReferenceEntityOptional.get().getPluginPackageAttributeList().stream().filter(attribute -> referenceAttributeName.equals(attribute.getName())).findAny();
@@ -322,7 +322,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
                                     "Cannot found the specified plugin model attribute with package name: [%s], entity name: [%s], attribute name: [%s]",
                                     referencePackageName, referenceEntityName, referenceAttributeName);
                             logger.error(msg);
-                            throw new WecubeCoreException(msg);
+                            throw new WecubeCoreException("3122",msg);
                         }
                     }
                 }
@@ -471,21 +471,21 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
         if (!latestPluginPackageByName.isPresent()) {
             String errorMessage = String.format("Plugin package with name [%s] is not found", packageName);
             logger.error(errorMessage);
-            throw new WecubeCoreException(errorMessage);
+            throw new WecubeCoreException("3123",errorMessage);
         }
 
         Optional<PluginPackageDataModel> latestDataModelByPackageName = dataModelRepository.findLatestDataModelByPackageName(packageName);
         if (!latestDataModelByPackageName.isPresent()) {
             String errorMessage = String.format("Data model not found for package name=[%s]", packageName);
             logger.error(errorMessage);
-            throw new WecubeCoreException(errorMessage);
+            throw new WecubeCoreException("3124",errorMessage);
         }
 
         PluginPackageDataModel dataModel = latestDataModelByPackageName.get();
         if (!dataModel.isDynamic()) {
             String message = String.format("DataMode does not support dynamic update for package: [%s]", packageName);
             logger.error(message);
-            throw new WecubeCoreException(message);
+            throw new WecubeCoreException("3125",message);
         }
 
         PluginPackageDataModelDto dataModelDto = new PluginPackageDataModelDto();
@@ -565,7 +565,7 @@ public class PluginPackageDataModelServiceImpl implements PluginPackageDataModel
             if (!CommonResponseDto.STATUS_OK.equals(responseDto.getStatus())) {
                 String msg = String.format("Request error! The error message is [%s]", responseDto.getMessage());
                 logger.error(msg);
-                throw new WecubeCoreException(msg);
+                throw new WecubeCoreException("3126",msg);
             }
             dynamicPluginPackageEntities = JsonUtils.toList(JsonUtils.toJsonString(responseDto.getData()), PluginPackageEntityDto.class);
         } catch (IOException ex) {

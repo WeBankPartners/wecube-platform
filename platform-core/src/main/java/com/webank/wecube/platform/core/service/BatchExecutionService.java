@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,8 +70,6 @@ public class BatchExecutionService {
 	private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
 	@Autowired
 	protected StandardEntityOperationService standardEntityOperationService;
-	@Autowired
-	private Environment environment;
 
 	private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
