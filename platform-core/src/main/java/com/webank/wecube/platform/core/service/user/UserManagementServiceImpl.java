@@ -117,12 +117,12 @@ public class UserManagementServiceImpl implements UserManagementService {
     private String tryCalculateUmAuthContext() {
     	List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_UM_CTX);
     	if(sysVars == null || sysVars.isEmpty()) {
-    		throw new WecubeCoreException("3029","System variable %s does NOT exist and UM authentication is not supported currently.", SYS_VAR_UM_CTX);
+    		throw new WecubeCoreException("3029",String.format("System variable %s does NOT exist and UM authentication is not supported currently.", SYS_VAR_UM_CTX));
     	}
     	
     	String authCtx = getSystemVariableValue(sysVars.get(0));
     	if(StringUtils.isBlank(authCtx)) {
-    		throw new WecubeCoreException("3030","The value of system variable %s is blank and UM authentication is not supported currently..", SYS_VAR_UM_CTX);
+    		throw new WecubeCoreException("3030",String.format("The value of system variable %s is blank and UM authentication is not supported currently..", SYS_VAR_UM_CTX));
     	}
     	
     	return authCtx;
@@ -362,7 +362,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public void revokeRoleFromUsers(String roleId, List<String> userIds) {
         if (StringUtils.isBlank(roleId)) {
-            throw new WecubeCoreException("3024","Role ID cannot be blank.");
+            throw new WecubeCoreException("3033","Role ID cannot be blank.");
         }
 
         if (userIds == null || userIds.isEmpty()) {
