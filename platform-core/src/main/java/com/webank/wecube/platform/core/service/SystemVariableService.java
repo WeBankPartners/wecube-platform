@@ -58,7 +58,7 @@ public class SystemVariableService {
     private void validateIfSystemVariablesAreExists(List<SystemVariableDto> systemVariableDtos) {
         systemVariableDtos.forEach(dto -> {
             if (dto.getId() == null && !systemVariableRepository.existsById(dto.getId())) {
-                throw new WecubeCoreException(String.format("3025","Can not find variable with id [%s].", dto.getId()));
+                throw new WecubeCoreException("3025",String.format("Can not find variable with id [%s].", dto.getId()));
             }
         });
     }
