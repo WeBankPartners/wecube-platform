@@ -205,6 +205,8 @@
   "replace_key_in_params": "Please replace key in params",
   "for_example": "e.g.:",
   "flow_name": "Flow Name",
+  "create_new_diagram": "Create New Diagram",
+  "set_flow_permission": "Set Flow Permission",
   "ci_type": "CI Type",
   "release_flow": "Release",
   "calc_form": "Calculate Flow",
