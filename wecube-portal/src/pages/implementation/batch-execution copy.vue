@@ -4,6 +4,49 @@
       <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
       <div>{{ $t('loading') }}</div>
     </Spin>
+    <section v-if="displaySearchZone" class="search">
+      <Card v-if="displaySearchZone">
+        <div class="search-zone">
+          <Form :label-width="170" label-colon>
+            <FormItem :label="$t('bc_define_query_objects')">
+              <a @click="setSearchConditions">{{ $t('bc_define_query_objects') }}...</a>
+            </FormItem>
+            <FormItem :label="$t('bc_query_path')">
+              <span v-if="dataModelExpression != ':'">
+                {{ dataModelExpression }}
+              </span>
+              <span v-else>({{ $t('bc_empty') }})</span>
+            </FormItem>
+            <FormItem :label="$t('bc_query_condition')">
+              <div v-if="searchParameters.length">
+                <Row>
+                  <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding:0 8px">
+                    <label>{{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label>
+                    <Input v-model="sp.value" />
+                  </Col>
+                </Row>
+              </div>
+              <span v-else>({{ $t('bc_empty') }})</span>
+            </FormItem>
+          </Form>
+        </div>
+        <div class="search-btn">
+          <Button type="primary" :disabled="!(!!currentPackageName && !!currentEntityName)" @click="excuteSearch">{{
+            $t('bc_execute_query')
+          }}</Button>
+          <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
+          <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button>
+        </div>
+      </Card>
+      <div v-else>
+        <a @click="reExcute('displaySearchZone')">{{ $t('bc_query_condition_title') }}:</a>
+        <ul>
+          <li v-for="(sp, spIndex) in searchParameters" :key="spIndex">
+            <span> {{ sp.packageName }}-{{ sp.entityName }}:[{{ sp.description }}:{{ sp.value }}] </span>
+          </li>
+        </ul>
+      </div>
+    </section>
     <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
       <div class="we-table">
         <Card v-if="displayResultTableZone">
@@ -251,50 +294,7 @@
         </Col>
       </Row>
     </section>
-
-    <Modal v-model="operaModal" :mask-closable="false" :width="1000" title="Common Modal dialog box title">
-      <section v-if="displaySearchZone" class="search">
-        <Form :label-width="130" label-colon>
-          <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
-            <FilterRules
-              :allDataModelsWithAttrs="allEntityType"
-              :needNativeAttr="true"
-              :needAttr="true"
-              v-model="dataModelExpression"
-            ></FilterRules>
-          </FormItem>
-          <FormItem :label="$t('bc_target_type')">
-            <span v-if="currentPackageName">{{ currentPackageName + ':' + currentEntityName }}</span>
-          </FormItem>
-          <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
-            <Select filterable v-model="currentEntityAttr">
-              <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
-                entityAttr.name
-              }}</Option>
-            </Select>
-          </FormItem>
-          <FormItem :label="$t('bc_query_condition')" class="tree-style">
-            <Row>
-              <Col span="12">
-                <div style="height:200px;">
-                  <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
-                </div>
-              </Col>
-              <Col span="12" class="tree-checked">
-                <span>{{ $t('bc_selected_data') }}：</span>
-                <ul>
-                  <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
-                    <span> {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }} </span>
-                  </li>
-                </ul>
-              </Col>
-            </Row>
-          </FormItem>
-        </Form>
-      </section>
-    </Modal>
-
-    <!-- <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
+    <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
       <Form :label-width="130" label-colon>
         <FormItem
           v-if="isShowSearchConditions"
@@ -425,7 +425,7 @@
         <Button @click="collectionRoleManageModal = false">{{ $t('bc_cancle') }}</Button>
         <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
       </div>
-    </Modal> -->
+    </Modal>
   </div>
 </template>
 
@@ -452,8 +452,6 @@ export default {
   name: '',
   data () {
     return {
-      operaModal: false,
-
       isLoading: false,
       displaySearchZone: false,
       displayResultTableZone: false,
@@ -958,7 +956,7 @@ export default {
         this.$Message.warning(this.$t('bc_primary_key') + this.$t('bc_warn_empty'))
         return
       }
-      // this.isShowSearchConditions = false
+      this.isShowSearchConditions = false
       this.searchParameters = this.targetEntityAttr
     },
     async excuteSearch () {
@@ -1241,9 +1239,6 @@ export default {
       this.dataModelExpression = dataModelExpression
       this.displaySearchZone = true
       this.displayResultTableZone = false
-
-      this.operaModal = true
-      this.setSearchConditions()
     }
   },
   components: {
@@ -1313,7 +1308,7 @@ pre {
   right: -2px;
   padding-top: 4px;
   padding-right: 4px;
-  height: calc(100vh - 250px);
+  min-height: 300px;
 }
 .excute-result-search {
   // margin-right: 16px;
