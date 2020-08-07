@@ -1,9 +1,9 @@
 <template>
   <div>
     <Row style="margin-bottom: 10px;height:40px">
-      <Col span="8">
+      <Col span="9">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
-        <Select clearable v-model="selectedFlow" style="width: 70%" @on-open-change="getAllFlows" filterable>
+        <Select clearable v-model="selectedFlow" style="width: 60%" @on-open-change="getAllFlows" filterable>
           <Option
             v-for="item in allFlows"
             :value="item.procDefId"
@@ -31,10 +31,10 @@
             </span>
           </Option>
         </Select>
-        <Tooltip placement="top" content="Create New Diagram" :delay="500">
+        <Tooltip placement="top" :content="$t('create_new_diagram')" :delay="500">
           <Button @click="createNewDiagram()" icon="md-add" type="success"></Button>
         </Tooltip>
-        <Tooltip placement="top" content="Set Flow Permission" :delay="500">
+        <Tooltip placement="top" :content="$t('set_flow_permission')" :delay="500">
           <Button @click="setFlowPermission(selectedFlow)" v-if="selectedFlow" icon="ios-build" type="primary"></Button>
         </Tooltip>
       </Col>
@@ -894,7 +894,9 @@ export default {
       canvas.onmouseup = e => {
         this.show = false
         this.bindCurrentNode(e)
-        this.openPluginModal(e)
+        if (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_')) {
+          this.openPluginModal(e)
+        }
       }
       var customTranslateModule = {
         translate: ['value', customTranslate]
@@ -1060,6 +1062,10 @@ export default {
 // hide toolbar
 .bpmn-icon-data-object,
 .bpmn-icon-data-store,
+.bpmn-icon-subprocess-expanded,
+.bpmn-icon-task,
+.bpmn-icon-gateway-none,
+.bpmn-icon-intermediate-event-none,
 .bpmn-icon-participant {
   display: none;
 }
@@ -1099,6 +1105,9 @@ export default {
   display: none;
 }
 
+[data-action='append.append-task'] {
+  display: none !important;
+}
 .ivu-transfer-list-body {
   margin-top: 10px;
 }
