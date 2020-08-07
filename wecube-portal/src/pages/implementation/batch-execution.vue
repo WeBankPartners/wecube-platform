@@ -4,28 +4,6 @@
       <Icon type="ios-loading" size="44" class="spin-icon-load"></Icon>
       <div>{{ $t('loading') }}</div>
     </Spin>
-    <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
-      <div class="we-table">
-        <Card v-if="displayResultTableZone">
-          <p slot="title">{{ $t('bc_search_result') }}：</p>
-          <Button type="primary" :disabled="!seletedRows.length" @click="batchAction">{{
-            $t('bc_batch_operation')
-          }}</Button>
-          <WeTable
-            :tableData="tableData"
-            :tableOuterActions="[]"
-            :tableInnerActions="null"
-            :tableColumns="tableColumns"
-            @getSelectedRows="onSelectedRowsChange"
-            ref="table"
-          />
-        </Card>
-        <a v-else @click="reExcute('displayResultTableZone')">
-          {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected') }}{{ seletedRowsNum
-          }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ pluginId }}
-        </a>
-      </div>
-    </section>
     <section class="execute-history">
       <Row>
         <Col span="5" :style="isShowHistoryMenu ? '' : 'display:none'" class="res-title">
@@ -178,7 +156,10 @@
                     size="small"
                     type="primary"
                     :disabled="activeExecuteHistory.plugin.pluginParams.length === 0"
-                    @click="setPluginParamsModal = true"
+                    @click="
+                      setPluginParamsModal = true
+                      operaModal = true
+                    "
                     ghost
                     >{{ $t('bc_complement_parameters') }}</Button
                   >
@@ -252,183 +233,140 @@
       </Row>
     </section>
 
-    <Modal v-model="operaModal" :mask-closable="false" :width="1000" title="Common Modal dialog box title">
-      <section v-if="displaySearchZone" class="search">
-        <Form :label-width="130" label-colon>
-          <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
-            <FilterRules
-              :allDataModelsWithAttrs="allEntityType"
-              :needNativeAttr="true"
-              :needAttr="true"
-              v-model="dataModelExpression"
-            ></FilterRules>
-          </FormItem>
-          <FormItem :label="$t('bc_target_type')">
-            <span v-if="currentPackageName">{{ currentPackageName + ':' + currentEntityName }}</span>
-          </FormItem>
-          <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
-            <Select filterable v-model="currentEntityAttr">
-              <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
-                entityAttr.name
-              }}</Option>
-            </Select>
-          </FormItem>
-          <FormItem :label="$t('bc_query_condition')" class="tree-style">
-            <Row>
-              <Col span="12">
-                <div style="height:200px;">
-                  <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
-                </div>
-              </Col>
-              <Col span="12" class="tree-checked">
-                <span>{{ $t('bc_selected_data') }}：</span>
-                <ul>
-                  <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
-                    <span> {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }} </span>
-                  </li>
-                </ul>
-              </Col>
-            </Row>
-          </FormItem>
-        </Form>
-      </section>
-    </Modal>
-
-    <!-- <Modal :width="700" v-model="isShowSearchConditions" :title="$t('bc_define_query_objects')">
-      <Form :label-width="130" label-colon>
-        <FormItem
-          v-if="isShowSearchConditions"
-          :rules="{ required: true }"
-          :show-message="false"
-          :label="$t('bc_query_path')"
+    <Modal v-model="operaModal" :mask-closable="false" :width="1000" :title="$t('bc_operation')" class="opera-modal">
+      <div style="height:400px;">
+        <section v-if="displaySearchZone" class="search">
+          <Form :label-width="130" label-colon>
+            <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
+              <FilterRules
+                :allDataModelsWithAttrs="allEntityType"
+                :needNativeAttr="true"
+                :needAttr="true"
+                v-model="dataModelExpression"
+              ></FilterRules>
+            </FormItem>
+            <FormItem :label="$t('bc_target_type')">
+              <span v-if="currentPackageName">{{ currentPackageName + ':' + currentEntityName }}</span>
+            </FormItem>
+            <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
+              <Select filterable v-model="currentEntityAttr">
+                <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
+                  entityAttr.name
+                }}</Option>
+              </Select>
+            </FormItem>
+            <FormItem :label="$t('bc_query_condition')" class="tree-style">
+              <Row style="max-height: 150px;overflow-y:scroll">
+                <Col span="12">
+                  <div>
+                    <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
+                  </div>
+                </Col>
+                <Col span="12" class="tree-checked">
+                  <span>{{ $t('bc_selected_data') }}：</span>
+                  <ul>
+                    <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
+                      <span> {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }} </span>
+                    </li>
+                  </ul>
+                </Col>
+              </Row>
+            </FormItem>
+            <FormItem :label="$t('bc_query_condition')">
+              <div v-if="searchParameters.length">
+                <Row>
+                  <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding:0 8px">
+                    <label>{{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label>
+                    <Input v-model="sp.value" />
+                  </Col>
+                  <Col span="8" style="padding:0 8px">
+                    <label style="visibility: hidden">defaultdefaultdefaultdefaultdefault</label>
+                    <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
+                    <!-- <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button> -->
+                  </Col>
+                </Row>
+              </div>
+              <span v-else>({{ $t('bc_empty') }})</span>
+            </FormItem>
+          </Form>
+        </section>
+        <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
+          <div class="we-table">
+            <Card v-if="displayResultTableZone">
+              <p slot="title">{{ $t('bc_search_result') }}：</p>
+              <!-- <Button type="primary" :disabled="!seletedRows.length" @click="batchAction">{{
+                $t('bc_change_plugin')
+              }}</Button> -->
+              <div style="height: 300px;overflow-y:scroll">
+                <WeTable
+                  :tableData="tableData"
+                  :tableOuterActions="[]"
+                  :tableInnerActions="null"
+                  :tableColumns="tableColumns"
+                  @getSelectedRows="onSelectedRowsChange"
+                  ref="table"
+                />
+              </div>
+            </Card>
+            <a v-else @click="reExcute('displayResultTableZone')">
+              {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected')
+              }}{{ seletedRowsNum }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ pluginId }}
+            </a>
+          </div>
+        </section>
+        <section v-if="batchActionModalVisible">
+          <Form label-position="right" :label-width="150">
+            <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
+              <Select filterable clearable v-model="pluginId">
+                <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
+                  item.serviceDisplayName
+                }}</Option>
+              </Select>
+            </FormItem>
+            <template v-for="(item, index) in selectedPluginParams">
+              <FormItem :label="item.name" :key="index">
+                <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
+                <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
+              </FormItem>
+            </template>
+          </Form>
+        </section>
+        <section v-if="setPluginParamsModal">
+          <Form label-position="right" :label-width="150" v-if="!!activeExecuteHistory.plugin">
+            <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
+              <FormItem :label="item.name" :key="index">
+                <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
+                <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
+              </FormItem>
+            </template>
+          </Form>
+        </section>
+      </div>
+      <div slot="footer">
+        <!-- 查询table数据 -->
+        <Button
+          type="primary"
+          v-if="displaySearchZone"
+          :disabled="!(!!currentPackageName && !!currentEntityName && !!currentEntityAttr)"
+          @click="excuteSearch"
+          >{{ $t('bc_execute_query') }}</Button
         >
-          <FilterRules
-            :allDataModelsWithAttrs="allEntityType"
-            :needNativeAttr="true"
-            :needAttr="true"
-            v-model="dataModelExpression"
-          ></FilterRules>
-        </FormItem>
-        <FormItem :label="$t('bc_target_type')">
-          <span v-if="currentPackageName">{{ currentPackageName + ':' + currentEntityName }}</span>
-        </FormItem>
-        <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
-          <Select filterable v-model="currentEntityAttr">
-            <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
-              entityAttr.name
-            }}</Option>
-          </Select>
-        </FormItem>
-        <FormItem :label="$t('bc_query_condition')" class="tree-style">
-          <Row>
-            <Col span="12">
-              <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
-            </Col>
-            <Col span="12" class="tree-checked">
-              <span>{{ $t('bc_selected_data') }}：</span>
-              <ul>
-                <li v-for="(tea, teaIndex) in targetEntityAttr" :key="teaIndex">
-                  <span> {{ tea.packageName }}-{{ tea.entityName }}:{{ tea.name }} </span>
-                </li>
-              </ul>
-            </Col>
-          </Row>
-        </FormItem>
-      </Form>
-      <div slot="footer">
-        <Button type="primary" @click="saveSearchCondition">
-          {{ $t('confirm') }}
+        <!-- 选择插件 -->
+        <Button type="primary" v-if="displayResultTableZone" :disabled="!seletedRows.length" @click="batchAction">{{
+          $t('bc_change_plugin')
+        }}</Button>
+        <!-- 执行插件 -->
+        <Button type="primary" v-if="batchActionModalVisible" @click="excuteBatchAction" :disabled="!this.pluginId">
+          {{ $t('full_word_exec') }}
+        </Button>
+        <!-- 执行插件 -->
+        <Button type="primary" v-if="setPluginParamsModal" @click="executeAgain">
+          {{ $t('full_word_exec') }}
         </Button>
       </div>
     </Modal>
-
-    <Modal v-model="batchActionModalVisible" :title="$t('bc_batch_operation')">
-      <Form label-position="right" :label-width="150">
-        <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
-          <Select filterable clearable v-model="pluginId">
-            <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
-              item.serviceDisplayName
-            }}</Option>
-          </Select>
-        </FormItem>
-        <template v-for="(item, index) in selectedPluginParams">
-          <FormItem :label="item.name" :key="index">
-            <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
-            <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
-          </FormItem>
-        </template>
-      </Form>
-      <div slot="footer">
-        <Button type="primary" @click="excuteBatchAction" :disabled="!this.pluginId">
-          {{ $t('confirm') }}
-        </Button>
-      </div>
-    </Modal>
-
-    <Modal v-model="setPluginParamsModal" :title="$t('bc_batch_operation')">
-      <Form label-position="right" :label-width="150" v-if="!!activeExecuteHistory.plugin">
-        <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
-          <FormItem :label="item.name" :key="index">
-            <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
-            <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
-          </FormItem>
-        </template>
-      </Form>
-      <div slot="footer">
-        <Button type="primary" @click="executeAgain">
-          {{ $t('confirm') }}
-        </Button>
-      </div>
-    </Modal>
-
-    <Modal v-model="DelConfig.isDisplay" width="360">
-      <p slot="header" style="color:#f60;text-align:center">
-        <Icon type="ios-information-circle"></Icon>
-        <span>{{ $t('confirm') }}</span>
-      </p>
-      <div style="text-align:center">
-        <p>{{ $t('bc_warn_del') }}</p>
-      </div>
-      <div slot="footer">
-        <Button type="warning" size="large" long @click="del">{{ $t('bc_continue') }}</Button>
-      </div>
-    </Modal>
-
-    <Modal v-model="collectionRoleManageModal" width="700" :title="$t('bc_edit_role')" :mask-closable="false">
-      <div v-if="editCollectionName" style="margin-bottom:8px;">
-        <span style="font-weight: 500;">{{ $t('bc_name') }}：</span>
-        <Input v-model="collectionName" style="width:35%"></Input>
-      </div>
-      <div>
-        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
-        <Transfer
-          :titles="transferTitles"
-          :list-style="transferStyle"
-          :data="allRoles"
-          :target-keys="MGMT"
-          @on-change="handleMgmtRoleTransferChange"
-          filterable
-        ></Transfer>
-      </div>
-      <div style="margin-top: 30px">
-        <div class="role-transfer-title">{{ $t('use_role') }}</div>
-        <Transfer
-          :titles="transferTitles"
-          :list-style="transferStyle"
-          :data="allRolesBackUp"
-          :target-keys="USE"
-          @on-change="handleUseRoleTransferChange"
-          filterable
-        ></Transfer>
-      </div>
-      <div slot="footer">
-        <Button @click="collectionRoleManageModal = false">{{ $t('bc_cancle') }}</Button>
-        <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
-      </div>
-    </Modal> -->
   </div>
 </template>
-
 <script>
 import FilterRules from '../components/filter-rules.vue'
 import {
@@ -952,6 +890,7 @@ export default {
     },
     checkChange (totalChecked) {
       this.targetEntityAttr = totalChecked
+      this.searchParameters = this.targetEntityAttr
     },
     saveSearchCondition () {
       if (!this.currentEntityAttr) {
@@ -1058,6 +997,7 @@ export default {
       this.seletedRowsNum = this.seletedRows.length
     },
     batchAction () {
+      this.displayResultTableZone = false
       this.getFilteredPluginInterfaceList()
       this.batchActionModalVisible = true
       this.selectedPluginParams = []
@@ -1123,11 +1063,13 @@ export default {
         }
       }
       this.batchActionModalVisible = false
+      this.operaModal = false
       this.$Notice.success({
         title: 'Success',
         desc: this.$t('bc_exect_tip'),
         duration: 1
       })
+
       const { status, data } = await batchExecution(requestBody)
       // this.seletedRows = []
       if (status === 'OK') {
@@ -1185,6 +1127,7 @@ export default {
       // this.seletedRows = []
       if (status === 'OK') {
         this.setPluginParamsModal = false
+        this.operaModal = false
         this.executeResult = data
         this.filterBusinessKeySet = []
         for (const key in data) {
@@ -1224,11 +1167,13 @@ export default {
         this.selectedPluginParams = []
         this.pluginId = null
         this.batchActionModalVisible = true
+        this.operaModal = true
       }
     },
     changeTargetObject () {
       this.displaySearchZone = false
       this.displayResultTableZone = true
+      this.operaModal = true
       const { packageName, entityName, dataModelExpression } = this.activeExecuteHistory.requestBody
       this.currentPackageName = packageName
       this.currentEntityName = entityName
@@ -1252,6 +1197,9 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+.opera-modal /deep/ .ivu-modal {
+  top: 50px !important;
+}
 $border-config: 1px solid #e8eaec;
 .ivu-tree-children li {
   margin: 0 !important;

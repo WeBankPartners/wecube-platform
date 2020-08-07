@@ -663,24 +663,26 @@ export default {
               content = params.row.weTableForm[col.key]
             }
 
-            const len = content ? content.toString().length : 0
-            const d = {
-              props: {
-                disabled: len < 10,
-                content: content,
-                'min-width': '130px',
-                'max-width': '500px'
-              }
-            }
+            // const len = content ? content.toString().length : 0
+            // const d = {
+            //   props: {
+            //     disabled: len < 10,
+            //     content: content,
+            //     'min-width': '130px',
+            //     'max-width': '500px'
+            //   }
+            // }
 
-            return (
-              <Tooltip {...d}>
-                <div class="ivu-table-cell-tooltip ivu-tooltip">
-                  <div class="ivu-tooltip-rel">
-                    <span class="ivu-table-cell-tooltip-content">{content}</span>
-                  </div>
-                </div>
-              </Tooltip>
+            return h(
+              'span',
+              {
+                class: 'ivu-table-cell-tooltip-content',
+                on: {},
+                attrs: {
+                  title: content
+                }
+              },
+              content
             )
           }
         }
