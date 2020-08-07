@@ -892,10 +892,11 @@ export default {
       this.container = this.$refs.content
       const canvas = this.$refs.canvas
       canvas.onmouseup = e => {
-        console.log(e)
         this.show = false
         this.bindCurrentNode(e)
-        this.openPluginModal(e)
+        if (this.currentNode.id.startsWith('SubProcess_')) {
+          this.openPluginModal(e)
+        }
       }
       var customTranslateModule = {
         translate: ['value', customTranslate]
