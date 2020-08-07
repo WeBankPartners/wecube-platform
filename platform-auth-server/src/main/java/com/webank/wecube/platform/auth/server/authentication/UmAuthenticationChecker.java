@@ -57,7 +57,7 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
             throw new BadCredentialsException("System errors caused by " + e.getMessage());
         }
 
-        if (subSystemAuthResult == null || subSystemAuthResult.getRetCode() == null || subSystemAuthResult.getRetCode() != 0) {
+        if (subSystemAuthResult == null || subSystemAuthResult.getRetCode() == null || subSystemAuthResult.getRetCode() != UmSubSystemAuthResultDto.RET_CODE_OK) {
             throw new BadCredentialsException("Bad credential:bad authentication context.");
         }
 
@@ -73,8 +73,8 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
             throw new BadCredentialsException("Bad credential:bad authentication context.");
         }
 
-        if (userAuthResult.getRetCode() == null || userAuthResult.getRetCode() != 0) {
-            throw new BadCredentialsException("Bad credential:bad authentication," + userAuthResult.getDesc());
+        if (userAuthResult.getCode() == null || userAuthResult.getCode() != UmUserAuthResultDto.OK) {
+            throw new BadCredentialsException("Bad credential:bad authentication." + userAuthResult.getDesc());
         }
 
         return;
@@ -240,21 +240,19 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
     }
 
     public static class UmUserAuthResultDto {
-        private Integer retCode;
+        public static final int OK = 0;
+        private Integer code;
         private String desc;
         private String id;
         private String userName;
         private String org;
         private String dept;
-        private int actype;
+        private String actype;
         private String email;
+        private String expDate;
 
-        public Integer getRetCode() {
-            return retCode;
-        }
-
-        public void setRetCode(Integer retCode) {
-            this.retCode = retCode;
+        public Integer getCode() {
+            return code;
         }
 
         public String getDesc() {
@@ -297,11 +295,11 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
             this.dept = dept;
         }
 
-        public int getActype() {
+        public String getActype() {
             return actype;
         }
 
-        public void setActype(int actype) {
+        public void setActype(String actype) {
             this.actype = actype;
         }
 
@@ -312,12 +310,14 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
         public void setEmail(String email) {
             this.email = email;
         }
+        
+        
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("UmUserAuthResult [retCode=");
-            builder.append(retCode);
+            builder.append("UmUserAuthResult [code=");
+            builder.append(code);
             builder.append(", desc=");
             builder.append(desc);
             builder.append(", id=");
@@ -336,9 +336,22 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
             return builder.toString();
         }
 
+        public String getExpDate() {
+            return expDate;
+        }
+
+        public void setExpDate(String expDate) {
+            this.expDate = expDate;
+        }
+
+        public void setCode(Integer code) {
+            this.code = code;
+        }
+
     }
 
     public static class UmSubSystemAuthResultDto {
+        public static final int RET_CODE_OK = 0;
         private Integer retCode;
         private String desc;
         private String id;
