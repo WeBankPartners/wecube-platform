@@ -38,13 +38,13 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
 		if (reqEntity == null) {
 			log.error("request ID is NOT available:{}", requestId);
-			throw new WecubeCoreException("Request id is invalid.");
+			throw new WecubeCoreException("3153","Request id is invalid.");
 		}
 
 		if (reqEntity.isCompleted() || !reqEntity.isCurrent()) {
 			log.error("request state is not expected,completed:{},current:{}", reqEntity.isCompleted(),
 					reqEntity.isCurrent());
-			throw new WecubeCoreException("Request state is not expected");
+			throw new WecubeCoreException("3154","Request state is not expected");
 		}
 
 		Integer nodeInstId = reqEntity.getNodeInstId();
@@ -53,14 +53,14 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
 		if (!taskNodeInstEntityOpt.isPresent()) {
 			log.error("task node instance does not exist for {} {}", nodeInstId, requestId);
-			throw new WecubeCoreException("Task node instance does not exist.");
+			throw new WecubeCoreException("3155","Task node instance does not exist.");
 		}
 
 		TaskNodeInstInfoEntity taskNodeInstEntity = taskNodeInstEntityOpt.get();
 		if (!TaskNodeInstInfoEntity.IN_PROGRESS_STATUS.equals(taskNodeInstEntity.getStatus())) {
 			log.error("task node instance status is not valid, expected {} but {}",
 					TaskNodeInstInfoEntity.IN_PROGRESS_STATUS, taskNodeInstEntity.getStatus());
-			throw new WecubeCoreException("Task node instance status is not valid.");
+			throw new WecubeCoreException("3156","Task node instance status is not valid.");
 		}
 
 		PluginInterfaceInvocationContext ctx = new PluginInterfaceInvocationContext() //
@@ -96,7 +96,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 		if (!nodeDefEntityOpt.isPresent()) {
 			log.error("such task node definition does not exist for {} {}", ctx.getTaskNodeInstEntity().getNodeDefId(),
 					ctx.getRequestId());
-			throw new WecubeCoreException("Task node definition does not exist.");
+			throw new WecubeCoreException("3157","Task node definition does not exist.");
 		}
 
 		TaskNodeDefInfoEntity nodeDefEntity = nodeDefEntityOpt.get();
@@ -106,7 +106,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
 		if (pluginConfigInterface == null) {
 			log.error("Plugin config interface does not exist for {}", nodeDefEntity.getServiceId());
-			throw new WecubeCoreException("Plugin config interface does not exist.");
+			throw new WecubeCoreException("3158","Plugin config interface does not exist.");
 		}
 
 		ctx.withPluginConfigInterface(pluginConfigInterface)//
@@ -400,19 +400,19 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 
 	private void validate(PluginAsyncInvocationResultDto asyncResultDto) {
 		if (asyncResultDto == null) {
-			throw new WecubeCoreException("asynchonous result cannot be null.");
+			throw new WecubeCoreException("3159","asynchonous result cannot be null.");
 		}
 
 		if (StringUtils.isBlank(asyncResultDto.getResultCode())) {
-			throw new WecubeCoreException("result code cannot be blank.");
+			throw new WecubeCoreException("3160","result code cannot be blank.");
 		}
 
 		if (asyncResultDto.getResultData() == null) {
-			throw new WecubeCoreException("result data cannot be null.");
+			throw new WecubeCoreException("3161","result data cannot be null.");
 		}
 
 		if (StringUtils.isBlank(asyncResultDto.getResultData().getRequestId())) {
-			throw new WecubeCoreException("request id is blank.");
+			throw new WecubeCoreException("3162","request id is blank.");
 		}
 	}
 }
