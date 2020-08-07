@@ -467,7 +467,7 @@ public class PluginConfigService {
                         if ("Y".equalsIgnoreCase(outputParameter.getRequired())) {
                             if (entity.name().equals(outputParameter.getMappingType())
                                     && StringUtils.isBlank(outputParameter.getMappingEntityExpression())) {
-                                throw new WecubeCoreException("3055",String.format(
+                                throw new WecubeCoreException("3056",String.format(
                                         "Entity expression is required for parameter [%s]", outputParameter.getId()));
                             }
                         }
@@ -494,8 +494,8 @@ public class PluginConfigService {
         Optional<PluginConfigInterface> pluginConfigInterface = pluginConfigRepository
                 .findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(serviceName);
         if (!pluginConfigInterface.isPresent()) {
-            throw new WecubeCoreException(
-                    String.format("3058","Plugin interface not found for serviceName [%s].", serviceName));
+            throw new WecubeCoreException("3058",
+                    String.format("Plugin interface not found for serviceName [%s].", serviceName));
         }
         return pluginConfigInterface.get();
     }
