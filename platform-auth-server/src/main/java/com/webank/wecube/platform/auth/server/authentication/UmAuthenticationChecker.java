@@ -57,7 +57,7 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
             throw new BadCredentialsException("System errors caused by " + e.getMessage());
         }
 
-        if (subSystemAuthResult == null || subSystemAuthResult.getRetCode() != 0) {
+        if (subSystemAuthResult == null || subSystemAuthResult.getRetCode() == null || subSystemAuthResult.getRetCode() != 0) {
             throw new BadCredentialsException("Bad credential:bad authentication context.");
         }
 
@@ -73,7 +73,7 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
             throw new BadCredentialsException("Bad credential:bad authentication context.");
         }
 
-        if (userAuthResult.getRetCode() != 0) {
+        if (userAuthResult.getRetCode() == null || userAuthResult.getRetCode() != 0) {
             throw new BadCredentialsException("Bad credential:bad authentication," + userAuthResult.getDesc());
         }
 
@@ -240,8 +240,7 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
     }
 
     public static class UmUserAuthResultDto {
-        public static final int DEF_ERR_RET_CODE = -1;
-        private int retCode = DEF_ERR_RET_CODE;
+        private Integer retCode;
         private String desc;
         private String id;
         private String userName;
@@ -250,11 +249,11 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
         private int actype;
         private String email;
 
-        public int getRetCode() {
+        public Integer getRetCode() {
             return retCode;
         }
 
-        public void setRetCode(int retCode) {
+        public void setRetCode(Integer retCode) {
             this.retCode = retCode;
         }
 
@@ -340,18 +339,18 @@ public class UmAuthenticationChecker implements AuthenticationChecker {
     }
 
     public static class UmSubSystemAuthResultDto {
-        private int retCode;
+        private Integer retCode;
         private String desc;
         private String id;
         private String tok;
         private String auth;
         private long expTime;
 
-        public int getRetCode() {
+        public Integer getRetCode() {
             return retCode;
         }
 
-        public void setRetCode(int retCode) {
+        public void setRetCode(Integer retCode) {
             this.retCode = retCode;
         }
 
