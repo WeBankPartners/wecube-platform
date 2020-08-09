@@ -6,6 +6,28 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ApplicationProperties {
     private String gatewayUrl = "127.0.0.1:19110";
     private String dbInitStrategy = "update";
+    
+    @ConfigurationProperties(prefix = "wecube.core.config")
+    public class AppConfigProperties {
+        private String propertyRsaKey = null;
+        private String propertyRsaPubKey = null;
+
+        public String getPropertyRsaKey() {
+            return propertyRsaKey;
+        }
+
+        public void setPropertyRsaKey(String propertyRsaKey) {
+            this.propertyRsaKey = propertyRsaKey;
+        }
+
+        public String getPropertyRsaPubKey() {
+            return propertyRsaPubKey;
+        }
+
+        public void setPropertyRsaPubKey(String propertyRsaPubKey) {
+            this.propertyRsaPubKey = propertyRsaPubKey;
+        }
+    }
 
     @ConfigurationProperties(prefix = "wecube.core.httpclient")
     public class HttpClientProperties {
