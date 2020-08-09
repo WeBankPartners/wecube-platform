@@ -1,5 +1,7 @@
 package com.webank.wecube.platform.core.propenc;
 
+import javax.annotation.PostConstruct;
+
 import org.jasypt.encryption.StringEncryptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +19,13 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.AppConfigPr
 public class RsaBasedStringEncryptor implements StringEncryptor {
     private static final Logger log = LoggerFactory.getLogger(RsaBasedStringEncryptor.class);
 
+    @Autowired
     private AppConfigProperties appConfigProperties;
 
     private RsaKeyPair propencRsaKeyPair;
-
-    public RsaBasedStringEncryptor(@Autowired AppConfigProperties appConfigProperties) {
-        this.appConfigProperties = appConfigProperties;
+    
+    @PostConstruct
+    public void afterPropertySet(){
         initPropencRsaKeyPair();
     }
 
