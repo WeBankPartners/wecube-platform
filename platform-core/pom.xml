@@ -11,7 +11,7 @@
     <artifactId>platform-core</artifactId>
 
     <properties>
-        <app.version>2.6.0</app.version>
+        <app.version>2.6.1</app.version>
     </properties>
 
     <dependencyManagement>
@@ -176,6 +176,12 @@
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
             <version>1.0.19</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
+            <version>3.0.3</version>
         </dependency>
 
     </dependencies>
