@@ -6,6 +6,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.CodeSource;
+import java.util.Collections;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,6 +34,8 @@ public class RsaKeyPairDetector {
 
     private File publicKeyFile;
     private File privateKeyFile;
+
+    protected FileSystem fileSystem;
 
     public RsaKeyPairDetector() {
 
@@ -51,6 +63,20 @@ public class RsaKeyPairDetector {
     }
 
     public RsaKeyPair detectRsaKeyPair() {
+        try {
+            return doDetectRsaKeyPair();
+        } finally {
+            if (fileSystem != null) {
+                try {
+                    fileSystem.close();
+                } catch (IOException e) {
+                    log.info("Errors to close fileSystem", e.getMessage());
+                }
+            }
+        }
+    }
+
+    private RsaKeyPair doDetectRsaKeyPair() {
         log.info("try to detect rsa key");
         if (privateKeyFile != null && publicKeyFile != null) {
             String privKey = tryFindPrivateKeyFromExternal();
@@ -69,28 +95,21 @@ public class RsaKeyPairDetector {
         }
     }
 
-    public String tryFindPrivateKey() {
-        if (this.privateKeyFile != null) {
-            log.info("try to read private key from:{}", privateKeyFile.getAbsolutePath());
-            return tryFindPrivateKeyFromExternal();
-        } else {
-            log.info("private key not provided and try to find default one.");
-            return tryFindPrivateKeyFromDefault();
-        }
-    }
-
-    public String tryFindPublicKey() {
-        if (this.publicKeyFile != null) {
-            log.info("try to read public key from:{}", publicKeyFile.getAbsolutePath());
-            return tryFindPublicKeyFromExternal();
-        } else {
-            log.info("public key not provided and try to find default one.");
-            return tryFindPublicKeyFromDefault();
-        }
-    }
-
     private String tryFindPrivateKeyFromDefault() {
-        try (InputStream input = this.getClass().getResourceAsStream(DEF_RSA_KEY_FILENAME)) {
+        log.info("try to find private key from default.");
+        Path privKeyPath = null;
+        try {
+            privKeyPath = findOutRsaDefaultKey(DEF_RSA_KEY_FILENAME);
+        } catch (IOException | URISyntaxException e1) {
+            String msg = "Failed to deduce private key path.";
+            log.error(msg);
+            throw new EncryptionException(msg);
+        } catch (Exception e) {
+            log.error("errors", e);
+            throw new EncryptionException();
+        }
+
+        try (InputStream input = Files.newInputStream(privKeyPath)) {
             return readInputStream(input);
         } catch (IOException e) {
             String msg = "Failed to read default private key";
@@ -116,7 +135,20 @@ public class RsaKeyPairDetector {
     }
 
     private String tryFindPublicKeyFromDefault() {
-        try (InputStream input = this.getClass().getResourceAsStream(DEF_RSA_PUB_KEY_FILENAME)) {
+        log.info("try to find public key from default.");
+        Path pubKeyPath = null;
+        try {
+            pubKeyPath = findOutRsaDefaultKey(DEF_RSA_PUB_KEY_FILENAME);
+        } catch (IOException | URISyntaxException e1) {
+            String msg = "Failed to deduce public key path.";
+            log.error(msg);
+            throw new EncryptionException(msg);
+        } catch (Exception e) {
+            log.error("errors", e);
+            throw new EncryptionException();
+        }
+
+        try (InputStream input = Files.newInputStream(pubKeyPath)) {
             return readInputStream(input);
         } catch (IOException e) {
             String msg = "Failed to read default public key";
@@ -159,5 +191,43 @@ public class RsaKeyPairDetector {
         }
 
         return content.toString();
+    }
+
+    protected Path findOutRsaDefaultKey(String filename) throws IOException, URISyntaxException {
+        CodeSource src = RsaKeyPairDetector.class.getProtectionDomain().getCodeSource();
+
+        if (src == null) {
+            log.error("Failed to get code source.");
+            return null;
+        }
+
+        URI uri = src.getLocation().toURI();
+        Path myPath = null;
+        if (uri.getScheme().equals("jar")) {
+            if (fileSystem == null) {
+                fileSystem = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap());
+            }
+            myPath = fileSystem.getPath("/com/webank/wecube/platform/core/propenc/" + filename);
+
+            if (!Files.exists(myPath)) {
+                myPath = fileSystem.getPath("/BOOT-INF/classes/com/webank/wecube/platform/core/propenc/" + filename);
+            }
+
+        } else {
+            URL dirUrl = RsaKeyPairDetector.class.getClassLoader()
+                    .getResource("com/webank/wecube/platform/core/propenc/" + filename);
+            if (dirUrl != null) {
+                URI dirUri = dirUrl.toURI();
+                myPath = Paths.get(dirUri);
+            }
+        }
+
+        if (myPath != null) {
+            log.info("RSA key path:{}", myPath.toAbsolutePath());
+        } else {
+            log.warn("Failed to find out RSA key.Filename:{}", filename);
+        }
+
+        return myPath;
     }
 }

@@ -41,11 +41,12 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
     protected String dbSchema;
 
     protected List<String> existsTableNames = new ArrayList<String>();
-    
+
     protected ApplicationVersionInfo applicationVersionInfo;
     protected FileSystem fileSystem;
 
-    public AbstractDatabaseInitializer(String strategy, DataSource dataSource, ApplicationVersionInfo applicationVersionInfo) {
+    public AbstractDatabaseInitializer(String strategy, DataSource dataSource,
+            ApplicationVersionInfo applicationVersionInfo) {
         super();
         this.strategy = strategy == null ? STRATEGY_UPDATE : strategy.trim().toLowerCase();
         this.dataSource = dataSource;
@@ -82,7 +83,7 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
     public String getInitializeStrategy() {
         return this.strategy;
     }
-    
+
     protected List<Path> listUpgradeFiles() {
 
         try {
@@ -92,7 +93,7 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
             return Collections.emptyList();
         }
     }
-    
+
     protected List<Path> doListUpgradeFiles() throws IOException, URISyntaxException {
         List<Path> upgradeSqlPaths = new ArrayList<Path>();
         CodeSource src = AbstractDatabaseInitializer.class.getProtectionDomain().getCodeSource();
@@ -104,9 +105,10 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
 
         URI uri = src.getLocation().toURI();
         Path myPath = null;
-        FileSystem fileSystem = null;
         if (uri.getScheme().equals("jar")) {
-            fileSystem = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap());
+            if (fileSystem == null) {
+                fileSystem = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap());
+            }
             myPath = fileSystem.getPath("/db/upgrade");
 
             if (!Files.exists(myPath)) {
@@ -155,7 +157,6 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
                 tryExecuteDbUpgrade(dbVersion);
                 return;
             }
-            
 
             if (STRATEGY_DROP_CREATE.equals(strategy)) {
                 executeDbDropTables();
@@ -165,13 +166,13 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
 
             executeDbCreateTables();
             tryExecuteDbUpgrade();
-            
+
             logDbVersion(dbVersion);
         } finally {
             tryReleaseDbInitLock(lockInfo);
         }
     }
-    
+
     protected void tryExecuteDbUpgrade() {
         //
     }
@@ -348,9 +349,13 @@ public abstract class AbstractDatabaseInitializer implements DatabaseInitializer
     protected abstract boolean isTablePresent(String tableName);
 
     protected abstract void getTableNamesPresent() throws SQLException;
+
     protected abstract void executeDbCreateTableSchemas();
+
     protected abstract void executeDbCreateTableData();
+
     protected abstract AppPropertyInfo getDbVersion();
+
     protected abstract void logDbVersion(AppPropertyInfo dbVersion);
 
 }
