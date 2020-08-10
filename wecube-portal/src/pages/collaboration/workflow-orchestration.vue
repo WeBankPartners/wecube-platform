@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Row style="margin-bottom: 10px;height:40px">
+    <Row style="height:40px">
       <Col span="9">
         <span style="margin-right: 10px">{{ $t('flow_name') }}</span>
         <Select clearable v-model="selectedFlow" style="width: 60%" @on-open-change="getAllFlows" filterable>
@@ -894,7 +894,7 @@ export default {
       canvas.onmouseup = e => {
         this.show = false
         this.bindCurrentNode(e)
-        if (this.currentNode.id.startsWith('SubProcess_')) {
+        if (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_')) {
           this.openPluginModal(e)
         }
       }
