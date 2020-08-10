@@ -135,7 +135,7 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
 			}
 
 			if (exprNodeInfo == null) {
-				throw new WecubeCoreException(
+				throw new WecubeCoreException("3224",
 						String.format("Index is not correct.Index:%s, PackageName:%s, EntityName:%s", index,
 								filterDto.getPackageName(), filterDto.getEntityName()));
 			}

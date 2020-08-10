@@ -36,7 +36,7 @@ public class PluginConfigXmlValidator {
             validator.validate(xmlSource);
         } catch (SAXException | IOException ex) {
             if (logger.isDebugEnabled()) logger.debug(xmlSource.toString());
-            throw new WecubeCoreException("XML validation failed: " + ex.getMessage());
+            throw new WecubeCoreException("3270",String.format("XML validation failed: %s" , ex.getMessage()));
         }
     }
 

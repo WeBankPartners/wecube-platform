@@ -79,7 +79,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
         if (!containers.isEmpty()) {
-            throw new WecubeCoreException(
+            throw new WecubeCoreException("3236",
                     String.format("Failed to create the container with name [%s] : Already exists.", containerName));
         }
 
@@ -176,7 +176,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
         if (containers.isEmpty()) {
-            throw new WecubeCoreException(String
+            throw new WecubeCoreException("3237",String
                     .format("Failed to start container with name [%s] : Container is not exists.", containerName));
         }
 
@@ -195,7 +195,7 @@ public class DockerContainerManagementService implements ResourceItemService, Re
         List<Container> containers = dockerClient.listContainersCmd().withShowAll(true)
                 .withFilter("name", Arrays.asList(containerName)).exec();
         if (containers.isEmpty()) {
-            throw new WecubeCoreException(String
+            throw new WecubeCoreException("3238",String
                     .format("Failed to start container with name [%s] : Container is not exists.", containerName));
         }
 

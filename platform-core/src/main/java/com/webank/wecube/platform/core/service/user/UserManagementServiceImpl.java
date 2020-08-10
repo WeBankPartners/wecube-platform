@@ -43,7 +43,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         try {
             AsRoleDto asRole = authServerRestClient.retrieveRoleByName(roleName);
             if (asRole == null) {
-                throw new WecubeCoreException("No such role.");
+                throw new WecubeCoreException("3269","No such role.");
             }
 
             RoleDto r = new RoleDto();
