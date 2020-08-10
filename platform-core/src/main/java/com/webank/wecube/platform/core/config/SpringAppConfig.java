@@ -12,11 +12,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.HttpClientProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.S3Properties;
+import com.webank.wecube.platform.core.commons.ApplicationProperties.AppConfigProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.DockerRemoteProperties;
 import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
 
@@ -27,12 +29,14 @@ import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
         PluginProperties.class,
         S3Properties.class,
         ResourceProperties.class,
-        DockerRemoteProperties.class
+        DockerRemoteProperties.class,
+        AppConfigProperties.class
 })
 @ComponentScan({ "com.webank.wecube.platform.core.service" })
 @EntityScan(basePackages = { "com.webank.wecube.platform.core" })
 @EnableJpaRepositories(basePackages = { "com.webank.wecube.platform.core" })
 @EnablePlatformWorkflowApplication
+@EnableEncryptableProperties
 public class SpringAppConfig {
 
     @Autowired
