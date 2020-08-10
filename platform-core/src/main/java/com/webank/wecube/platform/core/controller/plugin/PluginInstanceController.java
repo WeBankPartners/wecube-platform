@@ -43,7 +43,7 @@ public class PluginInstanceController {
         try {
             pluginInstanceService.launchPluginInstance(packageId, hostIp, port);
         } catch (Exception e) {
-            throw new WecubeCoreException("Launch plugin instance failed. Error is " + e.getMessage(), e);
+            throw new WecubeCoreException("3271",String.format("Launch plugin instance failed. Error is " , e.getMessage()), e);
         }
         return okay();
     }
@@ -54,7 +54,7 @@ public class PluginInstanceController {
             pluginInstanceService.removePluginInstanceById(instanceId);
         } catch (Exception e) {
             log.info("Remove plugin package instance failed. Meet error: {}", e);
-            throw new WecubeCoreException("Remove plugin package instance failed.");
+            throw new WecubeCoreException("3272","Remove plugin package instance failed.");
         }
         return okay();
     }
