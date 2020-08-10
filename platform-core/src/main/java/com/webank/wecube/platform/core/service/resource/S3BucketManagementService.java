@@ -46,7 +46,7 @@ public class S3BucketManagementService implements ResourceItemService {
 
         if (amazonS3 != null) {
             if (amazonS3.doesBucketExist(item.getName())) {
-                throw new WecubeCoreException(String.format("Can not create bucket [%s] : Bucket exists.", item.getName()));
+                throw new WecubeCoreException("3254",String.format("Can not create bucket [%s] : Bucket exists.", item.getName()));
             }
             amazonS3.createBucket(item.getName());
         }
@@ -65,7 +65,7 @@ public class S3BucketManagementService implements ResourceItemService {
         if (amazonS3 != null) {
             if (amazonS3.doesBucketExist(item.getName())) {
                 if (!amazonS3.listObjects(item.getName()).getObjectSummaries().isEmpty()) {
-                    throw new WecubeCoreException(String.format("Can not delete bucket [%s] : Bucket have [%s] amount of objects", item.getName(), amazonS3.listObjects(item.getName()).getObjectSummaries().size()));
+                    throw new WecubeCoreException("3255",String.format("Can not delete bucket [%s] : Bucket have [%s] amount of objects", item.getName(), amazonS3.listObjects(item.getName()).getObjectSummaries().size()));
                 }
                 amazonS3.deleteBucket(item.getName());
             } else {
