@@ -523,7 +523,7 @@ public class WorkflowEngineService {
 
 		if (procInst == null) {
 			throw new WecubeCoreException("3197",
-					String.format("Such process instance with id [%s] does not exist.", processInstanceId));
+					String.format("Such process instance with id [%s] does not exist.", processInstanceId), processInstanceId);
 		}
 
 		return procInst;
@@ -557,7 +557,7 @@ public class WorkflowEngineService {
 		if (procDef == null) {
 			log.warn("such process definition did not exist,processDefinitionId={}", processDefinitionId);
 			throw new WecubeCoreException("3199",
-					String.format("Such proccess definition [%s] does not exist.", processDefinitionId));
+					String.format("Such proccess definition [%s] does not exist.", processDefinitionId), processDefinitionId);
 		}
 
 		ProcessInstance instance = runtimeService.startProcessInstanceById(processDefinitionId, processInstanceKey);
@@ -566,7 +566,7 @@ public class WorkflowEngineService {
 			log.warn("Failed to create process instance with id {} and key {}", processDefinitionId,
 					processInstanceKey);
 			throw new WecubeCoreException("3200",String.format("Failed to create process instance with id %s and key %s.",
-					processDefinitionId, processInstanceKey));
+					processDefinitionId, processInstanceKey), processDefinitionId, processInstanceKey);
 		}
 
 		return instance;
@@ -587,7 +587,7 @@ public class WorkflowEngineService {
 
 		if (processDefs == null || processDefs.isEmpty()) {
 			log.warn("abnormally to parse process definition,request={}", procDefDto);
-			throw new WecubeCoreException("3201","process deploying failed");
+			throw new WecubeCoreException("3201","Process deploying failed");
 		}
 
 		ProcessDefinition processDef = processDefs.get(0);
@@ -630,7 +630,7 @@ public class WorkflowEngineService {
 		} catch (UnsupportedEncodingException e1) {
 			log.warn("errors while reading model", e1);
 			procModelInstance = null;
-			throw new WecubeCoreException("3203","failed to read xml process content");
+			throw new WecubeCoreException("3203","Failed to read xml process content");
 		} finally {
 			if (is != null) {
 				try {
