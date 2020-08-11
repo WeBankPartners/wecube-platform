@@ -42,6 +42,7 @@ import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
+import com.webank.wecube.platform.core.service.dme.EntityOperationException;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
@@ -128,8 +129,14 @@ public class WorkflowDataService {
             return result;
         }
 
-        List<Map<String, Object>> retRecords = standardEntityOperationService
+        List<Map<String, Object>> retRecords = null;
+        try{
+         retRecords = standardEntityOperationService
                 .queryAttributeValuesOfLeafNode(new EntityOperationRootCondition(rootEntityExpr, null));
+        }catch(EntityOperationException e){
+            throw new WecubeCoreException(e.getMessage()).withErrorCodeAndArgs(e.getErrorCode(), e.getArgs());
+        }
+        
         if (retRecords == null) {
             return result;
         }
@@ -245,7 +252,7 @@ public class WorkflowDataService {
     public TaskNodeExecContextDto getTaskNodeContextInfo(Integer procInstId, Integer nodeInstId) {
         Optional<TaskNodeInstInfoEntity> nodeEntityOpt = taskNodeInstInfoRepository.findById(nodeInstId);
         if (!nodeEntityOpt.isPresent()) {
-            throw new WecubeCoreException("3188",String.format("Invalid node instance id: %s" , nodeInstId));
+            throw new WecubeCoreException("3188",String.format("Invalid node instance id: %s" , nodeInstId), nodeInstId);
         }
 
         TaskNodeInstInfoEntity nodeEntity = nodeEntityOpt.get();
@@ -324,7 +331,7 @@ public class WorkflowDataService {
 
         if (procDefOutline == null) {
             log.debug("process definition with id {} does not exist.", procDefId);
-            throw new WecubeCoreException("3190",String.format("Such process definition {%s} does not exist.", procDefId));
+            throw new WecubeCoreException("3190",String.format("Such process definition {%s} does not exist.", procDefId), procDefId);
         }
 
         ProcessDataPreviewDto previewDto = doFetchProcessPreviewData(procDefOutline, dataId, true);
@@ -436,7 +443,7 @@ public class WorkflowDataService {
             String errMsg = String.format("Errors while fetching data for node %s %s with expr %s and data id %s",
                     f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
             log.error(errMsg, e);
-            throw new WecubeCoreException("3191",errMsg);
+            throw new WecubeCoreException("3191",errMsg, f.getNodeDefId(), f.getNodeName(), routineExpr, dataId);
         }
 
         if (nodes == null || nodes.isEmpty()) {
