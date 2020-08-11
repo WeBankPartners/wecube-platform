@@ -504,7 +504,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 							bindParamName, bindParamType);
 					throw new WecubeCoreException("3174",String.format(
 							"parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
-							bindParamName, bindParamType));
+							bindParamName, bindParamType), bindParamName, bindParamType);
 				}
 			}
 
@@ -527,7 +527,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
 				log.error("variable is null but [{}] is mandatory", paramName);
-				throw new WecubeCoreException("3175",String.format("Variable is absent but [%s] is mandatory.", paramName));
+				throw new WecubeCoreException("3175",String.format("Variable is absent but [%s] is mandatory.", paramName), paramName);
 			}
 
 			String sVal = null;
@@ -557,7 +557,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 			if (nodeParamEntity == null) {
 				log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
 				throw new WecubeCoreException("3177",
-						String.format("Task node parameter entity does not exist for {%s}.", paramName));
+						String.format("Task node parameter entity does not exist for {%s}.", paramName), paramName);
 			}
 
 			Object val = null;
