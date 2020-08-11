@@ -43,7 +43,8 @@ public class PluginInstanceController {
         try {
             pluginInstanceService.launchPluginInstance(packageId, hostIp, port);
         } catch (Exception e) {
-            throw new WecubeCoreException("3271",String.format("Launch plugin instance failed. Error is " , e.getMessage()), e);
+            String msg = String.format("Launch plugin instance failed. Error is %s" , e.getMessage());
+            throw new WecubeCoreException("3271",msg, e.getMessage());
         }
         return okay();
     }

@@ -116,7 +116,7 @@ public class WorkflowDataService {
         }
         Optional<ProcDefInfoEntity> procDefInfoEntityOpt = procDefInfoRepository.findById(procDefId);
         if (!procDefInfoEntityOpt.isPresent()) {
-            throw new WecubeCoreException("3187",String.format("Cannot find such process definition with ID [%s]" , procDefId));
+            throw new WecubeCoreException("3187",String.format("Cannot find such process definition with ID [%s]" , procDefId), procDefId);
         }
 
         ProcDefInfoEntity procDef = procDefInfoEntityOpt.get();

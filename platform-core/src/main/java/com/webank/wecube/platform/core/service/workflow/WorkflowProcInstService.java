@@ -71,7 +71,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindings(Integer procInstId) {
         Optional<ProcInstInfoEntity> procInstEntityOpt = procInstInfoRepository.findById(procInstId);
         if (!procInstEntityOpt.isPresent()) {
-            throw new WecubeCoreException("3135",String.format("Such entity with id [%s] does not exist.", procInstId));
+            throw new WecubeCoreException("3135",String.format("Such entity with id [%s] does not exist.", procInstId), procInstId);
         }
 
         ProcInstInfoEntity procInstEntity = procInstEntityOpt.get();
@@ -253,7 +253,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     public ProcInstInfoDto getProcessInstanceById(Integer id) {
         Optional<ProcInstInfoEntity> procInstEntityOpt = procInstInfoRepository.findById(id);
         if (!procInstEntityOpt.isPresent()) {
-            throw new WecubeCoreException("3142",String.format("Such entity with id [%s] does not exist.", id));
+            throw new WecubeCoreException("3142",String.format("Such entity with id [%s] does not exist.", id), id);
         }
 
         ProcInstInfoEntity procInstEntity = procInstEntityOpt.get();

@@ -349,7 +349,7 @@ public class DataModelServiceStub {
             String msg = String.format("Cannot get filter predicate class from given filter list: [%s]",
                     filterList.toString());
             logger.error(msg);
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3303", msg, filterList.toString());
         }
         return jsonData.stream().filter(predicateFilters.stream().reduce(p -> true, Predicate::and))
                 .collect(Collectors.toList());

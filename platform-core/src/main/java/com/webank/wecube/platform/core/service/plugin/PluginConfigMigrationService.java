@@ -496,7 +496,7 @@ public class PluginConfigMigrationService {
             }
 
             if (StringUtils.isBlank(xmlPluginConfig.getRegisterName())) {
-                throw new WecubeCoreException("3234",String.format("Register name is blank for %s" , xmlPluginConfig.getName()));
+                throw new WecubeCoreException("3234",String.format("Register name is blank for %s" , xmlPluginConfig.getName()), xmlPluginConfig.getName());
             }
 
             PluginConfig pluginConfigDef = regNamedPluginConfigDefs.get(xmlPluginConfig.getName());
