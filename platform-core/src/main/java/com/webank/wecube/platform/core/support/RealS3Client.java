@@ -63,7 +63,7 @@ public class RealS3Client implements S3Client {
             fos.write(binary);
             uploadFile(bucketName, s3keyName, tempFile);
             if (!tempFile.delete()) {
-                throw new WecubeCoreException("Delete temporary file failed");
+                throw new WecubeCoreException("3293","Delete temporary file failed");
             }
         } catch (IOException e) {
             log.error("upload file to S3/MinIO meet error: ", e);
@@ -78,7 +78,8 @@ public class RealS3Client implements S3Client {
         }
 
         if (fileExists(bucketName, s3KeyName)) {
-            throw new WecubeCoreException(String.format("File[%s] already exists", s3KeyName));
+            String msg = String.format("File[%s] already exists.", s3KeyName);
+            throw new WecubeCoreException("3292",msg,s3KeyName);
         }
 
         s3Client.putObject(new PutObjectRequest(bucketName, s3KeyName, file).withCannedAcl(CannedAccessControlList.Private));

@@ -22,16 +22,7 @@ public class WecubeCoreException extends RuntimeException {
         this(errorCode, null, message, null, false, objects);
     }
 
-    public WecubeCoreException(String errorCode, String messageKey, String message, Object... objects) {
-        this(errorCode, messageKey, message, null, false, objects);
-    }
-
-    public WecubeCoreException(String errorCode, String messageKey, String message, Throwable cause,
-            Object... objects) {
-        this(errorCode, messageKey, message, cause, false, objects);
-    }
-
-    WecubeCoreException(String errorCode, String messageKey, String message, Throwable cause,
+    private WecubeCoreException(String errorCode, String messageKey, String message, Throwable cause,
             boolean applyMessage, Object... objects) {
         super(message, cause);
         this.errorCode = errorCode;
@@ -45,6 +36,25 @@ public class WecubeCoreException extends RuntimeException {
             }
         }
         this.applyMessage = applyMessage;
+    }
+    
+    public WecubeCoreException withMessageKey(String msgKey){
+        this.messageKey = msgKey;
+        return this;
+    }
+    
+    public WecubeCoreException withMessageKey(String msgKey, Object...objects){
+        this.messageKey = msgKey;
+        if (objects != null && (this.args == null)) {
+            this.args = new Object[objects.length];
+            int index = 0;
+            for (Object object : objects) {
+                this.args[index] = object;
+                index++;
+            }
+        }
+        
+        return this;
     }
 
     public String getErrorCode() {

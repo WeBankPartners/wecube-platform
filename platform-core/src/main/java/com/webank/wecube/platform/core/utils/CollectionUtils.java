@@ -115,7 +115,7 @@ public final class CollectionUtils {
                 return;
             List<E> children = childrenMapperOfGroup.apply(group);
             if (children == null)
-                throw new WecubeCoreException("Children property should not be null.");
+                throw new WecubeCoreException("3283","Children property should not be null.");
             children.add(element);
         });
         return resultGroups;
@@ -139,10 +139,10 @@ public final class CollectionUtils {
         // check if the input is null, but will tolerate the data in the list
         // can be null
         if (keys == null || values == null) {
-            throw new WecubeCoreException("Each input list should not be NULL");
+            throw new WecubeCoreException("3281", "Each input list should not be NULL.");
         }
         if (keys.size() != values.size()) {
-            throw new WecubeCoreException("The input lists' size should be equal.");
+            throw new WecubeCoreException("3282","The input list's size should be equal.");
         }
         Map<K, V> result = new HashMap<>();
         for (int i = 0; i < keys.size(); i++) {

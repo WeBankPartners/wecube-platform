@@ -56,7 +56,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
             if (null == roleIdList) {
                 errorMsg = String.format("The value of permission: [%s] should not be NULL", permissionStr);
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3294",errorMsg,permissionStr);
             }
 
             // when permission is MGMT and roleIdList is empty, then it is
