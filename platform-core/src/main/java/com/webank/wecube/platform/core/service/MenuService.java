@@ -136,7 +136,7 @@ public class MenuService {
                 String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                         packageMenu.getCategory());
                 log.error(msg);
-                throw new WecubeCoreException("3000","Cannot find system menu item by package menu's category: [%s].",packageMenu.getCategory());
+                throw new WecubeCoreException("3000",msg,packageMenu.getCategory());
             }
             MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
 
