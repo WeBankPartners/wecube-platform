@@ -99,6 +99,7 @@ services:
     volumes:
       - /data/auth_server/log:{{AUTH_SERVER_LOG_PATH}}
       - /etc/localtime:/etc/localtime
+      - {{DOCKER_API_CERTS_PATH}}:/certs
     ports:
       - {{AUTH_SERVER_PORT}}:8080
     environment:
