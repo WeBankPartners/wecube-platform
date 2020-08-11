@@ -94,7 +94,7 @@ public class UserManagementServiceImpl implements UserManagementService {
             return result;
         } catch (RestClientException e) {
             log.error("registering user failed", e);
-            throw new WecubeCoreException("3028","Failed to register user,caused by: " + e.getErrorMessage());
+            throw new WecubeCoreException("3028","Failed to register user,caused by: " + e.getErrorMessage(), e.getErrorMessage());
         }
     }
     
@@ -117,12 +117,14 @@ public class UserManagementServiceImpl implements UserManagementService {
     private String tryCalculateUmAuthContext() {
     	List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_UM_CTX);
     	if(sysVars == null || sysVars.isEmpty()) {
-    		throw new WecubeCoreException("3029",String.format("System variable %s does NOT exist and UM authentication is not supported currently.", SYS_VAR_UM_CTX));
+    	    String msg = String.format("System variable %s does NOT exist and UM authentication is not supported currently.", SYS_VAR_UM_CTX);
+    		throw new WecubeCoreException("3029",msg, SYS_VAR_UM_CTX);
     	}
     	
     	String authCtx = getSystemVariableValue(sysVars.get(0));
     	if(StringUtils.isBlank(authCtx)) {
-    		throw new WecubeCoreException("3030",String.format("The value of system variable %s is blank and UM authentication is not supported currently..", SYS_VAR_UM_CTX));
+    	    String msg = String.format("The value of system variable %s is blank and UM authentication is not supported currently..", SYS_VAR_UM_CTX);
+    		throw new WecubeCoreException("3030",msg, SYS_VAR_UM_CTX);
     	}
     	
     	return authCtx;
