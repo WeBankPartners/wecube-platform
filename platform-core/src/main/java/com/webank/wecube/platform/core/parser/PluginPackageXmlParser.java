@@ -210,8 +210,8 @@ public class PluginPackageXmlParser {
             String systemVariableName = getNonNullStringAttribute(systemVariableNode, "./@name",
                     "System variable name");
             if (equalGlobalSystemVariableName(systemVariableName)) {
-                throw new WecubeCoreException(
-                        String.format("Repeated define WeCube Global System Variable [%s]", systemVariableName));
+                String msg = String.format("Duplicated define WeCube Global System Variable [%s]", systemVariableName);
+                throw new WecubeCoreException("3299", msg, systemVariableName);
             }
             systemVariable.setName(systemVariableName);
             systemVariable.setDefaultValue(getStringAttribute(systemVariableNode, "./@defaultValue"));
@@ -269,7 +269,8 @@ public class PluginPackageXmlParser {
             PluginPackageEntityDto pluginPackageEntity = new PluginPackageEntityDto();
 
             pluginPackageEntity.setPackageName(dataModelDto.getPackageName());
-            // set data model version as 1 by default, where there is version update on
+            // set data model version as 1 by default, where there is version
+            // update on
             // DataModel.version, update Entity.dataModelVersion as well.
             pluginPackageEntity.setDataModelVersion(1);
 
@@ -432,7 +433,7 @@ public class PluginPackageXmlParser {
                 pluginConfig.setInterfaces(
                         new HashSet<>(parsePluginConfigInterfaces(pluginConfigInterfaceNodes, pluginConfig)));
             }
-            
+
             NodeList roleBindNodes = xPathEvaluator.getNodeList("./roleBinds/roleBind", pluginConfigNode);
             if (roleBindNodes != null && roleBindNodes.getLength() > 0) {
                 List<RoleBind> roleBinds = parseRoleBinds(roleBindNodes, pluginConfig);
@@ -443,20 +444,19 @@ public class PluginPackageXmlParser {
         }
         return pluginConfigs;
     }
-    
-    private List<RoleBind> parseRoleBinds(NodeList roleBindNodes,
-            PluginConfig pluginConfig) throws XPathExpressionException{
+
+    private List<RoleBind> parseRoleBinds(NodeList roleBindNodes, PluginConfig pluginConfig)
+            throws XPathExpressionException {
         List<RoleBind> roleBinds = new ArrayList<RoleBind>();
         for (int i = 0; i < roleBindNodes.getLength(); i++) {
             Node roleBindNode = roleBindNodes.item(i);
             RoleBind roleBind = new RoleBind();
             roleBind.setPermission(getStringAttribute(roleBindNode, "./@permission"));
             roleBind.setRoleName(getStringAttribute(roleBindNode, "./@roleName"));
-            
+
             roleBinds.add(roleBind);
         }
-        
-        
+
         return roleBinds;
     }
 
@@ -545,9 +545,9 @@ public class PluginPackageXmlParser {
             } else {
                 pluginConfigInterfaceParameter.setRequired(DEFAULT_REQUIRED);
             }
-            
+
             String sensitiveData = getStringAttribute(parameterNode, "./@sensitiveData");
-            if(StringUtils.isNoneBlank(sensitiveData)){
+            if (StringUtils.isNoneBlank(sensitiveData)) {
                 pluginConfigInterfaceParameter.setSensitiveData(sensitiveData);
             } else {
                 pluginConfigInterfaceParameter.setSensitiveData(DEFAULT_SENSITIVE_DATA);
@@ -562,9 +562,10 @@ public class PluginPackageXmlParser {
         name = trim(name);
         if (name == null)
             throw new WecubeCoreException(description + " is required.");
-        if (name.contains(SEPARATOR_OF_NAMES))
-            throw new WecubeCoreException(
-                    String.format("Illegal character[%s] detected in %s[%s]", SEPARATOR_OF_NAMES, description, name));
+        if (name.contains(SEPARATOR_OF_NAMES)){
+            String msg = String.format("Illegal character[%s] detected in %s[%s]", SEPARATOR_OF_NAMES, description, name);
+            throw new WecubeCoreException("3300", msg, SEPARATOR_OF_NAMES, description, name);
+        }
         return name;
     }
 }

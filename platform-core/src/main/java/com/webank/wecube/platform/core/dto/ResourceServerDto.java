@@ -154,13 +154,15 @@ public class ResourceServerDto {
 
     private static void validateServerType(String serverType) {
         if (ResourceServerType.fromCode(serverType) == ResourceServerType.NONE) {
-            throw new WecubeCoreException(String.format("Unsupported resource server type [%s].", serverType));
+            String errMsg = String.format("Unsupported resource server type [%s].", serverType);
+            throw new WecubeCoreException("3284", errMsg, serverType);
         }
     }
 
     private static void validateItemStatus(String status) {
         if (ResourceServerStatus.fromCode(status) == ResourceServerStatus.NONE) {
-            throw new WecubeCoreException(String.format("Unsupported resource server status [%s].", status));
+            String errMsg = String.format("Unsupported resource server status [%s].", status);
+            throw new WecubeCoreException("3285",errMsg, status);
         }
     }
 
