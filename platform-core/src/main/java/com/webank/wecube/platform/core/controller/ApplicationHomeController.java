@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core.controller;
 
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.error;
 import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
 
 import java.security.Principal;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.MenuItemDto;
 import com.webank.wecube.platform.core.service.MenuService;
@@ -26,11 +24,7 @@ public class ApplicationHomeController {
     @GetMapping("/my-menus")
     public CommonResponseDto getMyMenuItems() {
         List<MenuItemDto> currentUserAllMenus;
-        try {
-            currentUserAllMenus = menuService.getCurrentUserAllMenus();
-        } catch (WecubeCoreException ex) {
-            return error(ex.getMessage());
-        }
+        currentUserAllMenus = menuService.getCurrentUserAllMenus();
         return okayWithData(currentUserAllMenus);
     }
 
