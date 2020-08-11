@@ -466,7 +466,7 @@ public class PluginPackageService {
 
         Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository.findById(requestId);
         if (!reqOpt.isPresent()) {
-            throw new WecubeCoreException("3098", String.format("Such request with %s does not exist.", requestId));
+            throw new WecubeCoreException("3098", String.format("Such request with %s does not exist.", requestId), requestId);
         }
 
         PluginArtifactPullRequestEntity req = reqOpt.get();
@@ -745,7 +745,8 @@ public class PluginPackageService {
             if (localFilePath.mkdirs()) {
                 log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
             } else {
-                throw new WecubeCoreException("3103", "Create directory [%s] failed", localFilePath.getAbsolutePath());
+                String msg = String.format("Create directory [%s] failed", localFilePath.getAbsolutePath());
+                throw new WecubeCoreException("3103", msg, localFilePath.getAbsolutePath());
             }
         }
     }
@@ -841,8 +842,9 @@ public class PluginPackageService {
                 String activePackagesString = pluginPackages.stream()
                         .map(it -> String.join(":", it.getName(), it.getVersion(), it.getStatus().name()))
                         .collect(Collectors.joining(","));
-                throw new WecubeCoreException("3106", String.format(
-                        "Not allowed to register more packages. Current active packages: [%s]", activePackagesString));
+                String msg = String.format(
+                        "Not allowed to register more packages. Current active packages: [%s]", activePackagesString);
+                throw new WecubeCoreException("3106", msg, activePackagesString);
             }
         }
     }
@@ -897,7 +899,7 @@ public class PluginPackageService {
     private void ensurePluginPackageExists(String pluginPackageId) {
         if (!pluginPackageRepository.existsById(pluginPackageId)) {
             throw new WecubeCoreException("3109",
-                    String.format("Plugin package id not found for id [%s] ", pluginPackageId));
+                    String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
         }
     }
 
@@ -1018,7 +1020,7 @@ public class PluginPackageService {
                 } catch (Exception e) {
                     log.error("Run command [mkdir] meet error: ", e.getMessage());
                     throw new WecubeCoreException("3110",
-                            String.format("Run remote command meet error: %s", e.getMessage()));
+                            String.format("Run remote command meet error: %s", e.getMessage()), e.getMessage());
                 }
             }
 
@@ -1070,7 +1072,7 @@ public class PluginPackageService {
                 }
             } catch (Exception e) {
                 log.error("Run command [rm] meet error: ", e.getMessage());
-                throw new WecubeCoreException("3113", String.format("Run command [rm] meet error: %s", e.getMessage()));
+                throw new WecubeCoreException("3113", String.format("Run command [rm] meet error: %s", e.getMessage()), e.getMessage());
             }
         }
     }
@@ -1117,7 +1119,7 @@ public class PluginPackageService {
         File registerXmlFile = new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile());
         if (!registerXmlFile.exists()) {
             throw new WecubeCoreException("3114", String.format("Plugin package definition file: [%s] does not exist.",
-                    pluginProperties.getRegisterFile()));
+                    pluginProperties.getRegisterFile()), pluginProperties.getRegisterFile());
         }
 
         new PluginConfigXmlValidator().validate(new FileInputStream(registerXmlFile));
@@ -1131,7 +1133,7 @@ public class PluginPackageService {
 
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException("3115", String.format("Plugin package [name=%s, version=%s] exists.",
-                    pluginPackage.getName(), pluginPackage.getVersion()));
+                    pluginPackage.getName(), pluginPackage.getVersion()), pluginPackage.getName(), pluginPackage.getVersion());
         }
 
         processPluginDockerImageFile(localFilePath, pluginPackageDto);

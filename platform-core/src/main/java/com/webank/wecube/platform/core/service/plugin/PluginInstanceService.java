@@ -126,7 +126,7 @@ public class PluginInstanceService {
         ResourceServer resourceServer = resourceServerRepository
                 .findByHostAndType(hostIp, ResourceServerType.DOCKER.getCode()).get(0);
         if (null == resourceServer)
-            throw new WecubeCoreException("3065",String.format("Host IP [%s] is not found", hostIp));
+            throw new WecubeCoreException("3065",String.format("Host IP [%s] is not found", hostIp), hostIp);
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
                 .addEqualsFilter("resourceServerId", resourceServer.getId());
 
@@ -169,7 +169,7 @@ public class PluginInstanceService {
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
         List<PluginPackage> activePluginPackages = pluginPackageRepository.findLatestActiveVersionPluginPackagesByName(pluginName);
         if (activePluginPackages == null || activePluginPackages.isEmpty()) {
-            throw new WecubeCoreException("3068",String.format("Plugin package [%s] not found.", pluginName));
+            throw new WecubeCoreException("3068",String.format("Plugin package [%s] not found.", pluginName), pluginName);
         }
         
         List<PluginInstance> runningInstances = new ArrayList<PluginInstance>();
@@ -490,7 +490,7 @@ public class PluginInstanceService {
         }
         if (s3InfoSet.size() > 1) {
             logger.error(String.format("Apply [%d] s3 buckets is not allow", s3InfoSet.size()));
-            throw new WecubeCoreException("3076",String.format("Apply [%d] s3 buckets is not allow", s3InfoSet.size()));
+            throw new WecubeCoreException("3076",String.format("Apply [%d] s3 buckets is not allow", s3InfoSet.size()), s3InfoSet.size());
         }
 
         List<ResourceItem> s3BucketsItems = resourceItemRepository
@@ -708,7 +708,7 @@ public class PluginInstanceService {
                 ResourceServerType.DOCKER.getCode());
         if (hostInfos.size() == 0) {
             logger.info(String.format("Can not found docker resource server by IP[%s]", hostIp));
-            throw new WecubeCoreException("3084",String.format("Can not found docker resource server by IP[%s]", hostIp));
+            throw new WecubeCoreException("3084",String.format("Can not found docker resource server by IP[%s]", hostIp), hostIp);
         }
         hostInfo = hostInfos.get(0);
 
