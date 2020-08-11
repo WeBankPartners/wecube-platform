@@ -365,7 +365,7 @@
         ></Transfer>
       </div>
       <div style="margin-top:20px;text-align:right">
-        <Button type="primary" @click="confirmRole">{{ $t('modal_close') }}</Button>
+        <Button type="primary" @click="confirmRole">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
