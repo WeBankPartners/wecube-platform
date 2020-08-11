@@ -43,7 +43,7 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 });
     	}catch(Exception e) {
     		log.warn("Health check failed", e);
-    		throw new WecubeCoreException("Auth server health check failed.");
+    		throw new WecubeCoreException("3301", "Auth server health check failed.");
     	}
     }
 
