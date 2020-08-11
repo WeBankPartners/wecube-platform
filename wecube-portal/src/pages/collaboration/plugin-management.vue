@@ -54,7 +54,7 @@
           </Spin>
           <div v-if="!isLoadingPluginList" style="height: 70%; overflow: auto">
             <span v-if="plugins.length < 1">{{ $t('no_plugin_packages') }}</span>
-            <div style="height: calc(100vh - 359px);overflow:auto" v-else>
+            <div style="height: calc(100vh - 325px);overflow:auto" v-else>
               <Collapse accordion @on-change="pluginPackageChangeHandler">
                 <Panel
                   :name="plugin.id + ''"
