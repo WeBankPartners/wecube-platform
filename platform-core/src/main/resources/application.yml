@@ -5,6 +5,9 @@ server:
 spring:
   profiles:
     active: dev
+  messages:
+    basename: message/platform_core_err_message
+    encoding: UTF-8
   datasource:
     hikari:
       pool-name: We3_HikariCP
