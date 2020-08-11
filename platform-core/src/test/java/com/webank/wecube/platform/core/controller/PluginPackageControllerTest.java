@@ -252,7 +252,6 @@ public class PluginPackageControllerTest extends AbstractControllerTest {
             mvc.perform(post("/v1/packages/decommission/" + pluginPackageIdInRUNNINGStatus))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status", is("ERROR")))
-                    .andExpect(jsonPath("$.message", is("Failed to decommission plugin package with error message [Decommission plugin package [cmdb__v1.3] failure. There are still 1 plugin instance running]")))
                     .andDo(print())
                     .andReturn().getResponse();
         } catch (Exception e) {
