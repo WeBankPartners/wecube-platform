@@ -396,6 +396,9 @@ export default {
     return {
       configTreeManageModal: false,
       configTree: [],
+      newPluginConfig: '', // 缓存新增及复制时数据
+      isAddOrCopy: '',
+
       isAdd: false,
       currentPluginForPermission: {},
       isLoading: false,
@@ -558,6 +561,11 @@ export default {
     confirmRole () {
       if (this.mgmtRolesKey.length) {
         this.configRoleManageModal = false
+        if (this.isAddOrCopy === 'copy') {
+          this.exectCopyPluginConfigDto()
+        } else if (this.isAddOrCopy === 'add') {
+          this.exectAddPluginConfigDto()
+        }
       } else {
         this.$Message.warning(this.$t('mgmt_role_warning'))
       }
@@ -784,22 +792,32 @@ export default {
       }
     },
     async copyPluginConfigDto (id) {
+      this.newPluginConfig = id
+      this.isAddOrCopy = 'copy'
+
       this.currentPlugin = ''
-      this.hasNewSource = true
-      this.configRoleManageModal = true
       this.mgmtRolesKey = []
       this.useRolesKey = []
-      await this.getInterfacesByPluginConfigId(id)
+      this.configRoleManageModal = true
+      this.hasNewSource = true
+    },
+    async exectCopyPluginConfigDto () {
+      await this.getInterfacesByPluginConfigId(this.newPluginConfig)
       this.registerName = this.currentPluginObj.registerName + '-(copy)'
       this.currentPluginObj.status = 'DISABLED'
       this.$refs.registerName.focus()
     },
     async addPluginConfigDto (plugin) {
-      this.hasNewSource = true
-      this.configRoleManageModal = true
+      this.newPluginConfig = plugin
+      this.isAddOrCopy = 'add'
+
       this.mgmtRolesKey = []
       this.useRolesKey = []
-      const id = plugin.pluginConfigDtoList.find(_ => _.registerName === null).id
+      this.configRoleManageModal = true
+      this.hasNewSource = true
+    },
+    async exectAddPluginConfigDto () {
+      const id = this.newPluginConfig.pluginConfigDtoList.find(_ => _.registerName === null).id
       await this.getInterfacesByPluginConfigId(id)
       this.registerName = ''
       this.selectedEntityType = ''
