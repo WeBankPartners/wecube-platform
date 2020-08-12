@@ -80,7 +80,8 @@ public class SubSystemManagementService {
 		String systemCode = subSystem.getSystemCode();
 		SysSubSystemInfo subSystemInfo = subSystemInfoDataService.retrieveSysSubSystemInfoWithSystemCode(systemCode);
 		if (subSystemInfo == null) {
-			throw new BadCredentialsException(String.format("Sub system %s does not exist.", systemCode));
+		    String msg = String.format("Sub system %s does not exist.", systemCode);
+			throw new BadCredentialsException(msg);
 		}
 
 		if (subSystemInfo.getBlocked() == true) {
@@ -175,15 +176,16 @@ public class SubSystemManagementService {
 	public SimpleSubSystemDto registerSubSystem(SimpleSubSystemDto subSystemDto) {
 
 		if (StringUtils.isBlank(subSystemDto.getSystemCode())) {
-			throw new AuthServerException("Registering sub-system errors:system code cannot be blank.");
+			throw new AuthServerException("3016", "Registering sub-system errors:system code cannot be blank.");
 		}
 
 		SysSubSystemEntity subSystem = subSystemRepository.findOneBySystemCode(subSystemDto.getSystemCode());
 
 		if (subSystem != null) {
 			log.debug("such sub-system already exists,system code {}", subSystemDto.getSystemCode());
-			throw new AuthServerException(
-					String.format("Sub-System with code {%s} already exists.", subSystemDto.getSystemCode()));
+			String msg = String.format("Sub-System with code {%s} already exists.", subSystemDto.getSystemCode());
+			throw new AuthServerException("3017", msg, subSystemDto.getSystemCode()
+					);
 		}
 
 		AsymmetricKeyPair keyPair = EncryptionUtils.initAsymmetricKeyPair();
