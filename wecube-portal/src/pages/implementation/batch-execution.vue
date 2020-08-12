@@ -255,6 +255,19 @@
                 }}</Option>
               </Select>
             </FormItem>
+            <FormItem :show-message="false">
+              <span slot="label">
+                <Tooltip :content="$t('bc_set_columns_tip')">
+                  <Icon type="ios-help-circle-outline" />
+                </Tooltip>
+                {{ $t('bc_table_column') }}
+              </span>
+              <Select filterable multiple v-model="userTableColumns">
+                <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
+                  entityAttr.name
+                }}</Option>
+              </Select>
+            </FormItem>
             <FormItem :label="$t('bc_query_condition')" class="tree-style">
               <Row style="max-height: 150px;overflow-y:scroll">
                 <Col span="12">
@@ -418,6 +431,7 @@ export default {
       allEntityAttr: [],
       targetEntityAttr: [],
 
+      userTableColumns: [],
       searchParameters: [],
 
       tableData: [],
@@ -903,13 +917,23 @@ export default {
     async excuteSearch () {
       let { status, data } = await entityView(this.currentPackageName, this.currentEntityName)
       if (status === 'OK') {
-        this.tableColumns = data.map((_, i) => {
-          return {
-            title: _.name,
-            key: _.name,
-            displaySeqNo: i + 1
-          }
-        })
+        if (this.userTableColumns.length) {
+          this.tableColumns = this.userTableColumns.map((_, i) => {
+            return {
+              title: _,
+              key: _,
+              displaySeqNo: i + 1
+            }
+          })
+        } else {
+          this.tableColumns = data.map((_, i) => {
+            return {
+              title: _.name,
+              key: _.name,
+              displaySeqNo: i + 1
+            }
+          })
+        }
         this.entityData()
       }
     },
