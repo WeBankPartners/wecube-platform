@@ -11,12 +11,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
+
 /**
  * 
  * @author gavin
  *
  */
 @SpringBootApplication
+@EnableEncryptableProperties
 public class PlatformAuthServerApplication {
     public static final String ENV_KEY_LOAD_DEFAULT_PROPERTIES = "loadDefaultProperties";
     private static final Logger log = LoggerFactory.getLogger(PlatformAuthServerApplication.class);

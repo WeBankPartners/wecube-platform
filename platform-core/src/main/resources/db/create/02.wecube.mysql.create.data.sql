@@ -24,9 +24,9 @@ insert into menu_items (id,parent_code,code,source,menu_order,description,local_
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('MONITORING',null,'MONITORING','SYSTEM', 4, '', '监测');
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
-('ADJUSTMENT',null,'ADJUSTMENT','SYSTEM', 5, '', '调整');
+('ADJUSTMENT',null,'ADJUSTMENT','SYSTEM', 6, '', '调整');
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
-('INTELLIGENCE_OPS',null,'INTELLIGENCE_OPS','SYSTEM', 6, '', '智慧');
+('INTELLIGENCE_OPS',null,'INTELLIGENCE_OPS','SYSTEM', 5, '', '智慧');
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values
 ('COLLABORATION',null,'COLLABORATION','SYSTEM', 7, '', '协同');
 insert into menu_items (id,parent_code,code,source,menu_order,description,local_display_name) values

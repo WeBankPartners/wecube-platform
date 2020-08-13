@@ -54,7 +54,6 @@ wecube:
   core:
     db-init-strategy: update
     gateway-url: 127.0.0.1:19110
-    security-enabled: true
     httpclient:
       max-total-connections: 200
     authserver:
@@ -69,15 +68,15 @@ wecube:
       init-db-sql: init.sql
       upgrade-db-sql: upgrade.sql
       static-resource-server-ip: 127.0.0.1
-      static-resource-server-user: root
+      static-resource-server-user: user
       static-resource-server-password: password
       static-resource-server-port: 22
       static-resource-server-path: /root/app/ui-resources
       base-mount-path: /data
     s3:
       endpoint: http://s3-server:9000
-      access-key: access_key
-      secret-key: secret_key
+      access-key: s3-access-key
+      secret-key: s3-secret-key
     resource:
       dockerPullImageTimeout: 300
       passwordEncryptionSeed: defaultSeed
