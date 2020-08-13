@@ -22,10 +22,14 @@ public class ApplicationBootstrap {
 
     private DatabaseInitializer databaseInitializer;
 
+    @Autowired
+    private ApplicationVersionInfo applicationVersionInfo;
+
     @PostConstruct
     public void afterPropertiesSetting() throws Exception {
         try {
-            databaseInitializer = new MysqlDatabaseInitializer(authServerProperties.getDbInitStrategy(), dataSource);
+            databaseInitializer = new MysqlDatabaseInitializer(authServerProperties.getDbInitStrategy(), dataSource,
+                    applicationVersionInfo);
             bootstrap();
         } catch (Exception e) {
             log.error("", e);
