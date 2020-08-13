@@ -15,6 +15,5 @@ spring:
       ddl-auto: update
 wecube:
   core:
-    security-enabled: false
     gateway-url: localhost:9999
     db-init-strategy: none
