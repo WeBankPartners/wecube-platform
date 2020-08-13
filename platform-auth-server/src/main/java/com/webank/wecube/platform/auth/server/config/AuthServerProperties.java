@@ -17,6 +17,9 @@ public class AuthServerProperties {
     @NestedConfigurationProperty
     private JwtTokenProperties jwtToken = new JwtTokenProperties();
 
+    @NestedConfigurationProperty
+    private AppConfigProperties config = new AppConfigProperties();
+
     public JwtTokenProperties getJwtToken() {
         return jwtToken;
     }
@@ -39,6 +42,22 @@ public class AuthServerProperties {
 
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public String getDbInitStrategy() {
+        return dbInitStrategy;
+    }
+
+    public void setDbInitStrategy(String dbInitStrategy) {
+        this.dbInitStrategy = dbInitStrategy;
+    }
+
+    public AppConfigProperties getConfig() {
+        return config;
+    }
+
+    public void setConfig(AppConfigProperties config) {
+        this.config = config;
     }
 
     public static class JwtTokenProperties {
@@ -98,12 +117,25 @@ public class AuthServerProperties {
 
     }
 
-    public String getDbInitStrategy() {
-        return dbInitStrategy;
-    }
+    public static class AppConfigProperties {
+        private String propertyRsaKey = null;
+        private String propertyRsaPubKey = null;
 
-    public void setDbInitStrategy(String dbInitStrategy) {
-        this.dbInitStrategy = dbInitStrategy;
+        public String getPropertyRsaKey() {
+            return propertyRsaKey;
+        }
+
+        public void setPropertyRsaKey(String propertyRsaKey) {
+            this.propertyRsaKey = propertyRsaKey;
+        }
+
+        public String getPropertyRsaPubKey() {
+            return propertyRsaPubKey;
+        }
+
+        public void setPropertyRsaPubKey(String propertyRsaPubKey) {
+            this.propertyRsaPubKey = propertyRsaPubKey;
+        }
     }
 
 }
