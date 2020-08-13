@@ -246,7 +246,8 @@
               ></FilterRules>
             </FormItem>
             <FormItem :label="$t('bc_target_type')">
-              <span v-if="currentPackageName">{{ currentPackageName + ':' + currentEntityName }}</span>
+              <Input disabled :value="currentPackageName + ':' + currentEntityName"></Input>
+              <!-- <span v-if="currentPackageName"></span> -->
             </FormItem>
             <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
               <Select filterable v-model="currentEntityAttr">
@@ -304,27 +305,30 @@
           </Form>
         </section>
         <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
+          <Input v-model="filterTableParams" :placeholder="$t('enter_search_keywords')" style="width: 300px" />
+          <Button @click="filterTableData" type="primary">{{ $t('search') }}</Button>
+          Selected: {{ seletedRows.length }}
           <div class="we-table">
             <Card v-if="displayResultTableZone">
               <p slot="title">{{ $t('bc_search_result') }}：</p>
-              <!-- <Button type="primary" :disabled="!seletedRows.length" @click="batchAction">{{
-                $t('bc_change_plugin')
-              }}</Button> -->
               <div style="height: 300px;overflow-y:scroll">
-                <WeTable
-                  :tableData="tableData"
-                  :tableOuterActions="[]"
-                  :tableInnerActions="null"
-                  :tableColumns="tableColumns"
-                  @getSelectedRows="onSelectedRowsChange"
-                  ref="table"
-                />
+                <Table
+                  ref="currentRowTable"
+                  @on-select="singleSelect"
+                  @on-select-cancel="singleCancle"
+                  @on-select-all-cancel="selectAllCancle"
+                  @on-select-all="selectAll"
+                  :columns="tableColumns"
+                  :data="tableData"
+                  size="small"
+                  type="selection"
+                ></Table>
               </div>
             </Card>
-            <a v-else @click="reExcute('displayResultTableZone')">
+            <!-- <a v-else @click="reExcute('displayResultTableZone')">
               {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected')
               }}{{ seletedRowsNum }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ pluginId }}
-            </a>
+            </a> -->
           </div>
         </section>
         <section v-if="batchActionModalVisible">
@@ -434,9 +438,10 @@ export default {
       userTableColumns: [],
       searchParameters: [],
 
+      filterTableParams: '',
+      originTableData: [],
       tableData: [],
       seletedRows: [],
-      seletedRowsNum: 0,
       tableColumns: [],
 
       batchActionModalVisible: false,
@@ -509,6 +514,9 @@ export default {
         return this.catchExecuteResult[this.activeResultKey]
       }
     }
+    // seletedRowsNum: function () {
+    //   return this.seletedRows.length
+    // }
   },
   watch: {
     dataModelExpression: async function (val) {
@@ -587,6 +595,39 @@ export default {
     }
   },
   methods: {
+    singleSelect (selection, row) {
+      this.seletedRows = this.seletedRows.concat(row)
+    },
+    singleCancle (selection, row) {
+      const index = this.seletedRows.findIndex(cn => {
+        return cn.id === row.id
+      })
+      this.seletedRows.splice(index, 1)
+    },
+    selectAll (selection) {
+      let temp = []
+      this.seletedRows.forEach(cntl => {
+        temp.push(cntl.id)
+      })
+      selection.forEach(se => {
+        if (!temp.includes(se.id)) {
+          this.seletedRows.push(se)
+        }
+      })
+    },
+    selectAllCancle () {
+      let temp = []
+      this.tartetModels.forEach(tm => {
+        temp.push(tm.id)
+      })
+      if (this.tableFilterParam) {
+        this.seletedRows = this.seletedRows.filter(item => {
+          return !temp.includes(item.id)
+        })
+      } else {
+        this.seletedRows = []
+      }
+    },
     changeCollections (id) {
       if (!id) {
         return
@@ -922,6 +963,7 @@ export default {
             return {
               title: _,
               key: _,
+              width: 160,
               displaySeqNo: i + 1
             }
           })
@@ -930,12 +972,44 @@ export default {
             return {
               title: _.name,
               key: _.name,
+              width: 160,
               displaySeqNo: i + 1
             }
           })
         }
+        this.tableColumns.unshift({
+          type: 'selection',
+          width: 60,
+          fixed: 'left',
+          align: 'center'
+        })
         this.entityData()
       }
+    },
+    filterTableData () {
+      const filtersKeys = this.userTableColumns.length ? this.userTableColumns : Object.keys(this.originTableData[0])
+      this.tableData = []
+      if (this.filterTableParams) {
+        this.originTableData.forEach((item, index) => {
+          // eslint-disable-next-line no-unused-vars
+          let tmp = []
+          filtersKeys.forEach(key => {
+            tmp += item[key] + '@#$'
+          })
+          if (tmp.includes(this.filterTableParams)) {
+            console.log(item)
+            this.tableData.push(item)
+          }
+        })
+      } else {
+        this.tableData = this.originTableData
+      }
+      const selectTag = this.seletedRows.map(item => item.id)
+      this.tableData.forEach(item => {
+        if (selectTag.includes(item.id)) {
+          item._checked = true
+        }
+      })
     },
     async entityData () {
       const requestParameter = {
@@ -984,6 +1058,7 @@ export default {
               item._checked = true
             }
           })
+          this.originTableData = this.tableData
           this.displaySearchZone = false
           this.displayResultTableZone = true
         } else {
@@ -1015,10 +1090,6 @@ export default {
       this.displayExecuteResultZone = false
       this.businessKey = null
       this[this.DelConfig.key] = true
-    },
-    onSelectedRowsChange (rows, checkoutBoxdisable) {
-      this.seletedRows = rows
-      this.seletedRowsNum = this.seletedRows.length
     },
     batchAction () {
       this.displayResultTableZone = false
@@ -1198,6 +1269,7 @@ export default {
       this.displaySearchZone = false
       this.displayResultTableZone = true
       this.operaModal = true
+      this.userTableColumns = []
       const { packageName, entityName, dataModelExpression } = this.activeExecuteHistory.requestBody
       this.currentPackageName = packageName
       this.currentEntityName = entityName
@@ -1212,6 +1284,7 @@ export default {
       this.displayResultTableZone = false
 
       this.operaModal = true
+      this.filterTableParams = ''
       this.setSearchConditions()
     }
   },
