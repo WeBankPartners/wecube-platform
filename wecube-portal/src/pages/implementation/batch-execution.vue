@@ -270,7 +270,7 @@
               </Select>
             </FormItem>
             <FormItem :label="$t('bc_query_condition')" class="tree-style">
-              <Row style="max-height: 150px;overflow-y:scroll">
+              <Row style="max-height: 150px;overflow-y:auto;border: 1px solid #dcdee2;">
                 <Col span="12">
                   <div>
                     <Tree :data="allEntityAttr" @on-check-change="checkChange" show-checkbox multiple></Tree>
@@ -287,14 +287,18 @@
               </Row>
             </FormItem>
             <FormItem :label="$t('bc_query_condition')">
-              <div v-if="searchParameters.length">
+              <div v-if="searchParameters.length" style="height: 100px;overflow-y: auto;">
                 <Row>
                   <Col span="8" v-for="(sp, spIndex) in searchParameters" :key="spIndex" style="padding:0 8px">
-                    <label>{{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label>
+                    <label class="search-params-label">
+                      {{ sp.packageName }}-{{ sp.entityName }}.{{ sp.description }}:</label
+                    >
                     <Input v-model="sp.value" />
                   </Col>
                   <Col span="8" style="padding:0 8px">
-                    <label style="visibility: hidden">defaultdefaultdefaultdefaultdefault</label>
+                    <label class="search-params-label" style="visibility: hidden;"
+                      >defaultdefaultdefaultdefaultdefault</label
+                    >
                     <Button @click="clearParametes">{{ $t('bc_clear_condition') }}</Button>
                     <!-- <Button @click="resetParametes">{{ $t('bc_reset_query') }}</Button> -->
                   </Col>
@@ -311,7 +315,7 @@
           <div class="we-table">
             <Card v-if="displayResultTableZone">
               <p slot="title">{{ $t('bc_search_result') }}：</p>
-              <div style="height: 300px;overflow-y:scroll">
+              <div style="height: 300px;overflow-y:auto">
                 <Table
                   ref="currentRowTable"
                   @on-select="singleSelect"
@@ -340,12 +344,14 @@
                 }}</Option>
               </Select>
             </FormItem>
-            <template v-for="(item, index) in selectedPluginParams">
-              <FormItem :label="item.name" :key="index">
-                <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
-                <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
-              </FormItem>
-            </template>
+            <div style="max-height:350px;overflow-y:auto">
+              <template v-for="(item, index) in selectedPluginParams">
+                <FormItem :label="item.name" :key="index">
+                  <Input v-if="item.mappingType === 'constant'" v-model="item.bindValue" />
+                  <span v-else>{{ item.mappingType === 'entity' ? $t('bc_from_CI') : $t('bc_from_system') }}</span>
+                </FormItem>
+              </template>
+            </div>
           </Form>
         </section>
         <section v-if="setPluginParamsModal">
@@ -1408,5 +1414,11 @@ pre {
   font-weight: 700;
   background-color: rgb(226, 222, 222);
   margin-bottom: 5px;
+}
+.search-params-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 260px;
 }
 </style>
