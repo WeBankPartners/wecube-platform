@@ -378,6 +378,8 @@
   "bc_start_path": "Start Path",
   "bc_target_type": "Target Type",
   "bc_primary_key": "Primary Key",
+  "bc_table_column": "Table Columns",
+  "bc_set_columns_tip": "The selected data will be displayed as the result column",
   "bc_selected_data": "Selected Data",
   "bc_search_result": "Search Result",
   "bc_find": "Find",

@@ -379,6 +379,8 @@
   "bc_start_path": "路径起点",
   "bc_target_type": "目标类型",
   "bc_primary_key": "业务主键",
+  "bc_table_column": "结果显示列",
+  "bc_set_columns_tip": "选中数据将作为结果的列展示",
   "bc_selected_data": "已选数据",
   "bc_search_result": "查询结果",
   "bc_find": "找到",
