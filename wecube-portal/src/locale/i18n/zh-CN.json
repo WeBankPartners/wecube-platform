@@ -345,7 +345,7 @@
   "selected_role": "选中角色",
   "unselected_role": "未选中角色",
   "edit_role": "选择该编排的属主角色",
-  "edit_config_role": "选择该服务的属主角色",
+  "edit_config_role": "选择属主角色和使用角色",
   "mgmt_role": "属主角色",
   "mgmt_role_warning": "属主角色不能为空",
   "no_permission_to_mgmt": "你没有操作权限",
