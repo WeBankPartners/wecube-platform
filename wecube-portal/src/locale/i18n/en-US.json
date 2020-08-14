@@ -344,7 +344,7 @@
   "selected_role": "Selected Role",
   "unselected_role": "Unselected Role",
   "edit_role": "Select Orchestrations Host Roles",
-  "edit_config_role": "Select Configs Host Roles",
+  "edit_config_role": "Select Configs Owner Roles And Executor Roles",
   "no_permission_to_mgmt": "You Don't Have Permission",
   "mgmt_role": "Owner Role",
   "mgmt_role_warning": "Owner Role Cannot Empty",
