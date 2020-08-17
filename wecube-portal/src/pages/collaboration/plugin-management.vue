@@ -54,7 +54,7 @@
           </Spin>
           <div v-if="!isLoadingPluginList" style="height: 70%; overflow: auto">
             <span v-if="plugins.length < 1">{{ $t('no_plugin_packages') }}</span>
-            <div style="height: calc(100vh - 359px);overflow:auto" v-else>
+            <div style="height: calc(100vh - 325px);overflow:auto" v-else>
               <Collapse accordion @on-change="pluginPackageChangeHandler">
                 <Panel
                   :name="plugin.id + ''"
@@ -328,7 +328,7 @@ const logTablePagination = {
   total: 0
 }
 const dbTablePagination = {
-  pageSize: 5,
+  pageSize: 10,
   currentPage: 1,
   total: 0
 }
@@ -748,6 +748,9 @@ export default {
     pluginPackageChangeHandler (key) {
       this.swapPanel('')
       this.dbQueryCommandString = ''
+      this.dbTablePagination.currentPage = 1
+      this.dbTablePagination.pageSize = 10
+      this.dbTablePagination.total = 0
     },
     async removePluginInstance (instanceId) {
       this.isLoading = true
