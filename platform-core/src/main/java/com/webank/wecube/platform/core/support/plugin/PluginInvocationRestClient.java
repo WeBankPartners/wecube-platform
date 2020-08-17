@@ -31,9 +31,7 @@ public class PluginInvocationRestClient implements RestClient {
 		if (allowedOptions != null && !allowedOptions.isEmpty()) {
 			requestObj = requestObj.withAllowedOptions(allowedOptions);
 		}
-		if (!dueDate.isEmpty()) {
-			requestObj = requestObj.withDueDate(dueDate);
-		}
+		requestObj = requestObj.withDueDate(dueDate);
 
 		return doCallPluginService(asPluginServerUrl(instanceAddress, path), requestObj);
 	}
