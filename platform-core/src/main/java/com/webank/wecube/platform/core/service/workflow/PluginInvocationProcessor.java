@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,8 @@ import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultD
 public class PluginInvocationProcessor {
 
 	private static final Logger log = LoggerFactory.getLogger(PluginInvocationProcessor.class);
+	
+	private static final String DEF_DUE_DATE = "30";
 
 	private ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -239,7 +242,12 @@ public class PluginInvocationProcessor {
 			if(pluginInterfaceInvocationContext.getTaskNodeDefEntity() == null){
 				return null;
 			}
-			return  pluginInterfaceInvocationContext.getTaskNodeDefEntity().getTimeoutExpression();
+			String dueDate = pluginInterfaceInvocationContext.getTaskNodeDefEntity().getTimeoutExpression();
+			if(StringUtils.isBlank(dueDate)){
+			    return DEF_DUE_DATE;
+			}else{
+			    return dueDate;
+			}
 		}
 
 		private void handleResult(PluginInterfaceInvocationResult result) {
