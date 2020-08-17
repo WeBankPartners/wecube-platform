@@ -26,27 +26,32 @@ public class SystemVariableController {
 
     @PostMapping("/system-variables/retrieve")
     public CommonResponseDto retrieveSystemVariables(@RequestBody QueryRequest queryRequest) {
+        systemVariableService.validatePermission();
         return okayWithData(systemVariableService.retrieveSystemVariables(queryRequest));
     }
 
     @PostMapping("/system-variables/create")
     public CommonResponseDto createSystemVariables(@RequestBody List<SystemVariableDto> resourceSystemVariables) {
+        systemVariableService.validatePermission();
         return okayWithData(systemVariableService.createSystemVariables(resourceSystemVariables));
     }
 
     @PostMapping("/system-variables/update")
     public CommonResponseDto updateSystemVariables(@RequestBody List<SystemVariableDto> resourceSystemVariables) {
+        systemVariableService.validatePermission();
         return okayWithData(systemVariableService.updateSystemVariables(resourceSystemVariables));
     }
 
     @PostMapping("/system-variables/delete")
     public CommonResponseDto deleteSystemVariables(@RequestBody List<SystemVariableDto> resourceSystemVariables) {
+        systemVariableService.validatePermission();
         systemVariableService.deleteSystemVariables(resourceSystemVariables);
         return okay();
     }
 
     @GetMapping("/system-variables/constant/system-variable-scope")
     public CommonResponseDto retrieveSystemVariableScope() {
+        systemVariableService.validatePermission();
         return okayWithData(systemVariableService.retrieveSystemVariableScope());
     }
 }
