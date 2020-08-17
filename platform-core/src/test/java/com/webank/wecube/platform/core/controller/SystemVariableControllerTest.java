@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -39,6 +40,7 @@ import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
 import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 
+@Ignore
 public class SystemVariableControllerTest extends AbstractControllerTest {
     @Autowired
     PluginPackageRepository pluginPackageRepository;
