@@ -29,8 +29,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableWebMvc
 @EnableSwagger2
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(jsr250Enabled = true)
-@ComponentScan({ "com.webank.wecube.platform.core.controller", "com.webank.wecube.platform.core.support.cache"})
+@EnableGlobalMethodSecurity(jsr250Enabled = true, prePostEnabled = true, securedEnabled = true)
+@ComponentScan({ "com.webank.wecube.platform.core.controller", "com.webank.wecube.platform.core.support.cache" })
 public class SpringWebConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 
     @Autowired
