@@ -10,23 +10,31 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder.AuthenticatedUser;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.domain.RoleMenu;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.dto.QueryRequest;
 import com.webank.wecube.platform.core.dto.QueryResponse;
 import com.webank.wecube.platform.core.dto.SystemVariableDto;
 import com.webank.wecube.platform.core.jpa.EntityRepository;
 import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
+import com.webank.wecube.platform.core.jpa.user.RoleMenuRepository;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
 
 @Service
 @Transactional
 public class SystemVariableService {
+    public static final String MENU_CODE_ADMIN_SYSTEM_PARAMS = "ADMIN_SYSTEM_PARAMS";
     @Autowired
     private EntityRepository entityRepository;
 
     @Autowired
     private SystemVariableRepository systemVariableRepository;
+
+    @Autowired
+    private RoleMenuRepository roleMenuRepository;
 
     public QueryResponse<SystemVariableDto> retrieveSystemVariables(QueryRequest queryRequest) {
         QueryResponse<SystemVariable> queryResponse = entityRepository.query(SystemVariable.class, queryRequest);
@@ -78,7 +86,7 @@ public class SystemVariableService {
         });
         return domains;
     }
-    
+
     public SystemVariable toDomain(SystemVariableDto dto, SystemVariable existedSystemVariable) {
         SystemVariable systemVariable = existedSystemVariable;
         if (systemVariable == null) {
@@ -154,7 +162,8 @@ public class SystemVariableService {
     }
 
     public List<SystemVariable> getGlobalSystemVariableByName(String varName) {
-        return systemVariableRepository.findByNameAndScopeAndStatus(varName, SystemVariable.SCOPE_GLOBAL, SystemVariable.ACTIVE);
+        return systemVariableRepository.findByNameAndScopeAndStatus(varName, SystemVariable.SCOPE_GLOBAL,
+                SystemVariable.ACTIVE);
     }
 
     public String variableReplacement(String packageName, String originalString) {
@@ -194,5 +203,33 @@ public class SystemVariableService {
 
     public List<String> retrieveSystemVariableScope() {
         return systemVariableRepository.findDistinctScope();
+    }
+
+    public void validatePermission() {
+        AuthenticatedUser currentUser = AuthenticationContextHolder.getCurrentUser();
+        if (currentUser == null || currentUser.getAuthorities() == null || currentUser.getAuthorities().isEmpty()) {
+            throw new WecubeCoreException("Current user does not logged in.");
+        }
+        List<RoleMenu> roleMenus = roleMenuRepository.findAllByMenuCode(MENU_CODE_ADMIN_SYSTEM_PARAMS);
+
+        if (roleMenus == null || roleMenus.isEmpty()) {
+            throw new WecubeCoreException("System variable authority is not configured currently.");
+        }
+
+        for (String userRole : currentUser.getAuthorities()) {
+            for (RoleMenu roleMenu : roleMenus) {
+                if (userRole.equalsIgnoreCase(roleMenu.getRoleName())) {
+                    return;
+                }
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (RoleMenu roleMenu : roleMenus) {
+            sb.append(roleMenu.getRoleName()).append(" ");
+        }
+
+        String msg = String.format("Lack of permission to proceed operation, expected user roles:%s", sb.toString());
+        throw new WecubeCoreException(msg);
     }
 }
