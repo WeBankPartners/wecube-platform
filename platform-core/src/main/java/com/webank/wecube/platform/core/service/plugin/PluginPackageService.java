@@ -59,6 +59,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.domain.plugin.RoleBind;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
@@ -164,6 +165,8 @@ public class PluginPackageService {
 
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
+
+    private VersionComparator versionComparator = new VersionComparator();
 
     public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginDeclarationDto> pluginConfigDtos) {
         if (StringUtils.isBlank(packageId)) {
@@ -519,6 +522,8 @@ public class PluginPackageService {
 
         PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
 
+        validatePackageDependencies(pluginPackage);
+
         ensurePluginPackageIsAllowedToRegister(pluginPackage);
 
         ensureNoMoreThanTwoActivePackages(pluginPackage);
@@ -534,6 +539,69 @@ public class PluginPackageService {
         pluginPackage.setStatus(REGISTERED);
 
         return pluginPackageRepository.save(pluginPackage);
+    }
+
+    private void validatePackageDependencies(PluginPackage pluginPackage) {
+        Set<PluginPackageDependency> pluginPackageDependencies = pluginPackage.getPluginPackageDependencies();
+        if (pluginPackageDependencies == null || pluginPackageDependencies.isEmpty()) {
+            log.info("{} has no dependencies and no need to validate.", pluginPackage.getId());
+            return;
+        }
+
+        for (PluginPackageDependency pluginPackageDependency : pluginPackageDependencies) {
+
+            if (!hasNewerDependencyPluginPackageActiveStatus(pluginPackageDependency)) {
+                log.info("dependended plugin package {} {} is not in active status.",
+                        pluginPackageDependency.getDependencyPackageName(),
+                        pluginPackageDependency.getDependencyPackageVersion());
+                String msg = String.format(
+                        "Plugin dependency validation failed:make sure dependency packege %s %s is in active status.",
+                        pluginPackageDependency.getDependencyPackageName(),
+                        pluginPackageDependency.getDependencyPackageVersion());
+                throw new WecubeCoreException(msg);
+            }
+        }
+    }
+
+    private boolean hasNewerDependencyPluginPackageActiveStatus(PluginPackageDependency pluginPackageDependency) {
+        log.info("try to find newer active dependency plugin package: name={}, version={}",
+                pluginPackageDependency.getDependencyPackageName(),
+                pluginPackageDependency.getDependencyPackageVersion());
+        List<LazyPluginPackage> lazyPluginPackages = lazyPluginPackageRepository
+                .findAllByName(pluginPackageDependency.getDependencyPackageName());
+        if (lazyPluginPackages == null || lazyPluginPackages.isEmpty()) {
+            return false;
+        }
+
+        String baseVersion = pluginPackageDependency.getDependencyPackageVersion();
+
+        for (LazyPluginPackage lazyPluginPackage : lazyPluginPackages) {
+            if (!isLazyActiveStatus(lazyPluginPackage.getStatus())) {
+                continue;
+            }
+
+            //
+            String version = lazyPluginPackage.getVersion();
+            int compare = versionComparator.compare(version, baseVersion);
+            if (compare >= 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isLazyActiveStatus(LazyPluginPackage.Status status) {
+        if (status == null) {
+            return false;
+        }
+        for (LazyPluginPackage.Status activeStatus : LazyPluginPackage.ACTIVE_STATUS) {
+            if (status == activeStatus) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void decommissionPluginPackage(String pluginPackageId) {
