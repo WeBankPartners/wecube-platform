@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +111,8 @@ public class PluginInstanceService {
     private static final int PLUGIN_DEFAULT_START_PORT = 20000;
     private static final int PLUGIN_DEFAULT_END_PORT = 30000;
 
+    private VersionComparator versionComparator = new VersionComparator();
+
     public List<String> getAvailableContainerHosts() {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.DOCKER);
         List<String> hostList = new ArrayList<String>();
@@ -167,25 +170,25 @@ public class PluginInstanceService {
     }
 
     public List<PluginInstance> getRunningPluginInstances(String pluginName) {
-        List<PluginPackage> activePluginPackages = pluginPackageRepository.findLatestActiveVersionPluginPackagesByName(pluginName);
+        List<PluginPackage> activePluginPackages = pluginPackageRepository
+                .findLatestActiveVersionPluginPackagesByName(pluginName);
         if (activePluginPackages == null || activePluginPackages.isEmpty()) {
             throw new WecubeCoreException(String.format("Plugin package [%s] not found.", pluginName));
         }
-        
+
         List<PluginInstance> runningInstances = new ArrayList<PluginInstance>();
-        for(PluginPackage pkg : activePluginPackages) {
-        	List<PluginInstance> instances = pluginInstanceRepository
+        for (PluginPackage pkg : activePluginPackages) {
+            List<PluginInstance> instances = pluginInstanceRepository
                     .findByContainerStatusAndPluginPackage_Id(PluginInstance.CONTAINER_STATUS_RUNNING, pkg.getId());
-        	if(instances != null && (!instances.isEmpty())) {
-        		runningInstances.addAll(instances);
-        	}
-        	
-        	if(runningInstances.size() > 0) {
-        		break;
-        	}
+            if (instances != null && (!instances.isEmpty())) {
+                runningInstances.addAll(instances);
+            }
+
+            if (runningInstances.size() > 0) {
+                break;
+            }
         }
 
-        
         if (runningInstances.isEmpty()) {
             throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
         }
@@ -258,7 +261,14 @@ public class PluginInstanceService {
         if (mysqlInstances.size() > 0) {
             PluginMysqlInstance mysqlInstance = mysqlInstances.get(0);
             tryUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage);
-            mysqlInstance.setLatestUpgradeVersion(pluginPackage.getVersion());
+            if (StringUtils.isBlank(mysqlInstance.getLatestUpgradeVersion())) {
+                mysqlInstance.setLatestUpgradeVersion(pluginPackage.getVersion());
+            }
+            int versionCompare = versionComparator.compare(pluginPackage.getVersion(),
+                    mysqlInstance.getLatestUpgradeVersion());
+            if(versionCompare >= 0){
+                mysqlInstance.setLatestUpgradeVersion(pluginPackage.getVersion());
+            }
             mysqlInstance.setUpdatedTime(new Date());
             pluginMysqlInstanceRepository.save(mysqlInstance);
             ResourceServer resourceServer = mysqlInstance.getResourceItem().getResourceServer();
@@ -282,7 +292,8 @@ public class PluginInstanceService {
         }
 
         try {
-        	logger.info("try to perform database upgrade for {} {}", pluginPackage.getName(), pluginPackage.getVersion());
+            logger.info("try to perform database upgrade for {} {}", pluginPackage.getName(),
+                    pluginPackage.getVersion());
             performUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage, latestVersion);
         } catch (IOException e) {
             logger.error("errors while processing upgrade sql", e);
@@ -321,19 +332,17 @@ public class PluginInstanceService {
         populator.setSeparator(";");
         populator.setCommentPrefix("#");
         populator.setSqlScriptEncoding("utf-8");
-        for(Resource script : scripts) {
-        	populator.addScript(script);
+        for (Resource script : scripts) {
+            populator.addScript(script);
         }
         try {
-        	logger.info("start to execute sql script file:{}, host:{},port:{},schema:{}", 
-        			upgradeSqlFile.getAbsolutePath(),
-        			dbServer.getHost(),
-        			dbServer.getPort(),
-        			mysqlInstance.getSchemaName());
+            logger.info("start to execute sql script file:{}, host:{},port:{},schema:{}",
+                    upgradeSqlFile.getAbsolutePath(), dbServer.getHost(), dbServer.getPort(),
+                    mysqlInstance.getSchemaName());
             populator.execute(dataSource);
         } catch (Exception e) {
-            String errorMessage = String.format("Failed to execute [{}] for schema[%s]",
-            		upgradeSqlFile.getName(), mysqlInstance.getSchemaName());
+            String errorMessage = String.format("Failed to execute [%s] for schema[%s]", upgradeSqlFile.getName(),
+                    mysqlInstance.getSchemaName());
             logger.error(errorMessage);
             throw new WecubeCoreException(errorMessage, e);
         }
@@ -355,7 +364,7 @@ public class PluginInstanceService {
             bw = new BufferedWriter(
                     new OutputStreamWriter(new FileOutputStream(upgradeSqlFile), Charset.forName("utf-8")));
 
-            bw.write(foreignCheckOff+"\n");
+            bw.write(foreignCheckOff + "\n");
             long lineNum = 0L;
             String sLine = null;
             boolean shouldStart = false;
@@ -387,8 +396,8 @@ public class PluginInstanceService {
                     break;
                 }
             }
-            
-            bw.write(foreignCheckOn+"\n");
+
+            bw.write(foreignCheckOn + "\n");
         } finally {
             if (br != null) {
                 try {
@@ -472,12 +481,12 @@ public class PluginInstanceService {
         if (isStringBlank(latestVersion)) {
             return true;
         }
-        
-        if(versionEquals(currentVersion, latestVersion)){
+
+        if (versionEquals(currentVersion, latestVersion)) {
             return false;
         }
-        
-        if(versionGreaterThan(currentVersion, latestVersion)){
+
+        if (versionGreaterThan(currentVersion, latestVersion)) {
             return true;
         }
 
