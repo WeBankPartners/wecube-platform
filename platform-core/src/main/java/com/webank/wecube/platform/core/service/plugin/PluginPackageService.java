@@ -59,6 +59,7 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.domain.plugin.RoleBind;
+import com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
@@ -519,6 +520,8 @@ public class PluginPackageService {
 
         PluginPackage pluginPackage = pluginPackageRepository.findById(pluginPackageId).get();
 
+        validatePackageDependencies(pluginPackage);
+
         ensurePluginPackageIsAllowedToRegister(pluginPackage);
 
         ensureNoMoreThanTwoActivePackages(pluginPackage);
@@ -534,6 +537,41 @@ public class PluginPackageService {
         pluginPackage.setStatus(REGISTERED);
 
         return pluginPackageRepository.save(pluginPackage);
+    }
+
+    private void validatePackageDependencies(PluginPackage pluginPackage) {
+        Set<PluginPackageDependency> pluginPackageDependencies = pluginPackage.getPluginPackageDependencies();
+        if (pluginPackageDependencies == null || pluginPackageDependencies.isEmpty()) {
+            log.info("{} has no dependencies and no need to validate.", pluginPackage.getId());
+            return;
+        }
+
+        for (PluginPackageDependency pluginPackageDependency : pluginPackageDependencies) {
+            PluginPackage dependencyPluginPackage = pluginPackageDependency.getPluginPackage();
+            if(dependencyPluginPackage == null){
+                continue;
+            }
+            
+            if(!isDependencyPluginPackageActiveStatus(dependencyPluginPackage)){
+                log.info("dependended plugin package {} is not in active status.", dependencyPluginPackage.getId());
+                String msg = String.format("Plugin dependency validation failed as %s is not in active status.", dependencyPluginPackage.getId());
+                throw new WecubeCoreException(msg);
+            }
+        }
+    }
+
+    private boolean isDependencyPluginPackageActiveStatus(PluginPackage dependencyPluginPackage) {
+        Status status = dependencyPluginPackage.getStatus();
+        if (status == null) {
+            return false;
+        }
+        for (Status activeStatus : PluginPackage.ACTIVE_STATUS) {
+            if (status == activeStatus) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void decommissionPluginPackage(String pluginPackageId) {
