@@ -166,6 +166,8 @@ public class PluginPackageService {
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
 
+    private VersionComparator versionComparator = new VersionComparator();
+
     public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginDeclarationDto> pluginConfigDtos) {
         if (StringUtils.isBlank(packageId)) {
             throw new WecubeCoreException("Package ID is blank.");
@@ -547,25 +549,53 @@ public class PluginPackageService {
         }
 
         for (PluginPackageDependency pluginPackageDependency : pluginPackageDependencies) {
-            PluginPackage dependencyPluginPackage = pluginPackageDependency.getPluginPackage();
-            if(dependencyPluginPackage == null){
-                continue;
-            }
-            
-            if(!isDependencyPluginPackageActiveStatus(dependencyPluginPackage)){
-                log.info("dependended plugin package {} is not in active status.", dependencyPluginPackage.getId());
-                String msg = String.format("Plugin dependency validation failed as %s is not in active status.", dependencyPluginPackage.getId());
+
+            if (!hasNewerDependencyPluginPackageActiveStatus(pluginPackageDependency)) {
+                log.info("dependended plugin package {} {} is not in active status.",
+                        pluginPackageDependency.getDependencyPackageName(),
+                        pluginPackageDependency.getDependencyPackageVersion());
+                String msg = String.format(
+                        "Plugin dependency validation failed:make sure dependency packege %s %s is in active status.",
+                        pluginPackageDependency.getDependencyPackageName(),
+                        pluginPackageDependency.getDependencyPackageVersion());
                 throw new WecubeCoreException(msg);
             }
         }
     }
 
-    private boolean isDependencyPluginPackageActiveStatus(PluginPackage dependencyPluginPackage) {
-        Status status = dependencyPluginPackage.getStatus();
+    private boolean hasNewerDependencyPluginPackageActiveStatus(PluginPackageDependency pluginPackageDependency) {
+        log.info("try to find newer active dependency plugin package: name={}, version={}",
+                pluginPackageDependency.getDependencyPackageName(),
+                pluginPackageDependency.getDependencyPackageVersion());
+        List<LazyPluginPackage> lazyPluginPackages = lazyPluginPackageRepository
+                .findAllByName(pluginPackageDependency.getDependencyPackageName());
+        if (lazyPluginPackages == null || lazyPluginPackages.isEmpty()) {
+            return false;
+        }
+
+        String baseVersion = pluginPackageDependency.getDependencyPackageVersion();
+
+        for (LazyPluginPackage lazyPluginPackage : lazyPluginPackages) {
+            if (!isLazyActiveStatus(lazyPluginPackage.getStatus())) {
+                continue;
+            }
+
+            //
+            String version = lazyPluginPackage.getVersion();
+            int compare = versionComparator.compare(version, baseVersion);
+            if (compare >= 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isLazyActiveStatus(LazyPluginPackage.Status status) {
         if (status == null) {
             return false;
         }
-        for (Status activeStatus : PluginPackage.ACTIVE_STATUS) {
+        for (LazyPluginPackage.Status activeStatus : LazyPluginPackage.ACTIVE_STATUS) {
             if (status == activeStatus) {
                 return true;
             }
