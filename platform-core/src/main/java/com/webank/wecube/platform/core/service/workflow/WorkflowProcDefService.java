@@ -88,7 +88,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId,
                     ProcDefInfoEntity.DELETED_STATUS));
             procDef.setStatus(ProcDefInfoEntity.DELETED_STATUS);
-            processDefInfoRepo.save(procDef);
+            processDefInfoRepo.saveAndFlush(procDef);
             return;
         }
         // delete DRAFT_STATUS process with all nodes and params deleted as well
@@ -331,7 +331,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         draftEntity.setRootEntity(procDefDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
 
-        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
+        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.saveAndFlush(draftEntity);
         // Save ProcRoleBindingEntity
         this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), procDefDto);
 
@@ -420,7 +420,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 draftNodeEntity.setUpdatedTime(currTime);
                 draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
-                taskNodeDefInfoRepo.save(draftNodeEntity);
+                taskNodeDefInfoRepo.saveAndFlush(draftNodeEntity);
 
                 processDraftParamInfos(nodeDto, draftEntity, draftNodeEntity, currTime);
 
@@ -512,7 +512,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftNodeParamEntity.setBindType(nodeParamDto.getBindType());
             draftNodeParamEntity.setBindValue(nodeParamDto.getBindValue());
 
-            taskNodeParamRepo.save(draftNodeParamEntity);
+            taskNodeParamRepo.saveAndFlush(draftNodeParamEntity);
 
             reusedDraftParamEntities.add(draftNodeParamEntity);
 
@@ -559,7 +559,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setStatus(ProcDefInfoEntity.PREDEPLOY_STATUS);
         procDefEntity.setUpdatedTime(currTime);
 
-        ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.save(procDefEntity);
+        ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.saveAndFlush(procDefEntity);
         // Save ProcRoleBindingEntity
         this.saveProcRoleBinding(savedProcDefInfoEntity.getId(), procDefInfoDto);
 
@@ -693,7 +693,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 nodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
                 nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
-                taskNodeDefInfoRepo.save(nodeEntity);
+                taskNodeDefInfoRepo.saveAndFlush(nodeEntity);
 
                 if (nodeDto.getParamInfos() != null) {
                     for (TaskNodeDefParamDto paramDto : nodeDto.getParamInfos()) {
@@ -712,7 +712,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                         paramEntity.setBindType(paramDto.getBindType());
                         paramEntity.setBindValue(paramDto.getBindValue());
 
-                        taskNodeParamRepo.save(paramEntity);
+                        taskNodeParamRepo.saveAndFlush(paramEntity);
                     }
                 }
             }
@@ -733,7 +733,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setStatus(ProcDefInfoEntity.DEPLOYED_STATUS);
         procDefEntity.setUpdatedTime(now);
 
-        processDefInfoRepo.save(procDefEntity);
+        processDefInfoRepo.saveAndFlush(procDefEntity);
 
         ProcDefOutlineDto result = new ProcDefOutlineDto();
         result.setProcDefId(procDefEntity.getId());
@@ -772,7 +772,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             }
             nodeEntity.setPreviousNodeIds(marshalNodeIds(pfn.getPreviousFlowNodes()));
             nodeEntity.setSucceedingNodeIds(marshalNodeIds(pfn.getSucceedingFlowNodes()));
-            taskNodeDefInfoRepo.save(nodeEntity);
+            taskNodeDefInfoRepo.saveAndFlush(nodeEntity);
 
             FlowNodeDefDto nodeDefDto = result.findFlowNodeDefDto(pfn.getId());
 
@@ -804,7 +804,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             nodeParamEntities.forEach(n -> {
                 n.setUpdatedTime(now);
                 n.setStatus(TaskNodeParamEntity.DEPLOYED_STATUS);
-                taskNodeParamRepo.save(n);
+                taskNodeParamRepo.saveAndFlush(n);
             });
         }
 
