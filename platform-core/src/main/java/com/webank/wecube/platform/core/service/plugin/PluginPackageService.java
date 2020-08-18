@@ -469,7 +469,8 @@ public class PluginPackageService {
 
         Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository.findById(requestId);
         if (!reqOpt.isPresent()) {
-            throw new WecubeCoreException("3098", String.format("Such request with %s does not exist.", requestId), requestId);
+            throw new WecubeCoreException("3098", String.format("Such request with %s does not exist.", requestId),
+                    requestId);
         }
 
         PluginArtifactPullRequestEntity req = reqOpt.get();
@@ -562,7 +563,8 @@ public class PluginPackageService {
                         "Plugin dependency validation failed:make sure dependency packege %s %s is in active status.",
                         pluginPackageDependency.getDependencyPackageName(),
                         pluginPackageDependency.getDependencyPackageVersion());
-                throw new WecubeCoreException(msg);
+                throw new WecubeCoreException("3310", msg, pluginPackageDependency.getDependencyPackageName(),
+                        pluginPackageDependency.getDependencyPackageVersion());
             }
         }
     }
@@ -801,8 +803,8 @@ public class PluginPackageService {
             reqEntity = ctx.getEntity();
         }
         if (reqEntity == null) {
-            throw new WecubeCoreException("3102",
-                    String.format("Request entity %s does not exist", ctx.getRequestId()), ctx.getRequestId());
+            throw new WecubeCoreException("3102", String.format("Request entity %s does not exist", ctx.getRequestId()),
+                    ctx.getRequestId());
         }
 
         return reqEntity;
@@ -897,7 +899,8 @@ public class PluginPackageService {
                     "Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]",
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
             log.warn(errorMessage);
-            throw new WecubeCoreException("3105", errorMessage, pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
+            throw new WecubeCoreException("3105", errorMessage, pluginPackage.getName(), pluginPackage.getVersion(),
+                    pluginPackage.getStatus());
         }
     }
 
@@ -910,8 +913,8 @@ public class PluginPackageService {
                 String activePackagesString = pluginPackages.stream()
                         .map(it -> String.join(":", it.getName(), it.getVersion(), it.getStatus().name()))
                         .collect(Collectors.joining(","));
-                String msg = String.format(
-                        "Not allowed to register more packages. Current active packages: [%s]", activePackagesString);
+                String msg = String.format("Not allowed to register more packages. Current active packages: [%s]",
+                        activePackagesString);
                 throw new WecubeCoreException("3106", msg, activePackagesString);
             }
         }
@@ -1140,7 +1143,8 @@ public class PluginPackageService {
                 }
             } catch (Exception e) {
                 log.error("Run command [rm] meet error: ", e.getMessage());
-                throw new WecubeCoreException("3113", String.format("Run command [rm] meet error: %s", e.getMessage()), e.getMessage());
+                throw new WecubeCoreException("3113", String.format("Run command [rm] meet error: %s", e.getMessage()),
+                        e.getMessage());
             }
         }
     }
@@ -1201,7 +1205,8 @@ public class PluginPackageService {
 
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
             throw new WecubeCoreException("3115", String.format("Plugin package [name=%s, version=%s] exists.",
-                    pluginPackage.getName(), pluginPackage.getVersion()), pluginPackage.getName(), pluginPackage.getVersion());
+                    pluginPackage.getName(), pluginPackage.getVersion()), pluginPackage.getName(),
+                    pluginPackage.getVersion());
         }
 
         processPluginDockerImageFile(localFilePath, pluginPackageDto);
