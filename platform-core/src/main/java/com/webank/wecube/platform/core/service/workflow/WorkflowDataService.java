@@ -13,8 +13,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -82,6 +84,10 @@ public class WorkflowDataService {
     @Autowired
     protected GraphNodeRepository graphNodeRepository;
 
+    @Autowired
+    @Qualifier("userJwtSsoTokenRestTemplate")
+    protected RestTemplate userJwtSsoTokenRestTemplate;
+
     public ProcessDataPreviewDto generateProcessDataPreviewForProcInstance(Integer procInstId) {
         List<GraphNodeEntity> gNodeEntities = graphNodeRepository.findAllByProcInstId(procInstId);
         ProcessDataPreviewDto result = new ProcessDataPreviewDto();
@@ -128,8 +134,8 @@ public class WorkflowDataService {
             return result;
         }
 
-        List<Map<String, Object>> retRecords = standardEntityOperationService
-                .queryAttributeValuesOfLeafNode(new EntityOperationRootCondition(rootEntityExpr, null));
+        List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(
+                new EntityOperationRootCondition(rootEntityExpr, null), userJwtSsoTokenRestTemplate);
         if (retRecords == null) {
             return result;
         }
@@ -426,7 +432,7 @@ public class WorkflowDataService {
         EntityOperationRootCondition condition = new EntityOperationRootCondition(routineExpr, dataId);
         List<TreeNode> nodes = null;
         try {
-            EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition);
+            EntityTreeNodesOverview overview = standardEntityOperationService.generateEntityLinkOverview(condition, this.userJwtSsoTokenRestTemplate);
             nodes = overview.getHierarchicalEntityNodes();
 
             if (needSaveTmp) {
@@ -496,7 +502,7 @@ public class WorkflowDataService {
             if (containsTreeNode(savedTreeNodes, tn)) {
                 continue;
             }
-            
+
             ProcExecBindingTmpEntity taskNodeBinding = new ProcExecBindingTmpEntity();
             taskNodeBinding.setBindType(ProcExecBindingTmpEntity.BIND_TYPE_TASK_NODE_INSTANCE);
             taskNodeBinding.setBound(ProcExecBindingTmpEntity.BOUND);
