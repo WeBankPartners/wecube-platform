@@ -29,9 +29,6 @@ import com.webank.wecube.platform.core.service.dme.EntityQueryFilter;
 import com.webank.wecube.platform.core.service.dme.EntityQueryLinkNode;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestClient;
 
-/**
- * @author howechen
- */
 @Service
 public class RootlessExpressionServiceImpl implements RootlessExpressionService {
 
@@ -45,8 +42,8 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
 	private EntityQueryExecutor entityQueryExecutor;
 
 	@Autowired
-	@Qualifier(value = "jwtSsoRestTemplate")
-	private RestTemplate jwtSsoRestTemplate;
+    @Qualifier("userJwtSsoTokenRestTemplate")
+    protected RestTemplate userJwtSsoTokenRestTemplate;
 
 	@Autowired
 	private EntityDataRouteFactory entityDataRouteFactory;
@@ -112,7 +109,7 @@ public class RootlessExpressionServiceImpl implements RootlessExpressionService 
 		ctx.setEntityQueryExprNodeInfos(exprNodeInfos);
 		ctx.setOriginalEntityLinkExpression("");
 		ctx.setOriginalEntityData(null);
-		ctx.setStandardEntityOperationRestClient(new StandardEntityOperationRestClient(jwtSsoRestTemplate));
+		ctx.setStandardEntityOperationRestClient(new StandardEntityOperationRestClient(userJwtSsoTokenRestTemplate));
 		ctx.setHeadEntityQueryLinkNode(entityQueryExecutor.buildEntityQueryLinkNode(exprNodeInfos));
 		ctx.setEntityDataRouteFactory(entityDataRouteFactory);
 
