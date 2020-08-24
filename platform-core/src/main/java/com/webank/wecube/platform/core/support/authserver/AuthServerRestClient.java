@@ -209,6 +209,13 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
     public void deleteUserAccountByUserId(String userId) {
         deleteObject(clientProperties.getPathDeleteUserAccountByUserId(), userId);
     }
+    
+    public AsUserDto changeUserPassword(AsUserPassDto asUserPassDto){
+        AsUserDto result = postForObject(clientProperties.getPathUserChangePassword(), asUserPassDto,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<AsUserDto>>() {
+                });
+        return result;
+    }
 
     @Override
     protected Logger getLogger() {

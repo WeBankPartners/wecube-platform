@@ -1,0 +1,32 @@
+package com.webank.wecube.platform.auth.server.dto;
+
+public class SimpleLocalUserPassDto {
+    private String username;
+    private String originalPassword;
+    private String changedPassword;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getOriginalPassword() {
+        return originalPassword;
+    }
+
+    public void setOriginalPassword(String originalPassword) {
+        this.originalPassword = originalPassword;
+    }
+
+    public String getChangedPassword() {
+        return changedPassword;
+    }
+
+    public void setChangedPassword(String changedPassword) {
+        this.changedPassword = changedPassword;
+    }
+
+}

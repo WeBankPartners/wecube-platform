@@ -16,6 +16,7 @@ import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
+import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
 import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 
@@ -35,6 +36,12 @@ public class UserManagementController {
         UserDto result = userManagementService.registerUser(userDto);
         return CommonResponseDto.okayWithData(result);
 
+    }
+    
+    @PostMapping("/users/change-password")
+    public CommonResponseDto changeUserPassword(@RequestBody UserPasswordDto userPassDto){
+        userManagementService.changeUserPassword(userPassDto);
+        return CommonResponseDto.okay();
     }
 
     @GetMapping("/users/retrieve")
