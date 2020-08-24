@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,6 +22,7 @@ import com.webank.wecube.platform.core.dto.DmeFilterDto;
 import com.webank.wecube.platform.core.dto.DmeLinkFilterDto;
 import com.webank.wecube.platform.core.dto.Filter;
 
+@Ignore
 public class RootlessExpressionServiceTest extends BaseSpringBootTest {
 
 	@Autowired
