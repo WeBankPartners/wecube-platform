@@ -4,8 +4,6 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.DECOMMISSIONED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.REGISTERED;
 import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.UNREGISTERED;
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.DISABLED;
-import static com.webank.wecube.platform.core.domain.plugin.PluginConfig.Status.ENABLED;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -17,17 +15,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import com.webank.wecube.platform.core.dto.*;
-import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
-import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
-import com.webank.wecube.platform.core.dto.*;
-import com.webank.wecube.platform.core.dto.workflow.PluginConfigOutlineDto;
-import com.webank.wecube.platform.core.utils.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.webank.wecube.platform.core.boot.ApplicationVersionInfo;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -59,8 +61,19 @@ import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourc
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesMysql;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageRuntimeResourcesS3;
 import com.webank.wecube.platform.core.domain.plugin.RoleBind;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
+import com.webank.wecube.platform.core.dto.PluginConfigDto;
+import com.webank.wecube.platform.core.dto.PluginConfigGroupByNameDto;
+import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDataModelDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDto;
+import com.webank.wecube.platform.core.dto.PluginPackageInfoDto;
+import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
+import com.webank.wecube.platform.core.dto.S3PluginActifactPullRequestDto;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.workflow.PluginConfigOutlineDto;
 import com.webank.wecube.platform.core.entity.PluginAuthEntity;
 import com.webank.wecube.platform.core.jpa.MenuItemRepository;
 import com.webank.wecube.platform.core.jpa.PluginArtifactPullRequestRepository;
@@ -70,6 +83,8 @@ import com.webank.wecube.platform.core.jpa.PluginPackageDependencyRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageResourceFileRepository;
 import com.webank.wecube.platform.core.jpa.SystemVariableRepository;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
 import com.webank.wecube.platform.core.parser.PluginConfigXmlValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator;
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
@@ -84,6 +99,7 @@ import com.webank.wecube.platform.core.support.S3Client;
 import com.webank.wecube.platform.core.support.authserver.AsAuthorityDto;
 import com.webank.wecube.platform.core.support.authserver.AsRoleAuthoritiesDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
+import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.core.utils.StringUtilsEx;
 import com.webank.wecube.platform.core.utils.SystemUtils;
 
@@ -94,6 +110,8 @@ public class PluginPackageService {
             "upgrade.sql");
 
     public static final String SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL = "PLUGIN_ARTIFACTS_RELEASE_URL";
+
+    public static final String PLATFORM_NAME = "platform";
 
     public static final Logger log = LoggerFactory.getLogger(PluginPackageService.class);
 
@@ -165,6 +183,9 @@ public class PluginPackageService {
 
     @Autowired
     private PluginAuthRepository pluginAuthRepository;
+
+    @Autowired
+    private ApplicationVersionInfo applicationVersionInfo;
 
     private VersionComparator versionComparator = new VersionComparator();
 
@@ -554,6 +575,10 @@ public class PluginPackageService {
         }
 
         for (PluginPackageDependency pluginPackageDependency : pluginPackageDependencies) {
+            if (isPlatformDependency(pluginPackageDependency)) {
+                validatePlatformDependency(pluginPackageDependency);
+                continue;
+            }
 
             if (!hasNewerDependencyPluginPackageActiveStatus(pluginPackageDependency)) {
                 log.info("dependended plugin package {} {} is not in active status.",
@@ -567,6 +592,26 @@ public class PluginPackageService {
                         pluginPackageDependency.getDependencyPackageVersion());
             }
         }
+    }
+
+    private boolean isPlatformDependency(PluginPackageDependency pluginPackageDependency) {
+        if (PLATFORM_NAME.equalsIgnoreCase(pluginPackageDependency.getDependencyPackageName())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private void validatePlatformDependency(PluginPackageDependency pluginPackageDependency) {
+        String platformVersion = applicationVersionInfo.getVersion();
+        int compare = versionComparator.compare(platformVersion, pluginPackageDependency.getDependencyPackageVersion());
+        if (compare < 0) {
+            String msg = String.format(
+                    "Platform version does not match.At least %s required but currently the version is %s.",
+                    pluginPackageDependency.getDependencyPackageVersion(), platformVersion);
+            throw new WecubeCoreException(msg);
+        }
+
     }
 
     private boolean hasNewerDependencyPluginPackageActiveStatus(PluginPackageDependency pluginPackageDependency) {
