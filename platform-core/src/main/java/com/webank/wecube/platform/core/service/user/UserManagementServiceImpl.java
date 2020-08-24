@@ -10,14 +10,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
+import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.support.RestClientException;
 import com.webank.wecube.platform.core.support.authserver.AsRoleDto;
 import com.webank.wecube.platform.core.support.authserver.AsUserDto;
+import com.webank.wecube.platform.core.support.authserver.AsUserPassDto;
 import com.webank.wecube.platform.core.support.authserver.AuthServerClientException;
 import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 
@@ -34,6 +37,15 @@ public class UserManagementServiceImpl implements UserManagementService {
     
     @Autowired
     private SystemVariableService systemVariableService;
+    
+    public void changeUserPassword(UserPasswordDto userPassDto){
+        AsUserPassDto asUserPassDto = new AsUserPassDto();
+        asUserPassDto.setUsername(AuthenticationContextHolder.getCurrentUsername());
+        asUserPassDto.setOriginalPassword(userPassDto.getOriginalPassword());
+        asUserPassDto.setChangedPassword(userPassDto.getNewPassword());
+        
+        authServerRestClient.changeUserPassword(asUserPassDto);
+    }
     
     public RoleDto retrieveRoleByRoleName(String roleName){
         if(StringUtils.isBlank(roleName)){
