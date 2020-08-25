@@ -131,7 +131,6 @@ export default {
         const len = nondes[i].children[2].innerHTML.replace(/&nbsp;/g, '').length
         const fontsize = Math.min((nondes[i].children[1].rx.baseVal.value / len) * 3, 16)
         for (let j = 2; j < nondes[i].children.length; j++) {
-          console.log(fontsize)
           nondes[i].children[j].setAttribute('font-size', fontsize)
         }
       }
