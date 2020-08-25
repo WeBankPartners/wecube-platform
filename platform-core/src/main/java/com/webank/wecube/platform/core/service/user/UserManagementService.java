@@ -4,12 +4,15 @@ import java.util.List;
 
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
+import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
 
 /**
  * @author howechen
  */
 public interface UserManagementService {
     UserDto registerUser(UserDto userDto);
+    
+    void changeUserPassword(UserPasswordDto userPassDto);
 
     List<UserDto> retrieveAllUserAccounts();
 

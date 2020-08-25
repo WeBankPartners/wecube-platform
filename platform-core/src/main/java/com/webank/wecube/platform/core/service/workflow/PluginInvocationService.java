@@ -364,7 +364,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		String interfacePath = pluginConfigInterface.getPath();
 		if (pluginInstance == null) {
 			log.warn("cannot find an available plugin instance for {}", pluginConfigInterface.getServiceName());
-			throw new WecubeCoreException("Cannot find an available plugin instance.");
+			throw new WecubeCoreException("3169","Cannot find an available plugin instance.");
 		}
 
 		String instanceHostAndPort = applicationProperties.getGatewayUrl();
@@ -463,7 +463,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			if (nodeParamEntity == null) {
 				log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
-				throw new WecubeCoreException("Task node parameter entity does not exist.");
+				throw new WecubeCoreException("3170","Task node parameter entity does not exist.");
 			}
 
 			String bindNodeId = nodeParamEntity.getBindNodeId();
@@ -476,7 +476,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			if (bindNodeInstEntity == null) {
 				log.error("Bound node instance entity does not exist for {} {}", procInstEntity.getId(), bindNodeId);
-				throw new WecubeCoreException("Bound node instance entity does not exist.");
+				throw new WecubeCoreException("3171","Bound node instance entity does not exist.");
 			}
 
 			List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
@@ -484,12 +484,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			if (requestEntities == null || requestEntities.isEmpty()) {
 				log.error("cannot find request entity for {}", bindNodeInstEntity.getId());
-				throw new WecubeCoreException("Bound request entity does not exist.");
+				throw new WecubeCoreException("3172","Bound request entity does not exist.");
 			}
 
 			if (requestEntities.size() > 1) {
 				log.error("duplicated request entity found for {} ", bindNodeInstEntity.getId());
-				throw new WecubeCoreException("Duplicated request entity found.");
+				throw new WecubeCoreException("3173","Duplicated request entity found.");
 			}
 
 			TaskNodeExecRequestEntity requestEntity = requestEntities.get(0);
@@ -502,9 +502,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				if (FIELD_REQUIRED.equals(param.getRequired())) {
 					log.error("parameter entity does not exist but such plugin parameter is mandatory for {} {}",
 							bindParamName, bindParamType);
-					throw new WecubeCoreException(String.format(
+					throw new WecubeCoreException("3174",String.format(
 							"parameter entity does not exist but such plugin parameter is mandatory for {%s} {%s}",
-							bindParamName, bindParamType));
+							bindParamName, bindParamType), bindParamName, bindParamType);
 				}
 			}
 
@@ -527,7 +527,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			if (sVariable == null && FIELD_REQUIRED.equals(param.getRequired())) {
 				log.error("variable is null but [{}] is mandatory", paramName);
-				throw new WecubeCoreException(String.format("Variable is absent but [%s] is mandatory.", paramName));
+				throw new WecubeCoreException("3175",String.format("Variable is absent but [%s] is mandatory.", paramName), paramName);
 			}
 
 			String sVal = null;
@@ -540,7 +540,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			if (StringUtils.isBlank(sVal) && FIELD_REQUIRED.equals(param.getRequired())) {
 				log.error("variable is blank but [{}] is mandatory", paramName);
-				throw new WecubeCoreException(String.format("Variable is absent but [%s] is mandatory.", paramName));
+				throw new WecubeCoreException("3176",String.format("Variable is absent but [%s] is mandatory.", paramName));
 			}
 
 			objectVals.add(sVal);
@@ -556,8 +556,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 			if (nodeParamEntity == null) {
 				log.error("mapping type is {} but node parameter entity is null for {}", mappingType, curTaskNodeDefId);
-				throw new WecubeCoreException(
-						String.format("Task node parameter entity does not exist for {%s}.", paramName));
+				throw new WecubeCoreException("3177",
+						String.format("Task node parameter entity does not exist for {%s}.", paramName), paramName);
 			}
 
 			Object val = null;
@@ -611,7 +611,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		if (pluginConfigInterface == null) {
 			log.error("Plugin config interface does not exist for {} {} {}", taskNodeDefEntity.getId(), nodeId,
 					serviceId);
-			throw new WecubeCoreException("Plugin config interface does not exist.");
+			throw new WecubeCoreException("3178","Plugin config interface does not exist.");
 		}
 
 		return pluginConfigInterface;
@@ -634,7 +634,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		String serviceId = taskNodeDefEntity.getServiceId();
 		if (StringUtils.isBlank(serviceId)) {
 			log.error("service ID is invalid for {} {}", taskNodeDefEntity.getProcDefId(), nodeId);
-			throw new WecubeCoreException("Service ID is invalid.");
+			throw new WecubeCoreException("3179","Service ID is invalid.");
 		}
 
 		if (log.isDebugEnabled()) {
@@ -649,7 +649,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 				nodeId);
 		if (taskNodeInstEntity == null) {
 			log.warn("Task node instance does not exist for {} {}", procInstId, nodeId);
-			throw new WecubeCoreException("Task node instance does not exist.");
+			throw new WecubeCoreException("3180","Task node instance does not exist.");
 		}
 
 		String originalStatus = taskNodeInstEntity.getStatus();
@@ -685,7 +685,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 		if (taskNodeDefEntity == null) {
 			log.warn("Task node definition does not exist for {} {} {}", procDefId, nodeId,
 					TaskNodeDefInfoEntity.DEPLOYED_STATUS);
-			throw new WecubeCoreException("Task node definition does not exist.");
+			throw new WecubeCoreException("3181","Task node definition does not exist.");
 		}
 
 		return taskNodeDefEntity;
@@ -717,7 +717,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
 		if (procInstEntity == null) {
 			log.error("Process instance info does not exist for id:{}", procInstKernelId);
-			throw new WecubeCoreException("Process instance information does not exist.");
+			throw new WecubeCoreException("3182","Process instance information does not exist.");
 		}
 
 		if (!ProcInstInfoEntity.IN_PROGRESS_STATUS.equals(procInstEntity.getStatus())) {

@@ -33,7 +33,7 @@ public class OperationEventManagementService {
         
         if(operationEventEntities != null && !operationEventEntities.isEmpty()){
             log.error("operation event already exists,eventSeqNo={}", eventSeqNo);
-            throw new WecubeCoreException("Operation event already exists.");
+            throw new WecubeCoreException("3006","Operation event already exists.");
         }
         
         OperationEventEntity newOperationEventEntity = new OperationEventEntity();
@@ -63,12 +63,12 @@ public class OperationEventManagementService {
             return false;
         }
         
-        throw new WecubeCoreException("Boolean value must be 'Y' or 'N'");
+        throw new WecubeCoreException("3007","Boolean value must be 'Y' or 'N'");
     }
 
     private void validateOperationEventInput(OperationEventDto eventDto) {
         if (eventDto == null) {
-            throw new WecubeCoreException("Illegal input,cannot be null.");
+            throw new WecubeCoreException("3008","Illegal input,cannot be null.");
         }
 
         if (StringUtils.isBlank(eventDto.getEventSeqNo()) || StringUtils.isBlank(eventDto.getEventType())
@@ -78,7 +78,7 @@ public class OperationEventManagementService {
             log.error("mandatory fields must provide,eventSeqNo={},eventType={},sourceSubSystem={},operationKey={}",
                     eventDto.getEventSeqNo(), eventDto.getEventType(), eventDto.getSourceSubSystem(),
                     eventDto.getOperationKey());
-            throw new WecubeCoreException("Mandatory fields must provide.");
+            throw new WecubeCoreException("3009","Mandatory fields must provide.");
         }
     }
 }
