@@ -44,7 +44,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to create schema [%s], meet error [%s].", item.getName(), e.getMessage());
             log.error(errorMessage);
-            throw new WecubeCoreException(errorMessage, e);
+            throw new WecubeCoreException("3244",errorMessage, item.getName(), e.getMessage());
         }
         return item;
     }
@@ -66,14 +66,14 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             if (hasTables(connection, item.getName())) {
-                throw new WecubeCoreException(String.format("Can not delete database [%s] : Database is not empty.", item.getName()));
+                throw new WecubeCoreException("3245",String.format("Can not delete database [%s] : Database is not empty.", item.getName()), item.getName());
             }
             mysqlAccountManagementService.deleteItem(item);
             statement.executeUpdate(String.format("DROP SCHEMA %s", item.getName()));
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to delete schema [%s], meet error [%s].", item.getName(), e.getMessage());
             log.error(errorMessage);
-            throw new WecubeCoreException(errorMessage, e);
+            throw new WecubeCoreException("3246",errorMessage, item.getName(), e.getMessage());
         }
     }
 
@@ -85,7 +85,7 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to query tables, meet error [%s].", e.getMessage());
             log.error(errorMessage);
-            throw new WecubeCoreException(errorMessage, e);
+            throw new WecubeCoreException("3247",errorMessage, e.getMessage());
         }
         return hasTable;
     }

@@ -48,7 +48,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
         String username = additionalProperties.get("username");
         String password = additionalProperties.get("password");
         if (username == null || password == null) {
-            throw new WecubeCoreException("Username or password is missing");
+            throw new WecubeCoreException("3240","Username or password is missing");
         }
 
         DriverManagerDataSource dataSource = newDatasource(item);
@@ -62,7 +62,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
             log.error(errorMessage);
-            throw new WecubeCoreException(errorMessage, e);
+            throw new WecubeCoreException("3241",errorMessage, e);
         }
         return item;
     }
@@ -75,7 +75,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to drop account [username = %s]", item.getName());
             log.error(errorMessage);
-            throw new WecubeCoreException(errorMessage, e);
+            throw new WecubeCoreException("3242",errorMessage, e);
         }
     }
 
@@ -85,7 +85,7 @@ public class MysqlAccountManagementService implements ResourceItemService {
             password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(),
                     resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         } catch (Exception e) {
-            throw new WecubeCoreException(
+            throw new WecubeCoreException("3243",
                     String.format("Failed to decrypt the login password of server [%s].", item.getResourceServer()), e);
         }
 

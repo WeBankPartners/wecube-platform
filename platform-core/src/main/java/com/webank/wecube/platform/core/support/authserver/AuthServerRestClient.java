@@ -43,7 +43,7 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 });
     	}catch(Exception e) {
     		log.warn("Health check failed", e);
-    		throw new WecubeCoreException("Auth server health check failed.");
+    		throw new WecubeCoreException("3301", "Auth server health check failed.");
     	}
     }
 
@@ -208,6 +208,13 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
 
     public void deleteUserAccountByUserId(String userId) {
         deleteObject(clientProperties.getPathDeleteUserAccountByUserId(), userId);
+    }
+    
+    public AsUserDto changeUserPassword(AsUserPassDto asUserPassDto){
+        AsUserDto result = postForObject(clientProperties.getPathUserChangePassword(), asUserPassDto,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<AsUserDto>>() {
+                });
+        return result;
     }
 
     @Override

@@ -68,7 +68,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
     public void removeProcessDefinition(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
-            throw new WecubeCoreException("Process definition id is blank.");
+            throw new WecubeCoreException("3205","Process definition id is blank.");
         }
 
         Optional<ProcDefInfoEntity> procDefOpt = processDefInfoRepo.findById(procDefId);
@@ -88,7 +88,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId,
                     ProcDefInfoEntity.DELETED_STATUS));
             procDef.setStatus(ProcDefInfoEntity.DELETED_STATUS);
-            processDefInfoRepo.save(procDef);
+            processDefInfoRepo.saveAndFlush(procDef);
             return;
         }
         // delete DRAFT_STATUS process with all nodes and params deleted as well
@@ -144,7 +144,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
     public ProcDefOutlineDto getProcessDefinitionOutline(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
-            throw new WecubeCoreException("Process definition ID is blank.");
+            throw new WecubeCoreException("3206","Process definition ID is blank.");
         }
 
         Optional<ProcDefInfoEntity> procDefEntityOptional = processDefInfoRepo.findById(procDefId);
@@ -315,7 +315,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 }
             } else {
                 log.warn("Invalid process definition id:{}", originalId);
-                throw new WecubeCoreException("Invalid process definition id");
+                throw new WecubeCoreException("3207","Invalid process definition id");
             }
         }
 
@@ -331,7 +331,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         draftEntity.setRootEntity(procDefDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
 
-        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
+        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.saveAndFlush(draftEntity);
         // Save ProcRoleBindingEntity
         this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), procDefDto);
 
@@ -420,7 +420,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 draftNodeEntity.setUpdatedTime(currTime);
                 draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
-                taskNodeDefInfoRepo.save(draftNodeEntity);
+                taskNodeDefInfoRepo.saveAndFlush(draftNodeEntity);
 
                 processDraftParamInfos(nodeDto, draftEntity, draftNodeEntity, currTime);
 
@@ -512,7 +512,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftNodeParamEntity.setBindType(nodeParamDto.getBindType());
             draftNodeParamEntity.setBindValue(nodeParamDto.getBindValue());
 
-            taskNodeParamRepo.save(draftNodeParamEntity);
+            taskNodeParamRepo.saveAndFlush(draftNodeParamEntity);
 
             reusedDraftParamEntities.add(draftNodeParamEntity);
 
@@ -527,13 +527,13 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         String procDefName = procDefInfoDto.getProcDefName();
         if (StringUtils.isBlank(procDefName)) {
-            throw new WecubeCoreException("Process definition name cannot be empty.");
+            throw new WecubeCoreException("3208","Process definition name cannot be empty.");
         }
 
         List<ProcDefInfoEntity> existingProcDefs = processDefInfoRepo.findAllDeployedProcDefsByProcDefName(procDefName);
         if (existingProcDefs != null && !existingProcDefs.isEmpty()) {
             log.warn("such process definition name already exists,procDefName={}", procDefName);
-            throw new WecubeCoreException("Process definition name should NOT duplicated.");
+            throw new WecubeCoreException("3209","Process definition name should NOT duplicated.");
         }
 
         String originalId = procDefInfoDto.getProcDefId();
@@ -559,7 +559,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setStatus(ProcDefInfoEntity.PREDEPLOY_STATUS);
         procDefEntity.setUpdatedTime(currTime);
 
-        ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.save(procDefEntity);
+        ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.saveAndFlush(procDefEntity);
         // Save ProcRoleBindingEntity
         this.saveProcRoleBinding(savedProcDefInfoEntity.getId(), procDefInfoDto);
 
@@ -576,7 +576,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         }
 
         if (deployFailed || procDef == null) {
-            throw new WecubeCoreException("Failed to deploy process definition.");
+            throw new WecubeCoreException("3210","Failed to deploy process definition.");
         }
 
         if (draftProcDefEntity != null) {
@@ -594,7 +594,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         String serviceId = taskNodeDefDto.getServiceId();
         if (StringUtils.isBlank(serviceId)) {
             log.error("service ID is invalid for {} {}", taskNodeDefDto.getProcDefId(), nodeId);
-            throw new WecubeCoreException("Service ID is invalid.");
+            throw new WecubeCoreException("3211","Service ID is invalid.");
         }
 
         if (log.isDebugEnabled()) {
@@ -607,7 +607,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         if (pluginConfigInterface == null) {
             log.error("Plugin config interface does not exist for {} {} {}", taskNodeDefDto.getNodeId(), nodeId,
                     serviceId);
-            throw new WecubeCoreException("Plugin config interface does not exist.");
+            throw new WecubeCoreException("3212","Plugin config interface does not exist.");
         }
 
         return pluginConfigInterface;
@@ -621,13 +621,13 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         Map<String, List<String>> permissionToRole = procDefInfoDto.getPermissionToRole();
         if (permissionToRole == null || permissionToRole.isEmpty()) {
             log.warn("Permission configurations not found for {}", procDefInfoDto.getProcDefName());
-            throw new WecubeCoreException("Permission configuration should provide.");
+            throw new WecubeCoreException("3213","Permission configuration should provide.");
         }
 
         List<String> mgmtRoleIds = permissionToRole.get(PluginAuthEntity.PERM_TYPE_MGMT);
         if (mgmtRoleIds == null || mgmtRoleIds.isEmpty()) {
             log.warn("Management permission configuration not found for {}", procDefInfoDto.getProcDefName());
-            throw new WecubeCoreException("Management permission configuration should provide.");
+            throw new WecubeCoreException("3214","Management permission configuration should provide.");
         }
 
         for (TaskNodeDefInfoDto nodeDto : procDefInfoDto.getTaskNodeInfos()) {
@@ -635,12 +635,12 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 continue;
             }
             if (StringUtils.isBlank(nodeDto.getRoutineExpression()) || StringUtils.isBlank(nodeDto.getServiceId())) {
-                throw new WecubeCoreException(
+                throw new WecubeCoreException("3215",
                         String.format("Routine expression or service ID is invalid for %s", nodeDto.getNodeName()));
             }
 
             if (StringUtils.isBlank(nodeDto.getServiceId())) {
-                throw new WecubeCoreException(String.format("Service ID not configured for %s", nodeDto.getNodeId()));
+                throw new WecubeCoreException("3216",String.format("Service ID not configured for %s", nodeDto.getNodeId()));
             }
 
             validateTaskNodePluginPermission(nodeDto, mgmtRoleIds);
@@ -652,14 +652,14 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         PluginConfig pluginConfig = intf.getPluginConfig();
         if (pluginConfig == null) {
             log.warn("Plugin config does not exist for {} {}", nodeDto.getServiceId(), intf.getId());
-            throw new WecubeCoreException("Plugin config does not exist for interface:" + nodeDto.getServiceId());
+            throw new WecubeCoreException("3217",String.format("Plugin config does not exist for interface: %s" , nodeDto.getServiceId()));
         }
 
         List<PluginAuthEntity> pluginAuthConfigEntities = this.pluginAuthRepository
                 .findAllByPluginConfigIdAndPermission(pluginConfig.getId(), PluginAuthEntity.PERM_TYPE_USE);
         if (pluginAuthConfigEntities == null || pluginAuthConfigEntities.isEmpty()) {
             log.error("Plugin permission configuration does not exist for {}", pluginConfig.getId());
-            throw new WecubeCoreException("Lack of plugin permission to deploy workflow definition.");
+            throw new WecubeCoreException("3218","Lack of plugin permission to deploy workflow definition.");
         }
 
         for (PluginAuthEntity pluginAuthConfigEntity : pluginAuthConfigEntities) {
@@ -670,7 +670,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         log.warn("Lack of permission to deploy process,managementRoles={},pluginConfigId={}", mgmtRoleIds,
                 pluginConfig.getId());
-        throw new WecubeCoreException("Lack of permission to deploy process.");
+        throw new WecubeCoreException("3219","Lack of permission to deploy process.");
     }
 
     private void processDeployTaskNodeInfos(ProcDefInfoDto procDefInfoDto, ProcDefInfoEntity procDefEntity,
@@ -693,7 +693,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 nodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
                 nodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
-                taskNodeDefInfoRepo.save(nodeEntity);
+                taskNodeDefInfoRepo.saveAndFlush(nodeEntity);
 
                 if (nodeDto.getParamInfos() != null) {
                     for (TaskNodeDefParamDto paramDto : nodeDto.getParamInfos()) {
@@ -712,7 +712,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                         paramEntity.setBindType(paramDto.getBindType());
                         paramEntity.setBindValue(paramDto.getBindValue());
 
-                        taskNodeParamRepo.save(paramEntity);
+                        taskNodeParamRepo.saveAndFlush(paramEntity);
                     }
                 }
             }
@@ -733,7 +733,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setStatus(ProcDefInfoEntity.DEPLOYED_STATUS);
         procDefEntity.setUpdatedTime(now);
 
-        processDefInfoRepo.save(procDefEntity);
+        processDefInfoRepo.saveAndFlush(procDefEntity);
 
         ProcDefOutlineDto result = new ProcDefOutlineDto();
         result.setProcDefId(procDefEntity.getId());
@@ -772,7 +772,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             }
             nodeEntity.setPreviousNodeIds(marshalNodeIds(pfn.getPreviousFlowNodes()));
             nodeEntity.setSucceedingNodeIds(marshalNodeIds(pfn.getSucceedingFlowNodes()));
-            taskNodeDefInfoRepo.save(nodeEntity);
+            taskNodeDefInfoRepo.saveAndFlush(nodeEntity);
 
             FlowNodeDefDto nodeDefDto = result.findFlowNodeDefDto(pfn.getId());
 
@@ -804,7 +804,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             nodeParamEntities.forEach(n -> {
                 n.setUpdatedTime(now);
                 n.setStatus(TaskNodeParamEntity.DEPLOYED_STATUS);
-                taskNodeParamRepo.save(n);
+                taskNodeParamRepo.saveAndFlush(n);
             });
         }
 

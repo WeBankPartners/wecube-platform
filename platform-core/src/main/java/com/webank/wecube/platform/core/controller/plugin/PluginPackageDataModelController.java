@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.DataModelEntityDto;
 import com.webank.wecube.platform.core.dto.PluginPackageAttributeDto;
@@ -19,7 +18,7 @@ import com.webank.wecube.platform.core.service.PluginPackageDataModelServiceImpl
 
 @RestController
 @RequestMapping("/v1")
-//@RolesAllowed({MENU_COLLABORATION_PLUGIN_MANAGEMENT})
+// @RolesAllowed({MENU_COLLABORATION_PLUGIN_MANAGEMENT})
 public class PluginPackageDataModelController {
 
     @Autowired
@@ -43,8 +42,7 @@ public class PluginPackageDataModelController {
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}/refById")
     public CommonResponseDto getRefByIdInfoByPackageNameAndEntityName(
             @PathVariable(value = "plugin-package-name") String packageName,
-            @PathVariable(value = "entity-name") String entityName
-    ) {
+            @PathVariable(value = "entity-name") String entityName) {
         return CommonResponseDto.okayWithData(pluginPackageDataModelService.getRefByInfo(packageName, entityName));
     }
 
@@ -56,14 +54,9 @@ public class PluginPackageDataModelController {
     @GetMapping("/models/package/{plugin-package-name}/entity/{entity-name}/attributes")
     public CommonResponseDto getAttributeInfoByPackageNameAndEntityName(
             @PathVariable(value = "plugin-package-name") String packageName,
-            @PathVariable(value = "entity-name") String entityName
-    ) {
+            @PathVariable(value = "entity-name") String entityName) {
         List<PluginPackageAttributeDto> result;
-        try {
-            result = pluginPackageDataModelService.entityView(packageName, entityName);
-        } catch (WecubeCoreException ex) {
-            return CommonResponseDto.error(ex.getMessage());
-        }
+        result = pluginPackageDataModelService.entityView(packageName, entityName);
         return CommonResponseDto.okayWithData(result);
     }
 
@@ -71,12 +64,8 @@ public class PluginPackageDataModelController {
     public CommonResponseDto getEntityInfoByPackageNameAndEntityName(
             @PathVariable(value = "plugin-package-name") String packageName,
             @PathVariable(value = "entity-name") String entityName) {
-        try {
-            DataModelEntityDto result = pluginPackageDataModelService.getEntityByPackageNameAndName(packageName,
-                    entityName);
-            return CommonResponseDto.okayWithData(result);
-        } catch (WecubeCoreException ex) {
-            return CommonResponseDto.error(ex.getMessage());
-        }
+        DataModelEntityDto result = pluginPackageDataModelService.getEntityByPackageNameAndName(packageName,
+                entityName);
+        return CommonResponseDto.okayWithData(result);
     }
 }

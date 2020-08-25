@@ -87,7 +87,8 @@ public class ResourceManagementService {
     private void validateIfServersAreExists(List<ResourceServerDto> resourceServers) {
         resourceServers.forEach(server -> {
             if (server.getId() == null || !resourceServerRepository.existsById(server.getId())) {
-                throw new WecubeCoreException(String.format("Can not find server with id [%s].", server.getId()));
+                throw new WecubeCoreException("3016",
+                        String.format("Can not find server with id [%s].", server.getId()), server.getId());
             }
         });
     }
@@ -95,9 +96,10 @@ public class ResourceManagementService {
     private void validateIfServerAllocated(List<ResourceServer> resourceServers) {
         resourceServers.forEach(server -> {
             if (server.getIsAllocated() != null && server.getIsAllocated() == 1) {
-                throw new WecubeCoreException(
+                throw new WecubeCoreException("3017",
                         String.format("Can not delete resource server [%s] as it has been allocated for [%s].",
-                                server.getName(), server.getPurpose()));
+                                server.getName(), server.getPurpose()),
+                        server.getName(), server.getPurpose());
             }
         });
     }
@@ -158,7 +160,7 @@ public class ResourceManagementService {
     public void deleteItems(List<ResourceItemDto> resourceItems) {
         validateIfItemsAreExists(resourceItems);
         Iterable<ResourceItem> enrichedItems = enrichItemsFullInfo(convertItemDtoToDomain(resourceItems));
-//        validateIfItemAllocated(enrichedItems);
+        // validateIfItemAllocated(enrichedItems);
         resourceImplementationService.deleteItems(enrichedItems);
         resourceItemRepository.deleteAll(enrichedItems);
     }
@@ -166,7 +168,8 @@ public class ResourceManagementService {
     private void validateIfItemsAreExists(List<ResourceItemDto> resourceItems) {
         resourceItems.forEach(item -> {
             if (item.getId() == null && !resourceItemRepository.existsById(item.getId())) {
-                throw new WecubeCoreException(String.format("Can not find item with id [%s].", item.getId()));
+                throw new WecubeCoreException("3018", String.format("Can not find item with id [%s].", item.getId()),
+                        item.getId());
             }
         });
     }
@@ -174,9 +177,9 @@ public class ResourceManagementService {
     private void validateIfItemAllocated(Iterable<ResourceItem> items) {
         items.forEach(item -> {
             if (item.getIsAllocated() != null && item.getIsAllocated() == 1) {
-                throw new WecubeCoreException(
-                        String.format("Can not delete resource item [%s] as it has been allocated for [%s].",
-                                item.getName(), item.getPurpose()));
+                String msg = String.format("Can not delete resource item [%s] as it has been allocated for [%s].",
+                        item.getName(), item.getPurpose());
+                throw new WecubeCoreException("3019", msg, item.getName(), item.getPurpose());
             }
         });
     }

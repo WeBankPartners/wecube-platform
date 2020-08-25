@@ -12,6 +12,7 @@ import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageMenuRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -135,7 +136,7 @@ public class MenuService {
                 String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                         packageMenu.getCategory());
                 log.error(msg);
-                throw new WecubeCoreException(msg);
+                throw new WecubeCoreException("3000",msg,packageMenu.getCategory());
             }
             MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
 

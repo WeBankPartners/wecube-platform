@@ -41,7 +41,7 @@ public class DockerImageManagementService implements ResourceItemService {
                     .exec(new PullImageResultCallback())
                     .awaitCompletion(resourceProperties.getDockerPullImageTimeout(), TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            throw new WecubeCoreException(String.format("Failed to pull repository [%s] with tag [%s].", repository, tag), e);
+            throw new WecubeCoreException("3239",String.format("Failed to pull repository [%s] with tag [%s].", repository, tag), e);
         }
         return item;
     }

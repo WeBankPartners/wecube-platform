@@ -64,12 +64,12 @@ public class PluginConfigMigrationService {
 
     public PluginRegistryInfo exportPluginRegistersForOnePackage(String pluginPackageId) {
         if (StringUtils.isBlank(pluginPackageId)) {
-            throw new WecubeCoreException("Plugin package ID cannot be blank.");
+            throw new WecubeCoreException("3226","Plugin package ID cannot be blank.");
         }
 
         Optional<PluginPackage> pluginPackageEntityOpt = pluginPackageRepository.findById(pluginPackageId);
         if (!pluginPackageEntityOpt.isPresent()) {
-            throw new WecubeCoreException("Bad plugin package ID,such package does not exist.");
+            throw new WecubeCoreException("3227","Bad plugin package ID,such package does not exist.");
         }
 
         PluginPackage pluginPackage = pluginPackageEntityOpt.get();
@@ -85,7 +85,7 @@ public class PluginConfigMigrationService {
                 .findByPluginPackage_idOrderByName(pluginPackageId);
 
         if (!pluginConfigsOpt.isPresent()) {
-            throw new WecubeCoreException("Such package ID has no plugin configs.");
+            throw new WecubeCoreException("3228","Such package ID has no plugin configs.");
         }
 
         List<PluginConfig> pluginConfigs = pluginConfigsOpt.get();
@@ -115,11 +115,11 @@ public class PluginConfigMigrationService {
     @Transactional
     public void importPluginRegistersForOnePackage(String pluginPackageId, String registersAsXml) {
         if (StringUtils.isBlank(pluginPackageId)) {
-            throw new WecubeCoreException("Plugin package ID cannot be blank.");
+            throw new WecubeCoreException("3229","Plugin package ID cannot be blank.");
         }
 
         if (StringUtils.isBlank(registersAsXml)) {
-            throw new WecubeCoreException("XML data is blank.");
+            throw new WecubeCoreException("3230","XML data is blank.");
         }
 
         if (log.isDebugEnabled()) {
@@ -128,7 +128,7 @@ public class PluginConfigMigrationService {
 
         Optional<PluginPackage> pluginPackageEntityOpt = pluginPackageRepository.findById(pluginPackageId);
         if (!pluginPackageEntityOpt.isPresent()) {
-            throw new WecubeCoreException("Bad plugin package ID,such package does not exist.");
+            throw new WecubeCoreException("3231","Bad plugin package ID,such package does not exist.");
         }
 
         PluginPackage pluginPackage = pluginPackageEntityOpt.get();
@@ -136,7 +136,7 @@ public class PluginConfigMigrationService {
         PluginPackageType xmlPluginPackage = JaxbUtils.convertToObject(registersAsXml, PluginPackageType.class);
 
         if (xmlPluginPackage == null) {
-            throw new WecubeCoreException("Bad xml contents.");
+            throw new WecubeCoreException("3232","Bad xml contents.");
         }
 
         performImportPluginRegistersForOnePackage(pluginPackage, xmlPluginPackage);
@@ -492,11 +492,11 @@ public class PluginConfigMigrationService {
 
         for (PluginConfigType xmlPluginConfig : xmlPluginConfigList) {
             if (StringUtils.isBlank(xmlPluginConfig.getName())) {
-                throw new WecubeCoreException("Plugin config name cannot be blank.");
+                throw new WecubeCoreException("3233","Plugin config name cannot be blank.");
             }
 
             if (StringUtils.isBlank(xmlPluginConfig.getRegisterName())) {
-                throw new WecubeCoreException("Register name is blank for " + xmlPluginConfig.getName());
+                throw new WecubeCoreException("3234",String.format("Register name is blank for %s" , xmlPluginConfig.getName()), xmlPluginConfig.getName());
             }
 
             PluginConfig pluginConfigDef = regNamedPluginConfigDefs.get(xmlPluginConfig.getName());
@@ -564,7 +564,7 @@ public class PluginConfigMigrationService {
 
         for (PluginConfigInterfaceType xmlIntf : xmlIntfList) {
             if (StringUtils.isBlank(xmlIntf.getAction())) {
-                throw new WecubeCoreException("Action of interface cannot be blank.");
+                throw new WecubeCoreException("3235","Action of interface cannot be blank.");
             }
             PluginConfigInterface toUpdateIntf = pickoutPluginConfigInterface(toUpdateInterfaces, xmlIntf.getAction(),
                     xmlIntf.getPath());

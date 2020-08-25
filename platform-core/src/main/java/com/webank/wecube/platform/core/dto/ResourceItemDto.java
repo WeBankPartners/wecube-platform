@@ -116,13 +116,15 @@ public class ResourceItemDto {
 
     private static void validateItemType(String itemType) {
         if (ResourceItemType.fromCode(itemType) == ResourceItemType.NONE) {
-            throw new WecubeCoreException(String.format("Unsupported resource item type [%s].", itemType));
+            String errMsg = String.format("Unsupported resource item type [%s].", itemType);
+            throw new WecubeCoreException("3286", errMsg, itemType);
         }
     }
 
     private static void validateItemStatus(String status) {
         if (ResourceItemStatus.fromCode(status) == ResourceItemStatus.NONE) {
-            throw new WecubeCoreException(String.format("Unsupported resource item status [%s].", status));
+            String msg = String.format("Unsupported resource item status [%s].", status);
+            throw new WecubeCoreException("3287", msg, status);
         }
     }
 
@@ -138,10 +140,10 @@ public class ResourceItemDto {
         try {
             return JsonUtils.toObject(additionalProperties, Map.class);
         } catch (IOException e) {
-            throw new WecubeCoreException(
-                    String.format("Failed to parse resource_item.additional_properties [%s] : Invalid json format.",
-                            additionalProperties),
-                    e);
+            String msg = String.format(
+                    "Failed to parse resource_item.additional_properties [%s] : Invalid json format.",
+                    additionalProperties);
+            throw new WecubeCoreException("3288", msg, additionalProperties);
         }
     }
 

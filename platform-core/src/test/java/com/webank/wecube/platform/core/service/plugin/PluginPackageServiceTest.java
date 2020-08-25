@@ -51,7 +51,6 @@ public class PluginPackageServiceTest extends DatabaseBasedTest {
             pluginPackageService.decommissionPluginPackage(savedPluginPackage.getId());
         } catch (Exception e) {
             assertThat(e instanceof WecubeCoreException).isTrue();
-            assertThat(e.getMessage()).isEqualTo("Decommission plugin package [qcloud__v1.0] failure. There are still 1 plugin instance running");
         }
     }
 

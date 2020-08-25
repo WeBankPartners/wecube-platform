@@ -28,25 +28,23 @@ public class S3BucketManagementService implements ResourceItemService {
         String endPoint = String.format("http://%s:%s", host, port);
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         return AmazonS3ClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endPoint, Regions.US_EAST_1.name()))
-                .withPathStyleAccessEnabled(true)
-                .withClientConfiguration(clientConfiguration)
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(username, password)))
-                .build();
+                .withEndpointConfiguration(
+                        new AwsClientBuilder.EndpointConfiguration(endPoint, Regions.US_EAST_1.name()))
+                .withPathStyleAccessEnabled(true).withClientConfiguration(clientConfiguration)
+                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(username, password))).build();
     }
 
     @Override
     public ResourceItem createItem(ResourceItem item) {
-        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
-        AmazonS3 amazonS3 = newS3Client(
-                item.getResourceServer().getHost(),
-                item.getResourceServer().getPort(),
-                item.getResourceServer().getLoginUsername(),
-                password);
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(),
+                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
+                item.getResourceServer().getLoginUsername(), password);
 
         if (amazonS3 != null) {
             if (amazonS3.doesBucketExist(item.getName())) {
-                throw new WecubeCoreException(String.format("Can not create bucket [%s] : Bucket exists.", item.getName()));
+                throw new WecubeCoreException("3254",
+                        String.format("Can not create bucket [%s] : Bucket exists.", item.getName()), item.getName());
             }
             amazonS3.createBucket(item.getName());
         }
@@ -55,17 +53,19 @@ public class S3BucketManagementService implements ResourceItemService {
 
     @Override
     public void deleteItem(ResourceItem item) {
-        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
-        AmazonS3 amazonS3 = newS3Client(
-                item.getResourceServer().getHost(),
-                item.getResourceServer().getPort(),
-                item.getResourceServer().getLoginUsername(),
-                password);
+        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(),
+                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
+                item.getResourceServer().getLoginUsername(), password);
 
         if (amazonS3 != null) {
             if (amazonS3.doesBucketExist(item.getName())) {
                 if (!amazonS3.listObjects(item.getName()).getObjectSummaries().isEmpty()) {
-                    throw new WecubeCoreException(String.format("Can not delete bucket [%s] : Bucket have [%s] amount of objects", item.getName(), amazonS3.listObjects(item.getName()).getObjectSummaries().size()));
+                    String msg = String.format("Can not delete bucket [%s] : Bucket have [%s] amount of objects",
+                            item.getName(), amazonS3.listObjects(item.getName()).getObjectSummaries().size());
+
+                    throw new WecubeCoreException("3255", msg, item.getName(),
+                            amazonS3.listObjects(item.getName()).getObjectSummaries().size());
                 }
                 amazonS3.deleteBucket(item.getName());
             } else {

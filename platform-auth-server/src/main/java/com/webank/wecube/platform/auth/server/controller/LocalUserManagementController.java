@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.webank.wecube.platform.auth.server.common.ApplicationConstants;
 import com.webank.wecube.platform.auth.server.dto.CommonResponseDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalUserDto;
+import com.webank.wecube.platform.auth.server.dto.SimpleLocalUserPassDto;
 import com.webank.wecube.platform.auth.server.service.UserManagementService;
 
 @RestController
@@ -30,6 +31,12 @@ public class LocalUserManagementController {
     @PostMapping("/users")
     public CommonResponseDto registerLocalUser(@RequestBody SimpleLocalUserDto userDto) throws Exception {
         SimpleLocalUserDto result = userManagementService.registerLocalUser(userDto);
+        return okayWithData(result);
+    }
+    
+    @PostMapping("/users/change-password")
+    public CommonResponseDto modifyLocalUserPassword(@RequestBody SimpleLocalUserPassDto userPassDto){
+        SimpleLocalUserDto result = userManagementService.modifyLocalUserPassword(userPassDto);
         return okayWithData(result);
     }
 

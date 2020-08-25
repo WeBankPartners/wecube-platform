@@ -47,7 +47,7 @@ public class OperationEventProcStarter {
 
         if (procDefEntity == null) {
             log.error("such process is not available with procDefKey={}", procDefKey);
-            throw new WecubeCoreException(String.format("Process definition key {%s} is NOT available.", procDefKey));
+            throw new WecubeCoreException("3225",String.format("Process definition key {%s} is NOT available.", procDefKey), procDefKey);
         }
 
         String entityDataId = operEventEntity.getOperationData();

@@ -32,7 +32,7 @@ public class ExpressionServiceImpl implements ExpressionService {
 
     public List<EntityDto> getAllEntities(String dataModelExpression) {
         if (StringUtils.isBlank(dataModelExpression)) {
-            throw new WecubeCoreException("Data model expression cannot be blank.");
+            throw new WecubeCoreException("3005","Data model expression cannot be blank.");
         }
 
         if (log.isInfoEnabled()) {

@@ -39,12 +39,14 @@ public class ResourceImplementationService {
     public void createItems(Iterable<ResourceItem> items) {
         for (ResourceItem item : items) {
             if (item.getResourceServer() == null) {
-                throw new WecubeCoreException(String.format("Failed to create resource item [%s] as resource server is missing.", item));
+                throw new WecubeCoreException("3248",
+                        String.format("Failed to create resource item [%s] as resource server is missing.", item), item.getId());
             }
 
             ResourceItemService service = itemServices.get(ResourceItemType.fromCode(item.getType()));
             if (service == null) {
-                throw new WecubeCoreException(String.format("No service for the creating of resource type [%s].", item.getType()));
+                throw new WecubeCoreException("3249",
+                        String.format("No service for the creating of resource type [%s].", item.getType()), item.getType());
             }
             service.createItem(item);
         }
@@ -53,12 +55,14 @@ public class ResourceImplementationService {
     public void updateItems(Iterable<ResourceItem> items) {
         for (ResourceItem item : items) {
             if (item.getResourceServer() == null) {
-                throw new WecubeCoreException(String.format("Failed to update resource item [%s] as resource server is missing.", item));
+                throw new WecubeCoreException("3250",
+                        String.format("Failed to update resource item [%s] as resource server is missing.", item));
             }
 
             ResourceItemService service = itemServices.get(ResourceItemType.fromCode(item.getType()));
             if (service == null) {
-                throw new WecubeCoreException(String.format("No service for the updating of resource type [%s].", item.getType()));
+                throw new WecubeCoreException("3251",
+                        String.format("No service for the updating of resource type [%s].", item.getType()), item.getType());
             }
             service.updateItem(item);
         }
@@ -67,12 +71,12 @@ public class ResourceImplementationService {
     public void deleteItems(Iterable<ResourceItem> items) {
         for (ResourceItem item : items) {
             if (item.getResourceServer() == null) {
-                throw new WecubeCoreException(String.format("Failed to update resource item [%s] as resource server is missing.", item));
+                throw new WecubeCoreException("3252",String.format("Failed to update resource item [%s] as resource server is missing.", item), item.getId());
             }
 
             ResourceItemService service = itemServices.get(ResourceItemType.fromCode(item.getType()));
             if (service == null) {
-                throw new WecubeCoreException(String.format("No service for the deleting of resource type [%s].", item.getType()));
+                throw new WecubeCoreException("3253",String.format("No service for the deleting of resource type [%s].", item.getType()), item.getType());
             }
             service.deleteItem(item);
         }

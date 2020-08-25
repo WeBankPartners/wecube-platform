@@ -7,6 +7,9 @@ logging:
 spring:
    profiles:
       active: dev
+   messages:
+      basename: message/platform_auth_err_message
+      encoding: UTF-8
    thymeleaf:
       cache: false
    jpa:
@@ -15,8 +18,7 @@ spring:
       hibernate:
          ddl-auto: none
          use-new-id-generator-mappings: false
-      naming:
-         physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+         
 platform:
    auth:
       server:

@@ -25,7 +25,7 @@ public class CommandService {
         Process pro = null;
         Runtime runTime = Runtime.getRuntime();
         if (runTime == null) {
-            throw new WecubeCoreException("Create runtime false!");
+            throw new WecubeCoreException("3220","Create runtime false!");
         }
         try {
             pro = runTime.exec(command);
@@ -82,7 +82,7 @@ public class CommandService {
 
         log.info("result is: " + result);
         if (result == "" || result.isEmpty()) {
-            throw new WecubeCoreException("return is empty, please check !");
+            throw new WecubeCoreException("3221","return is empty, please check !");
         } else {
             return result;
         }

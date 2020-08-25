@@ -25,15 +25,16 @@ public class AuthorityManagementService {
 
     public SimpleAuthorityDto registerLocalAuthority(SimpleAuthorityDto authDto) {
         if (StringUtils.isBlank(authDto.getCode())) {
-            throw new AuthServerException("Authority code to register cannot be blank.");
+            throw new AuthServerException("3000", "Authority code to register cannot be blank.");
         }
 
         SysAuthorityEntity authority = authorityRepository.findNotDeletedOneByCode(authDto.getCode());
 
         if (authority != null) {
             log.debug("authority {} to register already exists.", authDto.getCode());
-            throw new AuthServerException(String.format(
-                    "Authority registering failed,because authority code {%s} already exist.", authDto.getCode()));
+            String msg = String.format(
+                    "Authority registering failed,because authority code {%s} already exist.", authDto.getCode());
+            throw new AuthServerException("3001", msg, authDto.getCode());
         }
 
         authority = new SysAuthorityEntity();

@@ -72,7 +72,7 @@ public class PluginConfigController {
 
         if (xmlFile == null || xmlFile.getSize() <= 0) {
             log.error("invalid file content uploaded");
-            throw new WecubeCoreException("Invalid file content uploaded.");
+            throw new WecubeCoreException("3034","Invalid file content uploaded.");
         }
 
         if (log.isInfoEnabled()) {
@@ -87,7 +87,7 @@ public class PluginConfigController {
             return CommonResponseDto.okay();
         } catch (IOException e) {
             log.error("errors while reading upload file", e);
-            throw new WecubeCoreException("Failed to import plugin package registries.");
+            throw new WecubeCoreException("3035","Failed to import plugin package registries.");
         }
 
     }

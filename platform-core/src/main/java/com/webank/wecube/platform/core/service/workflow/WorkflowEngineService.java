@@ -131,7 +131,7 @@ public class WorkflowEngineService {
 
 		if (task == null) {
 			log.warn("cannot find task with instanceId {} and taskId {}", instanceId, taskDefKey);
-			throw new WecubeCoreException("process instance restarting failed");
+			throw new WecubeCoreException("3192","process instance restarting failed");
 		} else {
 
 			String actVarName = String.format("%s_%s", WorkflowConstants.VAR_KEY_USER_ACT, nodeId);
@@ -256,7 +256,7 @@ public class WorkflowEngineService {
 
 	public ProcInstOutline getProcInstOutline(String procInstId) {
 		if (procInstId == null) {
-			throw new WecubeCoreException("Process instance is null.");
+			throw new WecubeCoreException("3193","Process instance is null.");
 		}
 
 		ProcessInstanceStatusEntity procInstStatusEntity = processInstanceStatusRepository
@@ -264,7 +264,7 @@ public class WorkflowEngineService {
 
 		if (procInstStatusEntity == null) {
 			log.warn("cannot find such process instance record with procInstId={}", procInstId);
-			throw new WecubeCoreException("Such process instance record does not exist.");
+			throw new WecubeCoreException("3194","Such process instance record does not exist.");
 		}
 
 		String processInstanceId = null;
@@ -277,7 +277,7 @@ public class WorkflowEngineService {
 
 			if (existProcInst == null) {
 				log.warn("such process instance does not exist,procInstId={}", procInstId);
-				throw new WecubeCoreException("Such process instance does not exist.");
+				throw new WecubeCoreException("3195","Such process instance does not exist.");
 			}
 
 			processInstanceId = existProcInst.getId();
@@ -288,7 +288,7 @@ public class WorkflowEngineService {
 
 		if (procDef == null) {
 			log.warn("such process definition does not exist,procDefId={}", processDefinitionId);
-			throw new WecubeCoreException("Such process definition does not exist.");
+			throw new WecubeCoreException("3196","Such process definition does not exist.");
 		}
 
 		BpmnModelInstance bpmnModel = repositoryService.getBpmnModelInstance(procDef.getId());
@@ -522,8 +522,8 @@ public class WorkflowEngineService {
 		ProcessInstance procInst = query.singleResult();
 
 		if (procInst == null) {
-			throw new WecubeCoreException(
-					String.format("Such process instance with id [%s] does not exist.", processInstanceId));
+			throw new WecubeCoreException("3197",
+					String.format("Such process instance with id [%s] does not exist.", processInstanceId), processInstanceId);
 		}
 
 		return procInst;
@@ -531,7 +531,7 @@ public class WorkflowEngineService {
 
 	public ProcessDefinition retrieveProcessDefinition(String processDefinitionId) {
 		if (StringUtils.isBlank(processDefinitionId)) {
-			throw new IllegalArgumentException("Process definition ID is blank.");
+			throw new WecubeCoreException("3198","Process definition ID is blank.");
 		}
 		ProcessDefinitionQuery query = repositoryService.createProcessDefinitionQuery()
 				.processDefinitionId(processDefinitionId);
@@ -556,8 +556,8 @@ public class WorkflowEngineService {
 		ProcessDefinition procDef = query.singleResult();
 		if (procDef == null) {
 			log.warn("such process definition did not exist,processDefinitionId={}", processDefinitionId);
-			throw new WecubeCoreException(
-					String.format("Such proccess definition [%s] does not exist.", processDefinitionId));
+			throw new WecubeCoreException("3199",
+					String.format("Such proccess definition [%s] does not exist.", processDefinitionId), processDefinitionId);
 		}
 
 		ProcessInstance instance = runtimeService.startProcessInstanceById(processDefinitionId, processInstanceKey);
@@ -565,8 +565,8 @@ public class WorkflowEngineService {
 		if (instance == null) {
 			log.warn("Failed to create process instance with id {} and key {}", processDefinitionId,
 					processInstanceKey);
-			throw new WecubeCoreException(String.format("Failed to create process instance with id %s and key %s.",
-					processDefinitionId, processInstanceKey));
+			throw new WecubeCoreException("3200",String.format("Failed to create process instance with id %s and key %s.",
+					processDefinitionId, processInstanceKey), processDefinitionId, processInstanceKey);
 		}
 
 		return instance;
@@ -587,7 +587,7 @@ public class WorkflowEngineService {
 
 		if (processDefs == null || processDefs.isEmpty()) {
 			log.warn("abnormally to parse process definition,request={}", procDefDto);
-			throw new WecubeCoreException("process deploying failed");
+			throw new WecubeCoreException("3201","Process deploying failed");
 		}
 
 		ProcessDefinition processDef = processDefs.get(0);
@@ -619,7 +619,7 @@ public class WorkflowEngineService {
 
 	protected BpmnModelInstance readModelFromXmlData(String xmlData) {
 		if (StringUtils.isBlank(xmlData)) {
-			throw new WecubeCoreException("XML data to parse cannot be blank.");
+			throw new WecubeCoreException("3202","XML data to parse cannot be blank.");
 		}
 
 		InputStream is = null;
@@ -630,7 +630,7 @@ public class WorkflowEngineService {
 		} catch (UnsupportedEncodingException e1) {
 			log.warn("errors while reading model", e1);
 			procModelInstance = null;
-			throw new WecubeCoreException("failed to read xml process content");
+			throw new WecubeCoreException("3203","Failed to read xml process content");
 		} finally {
 			if (is != null) {
 				try {
@@ -643,7 +643,7 @@ public class WorkflowEngineService {
 
 		if (procModelInstance == null) {
 			log.warn("failed to read model instance.");
-			throw new WecubeCoreException("Failed to read model instance.");
+			throw new WecubeCoreException("3204","Failed to read model instance.");
 		}
 
 		return procModelInstance;
