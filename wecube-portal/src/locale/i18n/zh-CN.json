@@ -1,5 +1,13 @@
 {
   "logout": "注销",
+  "change_password": "修改密码",
+  "original_password": "旧密码",
+  "new_password": "新密码",
+  "confirm_password": "确认密码",
+  "original_password_input_placeholder": "请输入原密码",
+  "new_password_input_placeholder": "请输入新密码",
+  "confirm_password_input_placeholder": "请再次输入新密码",
+  "confirm_password_error": "密码二次确认错误",
   "table_number": "序号",
   "table_enum_name": "枚举名称",
   "table_key": "名",
