@@ -66,7 +66,7 @@ public class SystemVariableService {
     private void validateIfSystemVariablesAreExists(List<SystemVariableDto> systemVariableDtos) {
         systemVariableDtos.forEach(dto -> {
             if (dto.getId() == null && !systemVariableRepository.existsById(dto.getId())) {
-                throw new WecubeCoreException(String.format("Can not find variable with id [%s].", dto.getId()));
+                throw new WecubeCoreException("3025",String.format("Can not find variable with id [%s].", dto.getId()), dto.getId());
             }
         });
     }
@@ -141,7 +141,7 @@ public class SystemVariableService {
         if (systemVariable.isPresent()) {
             return systemVariable.get();
         } else {
-            throw new WecubeCoreException("System Variable not found for id: " + varId);
+            throw new WecubeCoreException("3026","System Variable not found for id: " + varId, varId);
         }
     }
 

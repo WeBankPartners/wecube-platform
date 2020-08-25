@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.webank.wecube.platform.auth.server.common.AuthServerException;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalRoleDto;
 import com.webank.wecube.platform.auth.server.dto.SimpleLocalUserDto;
+import com.webank.wecube.platform.auth.server.dto.SimpleLocalUserPassDto;
 import com.webank.wecube.platform.auth.server.entity.SysRoleEntity;
 import com.webank.wecube.platform.auth.server.entity.SysUserEntity;
 import com.webank.wecube.platform.auth.server.entity.UserRoleRsEntity;
@@ -41,12 +42,58 @@ public class UserManagementService {
     @Autowired
     private RoleRepository roleRepository;
 
+    public SimpleLocalUserDto modifyLocalUserPassword(SimpleLocalUserPassDto userPassDto) {
+        String username = userPassDto.getUsername();
+        if (StringUtils.isBlank(username)) {
+            throw new AuthServerException("Username cannot be blank.");
+        }
+
+        String originalPassword = userPassDto.getOriginalPassword();
+        String toChangePassword = userPassDto.getChangedPassword();
+
+        if (StringUtils.isBlank(originalPassword) || StringUtils.isBlank(toChangePassword)) {
+            throw new AuthServerException("Password cannot be blank.");
+        }
+        
+        return doModifyLocalUserPassword(username, originalPassword, toChangePassword);
+    }
+
+    private SimpleLocalUserDto doModifyLocalUserPassword(String username, String originalPassword, String toChangePassword) {
+        SysUserEntity user = userRepository.findNotDeletedUserByUsername(username);
+        if (user == null) {
+            log.debug("Such user does not exist with username {}", username);
+            String msg = String.format("Failed to modify a none existed user with username {%s}.", username);
+            throw new AuthServerException("3021", msg, username);
+        }
+        
+        if(SysUserEntity.AUTH_SOURCE_UM.equalsIgnoreCase(user.getAuthSource())){
+            throw new AuthServerException("Cannot modify password of UM user account.");
+        }
+        
+        if(StringUtils.isBlank(user.getPassword())){
+            throw new AuthServerException("The password of user to modify is blank.");
+        }
+        
+        if(!passwordEncoder.matches(originalPassword, user.getPassword())){
+            throw new AuthServerException("The password of user to modify is invalid.");
+        }
+        
+        String encodedNewPassword = encodePassword(toChangePassword);
+        user.setPassword(encodedNewPassword);
+        
+        userRepository.saveAndFlush(user);
+        
+        return convertToSimpleLocalUserDto(user);
+    }
+    
+    
+
     @Transactional
     public void revokeUserRolesById(String roleId, List<SimpleLocalUserDto> userDtos) {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.debug("revoking user roles error:such role entity does not exist, role id {}", roleId);
-            throw new AuthServerException("Such role entity to revoke does not exist.");
+            throw new AuthServerException("3018", "Such role entity to revoke does not exist.");
         }
 
         SysRoleEntity role = roleOpt.get();
@@ -73,7 +120,7 @@ public class UserManagementService {
         Optional<SysRoleEntity> roleOpt = roleRepository.findById(roleId);
         if (!roleOpt.isPresent()) {
             log.debug("configuring user with roles error:such role entity does not exist, role id {}", roleId);
-            throw new AuthServerException("Such role entity does not exist.");
+            throw new AuthServerException("3012", "Such role entity does not exist.");
         }
 
         SysRoleEntity role = roleOpt.get();
@@ -82,7 +129,7 @@ public class UserManagementService {
             Optional<SysUserEntity> userOpt = userRepository.findById(userDto.getId());
             if (!userOpt.isPresent()) {
                 log.debug("configuring user with roles error:user entity does not exist, user id {}", userDto.getId());
-                throw new AuthServerException("Such user entity does not exist.");
+                throw new AuthServerException("3019", "Such user entity does not exist.");
             }
 
             SysUserEntity user = userOpt.get();
@@ -108,7 +155,7 @@ public class UserManagementService {
     public List<SimpleLocalRoleDto> getLocalRolesByUsername(String username) {
         List<SimpleLocalRoleDto> roleDtos = new ArrayList<>();
         if (StringUtils.isBlank(username)) {
-            throw new AuthServerException("Username cannot be blank.");
+            throw new AuthServerException("3020", "Username cannot be blank.");
         }
         SysUserEntity user = userRepository.findNotDeletedUserByUsername(username);
 
@@ -178,12 +225,12 @@ public class UserManagementService {
         SysUserEntity user = userRepository.findNotDeletedUserByUsername(username);
         if (user == null) {
             log.debug("Such user does not exist with username {}", username);
-            throw new AuthServerException(
-                    String.format("Failed to modify a none existed user with username {%s}.", username));
+            String msg = String.format("Failed to modify a none existed user with username {%s}.", username);
+            throw new AuthServerException("3021", msg, username);
         }
 
         if (!username.equals(userDto.getUsername())) {
-            throw new AuthServerException("Unexpected username to modify.");
+            throw new AuthServerException("3022", "Unexpected username to modify.");
         }
 
         user.setCellPhoneNo(userDto.getCellPhoneNo());
@@ -206,10 +253,9 @@ public class UserManagementService {
         SysUserEntity userEntity = userRepository.findNotDeletedUserByUsername(userDto.getUsername());
         if (userEntity != null) {
             log.info("such username {} to create has already existed.", userDto.getUsername());
-            throw new AuthServerException(String.format("User {%s} already exists.", userDto.getUsername()));
+            String msg = String.format("User {%s} already exists.", userDto.getUsername());
+            throw new AuthServerException("3023", msg, userDto.getUsername());
         }
-        
-        
 
         userEntity = buildSysUserEntity(userDto);
         userRepository.saveAndFlush(userEntity);
@@ -254,13 +300,15 @@ public class UserManagementService {
         Optional<SysUserEntity> userOpt = userRepository.findById(userId);
         if (!userOpt.isPresent()) {
             log.debug("Such user with ID {} does not exist.", userId);
-            throw new AuthServerException(String.format("Such user with ID {%s} does not exist.", userId));
+            String msg = String.format("Such user with ID {%s} does not exist.", userId);
+            throw new AuthServerException("3024", msg, userId);
         }
 
         SysUserEntity user = userOpt.get();
         if (user.isDeleted()) {
             log.debug("Such user with ID {} has already been deleted.", userId);
-            throw new AuthServerException(String.format("Such user with ID {%s} does not exist.", userId));
+            String msg = String.format("Such user with ID {%s} does not exist.", userId);
+            throw new AuthServerException("3024", msg, userId);
         }
 
         user.setActive(false);
@@ -313,7 +361,7 @@ public class UserManagementService {
         user.setLocalName(dto.getNativeName());
         user.setCellPhoneNo(dto.getCellPhoneNo());
         user.setOfficeTelNo(dto.getOfficeTelNo());
-        
+
         user.setAuthSource(dto.getAuthSource());
         user.setAuthContext(dto.getAuthContext());
 
@@ -321,26 +369,27 @@ public class UserManagementService {
     }
 
     private String encodePassword(String rawPassword) {
-    	if(StringUtils.isBlank(rawPassword)) {
-    		return null;
-    	}
-    	
+        if (StringUtils.isBlank(rawPassword)) {
+            return null;
+        }
+
         return passwordEncoder.encode(rawPassword);
     }
 
     private void validateSimpleLocalUserDto(SimpleLocalUserDto userDto) {
-    	
-    	if (StringUtils.isBlank(userDto.getUsername())) {
-            throw new AuthServerException("Username cannot be blank.");
+
+        if (StringUtils.isBlank(userDto.getUsername())) {
+            throw new AuthServerException("3025", "Username cannot be blank.");
         }
-    	
-    	String authSource = SysUserEntity.AUTH_SOURCE_LOCAL;
-        if(!StringUtils.isBlank(userDto.getAuthSource())) {
-        	authSource = userDto.getAuthSource();
+
+        String authSource = SysUserEntity.AUTH_SOURCE_LOCAL;
+        if (!StringUtils.isBlank(userDto.getAuthSource())) {
+            authSource = userDto.getAuthSource();
         }
-        
-        if(SysUserEntity.AUTH_SOURCE_LOCAL.equalsIgnoreCase(authSource) && StringUtils.isBlank(userDto.getPassword())) {
-        	throw new AuthServerException("Password cannot be blank.");
-        }        
+
+        if (SysUserEntity.AUTH_SOURCE_LOCAL.equalsIgnoreCase(authSource)
+                && StringUtils.isBlank(userDto.getPassword())) {
+            throw new AuthServerException("3026", "Password cannot be blank.");
+        }
     }
 }
