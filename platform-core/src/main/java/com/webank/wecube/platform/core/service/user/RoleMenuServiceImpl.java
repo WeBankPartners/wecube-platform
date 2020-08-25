@@ -164,7 +164,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         if (StringUtils.isEmpty(roleName)) {
             String msg = String.format("Cannot validate role id: [%s] from auth server.", roleId);
             logger.error(msg);
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3266",msg, roleId);
         }
         return roleName;
     }
@@ -201,7 +201,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                     packageMenu.getCategory());
             logger.error(msg);
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3267",msg, packageMenu.getCategory());
         }
         return MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
     }
@@ -212,7 +212,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                     packageMenu.getCategory());
             logger.error(msg);
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3268",msg, packageMenu.getCategory());
         }
         return MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
     }

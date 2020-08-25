@@ -25,6 +25,8 @@ public class AuthServerRestClientProperties {
     private String pathConfigureRoleAuthoritiesWithRoleName = "/auth/v1/roles/authorities-grant";
     private String pathRevokeRoleAuthoritiesWithRoleName = "/auth/v1/roles/authorities-revocation";
 
+    private String pathUserChangePassword = "/auth/v1/users/change-password";
+
     private String pathHealthCheck = "/auth/v1/health-check";
 
     public String getHost() {
@@ -185,6 +187,14 @@ public class AuthServerRestClientProperties {
 
     public void setPathRetrieveRoleByName(String pathRetrieveRoleByName) {
         this.pathRetrieveRoleByName = pathRetrieveRoleByName;
+    }
+
+    public String getPathUserChangePassword() {
+        return pathUserChangePassword;
+    }
+
+    public void setPathUserChangePassword(String pathUserChangePassword) {
+        this.pathUserChangePassword = pathUserChangePassword;
     }
 
 }

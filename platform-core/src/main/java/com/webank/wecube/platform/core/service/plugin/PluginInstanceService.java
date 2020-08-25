@@ -124,12 +124,12 @@ public class PluginInstanceService {
 
     public Integer getAvailablePortByHostIp(String hostIp) {
         if (!(StringUtilsEx.isValidIp(hostIp))) {
-            throw new RuntimeException("Invalid host ip");
+            throw new WecubeCoreException("3066","Invalid host ip");
         }
         ResourceServer resourceServer = resourceServerRepository
                 .findByHostAndType(hostIp, ResourceServerType.DOCKER.getCode()).get(0);
         if (null == resourceServer)
-            throw new WecubeCoreException(String.format("Host IP [%s] is not found", hostIp));
+            throw new WecubeCoreException("3065",String.format("Host IP [%s] is not found", hostIp), hostIp);
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceItemType.DOCKER_CONTAINER)
                 .addEqualsFilter("resourceServerId", resourceServer.getId());
 
@@ -149,7 +149,7 @@ public class PluginInstanceService {
                 return i;
             }
         }
-        throw new WecubeCoreException("There is no available ports in specified host");
+        throw new WecubeCoreException("3067","There is no available ports in specified host");
     }
 
     public List<PluginInstance> getAllInstances() {
@@ -173,7 +173,7 @@ public class PluginInstanceService {
         List<PluginPackage> activePluginPackages = pluginPackageRepository
                 .findLatestActiveVersionPluginPackagesByName(pluginName);
         if (activePluginPackages == null || activePluginPackages.isEmpty()) {
-            throw new WecubeCoreException(String.format("Plugin package [%s] not found.", pluginName));
+            throw new WecubeCoreException("3068",String.format("Plugin package [%s] not found.", pluginName), pluginName);
         }
 
         List<PluginInstance> runningInstances = new ArrayList<PluginInstance>();
@@ -190,7 +190,7 @@ public class PluginInstanceService {
         }
 
         if (runningInstances.isEmpty()) {
-            throw new WecubeCoreException(String.format("No instance for plugin [%s] is available.", pluginName));
+            throw new WecubeCoreException("3069",String.format("No instance for plugin [%s] is available.", pluginName));
         }
         return runningInstances;
     }
@@ -219,15 +219,15 @@ public class PluginInstanceService {
     private void validateLauchPluginInstanceParameters(PluginPackage pluginPackage, String hostIp, Integer port)
             throws Exception {
         if (!isContainerHostValid(hostIp))
-            throw new WecubeCoreException("Unavailable container host ip");
+            throw new WecubeCoreException("3070","Unavailable container host ip");
 
         if (!isPortValid(hostIp, port))
-            throw new IllegalArgumentException(String.format(
+            throw new WecubeCoreException("3071",String.format(
                     "The port[%d] of host[%s] is already in used, please try to reassignment port", port, hostIp));
 
         if (pluginPackage.getStatus().equals(PluginPackage.Status.DECOMMISSIONED)
                 || pluginPackage.getStatus().equals(PluginPackage.Status.UNREGISTERED))
-            throw new WecubeCoreException("'DECOMMISSIONED' or 'UNREGISTERED' state can not launch plugin instance ");
+            throw new WecubeCoreException("3072","'DECOMMISSIONED' or 'UNREGISTERED' state can not launch plugin instance ");
     }
 
     private String replaceAllocatePort(String str, Integer allocatePort) {
@@ -253,7 +253,7 @@ public class PluginInstanceService {
         }
         if (mysqlInfoSet.size() > 1) {
             logger.error(String.format("Apply [%d] schema is not allow", mysqlInfoSet.size()));
-            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket so far");
+            throw new WecubeCoreException("3073","Only allow to plugin apply one s3 bucket so far");
         }
 
         List<PluginMysqlInstance> mysqlInstances = pluginMysqlInstanceRepository.findByStatusAndPluginPackage_name(
@@ -297,7 +297,7 @@ public class PluginInstanceService {
             performUpgradeMysqlDatabaseData(mysqlInstance, pluginPackage, latestVersion);
         } catch (IOException e) {
             logger.error("errors while processing upgrade sql", e);
-            throw new WecubeCoreException("System error to upgrade plugin database.");
+            throw new WecubeCoreException("3074","System error to upgrade plugin database.");
         }
     }
 
@@ -344,7 +344,7 @@ public class PluginInstanceService {
             String errorMessage = String.format("Failed to execute [%s] for schema[%s]", upgradeSqlFile.getName(),
                     mysqlInstance.getSchemaName());
             logger.error(errorMessage);
-            throw new WecubeCoreException(errorMessage, e);
+            throw new WecubeCoreException("3075",errorMessage, e);
         }
         logger.info(String.format("Upgrade database[%s] finished...", mysqlInstance.getSchemaName()));
     }
@@ -499,7 +499,7 @@ public class PluginInstanceService {
         }
         if (s3InfoSet.size() > 1) {
             logger.error(String.format("Apply [%d] s3 buckets is not allow", s3InfoSet.size()));
-            throw new WecubeCoreException(String.format("Apply [%d] s3 buckets is not allow", s3InfoSet.size()));
+            throw new WecubeCoreException("3076",String.format("Apply [%d] s3 buckets is not allow", s3InfoSet.size()), s3InfoSet.size());
         }
 
         List<ResourceItem> s3BucketsItems = resourceItemRepository
@@ -515,7 +515,7 @@ public class PluginInstanceService {
             throws Exception, WecubeCoreException {
         Optional<PluginPackage> pluginPackageResult = pluginPackageRepository.findById(packageId);
         if (!pluginPackageResult.isPresent())
-            throw new WecubeCoreException("Plugin package id does not exist, id = " + packageId);
+            throw new WecubeCoreException("3077","Plugin package id does not exist, id = " + packageId);
 
         PluginPackage pluginPackage = pluginPackageResult.get();
         validateLauchPluginInstanceParameters(pluginPackage, hostIp, port);
@@ -537,7 +537,7 @@ public class PluginInstanceService {
 
         // 3. create docker instance
         if (dockerInfoSet.size() != 1) {
-            throw new WecubeCoreException("Only support plugin running in one container so far");
+            throw new WecubeCoreException("3078","Only support plugin running in one container so far");
         }
         PluginPackageRuntimeResourcesDocker dockerInfo = dockerInfoSet.iterator().next();
 
@@ -567,7 +567,7 @@ public class PluginInstanceService {
             instance.setDockerInstanceResourceId(dockerResourceDto.getId());
         } catch (Exception e) {
             logger.error("Creating docker container instance meet error: ", e.getMessage());
-            throw new WecubeCoreException("Creating docker container instance meet error: " + e.getMessage(), e);
+            throw new WecubeCoreException("3079","Creating docker container instance meet error: " + e.getMessage(), e);
         }
 
         instance.setContainerName(dockerInfo.getContainerName());
@@ -636,7 +636,7 @@ public class PluginInstanceService {
             String errorMessage = String.format("Failed to execute init.sql for schema[%s]",
                     mysqlInstance.getSchemaName());
             logger.error(errorMessage);
-            throw new WecubeCoreException(errorMessage, e);
+            throw new WecubeCoreException("3080",errorMessage, e);
         }
         logger.info(String.format("Init database[%s] tables has done..", mysqlInstance.getSchemaName()));
     }
@@ -644,7 +644,7 @@ public class PluginInstanceService {
     private String initS3BucketResource(Set<PluginPackageRuntimeResourcesS3> s3InfoSet) {
         if (s3InfoSet.size() > 1) {
             logger.error(String.format("Apply [%d] s3 bucket is not allow", s3InfoSet.size()));
-            throw new WecubeCoreException("Only allow to plugin apply one s3 bucket");
+            throw new WecubeCoreException("3081","Only allow to plugin apply one s3 bucket");
         }
         return createPluginS3Bucket(s3InfoSet.iterator().next());
     }
@@ -654,7 +654,7 @@ public class PluginInstanceService {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.MYSQL);
         List<ResourceServerDto> mysqlServers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (mysqlServers.size() == 0) {
-            throw new WecubeCoreException("Can not found available resource server for creating mysql database");
+            throw new WecubeCoreException("3082","Can not found available resource server for creating mysql database");
         }
         ResourceServerDto mysqlServer = mysqlServers.get(0);
 
@@ -692,7 +692,7 @@ public class PluginInstanceService {
         QueryRequest queryRequest = QueryRequest.defaultQueryObject("type", ResourceServerType.S3);
         List<ResourceServerDto> s3Servers = resourceManagementService.retrieveServers(queryRequest).getContents();
         if (s3Servers.size() == 0) {
-            throw new WecubeCoreException("Can not found available resource server for creating s3 bucket");
+            throw new WecubeCoreException("3083","Can not found available resource server for creating s3 bucket");
         }
         ResourceServerDto s3Server = s3Servers.get(0);
         ResourceItemDto createS3BucketDto = new ResourceItemDto(s3Info.getBucketName(),
@@ -717,7 +717,7 @@ public class PluginInstanceService {
                 ResourceServerType.DOCKER.getCode());
         if (hostInfos.size() == 0) {
             logger.info(String.format("Can not found docker resource server by IP[%s]", hostIp));
-            throw new WecubeCoreException(String.format("Can not found docker resource server by IP[%s]", hostIp));
+            throw new WecubeCoreException("3084",String.format("Can not found docker resource server by IP[%s]", hostIp), hostIp);
         }
         hostInfo = hostInfos.get(0);
 
@@ -739,7 +739,7 @@ public class PluginInstanceService {
                     tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {
             logger.error("Put file to remote host meet error: {}", e.getMessage());
-            throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage(), e);
+            throw new WecubeCoreException("3085",String.format("Put file to remote host meet error:%s " , e.getMessage()), e);
         }
 
         // load image at remote host
@@ -753,7 +753,7 @@ public class PluginInstanceService {
                     Integer.valueOf(hostInfo.getPort()), loadCmd);
         } catch (Exception e) {
             logger.error("Run command [{}] meet error: {}", loadCmd, e.getMessage());
-            throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()), e);
+            throw new WecubeCoreException("3086",String.format("Run remote command meet error: %s", e.getMessage()), e);
         }
 
         ResourceItemDto createDockerInstanceDto = new ResourceItemDto(createContainerParameters.getContainerName(),

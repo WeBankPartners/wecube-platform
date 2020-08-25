@@ -51,7 +51,7 @@ public class WorkflowProcessDefinitionController {
 
     @Autowired
     private WorkflowProcDefService procDefService;
-    
+
     @Autowired
     private WorkflowProcDefMigrationService procDefMigrationService;
 
@@ -143,32 +143,20 @@ public class WorkflowProcessDefinitionController {
 
     @GetMapping("/process/{proc-id}/roles")
     public CommonResponseDto retrieveProcRoleBinding(@PathVariable("proc-id") String procId) {
-        try {
-            return CommonResponseDto.okayWithData(processRoleService.retrieveRoleIdByProcId(procId));
-        } catch (WecubeCoreException ex) {
-            return CommonResponseDto.error(ex.getMessage());
-        }
+        return CommonResponseDto.okayWithData(processRoleService.retrieveRoleIdByProcId(procId));
     }
 
     @PostMapping("/process/{proc-id}/roles")
     public CommonResponseDto updateProcRoleBinding(@PathVariable("proc-id") String procId,
             @RequestBody ProcRoleRequestDto procRoleRequestDto) {
-        try {
-            processRoleService.updateProcRoleBinding(procId, procRoleRequestDto);
-        } catch (WecubeCoreException ex) {
-            return CommonResponseDto.error(ex.getMessage());
-        }
+        processRoleService.updateProcRoleBinding(procId, procRoleRequestDto);
         return CommonResponseDto.okay();
     }
 
     @DeleteMapping("/process/{proc-id}/roles")
     public CommonResponseDto deleteProcRoleBinding(@PathVariable("proc-id") String procId,
             @RequestBody ProcRoleRequestDto procRoleRequestDto) {
-        try {
-            processRoleService.deleteProcRoleBinding(procId, procRoleRequestDto);
-        } catch (WecubeCoreException ex) {
-            return CommonResponseDto.error(ex.getMessage());
-        }
+        processRoleService.deleteProcRoleBinding(procId, procRoleRequestDto);
         return CommonResponseDto.okay();
     }
 
@@ -198,7 +186,7 @@ public class WorkflowProcessDefinitionController {
             HttpServletRequest request) {
         if (file == null || file.getSize() <= 0) {
             log.error("invalid file content uploaded");
-            throw new WecubeCoreException("Invalid file content uploaded.");
+            throw new WecubeCoreException("3128", "Invalid file content uploaded.");
         }
 
         if (log.isInfoEnabled()) {
@@ -215,7 +203,7 @@ public class WorkflowProcessDefinitionController {
             return CommonResponseDto.okayWithData(result);
         } catch (IOException e) {
             log.error("errors while reading upload file", e);
-            throw new WecubeCoreException("Failed to import process definition.");
+            throw new WecubeCoreException("3129", "Failed to import process definition.");
         }
 
     }
@@ -237,7 +225,7 @@ public class WorkflowProcessDefinitionController {
             content = objectMapper.writeValueAsString(result);
         } catch (JsonProcessingException e) {
             log.error("errors while converting result", e);
-            throw new WecubeCoreException("Failed to convert result.");
+            throw new WecubeCoreException("3130", "Failed to convert result.");
         }
 
         return content;
