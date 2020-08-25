@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,6 +49,7 @@ public class RoleManagementController {
     }
 
     @DeleteMapping("/roles/{role-id}/delete")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
     public CommonResponseDto unregisterLocalRoleById(@PathVariable("role-id") String roleId) {
         userManagementService.unregisterLocalRoleById(roleId);
         return CommonResponseDto.okay();
@@ -61,6 +63,7 @@ public class RoleManagementController {
     }
 
     @PostMapping("/roles/{role-id}/users/grant")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
     public CommonResponseDto grantRoleToUsers(@PathVariable(value = "role-id") String roleId,
             @RequestBody List<String> userIds) {
         userManagementService.grantRoleToUsers(roleId, userIds);
@@ -68,6 +71,7 @@ public class RoleManagementController {
     }
 
     @DeleteMapping("/roles/{role-id}/users/revoke")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
     public CommonResponseDto revokeRoleFromUsers(@PathVariable(value = "role-id") String roleId,
             @RequestBody List<String> userIds) {
         userManagementService.revokeRoleFromUsers(roleId, userIds);
@@ -82,6 +86,7 @@ public class RoleManagementController {
     }
 
     @PostMapping("/roles/{role-id}/menus")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
     public CommonResponseDto updateRoleToMenusByRoleId(@PathVariable(value = "role-id") String roleId,
             @RequestBody List<String> menuCodeList) {
         this.roleMenuService.updateRoleToMenusByRoleId(roleId, menuCodeList);
