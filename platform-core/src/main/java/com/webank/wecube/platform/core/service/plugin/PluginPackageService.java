@@ -191,14 +191,15 @@ public class PluginPackageService {
 
     public void enablePluginConfigInBatchByPackageId(String packageId, List<PluginDeclarationDto> pluginConfigDtos) {
         if (StringUtils.isBlank(packageId)) {
-            throw new WecubeCoreException("Package ID is blank.");
+            throw new WecubeCoreException("3087", "Package ID is blank.");
         }
         PluginPackage pluginPackage = pluginPackageRepository.getOne(packageId);
         if (pluginPackage == null) {
-            throw new WecubeCoreException(String.format("Such plugin package with ID %s does not exist.", packageId));
+            throw new WecubeCoreException("3088",
+                    String.format("Such plugin package with ID %s does not exist.", packageId));
         }
         if (pluginPackage.getStatus() == UNREGISTERED || pluginPackage.getStatus() == DECOMMISSIONED) {
-            throw new WecubeCoreException(
+            throw new WecubeCoreException("3089",
                     "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
@@ -219,7 +220,7 @@ public class PluginPackageService {
 
         for (PluginConfigOutlineDto privilegedPluginConfig : privilegedPluginConfigs) {
             if (!validateCurrentUserPermission(privilegedPluginConfig.getId(), PluginAuthEntity.PERM_TYPE_MGMT)) {
-                throw new WecubeCoreException("Lack of privilege to perform such operation.");
+                throw new WecubeCoreException("3090", "Lack of privilege to perform such operation.");
             }
         }
 
@@ -327,7 +328,7 @@ public class PluginPackageService {
         Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         if (currUserRoles == null || currUserRoles.isEmpty()) {
             log.warn("roles of current user is empty.");
-            throw new WecubeCoreException("Lack of permission to perform such operation.");
+            throw new WecubeCoreException("3091", "Lack of permission to perform such operation.");
         }
 
         List<PluginConfig> privilegedPluginConfigs = new ArrayList<>();
@@ -343,7 +344,7 @@ public class PluginPackageService {
     private boolean verifyPluginConfigPrivilege(PluginConfig pluginConfig, String permission,
             Set<String> currUserRoles) {
         if (StringUtils.isBlank(pluginConfig.getId())) {
-            throw new WecubeCoreException("Plugin config ID cannot be blank.");
+            throw new WecubeCoreException("3092", "Plugin config ID cannot be blank.");
         }
         List<PluginAuthEntity> entities = pluginAuthRepository
                 .findAllByPluginConfigIdAndPermission(pluginConfig.getId(), permission);
@@ -364,31 +365,32 @@ public class PluginPackageService {
         String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
 
         if (org.apache.commons.lang3.StringUtils.isBlank(releaseFileUrl)) {
-            throw new WecubeCoreException("The remote plugin artifacts release file is not properly provided.");
+            throw new WecubeCoreException("3093", "The remote plugin artifacts release file is not properly provided.");
         }
 
         try {
             List<S3PluginActifactDto> results = parseReleaseFile(releaseFileUrl);
             return results;
         } catch (Exception e) {
-            throw new WecubeCoreException("Cannot parse release file properly.Caused by " + e.getMessage());
+            throw new WecubeCoreException("3094",
+                    String.format("Cannot parse release file properly.Caused by " + e.getMessage()));
         }
     }
 
     public S3PluginActifactPullRequestDto createS3PluginActifactPullRequest(S3PluginActifactDto pullRequestDto) {
         if (pullRequestDto == null) {
-            throw new WecubeCoreException("Illegal argument.");
+            throw new WecubeCoreException("3095", "Illegal argument.");
         }
 
         if (org.apache.commons.lang3.StringUtils.isBlank(pullRequestDto.getKeyName())) {
-            throw new WecubeCoreException("Key name cannot be blank.");
+            throw new WecubeCoreException("3096", "Key name cannot be blank.");
         }
 
         // get system variables
         String releaseFileUrl = getGlobalSystemVariableByName(SYS_VAR_PUBLIC_PLUGIN_ARTIFACTS_RELEASE_URL);
 
         if (org.apache.commons.lang3.StringUtils.isBlank(releaseFileUrl)) {
-            throw new WecubeCoreException("The remote plugin artifacts release file is not properly provided.");
+            throw new WecubeCoreException("3097", "The remote plugin artifacts release file is not properly provided.");
         }
 
         PluginArtifactPullRequestEntity entity = new PluginArtifactPullRequestEntity();
@@ -483,12 +485,13 @@ public class PluginPackageService {
 
     public S3PluginActifactPullRequestDto queryS3PluginActifactPullRequest(String requestId) {
         if (org.apache.commons.lang3.StringUtils.isBlank(requestId)) {
-            throw new WecubeCoreException("Request ID cannot be null.");
+            throw new WecubeCoreException("3295", "Request ID cannot be null.");
         }
 
         Optional<PluginArtifactPullRequestEntity> reqOpt = pluginArtifactPullRequestRepository.findById(requestId);
         if (!reqOpt.isPresent()) {
-            throw new WecubeCoreException(String.format("Such request with %s does not exist.", requestId));
+            throw new WecubeCoreException("3098", String.format("Such request with %s does not exist.", requestId),
+                    requestId);
         }
 
         PluginArtifactPullRequestEntity req = reqOpt.get();
@@ -507,7 +510,9 @@ public class PluginPackageService {
             if (localFilePath.mkdirs()) {
                 log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
             } else {
-                throw new WecubeCoreException("Create directory [{}] failed");
+                throw new WecubeCoreException("3099",
+                        String.format("Create directory [%s] failed.", localFilePath.getAbsolutePath()),
+                        localFilePath.getAbsolutePath());
             }
         }
         File dest = new File(localFilePath + "/" + pluginPackageFileName);
@@ -583,7 +588,8 @@ public class PluginPackageService {
                         "Plugin dependency validation failed:make sure dependency packege %s %s is in active status.",
                         pluginPackageDependency.getDependencyPackageName(),
                         pluginPackageDependency.getDependencyPackageVersion());
-                throw new WecubeCoreException(msg);
+                throw new WecubeCoreException("3310", msg, pluginPackageDependency.getDependencyPackageName(),
+                        pluginPackageDependency.getDependencyPackageVersion());
             }
         }
     }
@@ -676,7 +682,7 @@ public class PluginPackageService {
         if (!packageFoundById.isPresent()) {
             String msg = String.format("Cannot find package by id: [%s]", packageId);
             log.error(msg);
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3100", msg, packageId);
         }
         return packageFoundById.get();
     }
@@ -711,7 +717,7 @@ public class PluginPackageService {
                 String msg = String.format("Cannot find system menu item by package menu's category: [%s]",
                         packageMenu.getCategory());
                 log.error(msg);
-                throw new WecubeCoreException(msg);
+                throw new WecubeCoreException("3101", msg, packageMenu.getCategory());
             }
             MenuItemDto packageMenuDto = MenuItemDto.fromPackageMenuItem(packageMenu, menuItem);
             returnMenuDto.add(packageMenuDto);
@@ -842,7 +848,8 @@ public class PluginPackageService {
             reqEntity = ctx.getEntity();
         }
         if (reqEntity == null) {
-            throw new WecubeCoreException(String.format("Request entity %s does not exist", ctx.getRequestId()));
+            throw new WecubeCoreException("3102", String.format("Request entity %s does not exist", ctx.getRequestId()),
+                    ctx.getRequestId());
         }
 
         return reqEntity;
@@ -853,7 +860,8 @@ public class PluginPackageService {
             if (localFilePath.mkdirs()) {
                 log.info("Create directory [{}] successful", localFilePath.getAbsolutePath());
             } else {
-                throw new WecubeCoreException("Create directory [{}] failed");
+                String msg = String.format("Create directory [%s] failed", localFilePath.getAbsolutePath());
+                throw new WecubeCoreException("3103", msg, localFilePath.getAbsolutePath());
             }
         }
     }
@@ -915,7 +923,7 @@ public class PluginPackageService {
                             "The declared menu code: [%s] in <authorities> field doesn't declared in <menus> field of register.xml",
                             menuCode);
                     log.error(msg);
-                    throw new WecubeCoreException(msg);
+                    throw new WecubeCoreException("3104", msg, menuCode);
                 }
                 this.roleMenuService.createRoleMenuBinding(roleName, menuCode);
 
@@ -936,7 +944,8 @@ public class PluginPackageService {
                     "Failed to register PluginPackage[%s/%s] as it is not in UNREGISTERED status [%s]",
                     pluginPackage.getName(), pluginPackage.getVersion(), pluginPackage.getStatus());
             log.warn(errorMessage);
-            throw new WecubeCoreException(errorMessage);
+            throw new WecubeCoreException("3105", errorMessage, pluginPackage.getName(), pluginPackage.getVersion(),
+                    pluginPackage.getStatus());
         }
     }
 
@@ -949,8 +958,9 @@ public class PluginPackageService {
                 String activePackagesString = pluginPackages.stream()
                         .map(it -> String.join(":", it.getName(), it.getVersion(), it.getStatus().name()))
                         .collect(Collectors.joining(","));
-                throw new WecubeCoreException(String.format(
-                        "Not allowed to register more packages. Current active packages: [%s]", activePackagesString));
+                String msg = String.format("Not allowed to register more packages. Current active packages: [%s]",
+                        activePackagesString);
+                throw new WecubeCoreException("3106", msg, activePackagesString);
             }
         }
     }
@@ -979,7 +989,7 @@ public class PluginPackageService {
             FileUtils.deleteDirectory(versionDirectory);
         } catch (IOException e) {
             log.error("Remove plugin package file failed: {}", e);
-            throw new WecubeCoreException("Remove plugin package file failed.");
+            throw new WecubeCoreException("3107", "Remove plugin package file failed.");
         }
     }
 
@@ -995,15 +1005,17 @@ public class PluginPackageService {
     private void ensureNoPluginInstanceIsRunningForPluginPackage(String pluginPackageId) {
         List<PluginInstance> pluginInstances = instanceService.getAvailableInstancesByPackageId(pluginPackageId);
         if (null != pluginInstances && pluginInstances.size() > 0) {
-            throw new WecubeCoreException(String.format(
-                    "Decommission plugin package [%s] failure. There are still %d plugin instance%s running",
-                    pluginPackageId, pluginInstances.size(), pluginInstances.size() > 1 ? "es" : ""));
+            throw new WecubeCoreException("3108",
+                    String.format(
+                            "Decommission plugin package [%s] failure. There are still %d plugin instance %s running",
+                            pluginPackageId, pluginInstances.size(), pluginInstances.size() > 1 ? "es" : ""));
         }
     }
 
     private void ensurePluginPackageExists(String pluginPackageId) {
         if (!pluginPackageRepository.existsById(pluginPackageId)) {
-            throw new WecubeCoreException(String.format("Plugin package id not found for id [%s] ", pluginPackageId));
+            throw new WecubeCoreException("3109",
+                    String.format("Plugin package id not found for id [%s] ", pluginPackageId), pluginPackageId);
         }
     }
 
@@ -1123,7 +1135,8 @@ public class PluginPackageService {
                             pluginProperties.getStaticResourceServerPort(), mkdirCmd);
                 } catch (Exception e) {
                     log.error("Run command [mkdir] meet error: ", e.getMessage());
-                    throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
+                    throw new WecubeCoreException("3110",
+                            String.format("Run remote command meet error: %s", e.getMessage()), e.getMessage());
                 }
             }
 
@@ -1133,7 +1146,8 @@ public class PluginPackageService {
                         pluginProperties.getStaticResourceServerUser(),
                         pluginProperties.getStaticResourceServerPassword(), downloadUiZipPath, remotePath);
             } catch (Exception e) {
-                throw new WecubeCoreException("Put file to remote host meet error: " + e.getMessage());
+                throw new WecubeCoreException("3111",
+                        String.format("Put file to remote host meet error: ", e.getMessage()));
             }
             log.info("scp UI.zip to Static Resource Server - Done");
 
@@ -1145,7 +1159,8 @@ public class PluginPackageService {
                         pluginProperties.getStaticResourceServerPort(), unzipCmd);
             } catch (Exception e) {
                 log.error("Run command [unzip] meet error: ", e.getMessage());
-                throw new WecubeCoreException(String.format("Run remote command meet error: %s", e.getMessage()));
+                throw new WecubeCoreException("3112",
+                        String.format("Run remote command meet error: %s", e.getMessage()));
             }
         }
 
@@ -1173,7 +1188,8 @@ public class PluginPackageService {
                 }
             } catch (Exception e) {
                 log.error("Run command [rm] meet error: ", e.getMessage());
-                throw new WecubeCoreException(String.format("Run command [rm] meet error: %s", e.getMessage()));
+                throw new WecubeCoreException("3113", String.format("Run command [rm] meet error: %s", e.getMessage()),
+                        e.getMessage());
             }
         }
     }
@@ -1219,8 +1235,8 @@ public class PluginPackageService {
         // 3. read xml file in plugin package
         File registerXmlFile = new File(localFilePath.getCanonicalPath() + "/" + pluginProperties.getRegisterFile());
         if (!registerXmlFile.exists()) {
-            throw new WecubeCoreException(String.format("Plugin package definition file: [%s] does not exist.",
-                    pluginProperties.getRegisterFile()));
+            throw new WecubeCoreException("3114", String.format("Plugin package definition file: [%s] does not exist.",
+                    pluginProperties.getRegisterFile()), pluginProperties.getRegisterFile());
         }
 
         new PluginConfigXmlValidator().validate(new FileInputStream(registerXmlFile));
@@ -1233,8 +1249,9 @@ public class PluginPackageService {
         dataModelValidator.validate(pluginPackageDto.getPluginPackageDataModelDto());
 
         if (isPluginPackageExists(pluginPackage.getName(), pluginPackage.getVersion())) {
-            throw new WecubeCoreException(String.format("Plugin package [name=%s, version=%s] exists.",
-                    pluginPackage.getName(), pluginPackage.getVersion()));
+            throw new WecubeCoreException("3115", String.format("Plugin package [name=%s, version=%s] exists.",
+                    pluginPackage.getName(), pluginPackage.getVersion()), pluginPackage.getName(),
+                    pluginPackage.getVersion());
         }
 
         processPluginDockerImageFile(localFilePath, pluginPackageDto);

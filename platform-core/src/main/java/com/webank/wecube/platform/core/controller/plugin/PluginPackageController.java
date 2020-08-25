@@ -1,13 +1,11 @@
 package com.webank.wecube.platform.core.controller.plugin;
 
-import static com.webank.wecube.platform.core.dto.CommonResponseDto.error;
 import static com.webank.wecube.platform.core.dto.CommonResponseDto.okay;
 import static com.webank.wecube.platform.core.dto.CommonResponseDto.okayWithData;
 
 import java.util.List;
 import java.util.Set;
 
-import com.webank.wecube.platform.core.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +20,12 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackageAuthority;
+import com.webank.wecube.platform.core.dto.CommonResponseDto;
+import com.webank.wecube.platform.core.dto.MenuItemDto;
+import com.webank.wecube.platform.core.dto.PluginDeclarationDto;
+import com.webank.wecube.platform.core.dto.PluginPackageDependencyDto;
+import com.webank.wecube.platform.core.dto.PluginPackageRuntimeResouceDto;
+import com.webank.wecube.platform.core.dto.S3PluginActifactDto;
 import com.webank.wecube.platform.core.service.plugin.PluginPackageService;
 
 @RestController
@@ -73,7 +77,8 @@ public class PluginPackageController {
         try {
             pluginPackage = pluginPackageService.registerPluginPackage(packageId);
         } catch (Exception e) {
-            return error(String.format("Failed to register plugin package with error message [%s]", e.getMessage()));
+            String msg = String.format("Failed to register plugin package with error message [%s]", e.getMessage());
+            throw new WecubeCoreException("3307", msg, e.getMessage());
         }
         return okayWithData(pluginPackage);
     }
@@ -83,8 +88,8 @@ public class PluginPackageController {
         try {
             pluginPackageService.decommissionPluginPackage(packageId);
         } catch (Exception e) {
-            return error(
-                    String.format("Failed to decommission plugin package with error message [%s]", e.getMessage()));
+            String msg = String.format("Failed to decommission plugin package with error message [%s]", e.getMessage());
+            throw new WecubeCoreException("3308", msg, e.getMessage());
         }
         return okay();
     }
@@ -92,55 +97,35 @@ public class PluginPackageController {
     @GetMapping("/packages/{id}/dependencies")
     public CommonResponseDto getDependenciesById(@PathVariable(value = "id") String packageId) {
         PluginPackageDependencyDto dependencySetFoundById;
-        try {
-            dependencySetFoundById = pluginPackageService.getDependenciesById(packageId);
-        } catch (WecubeCoreException ex) {
-            return error(ex.getMessage());
-        }
+        dependencySetFoundById = pluginPackageService.getDependenciesById(packageId);
         return okayWithData(dependencySetFoundById);
     }
 
     @GetMapping("/packages/{id}/menus")
     public CommonResponseDto getMenusById(@PathVariable(value = "id") String packageId) {
         List<MenuItemDto> menuList;
-        try {
-            menuList = pluginPackageService.getMenusById(packageId);
-        } catch (WecubeCoreException ex) {
-            return error(ex.getMessage());
-        }
+        menuList = pluginPackageService.getMenusById(packageId);
         return okayWithData(menuList);
     }
 
     @GetMapping("/packages/{id}/system-parameters")
     public CommonResponseDto getSystemParamsById(@PathVariable(value = "id") String packageId) {
         List<SystemVariable> systemVariableSet;
-        try {
-            systemVariableSet = pluginPackageService.getSystemVarsById(packageId);
-        } catch (WecubeCoreException ex) {
-            return error(ex.getMessage());
-        }
+        systemVariableSet = pluginPackageService.getSystemVarsById(packageId);
         return okayWithData(systemVariableSet);
     }
 
     @GetMapping("/packages/{id}/authorities")
     public CommonResponseDto getAuthorityById(@PathVariable(value = "id") String packageId) {
         Set<PluginPackageAuthority> authoritySet;
-        try {
-            authoritySet = pluginPackageService.getAuthoritiesById(packageId);
-        } catch (WecubeCoreException ex) {
-            return error(ex.getMessage());
-        }
+        authoritySet = pluginPackageService.getAuthoritiesById(packageId);
         return okayWithData(authoritySet);
     }
 
     @GetMapping("/packages/{id}/runtime-resources")
     public CommonResponseDto getResourceById(@PathVariable(value = "id") String packageId) {
         PluginPackageRuntimeResouceDto resouceFoundById;
-        try {
-            resouceFoundById = pluginPackageService.getResourcesById(packageId);
-        } catch (WecubeCoreException ex) {
-            return error(ex.getMessage());
-        }
+        resouceFoundById = pluginPackageService.getResourcesById(packageId);
         return okayWithData(resouceFoundById);
     }
 
