@@ -309,9 +309,11 @@
           </Form>
         </section>
         <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
-          <Input v-model="filterTableParams" :placeholder="$t('enter_search_keywords')" style="width: 300px" />
-          <Button @click="filterTableData" type="primary">{{ $t('search') }}</Button>
-          Selected: {{ seletedRows.length }}
+          <div style="margin-bottom:8px">
+            <Input v-model="filterTableParams" :placeholder="$t('enter_search_keywords')" style="width: 300px" />
+            <Button @click="filterTableData" type="primary">{{ $t('search') }}</Button>
+            Selected: {{ seletedRows.length }}
+          </div>
           <div class="we-table">
             <Card v-if="displayResultTableZone">
               <p slot="title">{{ $t('bc_search_result') }}：</p>
@@ -386,6 +388,38 @@
         <Button type="primary" v-if="setPluginParamsModal" @click="executeAgain">
           {{ $t('full_word_exec') }}
         </Button>
+      </div>
+    </Modal>
+    <Modal v-model="collectionRoleManageModal" width="700" :title="$t('bc_edit_role')" :mask-closable="false">
+      <div v-if="editCollectionName" style="margin-bottom:8px;">
+        <span style="font-weight: 500;">{{ $t('bc_name') }}：</span>
+        <Input v-model="collectionName" style="width:35%"></Input>
+      </div>
+      <div>
+        <div class="role-transfer-title">{{ $t('mgmt_role') }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRoles"
+          :target-keys="MGMT"
+          @on-change="handleMgmtRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div style="margin-top: 30px">
+        <div class="role-transfer-title">{{ $t('use_role') }}</div>
+        <Transfer
+          :titles="transferTitles"
+          :list-style="transferStyle"
+          :data="allRolesBackUp"
+          :target-keys="USE"
+          @on-change="handleUseRoleTransferChange"
+          filterable
+        ></Transfer>
+      </div>
+      <div slot="footer">
+        <Button @click="collectionRoleManageModal = false">{{ $t('bc_cancle') }}</Button>
+        <Button type="primary" @click="confirmCollection">{{ $t('bc_confirm') }}</Button>
       </div>
     </Modal>
   </div>
@@ -824,6 +858,7 @@ export default {
         const { status } = await saveBatchExecution(params)
         if (status === 'OK') {
           this.collectionRoleManageModal = false
+          this.$Message.success(this.$t('save_successfully'))
         }
       } else {
         let params = JSON.parse(JSON.stringify(this.selectedCollection))

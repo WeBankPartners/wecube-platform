@@ -951,7 +951,6 @@ export default {
       this.renderFlowGraph()
     },
     async highlightModel (nodeId, nodeDefId) {
-      console.log(this.processSessionId)
       if (nodeDefId && this.processSessionId) {
         let { status, data } = await getDataByNodeDefIdAndProcessSessionId(nodeDefId, this.processSessionId)
         if (status === 'OK') {
