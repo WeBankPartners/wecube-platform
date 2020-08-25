@@ -45,13 +45,13 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
 
         String collectionName = favoritesDto.getCollectionName();
         if (StringUtils.isBlank(collectionName)) {
-            throw new WecubeCoreException("Collection name cannot be empty.");
+            throw new WecubeCoreException("3256","Collection name cannot be empty.");
         }
 
         List<FavoritesEntity> existingCollections = favoritesInfoRepository.findAllCollectionByCollectionName(collectionName);
         if (existingCollections != null && !existingCollections.isEmpty()) {
             log.error("such process definition name already exists,collectionName={}", collectionName);
-            throw new WecubeCoreException("CollectionName name should NOT duplicated.");
+            throw new WecubeCoreException("3257","CollectionName name should NOT duplicated.");
         }
 
         FavoritesEntity collectionsEntity = new FavoritesEntity();
@@ -118,7 +118,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
                 if (procRoleBindingEntities.size() <= favoritesRoleRequestDto.getRoleIdList().size()) {
                     String msg = "The process's management permission should have at least one role.";
                     log.info(String.format("The DELETE management roles operation was blocked, the process id is [%s].", favoritesId));
-                    throw new WecubeCoreException(msg);
+                    throw new WecubeCoreException("3258",msg);
                 }
             });
         }
@@ -145,7 +145,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
         Map<String, List<String>> permissionToRoleMap = favoritesDto.getPermissionToRole();
 
         if (null == permissionToRoleMap) {
-            throw new WecubeCoreException("There is no favorites to role with permission mapping found.");
+            throw new WecubeCoreException("3259","There is no favorites to role with permission mapping found.");
         }
 
         String errorMsg;
@@ -156,14 +156,14 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             if (StringUtils.isEmpty(permissionStr)) {
                 errorMsg = "The permission key should not be empty or NULL";
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3260",errorMsg);
             }
 
             // check key is valid permission enum
             if (!EnumUtils.isValidEnum(ProcRoleBindingEntity.permissionEnum.class, permissionStr)) {
                 errorMsg = "The request's key is not valid as a permission.";
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3261",errorMsg);
             }
 
             List<String> roleIdList = permissionToRoleListEntry.getValue();
@@ -172,14 +172,14 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
             if (null == roleIdList) {
                 errorMsg = String.format("The value of permission: [%s] should not be NULL", permissionStr);
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3262",errorMsg);
             }
             // when permission is MGMT and roleIdList is empty, then it is
             // invalid
             if (ProcRoleBindingEntity.permissionEnum.MGMT.toString().equals(permissionStr) && roleIdList.isEmpty()) {
                 errorMsg = "At least one role with MGMT role should be declared.";
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3263",errorMsg);
             }
             batchSaveRoleFavorites(collectId, roleIdList, permissionStr);
         }
@@ -201,7 +201,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
                     Objects.requireNonNull(permissionStr, "Permission string cannot be NULL").toUpperCase());
         } catch (IllegalArgumentException ex) {
             String msg = String.format("The given permission string [%s] doesn't match platform-core's match cases.", permissionStr);
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3264",msg, permissionStr);
         }
         return permissionEnum;
     }
@@ -234,7 +234,7 @@ public class RoleFavoritesServiceImpl implements RoleFavoritesService {
 
         if (!ifUserHasSuchPermission) {
             String msg = String.format("The user doesn't have favorites: [%s]'s [%s] permission", favoritesId, permissionEnum.toString());
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3265",msg, favoritesId, permissionEnum.toString());
         }
     }
 
