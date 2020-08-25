@@ -107,11 +107,11 @@ public class PluginConfigService {
 
     private void validatePermission(Map<String, List<String>> permissionToRole) {
         if (permissionToRole == null || permissionToRole.isEmpty()) {
-            throw new WecubeCoreException("Permission configuration should provide.");
+            throw new WecubeCoreException("3036", "Permission configuration should provide.");
         }
         List<String> mgmtRoleIds = permissionToRole.get(PluginAuthEntity.PERM_TYPE_MGMT);
         if (mgmtRoleIds == null || mgmtRoleIds.isEmpty()) {
-            throw new WecubeCoreException("At least one management role should provide.");
+            throw new WecubeCoreException("3037", "At least one management role should provide.");
         }
 
         return;
@@ -264,20 +264,20 @@ public class PluginConfigService {
     private void validateCurrentUserPermission(String pluginConfigId, String permission) {
         String currentUsername = AuthenticationContextHolder.getCurrentUsername();
         if (StringUtils.isBlank(currentUsername)) {
-            throw new WecubeCoreException("Current user did not login in.");
+            throw new WecubeCoreException("3038", "Current user did not login in.");
         }
 
         Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         if (currUserRoles == null || currUserRoles.isEmpty()) {
-            throw new WecubeCoreException("Lack of permission to update user permission configuration.");
+            throw new WecubeCoreException("3039", "Lack of permission to update user permission configuration.");
         }
 
         List<PluginAuthEntity> pluginAuthConfigEntities = this.pluginAuthRepository
                 .findAllByPluginConfigIdAndPermission(pluginConfigId, permission);
 
         if (pluginAuthConfigEntities == null || pluginAuthConfigEntities.isEmpty()) {
-            throw new WecubeCoreException(
-                    String.format("None plugin authority configured for [%s] [%s]", pluginConfigId, permission));
+            throw new WecubeCoreException("3040", "None plugin authority configured for [%s] [%s]", pluginConfigId,
+                    permission);
         }
 
         boolean hasAuthority = false;
@@ -300,7 +300,7 @@ public class PluginConfigService {
             String errorMsg = String.format(
                     "Current user do not have privilege to update [%s].Must have one of the roles:%s", pluginConfigId,
                     rolesStr.toString());
-            throw new WecubeCoreException(errorMsg);
+            throw new WecubeCoreException("3041", errorMsg, pluginConfigId, rolesStr.toString());
         }
     }
 
@@ -322,17 +322,19 @@ public class PluginConfigService {
     private void ensurePluginConfigIdNotExisted(PluginConfig pluginConfig) {
         pluginConfig.initId();
         if (pluginConfigRepository.existsById(pluginConfig.getId())) {
-            throw new WecubeCoreException(String.format("PluginConfig[%s] already exist", pluginConfig.getId()));
+            throw new WecubeCoreException("3042", String.format("PluginConfig[%s] already exist", pluginConfig.getId()),
+                    pluginConfig.getId());
         }
     }
 
     private void ensurePluginConfigRegisterNameNotExisted(PluginConfigDto pluginConfigDto) {
         if (pluginConfigRepository.existsByPluginPackage_idAndNameAndRegisterName(pluginConfigDto.getPluginPackageId(),
                 pluginConfigDto.getName(), pluginConfigDto.getRegisterName())) {
-            throw new WecubeCoreException(
+            throw new WecubeCoreException("3043",
                     String.format("PluginPackage[%s] already have this PluginConfig[%s] with RegisterName[%s]",
                             pluginConfigDto.getPluginPackageId(), pluginConfigDto.getName(),
-                            pluginConfigDto.getRegisterName()));
+                            pluginConfigDto.getRegisterName()),
+                    pluginConfigDto.getPluginPackageId(), pluginConfigDto.getName(), pluginConfigDto.getRegisterName());
         }
     }
 
@@ -344,10 +346,12 @@ public class PluginConfigService {
             List<PluginConfig> existedPluginConfigList = existedPluginConfigListOptional.get();
             existedPluginConfigList.forEach(existedPluginConfig -> {
                 if (!existedPluginConfig.getId().equals(pluginConfigDto.getId())) {
-                    throw new WecubeCoreException(
-                            String.format("PluginPackage[%s] already have this PluginConfig[%s] with RegisterName[%s]",
-                                    pluginConfigDto.getPluginPackageId(), pluginConfigDto.getName(),
-                                    pluginConfigDto.getRegisterName()));
+                    String msg = String.format(
+                            "PluginPackage[%s] already have this PluginConfig[%s] with RegisterName[%s]",
+                            pluginConfigDto.getPluginPackageId(), pluginConfigDto.getName(),
+                            pluginConfigDto.getRegisterName());
+                    throw new WecubeCoreException("3044", msg, pluginConfigDto.getPluginPackageId(),
+                            pluginConfigDto.getName(), pluginConfigDto.getRegisterName());
                 }
             });
         }
@@ -361,7 +365,7 @@ public class PluginConfigService {
         PluginConfig pluginConfig = pluginConfigDto.toDomain(pluginPackage);
         PluginConfig pluginConfigFromDatabase = pluginConfigRepository.findById(pluginConfigDto.getId()).get();
         if (ENABLED == pluginConfigFromDatabase.getStatus()) {
-            throw new WecubeCoreException("Not allow to update plugin with status: ENABLED");
+            throw new WecubeCoreException("3045", "Not allow to update plugin with status: ENABLED");
         }
         pluginConfig.setStatus(DISABLED);
 
@@ -378,15 +382,18 @@ public class PluginConfigService {
     private void ensurePluginConfigIsValid(PluginConfigDto pluginConfigDto) {
         if (StringUtils.isBlank(pluginConfigDto.getPluginPackageId())
                 || !pluginPackageRepository.existsById(pluginConfigDto.getPluginPackageId())) {
-            throw new WecubeCoreException(String.format("Cannot find PluginPackage with id=%s in PluginConfig",
-                    pluginConfigDto.getPluginPackageId()));
+            String msg = String.format("Cannot find PluginPackage with id=%s in PluginConfig",
+                    pluginConfigDto.getPluginPackageId());
+            throw new WecubeCoreException("3046", msg, pluginConfigDto.getPluginPackageId());
         }
         if (StringUtils.isBlank(pluginConfigDto.getId())) {
-            throw new WecubeCoreException("Invalid pluginConfig with id: " + pluginConfigDto.getId());
+            throw new WecubeCoreException("3047", "Invalid pluginConfig with id: " + pluginConfigDto.getId(),
+                    pluginConfigDto.getId());
         }
 
         if (!pluginConfigRepository.existsById(pluginConfigDto.getId())) {
-            throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigDto.getId());
+            throw new WecubeCoreException("3048", "PluginConfig not found for id: " + pluginConfigDto.getId(),
+                    pluginConfigDto.getId());
         }
         ensurePluginConfigUnique(pluginConfigDto);
 
@@ -399,7 +406,7 @@ public class PluginConfigService {
             Optional<PluginPackageDataModel> dataModelOptional = dataModelRepository
                     .findLatestDataModelByPackageName(targetPackage);
             if (!dataModelOptional.isPresent()) {
-                throw new WecubeCoreException("Data model not exists for package name [%s]");
+                throw new WecubeCoreException("3049", "Data model not exists for package name [%s]");
             }
 
             Integer dataModelVersion = dataModelOptional.get().getVersion();
@@ -409,26 +416,26 @@ public class PluginConfigService {
                         "PluginPackageEntity not found for packageName:dataModelVersion:entityName [%s:%s:%s] for plugin config: %s",
                         targetPackage, dataModelVersion, targetEntity, pluginConfigName);
                 log.error(errorMessage);
-                throw new WecubeCoreException(errorMessage);
+                throw new WecubeCoreException("3050", errorMessage, targetPackage, dataModelVersion, targetEntity, pluginConfigName);
             }
         }
     }
 
     public PluginConfigDto enablePlugin(String pluginConfigId) {
         if (!pluginConfigRepository.existsById(pluginConfigId)) {
-            throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
+            throw new WecubeCoreException("3051", "PluginConfig not found for id: " + pluginConfigId);
         }
 
         PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
 
         if (pluginConfig.getPluginPackage() == null || UNREGISTERED == pluginConfig.getPluginPackage().getStatus()
                 || DECOMMISSIONED == pluginConfig.getPluginPackage().getStatus()) {
-            throw new WecubeCoreException(
+            throw new WecubeCoreException("3052",
                     "Plugin package is not in valid status [REGISTERED, RUNNING, STOPPED] to enable plugin.");
         }
 
         if (ENABLED == pluginConfig.getStatus()) {
-            throw new WecubeCoreException("Not allow to enable pluginConfig with status: ENABLED");
+            throw new WecubeCoreException("3053", "Not allow to enable pluginConfig with status: ENABLED");
         }
 
         validateCurrentUserPermission(pluginConfigId, PluginAuthEntity.PERM_TYPE_MGMT);
@@ -451,13 +458,13 @@ public class PluginConfigService {
                         if ("Y".equalsIgnoreCase(inputParameter.getRequired())) {
                             if (system_variable.name().equals(inputParameter.getMappingType())
                                     && inputParameter.getMappingSystemVariableName() == null) {
-                                throw new WecubeCoreException(String.format(
-                                        "System variable is required for parameter [%s]", inputParameter.getId()));
+                                throw new WecubeCoreException("3054", String.format(
+                                        "System variable is required for parameter [%s]", inputParameter.getId()), inputParameter.getId());
                             }
                             if (entity.name().equals(inputParameter.getMappingType())
                                     && StringUtils.isBlank(inputParameter.getMappingEntityExpression())) {
-                                throw new WecubeCoreException(String.format(
-                                        "Entity expression is required for parameter [%s]", inputParameter.getId()));
+                                throw new WecubeCoreException("3055", String.format(
+                                        "Entity expression is required for parameter [%s]", inputParameter.getId()), inputParameter.getId());
                             }
                         }
                     });
@@ -468,8 +475,8 @@ public class PluginConfigService {
                         if ("Y".equalsIgnoreCase(outputParameter.getRequired())) {
                             if (entity.name().equals(outputParameter.getMappingType())
                                     && StringUtils.isBlank(outputParameter.getMappingEntityExpression())) {
-                                throw new WecubeCoreException(String.format(
-                                        "Entity expression is required for parameter [%s]", outputParameter.getId()));
+                                throw new WecubeCoreException("3056", String.format(
+                                        "Entity expression is required for parameter [%s]", outputParameter.getId()), outputParameter.getId());
                             }
                         }
                     });
@@ -480,7 +487,7 @@ public class PluginConfigService {
 
     public PluginConfigDto disablePlugin(String pluginConfigId) {
         if (!pluginConfigRepository.existsById(pluginConfigId)) {
-            throw new WecubeCoreException("PluginConfig not found for id: " + pluginConfigId);
+            throw new WecubeCoreException("3057", "PluginConfig not found for id: " + pluginConfigId);
         }
 
         PluginConfig pluginConfig = pluginConfigRepository.findById(pluginConfigId).get();
@@ -495,8 +502,8 @@ public class PluginConfigService {
         Optional<PluginConfigInterface> pluginConfigInterface = pluginConfigRepository
                 .findLatestOnlinePluginConfigInterfaceByServiceNameAndFetchParameters(serviceName);
         if (!pluginConfigInterface.isPresent()) {
-            throw new WecubeCoreException(
-                    String.format("Plugin interface not found for serviceName [%s].", serviceName));
+            throw new WecubeCoreException("3058",
+                    String.format("Plugin interface not found for serviceName [%s].", serviceName), serviceName);
         }
         return pluginConfigInterface.get();
     }
@@ -599,7 +606,7 @@ public class PluginConfigService {
         Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
         if (currUserRoles == null || currUserRoles.isEmpty()) {
             log.warn("roles of current user is empty.");
-            throw new WecubeCoreException("Lack of permission to perform such operation.");
+            throw new WecubeCoreException("3059", "Lack of permission to perform such operation.");
         }
 
         List<PluginConfigInterfaceDto> privilegedPluginConfigInterfaceDtos = new ArrayList<>();
@@ -615,7 +622,7 @@ public class PluginConfigService {
     private boolean verifyPluginConfigInterfacePrivilege(PluginConfigInterfaceDto pluginConfigInterfaceDto,
             String permission, Set<String> currUserRoles) {
         if (StringUtils.isBlank(pluginConfigInterfaceDto.getPluginConfigId())) {
-            throw new WecubeCoreException("Plugin config ID cannot be blank.");
+            throw new WecubeCoreException("3060", "Plugin config ID cannot be blank.");
         }
         List<PluginAuthEntity> entities = pluginAuthRepository
                 .findAllByPluginConfigIdAndPermission(pluginConfigInterfaceDto.getPluginConfigId(), permission);
@@ -669,8 +676,8 @@ public class PluginConfigService {
         if (cfgOptional.isPresent()) {
             PluginConfig cfg = cfgOptional.get();
             if (!cfg.getStatus().equals(PluginConfig.Status.DISABLED)) {
-                throw new WecubeCoreException(
-                        String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()));
+                throw new WecubeCoreException("3061",
+                        String.format("Can not delete [%s] status PluginConfig", cfg.getStatus()), cfg.getStatus());
             }
 
             validateCurrentUserPermission(configId, PluginAuthEntity.PERM_TYPE_MGMT);
@@ -678,7 +685,7 @@ public class PluginConfigService {
             pkg.getPluginConfigs().remove(cfg);
             pluginPackageRepository.save(pkg);
         } else {
-            throw new WecubeCoreException(String.format("Can not found PluginConfig[%s]", configId));
+            throw new WecubeCoreException("3062", String.format("Can not found PluginConfig[%s]", configId), configId);
         }
     }
 

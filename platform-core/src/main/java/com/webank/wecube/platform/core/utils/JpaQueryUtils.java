@@ -36,10 +36,10 @@ public class JpaQueryUtils {
     }
 
     public static void applySorting(Sorting sorting, CriteriaBuilder cb, CriteriaQuery query,
-                                    Map<String, Expression> selectionMap) {
+            Map<String, Expression> selectionMap) {
         if (sorting != null && sorting.getField() != null && selectionMap.get(sorting.getField()) == null) {
-            throw new WecubeCoreException(
-                    String.format("Sorting field name [%s] is invalid.", sorting.getField()));
+            String msg = String.format("Sorting field name [%s] is invalid.", sorting.getField());
+            throw new WecubeCoreException("3291", msg, sorting.getField());
         }
 
         if (sorting != null && (!Strings.isNullOrEmpty(sorting.getField()))) {
@@ -54,39 +54,41 @@ public class JpaQueryUtils {
     }
 
     public static void applyFilter(CriteriaBuilder cb, CriteriaQuery query, List<Filter> filters,
-                                   Map<String, Expression> selectionMap, Map<String, Class<?>> fieldTypeMap, FilterRelationship filterRs, List<Predicate> predicates, Predicate accessControlPredicate) {
+            Map<String, Expression> selectionMap, Map<String, Class<?>> fieldTypeMap, FilterRelationship filterRs,
+            List<Predicate> predicates, Predicate accessControlPredicate) {
         if (predicates == null) {
             predicates = new LinkedList<>();
         }
         for (Filter filter : filters) {
             Expression filterExpr = validateFilterName(selectionMap, filter);
             switch (FilterOperator.fromCode(filter.getOperator())) {
-                case IN:
-                    processInOperator(cb, predicates, filter, filterExpr);
-                    break;
-                case CONTAINS:
-                    processContainsOperator(cb, predicates, filter, filterExpr);
-                    break;
-                case EQUAL:
-                    processEqualsOperator(cb, predicates, filter, filterExpr);
-                    break;
-                case GREATER:
-                    processGreaterOperator(cb, predicates, filter, filterExpr);
-                    break;
-                case LESS:
-                    processLessOperator(cb, predicates, filter, filterExpr);
-                    break;
-                case NOT_EQUAL:
-                    processNotEqualsOperator(cb, predicates, filter, filterExpr);
-                    break;
-                case NOT_NULL:
-                    predicates.add(cb.isNotNull(filterExpr));
-                    break;
-                case NULL:
-                    predicates.add(cb.isNull(filterExpr));
-                    break;
-                default:
-                    throw new WecubeCoreException(String.format("Filter operator [%s] is unsupportted.", filter.getOperator()));
+            case IN:
+                processInOperator(cb, predicates, filter, filterExpr);
+                break;
+            case CONTAINS:
+                processContainsOperator(cb, predicates, filter, filterExpr);
+                break;
+            case EQUAL:
+                processEqualsOperator(cb, predicates, filter, filterExpr);
+                break;
+            case GREATER:
+                processGreaterOperator(cb, predicates, filter, filterExpr);
+                break;
+            case LESS:
+                processLessOperator(cb, predicates, filter, filterExpr);
+                break;
+            case NOT_EQUAL:
+                processNotEqualsOperator(cb, predicates, filter, filterExpr);
+                break;
+            case NOT_NULL:
+                predicates.add(cb.isNotNull(filterExpr));
+                break;
+            case NULL:
+                predicates.add(cb.isNull(filterExpr));
+                break;
+            default:
+                throw new WecubeCoreException("3298",
+                        String.format("Filter operator [%s] is unsupportted.", filter.getOperator()), filter.getOperator());
             }
         }
 
@@ -109,7 +111,7 @@ public class JpaQueryUtils {
     }
 
     public static void processNotEqualsOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
-                                                Expression filterExpr) {
+            Expression filterExpr) {
 
         Object value = filter.getValue();
         if (value instanceof String) {
@@ -125,7 +127,7 @@ public class JpaQueryUtils {
     }
 
     public static void processLessOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
-                                           Expression filterExpr) {
+            Expression filterExpr) {
         Object value = filter.getValue();
         if (value instanceof Date) {
             Timestamp timestamp = new Timestamp(((Date) value).getTime());
@@ -138,15 +140,19 @@ public class JpaQueryUtils {
                 predicates.add(cb.lessThan(filterExpr, (String) value));
             }
         } else if (value instanceof Number) {
-            if (value instanceof Integer) predicates.add(cb.lessThan(filterExpr, (Integer) value));
-            if (value instanceof Long) predicates.add(cb.lessThan(filterExpr, (Long) value));
-            if (value instanceof Float) predicates.add(cb.lessThan(filterExpr, (Float) value));
-            if (value instanceof Double) predicates.add(cb.lessThan(filterExpr, (Double) value));
+            if (value instanceof Integer)
+                predicates.add(cb.lessThan(filterExpr, (Integer) value));
+            if (value instanceof Long)
+                predicates.add(cb.lessThan(filterExpr, (Long) value));
+            if (value instanceof Float)
+                predicates.add(cb.lessThan(filterExpr, (Float) value));
+            if (value instanceof Double)
+                predicates.add(cb.lessThan(filterExpr, (Double) value));
         }
     }
 
     public static void processGreaterOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
-                                              Expression filterExpr) {
+            Expression filterExpr) {
         Object value = filter.getValue();
         if (value instanceof Date) {
             Timestamp timestamp = new Timestamp(((Date) value).getTime());
@@ -159,22 +165,26 @@ public class JpaQueryUtils {
                 predicates.add(cb.greaterThan(filterExpr, (String) value));
             }
         } else if (value instanceof Number) {
-            if (value instanceof Integer) predicates.add(cb.greaterThan(filterExpr, (Integer) value));
-            if (value instanceof Long) predicates.add(cb.greaterThan(filterExpr, (Long) value));
-            if (value instanceof Float) predicates.add(cb.greaterThan(filterExpr, (Float) value));
-            if (value instanceof Double) predicates.add(cb.greaterThan(filterExpr, (Double) value));
+            if (value instanceof Integer)
+                predicates.add(cb.greaterThan(filterExpr, (Integer) value));
+            if (value instanceof Long)
+                predicates.add(cb.greaterThan(filterExpr, (Long) value));
+            if (value instanceof Float)
+                predicates.add(cb.greaterThan(filterExpr, (Float) value));
+            if (value instanceof Double)
+                predicates.add(cb.greaterThan(filterExpr, (Double) value));
         }
     }
 
     public static void processEqualsOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
-                                             Expression filterExpr) {
+            Expression filterExpr) {
         Object value = filter.getValue();
         Class expectedType = filterExpr.getJavaType();
 
-        if (value instanceof String && expectedType.equals(Timestamp.class)) {//datetime
+        if (value instanceof String && expectedType.equals(Timestamp.class)) {// datetime
             java.util.Date date = DateUtils.convertToTimestamp((String) value);
             predicates.add(cb.equal(filterExpr, new Timestamp(date.getTime())));
-        } else if (String.class.equals(expectedType)) {//string
+        } else if (String.class.equals(expectedType)) {// string
             predicates.add(cb.equal(cb.upper(filterExpr), (String) filter.getValue().toString().toUpperCase()));
         } else {
             predicates.add(cb.equal(filterExpr, ClassUtils.toObject(expectedType, value)));
@@ -183,18 +193,19 @@ public class JpaQueryUtils {
     }
 
     public static void processContainsOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
-                                               Expression filterExpr) {
+            Expression filterExpr) {
         if (!(filter.getValue() instanceof String)) {
-            throw new WecubeCoreException("Filter value should be string for 'contains' operator.");
+            throw new WecubeCoreException("3297","Filter value should be string for 'contains' operator.");
         }
         String filterVal = (String) filter.getValue();
         predicates.add(cb.like(cb.upper(filterExpr), "%" + filterVal.toUpperCase() + "%"));
     }
 
-    public static void processInOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter, Expression filterExpr) {
+    public static void processInOperator(CriteriaBuilder cb, List<Predicate> predicates, Filter filter,
+            Expression filterExpr) {
         Class<?> expectedType = filterExpr.getJavaType();
         if (!(filter.getValue() instanceof List)) {
-            throw new WecubeCoreException("Filter value should be list for 'in' operator.");
+            throw new WecubeCoreException("3296","Filter value should be list for 'in' operator.");
         }
         List<?> values = (List<?>) filter.getValue();
 
@@ -228,8 +239,8 @@ public class JpaQueryUtils {
     private static Expression validateFilterName(Map<String, Expression> selectionMap, Filter filter) {
         Expression filterExpr = selectionMap.get(filter.getName());
         if (filterExpr == null) {
-            throw new WecubeCoreException(
-                    String.format("Given filter name [%s] is not existed.", filter.getName()));
+            String msg = String.format("Given filter name [%s] is not existed.", filter.getName());
+            throw new WecubeCoreException("3289", msg, filter.getName());
         }
         return filterExpr;
     }
@@ -243,18 +254,18 @@ public class JpaQueryUtils {
     }
 
     public static void updateSeqNoForMultiReference(EntityManager entityManager, String curGuid, String joinTable,
-                                                    List<String> refGuids, int i, String refGuid) {
+            List<String> refGuids, int i, String refGuid) {
         StringBuilder updateSeqSqlBuilder = new StringBuilder();
-        updateSeqSqlBuilder.append("update ").append(joinTable)
-                .append(" set seq_no = ").append(i + 1)
-                .append(" where from_guid = '").append(curGuid).append("' and ")
-                .append(" to_guid = '").append(refGuid).append("'");
+        updateSeqSqlBuilder.append("update ").append(joinTable).append(" set seq_no = ").append(i + 1)
+                .append(" where from_guid = '").append(curGuid).append("' and ").append(" to_guid = '").append(refGuid)
+                .append("'");
 
         Query query = entityManager.createNativeQuery(updateSeqSqlBuilder.toString());
         int updateCount = query.executeUpdate();
         if (updateCount != 1) {
-            throw new WecubeCoreException(String.format("Failed to update seq_no for mult reference [from_guid:%s,to_guid:%s]", curGuid,
-                    refGuids.get(i)));
+            String msg = String.format("Failed to update seq_no for mult reference [from_guid:%s,to_guid:%s]", curGuid,
+                    refGuids.get(i));
+            throw new WecubeCoreException("3290", msg, curGuid, refGuids.get(i));
         }
     }
 }
