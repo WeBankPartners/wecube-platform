@@ -69,7 +69,6 @@ WatchRouter.on('change', path => {
 window.childRouters = []
 
 window.addRoutes = (route, name) => {
-  console.log(route, name)
   window.routers = window.routers.concat(route)
   getChildRouters(route)
   router.addRoutes([
