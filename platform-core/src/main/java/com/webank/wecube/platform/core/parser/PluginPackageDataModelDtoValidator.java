@@ -24,7 +24,7 @@ public class PluginPackageDataModelDtoValidator {
                     if (logger.isDebugEnabled()) {
                         logger.debug(String.valueOf(inputAttributeDto));
                     }
-                    throw new WecubeCoreException(msg);
+                    throw new WecubeCoreException("3279",msg, inputEntityDto.getPackageName(), inputEntityDto.getDataModelVersion());
                 }
                 if ("ref" .equals(inputAttributeDto.getDataType()) && StringUtils.isEmpty(inputAttributeDto.getRefAttributeName())) {
                     String msg = "Field [ref] should be specified when [dataType] is set to [\"ref\"]";
@@ -32,7 +32,7 @@ public class PluginPackageDataModelDtoValidator {
                     if (logger.isDebugEnabled()) {
                         logger.debug(String.valueOf(inputAttributeDto));
                     }
-                    throw new WecubeCoreException(msg);
+                    throw new WecubeCoreException("3280",msg);
                 }
             }));
         }
