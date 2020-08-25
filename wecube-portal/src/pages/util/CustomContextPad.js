@@ -17,7 +17,6 @@ export default class CustomContextPad {
     const { autoPlace, create, elementFactory, translate } = this
 
     function appendTask (event, element) {
-      console.log(autoPlace)
       if (autoPlace) {
         const shape = elementFactory.createShape({ type: 'bpmn:SubProcess' })
         autoPlace.append(element, shape)
