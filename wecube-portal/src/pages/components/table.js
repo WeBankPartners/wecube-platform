@@ -1,5 +1,6 @@
 import './table.scss'
 import moment from 'moment'
+import { createPopper } from '@popperjs/core'
 const DEFAULT_FILTER_NUMBER = 5
 const DATE_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 const MIN_WIDTH = 130
@@ -27,12 +28,24 @@ export default {
       data: [],
       isShowHiddenFilters: false,
       showedColumns: [],
-      columns: []
+      columns: [],
+      tipContent: '',
+      randomId: '',
+      timer: null
     }
   },
   mounted () {
     this.formatTableData()
     this.showedColumns = this.tableColumns.map(column => column.title)
+
+    let len = 32
+    let chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz'
+    let maxPos = chars.length
+    let randomId = ''
+    for (let i = 0; i < len; i++) {
+      randomId += chars.charAt(Math.floor(Math.random() * maxPos))
+    }
+    this.randomId = randomId
   },
   watch: {
     tableData (val) {
@@ -663,23 +676,42 @@ export default {
               content = params.row.weTableForm[col.key]
             }
 
-            // const len = content ? content.toString().length : 0
-            // const d = {
-            //   props: {
-            //     disabled: len < 10,
-            //     content: content,
-            //     'min-width': '130px',
-            //     'max-width': '500px'
-            //   }
-            // }
+            const containerId = 'ref' + Math.ceil(Math.random() * 1000000)
 
             return h(
               'span',
               {
                 class: 'ivu-table-cell-tooltip-content',
-                on: {},
+                on: {
+                  mouseenter: event => {
+                    if (
+                      document.getElementById(containerId).scrollWidth >
+                      document.getElementById(containerId).clientWidth
+                    ) {
+                      this.timer = setTimeout(
+                        params => {
+                          this.tipContent = content
+                          const popcorn = document.querySelector('#' + containerId)
+                          const tooltip = document.querySelector('#' + params.randomId)
+                          createPopper(popcorn, tooltip, {
+                            placement: 'bottom'
+                          })
+                        },
+                        800,
+                        {
+                          randomId: this.randomId,
+                          content
+                        }
+                      )
+                    }
+                  },
+                  mouseleave: event => {
+                    clearInterval(this.timer)
+                    this.tipContent = ''
+                  }
+                },
                 attrs: {
-                  title: content
+                  id: containerId
                 }
               },
               content
@@ -720,6 +752,13 @@ export default {
             style="float: right; margin: 10px 0;"
           />
         )}
+        <div id={this.randomId} style="z-index: 100;">
+          {this.tipContent && (
+            <div style="word-break: break-word;background-color: rgba(70,76,91,.9);padding: 8px 12px;color: #fff;text-align: left;border-radius: 4px;border-radius: 4px;box-shadow: 0 1px 6px rgba(0,0,0,.2);width: 250px;">
+              {this.tipContent}
+            </div>
+          )}
+        </div>
       </div>
     )
   }
