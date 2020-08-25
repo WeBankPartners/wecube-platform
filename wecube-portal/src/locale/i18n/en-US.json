@@ -1,5 +1,13 @@
 {
   "logout": "Logout",
+  "change_password": "Change Password",
+  "original_password": "Old Password",
+  "new_password": "New Password",
+  "confirm_password": "Confirm Password",
+  "original_password_input_placeholder": "Please input old password",
+  "new_password_input_placeholder": "Please input new password",
+  "confirm_password_input_placeholder": "Please enter the new password again",
+  "confirm_password_error": "Password confirmation error",
   "table_number": "Number",
   "table_enum_name": "Enum Name",
   "table_key": "Key",
