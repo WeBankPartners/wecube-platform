@@ -48,7 +48,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         } catch (IllegalArgumentException ex) {
             String msg = String.format("The given permission string [%s] doesn't match platform-core's match cases.",
                     permissionStr);
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3183",msg, permissionStr);
         }
         return permissionEnum;
     }
@@ -146,7 +146,7 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
                     String msg = "The process's management permission should have at least one role.";
                     logger.info(String.format(
                             "The DELETE management roles operation was blocked, the process id is [%s].", procId));
-                    throw new WecubeCoreException(msg);
+                    throw new WecubeCoreException("3184",msg);
                 }
             });
         }
@@ -190,7 +190,8 @@ public class ProcessRoleServiceImpl implements ProcessRoleService {
         if (!ifUserHasSuchPermission) {
             String msg = String.format("The user doesn't have process: [%s]'s [%s] permission", procId,
                     permissionEnum.toString());
-            throw new WecubeCoreException(msg);
+            throw new WecubeCoreException("3185",msg, procId,
+                    permissionEnum.toString());
         }
 
     }
