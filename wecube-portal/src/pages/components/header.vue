@@ -1,74 +1,117 @@
 <template>
-  <Header>
-    <div class="menus">
-      <Menu mode="horizontal" theme="dark">
-        <div v-for="menu in menus" :key="menu.code">
-          <MenuItem v-if="menu.submenus.length < 1" :name="menu.title" style="cursor: not-allowed;">
-            {{ menu.title }}
-          </MenuItem>
+  <div>
+    <Header>
+      <div class="menus">
+        <Menu mode="horizontal" theme="dark">
+          <div v-for="menu in menus" :key="menu.code">
+            <MenuItem v-if="menu.submenus.length < 1" :name="menu.title" style="cursor: not-allowed;">
+              {{ menu.title }}
+            </MenuItem>
 
-          <Submenu v-else :name="menu.code">
-            <template slot="title" style="font-size: 16px">{{ menu.title }}</template>
-            <router-link
-              v-for="submenu in menu.submenus"
-              :key="submenu.code"
-              :to="submenu.active ? submenu.link || '' : ''"
+            <Submenu v-else :name="menu.code">
+              <template slot="title" style="font-size: 16px">{{ menu.title }}</template>
+              <router-link
+                v-for="submenu in menu.submenus"
+                :key="submenu.code"
+                :to="submenu.active ? submenu.link || '' : ''"
+              >
+                <MenuItem :disabled="!submenu.active" :name="submenu.code">{{ submenu.title }}</MenuItem>
+              </router-link>
+            </Submenu>
+          </div>
+        </Menu>
+      </div>
+      <div class="header-right_container">
+        <div class="profile">
+          <Dropdown style="cursor: pointer">
+            <span style="color: white"
+              ><Icon style="margin-right:5px" size="16" type="ios-contact" />{{ username }}</span
             >
-              <MenuItem :disabled="!submenu.active" :name="submenu.code">{{ submenu.title }}</MenuItem>
-            </router-link>
-          </Submenu>
+            <Icon :size="18" type="ios-arrow-down" color="white"></Icon>
+            <DropdownMenu slot="list">
+              <DropdownItem name="logout" to="/login">
+                <a @click="showChangePassword" style="width: 100%; display: block">
+                  {{ $t('change_password') }}
+                </a>
+              </DropdownItem>
+              <DropdownItem name="logout" to="/login">
+                <a @click="logout" style="width: 100%; display: block">
+                  {{ $t('logout') }}
+                </a>
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
         </div>
-      </Menu>
-    </div>
-    <div class="header-right_container">
-      <div class="profile">
-        <Dropdown style="cursor: pointer">
-          <span style="color: white"><Icon style="margin-right:5px" size="16" type="ios-contact" />{{ username }}</span>
-          <Icon :size="18" type="ios-arrow-down" color="white"></Icon>
-          <DropdownMenu slot="list">
-            <DropdownItem name="logout" to="/login">
-              <a @click="logout" style="width: 100%; display: block">
-                {{ $t('logout') }}
-              </a>
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+        <div class="language">
+          <Dropdown>
+            <a href="javascript:void(0)">
+              <Icon size="16" type="ios-globe" style="margin-right:5px; cursor: pointer" />
+              {{ currentLanguage }}
+              <Icon type="ios-arrow-down"></Icon>
+            </a>
+            <DropdownMenu slot="list">
+              <DropdownItem v-for="(item, key) in language" :key="item.id" @click.native="changeLanguage(key)">{{
+                item
+              }}</DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </div>
+        <div class="language">
+          <Dropdown>
+            <a href="javascript:void(0)">
+              <Icon style="margin-right:5px" size="16" type="md-book" />
+              {{ $t('help_docs') }}
+              <Icon type="ios-arrow-down"></Icon>
+            </a>
+            <DropdownMenu slot="list">
+              <DropdownItem v-for="(item, key) in docs" :key="key" @click.native="changeDocs(item.url)">
+                {{ $t(item.name) }}
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </div>
+        <div class="version">{{ version }}</div>
       </div>
-      <div class="language">
-        <Dropdown>
-          <a href="javascript:void(0)">
-            <Icon size="16" type="ios-globe" style="margin-right:5px; cursor: pointer" />
-            {{ currentLanguage }}
-            <Icon type="ios-arrow-down"></Icon>
-          </a>
-          <DropdownMenu slot="list">
-            <DropdownItem v-for="(item, key) in language" :key="item.id" @click.native="changeLanguage(key)">{{
-              item
-            }}</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
+    </Header>
+    <Modal
+      v-model="changePassword"
+      :title="$t('change_password')"
+      :mask-closable="false"
+      @on-visible-change="cancelChangePassword"
+    >
+      <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="80">
+        <FormItem :label="$t('original_password')" prop="originalPassword">
+          <Input
+            v-model="formValidate.originalPassword"
+            type="password"
+            :placeholder="$t('original_password_input_placeholder')"
+          ></Input>
+        </FormItem>
+        <FormItem :label="$t('new_password')" prop="newPassword">
+          <Input
+            v-model="formValidate.newPassword"
+            type="password"
+            :placeholder="$t('new_password_input_placeholder')"
+          ></Input>
+        </FormItem>
+        <FormItem :label="$t('confirm_password')" prop="confirmPassword">
+          <Input
+            v-model="formValidate.confirmPassword"
+            type="password"
+            :placeholder="$t('confirm_password_input_placeholder')"
+          ></Input>
+        </FormItem>
+      </Form>
+      <div slot="footer">
+        <Button @click="cancelChangePassword(false)">{{ $t('bc_cancle') }}</Button>
+        <Button type="primary" @click="okChangePassword">{{ $t('bc_confirm') }}</Button>
       </div>
-      <div class="language">
-        <Dropdown>
-          <a href="javascript:void(0)">
-            <Icon style="margin-right:5px" size="16" type="md-book" />
-            {{ $t('help_docs') }}
-            <Icon type="ios-arrow-down"></Icon>
-          </a>
-          <DropdownMenu slot="list">
-            <DropdownItem v-for="(item, key) in docs" :key="key" @click.native="changeDocs(item.url)">
-              {{ $t(item.name) }}
-            </DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
-      </div>
-      <div class="version">{{ version }}</div>
-    </div>
-  </Header>
+    </Modal>
+  </div>
 </template>
 <script>
 import Vue from 'vue'
-import { getMyMenus, getAllPluginPackageResourceFiles, getApplicationVersion } from '@/api/server.js'
+import { getMyMenus, getAllPluginPackageResourceFiles, getApplicationVersion, changePassword } from '@/api/server.js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 
@@ -93,7 +136,18 @@ export default {
       ],
       menus: [],
       needLoad: true,
-      version: ''
+      version: '',
+      changePassword: false,
+      formValidate: {
+        originalPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      },
+      ruleValidate: {
+        originalPassword: [{ required: true, message: 'The Original Password cannot be empty', trigger: 'blur' }],
+        newPassword: [{ required: true, message: 'New Password cannot be empty', trigger: 'blur' }],
+        confirmPassword: [{ required: true, message: 'Confirm Password cannot be empty', trigger: 'blur' }]
+      }
     }
   },
   methods: {
@@ -108,6 +162,30 @@ export default {
     },
     logout () {
       window.location.href = window.location.origin + window.location.pathname + '#/login'
+    },
+    showChangePassword () {
+      this.changePassword = true
+    },
+    okChangePassword () {
+      this.$refs['formValidate'].validate(async valid => {
+        if (valid) {
+          if (this.formValidate.newPassword === this.formValidate.confirmPassword) {
+            const { status } = await changePassword(this.formValidate)
+            if (status === 'OK') {
+              this.$Message.success('Success !')
+              this.changePassword = false
+            }
+          } else {
+            this.$Message.warning(this.$t('confirm_password_error'))
+          }
+        }
+      })
+    },
+    cancelChangePassword (flag = false) {
+      if (!flag) {
+        this.$refs['formValidate'].resetFields()
+        this.changePassword = false
+      }
     },
     changeLanguage (lan) {
       Vue.config.lang = lan
