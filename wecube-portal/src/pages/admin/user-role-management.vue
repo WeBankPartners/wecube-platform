@@ -20,6 +20,7 @@
             >
               <span :title="` ${item.username} `">
                 {{ ` ${item.username} ` }}
+                <Icon @click="removeRole(item)" class="remove-role" type="ios-trash-outline" />
               </span>
             </Tag>
           </div>
@@ -107,6 +108,7 @@
 <script>
 import {
   userCreate,
+  removeUser,
   getUserList,
   roleCreate,
   getRoleList,
@@ -144,6 +146,25 @@ export default {
     }
   },
   methods: {
+    removeRole (item) {
+      this.$Modal.confirm({
+        title: this.$t('confirm_to_delete'),
+        'z-index': 1000000,
+        onOk: async () => {
+          let { status } = await removeUser(item.id)
+          if (status === 'OK') {
+            this.$Notice.success({
+              title: 'Success',
+              desc: ''
+            })
+            this.getAllUsers()
+            this.getAllRoles()
+            this.getAllMenus()
+          }
+        },
+        onCancel: () => {}
+      })
+    },
     async handleMenuTreeCheck (allChecked, currentChecked) {
       const menuCodes = allChecked.filter(i => i.category).map(_ => _.code)
       const { status, message } = await updateRoleToMenusByRoleId(this.currentRoleId, menuCodes)
@@ -447,5 +468,11 @@ export default {
   .ivu-checkbox-disabled.ivu-checkbox-checked .ivu-checkbox-inner {
     background-color: #2d8cf0;
   }
+}
+.remove-role {
+  font-size: 16px;
+  color: red;
+  float: right;
+  cursor: pointer;
 }
 </style>
