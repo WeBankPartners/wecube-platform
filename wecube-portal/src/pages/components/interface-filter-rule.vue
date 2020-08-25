@@ -138,9 +138,7 @@ export default {
       if (this.rootEntity && this.rootEntity.length > 0) {
         this.currentPathFilterRules = []
         this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.rootEntity).attributes
-        console.log(this.value)
         const rules = this.value.match(/[^{]+(?=})/g)
-        console.log(rules)
         if (rules) {
           rules.forEach(async r => {
             let enums = []
