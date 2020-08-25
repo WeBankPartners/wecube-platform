@@ -46,7 +46,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
     
     public ProcDefInfoExportImportDto importProcessDefinition(ProcDefInfoExportImportDto importDto) {
         if (importDto == null) {
-            throw new WecubeCoreException("Invalid import data.");
+            throw new WecubeCoreException("3131","Invalid import data.");
         }
 
         Date currTime = new Date();
@@ -144,14 +144,14 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
 
     public ProcDefInfoExportImportDto exportProcessDefinition(String procDefId) {
         if (StringUtils.isBlank(procDefId)) {
-            throw new WecubeCoreException("Process definition id is blank.");
+            throw new WecubeCoreException("3132","Process definition id is blank.");
         }
 
         Optional<ProcDefInfoEntity> procDefOpt = processDefInfoRepo.findById(procDefId);
 
         if (!procDefOpt.isPresent()) {
             log.error("such process definition does not exist:{}", procDefId);
-            throw new WecubeCoreException("Such process defintion does not exist.");
+            throw new WecubeCoreException("3133","Such process defintion does not exist.");
         }
 
         ProcDefInfoEntity procDef = procDefOpt.get();
@@ -160,7 +160,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
             log.error("unexpected process definition status,expected {} but {} for {}",
                     ProcDefInfoEntity.DEPLOYED_STATUS, procDef.getStatus(), procDef.getId());
 
-            throw new WecubeCoreException("Unexpected process status.Only deployed status meets.");
+            throw new WecubeCoreException("3134","Unexpected process status.Only deployed status meets.");
         }
 
         ProcDefInfoExportImportDto result = new ProcDefInfoExportImportDto();

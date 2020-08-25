@@ -32,123 +32,123 @@ import com.webank.wecube.platform.core.service.dme.StandardEntityOperationRestCl
 @Service
 public class RootlessExpressionServiceImpl implements RootlessExpressionService {
 
-	private static final Logger log = LoggerFactory.getLogger(RootlessExpressionServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(RootlessExpressionServiceImpl.class);
 
-	@Autowired
-	private EntityQueryExpressionParser entityQueryExpressionParser;
+    @Autowired
+    private EntityQueryExpressionParser entityQueryExpressionParser;
 
-	@Autowired
-	@Qualifier("standardEntityQueryExecutor")
-	private EntityQueryExecutor entityQueryExecutor;
+    @Autowired
+    @Qualifier("standardEntityQueryExecutor")
+    private EntityQueryExecutor entityQueryExecutor;
 
-	@Autowired
+    @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     protected RestTemplate userJwtSsoTokenRestTemplate;
 
-	@Autowired
-	private EntityDataRouteFactory entityDataRouteFactory;
+    @Autowired
+    private EntityDataRouteFactory entityDataRouteFactory;
 
-	public List<Object> fetchDataWithFilter(DmeFilterDto dmeFilterDto) {
-		if (log.isInfoEnabled()) {
-			log.info("start to fetch data with filter:{}", dmeFilterDto);
-		}
-		List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser
-				.parse(dmeFilterDto.getDataModelExpression());
+    public List<Object> fetchDataWithFilter(DmeFilterDto dmeFilterDto) {
+        if (log.isInfoEnabled()) {
+            log.info("start to fetch data with filter:{}", dmeFilterDto);
+        }
+        List<EntityQueryExprNodeInfo> exprNodeInfos = entityQueryExpressionParser
+                .parse(dmeFilterDto.getDataModelExpression());
 
-		enrichEntityQueryExprNodeInfos(exprNodeInfos, dmeFilterDto);
+        enrichEntityQueryExprNodeInfos(exprNodeInfos, dmeFilterDto);
 
-		return doFetchDataWithFilter(exprNodeInfos);
+        return doFetchDataWithFilter(exprNodeInfos);
 
-	}
+    }
 
-	private List<Object> doFetchDataWithFilter(List<EntityQueryExprNodeInfo> exprNodeInfos) {
-		if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
-			return Collections.emptyList();
-		}
+    private List<Object> doFetchDataWithFilter(List<EntityQueryExprNodeInfo> exprNodeInfos) {
+        if (exprNodeInfos == null || exprNodeInfos.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-		EntityOperationContext ctx = buildEntityOperationContext(exprNodeInfos);
-		ctx.setEntityOperationType(EntityOperationType.QUERY);
+        EntityOperationContext ctx = buildEntityOperationContext(exprNodeInfos);
+        ctx.setEntityOperationType(EntityOperationType.QUERY);
 
-		List<EntityDataDelegate> entityDataDelegates = entityQueryExecutor.executeQueryLeafEntity(ctx);
+        List<EntityDataDelegate> entityDataDelegates = entityQueryExecutor.executeQueryLeafEntity(ctx);
 
-		EntityQueryLinkNode tailLinkNode = ctx.getTailEntityQueryLinkNode();
+        EntityQueryLinkNode tailLinkNode = ctx.getTailEntityQueryLinkNode();
 
-		return extractResultData(tailLinkNode, entityDataDelegates);
-	}
+        return extractResultData(tailLinkNode, entityDataDelegates);
+    }
 
-	private List<Object> extractResultData(EntityQueryLinkNode tailLinkNode,
-			List<EntityDataDelegate> entityDataDelegates) {
-		List<Object> results = new ArrayList<Object>();
-		if (StringUtils.isBlank(tailLinkNode.getQueryAttributeName())) {
-			List<String> addedIds = new ArrayList<>();
-			for (EntityDataDelegate delegate : entityDataDelegates) {
-				Map<String, Object> record = new HashMap<String, Object>();
-				record.putAll(delegate.getEntityData());
+    private List<Object> extractResultData(EntityQueryLinkNode tailLinkNode,
+            List<EntityDataDelegate> entityDataDelegates) {
+        List<Object> results = new ArrayList<Object>();
+        if (StringUtils.isBlank(tailLinkNode.getQueryAttributeName())) {
+            List<String> addedIds = new ArrayList<>();
+            for (EntityDataDelegate delegate : entityDataDelegates) {
+                Map<String, Object> record = new HashMap<String, Object>();
+                record.putAll(delegate.getEntityData());
 
-				if (!addedIds.contains(record.get(EntityDataDelegate.UNIQUE_IDENTIFIER))) {
-					results.add(record);
-					addedIds.add((String)record.get(EntityDataDelegate.UNIQUE_IDENTIFIER));
-				}
-			}
+                if (!addedIds.contains(record.get(EntityDataDelegate.UNIQUE_IDENTIFIER))) {
+                    results.add(record);
+                    addedIds.add((String) record.get(EntityDataDelegate.UNIQUE_IDENTIFIER));
+                }
+            }
 
-			return results;
-		} else {
-			for (EntityDataDelegate delegate : entityDataDelegates) {
-				Object val = delegate.getQueryAttrValue();
-				if (!results.contains(val)) {
-					results.add(val);
-				}
-			}
+            return results;
+        } else {
+            for (EntityDataDelegate delegate : entityDataDelegates) {
+                Object val = delegate.getQueryAttrValue();
+                if (!results.contains(val)) {
+                    results.add(val);
+                }
+            }
 
-			return results;
-		}
-	}
+            return results;
+        }
+    }
 
-	protected EntityOperationContext buildEntityOperationContext(List<EntityQueryExprNodeInfo> exprNodeInfos) {
-		EntityOperationContext ctx = new EntityOperationContext();
-		ctx.setEntityQueryExprNodeInfos(exprNodeInfos);
-		ctx.setOriginalEntityLinkExpression("");
-		ctx.setOriginalEntityData(null);
-		ctx.setStandardEntityOperationRestClient(new StandardEntityOperationRestClient(userJwtSsoTokenRestTemplate));
-		ctx.setHeadEntityQueryLinkNode(entityQueryExecutor.buildEntityQueryLinkNode(exprNodeInfos));
-		ctx.setEntityDataRouteFactory(entityDataRouteFactory);
+    protected EntityOperationContext buildEntityOperationContext(List<EntityQueryExprNodeInfo> exprNodeInfos) {
+        EntityOperationContext ctx = new EntityOperationContext();
+        ctx.setEntityQueryExprNodeInfos(exprNodeInfos);
+        ctx.setOriginalEntityLinkExpression("");
+        ctx.setOriginalEntityData(null);
+        ctx.setStandardEntityOperationRestClient(new StandardEntityOperationRestClient(userJwtSsoTokenRestTemplate));
+        ctx.setHeadEntityQueryLinkNode(entityQueryExecutor.buildEntityQueryLinkNode(exprNodeInfos));
+        ctx.setEntityDataRouteFactory(entityDataRouteFactory);
 
-		return ctx;
-	}
+        return ctx;
+    }
 
-	private void enrichEntityQueryExprNodeInfos(List<EntityQueryExprNodeInfo> exprNodeInfos,
-			DmeFilterDto dmeFilterDto) {
-		List<DmeLinkFilterDto> filters = dmeFilterDto.getFilters();
-		if (filters == null || filters.isEmpty()) {
-			return;
-		}
+    private void enrichEntityQueryExprNodeInfos(List<EntityQueryExprNodeInfo> exprNodeInfos,
+            DmeFilterDto dmeFilterDto) {
+        List<DmeLinkFilterDto> filters = dmeFilterDto.getFilters();
+        if (filters == null || filters.isEmpty()) {
+            return;
+        }
 
-		for (DmeLinkFilterDto filterDto : filters) {
-			int index = filterDto.getIndex();
+        for (DmeLinkFilterDto filterDto : filters) {
+            int index = filterDto.getIndex();
 
-			EntityQueryExprNodeInfo exprNodeInfo = null;
-			if (index < exprNodeInfos.size()) {
-				exprNodeInfo = exprNodeInfos.get(index);
-			}
+            EntityQueryExprNodeInfo exprNodeInfo = null;
+            if (index < exprNodeInfos.size()) {
+                exprNodeInfo = exprNodeInfos.get(index);
+            }
 
-			if (exprNodeInfo == null) {
-				throw new WecubeCoreException(
-						String.format("Index is not correct.Index:%s, PackageName:%s, EntityName:%s", index,
-								filterDto.getPackageName(), filterDto.getEntityName()));
-			}
+            if (exprNodeInfo == null) {
+                throw new WecubeCoreException(
+                        String.format("Index is not correct.Index:%s, PackageName:%s, EntityName:%s", index,
+                                filterDto.getPackageName(), filterDto.getEntityName()));
+            }
 
-			List<Filter> attributeFilters = filterDto.getAttributeFilters();
-			if (attributeFilters != null) {
-				for (Filter attributeFilter : attributeFilters) {
-					EntityQueryFilter f = new EntityQueryFilter();
-					f.setAttrName(attributeFilter.getName());
-					f.setOp(EntityQueryFilter.OP_EQUALS);
-					f.setCondition(attributeFilter.getValue());
+            List<Filter> attributeFilters = filterDto.getAttributeFilters();
+            if (attributeFilters != null) {
+                for (Filter attributeFilter : attributeFilters) {
+                    EntityQueryFilter f = new EntityQueryFilter();
+                    f.setAttrName(attributeFilter.getName());
+                    f.setOp(EntityQueryFilter.OP_EQUALS);
+                    f.setCondition(attributeFilter.getValue());
 
-					exprNodeInfo.addAdditionalFilters(f);
-				}
-			}
+                    exprNodeInfo.addAdditionalFilters(f);
+                }
+            }
 
-		}
-	}
+        }
+    }
 }
