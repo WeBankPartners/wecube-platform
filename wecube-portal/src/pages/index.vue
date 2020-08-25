@@ -34,7 +34,6 @@ export default {
   methods: {
     allMenus (data) {
       this.allMenusAry = data
-      console.log(this.allMenusAry)
     },
     setBreadcrumb () {
       this.isShowBreadcrum = !(this.$route.path === '/homepage' || this.$route.path === '/404')
