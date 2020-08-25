@@ -100,6 +100,7 @@ export const getNodeBindings = id => req.get(`/platform/v1/process/instances/${i
 export const getNodeContext = (procId, nodeId) =>
   req.get(`/platform/v1/process/instances/${procId}/tasknodes/${nodeId}/context`)
 export const userCreate = data => req.post(`/platform/v1/users/create`, data)
+export const removeUser = roleId => req.delete(`/platform/v1/users/${roleId}/delete`)
 export const getUserList = () => req.get(`/platform/v1/users/retrieve`)
 export const deleteUser = id => req.delete(`/platform/v1/users/${id}/delete`)
 export const roleCreate = data => req.post(`/platform/v1/roles/create`, data)
