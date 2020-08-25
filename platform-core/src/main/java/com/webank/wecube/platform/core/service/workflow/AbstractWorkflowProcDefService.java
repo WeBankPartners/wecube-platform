@@ -29,7 +29,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         Map<String, List<String>> permissionToRoleMap = procDefInfoDto.getPermissionToRole();
 
         if (null == permissionToRoleMap) {
-            throw new WecubeCoreException("There is no process to role with permission mapping found.");
+            throw new WecubeCoreException("3164","There is no process to role with permission mapping found.");
         }
 
         String errorMsg;
@@ -40,14 +40,14 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
             if (StringUtils.isEmpty(permissionStr)) {
                 errorMsg = "The permission key should not be empty or NULL";
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3165",errorMsg);
             }
 
             // check key is valid permission enum
             if (!EnumUtils.isValidEnum(ProcRoleBindingEntity.permissionEnum.class, permissionStr)) {
                 errorMsg = "The request's key is not valid as a permission.";
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3166",errorMsg);
             }
 
             List<String> roleIdList = permissionToRoleListEntry.getValue();
@@ -56,7 +56,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
             if (null == roleIdList) {
                 errorMsg = String.format("The value of permission: [%s] should not be NULL", permissionStr);
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3294",errorMsg,permissionStr);
             }
 
             // when permission is MGMT and roleIdList is empty, then it is
@@ -64,7 +64,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
             if (ProcRoleBindingEntity.permissionEnum.MGMT.toString().equals(permissionStr) && roleIdList.isEmpty()) {
                 errorMsg = "At least one role with MGMT role should be declared.";
                 log.error(errorMsg);
-                throw new WecubeCoreException(errorMsg);
+                throw new WecubeCoreException("3168",errorMsg);
             }
             processRoleService.batchSaveData(procId, roleIdList, permissionStr);
         }
