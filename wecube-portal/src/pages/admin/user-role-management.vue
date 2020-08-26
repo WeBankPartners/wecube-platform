@@ -471,10 +471,4 @@ export default {
     background-color: #2d8cf0;
   }
 }
-.remove-role {
-  font-size: 16px;
-  color: red;
-  float: right;
-  cursor: pointer;
-}
 </style>
