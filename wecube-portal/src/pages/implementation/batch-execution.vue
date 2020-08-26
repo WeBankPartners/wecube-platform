@@ -173,6 +173,7 @@
                     :disabled="!activeExecuteHistory.requestBody.inputParameterDefinitions"
                     type="primary"
                     ghost
+                    :loading="btnLoading"
                     >{{ $t('bc_execute') }}</Button
                   >
                 </div>
@@ -385,7 +386,7 @@
           {{ $t('full_word_exec') }}
         </Button>
         <!-- 执行插件 -->
-        <Button type="primary" v-if="setPluginParamsModal" @click="executeAgain">
+        <Button type="primary" v-if="setPluginParamsModal" @click="executeAgain" :loading="btnLoading">
           {{ $t('full_word_exec') }}
         </Button>
       </div>
@@ -447,6 +448,7 @@ export default {
   name: '',
   data () {
     return {
+      btnLoading: false,
       operaModal: false,
 
       isLoading: false,
@@ -1038,7 +1040,6 @@ export default {
             tmp += item[key] + '@#$'
           })
           if (tmp.includes(this.filterTableParams)) {
-            console.log(item)
             this.tableData.push(item)
           }
         })
@@ -1244,6 +1245,7 @@ export default {
       return Current
     },
     async executeAgain () {
+      this.btnLoading = true
       const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
         const inputParameterValue =
           p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
@@ -1264,6 +1266,7 @@ export default {
       if (status === 'OK') {
         this.setPluginParamsModal = false
         this.operaModal = false
+        this.btnLoading = false
         this.executeResult = data
         this.filterBusinessKeySet = []
         for (const key in data) {
