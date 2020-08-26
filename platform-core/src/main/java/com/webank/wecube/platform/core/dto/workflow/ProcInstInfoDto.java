@@ -121,4 +121,34 @@ public class ProcInstInfoDto {
         return this;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("ProcInstInfoDto [id=");
+        builder.append(id);
+        builder.append(", procInstKey=");
+        builder.append(procInstKey);
+        builder.append(", procInstName=");
+        builder.append(procInstName);
+        builder.append(", createdTime=");
+        builder.append(createdTime);
+        builder.append(", operator=");
+        builder.append(operator);
+        builder.append(", status=");
+        builder.append(status);
+        builder.append(", procDefId=");
+        builder.append(procDefId);
+        builder.append(", entityTypeId=");
+        builder.append(entityTypeId);
+        builder.append(", entityDataId=");
+        builder.append(entityDataId);
+        builder.append(", entityDisplayName=");
+        builder.append(entityDisplayName);
+        builder.append(", taskNodeInstances=");
+        builder.append(taskNodeInstances);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    
 }
