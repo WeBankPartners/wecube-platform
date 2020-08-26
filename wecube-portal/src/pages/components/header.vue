@@ -127,11 +127,11 @@ export default {
       docs: [
         {
           name: 'online',
-          url: 'https://webankpartners.github.io/wecube-docs/'
+          url: 'wecube_doc_url_online'
         },
         {
           name: 'offline',
-          url: '/docs/index.html'
+          url: 'wecube_doc_url_offline'
         }
       ],
       menus: [],
@@ -158,7 +158,7 @@ export default {
       }
     },
     changeDocs (url) {
-      window.open(url)
+      window.open(this.$t(url))
     },
     logout () {
       window.location.href = window.location.origin + window.location.pathname + '#/login'
@@ -251,7 +251,6 @@ export default {
             }
           }
         })
-        console.log(this.menus)
         this.$emit('allMenus', this.menus)
         window.myMenus = this.menus
         getChildRouters(window.routers || [])
