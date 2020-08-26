@@ -1040,7 +1040,6 @@ export default {
             tmp += item[key] + '@#$'
           })
           if (tmp.includes(this.filterTableParams)) {
-            console.log(item)
             this.tableData.push(item)
           }
         })

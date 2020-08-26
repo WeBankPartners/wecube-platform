@@ -27,7 +27,7 @@
               ></Button>
             </span>
             <span style="float:right;margin-right: 10px">
-              <Button @click="setFlowPermission(item.procDefId)" icon="ios-build" type="primary" size="small"></Button>
+              <Button @click="setFlowPermission(item.procDefId)" icon="ios-person" type="primary" size="small"></Button>
             </span>
           </Option>
         </Select>
@@ -35,7 +35,12 @@
           <Button @click="createNewDiagram()" icon="md-add" type="success"></Button>
         </Tooltip>
         <Tooltip placement="top" :content="$t('set_flow_permission')" :delay="500">
-          <Button @click="setFlowPermission(selectedFlow)" v-if="selectedFlow" icon="ios-build" type="primary"></Button>
+          <Button
+            @click="setFlowPermission(selectedFlow)"
+            v-if="selectedFlow"
+            icon="ios-person"
+            type="primary"
+          ></Button>
         </Tooltip>
       </Col>
       <Col span="8" offset="1">
