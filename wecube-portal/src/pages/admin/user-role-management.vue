@@ -8,21 +8,23 @@
             <Button icon="ios-add" type="dashed" size="small" @click="openAddUserModal">{{ $t('add_user') }}</Button>
           </p>
           <div class="tagContainers">
-            <Tag
-              v-for="item in users"
-              :key="item.id"
-              :name="item.username"
-              :color="item.color"
-              :checked="item.checked"
-              checkable
-              :fade="false"
-              @on-change="handleUserClick"
-            >
-              <span :title="` ${item.username} `">
-                {{ ` ${item.username} ` }}
-                <Icon @click="removeRole(item)" class="remove-role" type="ios-trash-outline" />
-              </span>
-            </Tag>
+            <div class="role-item" v-for="item in users" :key="item.id">
+              <Tag
+                :name="item.username"
+                :color="item.color"
+                :checked="item.checked"
+                checkable
+                :fade="false"
+                @on-change="handleUserClick"
+              >
+                <span :title="` ${item.username} `">
+                  {{ ` ${item.username} ` }}
+                </span>
+              </Tag>
+              <Button icon="md-trash" type="dashed" size="small" @click="removeRole(item)">{{
+                $t('remove_user')
+              }}</Button>
+            </div>
           </div>
         </Card>
       </Col>
@@ -44,7 +46,7 @@
               >
                 <span :title="item.displayName">{{ item.name + '(' + item.displayName + ')' }}</span>
               </Tag>
-              <Button icon="ios-build" type="dashed" size="small" @click="openUserManageModal(item.id)">{{
+              <Button icon="ios-person" type="dashed" size="small" @click="openUserManageModal(item.id)">{{
                 $t('user')
               }}</Button>
             </div>
