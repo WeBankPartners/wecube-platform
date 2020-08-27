@@ -23,6 +23,7 @@
                   <span>
                     <span style="color:#2b85e4">{{ item.procInstName + ' ' }}</span>
                     <span style="color:#515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                    <span style="color:#ccc;padding-left:8px;float:right">{{ item.status }}</span>
                     <span style="color:#ccc;float:right">{{ (item.createdTime || 'createdTime') + ' ' }}</span>
                     <span style="float:right;color:#515a6e;margin-right:20px">{{ item.operator || 'operator' }}</span>
                   </span>
