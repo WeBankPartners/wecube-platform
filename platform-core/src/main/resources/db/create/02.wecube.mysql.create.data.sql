@@ -80,6 +80,9 @@ delete from system_variables where id = 'system__global__S3_SERVER_URL';
 delete from system_variables where id = 'system__global__ENCRYPT_SEED';
 delete from system_variables where id = 'system__global__PLUGIN_ARTIFACTS_RELEASE_URL';
 
+delete from system_variables where id = 'system__global__HTTP_PROXY';
+delete from system_variables where id = 'system__global__HTTPS_PROXY';
+
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__CORE_ADDR', NULL, 'CORE_ADDR', NULL, 'http://127.0.0.1:19090', 'global', 'system', 'active');
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__GATEWAY_URL', NULL, 'GATEWAY_URL', NULL, 'http://127.0.0.1:19110', 'global', 'system', 'active');
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__BASE_MOUNT_PATH', NULL, 'BASE_MOUNT_PATH', NULL, '/data', 'global', 'system', 'active');
@@ -90,6 +93,8 @@ INSERT INTO `system_variables` (`id`, `package_name`, `name`, `value`, `default_
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__ENCRYPT_SEED', NULL, 'ENCRYPT_SEED', NULL, 'seed-wecube2.1-2020', 'global', 'system', 'active');
 INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__PLUGIN_ARTIFACTS_RELEASE_URL', NULL, 'PLUGIN_ARTIFACTS_RELEASE_URL', NULL, 'https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/v2.4.0/public-plugin-artifacts.release', 'global', 'system', 'active');
 
+INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__HTTP_PROXY', NULL, 'HTTP_PROXY', NULL, '', 'global', 'system', 'active');
+INSERT INTO `system_variables` (`id`,`package_name`, `name`, `value`, `default_value`, `scope`, `source`, `status`) VALUES ('system__global__HTTPS_PROXY', NULL, 'HTTPS_PROXY', NULL, '', 'global', 'system', 'active');
 
 #workflow
 delete from `act_ge_property` where NAME_ = 'deployment.lock';
