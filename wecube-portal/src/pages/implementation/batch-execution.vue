@@ -85,7 +85,7 @@
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content">
+                    <div slot="content" style="white-space: normal;">
                       <ul>
                         <li>{{ $t('bc_query_path') }}:{{ dataModelExpression }}</li>
                         <li v-for="(sp, spIndex) in activeExecuteHistory.requestBody.searchParameters" :key="spIndex">
@@ -103,7 +103,7 @@
                 <div slot="content">
                   <Tooltip>
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content">
+                    <div slot="content" style="white-space: normal;">
                       <p
                         :key="targetIndex"
                         v-for="(target, targetIndex) in activeExecuteHistory.requestBody.resourceDatas"
@@ -124,8 +124,11 @@
               </Step>
               <Step :title="$t('bc_execution_plugin')" content="">
                 <div slot="content">
-                  <Tooltip :content="activeExecuteHistory.plugin.pluginName">
+                  <Tooltip>
                     <Icon type="ios-information-circle-outline" />
+                    <div slot="content" style="white-space: normal;">
+                      {{ activeExecuteHistory.plugin.pluginName }}
+                    </div>
                   </Tooltip>
                   <Button
                     size="small"
@@ -141,7 +144,7 @@
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content" style="width:200px">
+                    <div slot="content" style="width:200px;white-space: normal;">
                       <ul>
                         <li v-for="(item, index) in activeExecuteHistory.plugin.pluginParams" :key="index">
                           <span v-if="item.mappingType === 'constant'"> {{ item.name }}: {{ item.bindValue }} </span>
@@ -156,10 +159,7 @@
                     size="small"
                     type="primary"
                     :disabled="activeExecuteHistory.plugin.pluginParams.length === 0"
-                    @click="
-                      setPluginParamsModal = true
-                      operaModal = true
-                    "
+                    @click="changeParams"
                     ghost
                     >{{ $t('bc_complement_parameters') }}</Button
                   >
@@ -222,7 +222,7 @@
                 </Row>
                 <div>
                   <pre
-                    style="min-height: 300px;"
+                    class="dispaly-result"
                     v-if="businessKeyContent"
                   > <span v-html="formatResult(businessKeyContent.result)"></span></pre>
                   <pre v-else> <span></span></pre>
@@ -234,7 +234,7 @@
       </Row>
     </section>
 
-    <Modal v-model="operaModal" :mask-closable="false" :width="1000" :title="$t('bc_operation')" class="opera-modal">
+    <Modal v-model="operaModal" :mask-closable="false" :title="$t('bc_operation')" :width="1000" class="opera-modal">
       <div style="height:400px;">
         <section v-if="displaySearchZone" class="search">
           <Form :label-width="130" label-colon>
@@ -1305,13 +1305,21 @@ export default {
         this.filteredPlugins = data
         this.selectedPluginParams = []
         this.pluginId = null
+
+        this.displaySearchZone = false
+        this.displayResultTableZone = false
         this.batchActionModalVisible = true
+        this.setPluginParamsModal = false
+
         this.operaModal = true
       }
     },
     changeTargetObject () {
       this.displaySearchZone = false
       this.displayResultTableZone = true
+      this.batchActionModalVisible = false
+      this.setPluginParamsModal = false
+
       this.operaModal = true
       this.userTableColumns = []
       const { packageName, entityName, dataModelExpression } = this.activeExecuteHistory.requestBody
@@ -1324,12 +1332,22 @@ export default {
       const { dataModelExpression, searchParameters } = this.activeExecuteHistory.requestBody
       this.searchParameters = searchParameters
       this.dataModelExpression = dataModelExpression
+
       this.displaySearchZone = true
       this.displayResultTableZone = false
+      this.batchActionModalVisible = false
+      this.setPluginParamsModal = false
 
       this.operaModal = true
       this.filterTableParams = ''
       this.setSearchConditions()
+    },
+    changeParams () {
+      this.displaySearchZone = false
+      this.displayResultTableZone = false
+      this.batchActionModalVisible = false
+      this.setPluginParamsModal = true
+      this.operaModal = true
     }
   },
   components: {
@@ -1402,7 +1420,7 @@ pre {
   right: -2px;
   padding-top: 4px;
   padding-right: 4px;
-  height: calc(100vh - 250px);
+  height: calc(100vh - 210px);
 }
 .excute-result-search {
   // margin-right: 16px;
@@ -1458,5 +1476,9 @@ pre {
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 260px;
+}
+.dispaly-result {
+  height: calc(100vh - 250px);
+  overflow-y: auto;
 }
 </style>
