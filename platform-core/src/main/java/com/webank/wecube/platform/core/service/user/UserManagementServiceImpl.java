@@ -27,35 +27,35 @@ import com.webank.wecube.platform.core.support.authserver.AuthServerRestClient;
 @Service
 public class UserManagementServiceImpl implements UserManagementService {
     private final static Logger log = LoggerFactory.getLogger(UserManagementServiceImpl.class);
-    
+
     public static final String SYS_VAR_UM_CTX = "UM_AUTH_CONTEXT";
     public static final String AUTH_TYPE_LOCAL = "LOCAL";
     public static final String AUTH_TYPE_UM = "UM";
 
     @Autowired
     private AuthServerRestClient authServerRestClient;
-    
+
     @Autowired
     private SystemVariableService systemVariableService;
-    
-    public void changeUserPassword(UserPasswordDto userPassDto){
+
+    public void changeUserPassword(UserPasswordDto userPassDto) {
         AsUserPassDto asUserPassDto = new AsUserPassDto();
         asUserPassDto.setUsername(AuthenticationContextHolder.getCurrentUsername());
         asUserPassDto.setOriginalPassword(userPassDto.getOriginalPassword());
         asUserPassDto.setChangedPassword(userPassDto.getNewPassword());
-        
+
         authServerRestClient.changeUserPassword(asUserPassDto);
     }
-    
-    public RoleDto retrieveRoleByRoleName(String roleName){
-        if(StringUtils.isBlank(roleName)){
+
+    public RoleDto retrieveRoleByRoleName(String roleName) {
+        if (StringUtils.isBlank(roleName)) {
             return null;
         }
-        
+
         try {
             AsRoleDto asRole = authServerRestClient.retrieveRoleByName(roleName);
             if (asRole == null) {
-                throw new WecubeCoreException("3269","No such role.");
+                throw new WecubeCoreException("3269", "No such role.");
             }
 
             RoleDto r = new RoleDto();
@@ -78,20 +78,20 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         if (StringUtils.isBlank(userDto.getUsername())) {
-            throw new WecubeCoreException("3027","Username cannot be blank.");
+            throw new WecubeCoreException("3027", "Username cannot be blank.");
         }
 
         AsUserDto reqUserDto = new AsUserDto();
         reqUserDto.setUsername(userDto.getUsername());
         reqUserDto.setPassword(userDto.getPassword());
-        
+
         String authType = userDto.getAuthType();
-        if(StringUtils.isBlank(authType)) {
-        	authType = AUTH_TYPE_LOCAL;
+        if (StringUtils.isBlank(authType)) {
+            authType = AUTH_TYPE_LOCAL;
         }
-        
+
         reqUserDto.setAuthSource(authType);
-        
+
         String authContext = tryCalculateAuthContext(authType);
         reqUserDto.setAuthContext(authContext);
 
@@ -106,49 +106,54 @@ public class UserManagementServiceImpl implements UserManagementService {
             return result;
         } catch (RestClientException e) {
             log.error("registering user failed", e);
-            throw new WecubeCoreException("3028","Failed to register user,caused by: " + e.getErrorMessage(), e.getErrorMessage());
+            throw new WecubeCoreException("3028", "Failed to register user,caused by: " + e.getErrorMessage(),
+                    e.getErrorMessage());
         }
     }
-    
+
     private String tryCalculateAuthContext(String authType) {
-    	if(StringUtils.isBlank(authType)) {
-    		return null;
-    	}
-    	
-    	if(AUTH_TYPE_LOCAL.equalsIgnoreCase(authType)) {
-    		return null;
-    	}
-    	
-    	if(AUTH_TYPE_UM.equalsIgnoreCase(authType)) {
-    		return tryCalculateUmAuthContext();
-    	}
-    	
-    	return null;
+        if (StringUtils.isBlank(authType)) {
+            return null;
+        }
+
+        if (AUTH_TYPE_LOCAL.equalsIgnoreCase(authType)) {
+            return null;
+        }
+
+        if (AUTH_TYPE_UM.equalsIgnoreCase(authType)) {
+            return tryCalculateUmAuthContext();
+        }
+
+        return null;
     }
-    
+
     private String tryCalculateUmAuthContext() {
-    	List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_UM_CTX);
-    	if(sysVars == null || sysVars.isEmpty()) {
-    	    String msg = String.format("System variable %s does NOT exist and UM authentication is not supported currently.", SYS_VAR_UM_CTX);
-    		throw new WecubeCoreException("3029",msg, SYS_VAR_UM_CTX);
-    	}
-    	
-    	String authCtx = getSystemVariableValue(sysVars.get(0));
-    	if(StringUtils.isBlank(authCtx)) {
-    	    String msg = String.format("The value of system variable %s is blank and UM authentication is not supported currently..", SYS_VAR_UM_CTX);
-    		throw new WecubeCoreException("3030",msg, SYS_VAR_UM_CTX);
-    	}
-    	
-    	return authCtx;
-    	
+        List<SystemVariable> sysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_UM_CTX);
+        if (sysVars == null || sysVars.isEmpty()) {
+            String msg = String.format(
+                    "System variable %s does NOT exist and UM authentication is not supported currently.",
+                    SYS_VAR_UM_CTX);
+            throw new WecubeCoreException("3029", msg, SYS_VAR_UM_CTX);
+        }
+
+        String authCtx = getSystemVariableValue(sysVars.get(0));
+        if (StringUtils.isBlank(authCtx)) {
+            String msg = String.format(
+                    "The value of system variable %s is blank and UM authentication is not supported currently..",
+                    SYS_VAR_UM_CTX);
+            throw new WecubeCoreException("3030", msg, SYS_VAR_UM_CTX);
+        }
+
+        return authCtx;
+
     }
-    
-    private String getSystemVariableValue(SystemVariable var){
+
+    private String getSystemVariableValue(SystemVariable var) {
         String varVal = var.getValue();
-        if(StringUtils.isBlank(varVal)){
+        if (StringUtils.isBlank(varVal)) {
             varVal = var.getDefaultValue();
         }
-        
+
         return varVal;
     }
 
@@ -169,17 +174,27 @@ public class UserManagementServiceImpl implements UserManagementService {
             return userDtos;
         } catch (RestClientException e) {
             log.error("failed to retrieve all user accounts", e);
-            throw new WecubeCoreException("3031","Failed to retrieve all user accounts.");
+            throw new WecubeCoreException("3031", "Failed to retrieve all user accounts.");
         }
     }
 
     @Override
     public void deleteUserByUserId(String userId) {
+        AsUserDto asUser = authServerRestClient.getLocalUserByUserId(userId);
+        if(asUser == null){
+            return;
+        }
+        
+        String currentUsername = AuthenticationContextHolder.getCurrentUsername();
+        if(currentUsername.equals(asUser.getUsername())){
+            throw new WecubeCoreException("3311", "Cannot remove the account which belongs to the logon user.");
+        }
+        
         try {
             authServerRestClient.deleteUserAccountByUserId(userId);
         } catch (RestClientException e) {
             log.error("failed to delete user account by user id", e);
-            throw new WecubeCoreException("3032","Failed to delete user account.");
+            throw new WecubeCoreException("3032", "Failed to delete user account.");
         }
     }
 
@@ -190,7 +205,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
 
         if (StringUtils.isBlank(roleDto.getName())) {
-            throw new WecubeCoreException("3020","The name of role to register cannot be blank.");
+            throw new WecubeCoreException("3020", "The name of role to register cannot be blank.");
         }
 
         AsRoleDto requestDto = new AsRoleDto();
@@ -250,7 +265,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         try {
             AsRoleDto asRole = authServerRestClient.retrieveRoleById(roleId);
             if (asRole == null) {
-                throw new WecubeCoreException("3021","No such role.");
+                throw new WecubeCoreException("3021", "No such role.");
             }
 
             RoleDto r = new RoleDto();
@@ -269,7 +284,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public void unregisterLocalRoleById(String roleId) {
         if (StringUtils.isBlank(roleId)) {
-            throw new WecubeCoreException("3022","The ID of role to unregister cannot be blank.");
+            throw new WecubeCoreException("3022", "The ID of role to unregister cannot be blank.");
         }
 
         try {
@@ -315,7 +330,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public List<UserDto> getUsersByRoleId(String roleId) {
         if (StringUtils.isBlank(roleId)) {
-            throw new WecubeCoreException("3023","The role ID to retrieve users cannot be blank.");
+            throw new WecubeCoreException("3023", "The role ID to retrieve users cannot be blank.");
         }
 
         List<AsUserDto> asUsers = null;
@@ -349,13 +364,13 @@ public class UserManagementServiceImpl implements UserManagementService {
     public void grantRoleToUsers(String roleId, List<String> userIds) {
 
         if (StringUtils.isBlank(roleId)) {
-            throw new WecubeCoreException("3024","Role ID cannot be blank.");
+            throw new WecubeCoreException("3024", "Role ID cannot be blank.");
         }
 
         if (userIds == null || userIds.isEmpty()) {
             return;
         }
-        
+
         List<AsUserDto> asUsers = new ArrayList<>();
         userIds.forEach(m -> {
             AsUserDto asUser = new AsUserDto();
@@ -376,13 +391,13 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Override
     public void revokeRoleFromUsers(String roleId, List<String> userIds) {
         if (StringUtils.isBlank(roleId)) {
-            throw new WecubeCoreException("3033","Role ID cannot be blank.");
+            throw new WecubeCoreException("3033", "Role ID cannot be blank.");
         }
 
         if (userIds == null || userIds.isEmpty()) {
             return;
         }
-        
+
         List<AsUserDto> asUsers = new ArrayList<>();
         userIds.forEach(m -> {
             AsUserDto asUser = new AsUserDto();
@@ -397,7 +412,28 @@ public class UserManagementServiceImpl implements UserManagementService {
             log.error("errors to revoke role from users", e);
             throw new WecubeCoreException(e.getErrorMessage());
         }
+
+    }
+
+    @Override
+    public UserDto getUserByUserId(String userId) {
         
+        try{
+            AsUserDto asUser = authServerRestClient.getLocalUserByUserId(userId);
+            if(asUser == null){
+                return null;
+            }
+            
+            UserDto user = new UserDto();
+            user.setId(asUser.getId());
+            user.setPassword(asUser.getPassword());
+            user.setUsername(asUser.getUsername());
+            
+            return user;
+        }catch (AuthServerClientException e) {
+            log.error("errors to revoke role from users", e);
+            throw new WecubeCoreException(e.getErrorMessage());
+        }
     }
 
 }
