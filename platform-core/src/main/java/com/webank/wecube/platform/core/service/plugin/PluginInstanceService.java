@@ -231,7 +231,9 @@ public class PluginInstanceService {
     }
 
     private String replaceAllocatePort(String str, Integer allocatePort) {
-        return str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
+        String result = str.replace("{{ALLOCATE_PORT}}", String.valueOf(allocatePort));
+        result = result.replace("{{MONITOR_PORT}}", String.valueOf(allocatePort+10000));
+        return result;
     }
 
     private String replaceHostIp(String str, String ip) {
