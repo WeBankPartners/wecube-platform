@@ -24,7 +24,7 @@
                 </span>
               </Tag>
               <Button icon="md-trash" type="error" ghost size="small" @click="removeRole(item)">{{
-                $t('remove_user')
+                $t('delete')
               }}</Button>
             </div>
           </div>
