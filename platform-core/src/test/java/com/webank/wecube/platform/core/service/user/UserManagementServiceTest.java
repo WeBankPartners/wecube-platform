@@ -1,14 +1,18 @@
 package com.webank.wecube.platform.core.service.user;
 
-import com.webank.wecube.platform.core.DatabaseBasedTest;
-import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
-import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.dto.user.RoleDto;
-import com.webank.wecube.platform.core.dto.user.UserDto;
-import com.webank.wecube.platform.core.support.RestClient;
-import com.webank.wecube.platform.core.support.RestClientException;
-import com.webank.wecube.platform.core.support.authserver.AuthServerRestClientProperties;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,14 +22,16 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.List;
+import com.webank.wecube.platform.core.DatabaseBasedTest;
+import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
+import com.webank.wecube.platform.core.commons.WecubeCoreException;
+import com.webank.wecube.platform.core.dto.user.RoleDto;
+import com.webank.wecube.platform.core.dto.user.UserDto;
+import com.webank.wecube.platform.core.support.RestClient;
+import com.webank.wecube.platform.core.support.RestClientException;
+import com.webank.wecube.platform.core.support.authserver.AuthServerRestClientProperties;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-
+@Ignore
 public class UserManagementServiceTest extends DatabaseBasedTest {
 
     // login user
