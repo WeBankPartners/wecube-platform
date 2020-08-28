@@ -20,6 +20,7 @@
     ]
   },
   "dependencies": {
+    "@popperjs/core": "^2.4.4",
     "axios": "^0.18.0",
     "bpmn-js": "^2.5.1",
     "d3-graphviz": "^2.6.1",
