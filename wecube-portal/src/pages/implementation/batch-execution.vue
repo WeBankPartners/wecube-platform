@@ -85,7 +85,7 @@
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content">
+                    <div slot="content" style="white-space: normal;">
                       <ul>
                         <li>{{ $t('bc_query_path') }}:{{ dataModelExpression }}</li>
                         <li v-for="(sp, spIndex) in activeExecuteHistory.requestBody.searchParameters" :key="spIndex">
@@ -103,7 +103,7 @@
                 <div slot="content">
                   <Tooltip>
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content">
+                    <div slot="content" style="white-space: normal;">
                       <p
                         :key="targetIndex"
                         v-for="(target, targetIndex) in activeExecuteHistory.requestBody.resourceDatas"
@@ -124,8 +124,11 @@
               </Step>
               <Step :title="$t('bc_execution_plugin')" content="">
                 <div slot="content">
-                  <Tooltip :content="activeExecuteHistory.plugin.pluginName">
+                  <Tooltip>
                     <Icon type="ios-information-circle-outline" />
+                    <div slot="content" style="white-space: normal;">
+                      {{ activeExecuteHistory.plugin.pluginName }}
+                    </div>
                   </Tooltip>
                   <Button
                     size="small"
@@ -141,7 +144,7 @@
                 <div slot="content">
                   <Tooltip :max-width="500">
                     <Icon type="ios-information-circle-outline" />
-                    <div slot="content" style="width:200px">
+                    <div slot="content" style="width:200px;white-space: normal;">
                       <ul>
                         <li v-for="(item, index) in activeExecuteHistory.plugin.pluginParams" :key="index">
                           <span v-if="item.mappingType === 'constant'"> {{ item.name }}: {{ item.bindValue }} </span>
@@ -231,7 +234,7 @@
       </Row>
     </section>
 
-    <Modal v-model="operaModal" :mask-closable="false" :width="1000" :title="$t('bc_operation')" class="opera-modal">
+    <Modal v-model="operaModal" :mask-closable="false" :title="$t('bc_operation')" :width="1000" class="opera-modal">
       <div style="height:400px;">
         <section v-if="displaySearchZone" class="search">
           <Form :label-width="130" label-colon>
@@ -1476,6 +1479,6 @@ pre {
 }
 .dispaly-result {
   height: calc(100vh - 250px);
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 </style>
