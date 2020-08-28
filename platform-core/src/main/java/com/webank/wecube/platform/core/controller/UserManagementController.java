@@ -3,6 +3,7 @@ package com.webank.wecube.platform.core.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,6 +33,7 @@ public class UserManagementController {
     private RoleMenuServiceImpl roleMenuService;
 
     @PostMapping("/users/create")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
     public CommonResponseDto registerUser(@RequestBody UserDto userDto) {
         UserDto result = userManagementService.registerUser(userDto);
         return CommonResponseDto.okayWithData(result);
@@ -51,6 +53,7 @@ public class UserManagementController {
     }
 
     @DeleteMapping("/users/{user-id}/delete")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
     public CommonResponseDto deleteUserByUserId(@PathVariable("user-id") String userId) {
         userManagementService.deleteUserByUserId(userId);
         return CommonResponseDto.okay();

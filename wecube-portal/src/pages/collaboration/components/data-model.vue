@@ -160,7 +160,6 @@ export default {
     },
     initGraph () {
       const graphEl = document.getElementById('data-model-graph')
-      console.log(graphEl.offsetHeight)
       const height = graphEl.offsetHeight
       const width = graphEl.offsetWidth - 20
       const initEvent = () => {

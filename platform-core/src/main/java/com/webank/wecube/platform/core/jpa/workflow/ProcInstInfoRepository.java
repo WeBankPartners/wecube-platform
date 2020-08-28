@@ -18,4 +18,5 @@ public interface ProcInstInfoRepository extends JpaRepository<ProcInstInfoEntity
     
     @Query("select t from ProcInstInfoEntity t " + " where t.procDefId = :procDefId ")
     List<ProcInstInfoEntity> findAllByProcDefId(@Param("procDefId") String procDefId);
+    
 }

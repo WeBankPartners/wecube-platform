@@ -74,8 +74,7 @@ public class UserManagementService {
             throw new AuthServerException("The password of user to modify is blank.");
         }
         
-        String encodedOriginalPassword = encodePassword(originalPassword);
-        if(!user.getPassword().equals(encodedOriginalPassword)){
+        if(!passwordEncoder.matches(originalPassword, user.getPassword())){
             throw new AuthServerException("The password of user to modify is invalid.");
         }
         

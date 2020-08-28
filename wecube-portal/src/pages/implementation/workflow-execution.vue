@@ -5,7 +5,7 @@
         <Col span="20">
           <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select v-model="selectedFlowInstance" style="width:70%" filterable>
+              <Select v-model="selectedFlowInstance" style="width:60%" filterable>
                 <Option
                   v-for="item in allFlowInstances"
                   :value="item.id"
@@ -23,6 +23,7 @@
                   <span>
                     <span style="color:#2b85e4">{{ item.procInstName + ' ' }}</span>
                     <span style="color:#515a6e">{{ item.entityDisplayName + ' ' }}</span>
+                    <span style="color:#ccc;padding-left:8px;float:right">{{ item.status }}</span>
                     <span style="color:#ccc;float:right">{{ (item.createdTime || 'createdTime') + ' ' }}</span>
                     <span style="float:right;color:#515a6e;margin-right:20px">{{ item.operator || 'operator' }}</span>
                   </span>
@@ -91,10 +92,16 @@
           </Col>
         </Row>
       </Row>
-      <div style="text-align: right;margin-top: 6px;margin-right:40px">
-        <Button v-if="showExcution" :disabled="isExecuteActive" style="width:120px" type="info" @click="excutionFlow">{{
-          $t('execute')
-        }}</Button>
+      <div style="text-align: right;margin-top: 6px;">
+        <Button
+          v-if="showExcution"
+          :disabled="isExecuteActive"
+          :loading="btnLoading"
+          style="width:120px"
+          type="info"
+          @click="excutionFlow"
+          >{{ $t('execute') }}</Button
+        >
       </div>
     </Card>
     <Modal
@@ -105,9 +112,11 @@
       :scrollable="true"
     >
       <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
-        <Button type="info" @click="workFlowActionHandler('retry')">{{ $t('retry') }}</Button>
-        <Button type="info" @click="workFlowActionHandler('skip')" style="margin-left: 20px">{{ $t('skip') }}</Button>
-        <Button type="info" @click="workFlowActionHandler('showlog')" style="margin-left: 20px">{{
+        <Button type="info" @click="workFlowActionHandler('retry')" :loading="btnLoading">{{ $t('retry') }}</Button>
+        <Button type="info" @click="workFlowActionHandler('skip')" :loading="btnLoading" style="margin-left: 20px">{{
+          $t('skip')
+        }}</Button>
+        <Button type="info" @click="workFlowActionHandler('showlog')" :loading="btnLoading" style="margin-left: 20px">{{
           $t('show_log')
         }}</Button>
       </div>
@@ -204,6 +213,7 @@ import { addEvent, removeEvent } from '../util/event.js'
 export default {
   data () {
     return {
+      btnLoading: false,
       currentModelNodeRefs: [],
       showNodeDetail: false,
       isTargetNodeDetail: false,
@@ -762,6 +772,7 @@ export default {
       this.bindFlowEvent()
     },
     async excutionFlow () {
+      this.btnLoading = true
       // 区分已存在的flowInstance执行 和 新建的执行
       if (this.isEnqueryPage) {
         this.processInstance()
@@ -799,6 +810,7 @@ export default {
         }
         let { status, data } = await createFlowInstance(payload)
         if (status === 'OK') {
+          this.btnLoading = false
           this.getProcessInstances(true, data)
           this.isExecuteActive = false
           this.showExcution = false
@@ -850,6 +862,7 @@ export default {
       this.flowGraphMouseenterHandler(e.target.parentNode.getAttribute('id'))
     },
     async workFlowActionHandler (type) {
+      this.btnLoading = true
       const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
       if (!found) {
         return
@@ -864,6 +877,7 @@ export default {
         }
         const { status } = await retryProcessInstance(payload)
         if (status === 'OK') {
+          this.btnLoading = false
           this.$Notice.success({
             title: 'Success',
             desc: (type === 'retry' ? 'Retry' : 'Skip') + ' action is proceed successfully'
@@ -951,7 +965,6 @@ export default {
       this.renderFlowGraph()
     },
     async highlightModel (nodeId, nodeDefId) {
-      console.log(this.processSessionId)
       if (nodeDefId && this.processSessionId) {
         let { status, data } = await getDataByNodeDefIdAndProcessSessionId(nodeDefId, this.processSessionId)
         if (status === 'OK') {
