@@ -51,6 +51,11 @@ public class LocalUserManagementController {
     public CommonResponseDto retrieveAllUsers() {
         return okayWithData(userManagementService.retrieveAllActiveUsers());
     }
+    
+    @GetMapping("/users/{user-id}")
+    public CommonResponseDto retrieveUserByUserId(@PathVariable(value = "user-id") String userId){
+        return okayWithData(userManagementService.retireveLocalUserByUserid(userId));
+    }
 
     @DeleteMapping("/users/{user-id}")
     public CommonResponseDto unregisterLocalUser(@PathVariable(value = "user-id") String userId) {
