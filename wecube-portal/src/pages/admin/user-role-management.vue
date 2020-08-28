@@ -5,7 +5,9 @@
         <Card>
           <p slot="title">
             {{ $t('user') }}
-            <Button icon="ios-add" type="dashed" size="small" @click="openAddUserModal">{{ $t('add_user') }}</Button>
+            <Button icon="ios-add" type="success" ghost size="small" @click="openAddUserModal">{{
+              $t('add_user')
+            }}</Button>
           </p>
           <div class="tagContainers">
             <div class="role-item" v-for="item in users" :key="item.id">
@@ -21,8 +23,8 @@
                   {{ ` ${item.username} ` }}
                 </span>
               </Tag>
-              <Button icon="md-trash" type="dashed" size="small" @click="removeRole(item)">{{
-                $t('remove_user')
+              <Button icon="md-trash" type="error" ghost size="small" @click="removeRole(item)">{{
+                $t('delete')
               }}</Button>
             </div>
           </div>
@@ -32,7 +34,9 @@
         <Card>
           <p slot="title">
             {{ $t('role') }}
-            <Button icon="ios-add" type="dashed" size="small" @click="openAddRoleModal">{{ $t('add_role') }}</Button>
+            <Button icon="ios-add" type="success" ghost size="small" @click="openAddRoleModal">{{
+              $t('add_role')
+            }}</Button>
           </p>
           <div class="tagContainers">
             <div class="role-item" v-for="item in roles" :key="item.id">
@@ -46,7 +50,7 @@
               >
                 <span :title="item.displayName">{{ item.name + '(' + item.displayName + ')' }}</span>
               </Tag>
-              <Button icon="ios-person" type="dashed" size="small" @click="openUserManageModal(item.id)">{{
+              <Button icon="ios-person" type="primary" ghost size="small" @click="openUserManageModal(item.id)">{{
                 $t('user')
               }}</Button>
             </div>

@@ -3,7 +3,7 @@
     <Row>
       <Col span="6" style="border-right: 1px solid #e8eaec">
         <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
-        <div style="min-height: calc(100vh - 180px);overflow:auto;">
+        <div style="height: calc(100vh - 180px);overflow-y:auto;">
           <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
             <Submenu
               v-for="(plugin, index) in plugins"
@@ -73,7 +73,7 @@
               </FormItem>
             </Col>
           </Row>
-          <div style="height: calc(100vh - 275px);overflow:auto" id="paramsContainer">
+          <div style="height: calc(100vh - 300px);overflow:auto" id="paramsContainer">
             <Collapse v-model="activePanel" accordion>
               <Panel
                 v-for="(inter, index) in currentPluginObj.interfaces"
@@ -302,7 +302,7 @@
               </Panel>
             </Collapse>
           </div>
-          <Row v-if="currentPluginObjKeysLength > 1" style="margin:20px auto;margin-bottom:0;">
+          <Row v-if="currentPluginObjKeysLength > 1" style="margin:45px auto;margin-bottom:0;">
             <Col span="9" offset="8">
               <Button type="primary" ghost v-if="currentPluginObj.status === 'DISABLED'" @click="pluginSave">{{
                 $t('save')
