@@ -13,7 +13,7 @@ import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Service
-@EnableConfigurationProperties({AuthServerRestClientProperties.class})
+@EnableConfigurationProperties({ AuthServerRestClientProperties.class })
 public class AuthServerRestClient extends AbstractAuthServerRestClient {
 
     private static final Logger log = LoggerFactory.getLogger(AuthServerRestClient.class);
@@ -36,15 +36,16 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
 
         return _INSTANCE;
     }
-    
+
     public void healthCheck() {
-    	try {
-    		getForObject(clientProperties.getPathHealthCheck(), new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
-                });
-    	}catch(Exception e) {
-    		log.warn("Health check failed", e);
-    		throw new WecubeCoreException("3301", "Auth server health check failed.");
-    	}
+        try {
+            getForObject(clientProperties.getPathHealthCheck(),
+                    new ParameterizedTypeReference<AuthServerRestResponseDto<Object>>() {
+                    });
+        } catch (Exception e) {
+            log.warn("Health check failed", e);
+            throw new WecubeCoreException("3301", "Auth server health check failed.");
+        }
     }
 
     public void revokeAuthoritiesFromRole(String roleId, List<AsAuthorityDto> authorities) {
@@ -169,7 +170,7 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 }, roleId);
         return role;
     }
-    
+
     public AsRoleDto retrieveRoleByName(String roleName) {
         if (StringUtils.isBlank(roleName)) {
             return null;
@@ -192,6 +193,13 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
         return result;
     }
 
+    public AsUserDto getLocalUserByUserId(String userId) {
+        AsUserDto result = getForObject(clientProperties.getPathGetUserByUserId(),
+                new ParameterizedTypeReference<AuthServerRestResponseDto<AsUserDto>>() {
+                }, userId);
+        return result;
+    }
+
     public AsUserDto registerLocalUser(AsUserDto asUserDto) {
         AsUserDto result = postForObject(clientProperties.getPathRegisterLocalUser(), asUserDto,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<AsUserDto>>() {
@@ -209,8 +217,8 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
     public void deleteUserAccountByUserId(String userId) {
         deleteObject(clientProperties.getPathDeleteUserAccountByUserId(), userId);
     }
-    
-    public AsUserDto changeUserPassword(AsUserPassDto asUserPassDto){
+
+    public AsUserDto changeUserPassword(AsUserPassDto asUserPassDto) {
         AsUserDto result = postForObject(clientProperties.getPathUserChangePassword(), asUserPassDto,
                 new ParameterizedTypeReference<AuthServerRestResponseDto<AsUserDto>>() {
                 });
@@ -221,6 +229,5 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
     protected Logger getLogger() {
         return log;
     }
-
 
 }
