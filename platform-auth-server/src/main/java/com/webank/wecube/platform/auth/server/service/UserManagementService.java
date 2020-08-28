@@ -216,6 +216,24 @@ public class UserManagementService {
 
         return result;
     }
+    
+    public SimpleLocalUserDto retireveLocalUserByUserid(String userId){
+        Optional<SysUserEntity> userOpt = userRepository.findById(userId);
+        if (!userOpt.isPresent()) {
+            log.debug("Such user with ID {} does not exist.", userId);
+            String msg = String.format("Such user with ID {%s} does not exist.", userId);
+            throw new AuthServerException("3024", msg, userId);
+        }
+
+        SysUserEntity user = userOpt.get();
+        if (user.isDeleted()) {
+            log.debug("Such user with ID {} has already been deleted.", userId);
+            String msg = String.format("Such user with ID {%s} does not exist.", userId);
+            throw new AuthServerException("3024", msg, userId);
+        }
+        
+        return convertToSimpleLocalUserDto(user);
+    }
 
     public SimpleLocalUserDto retrieveLocalUserByUsername(String username) {
         return null;
