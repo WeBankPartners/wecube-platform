@@ -116,7 +116,7 @@
         <Button type="info" @click="workFlowActionHandler('skip')" :loading="btnLoading" style="margin-left: 20px">{{
           $t('skip')
         }}</Button>
-        <Button type="info" @click="workFlowActionHandler('showlog')" :loading="btnLoading" style="margin-left: 20px">{{
+        <Button type="info" @click="workFlowActionHandler('showlog')" style="margin-left: 20px">{{
           $t('show_log')
         }}</Button>
       </div>
@@ -772,7 +772,6 @@ export default {
       this.bindFlowEvent()
     },
     async excutionFlow () {
-      this.btnLoading = true
       // 区分已存在的flowInstance执行 和 新建的执行
       if (this.isEnqueryPage) {
         this.processInstance()
@@ -808,9 +807,10 @@ export default {
             }
           })
         }
+        this.btnLoading = true
         let { status, data } = await createFlowInstance(payload)
+        this.btnLoading = false
         if (status === 'OK') {
-          this.btnLoading = false
           this.getProcessInstances(true, data)
           this.isExecuteActive = false
           this.showExcution = false
@@ -862,7 +862,6 @@ export default {
       this.flowGraphMouseenterHandler(e.target.parentNode.getAttribute('id'))
     },
     async workFlowActionHandler (type) {
-      this.btnLoading = true
       const found = this.flowData.flowNodes.find(_ => _.nodeId === this.currentFailedNodeID)
       if (!found) {
         return
@@ -875,9 +874,10 @@ export default {
           nodeInstId: found.id,
           procInstId: found.procInstId
         }
+        this.btnLoading = true
         const { status } = await retryProcessInstance(payload)
+        this.btnLoading = false
         if (status === 'OK') {
-          this.btnLoading = false
           this.$Notice.success({
             title: 'Success',
             desc: (type === 'retry' ? 'Retry' : 'Skip') + ' action is proceed successfully'
