@@ -1245,7 +1245,6 @@ export default {
       return Current
     },
     async executeAgain () {
-      this.btnLoading = true
       const inputParameterDefinitions = this.activeExecuteHistory.plugin.pluginParams.map(p => {
         const inputParameterValue =
           p.mappingType === 'constant' ? (p.dataType === 'number' ? Number(p.bindValue) : p.bindValue) : null
@@ -1261,12 +1260,13 @@ export default {
         desc: this.$t('bc_exect_tip'),
         duration: 1
       })
+      this.btnLoading = true
       const { status, data } = await batchExecution(requestBody)
+      this.btnLoading = false
       // this.seletedRows = []
       if (status === 'OK') {
         this.setPluginParamsModal = false
         this.operaModal = false
-        this.btnLoading = false
         this.executeResult = data
         this.filterBusinessKeySet = []
         for (const key in data) {
