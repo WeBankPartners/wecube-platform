@@ -21,9 +21,6 @@ import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
 import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 
-/**
- * @author howechen
- */
 @RestController
 @RequestMapping("/v1")
 public class UserManagementController {
