@@ -35,6 +35,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.PluginProperties;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
@@ -78,6 +79,8 @@ public class PluginInstanceService {
 
     @Autowired
     private PluginProperties pluginProperties;
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
     @Autowired
     PluginInstanceRepository pluginInstanceRepository;
@@ -558,6 +561,7 @@ public class PluginInstanceService {
                             dbInfo.getPassword(), resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema()));
         }
         logger.info("before replace envVariablesString=" + envVariablesString);
+        envVariablesString = replaceJwtSigningKey(envVariablesString);
         envVariablesString = replaceSystemVariablesForEnvVariables(pluginPackage.getName(), envVariablesString);
         logger.info("after replace envVariablesString=" + envVariablesString);
 
@@ -586,6 +590,19 @@ public class PluginInstanceService {
         if (!response.getStatus().equals(GatewayResponse.getStatusCodeOk())) {
             logger.error("Launch instance has done, but register routing information is failed, please check");
         }
+    }
+    
+    private String replaceJwtSigningKey(String envVariablesString) {
+    	if(StringUtils.isBlank(envVariablesString)) {
+    		return envVariablesString;
+    	}
+    	
+    	String jwtSigningKey = applicationProperties.getJwtSigningKey();
+    	if(StringUtils.isBlank(jwtSigningKey)) {
+    		jwtSigningKey = "";
+    	}
+    	
+    	return envVariablesString.replace("{{JWT_SIGNING_KEY}}", jwtSigningKey);
     }
 
     private DatabaseInfo initMysqlDatabaseSchema(Set<PluginPackageRuntimeResourcesMysql> mysqlSet,
