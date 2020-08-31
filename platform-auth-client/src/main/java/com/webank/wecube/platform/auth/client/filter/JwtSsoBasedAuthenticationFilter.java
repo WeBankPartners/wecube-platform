@@ -33,18 +33,20 @@ import io.jsonwebtoken.JwtException;
 public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
     private static final Logger log = LoggerFactory.getLogger(JwtSsoBasedAuthenticationFilter.class);
 
-    private JwtSsoTokenParser jwtParser = new DefaultJwtSsoTokenParser();
+    private JwtSsoTokenParser jwtParser = null;
 
     private boolean ignoreFailure = false;
 
-    public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager, JwtClientConfig jwtClientConfig) {
         super(authenticationManager);
         this.ignoreFailure = true;
+        this.jwtParser = new DefaultJwtSsoTokenParser(jwtClientConfig.getSigningKey());
     }
 
     public JwtSsoBasedAuthenticationFilter(AuthenticationManager authenticationManager,
-            AuthenticationEntryPoint authenticationEntryPoint) {
+            AuthenticationEntryPoint authenticationEntryPoint, JwtClientConfig jwtClientConfig) {
         super(authenticationManager, authenticationEntryPoint);
+        this.jwtParser = new DefaultJwtSsoTokenParser(jwtClientConfig.getSigningKey());
     }
 
     @Override
