@@ -113,7 +113,7 @@
     >
       <div class="workflowActionModal-container" style="text-align: center;margin-top: 20px;">
         <Button type="info" @click="workFlowActionHandler('retry')" :loading="btnLoading">{{ $t('retry') }}</Button>
-        <Button type="info" @click="workFlowActionHandler('skip')" :loading="btnLoading" style="margin-left: 20px">{{
+        <Button type="warning" @click="workFlowActionHandler('skip')" :loading="btnLoading" style="margin-left: 20px">{{
           $t('skip')
         }}</Button>
         <Button type="info" @click="workFlowActionHandler('showlog')" style="margin-left: 20px">{{
@@ -868,6 +868,30 @@ export default {
       }
       if (type === 'showlog') {
         this.flowGraphMouseenterHandler(this.currentFailedNodeID)
+      } else if (type === 'skip') {
+        this.$Modal.confirm({
+          title: this.$t('confirm_to_skip'),
+          'z-index': 1000000,
+          onOk: async () => {
+            const payload = {
+              act: type,
+              nodeInstId: found.id,
+              procInstId: found.procInstId
+            }
+            this.btnLoading = true
+            const { status } = await retryProcessInstance(payload)
+            this.btnLoading = false
+            if (status === 'OK') {
+              this.$Notice.success({
+                title: 'Success',
+                desc: (type === 'retry' ? 'Retry' : 'Skip') + ' action is proceed successfully'
+              })
+              this.workflowActionModalVisible = false
+              this.processInstance()
+            }
+          },
+          onCancel: () => {}
+        })
       } else {
         const payload = {
           act: type,
