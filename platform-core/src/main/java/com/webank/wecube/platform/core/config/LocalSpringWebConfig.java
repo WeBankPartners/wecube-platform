@@ -34,9 +34,9 @@ public class LocalSpringWebConfig extends WebSecurityConfigurerAdapter implement
 
     @Autowired
     private AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
-    
+
     @Autowired
-	private ApplicationProperties applicationProperties;
+    private ApplicationProperties applicationProperties;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -74,9 +74,10 @@ public class LocalSpringWebConfig extends WebSecurityConfigurerAdapter implement
     }
 
     protected Filter jwtSsoBasedAuthenticationFilter() throws Exception {
-    	JwtClientConfig jwtClientConfig = new JwtClientConfig();
-		jwtClientConfig.setSigningKey(applicationProperties.getJwtSigningKey());
-        JwtSsoBasedAuthenticationFilter f = new JwtSsoBasedAuthenticationFilter(authenticationManager(), jwtClientConfig);
+        JwtClientConfig jwtClientConfig = new JwtClientConfig();
+        jwtClientConfig.setSigningKey(applicationProperties.getJwtSigningKey());
+        JwtSsoBasedAuthenticationFilter f = new JwtSsoBasedAuthenticationFilter(authenticationManager(),
+                jwtClientConfig);
         return (Filter) f;
     }
 
