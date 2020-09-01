@@ -53,6 +53,7 @@
   "pub_enum": "Public Enum",
   "pri_enum": "Private Enum",
   "confirm_to_delete": "Confirm to delete",
+  "confirm_to_skip": "Confirm to skip",
   "more_filters": "More Filters",
   "less_filters": "Less Filters",
   "reset": "Reset",
