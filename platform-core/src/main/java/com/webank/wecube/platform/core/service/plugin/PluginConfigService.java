@@ -627,6 +627,7 @@ public class PluginConfigService {
                 serviceNamedPluginConfigIntfs.put(serviceName, pluginConfigIntf);
             }else{
                 if(isLaterThen(pluginConfigIntf, existIntf)){
+                    log.info("plugin interface {} is later than plugin interface {}", pluginConfigIntf.getId(), existIntf.getId());
                     serviceNamedPluginConfigIntfs.put(serviceName, pluginConfigIntf);
                 }
             }
