@@ -837,17 +837,32 @@ export default {
       if (!(found && found.id)) return
       let { status, data } = await getProcessInstance(found.id)
       if (status === 'OK') {
-        this.flowData = {
-          ...data,
-          flowNodes: data.taskNodeInstances
+        if (
+          !this.flowData.flowNodes ||
+          (this.flowData.flowNodes && this.comparativeData(this.flowData.flowNodes, data.taskNodeInstances))
+        ) {
+          this.flowData = {
+            ...data,
+            flowNodes: data.taskNodeInstances
+          }
+          removeEvent('.retry', 'click', this.retryHandler)
+          removeEvent('.normal', 'click', this.normalHandler)
+          this.initFlowGraph(true)
         }
-        removeEvent('.retry', 'click', this.retryHandler)
-        removeEvent('.normal', 'click', this.normalHandler)
-        this.initFlowGraph(true)
         if (data.status === 'Completed') {
           this.stop()
         }
       }
+    },
+    comparativeData (old, newData) {
+      let isNew = false
+      newData.forEach(_ => {
+        const found = old.find(d => d.nodeId === _.nodeId)
+        if (found.status !== _.status) {
+          isNew = true
+        }
+      })
+      return isNew
     },
     processInstance () {
       this.start()
@@ -1044,18 +1059,15 @@ export default {
     },
     initFlowGraph (excution = false) {
       const graphEl = document.getElementById('flow')
-      const initEvent = () => {
-        let graph
-        graph = d3.select(`#flow`)
-        graph.on('dblclick.zoom', null)
-        this.flowGraph.graphviz = graph
-          .graphviz()
-          .fit(true)
-          .zoom(true)
-          .height(graphEl.offsetHeight - 10)
-          .width(graphEl.offsetWidth - 10)
-      }
-      initEvent()
+      let graph
+      graph = d3.select(`#flow`)
+      graph.on('dblclick.zoom', null)
+      this.flowGraph.graphviz = graph
+        .graphviz()
+        .fit(true)
+        .zoom(true)
+        .height(graphEl.offsetHeight - 10)
+        .width(graphEl.offsetWidth - 10)
       this.renderFlowGraph(excution)
     },
     zoomModal () {
