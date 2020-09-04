@@ -155,6 +155,9 @@ export default {
       const { status, data } = await getApplicationVersion()
       if (status === 'OK') {
         this.version = data
+        window.localStorage.setItem('wecube_version', this.version)
+      } else {
+        this.version = window.localStorage.getItem('wecube_version') || ''
       }
     },
     changeDocs (url) {
