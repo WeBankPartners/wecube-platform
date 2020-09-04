@@ -149,16 +149,16 @@ public class ResourceDataQueryService {
         formattedSql = formattedSql.replaceAll("'[^']*'", "?");
 
         if (formattedSql.contains("'")) {
-            throw new WecubeCoreException("Single quote must be paired.");
+            throw new WecubeCoreException("Single quote must be paired.").withErrorCode("3313");
         }
 
         formattedSql = formattedSql.toLowerCase();
         if (formattedSql.contains("union")) {
-            throw new WecubeCoreException("Union query is not allowed.");
+            throw new WecubeCoreException("Union query is not allowed.").withErrorCode("3314");
         }
 
         if (formattedSql.contains(";")) {
-            throw new WecubeCoreException("Semicolon is not allowed.");
+            throw new WecubeCoreException("Semicolon is not allowed.").withErrorCode("3315");
         }
 
         validateSubSelection(formattedSql);
@@ -171,7 +171,7 @@ public class ResourceDataQueryService {
         Pattern selectp = Pattern.compile(selectCauseReg);
         Matcher selectm = selectp.matcher(formattedSql);
         if (selectm.find()) {
-            throw new WecubeCoreException("Sub-selection is not allowed.");
+            throw new WecubeCoreException("Sub-selection is not allowed.").withErrorCode("3316");
         }
     }
 
@@ -206,7 +206,7 @@ public class ResourceDataQueryService {
             }
         } catch (SQLException e) {
             logger.error("", e);
-            throw new WecubeCoreException("errors while fetching table names");
+            throw new WecubeCoreException("Errors while fetching table names").withErrorCode("3317");
         } finally {
             closeSilently(tablesRs);
             closeSilently(connection);
@@ -214,7 +214,7 @@ public class ResourceDataQueryService {
 
         for (String inputTabName : inputTableNames) {
             if (!tableNames.contains(inputTabName)) {
-                throw new WecubeCoreException(String.format("Selection to %s is not allowed.", inputTabName));
+                throw new WecubeCoreException(String.format("Selection to %s is not allowed.", inputTabName)).withErrorCode("3318", inputTabName);
             }
         }
     }
@@ -227,7 +227,7 @@ public class ResourceDataQueryService {
         while (m.find()) {
             String funName = m.group(2);
             if (!ALLOWED_SQL_FUNCTIONS.contains(funName)) {
-                throw new WecubeCoreException(String.format("Such function [%s] is not allowed.", funName));
+                throw new WecubeCoreException(String.format("Such function [%s] is not allowed.", funName)).withErrorCode("3319", funName);
             }
         }
     }
@@ -262,10 +262,10 @@ public class ResourceDataQueryService {
                 return totalCount;
             } else {
                 throw new WecubeCoreException("3011",
-                        String.format("Failed to get total count of query: %s", sqlQuery));
+                        String.format("Failed to get total count of query: %s", sqlQuery), sqlQuery);
             }
         } catch (Exception ex) {
-            throw new WecubeCoreException("3011", String.format("Failed to get total count of query: %s", sqlQuery));
+            throw new WecubeCoreException("3011", String.format("Failed to get total count of query: %s", sqlQuery), sqlQuery);
         }
     }
 
@@ -280,7 +280,7 @@ public class ResourceDataQueryService {
                 .findByPluginPackage_name(pluginPackageOpt.get().getName());
         if (pluginMysqlInstance == null) {
             throw new WecubeCoreException("3013", String.format(
-                    "Can not find out PluginMysqlInstance for package name:%s", pluginPackageOpt.get().getName()));
+                    "Can not find out PluginMysqlInstance for package name:%s", pluginPackageOpt.get().getName()), pluginPackageOpt.get().getName());
         }
 
         String dbUsername = pluginMysqlInstance.getUsername();
@@ -290,13 +290,13 @@ public class ResourceDataQueryService {
         ResourceItem resourceItem = pluginMysqlInstance.getResourceItem();
         if (resourceItem == null) {
             throw new WecubeCoreException("3014",
-                    String.format("Can not find out ResourceItem for packageId:%d", packageId));
+                    String.format("Can not find out ResourceItem for packageId:%s", packageId), packageId);
         }
 
         ResourceServer resourceServer = resourceItem.getResourceServer();
         if (resourceServer == null) {
             throw new WecubeCoreException("3015",
-                    String.format("Can not find out mysql ResourceServer for packageId:%d", packageId));
+                    String.format("Can not find out mysql ResourceServer for packageId:%s", packageId), packageId);
         }
 
         String mysqlHost = resourceServer.getHost();
