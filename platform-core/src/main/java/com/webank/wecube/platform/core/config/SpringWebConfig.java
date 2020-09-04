@@ -2,7 +2,6 @@ package com.webank.wecube.platform.core.config;
 
 import javax.servlet.Filter;
 
-import com.webank.wecube.platform.core.support.cache.CacheHandlerInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
@@ -18,8 +17,11 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.webank.wecube.platform.auth.client.filter.Http401AuthenticationEntryPoint;
+import com.webank.wecube.platform.auth.client.filter.JwtClientConfig;
 import com.webank.wecube.platform.auth.client.filter.JwtSsoBasedAuthenticationFilter;
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.interceptor.AuthenticationRequestContextInterceptor;
+import com.webank.wecube.platform.core.support.cache.CacheHandlerInterceptor;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
@@ -38,6 +40,9 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
 
     @Autowired
     private CacheHandlerInterceptor cacheHandlerInterceptor;
+
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -86,7 +91,10 @@ public class SpringWebConfig extends WebSecurityConfigurerAdapter implements Web
     }
 
     protected Filter jwtSsoBasedAuthenticationFilter() throws Exception {
-        JwtSsoBasedAuthenticationFilter f = new JwtSsoBasedAuthenticationFilter(authenticationManager());
+        JwtClientConfig jwtClientConfig = new JwtClientConfig();
+        jwtClientConfig.setSigningKey(applicationProperties.getJwtSigningKey());
+        JwtSsoBasedAuthenticationFilter f = new JwtSsoBasedAuthenticationFilter(authenticationManager(),
+                jwtClientConfig);
         return (Filter) f;
     }
 
