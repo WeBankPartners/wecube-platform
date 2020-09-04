@@ -211,6 +211,14 @@ public class ResourceDataQueryService {
             closeSilently(tablesRs);
             closeSilently(connection);
         }
+        
+        for(String tableName : inputTableNames){
+            logger.info("tables in sql:{}", tableName);
+        }
+        
+        for(String tableName : tableNames){
+            logger.info("tables in db:{}", tableName);
+        }
 
         for (String inputTabName : inputTableNames) {
             if (!tableNames.contains(inputTabName)) {
