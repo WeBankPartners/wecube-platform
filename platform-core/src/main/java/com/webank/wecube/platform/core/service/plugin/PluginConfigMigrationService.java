@@ -85,13 +85,14 @@ public class PluginConfigMigrationService {
                 .findByPluginPackage_idOrderByName(pluginPackageId);
 
         if (!pluginConfigsOpt.isPresent()) {
-            throw new WecubeCoreException("3228","Such package ID has no plugin configs.");
+            log.info("Such package ID has no plugin configs.PluginPackageId={}", pluginPackageId);
+        }else {
+
+        	List<PluginConfig> pluginConfigs = pluginConfigsOpt.get();
+
+        	PluginConfigsType xmlPluginConfigs = buildXmlPluginConfigs(pluginPackage, pluginConfigs);
+        	xmlPluginPackage.setPlugins(xmlPluginConfigs);
         }
-
-        List<PluginConfig> pluginConfigs = pluginConfigsOpt.get();
-
-        PluginConfigsType xmlPluginConfigs = buildXmlPluginConfigs(pluginPackage, pluginConfigs);
-        xmlPluginPackage.setPlugins(xmlPluginConfigs);
 
         SystemParametersType xmlSystemVariables = buildSystemParametersType(pluginPackage);
         xmlPluginPackage.setSystemParameters(xmlSystemVariables);
@@ -137,6 +138,17 @@ public class PluginConfigMigrationService {
 
         if (xmlPluginPackage == null) {
             throw new WecubeCoreException("3232","Bad xml contents.");
+        }
+        
+        String xmlPackageName = xmlPluginPackage.getName();
+        String packageName = pluginPackage.getName();
+        if(!packageName.equals(xmlPackageName)) {
+        	throw new WecubeCoreException("3312",
+        			String.format("Plugin packages do not match.The name from XML is %s but the package you chose is %s.", 
+        					xmlPackageName, 
+        					packageName),
+        			xmlPackageName, 
+        			packageName);
         }
 
         performImportPluginRegistersForOnePackage(pluginPackage, xmlPluginPackage);
