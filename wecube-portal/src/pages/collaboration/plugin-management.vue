@@ -594,6 +594,7 @@ export default {
           title: 'Success',
           desc: 'Instance launched successfully'
         })
+        this.updateMenus()
         this.getAvailableInstancesByPackageId(this.currentPlugin.id)
       }
     },
@@ -760,6 +761,7 @@ export default {
           title: 'Success',
           desc: message
         })
+        this.updateMenus()
       }
       this.isLoading = false
       this.getAvailableInstancesByPackageId(this.currentPlugin.id)
@@ -932,6 +934,9 @@ export default {
       this.headers = {
         Authorization: 'Bearer ' + getCookie('accessToken')
       }
+    },
+    async updateMenus () {
+      this.$parent.changeMenusOutside()
     }
   },
   created () {
