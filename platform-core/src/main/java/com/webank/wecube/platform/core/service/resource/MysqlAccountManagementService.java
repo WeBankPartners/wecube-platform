@@ -33,9 +33,9 @@ public class MysqlAccountManagementService implements ResourceItemService {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         if(Strings.isNullOrEmpty(database)) {
-            dataSource.setUrl("jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC");
+            dataSource.setUrl("jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true");
         }else {
-            dataSource.setUrl("jdbc:mysql://" + host + ":" + port +"/"+ database +"?characterEncoding=utf8&serverTimezone=UTC");
+            dataSource.setUrl("jdbc:mysql://" + host + ":" + port +"/"+ database +"?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true");
         }
         dataSource.setUsername(username);
         dataSource.setPassword(password);
