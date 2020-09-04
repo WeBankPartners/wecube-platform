@@ -10,12 +10,16 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +49,8 @@ import com.webank.wecube.platform.core.utils.EncryptionUtils;
 public class ResourceDataQueryService {
     private Logger logger = LoggerFactory.getLogger(ResourceDataQueryService.class);
     
+    private static List<String> ALLOWED_SQL_FUNCTIONS = Arrays.asList("count", "avg", "sum", "min", "max", "distinct");
+    
     @Autowired
     private PluginMysqlInstanceRepository pluginMysqlInstanceRepository;
     @Autowired
@@ -69,6 +75,8 @@ public class ResourceDataQueryService {
     
     public QueryResponse<List<String>> queryDB(DataSource dataSource, SqlQueryRequest sqlQueryRequest){
         List<List<String>> results = new LinkedList<>(); 
+        
+        sqlInjectionValidation(sqlQueryRequest.getSqlQuery(), dataSource);
         
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             int totalCount = queryTotalCount(statement,sqlQueryRequest.getSqlQuery());
@@ -120,8 +128,61 @@ public class ResourceDataQueryService {
         }catch(Exception e) {
             String errorMessage = String.format("Fail to execute sql query:%s", sqlQueryRequest.toString());
             logger.error(errorMessage, e);
-            throw new WecubeCoreException("3010",errorMessage, e);
+            throw new WecubeCoreException(errorMessage, e).withErrorCode("3010", sqlQueryRequest.toString());
         }    
+    }
+    
+    private void sqlInjectionValidation(String rawSql, DataSource dataSource){
+        if(StringUtils.isBlank(rawSql)){
+            return;
+        }
+        
+        String formattedSql = rawSql.trim().replaceAll("\\\\'", "ESCAPE");
+        
+        formattedSql = formattedSql.replaceAll("'[^']*'", "?");
+        
+        if (formattedSql.contains("'")) {
+            throw new WecubeCoreException("Single quote must be paired.");
+        }
+        
+        formattedSql = formattedSql.toLowerCase();
+        if (formattedSql.contains("union")) {
+            throw new WecubeCoreException("Union query is not allowed.");
+        }
+        
+        if (formattedSql.contains(";")) {
+            throw new WecubeCoreException("Semicolon is not allowed.");
+        }
+        
+        validateSubSelection(formattedSql);
+        validateFunctions(formattedSql);
+        validateTableNames(formattedSql, dataSource);
+    }
+    
+    private void validateSubSelection(String formattedSql){
+        String selectCauseReg = "(\\W+)select(\\W+)";
+        Pattern selectp = Pattern.compile(selectCauseReg);
+        Matcher selectm = selectp.matcher(formattedSql);
+        if(selectm.find()){
+            throw new WecubeCoreException("Sub-selection is not allowed.");
+        }
+    }
+    
+    private void validateTableNames(String formattedSql, DataSource dataSource){
+        //TODO
+    }
+    
+    private void validateFunctions(String formattedSql){
+        String functionNameReg = "(\\W+?)(\\w+?)\\(.*?\\)";
+        Pattern p = Pattern.compile(functionNameReg);
+        Matcher m = p.matcher(formattedSql);
+
+        while (m.find()) {
+            String funName = m.group(2);
+            if(!ALLOWED_SQL_FUNCTIONS.contains(funName)){
+                throw new WecubeCoreException(String.format("Such function [%s] is not allowed.", funName));
+            }
+        }
     }
 
     private List<String> getHeaders(ResultSetMetaData resultSetMd) throws SQLException {
