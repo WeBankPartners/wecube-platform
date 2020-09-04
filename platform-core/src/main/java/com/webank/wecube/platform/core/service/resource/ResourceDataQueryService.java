@@ -176,6 +176,7 @@ public class ResourceDataQueryService {
     }
 
     private void validateTableNames(String formattedSql, DataSource dataSource) {
+        formattedSql = formattedSql.trim() + " ";
         String tableNameReg = "\\s+(from|join)\\s+(\\S+?)[\\s|\\)]+";
         Pattern tableNameP = Pattern.compile(tableNameReg);
         Matcher tableNameM = tableNameP.matcher(formattedSql);
@@ -185,6 +186,7 @@ public class ResourceDataQueryService {
         }
 
         if (inputTableNames.isEmpty()) {
+            logger.info("None table names found in input SQL:{}", formattedSql);
             return;
         }
 
@@ -194,8 +196,11 @@ public class ResourceDataQueryService {
         try {
             connection = dataSource.getConnection();
             String jdbcUrl = connection.getMetaData().getURL().toString();
-            String strSchema = jdbcUrl.substring(0, jdbcUrl.indexOf("?"));
-            strSchema = strSchema.substring(strSchema.lastIndexOf("/") + 1);
+            String strSchema = null;
+            if (jdbcUrl.indexOf("?") > 0 && jdbcUrl.indexOf("/") > 0) {
+                strSchema = jdbcUrl.substring(0, jdbcUrl.indexOf("?"));
+                strSchema = strSchema.substring(strSchema.lastIndexOf("/") + 1);
+            }
 
             DatabaseMetaData databaseMetaData = connection.getMetaData();
             tablesRs = databaseMetaData.getTables(null, strSchema, null, JDBC_METADATA_TABLE_TYPES);
@@ -211,18 +216,11 @@ public class ResourceDataQueryService {
             closeSilently(tablesRs);
             closeSilently(connection);
         }
-        
-        for(String tableName : inputTableNames){
-            logger.info("tables in sql:{}", tableName);
-        }
-        
-        for(String tableName : tableNames){
-            logger.info("tables in db:{}", tableName);
-        }
 
         for (String inputTabName : inputTableNames) {
             if (!tableNames.contains(inputTabName)) {
-                throw new WecubeCoreException(String.format("Selection to %s is not allowed.", inputTabName)).withErrorCode("3318", inputTabName);
+                throw new WecubeCoreException(String.format("Selection to %s is not allowed.", inputTabName))
+                        .withErrorCode("3318", inputTabName);
             }
         }
     }
@@ -235,7 +233,8 @@ public class ResourceDataQueryService {
         while (m.find()) {
             String funName = m.group(2);
             if (!ALLOWED_SQL_FUNCTIONS.contains(funName)) {
-                throw new WecubeCoreException(String.format("Such function [%s] is not allowed.", funName)).withErrorCode("3319", funName);
+                throw new WecubeCoreException(String.format("Such function [%s] is not allowed.", funName))
+                        .withErrorCode("3319", funName);
             }
         }
     }
@@ -269,11 +268,12 @@ public class ResourceDataQueryService {
                 int totalCount = rs.getInt(1);
                 return totalCount;
             } else {
-                throw new WecubeCoreException("3011",
-                        String.format("Failed to get total count of query: %s", sqlQuery), sqlQuery);
+                throw new WecubeCoreException("3011", String.format("Failed to get total count of query: %s", sqlQuery),
+                        sqlQuery);
             }
         } catch (Exception ex) {
-            throw new WecubeCoreException("3011", String.format("Failed to get total count of query: %s", sqlQuery), sqlQuery);
+            throw new WecubeCoreException("3011", String.format("Failed to get total count of query: %s", sqlQuery),
+                    sqlQuery);
         }
     }
 
@@ -287,8 +287,10 @@ public class ResourceDataQueryService {
         PluginMysqlInstance pluginMysqlInstance = pluginMysqlInstanceRepository
                 .findByPluginPackage_name(pluginPackageOpt.get().getName());
         if (pluginMysqlInstance == null) {
-            throw new WecubeCoreException("3013", String.format(
-                    "Can not find out PluginMysqlInstance for package name:%s", pluginPackageOpt.get().getName()), pluginPackageOpt.get().getName());
+            throw new WecubeCoreException("3013",
+                    String.format("Can not find out PluginMysqlInstance for package name:%s",
+                            pluginPackageOpt.get().getName()),
+                    pluginPackageOpt.get().getName());
         }
 
         String dbUsername = pluginMysqlInstance.getUsername();
