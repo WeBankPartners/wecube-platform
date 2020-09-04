@@ -197,66 +197,75 @@ export default {
       const lang = this.language[currentLangKey] || 'English'
       this.currentLanguage = lang
     },
-    async getMyMenus () {
-      let { status, data } = await getMyMenus()
-      if (status === 'OK') {
-        data.forEach(_ => {
-          if (!_.category) {
-            let menuObj = MENUS.find(m => m.code === _.code)
-            if (menuObj) {
-              this.menus.push({
-                title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
-                id: _.id,
-                submenus: [],
-                ..._,
-                ...menuObj
-              })
-            } else {
-              this.menus.push({
-                title: _.code,
-                id: _.id,
-                submenus: [],
-                ..._
-              })
-            }
-          }
-        })
-        data.forEach(_ => {
-          if (_.category) {
-            let menuObj = MENUS.find(m => m.code === _.code)
-            if (menuObj) {
-              // Platform Menus
-              this.menus.forEach(h => {
-                if (_.category === '' + h.id) {
-                  h.submenus.push({
-                    title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
-                    id: _.id,
-                    ..._,
-                    ...menuObj
-                  })
-                }
-              })
-            } else {
-              // Plugins Menus
-              this.menus.forEach(h => {
-                if (_.category === '' + h.id) {
-                  h.submenus.push({
-                    title: this.$lang === 'zh-CN' ? _.localDisplayName : _.displayName,
-                    id: _.id,
-                    link: _.path,
-                    ..._
-                  })
-                }
-              })
-            }
-          }
-        })
-        this.$emit('allMenus', this.menus)
-        window.myMenus = this.menus
-        getChildRouters(window.routers || [])
+    async getMyMenus (forchRefresh) {
+      const originMenus = window.localStorage.getItem('wecube_allMenus')
+      if (forchRefresh || !originMenus) {
+        let { status, data } = await getMyMenus()
+        if (status === 'OK') {
+          this.puttyMenus(data)
+        }
+      } else {
+        this.puttyMenus(JSON.parse(originMenus))
       }
     },
-
+    puttyMenus (data) {
+      this.menus = []
+      data.forEach(_ => {
+        if (!_.category) {
+          let menuObj = MENUS.find(m => m.code === _.code)
+          if (menuObj) {
+            this.menus.push({
+              title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+              id: _.id,
+              submenus: [],
+              ..._,
+              ...menuObj
+            })
+          } else {
+            this.menus.push({
+              title: _.code,
+              id: _.id,
+              submenus: [],
+              ..._
+            })
+          }
+        }
+      })
+      data.forEach(_ => {
+        if (_.category) {
+          let menuObj = MENUS.find(m => m.code === _.code)
+          if (menuObj) {
+            // Platform Menus
+            this.menus.forEach(h => {
+              if (_.category === '' + h.id) {
+                h.submenus.push({
+                  title: this.$lang === 'zh-CN' ? menuObj.cnName : menuObj.enName,
+                  id: _.id,
+                  ..._,
+                  ...menuObj
+                })
+              }
+            })
+          } else {
+            // Plugins Menus
+            this.menus.forEach(h => {
+              if (_.category === '' + h.id) {
+                h.submenus.push({
+                  title: this.$lang === 'zh-CN' ? _.localDisplayName : _.displayName,
+                  id: _.id,
+                  link: _.path,
+                  ..._
+                })
+              }
+            })
+          }
+        }
+      })
+      window.localStorage.setItem('wecube_allMenus', JSON.stringify(this.menus))
+      this.$emit('allMenus', this.menus)
+      window.myMenus = this.menus
+      getChildRouters(window.routers || [])
+    },
     async getAllPluginPackageResourceFiles () {
       const { status, data } = await getAllPluginPackageResourceFiles()
       if (status === 'OK' && data && data.length > 0) {
@@ -315,7 +324,8 @@ export default {
     this.username = window.sessionStorage.getItem('username')
   },
   watch: {
-    $lang: function (lang) {
+    $lang: async function (lang) {
+      await this.getMyMenus(true)
       window.location.reload()
     }
   },
