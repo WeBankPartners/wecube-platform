@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.webank.wecube.platform.core.boot.ApplicationInitializeException;
 import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourceProperties;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
