@@ -62,41 +62,45 @@
                   v-if="plugin.status !== 'DECOMMISSIONED' || isShowDecomissionedPackage"
                   :key="plugin.id"
                 >
-                  <span :class="plugin.status !== 'DECOMMISSIONED' ? '' : 'decomissionedPkgName'">
-                    {{ plugin.name + '_' + plugin.version }}
-                  </span>
-                  <span style="float: right; margin-right: 10px">
-                    <Tooltip :content="$t('configuration_import')">
-                      <Button
-                        icon="ios-cloud-upload-outline"
-                        v-if="plugin.status !== 'DECOMMISSIONED'"
-                        size="small"
-                        type="primary"
-                        ghost
-                        @click.stop.prevent="importBestPractices(plugin.id)"
-                      ></Button>
-                    </Tooltip>
-                    <Tooltip :content="$t('configuration_export')">
-                      <Button
-                        v-if="plugin.status !== 'DECOMMISSIONED'"
-                        @click.stop.prevent="exportBestPractices(plugin.id)"
-                        size="small"
-                        type="primary"
-                        ghost
-                        icon="md-download"
-                      ></Button>
-                    </Tooltip>
-                    <Tooltip :content="$t('delete')">
-                      <Button
-                        v-if="plugin.status !== 'DECOMMISSIONED'"
-                        @click.stop.prevent="deletePlugin(plugin.id)"
-                        size="small"
-                        type="error"
-                        ghost
-                        icon="ios-trash"
-                      ></Button>
-                    </Tooltip>
-                  </span>
+                  <div style="float: right;width: calc(100% - 30px);">
+                    <span
+                      :class="plugin.status !== 'DECOMMISSIONED' ? 'plugin-title' : 'decomissionedPkgName plugin-title'"
+                    >
+                      {{ plugin.name + '_' + plugin.version }}
+                    </span>
+                    <span style="float: right; margin-right: 10px">
+                      <Tooltip :content="$t('configuration_import')">
+                        <Button
+                          icon="ios-cloud-upload-outline"
+                          v-if="plugin.status !== 'DECOMMISSIONED'"
+                          size="small"
+                          type="primary"
+                          ghost
+                          @click.stop.prevent="importBestPractices(plugin.id)"
+                        ></Button>
+                      </Tooltip>
+                      <Tooltip :content="$t('configuration_export')">
+                        <Button
+                          v-if="plugin.status !== 'DECOMMISSIONED'"
+                          @click.stop.prevent="exportBestPractices(plugin.id)"
+                          size="small"
+                          type="primary"
+                          ghost
+                          icon="md-download"
+                        ></Button>
+                      </Tooltip>
+                      <Tooltip :content="$t('delete')">
+                        <Button
+                          v-if="plugin.status !== 'DECOMMISSIONED'"
+                          @click.stop.prevent="deletePlugin(plugin.id)"
+                          size="small"
+                          type="error"
+                          ghost
+                          icon="ios-trash"
+                        ></Button>
+                      </Tooltip>
+                    </span>
+                  </div>
                   <p slot="content" class="button-group">
                     <Button @click="configPlugin(plugin.id)" size="small" type="info" ghost icon="ios-checkmark-circle">
                       {{ $t('plugin_config_check') }}
@@ -956,5 +960,13 @@ export default {
 }
 .clear-default-css {
   margin-bottom: 0;
+}
+.plugin-title {
+  width: calc(100% - 110px);
+  display: block;
+  float: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
