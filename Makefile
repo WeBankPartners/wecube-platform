@@ -8,7 +8,6 @@ clean:
 	rm -rf $(current_dir)/platform-auth-server/target
 	rm -rf $(current_dir)/platform-core/target
 	rm -rf $(current_dir)/wecube-portal/node
-	rm -rf $(current_dir)/wecube-portal/node_modules
 	rm -rf $(current_dir)/wecube-portal/dist
 	rm -rf $(current_dir)/platform-gateway/target
 	rm -rf $(current_dir)/platform-auth-server/target
@@ -136,4 +135,4 @@ deploy_demo: image
 	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
 	sed -i "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" docker-compose.yml
 	sed -i "s~{{WECUBE_APP_IMAGE_VER}}~wecube-db:${date}-$(version)~g" docker-compose.yml
-	docker-compose -f docker-compose.yml -H $(target_host) up -d
+	docker-compose -f docker-compose.yml up -d
