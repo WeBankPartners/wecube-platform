@@ -128,27 +128,11 @@ deploy:
 	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
 
-plugin_host="tcp://10.0.0.2:2375"
-deploy_demo:
-	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
-	docker push $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
-
-	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
-	docker push $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
-
-	docker tag  wecube-portal:$(version) $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
-	docker push $(tencent_cloud_docker_image_registry)/wecube-portal:$(date)-$(version)
-
-	docker tag  platform-auth-server:$(version) $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
-	docker push $(tencent_cloud_docker_image_registry)/platform-auth-server:$(date)-$(version)
-
+deploy_demo: image
 	docker tag  wecube-db:$(version) ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
-	docker push ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
-
-	docker-compose -f build/plugin_db.yml -H $(plugin_host) up -d
 	sed "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" build/wecube_core_mysql.tpl > wecube_core_mysql.yml
-	docker-compose -f wecube_core_mysql.yml -H $(target_host) up -d
-	sleep 90
+	docker-compose -f wecube_core_mysql.yml up -d
+	sleep 10
 	sh build/deploy_generate_compose.sh $(env_config) $(date)-$(version)
 	sed -i "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" docker-compose.yml
 	sed -i "s~{{WECUBE_APP_IMAGE_VER}}~wecube-db:${date}-$(version)~g" docker-compose.yml
