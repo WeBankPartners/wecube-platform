@@ -236,7 +236,6 @@
 
     <Modal v-model="operaModal" :mask-closable="false" :title="$t('bc_operation')" :width="1000" class="opera-modal">
       <div style="height:400px;">
-        <!-- 设置查询参数-开始 -->
         <section v-if="displaySearchZone" class="search">
           <Form :label-width="130" label-colon>
             <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
@@ -249,6 +248,7 @@
             </FormItem>
             <FormItem :label="$t('bc_target_type')">
               <Input disabled :value="currentPackageName + ':' + currentEntityName"></Input>
+              <!-- <span v-if="currentPackageName"></span> -->
             </FormItem>
             <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
               <Select filterable v-model="currentEntityAttr">
@@ -309,9 +309,6 @@
             </FormItem>
           </Form>
         </section>
-        <!-- 设置查询参数-结束 -->
-
-        <!-- 选择执行对象-开始 -->
         <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
           <div style="margin-bottom:8px">
             <Input v-model="filterTableParams" :placeholder="$t('enter_search_keywords')" style="width: 300px" />
@@ -335,11 +332,12 @@
                 ></Table>
               </div>
             </Card>
+            <!-- <a v-else @click="reExcute('displayResultTableZone')">
+              {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected')
+              }}{{ seletedRowsNum }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ pluginId }}
+            </a> -->
           </div>
         </section>
-        <!-- 选择执行对象-结束 -->
-
-        <!-- 选择插件配置参数-开始 -->
         <section v-if="batchActionModalVisible">
           <Form label-position="right" :label-width="150">
             <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
@@ -359,9 +357,6 @@
             </div>
           </Form>
         </section>
-        <!-- 选择插件配置参数-结束 -->
-
-        <!-- 补充参数-开始 -->
         <section v-if="setPluginParamsModal">
           <Form label-position="right" :label-width="150" v-if="!!activeExecuteHistory.plugin">
             <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
@@ -372,7 +367,6 @@
             </template>
           </Form>
         </section>
-        <!-- 补充参数-结束 -->
       </div>
       <div slot="footer">
         <!-- 查询table数据 -->
@@ -1352,15 +1346,8 @@ export default {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.batchActionModalVisible = false
-      this.clearComplementParams()
       this.setPluginParamsModal = true
       this.operaModal = true
-    },
-    clearComplementParams () {
-      console.log(this.activeExecuteHistory.plugin.pluginParams)
-      this.activeExecuteHistory.plugin.pluginParams.forEach(item => {
-        item.bindValue = ''
-      })
     }
   },
   components: {
@@ -1455,7 +1442,6 @@ pre {
   padding: 4px 16px;
   cursor: pointer;
   color: #19be6b;
-  word-break: break-all;
 }
 .active-key {
   background: #e5e2e2;
