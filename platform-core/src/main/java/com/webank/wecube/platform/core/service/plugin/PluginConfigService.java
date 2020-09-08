@@ -559,7 +559,12 @@ public class PluginConfigService {
                     .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(
                             packageName, entityName, ENABLED);
             if (allEnabledInterfacesOptional.isPresent()) {
-                pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream()
+                List<PluginConfigInterface> rawPluginIntfs = allEnabledInterfacesOptional.get();
+                List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                
+                List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+                
+                pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                         .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                         .collect(Collectors.toList()));
             }
@@ -570,7 +575,11 @@ public class PluginConfigService {
                         .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_StatusAndPluginConfig_TargetEntityFilterRuleIsNull(
                                 packageName, entityName, ENABLED);
                 if (filterRuleIsNullEnabledInterfacesOptional.isPresent()) {
-                    pluginConfigInterfaceDtos.addAll(filterRuleIsNullEnabledInterfacesOptional.get().stream()
+                    List<PluginConfigInterface> rawPluginIntfs = filterRuleIsNullEnabledInterfacesOptional.get();
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    
+                    List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+                    pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                             .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                             .collect(Collectors.toList()));
                 }
@@ -578,7 +587,11 @@ public class PluginConfigService {
                         .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
                                 packageName, entityName, "", ENABLED);
                 if (filterRuleIsEmptyEnabledInterfacesOptional.isPresent()) {
-                    pluginConfigInterfaceDtos.addAll(filterRuleIsEmptyEnabledInterfacesOptional.get().stream()
+                    List<PluginConfigInterface> rawPluginIntfs = filterRuleIsNullEnabledInterfacesOptional.get();
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    
+                    List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+                    pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                             .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                             .collect(Collectors.toList()));
                 }
@@ -587,7 +600,11 @@ public class PluginConfigService {
                         .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
                                 packageName, entityName, filterRuleDto.getTargetEntityFilterRule(), ENABLED);
                 if (allEnabledInterfacesOptional.isPresent()) {
-                    pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream()
+                    List<PluginConfigInterface> rawPluginIntfs = allEnabledInterfacesOptional.get();
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    
+                    List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+                    pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                             .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                             .collect(Collectors.toList()));
                 }
@@ -596,19 +613,17 @@ public class PluginConfigService {
 
         Optional<List<PluginConfigInterface>> allEnabledWithEntityNameNullOpt = pluginConfigInterfaceRepository
                 .findAllEnabledWithEntityNameNull();
-        if (!allEnabledWithEntityNameNullOpt.isPresent()) {
-            return Collections.EMPTY_LIST;
+        if (allEnabledWithEntityNameNullOpt.isPresent()) {
+            List<PluginConfigInterface> rawPluginConfigIntfs = allEnabledWithEntityNameNullOpt.get();
+            
+            List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginConfigIntfs, PluginAuthEntity.PERM_TYPE_USE);
+            
+            List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+            
+            pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
+                    .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
+                    .collect(Collectors.toList()));
         }
-        
-        List<PluginConfigInterface> rawPluginConfigIntfs = allEnabledWithEntityNameNullOpt.get();
-        
-        List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginConfigIntfs, PluginAuthEntity.PERM_TYPE_USE);
-        
-        List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
-        
-        pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
-                .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
-                .collect(Collectors.toList()));
 
         return pluginConfigInterfaceDtos;
     }
