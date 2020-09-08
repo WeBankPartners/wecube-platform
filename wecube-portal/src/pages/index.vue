@@ -35,9 +35,6 @@ export default {
     allMenus (data) {
       this.allMenusAry = data
     },
-    changeMenusOutside () {
-      this.$refs.changeMneus.getMyMenus(true)
-    },
     setBreadcrumb () {
       this.isShowBreadcrum = !(this.$route.path === '/homepage' || this.$route.path === '/404')
       if (this.$route.path === '/coming-soon') {
