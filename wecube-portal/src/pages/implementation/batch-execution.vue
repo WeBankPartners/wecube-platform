@@ -105,6 +105,7 @@
                     <Icon type="ios-information-circle-outline" />
                     <div slot="content" style="white-space: normal;">
                       <p
+                        style="word-break: break-all"
                         :key="targetIndex"
                         v-for="(target, targetIndex) in activeExecuteHistory.requestBody.resourceDatas"
                       >
@@ -136,7 +137,7 @@
                     :disabled="!activeExecuteHistory.requestBody.resourceDatas.length > 0"
                     type="primary"
                     ghost
-                    >{{ $t('bc_change_plugin') }}{{ activeExecuteHistory.requestBody.resourceDatas.length }}</Button
+                    >{{ $t('bc_change_plugin') }}</Button
                   >
                 </div>
               </Step>
@@ -983,6 +984,7 @@ export default {
       this.targetEntityAttr = []
       this.filterTableParams = ''
       this.searchParameters = []
+      this.userTableColumns = []
       this.isShowSearchConditions = true
     },
     changeEntityType () {
