@@ -985,6 +985,7 @@ export default {
       this.filterTableParams = ''
       this.searchParameters = []
       this.userTableColumns = []
+      this.seletedRows = []
       this.isShowSearchConditions = true
     },
     changeEntityType () {
@@ -1318,6 +1319,12 @@ export default {
       }
     },
     changeActiveExecuteHistory (keyIndex) {
+      if (this.executeHistory.length === 0) {
+        this.clearTableSelect()
+        this.clearPlugin()
+        this.clearComplementParams()
+        return
+      }
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeExecuteHistoryKey = keyIndex
@@ -1407,9 +1414,7 @@ export default {
     },
     closeModal () {
       this.operaModal = false
-      if (this.activeExecuteHistoryKey) {
-        this.changeActiveExecuteHistory(this.activeExecuteHistoryKey)
-      }
+      this.changeActiveExecuteHistory(this.activeExecuteHistoryKey)
     }
   },
   components: {
