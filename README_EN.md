@@ -23,9 +23,14 @@ English / [中文](README.md)
 
 ## Introduction
 WeCube is an open source, one-stop tool for architecture management and IT operation, which aims to simplify the IT management of distributed architecture. Its features can be easily extended by plugins.
+[Release Note](https://github.com/WeBankPartners/wecube-platform/releases)
 
-## Link for Trial
-***REMOVED***
+## Demo
+[Live Demo](http://124.156.108.126:19090/) (user/password：admin/admin)
+
+> Note:
+>  1. Live Demo will reset on 2:00 - 4:00am every day. The environment is not available during the period, and all changes will be discarded.
+>  2. Multiple people use [admin] at the same time, may influence each other, if you want to get better experience, please set up your private environment refer to: [WeCube experience manaul](https://wecube-1259801214.cos.ap-guangzhou.myqcloud.com/v2.5.0/WeCube全量体验过程说明v2.5.0.pdf)
 
 ## Origin
 During the implementation of distributed architecture, core banking systems are built in WeBank. Comparing this to traditional monolithic architecture, there are quite a few different pain points, e.g. increasing number of servers, complicated deployment process, difficulties in service tracing and problem diagnosis due to complex systems and long invocation chains. 
@@ -37,7 +42,7 @@ In the process of finding the solutions for these pain points, we have come up w
 ![WeCube Design Concept](wecube-wiki/images/wecube_concept.png) 
 
 WeCube's design concept basically matches the lifecycle of IT system management and can be elaborated as "6 aspects with 1 core".
- 
+
 - 1st aspect: "Workbench", it is an ITSM-like workbench that can aggregates all manual tasks so that their contents, importance and priorities are all clear at first glance.
 
 - 2nd aspect: "Expectation", it is to plan, to design, to describe the expectations with models and specifications. By using standard and formal design language together with graphic visualizations, we try to make expectations on distributed architecture accurately and clearly.
