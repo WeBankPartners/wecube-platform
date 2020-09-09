@@ -24,6 +24,8 @@ English / [中文](README.md)
 ## Introduction
 WeCube is an open source, one-stop tool for architecture management and IT operation, which aims to simplify the IT management of distributed architecture. Its features can be easily extended by plugins.
 
+## Link for Trial
+***REMOVED***
 
 ## Origin
 During the implementation of distributed architecture, core banking systems are built in WeBank. Comparing this to traditional monolithic architecture, there are quite a few different pain points, e.g. increasing number of servers, complicated deployment process, difficulties in service tracing and problem diagnosis due to complex systems and long invocation chains. 
