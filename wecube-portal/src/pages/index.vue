@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="header">
-      <Header @allMenus="allMenus" />
+      <Header ref="changeMneus" @allMenus="allMenus" />
     </div>
     <div class="content-container">
       <Breadcrumb style="margin: 10px 0;" v-if="isShowBreadcrum">
