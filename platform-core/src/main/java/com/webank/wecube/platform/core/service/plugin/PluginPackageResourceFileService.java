@@ -1,9 +1,9 @@
 package com.webank.wecube.platform.core.service.plugin;
 
-import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
-import com.webank.wecube.platform.core.domain.plugin.PluginPackageResourceFile;
-import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
-import com.webank.wecube.platform.core.jpa.PluginPackageResourceFileRepository;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackageResourceFile;
+import com.webank.wecube.platform.core.lazyDomain.plugin.LazyPluginPackage;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageRepository;
+import com.webank.wecube.platform.core.lazyJpa.LazyPluginPackageResourceFileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,26 +14,27 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status.*;
+
+
 
 @Service
 @Transactional
 public class PluginPackageResourceFileService {
     @Autowired
-    private PluginPackageResourceFileRepository pluginPackageResourceFileRepository;
+    private LazyPluginPackageResourceFileRepository pluginPackageResourceFileRepository;
 
     @Autowired
-    private PluginPackageRepository pluginPackageRepository;
+    private LazyPluginPackageRepository lazyPluginPackageRepository;
 
-    public Set<PluginPackageResourceFile> getAllPluginPackageResourceFiles() {
-        Optional<Set<PluginPackage>> pluginPackagesOptional = pluginPackageRepository.findLatestPluginPackagesByStatusGroupByPackageName(REGISTERED, RUNNING, STOPPED);
+    public Set<LazyPluginPackageResourceFile> getAllPluginPackageResourceFiles() {
+        Optional<Set<LazyPluginPackage>> pluginPackagesOptional = lazyPluginPackageRepository.findLatestPluginPackagesByStatusGroupByPackageName(LazyPluginPackage.Status.REGISTERED, LazyPluginPackage.Status.RUNNING, LazyPluginPackage.Status.STOPPED);
         if (pluginPackagesOptional.isPresent()) {
             Set<String> pluginPackageIds = pluginPackagesOptional.get().stream().map(p->p.getId()).collect(Collectors.toSet());
 
             if (null != pluginPackageIds && pluginPackageIds.size() > 0) {
-                Optional<List<PluginPackageResourceFile>> pluginPackageResourceFilesOptional = pluginPackageResourceFileRepository.findPluginPackageResourceFileByPluginPackageIds(pluginPackageIds.toArray(new String[pluginPackageIds.size()]));
+                Optional<List<LazyPluginPackageResourceFile>> pluginPackageResourceFilesOptional = pluginPackageResourceFileRepository.findPluginPackageResourceFileByPluginPackageIds(pluginPackageIds.toArray(new String[pluginPackageIds.size()]));
                 if (pluginPackageResourceFilesOptional.isPresent()) {
-                    List<PluginPackageResourceFile> pluginPackageResourceFiles = pluginPackageResourceFilesOptional.get();
+                    List<LazyPluginPackageResourceFile> pluginPackageResourceFiles = pluginPackageResourceFilesOptional.get();
                     if (null != pluginPackageResourceFiles && pluginPackageResourceFiles.size() > 0) {
                         return newLinkedHashSet(pluginPackageResourceFiles);
                     }
