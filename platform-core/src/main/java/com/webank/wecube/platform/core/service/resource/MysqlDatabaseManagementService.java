@@ -53,10 +53,12 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
     private DriverManagerDataSource newDatasource(ResourceItem item) {
         String password = item.getResourceServer().getLoginPassword();
         if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = EncryptionUtils.decryptWithAes(
-                    password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                    resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }
+        
+        password = EncryptionUtils.decryptWithAes(
+                password,
+                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         DriverManagerDataSource dataSource = newMysqlDatasource(item.getResourceServer().getHost(),
                 item.getResourceServer().getPort(), item.getResourceServer().getLoginUsername(), password);
         log.info(String.format("Created new data source [host:%s,port:%s,username:%s]",
