@@ -325,10 +325,11 @@ public class PluginInstanceService {
                 .getResourceServer();
         String password = mysqlInstance.getPassword();
         if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = EncryptionUtils.decryptWithAes(
-                    password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                    resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
+            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }
+        password = EncryptionUtils.decryptWithAes(
+                password,
+                resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
                         + "?characterEncoding=utf8&serverTimezone=UTC",
@@ -567,11 +568,12 @@ public class PluginInstanceService {
 
             String password = dbInfo.getPassword();
             if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-
-                password = EncryptionUtils.decryptWithAes(
-                        password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                        resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema());
+                password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
             }
+            
+            password = EncryptionUtils.decryptWithAes(
+                    password,
+                    resourceProperties.getPasswordEncryptionSeed(), dbInfo.getSchema());
 
             envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost())
                     .replace("{{DB_PORT}}", dbInfo.getPort()).replace("{{DB_SCHEMA}}", dbInfo.getSchema())
@@ -656,10 +658,12 @@ public class PluginInstanceService {
 
         String password = mysqlInstance.getPassword();
         if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = EncryptionUtils.decryptWithAes(
-                    password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                    resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
+            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }
+        
+        password = EncryptionUtils.decryptWithAes(
+                password,
+                resourceProperties.getPasswordEncryptionSeed(), mysqlInstance.getSchemaName());
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:mysql://" + dbServer.getHost() + ":" + dbServer.getPort() + "/" + mysqlInstance.getSchemaName()
@@ -780,15 +784,14 @@ public class PluginInstanceService {
 
         logger.info("scp from local:{} to remote: {}", tmpFilePath, pluginProperties.getPluginDeployPath());
         try {
-            String password = null;
             String dbPassword = hostInfo.getLoginPassword();
             if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                password = EncryptionUtils.decryptWithAes(
-                        dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                        resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
-            } else {
-                password = dbPassword;
+                dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
             }
+            
+            String password = EncryptionUtils.decryptWithAes(
+                    dbPassword,
+                    resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
             scpService.put(hostIp, Integer.valueOf(hostInfo.getPort()), hostInfo.getLoginUsername(), password,
                     tmpFilePath, pluginProperties.getPluginDeployPath());
         } catch (Exception e) {

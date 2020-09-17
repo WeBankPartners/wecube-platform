@@ -59,12 +59,12 @@ public class MysqlAccountManagementService implements ResourceItemService {
             log.info("password before decrypt={}", password);
             String rawPassword = null;
             if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                rawPassword = EncryptionUtils.decryptWithAes(
-                        password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                        resourceProperties.getPasswordEncryptionSeed(), item.getName());
-            } else {
-                rawPassword = password;
+                password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
             }
+            
+            rawPassword = EncryptionUtils.decryptWithAes(
+                    password,
+                    resourceProperties.getPasswordEncryptionSeed(), item.getName());
             statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, rawPassword));
             statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s'", item.getName(),
                     username, rawPassword));
@@ -93,12 +93,12 @@ public class MysqlAccountManagementService implements ResourceItemService {
         try {
             String dbPassword = item.getResourceServer().getLoginPassword();
             if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-                password = EncryptionUtils.decryptWithAes(
-                        dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                        resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
-            } else {
-                password = dbPassword;
+                dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
             }
+            
+            password = EncryptionUtils.decryptWithAes(
+                    dbPassword,
+                    resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         } catch (Exception e) {
             throw new WecubeCoreException("3243",
                     String.format("Failed to decrypt the login password of server [%s].", item.getResourceServer()), e);
