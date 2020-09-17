@@ -29,7 +29,7 @@ import com.webank.wecube.platform.core.utils.JsonUtils;
 
 @Service
 public class ResourceManagementService {
-
+    public static final String PASSWORD_ENCRYPT_AES_PREFIX = "{AES}";
     @Autowired
     private EntityRepository entityRepository;
 
@@ -44,6 +44,7 @@ public class ResourceManagementService {
 
     @Autowired
     private ResourceImplementationService resourceImplementationService;
+    
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequest queryRequest) {
         queryRequest = applyDefaultSortingAsDesc(queryRequest);
@@ -209,8 +210,12 @@ public class ResourceManagementService {
 
     private void handleServerPasswordEncryption(ResourceServerDto dto) {
         if (dto.getLoginPassword() != null) {
-            dto.setLoginPassword(EncryptionUtils.encryptWithAes(dto.getLoginPassword(),
-                    resourceProperties.getPasswordEncryptionSeed(), dto.getName()));
+            String password = dto.getLoginPassword();
+            if(!password.startsWith(PASSWORD_ENCRYPT_AES_PREFIX)) {
+                password = EncryptionUtils.encryptWithAes(dto.getLoginPassword(),
+                        resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+            }
+            dto.setLoginPassword(password);
         }
     }
 
@@ -218,6 +223,7 @@ public class ResourceManagementService {
         String defaultAdditionalProperties;
         String encryptedPassword = EncryptionUtils.encryptWithAes(dto.getName(),
                 resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+        encryptedPassword = PASSWORD_ENCRYPT_AES_PREFIX + encryptedPassword;
         Map<Object, Object> map = new HashMap<>();
         map.put("username", dto.getName());
         map.put("password", encryptedPassword);
@@ -234,9 +240,16 @@ public class ResourceManagementService {
             }
             dto.setAdditionalProperties(defaultAdditionalProperties);
         } else {
-            if (additionalProperties.get("password") != null) {
-                String encryptedPassword = EncryptionUtils.encryptWithAes(additionalProperties.get("password"),
-                        resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+            String password = additionalProperties.get("password");
+            if (password != null) {
+                String encryptedPassword = null;
+                if(password.startsWith(PASSWORD_ENCRYPT_AES_PREFIX)) {
+                    encryptedPassword = password;
+                }else {
+                    encryptedPassword = EncryptionUtils.encryptWithAes(password,
+                            resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+                }
+                
                 additionalProperties.put("password", encryptedPassword);
                 dto.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
             }
