@@ -37,14 +37,13 @@ public class S3BucketManagementService implements ResourceItemService {
     @Override
     public ResourceItem createItem(ResourceItem item) {
         String dbPassword = item.getResourceServer().getLoginPassword();
-        String password = null;
         if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = EncryptionUtils.decryptWithAes(
-                    dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                    resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
-        } else {
-            password = dbPassword;
+            dbPassword = dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }
+        
+        String password = EncryptionUtils.decryptWithAes(
+                dbPassword,
+                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
                 item.getResourceServer().getLoginUsername(), password);
 
@@ -62,10 +61,12 @@ public class S3BucketManagementService implements ResourceItemService {
     public void deleteItem(ResourceItem item) {
         String password = item.getResourceServer().getLoginPassword();
         if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
-            password = EncryptionUtils.decryptWithAes(
-                    password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
-                    resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
         }
+        
+        password = EncryptionUtils.decryptWithAes(
+                password,
+                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
         AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
                 item.getResourceServer().getLoginUsername(), password);
 
