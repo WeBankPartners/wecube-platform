@@ -44,7 +44,6 @@ public class ResourceManagementService {
 
     @Autowired
     private ResourceImplementationService resourceImplementationService;
-    
 
     public QueryResponse<ResourceServerDto> retrieveServers(QueryRequest queryRequest) {
         queryRequest = applyDefaultSortingAsDesc(queryRequest);
@@ -211,9 +210,10 @@ public class ResourceManagementService {
     private void handleServerPasswordEncryption(ResourceServerDto dto) {
         if (dto.getLoginPassword() != null) {
             String password = dto.getLoginPassword();
-            if(!password.startsWith(PASSWORD_ENCRYPT_AES_PREFIX)) {
+            if (!password.startsWith(PASSWORD_ENCRYPT_AES_PREFIX)) {
                 password = EncryptionUtils.encryptWithAes(dto.getLoginPassword(),
                         resourceProperties.getPasswordEncryptionSeed(), dto.getName());
+                password = PASSWORD_ENCRYPT_AES_PREFIX + password;
             }
             dto.setLoginPassword(password);
         }
@@ -243,13 +243,13 @@ public class ResourceManagementService {
             String password = additionalProperties.get("password");
             if (password != null) {
                 String encryptedPassword = null;
-                if(password.startsWith(PASSWORD_ENCRYPT_AES_PREFIX)) {
+                if (password.startsWith(PASSWORD_ENCRYPT_AES_PREFIX)) {
                     encryptedPassword = password;
-                }else {
-                    encryptedPassword = EncryptionUtils.encryptWithAes(password,
+                } else {
+                    encryptedPassword = PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(password,
                             resourceProperties.getPasswordEncryptionSeed(), dto.getName());
                 }
-                
+
                 additionalProperties.put("password", encryptedPassword);
                 dto.setAdditionalProperties(JsonUtils.toJsonString(additionalProperties));
             }
