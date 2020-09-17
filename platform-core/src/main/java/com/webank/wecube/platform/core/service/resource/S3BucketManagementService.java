@@ -36,8 +36,15 @@ public class S3BucketManagementService implements ResourceItemService {
 
     @Override
     public ResourceItem createItem(ResourceItem item) {
-        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(),
-                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        String dbPassword = item.getResourceServer().getLoginPassword();
+        String password = null;
+        if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            password = EncryptionUtils.decryptWithAes(
+                    dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
+                    resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        } else {
+            password = dbPassword;
+        }
         AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
                 item.getResourceServer().getLoginUsername(), password);
 
@@ -53,8 +60,12 @@ public class S3BucketManagementService implements ResourceItemService {
 
     @Override
     public void deleteItem(ResourceItem item) {
-        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(),
-                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        String password = item.getResourceServer().getLoginPassword();
+        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            password = EncryptionUtils.decryptWithAes(
+                    password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
+                    resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        }
         AmazonS3 amazonS3 = newS3Client(item.getResourceServer().getHost(), item.getResourceServer().getPort(),
                 item.getResourceServer().getLoginUsername(), password);
 

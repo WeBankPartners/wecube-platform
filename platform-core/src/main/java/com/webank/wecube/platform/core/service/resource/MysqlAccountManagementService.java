@@ -19,23 +19,26 @@ import com.webank.wecube.platform.core.utils.EncryptionUtils;
 
 @Service
 public class MysqlAccountManagementService implements ResourceItemService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(MysqlAccountManagementService.class);
 
     @Autowired
     private ResourceProperties resourceProperties;
 
     public DriverManagerDataSource newMysqlDatasource(String host, String port, String username, String password) {
-        return newMysqlDatasource(host,port,username,password,null);
+        return newMysqlDatasource(host, port, username, password, null);
     }
 
-    public DriverManagerDataSource newMysqlDatasource(String host, String port, String username, String password, String database) {
+    public DriverManagerDataSource newMysqlDatasource(String host, String port, String username, String password,
+            String database) {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        if(Strings.isNullOrEmpty(database)) {
-            dataSource.setUrl("jdbc:mysql://" + host + ":" + port + "?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true");
-        }else {
-            dataSource.setUrl("jdbc:mysql://" + host + ":" + port +"/"+ database +"?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true");
+        if (Strings.isNullOrEmpty(database)) {
+            dataSource.setUrl("jdbc:mysql://" + host + ":" + port
+                    + "?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true");
+        } else {
+            dataSource.setUrl("jdbc:mysql://" + host + ":" + port + "/" + database
+                    + "?characterEncoding=utf8&serverTimezone=UTC&nullCatalogMeansCurrent=true");
         }
         dataSource.setUsername(username);
         dataSource.setPassword(password);
@@ -48,21 +51,27 @@ public class MysqlAccountManagementService implements ResourceItemService {
         String username = additionalProperties.get("username");
         String password = additionalProperties.get("password");
         if (username == null || password == null) {
-            throw new WecubeCoreException("3240","Username or password is missing");
+            throw new WecubeCoreException("3240", "Username or password is missing");
         }
 
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             log.info("password before decrypt={}", password);
-            String rawPassword = EncryptionUtils.decryptWithAes(password,
-                    resourceProperties.getPasswordEncryptionSeed(), item.getName());
+            String rawPassword = null;
+            if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+                rawPassword = EncryptionUtils.decryptWithAes(
+                        password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
+                        resourceProperties.getPasswordEncryptionSeed(), item.getName());
+            } else {
+                rawPassword = password;
+            }
             statement.executeUpdate(String.format("CREATE USER `%s` IDENTIFIED BY '%s'", username, rawPassword));
             statement.executeUpdate(String.format("GRANT ALL ON %s.* TO %s@'%%' IDENTIFIED BY '%s'", item.getName(),
                     username, rawPassword));
         } catch (Exception e) {
             String errorMessage = String.format("Failed to create account [username = %s]", username);
             log.error(errorMessage);
-            throw new WecubeCoreException("3241",errorMessage, e);
+            throw new WecubeCoreException("3241", errorMessage, e);
         }
         return item;
     }
@@ -75,15 +84,21 @@ public class MysqlAccountManagementService implements ResourceItemService {
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to drop account [username = %s]", item.getName());
             log.error(errorMessage);
-            throw new WecubeCoreException("3242",errorMessage, e);
+            throw new WecubeCoreException("3242", errorMessage, e);
         }
     }
 
     private DriverManagerDataSource newDatasource(ResourceItem item) {
         String password;
         try {
-            password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(),
-                    resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+            String dbPassword = item.getResourceServer().getLoginPassword();
+            if (dbPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+                password = EncryptionUtils.decryptWithAes(
+                        dbPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
+                        resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+            } else {
+                password = dbPassword;
+            }
         } catch (Exception e) {
             throw new WecubeCoreException("3243",
                     String.format("Failed to decrypt the login password of server [%s].", item.getResourceServer()), e);
