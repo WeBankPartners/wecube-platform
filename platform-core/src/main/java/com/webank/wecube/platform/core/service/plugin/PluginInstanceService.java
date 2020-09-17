@@ -717,12 +717,14 @@ public class PluginInstanceService {
         if (logger.isDebugEnabled()) {
             logger.info("Request parameters= " + createMysqlDto);
         }
+        
+        dbPassword = ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX + EncryptionUtils.encryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
+                mysqlInfo.getSchemaName());
 
         List<ResourceItemDto> result = resourceManagementService.createItems(Lists.newArrayList(createMysqlDto));
         PluginMysqlInstance mysqlInstance = new PluginMysqlInstance(mysqlInfo.getSchemaName(), result.get(0).getId(),
                 mysqlInfo.getSchemaName(),
-                EncryptionUtils.encryptWithAes(dbPassword, resourceProperties.getPasswordEncryptionSeed(),
-                        mysqlInfo.getSchemaName()),
+                dbPassword,
                 PluginMysqlInstance.MYSQL_INSTANCE_STATUS_ACTIVE, mysqlInfo.getPluginPackage());
         mysqlInstance.setLatestUpgradeVersion(currentPluginVersion);
         mysqlInstance.setCreatedTime(new Date());
@@ -800,9 +802,13 @@ public class PluginInstanceService {
                 + pluginProperties.getImageFile();
         logger.info("Run docker load command: " + loadCmd);
         try {
+            String loginPassword = hostInfo.getLoginPassword();
+            if(loginPassword.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+                loginPassword = EncryptionUtils.decryptWithAes(loginPassword.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length()),
+                        resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName());
+            }
             commandService.runAtRemote(hostIp, hostInfo.getLoginUsername(),
-                    EncryptionUtils.decryptWithAes(hostInfo.getLoginPassword(),
-                            resourceProperties.getPasswordEncryptionSeed(), hostInfo.getName()),
+                    loginPassword,
                     Integer.valueOf(hostInfo.getPort()), loadCmd);
         } catch (Exception e) {
             logger.error("Run command [{}] meet error: {}", loadCmd, e.getMessage());
