@@ -294,7 +294,13 @@ public class ResourceDataQueryService {
         }
 
         String dbUsername = pluginMysqlInstance.getUsername();
-        String password = EncryptionUtils.decryptWithAes(pluginMysqlInstance.getPassword(),
+        String password = pluginMysqlInstance.getPassword();
+        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
+        }
+        
+        password = EncryptionUtils.decryptWithAes(
+                password,
                 resourceProperties.getPasswordEncryptionSeed(), dbUsername);
 
         ResourceItem resourceItem = pluginMysqlInstance.getResourceItem();
