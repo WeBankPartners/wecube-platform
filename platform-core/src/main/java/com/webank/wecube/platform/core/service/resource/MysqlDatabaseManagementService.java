@@ -42,21 +42,27 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
             statement.executeUpdate(String.format("CREATE SCHEMA %s", item.getName()));
             mysqlAccountManagementService.createItem(item);
         } catch (SQLException e) {
-            String errorMessage = String.format("Failed to create schema [%s], meet error [%s].", item.getName(), e.getMessage());
+            String errorMessage = String.format("Failed to create schema [%s], meet error [%s].", item.getName(),
+                    e.getMessage());
             log.error(errorMessage);
-            throw new WecubeCoreException("3244",errorMessage, item.getName(), e.getMessage());
+            throw new WecubeCoreException("3244", errorMessage, item.getName(), e.getMessage());
         }
         return item;
     }
 
     private DriverManagerDataSource newDatasource(ResourceItem item) {
-        String password = EncryptionUtils.decryptWithAes(item.getResourceServer().getLoginPassword(), resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
-        DriverManagerDataSource dataSource = newMysqlDatasource(
-                item.getResourceServer().getHost(),
-                item.getResourceServer().getPort(),
-                item.getResourceServer().getLoginUsername(),
-                password);
-        log.info(String.format("Created new data source [host:%s,port:%s,username:%s]",item.getResourceServer().getHost(),item.getResourceServer().getPort(),
+        String password = item.getResourceServer().getLoginPassword();
+        if (password.startsWith(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX)) {
+            password = password.substring(ResourceManagementService.PASSWORD_ENCRYPT_AES_PREFIX.length());
+        }
+        
+        password = EncryptionUtils.decryptWithAes(
+                password,
+                resourceProperties.getPasswordEncryptionSeed(), item.getResourceServer().getName());
+        DriverManagerDataSource dataSource = newMysqlDatasource(item.getResourceServer().getHost(),
+                item.getResourceServer().getPort(), item.getResourceServer().getLoginUsername(), password);
+        log.info(String.format("Created new data source [host:%s,port:%s,username:%s]",
+                item.getResourceServer().getHost(), item.getResourceServer().getPort(),
                 item.getResourceServer().getLoginUsername()));
         return dataSource;
     }
@@ -66,26 +72,30 @@ public class MysqlDatabaseManagementService implements ResourceItemService {
         DriverManagerDataSource dataSource = newDatasource(item);
         try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement();) {
             if (hasTables(connection, item.getName())) {
-                throw new WecubeCoreException("3245",String.format("Can not delete database [%s] : Database is not empty.", item.getName()), item.getName());
+                throw new WecubeCoreException("3245",
+                        String.format("Can not delete database [%s] : Database is not empty.", item.getName()),
+                        item.getName());
             }
             mysqlAccountManagementService.deleteItem(item);
             statement.executeUpdate(String.format("DROP SCHEMA %s", item.getName()));
         } catch (SQLException e) {
-            String errorMessage = String.format("Failed to delete schema [%s], meet error [%s].", item.getName(), e.getMessage());
+            String errorMessage = String.format("Failed to delete schema [%s], meet error [%s].", item.getName(),
+                    e.getMessage());
             log.error(errorMessage);
-            throw new WecubeCoreException("3246",errorMessage, item.getName(), e.getMessage());
+            throw new WecubeCoreException("3246", errorMessage, item.getName(), e.getMessage());
         }
     }
 
     private boolean hasTables(Connection connection, String dbName) {
         boolean hasTable = false;
-        try (Statement statement = connection.createStatement(); ResultSet resultSet = statement.executeQuery(String.format("SHOW TABLES FROM %s", dbName));) {
+        try (Statement statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery(String.format("SHOW TABLES FROM %s", dbName));) {
             resultSet.last();
             hasTable = resultSet.getRow() > 0;
         } catch (SQLException e) {
             String errorMessage = String.format("Failed to query tables, meet error [%s].", e.getMessage());
             log.error(errorMessage);
-            throw new WecubeCoreException("3247",errorMessage, e.getMessage());
+            throw new WecubeCoreException("3247", errorMessage, e.getMessage());
         }
         return hasTable;
     }
