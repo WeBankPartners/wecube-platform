@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import axios from 'axios'
 import exportFile from '@/const/export-file'
-import { setCookie, getCookie } from '../pages/util/cookie'
+import { setCookie, getCookie, clearCookie } from '../pages/util/cookie'
 
 const baseURL = ''
 const req = axios.create({
@@ -16,54 +16,14 @@ const throwError = res => {
     desc: (res.data && 'status:' + res.data.status + '<br/> message:' + res.data.message) || 'error'
   })
 }
-let refreshRequest = null
 
 req.interceptors.request.use(
   config => {
     return new Promise((resolve, reject) => {
-      const currentTime = new Date().getTime()
       const accessToken = getCookie('accessToken')
       if (accessToken && config.url !== '/auth/v1/api/login') {
-        const expiration = getCookie('accessTokenExpirationTime') * 1 - currentTime
-        if (expiration < 1 * 60 * 1000 && !refreshRequest) {
-          refreshRequest = axios.get('/auth/v1/api/token', {
-            headers: {
-              Authorization: 'Bearer ' + getCookie('refreshToken')
-            }
-          })
-          refreshRequest.then(
-            res => {
-              setCookie(res.data.data)
-              config.headers.Authorization = 'Bearer ' + res.data.data.find(t => t.tokenType === 'accessToken').token
-              refreshRequest = null
-              resolve(config)
-            },
-            // eslint-disable-next-line handle-callback-err
-            err => {
-              refreshRequest = null
-              window.location.href = window.location.origin + window.location.pathname + '#/login'
-            }
-          )
-        }
-        if (expiration < 1 * 60 * 1000 && refreshRequest) {
-          refreshRequest.then(
-            res => {
-              setCookie(res.data.data)
-              config.headers.Authorization = 'Bearer ' + res.data.data.find(t => t.tokenType === 'accessToken').token
-              refreshRequest = null
-              resolve(config)
-            },
-            // eslint-disable-next-line handle-callback-err
-            err => {
-              refreshRequest = null
-              window.location.href = window.location.origin + window.location.pathname + '#/login'
-            }
-          )
-        }
-        if (expiration > 1 * 60 * 1000) {
-          config.headers.Authorization = 'Bearer ' + accessToken
-          resolve(config)
-        }
+        config.headers.Authorization = 'Bearer ' + accessToken
+        resolve(config)
       } else {
         resolve(config)
       }
@@ -73,6 +33,7 @@ req.interceptors.request.use(
     return Promise.reject(error)
   }
 )
+
 req.interceptors.response.use(
   res => {
     if (res.status === 200) {
@@ -107,17 +68,84 @@ req.interceptors.response.use(
   },
   err => {
     const { response } = err
-    if (response.status === 401) {
-      window.location.href = window.location.origin + window.location.pathname + '#/login'
-      if (response.config.url === '/auth/v1/api/login') {
-        Vue.prototype.$Notice.warning({
-          title: 'Error',
-          desc: response.data.message || '401',
-          duration: 0
+    if (response.status === 401 && err.config.url !== '/auth/v1/api/login') {
+      let refreshToken = getCookie('refreshToken')
+      if (refreshToken.length > 0) {
+        let refreshRequest = axios.get('/auth/v1/api/token', {
+          headers: {
+            Authorization: 'Bearer ' + refreshToken
+          }
         })
+        return refreshRequest.then(
+          resRefresh => {
+            setCookie(resRefresh.data.data)
+            // replace token with new one and replay request
+            err.config.headers.Authorization = 'Bearer ' + getCookie('accessToken')
+            let retryRequest = axios(err.config)
+            return retryRequest.then(
+              res => {
+                if (res.status === 200) {
+                  // do request success again
+                  if (res.data.status === 'ERROR') {
+                    const errorMes = Array.isArray(res.data.data)
+                      ? res.data.data.map(_ => _.errorMessage).join('<br/>')
+                      : res.data.message
+                    Vue.prototype.$Notice.warning({
+                      title: 'Error',
+                      desc: errorMes,
+                      duration: 0
+                    })
+                  }
+                  if (
+                    res.headers['content-type'] === 'application/octet-stream' &&
+                    res.request.responseURL.includes('/platform/')
+                  ) {
+                    exportFile(res)
+                    Vue.prototype.$Notice.info({
+                      title: 'Success',
+                      desc: '',
+                      duration: 0
+                    })
+                    return
+                  }
+                  return res.data instanceof Array ? res.data : { ...res.data }
+                } else {
+                  return {
+                    data: throwError(res)
+                  }
+                }
+              },
+              err => {
+                const { response } = err
+                return new Promise((resolve, reject) => {
+                  resolve({
+                    data: throwError(response)
+                  })
+                })
+              }
+            )
+          },
+          // eslint-disable-next-line handle-callback-err
+          errRefresh => {
+            clearCookie('refreshToken')
+            window.location.href = window.location.origin + window.location.pathname + '#/login'
+            return {
+              data: throwError(errRefresh.response)
+            }
+          }
+        )
+      } else {
+        window.location.href = window.location.origin + window.location.pathname + '#/login'
+        if (response.config.url === '/auth/v1/api/login') {
+          Vue.prototype.$Notice.warning({
+            title: 'Error',
+            desc: response.data.message || '401',
+            duration: 0
+          })
+        }
+        // throwInfo(response)
+        return response
       }
-      // throwInfo(response)
-      return response
     }
 
     return new Promise((resolve, reject) => {
