@@ -128,7 +128,7 @@ deploy:
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
 
 deploy_demo: image
-	sh build/remove.sh $(version)
+	sh build/remove.sh ${date}-$(version)
 	docker tag  wecube-db:$(version) ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
 	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
 	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
