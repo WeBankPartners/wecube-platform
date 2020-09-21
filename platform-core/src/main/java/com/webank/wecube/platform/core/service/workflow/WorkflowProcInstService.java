@@ -712,7 +712,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     }
 
     private List<?> queryProcInstInfoByRoleNames(List<String> roleNames) {
-        String sql = "select t1.id,t1.created_time,t1.oper,t1.status,t1.proc_inst_key,t1.proc_def_name,t1.proc_def_id,t2.entity_data_id,t2.entity_type_id,t2.entity_data_name "
+        String sql = "select distinct t1.id,t1.created_time,t1.oper,t1.status,t1.proc_inst_key,t1.proc_def_name,t1.proc_def_id,t2.entity_data_id,t2.entity_type_id,t2.entity_data_name "
                 + " from core_ru_proc_inst_info t1  "
                 + " left join core_ru_proc_exec_binding t2 on t1.id = t2.proc_inst_id and t2.bind_type = 'process' "
                 + " join core_ru_proc_role_binding t3 on t1.proc_def_id = t3.proc_id "

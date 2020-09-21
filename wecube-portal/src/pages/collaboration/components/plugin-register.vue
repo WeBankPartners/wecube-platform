@@ -1,51 +1,53 @@
 <template>
   <div class="plugin-register-page">
     <Row>
-      <Col span="6" style="border-right: 1px solid #e8eaec">
-        <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
+      <Col span="6" style="border-right: 1px solid #e8eaec;">
         <div style="height: calc(100vh - 180px);overflow-y:auto;">
-          <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
-            <Submenu
-              v-for="(plugin, index) in plugins"
-              :name="plugin.pluginConfigName"
-              style="padding: 0;"
-              :key="index"
-            >
-              <template slot="title">
-                <Icon type="md-grid" />
-                <span style="font-size: 15px;">{{ plugin.pluginConfigName }}</span>
-                <div style="float:right;color: #2d8cf0;margin-right:30px">
-                  <Tooltip :content="$t('add')" :delay="1000">
-                    <Icon @click.stop.prevent="addPluginConfigDto(plugin)" style="" type="md-add" />
-                  </Tooltip>
-                </div>
-              </template>
-              <MenuItem
-                v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
-                :name="dto.id"
+          <div v-if="plugins.length < 1">{{ $t('no_plugin') }}</div>
+          <div style="">
+            <Menu theme="light" :active-name="currentPlugin" @on-select="selectPlugin" style="width: 100%;z-index:10">
+              <Submenu
+                v-for="(plugin, index) in plugins"
+                :name="plugin.pluginConfigName"
+                style="padding: 0;"
                 :key="index"
-                style="padding: 5px 30px;"
               >
-                <span
-                  style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;font-size: 15px; font-weight:400"
-                  >{{ dto.registerName }}</span
+                <template slot="title">
+                  <Icon type="md-grid" />
+                  <span style="font-size: 15px;">{{ plugin.pluginConfigName }}</span>
+                  <div style="float:right;color: #2d8cf0;margin-right:30px">
+                    <Tooltip :content="$t('add')" :delay="1000">
+                      <Icon @click.stop.prevent="addPluginConfigDto(plugin)" style="" type="md-add" />
+                    </Tooltip>
+                  </div>
+                </template>
+                <MenuItem
+                  v-for="(dto, index) in plugin.pluginConfigDtoList.filter(dto => dto.registerName)"
+                  :name="dto.id"
+                  :key="index"
+                  style="padding: 5px 30px;"
                 >
-                <div style="vertical-align: top;display: inline-block;float: right;">
-                  <Tooltip :content="$t('copy')" :delay="500">
-                    <Icon
-                      size="16"
-                      style="color: #19be6b;"
-                      @click.stop.prevent="copyPluginConfigDto(dto.id)"
-                      type="md-copy"
-                    />
-                  </Tooltip>
-                  <Tooltip :content="$t('config_permission')" :delay="500">
-                    <Icon size="16" style="color: #2db7f5;" @click="permissionsHandler(dto)" type="md-contacts" />
-                  </Tooltip>
-                </div>
-              </MenuItem>
-            </Submenu>
-          </Menu>
+                  <span
+                    style="display: inline-block;white-space: nowrap; overflow: hidden; text-overflow: ellipsis;font-size: 15px; font-weight:400"
+                    >{{ dto.registerName }}</span
+                  >
+                  <div style="vertical-align: top;display: inline-block;float: right;">
+                    <Tooltip :content="$t('copy')" :delay="500">
+                      <Icon
+                        size="16"
+                        style="color: #19be6b;"
+                        @click.stop.prevent="copyPluginConfigDto(dto.id)"
+                        type="md-copy"
+                      />
+                    </Tooltip>
+                    <Tooltip :content="$t('config_permission')" :delay="500">
+                      <Icon size="16" style="color: #2db7f5;" @click="permissionsHandler(dto)" type="md-contacts" />
+                    </Tooltip>
+                  </div>
+                </MenuItem>
+              </Submenu>
+            </Menu>
+          </div>
         </div>
         <div style="padding-right: 20px;margin-top: 10px;">
           <Button type="info" long ghost @click="batchRegist">{{ $t('batch_regist') }}</Button>
