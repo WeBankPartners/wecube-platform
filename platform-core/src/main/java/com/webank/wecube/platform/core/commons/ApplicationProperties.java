@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ApplicationProperties {
     private String gatewayUrl = "127.0.0.1:19110";
     private String dbInitStrategy = "update";
+    private String jwtSigningKey = "Platform+Auth+Server+Secret";
     
     @ConfigurationProperties(prefix = "wecube.core.config")
     public class AppConfigProperties {
@@ -330,4 +331,13 @@ public class ApplicationProperties {
         this.gatewayUrl = gatewayUrl;
     }
 
+    public String getJwtSigningKey() {
+		return jwtSigningKey;
+	}
+
+    public void setJwtSigningKey(String jwtSigningKey) {
+		this.jwtSigningKey = jwtSigningKey;
+	}
+
+    
 }
