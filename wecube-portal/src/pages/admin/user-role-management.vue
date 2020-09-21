@@ -61,6 +61,10 @@
         <Card>
           <p slot="title">{{ $t('menus') }}</p>
           <div class="tagContainers">
+            <Spin size="large" fix v-if="menuTreeLoading">
+              <Icon type="ios-loading" size="24" class="spin-icon-load"></Icon>
+              <div>{{ $t('loading') }}</div>
+            </Spin>
             <Tree :data="menus" show-checkbox @on-check-change="handleMenuTreeCheck"></Tree>
           </div>
         </Card>
@@ -148,7 +152,8 @@ export default {
       addRoleModalVisible: false,
       userManageModal: false,
       originMenus: [],
-      menus: []
+      menus: [],
+      menuTreeLoading: false
     }
   },
   methods: {
@@ -172,15 +177,17 @@ export default {
       })
     },
     async handleMenuTreeCheck (allChecked, currentChecked) {
+      this.menuTreeLoading = true
       const menuCodes = allChecked.filter(i => i.category).map(_ => _.code)
       const { status, message } = await updateRoleToMenusByRoleId(this.currentRoleId, menuCodes)
+      await this.handleRoleClick(true, this.currentRoleId)
       if (status === 'OK') {
         this.$Notice.success({
           title: 'success',
           desc: message
         })
       }
-      this.handleRoleClick(true, this.currentRoleId)
+      this.menuTreeLoading = false
     },
     async getAllMenus () {
       const { status, data } = await getAllMenusList()
