@@ -16,7 +16,9 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.webank.wecube.platform.auth.client.filter.Http401AuthenticationEntryPoint;
+import com.webank.wecube.platform.auth.client.filter.JwtClientConfig;
 import com.webank.wecube.platform.auth.client.filter.JwtSsoBasedAuthenticationFilter;
+import com.webank.wecube.platform.core.commons.ApplicationProperties;
 import com.webank.wecube.platform.core.interceptor.AuthenticationRequestContextInterceptor;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -32,6 +34,9 @@ public class LocalSpringWebConfig extends WebSecurityConfigurerAdapter implement
 
     @Autowired
     private AuthenticationRequestContextInterceptor authenticationRequestContextInterceptor;
+
+    @Autowired
+    private ApplicationProperties applicationProperties;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -69,7 +74,10 @@ public class LocalSpringWebConfig extends WebSecurityConfigurerAdapter implement
     }
 
     protected Filter jwtSsoBasedAuthenticationFilter() throws Exception {
-        JwtSsoBasedAuthenticationFilter f = new JwtSsoBasedAuthenticationFilter(authenticationManager());
+        JwtClientConfig jwtClientConfig = new JwtClientConfig();
+        jwtClientConfig.setSigningKey(applicationProperties.getJwtSigningKey());
+        JwtSsoBasedAuthenticationFilter f = new JwtSsoBasedAuthenticationFilter(authenticationManager(),
+                jwtClientConfig);
         return (Filter) f;
     }
 
