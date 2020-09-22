@@ -128,6 +128,7 @@ deploy:
 	docker-compose -f docker-compose.yml -H $(target_host) up -d
 
 deploy_demo: image
+	sh build/remove.sh $(version)
 	docker tag  wecube-db:$(version) ${tencent_cloud_docker_image_registry}/wecube-db:${date}-$(version)
 	docker tag  platform-core:$(version) $(tencent_cloud_docker_image_registry)/platform-core:$(date)-$(version)
 	docker tag  platform-gateway:$(version) $(tencent_cloud_docker_image_registry)/platform-gateway:$(date)-$(version)
@@ -140,4 +141,3 @@ deploy_demo: image
 	sed -i "s~{{WECUBE_DB_IMAGE_NAME}}~wecube-db:${date}-$(version)~g" docker-compose.yml
 	sed -i "s~{{WECUBE_APP_IMAGE_VER}}~wecube-db:${date}-$(version)~g" docker-compose.yml
 	docker-compose -f docker-compose.yml up -d
-	sh build/remove.sh ${date}-$(version)
