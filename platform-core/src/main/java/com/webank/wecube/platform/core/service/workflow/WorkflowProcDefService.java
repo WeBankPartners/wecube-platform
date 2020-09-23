@@ -121,10 +121,11 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return result;
         }
 
-        //TODO #1993
+        // TODO #1993
         nodeEntities.forEach(e -> {
             if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(e.getNodeType())
                     || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equalsIgnoreCase(e.getNodeType())
+                    || TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(e.getNodeType())
                     || StringUtils.isBlank(e.getNodeType())) {
                 TaskNodeDefBriefDto d = new TaskNodeDefBriefDto();
                 d.setNodeDefId(e.getId());
@@ -389,7 +390,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return;
         }
 
-        //TODO #1993
+        TaskNodeDefInfoDto startEventNodeDto = null;
+
+        // TODO #1993
         for (TaskNodeDefInfoDto nodeDto : procDefDto.getTaskNodeInfos()) {
             String nodeOid = nodeDto.getNodeDefId();
             TaskNodeDefInfoEntity draftNodeEntity = tryFindDraftNodeEntity(nodeOid);
@@ -399,6 +402,10 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 log.info("task node {} {} is outdated ", nodeOid, nodeDto.getNodeId());
                 tryClearOutDatedDraftNodeEntity(draftNodeEntity);
                 continue;
+            }
+
+            if ("startEvent".equals(procFlowNode.getNodeType())) {
+                startEventNodeDto = nodeDto;
             }
 
             if (draftNodeEntity == null) {
@@ -440,6 +447,52 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             procDefResult.addTaskNodeInfo(nodeDtoResult);
 
         }
+
+        if (startEventNodeDto == null) {
+            ProcFlowNode startProcFlowNode = tryFindoutStartEventNode(procDefOutline);
+            if (startProcFlowNode != null) {
+                TaskNodeDefInfoEntity draftNodeEntity = taskNodeDefInfoRepo.findOneWithProcessIdAndNodeIdAndStatus(
+                        draftEntity.getId(), startProcFlowNode.getId(), TaskNodeDefInfoEntity.DRAFT_STATUS);
+                
+                if (draftNodeEntity == null) {
+                    draftNodeEntity = new TaskNodeDefInfoEntity();
+                    draftNodeEntity.setId(LocalIdGenerator.generateId());
+                    draftNodeEntity.setStatus(TaskNodeDefInfoEntity.DRAFT_STATUS);
+                }
+                
+                draftNodeEntity.setNodeId(startProcFlowNode.getId());
+                draftNodeEntity.setNodeName(startProcFlowNode.getNodeName());
+                draftNodeEntity.setProcDefId(draftEntity.getId());
+                draftNodeEntity.setProcDefKey(draftEntity.getProcDefKey());
+                
+                draftNodeEntity.setUpdatedTime(currTime);
+                
+                taskNodeDefInfoRepo.saveAndFlush(draftNodeEntity);
+                
+                TaskNodeDefInfoDto nodeDtoResult = new TaskNodeDefInfoDto();
+                nodeDtoResult.setNodeDefId(draftNodeEntity.getId());
+                nodeDtoResult.setNodeId(draftNodeEntity.getNodeId());
+                nodeDtoResult.setNodeName(draftNodeEntity.getNodeName());
+                nodeDtoResult.setStatus(draftNodeEntity.getStatus());
+
+                procDefResult.addTaskNodeInfo(nodeDtoResult);
+            }
+        }
+    }
+
+    private ProcFlowNode tryFindoutStartEventNode(ProcDefOutline procDefOutline) {
+        List<ProcFlowNode> flowNodes = procDefOutline.getFlowNodes();
+        if (flowNodes == null || flowNodes.isEmpty()) {
+            return null;
+        }
+
+        for (ProcFlowNode node : flowNodes) {
+            if ("startEvent".equals(node.getNodeType())) {
+                return node;
+            }
+        }
+
+        return null;
     }
 
     private void tryClearAllParamInfos(ProcDefInfoEntity draftEntity, TaskNodeDefInfoEntity draftNodeEntity) {
