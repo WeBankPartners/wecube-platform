@@ -51,7 +51,7 @@ import com.webank.wecube.platform.core.service.dme.TreeNode;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 
 @Service
-public class WorkflowDataService {
+public class WorkflowDataService{
     private static final Logger log = LoggerFactory.getLogger(WorkflowDataService.class);
 
     @Autowired
@@ -301,6 +301,14 @@ public class WorkflowDataService {
 
         //TODO #1993
         TaskNodeDefInfoEntity e = entityOptional.get();
+        String nodeType = e.getNodeType();
+        
+        if(TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(nodeType)){
+            List<InterfaceParameterDto> startEventParams = prepareNodeParameters();
+            result.addAll(startEventParams);
+            return result;
+        }
+        
         String serviceId = e.getServiceId();
 
         if (StringUtils.isBlank(serviceId)) {
@@ -341,6 +349,33 @@ public class WorkflowDataService {
 
         return previewDto;
 
+    }
+    
+    private List<InterfaceParameterDto> prepareNodeParameters(){
+        List<InterfaceParameterDto> predefinedParams = new ArrayList<>();
+        InterfaceParameterDto procDefName = new InterfaceParameterDto();
+        procDefName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procDefName.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_NAME);
+        procDefName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(procDefName);
+        
+        InterfaceParameterDto procInstName = new InterfaceParameterDto();
+        procDefName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procDefName.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME);
+        procDefName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(procInstName);
+        
+        
+        InterfaceParameterDto rootEntityName = new InterfaceParameterDto();
+        procDefName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procDefName.setName(LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_NAME);
+        procDefName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(rootEntityName);
+        
+        return predefinedParams;
     }
 
     private void saveProcessDataPreview(ProcessDataPreviewDto previewDto) {
