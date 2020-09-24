@@ -417,6 +417,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftNodeEntity.setDescription(nodeDto.getDescription());
             draftNodeEntity.setNodeId(nodeDto.getNodeId());
             draftNodeEntity.setNodeName(nodeDto.getNodeName());
+            draftNodeEntity.setNodeType(procFlowNode.getNodeType());
             draftNodeEntity.setProcDefId(draftEntity.getId());
             draftNodeEntity.setProcDefKey(draftEntity.getProcDefKey());
             if (!StringUtils.isBlank(nodeDto.getRoutineExpression())) {
@@ -462,6 +463,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 
                 draftNodeEntity.setNodeId(startProcFlowNode.getId());
                 draftNodeEntity.setNodeName(startProcFlowNode.getNodeName());
+                draftNodeEntity.setNodeType(startProcFlowNode.getNodeType());
                 draftNodeEntity.setProcDefId(draftEntity.getId());
                 draftNodeEntity.setProcDefKey(draftEntity.getProcDefKey());
                 
