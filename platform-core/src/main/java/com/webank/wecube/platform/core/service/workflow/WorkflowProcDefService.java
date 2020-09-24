@@ -416,7 +416,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
             draftNodeEntity.setDescription(nodeDto.getDescription());
             draftNodeEntity.setNodeId(nodeDto.getNodeId());
-            draftNodeEntity.setNodeName(nodeDto.getNodeName());
+            draftNodeEntity.setNodeName(procFlowNode.getNodeName());
             draftNodeEntity.setNodeType(procFlowNode.getNodeType());
             draftNodeEntity.setProcDefId(draftEntity.getId());
             draftNodeEntity.setProcDefKey(draftEntity.getProcDefKey());
@@ -715,7 +715,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         if (pluginConfig == null) {
             log.warn("Plugin config does not exist for {} {}", nodeDto.getServiceId(), intf.getId());
             throw new WecubeCoreException("3217",
-                    String.format("Plugin config does not exist for interface: %s", nodeDto.getServiceId()));
+                    String.format("Plugin config does not exist for interface: %s", nodeDto.getServiceId()), nodeDto.getServiceId());
         }
 
         List<PluginAuthEntity> pluginAuthConfigEntities = this.pluginAuthRepository
@@ -727,7 +727,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         for (PluginAuthEntity pluginAuthConfigEntity : pluginAuthConfigEntities) {
             if (CollectionUtils.collectionContains(mgmtRoleIds, pluginAuthConfigEntity.getRoleId())) {
-                break;
+                return;
             }
         }
 
