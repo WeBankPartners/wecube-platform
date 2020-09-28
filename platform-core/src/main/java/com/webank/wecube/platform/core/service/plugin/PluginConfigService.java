@@ -587,7 +587,7 @@ public class PluginConfigService {
                         .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
                                 packageName, entityName, "", ENABLED);
                 if (filterRuleIsEmptyEnabledInterfacesOptional.isPresent()) {
-                    List<PluginConfigInterface> rawPluginIntfs = filterRuleIsNullEnabledInterfacesOptional.get();
+                    List<PluginConfigInterface> rawPluginIntfs = filterRuleIsEmptyEnabledInterfacesOptional.get();
                     List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
                     
                     List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
