@@ -808,6 +808,9 @@ export default {
           })
         }
         this.btnLoading = true
+        setTimeout(() => {
+          this.btnLoading = false
+        }, 5000)
         let { status, data } = await createFlowInstance(payload)
         this.btnLoading = false
         if (status === 'OK') {
@@ -894,6 +897,9 @@ export default {
               procInstId: found.procInstId
             }
             this.btnLoading = true
+            setTimeout(() => {
+              this.btnLoading = false
+            }, 5000)
             const { status } = await retryProcessInstance(payload)
             this.btnLoading = false
             if (status === 'OK') {
@@ -914,6 +920,9 @@ export default {
           procInstId: found.procInstId
         }
         this.btnLoading = true
+        setTimeout(() => {
+          this.btnLoading = false
+        }, 5000)
         const { status } = await retryProcessInstance(payload)
         this.btnLoading = false
         if (status === 'OK') {
