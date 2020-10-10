@@ -125,7 +125,7 @@
                     clearable
                     v-model="pluginForm.serviceId"
                     @on-open-change="getFilteredPluginInterfaceList(pluginForm.routineExpression)"
-                    @on-change="getPluginInterfaceList(false)"
+                    @on-change="changePluginInterfaceList"
                   >
                     <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
                       item.serviceDisplayName
@@ -251,7 +251,7 @@ import {
   getFlowNodes,
   getParamsInfosByFlowIdAndNodeId,
   getAllDataModels,
-  getPluginInterfaceList,
+  // getPluginInterfaceList,
   removeProcessDefinition,
   // getFilteredPluginInterfaceList,
   getPluginsByTargetEntityFilterRule,
@@ -318,6 +318,7 @@ export default {
       rootPkg: '',
       rootEntity: '',
       pluginForm: {},
+      routineExpressionCache: '',
       defaultPluginForm: {
         description: '',
         nodeDefId: '',
@@ -336,7 +337,7 @@ export default {
         timeoutExpression: '30'
       },
       serviceTaskBindInfos: [],
-      allPlugins: [],
+      // allPlugins: [],
       filteredPlugins: [],
       timeSelection: [
         {
@@ -561,7 +562,7 @@ export default {
     init () {
       this.getAllDataModels()
       this.getAllFlows(true)
-      this.getPluginInterfaceList()
+      // this.getPluginInterfaceList()
     },
     async getAllDataModels () {
       let { data, status } = await getAllDataModels()
@@ -570,9 +571,13 @@ export default {
       }
     },
     async getFilteredPluginInterfaceList (path) {
+      if (path === this.routineExpressionCache) {
+        return
+      }
       let pkg = ''
       let entity = ''
       let payload = {}
+      this.filteredPlugins = []
       if (path) {
         // eslint-disable-next-line no-useless-escape
         const pathList = path.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
@@ -604,31 +609,48 @@ export default {
       if (status === 'OK') {
         this.filteredPlugins = data
       }
+      this.routineExpressionCache = path
     },
-    async getPluginInterfaceList (isUseOriginParamsInfo = true) {
-      let { status, data } = await getPluginInterfaceList()
-      if (status === 'OK') {
-        this.allPlugins = data
-
-        let found = data.find(_ => _.serviceName === this.pluginForm.serviceId)
-        if (found) {
-          let needParams = found.inputParameters.filter(
-            _ => _.mappingType === 'context' || _.mappingType === 'constant'
-          )
-          if (isUseOriginParamsInfo) return
-          this.pluginForm.paramInfos = needParams.map(_ => {
-            return {
-              paramName: _.name,
-              bindNodeId: '',
-              bindParamType: 'INPUT',
-              bindParamName: '',
-              bindType: _.mappingType,
-              bindValue: ''
-            }
-          })
-        }
+    async changePluginInterfaceList (val) {
+      let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
+      if (found) {
+        let needParams = found.inputParameters.filter(_ => _.mappingType === 'context' || _.mappingType === 'constant')
+        this.pluginForm.paramInfos = needParams.map(_ => {
+          return {
+            paramName: _.name,
+            bindNodeId: '',
+            bindParamType: 'INPUT',
+            bindParamName: '',
+            bindType: _.mappingType,
+            bindValue: ''
+          }
+        })
       }
     },
+    // async getPluginInterfaceList (isUseOriginParamsInfo = true) {
+    //   let { status, data } = await getPluginInterfaceList()
+    //   if (status === 'OK') {
+    //     this.allPlugins = data
+
+    //     let found = data.find(_ => _.serviceName === this.pluginForm.serviceId)
+    //     if (found) {
+    //       let needParams = found.inputParameters.filter(
+    //         _ => _.mappingType === 'context' || _.mappingType === 'constant'
+    //       )
+    //       if (isUseOriginParamsInfo) return
+    //       this.pluginForm.paramInfos = needParams.map(_ => {
+    //         return {
+    //           paramName: _.name,
+    //           bindNodeId: '',
+    //           bindParamType: 'INPUT',
+    //           bindParamName: '',
+    //           bindType: _.mappingType,
+    //           bindValue: ''
+    //         }
+    //       })
+    //     }
+    //   }
+    // },
     async getAllFlows (s) {
       if (s) {
         const { data, status } = await getAllFlow()
@@ -791,7 +813,7 @@ export default {
         this.serviceTaskBindInfos.splice(index, 1)
       }
 
-      let found = this.allPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
+      let found = this.filteredPlugins.find(_ => _.serviceName === this.pluginForm.serviceId)
 
       let pluginFormCopy = JSON.parse(JSON.stringify(this.pluginForm))
       this.serviceTaskBindInfos.push({
@@ -823,7 +845,7 @@ export default {
         if (pathList[0] !== this.currentSelectedEntity) {
           this.pluginForm.routineExpression = this.currentSelectedEntity
         }
-        this.getPluginInterfaceList()
+        // this.getPluginInterfaceList()
 
         // get flow's params infos
         this.getFlowsNodes()
@@ -899,7 +921,10 @@ export default {
       canvas.onmouseup = e => {
         this.show = false
         this.bindCurrentNode(e)
-        if (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_')) {
+        if (
+          this.currentNode.id &&
+          (this.currentNode.id.startsWith('SubProcess_') || this.currentNode.id.startsWith('Task_'))
+        ) {
           this.openPluginModal(e)
         }
       }
