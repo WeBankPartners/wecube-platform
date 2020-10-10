@@ -155,6 +155,9 @@ export default {
       const { status, data } = await getApplicationVersion()
       if (status === 'OK') {
         this.version = data
+        window.localStorage.setItem('wecube_version', this.version)
+      } else {
+        this.version = window.localStorage.getItem('wecube_version') || ''
       }
     },
     changeDocs (url) {
@@ -251,12 +254,12 @@ export default {
             }
           }
         })
+        window.localStorage.setItem('wecube_cache_menus', JSON.stringify(this.menus))
         this.$emit('allMenus', this.menus)
         window.myMenus = this.menus
         getChildRouters(window.routers || [])
       }
     },
-
     async getAllPluginPackageResourceFiles () {
       const { status, data } = await getAllPluginPackageResourceFiles()
       if (status === 'OK' && data && data.length > 0) {
@@ -315,7 +318,8 @@ export default {
     this.username = window.sessionStorage.getItem('username')
   },
   watch: {
-    $lang: function (lang) {
+    $lang: async function (lang) {
+      await this.getMyMenus(true)
       window.location.reload()
     }
   },

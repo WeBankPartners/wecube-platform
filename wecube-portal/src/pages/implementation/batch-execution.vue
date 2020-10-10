@@ -105,6 +105,7 @@
                     <Icon type="ios-information-circle-outline" />
                     <div slot="content" style="white-space: normal;">
                       <p
+                        style="word-break: break-all"
                         :key="targetIndex"
                         v-for="(target, targetIndex) in activeExecuteHistory.requestBody.resourceDatas"
                       >
@@ -133,7 +134,7 @@
                   <Button
                     size="small"
                     @click="changePlugin"
-                    :disabled="!activeExecuteHistory.requestBody.packageName"
+                    :disabled="!activeExecuteHistory.requestBody.resourceDatas.length > 0"
                     type="primary"
                     ghost
                     >{{ $t('bc_change_plugin') }}</Button
@@ -234,8 +235,16 @@
       </Row>
     </section>
 
-    <Modal v-model="operaModal" :mask-closable="false" :title="$t('bc_operation')" :width="1000" class="opera-modal">
+    <Modal
+      v-model="operaModal"
+      :mask-closable="false"
+      :title="$t('bc_operation')"
+      :width="1000"
+      :closable="false"
+      class="opera-modal"
+    >
       <div style="height:400px;">
+        <!-- 设置查询参数-开始 -->
         <section v-if="displaySearchZone" class="search">
           <Form :label-width="130" label-colon>
             <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_query_path')">
@@ -248,11 +257,10 @@
             </FormItem>
             <FormItem :label="$t('bc_target_type')">
               <Input disabled :value="currentPackageName + ':' + currentEntityName"></Input>
-              <!-- <span v-if="currentPackageName"></span> -->
             </FormItem>
             <FormItem :rules="{ required: true }" :show-message="false" :label="$t('bc_primary_key')">
-              <Select filterable v-model="currentEntityAttr">
-                <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
+              <Select filterable v-model="primatKeyAttr">
+                <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
                   entityAttr.name
                 }}</Option>
               </Select>
@@ -265,7 +273,7 @@
                 {{ $t('bc_table_column') }}
               </span>
               <Select filterable multiple v-model="userTableColumns">
-                <Option v-for="entityAttr in currentEntityAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
+                <Option v-for="entityAttr in primatKeyAttrList" :value="entityAttr.name" :key="entityAttr.id">{{
                   entityAttr.name
                 }}</Option>
               </Select>
@@ -309,6 +317,9 @@
             </FormItem>
           </Form>
         </section>
+        <!-- 设置查询参数-结束 -->
+
+        <!-- 选择执行对象-开始 -->
         <section v-if="displayResultTableZone" class="search-result-table" style="margin-top:20px;">
           <div style="margin-bottom:8px">
             <Input v-model="filterTableParams" :placeholder="$t('enter_search_keywords')" style="width: 300px" />
@@ -332,16 +343,15 @@
                 ></Table>
               </div>
             </Card>
-            <!-- <a v-else @click="reExcute('displayResultTableZone')">
-              {{ $t('bc_find') }} {{ tableData.length }} {{ $t('bc_instance') }},{{ $t('bc_selected')
-              }}{{ seletedRowsNum }}{{ $t('bc_item') }},{{ $t('full_word_exec') }}{{ pluginId }}
-            </a> -->
           </div>
         </section>
+        <!-- 选择执行对象-结束 -->
+
+        <!-- 选择插件配置参数-开始 -->
         <section v-if="batchActionModalVisible">
           <Form label-position="right" :label-width="150">
             <FormItem :label="$t('plugin')" :rules="{ required: true }" :show-message="false">
-              <Select filterable clearable v-model="pluginId">
+              <Select filterable clearable v-model="pluginId" @on-clear="clearPlugin">
                 <Option v-for="(item, index) in filteredPlugins" :value="item.serviceName" :key="index">{{
                   item.serviceDisplayName
                 }}</Option>
@@ -357,6 +367,9 @@
             </div>
           </Form>
         </section>
+        <!-- 选择插件配置参数-结束 -->
+
+        <!-- 补充参数-开始 -->
         <section v-if="setPluginParamsModal">
           <Form label-position="right" :label-width="150" v-if="!!activeExecuteHistory.plugin">
             <template v-for="(item, index) in activeExecuteHistory.plugin.pluginParams">
@@ -367,13 +380,14 @@
             </template>
           </Form>
         </section>
+        <!-- 补充参数-结束 -->
       </div>
       <div slot="footer">
         <!-- 查询table数据 -->
         <Button
           type="primary"
           v-if="displaySearchZone"
-          :disabled="!(!!currentPackageName && !!currentEntityName && !!currentEntityAttr)"
+          :disabled="!(!!currentPackageName && !!currentEntityName && !!primatKeyAttr)"
           @click="excuteSearch"
           >{{ $t('bc_execute_query') }}</Button
         >
@@ -388,6 +402,10 @@
         <!-- 执行插件 -->
         <Button type="primary" v-if="setPluginParamsModal" @click="executeAgain" :loading="btnLoading">
           {{ $t('full_word_exec') }}
+        </Button>
+        <!-- 放弃功能 -->
+        <Button @click="closeModal">
+          {{ $t('cancle') }}
         </Button>
       </div>
     </Modal>
@@ -472,8 +490,8 @@ export default {
       dataModelExpression: ':',
       currentEntityName: '',
       currentPackageName: '',
-      currentEntityAttr: '',
-      currentEntityAttrList: [],
+      primatKeyAttr: '',
+      primatKeyAttrList: [],
       allEntityAttr: [],
       targetEntityAttr: [],
 
@@ -508,7 +526,8 @@ export default {
           pluginParams: []
         },
         requestBody: {
-          searchParameters: []
+          searchParameters: [],
+          resourceDatas: []
         },
         filterBusinessKeySet: []
       },
@@ -518,7 +537,8 @@ export default {
           pluginParams: []
         },
         requestBody: {
-          searchParameters: []
+          searchParameters: [],
+          resourceDatas: []
         },
         filterBusinessKeySet: []
       },
@@ -572,7 +592,7 @@ export default {
       if (status === 'OK') {
         this.currentEntityName = data.slice(-1)[0].entityName
         this.currentPackageName = data.slice(-1)[0].packageName
-        this.currentEntityAttrList = data.slice(-1)[0].attributes
+        this.primatKeyAttrList = data.slice(-1)[0].attributes
 
         this.allEntityAttr = []
         data.forEach((single, index) => {
@@ -609,7 +629,7 @@ export default {
       this.filterParams = null
       this.businessKey = null
       if (!val) {
-        this.activeExecuteHistory = this.defaultActiveExecuteHistory
+        this.activeExecuteHistory = JSON.parse(JSON.stringify(this.defaultActiveExecuteHistory))
         this.catchExecuteResult = {}
         this.catchFilterBusinessKeySet = []
         this.dataModelExpression = ':'
@@ -956,12 +976,16 @@ export default {
       }
       // this.$refs.select.setQuery(null)
       this.dataModelExpression = ':'
-      this.currentEntityAttr = null
-      this.currentEntityAttrList = []
+      this.primatKeyAttr = null
+      this.primatKeyAttrList = []
       this.currentPackageName = ''
       this.currentEntityName = ''
       this.allEntityAttr = []
       this.targetEntityAttr = []
+      this.filterTableParams = ''
+      this.searchParameters = []
+      this.userTableColumns = []
+      this.seletedRows = []
       this.isShowSearchConditions = true
     },
     changeEntityType () {
@@ -991,7 +1015,7 @@ export default {
       this.searchParameters = this.targetEntityAttr
     },
     saveSearchCondition () {
-      if (!this.currentEntityAttr) {
+      if (!this.primatKeyAttr) {
         this.$Message.warning(this.$t('bc_primary_key') + this.$t('bc_warn_empty'))
         return
       }
@@ -1134,7 +1158,15 @@ export default {
       this[this.DelConfig.key] = true
     },
     batchAction () {
+      this.activeExecuteHistory.requestBody.resourceDatas = this.seletedRows.map(_ => {
+        return {
+          id: _.id,
+          businessKeyValue: _[this.activeExecuteHistory.requestBody.primatKeyAttr]
+        }
+      })
+
       this.displayResultTableZone = false
+
       this.getFilteredPluginInterfaceList()
       this.batchActionModalVisible = true
       this.selectedPluginParams = []
@@ -1164,6 +1196,7 @@ export default {
           packageName,
           entityName,
           dataModelExpression,
+          primatKeyAttr,
           searchParameters,
           businessKeyAttribute,
           resourceDatas
@@ -1172,6 +1205,7 @@ export default {
           packageName,
           entityName,
           dataModelExpression,
+          primatKeyAttr,
           searchParameters,
           pluginConfigInterface: plugin,
           inputParameterDefinitions,
@@ -1179,19 +1213,20 @@ export default {
           resourceDatas
         }
       } else {
-        let currentEntity = this.currentEntityAttrList.find(_ => {
-          return _.name === this.currentEntityAttr
+        let currentEntity = this.primatKeyAttrList.find(_ => {
+          return _.name === this.primatKeyAttr
         })
         const resourceDatas = this.seletedRows.map(_ => {
           return {
             id: _.id,
-            businessKeyValue: _[this.currentEntityAttr]
+            businessKeyValue: _[this.primatKeyAttr]
           }
         })
         requestBody = {
           packageName: this.currentPackageName,
           entityName: this.currentEntityName,
           dataModelExpression: this.dataModelExpression,
+          primatKeyAttr: this.primatKeyAttr,
           searchParameters: this.searchParameters,
           pluginConfigInterface: plugin,
           inputParameterDefinitions,
@@ -1284,6 +1319,12 @@ export default {
       }
     },
     changeActiveExecuteHistory (keyIndex) {
+      if (this.executeHistory.length === 0) {
+        this.clearTableSelect()
+        this.clearPlugin()
+        this.clearComplementParams()
+        return
+      }
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.activeExecuteHistoryKey = keyIndex
@@ -1303,8 +1344,9 @@ export default {
       )
       if (status === 'OK') {
         this.filteredPlugins = data
-        this.selectedPluginParams = []
-        this.pluginId = null
+        // this.selectedPluginParams = []
+        // this.pluginId = null
+        this.clearPlugin()
 
         this.displaySearchZone = false
         this.displayResultTableZone = false
@@ -1315,39 +1357,64 @@ export default {
       }
     },
     changeTargetObject () {
-      this.displaySearchZone = false
-      this.displayResultTableZone = true
-      this.batchActionModalVisible = false
-      this.setPluginParamsModal = false
+      this.clearTableSelect()
 
-      this.operaModal = true
       this.userTableColumns = []
       const { packageName, entityName, dataModelExpression } = this.activeExecuteHistory.requestBody
       this.currentPackageName = packageName
       this.currentEntityName = entityName
       this.dataModelExpression = dataModelExpression
       this.excuteSearch()
+
+      this.displaySearchZone = false
+      this.displayResultTableZone = true
+      this.batchActionModalVisible = false
+      this.setPluginParamsModal = false
+      this.operaModal = true
     },
     changeSearchParams () {
-      const { dataModelExpression, searchParameters } = this.activeExecuteHistory.requestBody
-      this.searchParameters = searchParameters
-      this.dataModelExpression = dataModelExpression
+      // const { dataModelExpression, searchParameters } = this.activeExecuteHistory.requestBody
+      // this.searchParameters = searchParameters
+      // this.dataModelExpression = dataModelExpression
+
+      this.activeExecuteHistory = JSON.parse(JSON.stringify(this.defaultActiveExecuteHistory))
+
+      this.setSearchConditions()
 
       this.displaySearchZone = true
       this.displayResultTableZone = false
       this.batchActionModalVisible = false
       this.setPluginParamsModal = false
-
       this.operaModal = true
-      this.filterTableParams = ''
-      this.setSearchConditions()
     },
     changeParams () {
       this.displaySearchZone = false
       this.displayResultTableZone = false
       this.batchActionModalVisible = false
+      this.clearComplementParams()
       this.setPluginParamsModal = true
       this.operaModal = true
+    },
+    clearTableSelect () {
+      this.seletedRows = []
+      this.activeExecuteHistory.requestBody.resourceDatas = []
+      this.clearPlugin()
+    },
+    clearPlugin () {
+      this.pluginId = null
+      // this.clearComplementParams()
+      this.selectedPluginParams = []
+      this.activeExecuteHistory.plugin.pluginName = ''
+      this.activeExecuteHistory.plugin.pluginParams = []
+    },
+    clearComplementParams () {
+      this.activeExecuteHistory.plugin.pluginParams.forEach(item => {
+        item.bindValue = ''
+      })
+    },
+    closeModal () {
+      this.operaModal = false
+      this.changeActiveExecuteHistory(this.activeExecuteHistoryKey)
     }
   },
   components: {
@@ -1442,6 +1509,7 @@ pre {
   padding: 4px 16px;
   cursor: pointer;
   color: #19be6b;
+  word-break: break-all;
 }
 .active-key {
   background: #e5e2e2;

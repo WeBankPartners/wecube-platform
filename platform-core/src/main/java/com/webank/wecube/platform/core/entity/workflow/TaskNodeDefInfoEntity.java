@@ -15,6 +15,7 @@ public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
 
     public static final String NODE_TYPE_SERVICE_TASK = "serviceTask";
     public static final String NODE_TYPE_SUBPROCESS = "subProcess";
+    public static final String NODE_TYPE_START_EVENT = "startEvent";
 
     @Id
     @Column(name = "ID")

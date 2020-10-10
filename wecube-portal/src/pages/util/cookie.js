@@ -11,4 +11,8 @@ function getCookie (name) {
   return document.cookie.replace(reg, '$1')
 }
 
-export { setCookie, getCookie }
+function clearCookie (name) {
+  document.cookie = 'name=;path=/'
+}
+
+export { setCookie, getCookie, clearCookie }

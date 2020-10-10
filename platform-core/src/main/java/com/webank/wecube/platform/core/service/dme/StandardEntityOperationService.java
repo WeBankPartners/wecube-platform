@@ -67,6 +67,16 @@ public class StandardEntityOperationService {
         ctx.setEntityOperationType(EntityOperationType.QUERY);
         return standardEntityQueryExcutor.executeQueryLeafAttributes(ctx);
     }
+    
+    public List<Object> queryAttributeValues(EntityOperationRootCondition condition, RestTemplate restTemplate) {
+        if (log.isDebugEnabled()) {
+            log.debug("query entity with condition {}", condition);
+        }
+
+        EntityOperationContext ctx = buildEntityOperationContext(condition, restTemplate);
+        ctx.setEntityOperationType(EntityOperationType.QUERY);
+        return standardEntityQueryExcutor.executeQueryLeafAttributes(ctx);
+    }
 
     public void update(EntityOperationRootCondition condition, Object attrValueToUpdate) {
         if (log.isInfoEnabled()) {
