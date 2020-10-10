@@ -130,7 +130,7 @@ req.interceptors.response.use(
             clearCookie('refreshToken')
             window.location.href = window.location.origin + window.location.pathname + '#/login'
             return {
-              data: throwError(errRefresh.response)
+              data: {} // throwError(errRefresh.response)
             }
           }
         )
