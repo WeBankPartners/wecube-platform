@@ -22,9 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -70,6 +71,10 @@ public class BatchExecutionService {
     private PluginConfigInterfaceRepository pluginConfigInterfaceRepository;
     @Autowired
     protected StandardEntityOperationService standardEntityOperationService;
+    
+    @Autowired
+    @Qualifier("userJwtSsoTokenRestTemplate")
+    private RestTemplate userJwtSsoTokenRestTemplate;
 
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
@@ -339,7 +344,7 @@ public class BatchExecutionService {
         EntityOperationRootCondition criteria = new EntityOperationRootCondition(mappingEntityExpression,
                 executionJob.getRootEntityId());
 
-        List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria);
+        List<Object> attrValsPerExpr = standardEntityOperationService.queryAttributeValues(criteria, userJwtSsoTokenRestTemplate);
 
         if ((attrValsPerExpr == null || attrValsPerExpr.size() == 0)
                 && FIELD_REQUIRED.equals(parameter.getRequired())) {
