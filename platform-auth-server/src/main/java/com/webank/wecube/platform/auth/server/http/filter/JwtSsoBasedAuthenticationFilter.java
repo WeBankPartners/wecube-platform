@@ -30,7 +30,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import com.webank.wecube.platform.auth.server.config.AuthServerProperties;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 
 /**
  * 
@@ -88,7 +90,14 @@ public class JwtSsoBasedAuthenticationFilter extends BasicAuthenticationFilter {
             throw new AuthenticationCredentialsNotFoundException("Access token is blank");
         }
 
-        Jws<Claims> jwt = jwtBuilder.parseJwt(sAccessToken);
+        Jws<Claims> jwt = null;
+        try {
+            jwt = jwtBuilder.parseJwt(sAccessToken);
+        } catch (ExpiredJwtException e) {
+            throw new BadCredentialsException("Access token has expired.");
+        } catch (JwtException e) {
+            throw new BadCredentialsException("Access token is not available.");
+        }
 
         Claims claims = jwt.getBody();
 
