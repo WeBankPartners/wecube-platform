@@ -8,6 +8,7 @@ import static com.webank.wecube.platform.core.domain.plugin.PluginPackage.Status
 import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.entity;
 import static com.webank.wecube.platform.core.dto.PluginConfigInterfaceParameterDto.MappingType.system_variable;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -416,7 +417,8 @@ public class PluginConfigService {
                         "PluginPackageEntity not found for packageName:dataModelVersion:entityName [%s:%s:%s] for plugin config: %s",
                         targetPackage, dataModelVersion, targetEntity, pluginConfigName);
                 log.error(errorMessage);
-                throw new WecubeCoreException("3050", errorMessage, targetPackage, dataModelVersion, targetEntity, pluginConfigName);
+                throw new WecubeCoreException("3050", errorMessage, targetPackage, dataModelVersion, targetEntity,
+                        pluginConfigName);
             }
         }
     }
@@ -458,13 +460,17 @@ public class PluginConfigService {
                         if ("Y".equalsIgnoreCase(inputParameter.getRequired())) {
                             if (system_variable.name().equals(inputParameter.getMappingType())
                                     && inputParameter.getMappingSystemVariableName() == null) {
-                                throw new WecubeCoreException("3054", String.format(
-                                        "System variable is required for parameter [%s]", inputParameter.getId()), inputParameter.getId());
+                                throw new WecubeCoreException("3054",
+                                        String.format("System variable is required for parameter [%s]",
+                                                inputParameter.getId()),
+                                        inputParameter.getId());
                             }
                             if (entity.name().equals(inputParameter.getMappingType())
                                     && StringUtils.isBlank(inputParameter.getMappingEntityExpression())) {
-                                throw new WecubeCoreException("3055", String.format(
-                                        "Entity expression is required for parameter [%s]", inputParameter.getId()), inputParameter.getId());
+                                throw new WecubeCoreException("3055",
+                                        String.format("Entity expression is required for parameter [%s]",
+                                                inputParameter.getId()),
+                                        inputParameter.getId());
                             }
                         }
                     });
@@ -475,8 +481,10 @@ public class PluginConfigService {
                         if ("Y".equalsIgnoreCase(outputParameter.getRequired())) {
                             if (entity.name().equals(outputParameter.getMappingType())
                                     && StringUtils.isBlank(outputParameter.getMappingEntityExpression())) {
-                                throw new WecubeCoreException("3056", String.format(
-                                        "Entity expression is required for parameter [%s]", outputParameter.getId()), outputParameter.getId());
+                                throw new WecubeCoreException("3056",
+                                        String.format("Entity expression is required for parameter [%s]",
+                                                outputParameter.getId()),
+                                        outputParameter.getId());
                             }
                         }
                     });
@@ -518,7 +526,7 @@ public class PluginConfigService {
                     .add(PluginConfigInterfaceDto.fromDomain(pluginConfigInterface)));
         }
 
-        return filterWithPermissionValidation(pluginConfigInterfaceDtos, PluginAuthEntity.PERM_TYPE_USE);
+        return filterDtoWithPermissionValidation(pluginConfigInterfaceDtos, PluginAuthEntity.PERM_TYPE_USE);
     }
 
     public List<PluginConfigInterfaceDto> queryAllEnabledPluginConfigInterfaceForEntityByFilterRule(
@@ -551,7 +559,12 @@ public class PluginConfigService {
                     .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_Status(
                             packageName, entityName, ENABLED);
             if (allEnabledInterfacesOptional.isPresent()) {
-                pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream()
+                List<PluginConfigInterface> rawPluginIntfs = allEnabledInterfacesOptional.get();
+                List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                
+                List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+                
+                pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                         .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                         .collect(Collectors.toList()));
             }
@@ -562,7 +575,11 @@ public class PluginConfigService {
                         .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_StatusAndPluginConfig_TargetEntityFilterRuleIsNull(
                                 packageName, entityName, ENABLED);
                 if (filterRuleIsNullEnabledInterfacesOptional.isPresent()) {
-                    pluginConfigInterfaceDtos.addAll(filterRuleIsNullEnabledInterfacesOptional.get().stream()
+                    List<PluginConfigInterface> rawPluginIntfs = filterRuleIsNullEnabledInterfacesOptional.get();
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    
+                    List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+                    pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                             .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                             .collect(Collectors.toList()));
                 }
@@ -570,7 +587,11 @@ public class PluginConfigService {
                         .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
                                 packageName, entityName, "", ENABLED);
                 if (filterRuleIsEmptyEnabledInterfacesOptional.isPresent()) {
-                    pluginConfigInterfaceDtos.addAll(filterRuleIsEmptyEnabledInterfacesOptional.get().stream()
+                    List<PluginConfigInterface> rawPluginIntfs = filterRuleIsEmptyEnabledInterfacesOptional.get();
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    
+                    List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+                    pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                             .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                             .collect(Collectors.toList()));
                 }
@@ -579,25 +600,97 @@ public class PluginConfigService {
                         .findPluginConfigInterfaceByPluginConfig_TargetPackageAndPluginConfig_TargetEntityAndPluginConfig_TargetEntityFilterRuleAndPluginConfig_Status(
                                 packageName, entityName, filterRuleDto.getTargetEntityFilterRule(), ENABLED);
                 if (allEnabledInterfacesOptional.isPresent()) {
-                    pluginConfigInterfaceDtos.addAll(allEnabledInterfacesOptional.get().stream()
+                    List<PluginConfigInterface> rawPluginIntfs = allEnabledInterfacesOptional.get();
+                    List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginIntfs, PluginAuthEntity.PERM_TYPE_USE);
+                    
+                    List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+                    pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                             .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                             .collect(Collectors.toList()));
                 }
             }
         }
 
-        Optional<List<PluginConfigInterface>> allEnabledWithEntityNameNullOptional = pluginConfigInterfaceRepository
+        Optional<List<PluginConfigInterface>> allEnabledWithEntityNameNullOpt = pluginConfigInterfaceRepository
                 .findAllEnabledWithEntityNameNull();
-        if (allEnabledWithEntityNameNullOptional.isPresent()) {
-            pluginConfigInterfaceDtos.addAll(allEnabledWithEntityNameNullOptional.get().stream()
+        if (allEnabledWithEntityNameNullOpt.isPresent()) {
+            List<PluginConfigInterface> rawPluginConfigIntfs = allEnabledWithEntityNameNullOpt.get();
+            
+            List<PluginConfigInterface> filteredPluginConfigIntfs = filterWithPermissionValidation(rawPluginConfigIntfs, PluginAuthEntity.PERM_TYPE_USE);
+            
+            List<PluginConfigInterface> filteredLatestConfigIntfs = filterLatestPluginConfigInterfaces(filteredPluginConfigIntfs);
+            
+            pluginConfigInterfaceDtos.addAll(filteredLatestConfigIntfs.stream()
                     .map(pluginConfigInterface -> PluginConfigInterfaceDto.fromDomain(pluginConfigInterface))
                     .collect(Collectors.toList()));
         }
 
-        return filterWithPermissionValidation(pluginConfigInterfaceDtos, PluginAuthEntity.PERM_TYPE_USE);
+        return pluginConfigInterfaceDtos;
+    }
+    
+    private List<PluginConfigInterface> filterLatestPluginConfigInterfaces(List<PluginConfigInterface> pluginConfigIntfs){
+        if (pluginConfigIntfs == null || pluginConfigIntfs.isEmpty()) {
+            return pluginConfigIntfs;
+        }
+        
+        Map<String,PluginConfigInterface> serviceNamedPluginConfigIntfs = new HashMap<String,PluginConfigInterface>();
+        
+        for(PluginConfigInterface pluginConfigIntf : pluginConfigIntfs){
+            String serviceName = pluginConfigIntf.generateServiceName();
+            PluginConfigInterface existIntf = serviceNamedPluginConfigIntfs.get(serviceName);
+            if(existIntf == null){
+                serviceNamedPluginConfigIntfs.put(serviceName, pluginConfigIntf);
+            }else{
+                if(isLaterThen(pluginConfigIntf, existIntf)){
+                    log.info("plugin interface {} is later than plugin interface {}", pluginConfigIntf.getId(), existIntf.getId());
+                    serviceNamedPluginConfigIntfs.put(serviceName, pluginConfigIntf);
+                }
+            }
+        }
+        
+        List<PluginConfigInterface> filteredPluginConfigIntfs = new ArrayList<PluginConfigInterface>();
+        serviceNamedPluginConfigIntfs.values().forEach(intf -> {
+            filteredPluginConfigIntfs.add(intf);
+        });
+        
+        return filteredPluginConfigIntfs;
+    }
+    
+    private boolean isLaterThen(PluginConfigInterface intfa, PluginConfigInterface intfb){
+        Timestamp timea = intfa.getPluginConfig().getPluginPackage().getUploadTimestamp();
+        Timestamp timeb = intfb.getPluginConfig().getPluginPackage().getUploadTimestamp();
+        
+        if(timea == null || timeb == null){
+            return false;
+        }
+        
+        return timea.getTime() > timeb.getTime();
     }
 
-    private List<PluginConfigInterfaceDto> filterWithPermissionValidation(
+    private List<PluginConfigInterface> filterWithPermissionValidation(List<PluginConfigInterface> pluginConfigIntfs,
+            String permission) {
+        if (pluginConfigIntfs == null || pluginConfigIntfs.isEmpty()) {
+            return pluginConfigIntfs;
+        }
+
+        Set<String> currUserRoles = AuthenticationContextHolder.getCurrentUserRoles();
+        if (currUserRoles == null || currUserRoles.isEmpty()) {
+            log.warn("roles of current user is empty.");
+            throw new WecubeCoreException("3059", "Lack of permission to perform such operation.");
+        }
+
+        List<PluginConfigInterface> filteredPluginConfigIntfs = new ArrayList<>();
+        for (PluginConfigInterface pluginConfigIntf : pluginConfigIntfs) {
+            if (verifyPluginConfigInterfacePrivilege(pluginConfigIntf.getPluginConfig().getId(), permission,
+                    currUserRoles)) {
+                filteredPluginConfigIntfs.add(pluginConfigIntf);
+            }
+        }
+        
+        return filteredPluginConfigIntfs;
+    }
+
+    private List<PluginConfigInterfaceDto> filterDtoWithPermissionValidation(
             List<PluginConfigInterfaceDto> srcPluginConfigInterfaceDtos, String permission) {
         if (srcPluginConfigInterfaceDtos == null || srcPluginConfigInterfaceDtos.isEmpty()) {
             log.warn("interfaces is empty and return it directly.");
@@ -611,7 +704,7 @@ public class PluginConfigService {
 
         List<PluginConfigInterfaceDto> privilegedPluginConfigInterfaceDtos = new ArrayList<>();
         for (PluginConfigInterfaceDto pluginConfigInterfaceDto : srcPluginConfigInterfaceDtos) {
-            if (verifyPluginConfigInterfacePrivilege(pluginConfigInterfaceDto, permission, currUserRoles)) {
+            if (verifyPluginConfigInterfacePrivilege(pluginConfigInterfaceDto.getPluginConfigId(), permission, currUserRoles)) {
                 privilegedPluginConfigInterfaceDtos.add(pluginConfigInterfaceDto);
             }
         }
@@ -619,13 +712,10 @@ public class PluginConfigService {
         return privilegedPluginConfigInterfaceDtos;
     }
 
-    private boolean verifyPluginConfigInterfacePrivilege(PluginConfigInterfaceDto pluginConfigInterfaceDto,
-            String permission, Set<String> currUserRoles) {
-        if (StringUtils.isBlank(pluginConfigInterfaceDto.getPluginConfigId())) {
-            throw new WecubeCoreException("3060", "Plugin config ID cannot be blank.");
-        }
-        List<PluginAuthEntity> entities = pluginAuthRepository
-                .findAllByPluginConfigIdAndPermission(pluginConfigInterfaceDto.getPluginConfigId(), permission);
+    private boolean verifyPluginConfigInterfacePrivilege(String pluginConfigId, String permission,
+            Set<String> currUserRoles) {
+        List<PluginAuthEntity> entities = pluginAuthRepository.findAllByPluginConfigIdAndPermission(pluginConfigId,
+                permission);
         if (entities.isEmpty()) {
             return false;
         }
