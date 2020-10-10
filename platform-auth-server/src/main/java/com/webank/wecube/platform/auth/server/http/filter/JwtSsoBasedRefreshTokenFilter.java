@@ -38,7 +38,9 @@ import com.webank.wecube.platform.auth.server.model.SysSubSystemInfo;
 import com.webank.wecube.platform.auth.server.service.SubSystemInfoDataService;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 
 /**
  * 
@@ -94,7 +96,14 @@ public class JwtSsoBasedRefreshTokenFilter extends AbstractAuthenticationProcess
             throw new BadCredentialsException("refresh token is blank.");
         }
 
-        Jws<Claims> jwt = jwtBuilder.parseJwt(sRefreshToken);
+        Jws<Claims> jwt = null;
+        try {
+            jwt = jwtBuilder.parseJwt(sRefreshToken);
+        } catch (ExpiredJwtException e) {
+            throw new BadCredentialsException("Access token has expired.");
+        } catch (JwtException e) {
+            throw new BadCredentialsException("Access token is not available.");
+        }
 
         if (jwt == null) {
             log.error("failed to parse refresh token:{}", sRefreshToken);
