@@ -329,7 +329,7 @@ export default {
         paramInfos: [],
         procDefId: '',
         procDefKey: '',
-        routineExpression: null,
+        routineExpression: '',
         routineRaw: '',
         serviceId: '',
         serviceName: '',
@@ -382,13 +382,6 @@ export default {
     }
   },
   watch: {
-    // currentSelectedEntity: function (val, oldVal) {
-    //   let xx = val.split('{')[0]
-    //   if (this.pluginForm.routineExpression) {
-    //     this.pluginForm.routineExpression = this.pluginForm.routineExpression.replace(val, xx)
-    //   }
-    //   console.log(this.pluginForm.routineExpression)
-    // },
     show: function (val) {
       if (val) {
         this.splitPanal = 0.65
@@ -693,9 +686,7 @@ export default {
       }
     },
     onEntitySelect (v) {
-      console.log('onEntitySelect')
       this.currentSelectedEntity = v || ''
-      debugger
       if (this.currentSelectedEntity.split('{')[0] !== this.pluginForm.routineExpression.split('{')[0]) {
         if (this.serviceTaskBindInfos.length > 0) this.serviceTaskBindInfos = []
         this.pluginForm = {
@@ -850,12 +841,13 @@ export default {
             this.currentFlow.taskNodeInfos &&
             this.currentFlow.taskNodeInfos.find(_ => _.nodeId === this.currentNode.id)) ||
           this.prepareDefaultPluginForm()
-        let xx = this.currentSelectedEntity.split('{')[0]
-        this.pluginForm.routineExpression = this.pluginForm.routineExpression || xx
+        // 实体类型条件不带入节点中
+        let rootEntity = this.currentSelectedEntity.split('{')[0]
+        this.pluginForm.routineExpression = this.pluginForm.routineExpression || rootEntity
         // eslint-disable-next-line no-useless-escape
         const pathList = this.pluginForm.routineExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
-        if (pathList[0].split('{')[0] !== xx) {
-          this.pluginForm.routineExpression = xx
+        if (pathList[0].split('{')[0] !== rootEntity) {
+          this.pluginForm.routineExpression = rootEntity
         }
         // this.getPluginInterfaceList()
 
