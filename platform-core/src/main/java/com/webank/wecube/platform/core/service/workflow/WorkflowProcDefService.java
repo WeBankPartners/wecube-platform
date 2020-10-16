@@ -49,15 +49,6 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcDefService.class);
 
     @Autowired
-    private ProcDefInfoRepository processDefInfoRepo;
-
-    @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepo;
-
-    @Autowired
-    private TaskNodeParamRepository taskNodeParamRepo;
-
-    @Autowired
     private WorkflowEngineService workflowEngineService;
 
     @Autowired
@@ -121,7 +112,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return result;
         }
 
-        // TODO #1993
+        //  #1993
         nodeEntities.forEach(e -> {
             if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(e.getNodeType())
                     || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equalsIgnoreCase(e.getNodeType())
@@ -222,49 +213,14 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     }
 
     public ProcDefInfoDto getProcessDefinition(String id) {
-        Optional<ProcDefInfoEntity> procDefEntityOptional = processDefInfoRepo.findById(id);
-        if (!procDefEntityOptional.isPresent()) {
-            log.debug("cannot find process def with id {}", id);
-            return null;
+        if(StringUtils.isBlank(id)) {
+            throw new WecubeCoreException("3207", "Invalid process definition id");
         }
-
-        ProcDefInfoEntity procDefEntity = procDefEntityOptional.get();
-
-        ProcDefInfoDto result = procDefInfoDtoFromEntity(procDefEntity);
-        result.setProcDefData(procDefEntity.getProcDefData());
-
-        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.findAllByProcDefId(id);
-        for (TaskNodeDefInfoEntity e : taskNodeDefEntities) {
-            TaskNodeDefInfoDto tdto = taskNodeDefInfoDtoFromEntity(e);
-
-            List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo.findAllByProcDefIdAndTaskNodeDefId(id,
-                    e.getId());
-
-            for (TaskNodeParamEntity tnpe : taskNodeParamEntities) {
-                TaskNodeDefParamDto pdto = taskNodeDefParamDtoFromEntity(tnpe);
-
-                tdto.addParamInfos(pdto);
-            }
-
-            result.addTaskNodeInfo(tdto);
-        }
+        ProcDefInfoDto result = doGetProcessDefinition(id);
 
         return result;
     }
-
-    private ProcDefInfoDto procDefInfoDtoFromEntity(ProcDefInfoEntity procDefEntity) {
-        ProcDefInfoDto result = new ProcDefInfoDto();
-        result.setProcDefId(procDefEntity.getId());
-        result.setProcDefKey(procDefEntity.getProcDefKey());
-        result.setProcDefName(procDefEntity.getProcDefName());
-        result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVersion()));
-        result.setRootEntity(procDefEntity.getRootEntity());
-        result.setStatus(procDefEntity.getStatus());
-        // result.setProcDefData(procDefEntity.getProcDefData());
-        result.setCreatedTime(formatDate(procDefEntity.getCreatedTime()));
-
-        return result;
-    }
+    
 
     public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permissionStr) {
         List<String> currentUserRoleNameList = new ArrayList<>(
@@ -392,7 +348,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         TaskNodeDefInfoDto startEventNodeDto = null;
 
-        // TODO #1993
+        // #1993
         for (TaskNodeDefInfoDto nodeDto : procDefDto.getTaskNodeInfos()) {
             String nodeOid = nodeDto.getNodeDefId();
             TaskNodeDefInfoEntity draftNodeEntity = tryFindDraftNodeEntity(nodeOid);
