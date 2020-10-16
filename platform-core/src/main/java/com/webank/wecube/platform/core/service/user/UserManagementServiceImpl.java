@@ -16,6 +16,7 @@ import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
+import com.webank.wecube.platform.core.dto.user.UserPasswordResetDto;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.support.RestClientException;
 import com.webank.wecube.platform.core.support.authserver.AsRoleDto;
@@ -37,6 +38,18 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Autowired
     private SystemVariableService systemVariableService;
+    
+    public String resetUserPassword(UserPasswordResetDto userPassResetDto) {
+        if(userPassResetDto == null || StringUtils.isBlank(userPassResetDto.getUsername())) {
+            throw new WecubeCoreException("3027", "Username cannot be blank.");
+        }
+        AsUserPassDto asUserPassDto = new AsUserPassDto();
+        asUserPassDto.setUsername(userPassResetDto.getUsername());
+
+        String password = authServerRestClient.resetUserPassword(asUserPassDto);
+        
+        return password;
+    }
 
     public void changeUserPassword(UserPasswordDto userPassDto) {
         AsUserPassDto asUserPassDto = new AsUserPassDto();
