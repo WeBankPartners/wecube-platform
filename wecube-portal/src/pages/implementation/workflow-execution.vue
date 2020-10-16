@@ -5,7 +5,13 @@
         <Col span="20">
           <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select v-model="selectedFlowInstance" style="width:60%" filterable>
+              <Select
+                v-model="selectedFlowInstance"
+                style="width:60%"
+                filterable
+                clearable
+                @on-clear="clearHistoryOrch"
+              >
                 <Option
                   v-for="item in allFlowInstances"
                   :value="item.id"
@@ -53,6 +59,8 @@
                     @on-change="orchestrationSelectHandler"
                     @on-open-change="getAllFlow"
                     filterable
+                    clearable
+                    @on-clear="clearFlow"
                   >
                     <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
                       item.procDefName + ' ' + item.createdTime
@@ -61,7 +69,6 @@
                 </FormItem>
               </Form>
             </div>
-
             <div class="graph-container" id="flow" style="height:90%"></div>
             <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
           </Col>
@@ -77,6 +84,8 @@
                     @on-change="onTargetSelectHandler"
                     @on-open-change="getTargetOptions"
                     filterable
+                    clearable
+                    @on-clear="clearTarget"
                   >
                     <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
                   </Select>
@@ -448,7 +457,12 @@ export default {
         })
       }
     },
-
+    clearFlow () {
+      d3.select('#flow')
+        .selectAll('*')
+        .remove()
+      this.clearTarget()
+    },
     orchestrationSelectHandler () {
       this.currentFlowNodeId = ''
       this.currentModelNodeRefs = []
@@ -467,6 +481,17 @@ export default {
       if (status === 'OK') {
         this.allTarget = data
       }
+    },
+    clearHistoryOrch () {
+      this.stop()
+      this.selectedFlow = ''
+      this.selectedTarget = ''
+      d3.select('#flow')
+        .selectAll('*')
+        .remove()
+      d3.select('#graph')
+        .selectAll('*')
+        .remove()
     },
     queryHandler () {
       this.stop()
@@ -521,7 +546,14 @@ export default {
         this.initFlowGraph()
       })
     },
+    clearTarget () {
+      this.selectedTarget = ''
+      d3.select('#graph')
+        .selectAll('*')
+        .remove()
+    },
     onTargetSelectHandler () {
+      if (!this.selectedTarget) return
       this.currentModelNodeRefs = []
       this.getModelData()
     },
@@ -777,6 +809,10 @@ export default {
         this.processInstance()
         this.showExcution = false
       } else {
+        if (!this.selectedTarget || !this.selectedFlow) {
+          this.$Message.warning(this.$t('workflow_exec_empty_tip'))
+          return
+        }
         this.isExecuteActive = true
         const currentTarget = this.allTarget.find(_ => _.id === this.selectedTarget)
         let taskNodeBinds = []
