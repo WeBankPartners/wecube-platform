@@ -29,6 +29,7 @@ import com.webank.wecube.platform.auth.server.repository.UserRoleRsRepository;
 public class UserManagementService {
     private static final Logger log = LoggerFactory.getLogger(UserManagementService.class);
     public static final String MASK_PASSWORD = "*";
+    public static final int DEF_PASSWORD_LENGTH = 6;
 
     @Autowired
     private UserRepository userRepository;
@@ -41,6 +42,17 @@ public class UserManagementService {
 
     @Autowired
     private RoleRepository roleRepository;
+    
+    private PasswordGenerator passwordGenerator = new PasswordGenerator();
+    
+    public String resetLocalUserPassword(SimpleLocalUserPassDto userPassDto) {
+        String username = userPassDto.getUsername();
+        if (StringUtils.isBlank(username)) {
+            throw new AuthServerException("Username cannot be blank.");
+        }
+        
+        return doResetLocalUserPassword(username);
+    }
 
     public SimpleLocalUserDto modifyLocalUserPassword(SimpleLocalUserPassDto userPassDto) {
         String username = userPassDto.getUsername();
@@ -56,6 +68,28 @@ public class UserManagementService {
         }
         
         return doModifyLocalUserPassword(username, originalPassword, toChangePassword);
+    }
+    
+    private String doResetLocalUserPassword(String username) {
+        SysUserEntity user = userRepository.findNotDeletedUserByUsername(username);
+        if (user == null) {
+            log.debug("Such user does not exist with username {}", username);
+            String msg = String.format("Failed to modify a none existed user with username {%s}.", username);
+            throw new AuthServerException("3021", msg, username);
+        }
+        
+        if(SysUserEntity.AUTH_SOURCE_UM.equalsIgnoreCase(user.getAuthSource())){
+            throw new AuthServerException("Cannot modify password of UM user account.");
+        }
+        
+        String ranPassword = passwordGenerator.randomPassword(DEF_PASSWORD_LENGTH);
+        
+        String encodedNewPassword = encodePassword(ranPassword);
+        user.setPassword(encodedNewPassword);
+        
+        userRepository.saveAndFlush(user);
+        
+        return ranPassword;
     }
 
     private SimpleLocalUserDto doModifyLocalUserPassword(String username, String originalPassword, String toChangePassword) {
