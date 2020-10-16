@@ -6,6 +6,7 @@ import static com.webank.wecube.platform.auth.server.dto.CommonResponseDto.okayW
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +38,13 @@ public class LocalUserManagementController {
     @PostMapping("/users/change-password")
     public CommonResponseDto modifyLocalUserPassword(@RequestBody SimpleLocalUserPassDto userPassDto){
         SimpleLocalUserDto result = userManagementService.modifyLocalUserPassword(userPassDto);
+        return okayWithData(result);
+    }
+    
+    @PostMapping("/users/reset-password")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
+    public CommonResponseDto resetLocalUserPassword(@RequestBody SimpleLocalUserPassDto userPassDto){
+        String result = userManagementService.resetLocalUserPassword(userPassDto);
         return okayWithData(result);
     }
 
