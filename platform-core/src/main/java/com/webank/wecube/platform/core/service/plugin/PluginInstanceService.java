@@ -59,7 +59,6 @@ import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
-import com.webank.wecube.platform.core.propenc.EncryptionException;
 import com.webank.wecube.platform.core.propenc.RsaEncryptor;
 import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.service.ScpService;
