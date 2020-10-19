@@ -24,8 +24,8 @@ public class PluginServiceStub {
     private static final Logger log = LoggerFactory.getLogger(PluginServiceStub.class);
 
     @Autowired
-    @Qualifier(value = "jwtSsoRestTemplate")
-    private RestTemplate jwtSsoRestTemplate;
+    @Qualifier("userJwtSsoTokenRestTemplate")
+    private RestTemplate userJwtSsoTokenRestTemplate;
 
     private static final String INF_RELEASED_PACKAGE_LIST_DIR = "/v1/deploy/released-package/listCurrentDir";
     private static final String INF_RELEASED_PACKAGE_PROPERTY_KEY = "/v1/deploy/released-package/getConfigFileKey";
@@ -55,7 +55,7 @@ public class PluginServiceStub {
             PluginRequest<Map<String, Object>> request) {
         String targetUrl = asPluginServerUrl(instanceAddress, INF_RUN_SCRIPT_PATH);
         log.info(targetUrl);
-        PluginResponse<PluginRunScriptOutput> response = jwtSsoRestTemplate.postForObject(targetUrl, request,
+        PluginResponse<PluginRunScriptOutput> response = userJwtSsoTokenRestTemplate.postForObject(targetUrl, request,
                 PluginRunScriptResponse.class);
         validatePluginResponse(response, false);
         return response.getResultData();
@@ -69,7 +69,7 @@ public class PluginServiceStub {
 
     private ResultData<Object> callPluginInterface(String targetUrl, PluginRequest<?> parameters) {
         log.info("About to call {} with parameters: {} ", targetUrl, parameters);
-        PluginResponse<Object> response = jwtSsoRestTemplate.postForObject(targetUrl, parameters,
+        PluginResponse<Object> response = userJwtSsoTokenRestTemplate.postForObject(targetUrl, parameters,
                 DefaultPluginResponse.class);
         log.info("Plugin response: {} ", response);
         validatePluginResponse(response, false);
