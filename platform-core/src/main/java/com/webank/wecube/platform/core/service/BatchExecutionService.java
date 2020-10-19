@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
+import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 @Service
@@ -240,6 +242,9 @@ public class BatchExecutionService {
                     String.format("%s:%s", pluginInstance.getHost(), pluginInstance.getPort()),
                     pluginConfigInterface.getPath(), Lists.newArrayList(pluginInputParamMap),
                     "RequestId-" + Long.toString(System.currentTimeMillis()));
+            
+            
+            handleResultData(responseData, exeJob);
         } catch (Exception e) {
             log.error("errors while call plugin interface", e);
             exeJob.setErrorWithMessage(e.getMessage());
@@ -265,6 +270,90 @@ public class BatchExecutionService {
         exeJob.setErrorCode(stationaryOutput.getErrorCode() == null ? RESULT_CODE_ERROR : RESULT_CODE_OK);
         exeJob.setErrorMessage(stationaryOutput.getErrorMessage());
         return responseData;
+    }
+    
+    @SuppressWarnings("unchecked")
+    private void handleResultData(ResultData<Object> responseData, ExecutionJob exeJob) {
+        //#2046
+        if(responseData == null || responseData.getOutputs() == null) {
+            log.info("response data is empty for execution job {}", exeJob.getId());
+            return;
+        }
+        
+        List<Object> resultObjects = responseData.getOutputs();
+        if(resultObjects.isEmpty()) {
+            log.info("result object is empty for execution job {}", exeJob.getId());
+            return;
+        }
+        
+        for(Object resultObject : resultObjects) {
+            if(resultObject == null) {
+                continue;
+            }
+            
+            if(resultObject instanceof Map) {
+                Map<String, Object> resultObjectMap = (Map<String,Object>)resultObject;
+                handleSingleResultObject(resultObjectMap, exeJob);
+            }
+        }
+        
+    }
+    
+    private void handleSingleResultObject(Map<String,Object> resultObjectMap, ExecutionJob exeJob) {
+        String rootEntityId = (String) resultObjectMap.get(CALLBACK_PARAMETER_KEY);
+
+        if (StringUtils.isBlank(rootEntityId)) {
+            log.info("There is no root entity ID found in output for execution job {}", exeJob.getId());
+            return;
+        }
+        
+        String pluginConfigInterfaceId = exeJob.getPluginConfigInterfaceId();
+        if(StringUtils.isBlank(pluginConfigInterfaceId)) {
+            log.info("Plugin config interface ID is not found for execution job {}", exeJob.getId());
+            return;
+        }
+        
+        Optional<PluginConfigInterface> pluginConfigInterfOpt = pluginConfigInterfaceRepository.findById(pluginConfigInterfaceId);
+        if(!pluginConfigInterfOpt.isPresent()) {
+            log.info("Plugin config interface does not exist for ID:{}", pluginConfigInterfaceId);
+            return;
+        }
+        
+        PluginConfigInterface pluginConfigInterf = pluginConfigInterfOpt.get();
+
+        Set<PluginConfigInterfaceParameter> outputParameters = pluginConfigInterf.getOutputParameters();
+
+        for (PluginConfigInterfaceParameter pciParam : outputParameters) {
+            String paramName = pciParam.getName();
+            String paramExpr = pciParam.getMappingEntityExpression();
+            String paramMappingType = pciParam.getMappingType();
+            
+            if(!Constants.MAPPING_TYPE_ENTITY.equalsIgnoreCase(paramMappingType)) {
+                continue;
+            }
+
+            if (StringUtils.isBlank(paramExpr)) {
+                continue;
+            }
+            log.info("expression is configured for paramName:{} and interface:{}", paramName, pluginConfigInterfaceId);
+
+            Object retVal = resultObjectMap.get(paramName);
+
+            if (retVal == null) {
+                log.info("returned value is null for {} {}", exeJob.getId(), paramName);
+                continue;
+            }
+
+            EntityOperationRootCondition condition = new EntityOperationRootCondition(paramExpr, rootEntityId);
+
+            try {
+                this.standardEntityOperationService.update(condition, retVal, this.userJwtSsoTokenRestTemplate);
+            } catch (Exception e) {
+                log.error("Exceptions while updating entity.But still keep going to update.", e);
+                throw new WecubeCoreException(e.getMessage());
+            }
+
+        }
     }
 
     private ResultData<PluginResponseStationaryOutput> buildResultDataWithError(String errorMessage) {

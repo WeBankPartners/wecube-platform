@@ -459,8 +459,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (!MAPPING_TYPE_CONTEXT.equals(mappingType)) {
             return;
         }
-        // TODO #1993
-        // FIXME
+        // #1993
         String curTaskNodeDefId = taskNodeDefEntity.getId();
         TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                 .findOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
@@ -500,7 +499,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameter param, String paramType,
             List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
             String bindParamType) {
-        // TODO
+        // #1993
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_NAME.equals(bindParamName)) {
             String procDefName = procInstEntity.getProcDefName();
             objectVals.add(procDefName);
