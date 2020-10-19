@@ -48,6 +48,7 @@ import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
+import com.webank.wecube.platform.core.service.workflow.EncryptionService;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
@@ -55,7 +56,6 @@ import com.webank.wecube.platform.core.utils.Constants;
 import com.webank.wecube.platform.core.utils.JsonUtils;
 
 @Service
-@Transactional
 public class BatchExecutionService {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -77,9 +77,13 @@ public class BatchExecutionService {
     @Autowired
     @Qualifier("userJwtSsoTokenRestTemplate")
     private RestTemplate userJwtSsoTokenRestTemplate;
+    
+    @Autowired
+    private EncryptionService encryptionService;
 
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
+    @Transactional
     public Map<String, ExecutionJobResponseDto> handleBatchExecutionJob(BatchExecutionRequestDto batchExecutionRequest)
             throws IOException {
         verifyParameters(batchExecutionRequest.getInputParameterDefinitions());
@@ -189,7 +193,7 @@ public class BatchExecutionService {
         return executionJobParameters;
     }
 
-    public ResultData<?> performExecutionJob(ExecutionJob exeJob) throws IOException {
+    protected ResultData<?> performExecutionJob(ExecutionJob exeJob) throws IOException {
         if (exeJob == null) {
             throw new WecubeCoreException("3002", "execution job as input argument cannot be null.");
         }
