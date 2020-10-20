@@ -59,8 +59,6 @@ import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
 
-    private static final String IS_SENSITIVE_ATTR = "Y";
-
     @Autowired
     private PluginInvocationRestClient pluginInvocationRestClient;
 
@@ -87,6 +85,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
+    
 
     public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
@@ -660,6 +659,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         for (TaskNodeExecParamEntity e : execParamEntities) {
+            String paramDataValue = e.getParamDataValue();
+            if(e.getSensitive() != null && e.getSensitive() == true){
+                paramDataValue = tryDecodeParamDataValue(paramDataValue);
+            }
             retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
         }
 
@@ -839,7 +842,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
                 e.setParamDataType(attr.getType());
                 e.setObjectId(sObjectId);
-                e.setParamDataValue(attr.getExpectedValue() == null ? null : attr.getExpectedValue().toString());
+                e.setParamDataValue(tryCalculateParamDataValue(attr));
                 e.setEntityDataId(entityDataId);
                 e.setEntityTypeId(entityTypeId);
 
@@ -857,6 +860,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         return pluginParameters;
     }
+    
+    private String tryCalculateParamDataValue(InputParamAttr attr){
+        if(attr.getExpectedValue() == null){
+            return null;
+        }
+        
+        String dataValue = attr.getExpectedValue().toString();
+        if(attr.isSensitive()){
+            dataValue = tryEncodeParamDataValue(dataValue);
+        }
+        
+        return dataValue;
+    }
+    
 
     private PluginInstance retrieveAvailablePluginInstance(PluginConfigInterface itf) {
         PluginConfig config = itf.getPluginConfig();
@@ -1043,6 +1060,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 paramDataType = p.getDataType();
                 isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));
             }
+            
+            String paramDataValue = trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE);
+            
+            if(isSensitiveData){
+                paramDataValue = tryEncodeParamDataValue(paramDataValue);
+            }
 
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
@@ -1051,8 +1074,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
             paramEntity.setParamDataType(paramDataType);
-            paramEntity.setParamDataValue(
-                    trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE));
+            paramEntity.setParamDataValue(paramDataValue);
             paramEntity.setRequestId(requestId);
             paramEntity.setSensitive(isSensitiveData);
 
