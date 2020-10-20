@@ -89,7 +89,6 @@ public class WorkflowProcessDefinitionController {
     public CommonResponseDto getProcessDefinitions(
             @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft,
             @RequestParam(name = "permission", required = false, defaultValue = "") String permission) {
-        log.info("currentUser:{}", AuthenticationContextHolder.getCurrentUsername());
         boolean includeDraftProcDef = (includeDraft == 1);
         List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef, permission);
         return CommonResponseDto.okayWithData(result);
