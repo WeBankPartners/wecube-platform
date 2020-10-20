@@ -48,7 +48,7 @@ import com.webank.wecube.platform.core.jpa.PluginConfigInterfaceRepository;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
-import com.webank.wecube.platform.core.service.workflow.EncryptionService;
+import com.webank.wecube.platform.core.service.workflow.SimpleEncryptionService;
 import com.webank.wecube.platform.core.support.plugin.PluginServiceStub;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponse.ResultData;
 import com.webank.wecube.platform.core.support.plugin.dto.PluginResponseStationaryOutput;
@@ -79,7 +79,7 @@ public class BatchExecutionService {
     private RestTemplate userJwtSsoTokenRestTemplate;
     
     @Autowired
-    private EncryptionService encryptionService;
+    private SimpleEncryptionService encryptionService;
 
     private ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
