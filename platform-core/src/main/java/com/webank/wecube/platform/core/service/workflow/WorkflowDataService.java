@@ -413,6 +413,8 @@ public class WorkflowDataService{
     
     private List<InterfaceParameterDto> prepareNodeParameters(){
         List<InterfaceParameterDto> predefinedParams = new ArrayList<>();
+        
+        //1
         InterfaceParameterDto procDefName = new InterfaceParameterDto();
         procDefName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procDefName.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_NAME);
@@ -420,6 +422,31 @@ public class WorkflowDataService{
         
         predefinedParams.add(procDefName);
         
+        //2
+        InterfaceParameterDto procDefKey = new InterfaceParameterDto();
+        procDefKey.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procDefKey.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_KEY);
+        procDefKey.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(procDefKey);
+        
+        //3
+        InterfaceParameterDto procInstId = new InterfaceParameterDto();
+        procInstId.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procInstId.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_ID);
+        procInstId.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(procInstId);
+        
+        //4
+        InterfaceParameterDto procInstKey = new InterfaceParameterDto();
+        procInstKey.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procInstKey.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_KEY);
+        procInstKey.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(procInstKey);
+        
+        //5
         InterfaceParameterDto procInstName = new InterfaceParameterDto();
         procInstName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procInstName.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME);
@@ -427,14 +454,14 @@ public class WorkflowDataService{
         
         predefinedParams.add(procInstName);
         
-        
+        //6
         InterfaceParameterDto rootEntityName = new InterfaceParameterDto();
         rootEntityName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         rootEntityName.setName(LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_NAME);
         rootEntityName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
         
         predefinedParams.add(rootEntityName);
-        
+       
         return predefinedParams;
     }
 
