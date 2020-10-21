@@ -10,11 +10,15 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.dto.event.OperationEventDto;
+import com.webank.wecube.platform.core.dto.event.OperationEventResultDto;
 import com.webank.wecube.platform.core.entity.event.OperationEventEntity;
 import com.webank.wecube.platform.core.jpa.event.OperationEventRepository;
 
 @Service
 public class OperationEventManagementService {
+    
+    public static final String OPER_MODE_INSTANT = "instant";
+    public static final String OPER_MODE_DEFER = "defer";
 
     private static final Logger log = LoggerFactory.getLogger(OperationEventManagementService.class);
     
@@ -24,7 +28,8 @@ public class OperationEventManagementService {
     @Autowired
     private OperationEventRepository operationEventRepository;
 
-    public void reportOperationEvent(OperationEventDto eventDto) {
+    //TODO
+    public OperationEventResultDto reportOperationEvent(OperationEventDto eventDto) {
         validateOperationEventInput(eventDto);
         
         String eventSeqNo = eventDto.getEventSeqNo();
@@ -45,9 +50,21 @@ public class OperationEventManagementService {
         newOperationEventEntity.setOperationKey(eventDto.getOperationKey());
         newOperationEventEntity.setOperationUser(eventDto.getOperationUser());
         newOperationEventEntity.setSourceSubSystem(eventDto.getSourceSubSystem());
-        newOperationEventEntity.setStatus(OperationEventEntity.STATUS_NEW);
+        if(OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())){
+            newOperationEventEntity.setStatus(OperationEventEntity.STATUS_IN_PROGRESS);
+        }else{
+            newOperationEventEntity.setStatus(OperationEventEntity.STATUS_NEW);
+        }
 
-        operationEventRepository.save(newOperationEventEntity);
+        OperationEventEntity savedOperEventEntity = operationEventRepository.saveAndFlush(newOperationEventEntity);
+        
+        if(OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())){
+            //TODO
+        }
+        
+        //TODO
+        OperationEventResultDto result = new OperationEventResultDto();
+        return result;
     }
     
     private Boolean parseBoolean(String booleanValueAsString){
