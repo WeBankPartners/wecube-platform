@@ -27,8 +27,10 @@ public class OperationEventManagementService {
 
     @Autowired
     private OperationEventRepository operationEventRepository;
+    
+    @Autowired
+    private OperationEventProcStarter operationEventProcStarter;
 
-    //TODO
     public OperationEventResultDto reportOperationEvent(OperationEventDto eventDto) {
         validateOperationEventInput(eventDto);
         
@@ -59,11 +61,33 @@ public class OperationEventManagementService {
         OperationEventEntity savedOperEventEntity = operationEventRepository.saveAndFlush(newOperationEventEntity);
         
         if(OPER_MODE_INSTANT.equalsIgnoreCase(eventDto.getOperationMode())){
-            //TODO
+            return handleInstantOperationEvent(savedOperEventEntity);
         }
         
-        //TODO
+        return fromOperationEventEntity(savedOperEventEntity);
+    }
+    
+    private OperationEventResultDto handleInstantOperationEvent(OperationEventEntity instantOperEventEntity){
+        OperationEventEntity entity = operationEventProcStarter.startInstantOperationEventProcess(instantOperEventEntity);
+        
+        return fromOperationEventEntity(entity);
+    }
+    
+    private OperationEventResultDto fromOperationEventEntity(OperationEventEntity entity){
         OperationEventResultDto result = new OperationEventResultDto();
+        result.setEventSeqNo(entity.getEventSeqNo());
+        result.setEventType(entity.getEventType());
+        result.setNotifyEndpoint(entity.getNotifyEndpoint());
+        result.setNotifyRequired(String.valueOf(entity.getNotifyRequired()));
+        result.setOperationData(entity.getOperationData());
+        result.setOperationKey(entity.getOperationKey());
+        result.setOperationUser(entity.getOperationUser());
+        result.setProcDefId(entity.getProcDefId());
+        result.setProcInstId(entity.getProcInstId());
+        result.setProcInstKey(entity.getProcInstKey());
+        result.setSourceSubSystem(entity.getSourceSubSystem());
+        result.setStatus(entity.getStatus());
+        
         return result;
     }
     
