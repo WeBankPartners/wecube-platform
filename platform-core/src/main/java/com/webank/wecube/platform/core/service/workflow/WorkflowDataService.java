@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -112,6 +114,64 @@ public class WorkflowDataService{
         }
 
         result.addAllEntityTreeNodes(gNodes);
+
+        return result;
+    }
+    
+    public List<Map<String, Object>> getProcessDefinitionRootEntitiesByProcDefKey(String procDefKey) {
+        if (StringUtils.isBlank(procDefKey)) {
+            throw new WecubeCoreException("3186","Process definition ID cannot be blank.");
+        }
+        
+        List<ProcDefInfoEntity> procDefEntities = procDefInfoRepository
+                .findAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (procDefEntities == null || procDefEntities.isEmpty()) {
+            return result;
+        }
+        
+        Collections.sort(procDefEntities, new Comparator<ProcDefInfoEntity>() {
+
+            @Override
+            public int compare(ProcDefInfoEntity o1, ProcDefInfoEntity o2) {
+                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() == null) {
+                    return 0;
+                }
+
+                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() != null) {
+                    return -1;
+                }
+
+                if (o1.getProcDefVersion() != null && o2.getProcDefVersion() == null) {
+                    return 1;
+                }
+
+                if (o1.getProcDefVersion() == o2.getProcDefVersion()) {
+                    return 0;
+                }
+
+                return o1.getProcDefVersion() > o2.getProcDefVersion() ? -1 : 1;
+            }
+
+        });
+        
+        ProcDefInfoEntity procDef = procDefEntities.get(0);
+
+        String rootEntityExpr = procDef.getRootEntity();
+        if (StringUtils.isBlank(rootEntityExpr)) {
+            return result;
+        }
+
+
+        List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(
+                new EntityOperationRootCondition(rootEntityExpr, null), userJwtSsoTokenRestTemplate);
+
+        if (retRecords == null) {
+            return result;
+        }
+
+        result.addAll(retRecords);
 
         return result;
     }
