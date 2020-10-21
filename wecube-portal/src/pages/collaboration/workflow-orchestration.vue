@@ -1160,7 +1160,7 @@ export default {
 .split {
   height: calc(100vh - 145px);
   border: 1px solid #999;
-  border-bottom: none;
+  // border-bottom: none;
 }
 .split-bottom {
   position: relative;
