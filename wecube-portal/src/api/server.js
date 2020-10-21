@@ -161,3 +161,4 @@ export const getApplicationVersion = id => req.get(`/platform/v1/appinfo/version
 export const getConfigByPkgId = id => req.get(`/platform/v1/packages/${id}/plugin-config-outlines`)
 export const updateConfigStatus = (id, data) =>
   req.post(`/platform/v1/packages/${id}/plugin-configs/enable-in-batch`, data)
+export const resetPassword = data => req.post(`platform/v1/users/reset-password`, data)
