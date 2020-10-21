@@ -23,9 +23,18 @@
                   {{ ` ${item.username} ` }}
                 </span>
               </Tag>
-              <Button icon="md-trash" type="error" ghost size="small" @click="removeRole(item)">{{
-                $t('delete')
-              }}</Button>
+              <Tooltip :content="$t('delete')">
+                <Button icon="md-trash" type="error" ghost size="small" @click="removeRole(item)"></Button>
+              </Tooltip>
+              <Tooltip :content="$t('reset_password')">
+                <Button
+                  icon="ios-unlock-outline"
+                  type="primary"
+                  ghost
+                  size="small"
+                  @click="resetRolePassword(item)"
+                ></Button>
+              </Tooltip>
             </div>
           </div>
         </Card>
@@ -113,6 +122,14 @@
         <Button type="primary" @click="confirmUser">{{ $t('close') }}</Button>
       </div>
     </Modal>
+    <Modal v-model="showNewPassword" :title="$t('new_password')">
+      <Form class="validation-form" label-position="left" :label-width="100">
+        <FormItem :label="$t('new_password')">
+          <Input v-model="newPassword" :placeholder="$t('please_input')" style="width:300px" />
+          <Icon @click="copyPassword" class="icon-copy" type="md-copy" />
+        </FormItem>
+      </Form>
+    </Modal>
   </div>
 </template>
 <script>
@@ -129,13 +146,16 @@ import {
   getAllMenusList,
   getMenusByUserName,
   getMenusByRoleId,
-  updateRoleToMenusByRoleId
+  updateRoleToMenusByRoleId,
+  resetPassword
 } from '@/api/server'
 import { MENUS } from '@/const/menus.js'
 
 export default {
   data () {
     return {
+      showNewPassword: false,
+      newPassword: '',
       currentRoleId: 0,
       users: [],
       roles: [],
@@ -175,6 +195,36 @@ export default {
         },
         onCancel: () => {}
       })
+    },
+    async resetRolePassword (item) {
+      this.$Modal.confirm({
+        title: this.$t('reset_password'),
+        'z-index': 1000000,
+        onOk: async () => {
+          const params = {
+            username: item.username
+          }
+          let { status, data } = await resetPassword(params)
+          if (status === 'OK') {
+            this.newPassword = data
+            this.showNewPassword = true
+          }
+        },
+        onCancel: () => {}
+      })
+    },
+    copyPassword (password) {
+      let inputElement = document.createElement('input')
+      inputElement.value = this.newPassword
+      document.body.appendChild(inputElement)
+      inputElement.select()
+      document.execCommand('Copy')
+      this.$Notice.success({
+        title: 'Success',
+        desc: this.$t('copy_success')
+      })
+      inputElement.remove()
+      this.showNewPassword = false
     },
     async handleMenuTreeCheck (allChecked, currentChecked) {
       this.menuTreeLoading = true
@@ -481,5 +531,10 @@ export default {
   .ivu-checkbox-disabled.ivu-checkbox-checked .ivu-checkbox-inner {
     background-color: #2d8cf0;
   }
+}
+.icon-copy {
+  font-size: 19px;
+  cursor: pointer;
+  color: #42b983;
 }
 </style>
