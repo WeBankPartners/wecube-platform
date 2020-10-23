@@ -1,5 +1,9 @@
 <template>
   <div>
+    <div>
+      <img src="../../assets/logo_WeCube.png" alt="LOGO" @click="goHome" class="img-logo" />
+    </div>
+
     <Header>
       <div class="menus">
         <Menu mode="horizontal" theme="dark">
@@ -116,7 +120,7 @@ import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
 
 export default {
-  data () {
+  data() {
     return {
       username: '',
       currentLanguage: '',
@@ -151,7 +155,7 @@ export default {
     }
   },
   methods: {
-    async getApplicationVersion () {
+    async getApplicationVersion() {
       const { status, data } = await getApplicationVersion()
       if (status === 'OK') {
         this.version = data
@@ -160,16 +164,19 @@ export default {
         this.version = window.localStorage.getItem('wecube_version') || ''
       }
     },
-    changeDocs (url) {
+    goHome() {
+      this.$router.push('/homepage')
+    },
+    changeDocs(url) {
       window.open(this.$t(url))
     },
-    logout () {
+    logout() {
       window.location.href = window.location.origin + window.location.pathname + '#/login'
     },
-    showChangePassword () {
+    showChangePassword() {
       this.changePassword = true
     },
-    okChangePassword () {
+    okChangePassword() {
       this.$refs['formValidate'].validate(async valid => {
         if (valid) {
           if (this.formValidate.newPassword === this.formValidate.confirmPassword) {
@@ -184,23 +191,23 @@ export default {
         }
       })
     },
-    cancelChangePassword (flag = false) {
+    cancelChangePassword(flag = false) {
       if (!flag) {
         this.$refs['formValidate'].resetFields()
         this.changePassword = false
       }
     },
-    changeLanguage (lan) {
+    changeLanguage(lan) {
       Vue.config.lang = lan
       this.currentLanguage = this.language[lan]
       localStorage.setItem('lang', lan)
     },
-    getLocalLang () {
+    getLocalLang() {
       let currentLangKey = localStorage.getItem('lang') || navigator.language
       const lang = this.language[currentLangKey] || 'English'
       this.currentLanguage = lang
     },
-    async getMyMenus () {
+    async getMyMenus() {
       let { status, data } = await getMyMenus()
       if (status === 'OK') {
         data.forEach(_ => {
@@ -260,7 +267,7 @@ export default {
         getChildRouters(window.routers || [])
       }
     },
-    async getAllPluginPackageResourceFiles () {
+    async getAllPluginPackageResourceFiles() {
       const { status, data } = await getAllPluginPackageResourceFiles()
       if (status === 'OK' && data && data.length > 0) {
         // const data = [
@@ -311,19 +318,19 @@ export default {
       }
     }
   },
-  async created () {
+  async created() {
     this.getLocalLang()
     this.getApplicationVersion()
     this.getMyMenus()
     this.username = window.sessionStorage.getItem('username')
   },
   watch: {
-    $lang: async function (lang) {
+    $lang: async function(lang) {
       await this.getMyMenus(true)
       window.location.reload()
     }
   },
-  mounted () {
+  mounted() {
     if (window.needReLoad) {
       this.getAllPluginPackageResourceFiles()
       window.needReLoad = false
@@ -333,6 +340,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.img-logo {
+  height: 20px;
+  margin: 0 4px 6px 0;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
 .header {
   display: flex;
 
