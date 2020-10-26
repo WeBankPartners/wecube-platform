@@ -9,6 +9,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 
 @Entity
 @Table(name = "execution_job_parameters")
@@ -43,6 +44,8 @@ public class ExecutionJobParameter {
     private String required;
     @Column
     private String value;
+
+    private transient PluginConfigInterfaceParameter parameterDefinition;
 
     public ExecutionJobParameter() {
     }
@@ -103,8 +106,6 @@ public class ExecutionJobParameter {
         this.required = required;
     }
 
-    
-
     public ExecutionJob getExecutionJob() {
         return executionJob;
     }
@@ -149,28 +150,34 @@ public class ExecutionJobParameter {
         this.value = value;
     }
 
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("ExecutionJobParameter [id=");
-		builder.append(id);
-		builder.append(", name=");
-		builder.append(name);
-		builder.append(", dataType=");
-		builder.append(dataType);
-		builder.append(", mappingType=");
-		builder.append(mappingType);
-		builder.append(", mappingEntityExpression=");
-		builder.append(mappingEntityExpression);
-		builder.append(", mappingSystemVariableName=");
-		builder.append(mappingSystemVariableName);
-		builder.append(", required=");
-		builder.append(required);
-		builder.append(", value=");
-		builder.append(value);
-		builder.append("]");
-		return builder.toString();
-	}
-    
-    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("ExecutionJobParameter [id=");
+        builder.append(id);
+        builder.append(", name=");
+        builder.append(name);
+        builder.append(", dataType=");
+        builder.append(dataType);
+        builder.append(", mappingType=");
+        builder.append(mappingType);
+        builder.append(", mappingEntityExpression=");
+        builder.append(mappingEntityExpression);
+        builder.append(", mappingSystemVariableName=");
+        builder.append(mappingSystemVariableName);
+        builder.append(", required=");
+        builder.append(required);
+        builder.append(", value=");
+        builder.append(value);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    public PluginConfigInterfaceParameter getParameterDefinition() {
+        return parameterDefinition;
+    }
+
+    public void setParameterDefinition(PluginConfigInterfaceParameter parameterDefinition) {
+        this.parameterDefinition = parameterDefinition;
+    }
 }

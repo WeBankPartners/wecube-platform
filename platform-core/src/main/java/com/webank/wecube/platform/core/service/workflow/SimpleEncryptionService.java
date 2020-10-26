@@ -18,6 +18,10 @@ public class SimpleEncryptionService {
             return raw;
         }
         
+        if(raw.startsWith(AES_PREFIX)) {
+            return raw;
+        }
+        
         String cipherVal = EncryptionUtils.encryptWithAes(raw, AES_SEED, AES_SALT);
         return AES_PREFIX+cipherVal;
     }
