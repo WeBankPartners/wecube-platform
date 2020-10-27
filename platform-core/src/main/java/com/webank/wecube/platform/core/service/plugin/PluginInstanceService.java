@@ -81,6 +81,7 @@ public class PluginInstanceService {
     private static final Logger logger = LoggerFactory.getLogger(PluginInstanceService.class);
     
     private static final String PLUGIN_PROP_ENC_KEY_FILE_PATH = "/data/certs/plugin_rsa_key.pub";
+    private static final String SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH = "PLUGIN_PROP_ENC_KEY_SWITCH";
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -622,28 +623,29 @@ public class PluginInstanceService {
             return rawPassword;
         }
         
-        List<SystemVariable> pluginPropEncKeyFileSysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_PLUGIN_PROP_ENC_KEY_FILE);
-        if(pluginPropEncKeyFileSysVars == null || pluginPropEncKeyFileSysVars.isEmpty()) {
-            logger.info("plugin property encryption not applied as system variable not provided.System varibale key is:{}", SYS_VAR_PLUGIN_PROP_ENC_KEY_FILE);
+        List<SystemVariable> pluginPropEncKeyFileSysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
+        String propEncSwitchOn = "on";
+        String propEncSwitchOnConfig = null;
+        if(pluginPropEncKeyFileSysVars != null && !pluginPropEncKeyFileSysVars.isEmpty()) {
+            SystemVariable pluginPropEncKeyFileSysVar = pluginPropEncKeyFileSysVars.get(0);
+            propEncSwitchOnConfig = pluginPropEncKeyFileSysVar.getValue();
+            if(StringUtils.isBlank(propEncSwitchOnConfig)) {
+                propEncSwitchOnConfig = pluginPropEncKeyFileSysVar.getDefaultValue();
+            }
+        }
+        
+        if(!StringUtils.isBlank(propEncSwitchOnConfig)) {
+            propEncSwitchOn = propEncSwitchOnConfig;
+        }
+        
+        if("off".equalsIgnoreCase(propEncSwitchOn)) {
+            logger.info("property encryption was switched off by system variable:{}", SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
             return rawPassword;
         }
         
-        SystemVariable pluginPropEncKeyFileSysVar = pluginPropEncKeyFileSysVars.get(0);
-        
-        String rsaPubKeyFilePath = pluginPropEncKeyFileSysVar.getValue();
-        
-        if(StringUtils.isBlank(rsaPubKeyFilePath)) {
-            rsaPubKeyFilePath = pluginPropEncKeyFileSysVar.getDefaultValue();
-        }
-        
-        if(StringUtils.isBlank(rsaPubKeyFilePath)) {
-            logger.info("plugin property encryption not applied as filepath not provided.");
-            return rawPassword;
-        }
-        
-        File rsaPubKeyFile = new File(rsaPubKeyFilePath);
+        File rsaPubKeyFile = new File(PLUGIN_PROP_ENC_KEY_FILE_PATH);
         if(!rsaPubKeyFile.exists()) {
-            logger.info("plugin property encryption not applied as file not exist.Filepath={}", rsaPubKeyFilePath);
+            logger.info("plugin property encryption not applied as file not exist.Filepath={}", PLUGIN_PROP_ENC_KEY_FILE_PATH);
             return rawPassword;
         }
         
@@ -655,7 +657,7 @@ public class PluginInstanceService {
         }
         
         if(StringUtils.isBlank(rsaPubKeyAsString)) {
-            logger.info("plugin property encryption not applied as key not available.Filepath={}", rsaPubKeyFilePath);
+            logger.info("plugin property encryption not applied as key not available.Filepath={}", PLUGIN_PROP_ENC_KEY_FILE_PATH);
             return rawPassword;
         }
         
