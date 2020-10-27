@@ -80,7 +80,7 @@ import com.webank.wecube.platform.core.utils.SystemUtils;
 public class PluginInstanceService {
     private static final Logger logger = LoggerFactory.getLogger(PluginInstanceService.class);
     
-    private static final String PLUGIN_PROP_ENC_KEY_FILE_PATH = "/data/certs/plugin_rsa_key.pub";
+    private static final String PLUGIN_PROP_ENC_KEY_FILE_PATH = "/certs/plugin_rsa_key.pub";
     private static final String SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH = "PLUGIN_PROP_ENC_KEY_SWITCH";
 
     @Autowired
