@@ -21,6 +21,8 @@ public abstract class AbstractWorkflowService {
     
     public static final String EMPTY_ERROR_MSG = "";
     
+    public static final String IS_SENSITIVE_ATTR = "Y";
+    
     protected static List<String> statelessNodeTypes = Arrays.asList("startEvent", "endEvent", "exclusiveGateway",
             "parallelGateway");
     

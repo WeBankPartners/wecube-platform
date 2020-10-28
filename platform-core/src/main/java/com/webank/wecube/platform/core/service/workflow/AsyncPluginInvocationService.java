@@ -337,11 +337,18 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 					entry.getKey());
 
 			String paramDataType = null;
+			boolean isSensitiveData = false;
 			if (p == null) {
 				paramDataType = DATA_TYPE_STRING;
 			} else {
 				paramDataType = p.getDataType();
+				isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));
 			}
+			
+			String paramDataValue = trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE);
+			if(isSensitiveData){
+                paramDataValue = tryEncodeParamDataValue(paramDataValue);
+            }
 
 			TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
 			paramEntity.setEntityTypeId(entityTypeId);
@@ -350,8 +357,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
 			paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
 			paramEntity.setParamName(entry.getKey());
 			paramEntity.setParamDataType(paramDataType);
-			paramEntity.setParamDataValue(
-					trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE));
+			paramEntity.setParamDataValue(paramDataValue);
 			paramEntity.setRequestId(requestId);
 
 			taskNodeExecParamRepository.saveAndFlush(paramEntity);
