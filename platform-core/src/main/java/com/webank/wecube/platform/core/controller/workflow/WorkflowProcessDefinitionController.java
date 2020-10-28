@@ -206,7 +206,7 @@ public class WorkflowProcessDefinitionController {
             String jsonData = new String(StringUtilsEx.decodeBase64(filedata), Charset.forName("utf-8"));
             ProcDefInfoExportImportDto importDto = convertImportData(jsonData);
 
-            ProcDefInfoExportImportDto result = procDefMigrationService.importProcessDefinition(importDto);
+            ProcDefInfoDto result = procDefMigrationService.importProcessDefinition(importDto);
             return CommonResponseDto.okayWithData(result);
         } catch (IOException e) {
             log.error("errors while reading upload file", e);
