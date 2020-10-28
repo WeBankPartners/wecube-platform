@@ -448,5 +448,6 @@
   "best_practices": "选择最佳实践",
   "config_permission": "权限",
   "batch_regist": "批量注册",
-  "modal_close": "关闭"
+  "modal_close": "关闭",
+  "reset_password": "重置密码"
 }

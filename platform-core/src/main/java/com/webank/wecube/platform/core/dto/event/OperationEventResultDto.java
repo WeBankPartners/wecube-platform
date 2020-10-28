@@ -1,7 +1,6 @@
 package com.webank.wecube.platform.core.dto.event;
 
-public class OperationEventDto {
-
+public class OperationEventResultDto {
     private String eventSeqNo;
     private String eventType;
     private String sourceSubSystem;
@@ -10,8 +9,10 @@ public class OperationEventDto {
     private String notifyRequired;
     private String notifyEndpoint;
     private String operationUser;
-
-    private String operationMode;
+    private String procInstKey;
+    private String procInstId;
+    private String procDefId;
+    private String status;
 
     public String getEventSeqNo() {
         return eventSeqNo;
@@ -29,20 +30,20 @@ public class OperationEventDto {
         this.eventType = eventType;
     }
 
-    public String getOperationKey() {
-        return operationKey;
-    }
-
-    public void setOperationKey(String operationKey) {
-        this.operationKey = operationKey;
-    }
-
     public String getSourceSubSystem() {
         return sourceSubSystem;
     }
 
     public void setSourceSubSystem(String sourceSubSystem) {
         this.sourceSubSystem = sourceSubSystem;
+    }
+
+    public String getOperationKey() {
+        return operationKey;
+    }
+
+    public void setOperationKey(String operationKey) {
+        this.operationKey = operationKey;
     }
 
     public String getOperationData() {
@@ -77,36 +78,36 @@ public class OperationEventDto {
         this.operationUser = operationUser;
     }
 
-    public String getOperationMode() {
-        return operationMode;
+    public String getProcInstKey() {
+        return procInstKey;
     }
 
-    public void setOperationMode(String operationMode) {
-        this.operationMode = operationMode;
+    public void setProcInstKey(String procInstKey) {
+        this.procInstKey = procInstKey;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("OperationEventDto [eventSeqNo=");
-        builder.append(eventSeqNo);
-        builder.append(", eventType=");
-        builder.append(eventType);
-        builder.append(", sourceSubSystem=");
-        builder.append(sourceSubSystem);
-        builder.append(", operationKey=");
-        builder.append(operationKey);
-        builder.append(", operationData=");
-        builder.append(operationData);
-        builder.append(", notifyRequired=");
-        builder.append(notifyRequired);
-        builder.append(", notifyEndpoint=");
-        builder.append(notifyEndpoint);
-        builder.append(", operationUser=");
-        builder.append(operationUser);
-        builder.append(", operationMode=");
-        builder.append(operationMode);
-        builder.append("]");
-        return builder.toString();
+    public String getProcInstId() {
+        return procInstId;
     }
+
+    public void setProcInstId(String procInstId) {
+        this.procInstId = procInstId;
+    }
+
+    public String getProcDefId() {
+        return procDefId;
+    }
+
+    public void setProcDefId(String procDefId) {
+        this.procDefId = procDefId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
 }
