@@ -499,13 +499,36 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
             String bindParamType) {
         // #1993
+        //1
+        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_KEY.equals(bindParamName)){
+            String procDefKey = procInstEntity.getProcDefKey();
+            objectVals.add(procDefKey);
+            return;
+        }
+        
+        //2
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_NAME.equals(bindParamName)) {
             String procDefName = procInstEntity.getProcDefName();
             objectVals.add(procDefName);
 
             return;
         }
+        
+        //3
+        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_ID.equals(bindParamName)){
+            String procInstId = String.valueOf(procInstEntity.getId());
+            objectVals.add(procInstId);
+            return;
+        }
+        
+        //4
+        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_KEY.equals(bindParamName)){
+            String procInstKey = procInstEntity.getProcInstKey();
+            objectVals.add(procInstKey);
+            return;
+        }
 
+        //5
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME.equals(bindParamName)) {
             ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
                     .findProcInstBindings(procInstEntity.getId());
@@ -520,6 +543,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
+        //6
         if (LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_NAME.equals(bindParamName)) {
             //
 
