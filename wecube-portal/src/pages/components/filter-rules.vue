@@ -354,6 +354,7 @@ export default {
       this.formatNextCurrentOptions(this.currentNode)
     },
     addFilterRuleForCurrentNode () {
+      if (!this.currentNode) return
       this.currentNodeEntityAttrs = this.allEntity.find(_ => _.name === this.currentNode.entity).attributes
       const rules = this.currentNode.pathExp.match(/[^{]+(?=})/g)
       if (rules) {

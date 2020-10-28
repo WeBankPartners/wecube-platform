@@ -73,6 +73,9 @@ http {
         location /release-artifact {
 		proxy_pass http://core;
 	}
+	location /itsdangerous {
+		proxy_pass http://core;
+	}
    }
 }
 

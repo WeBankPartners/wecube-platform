@@ -5,9 +5,12 @@ import java.util.List;
 import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
+import com.webank.wecube.platform.core.dto.user.UserPasswordResetDto;
 
 
 public interface UserManagementService {
+    String resetUserPassword(UserPasswordResetDto userPassResetDto);
+    
     UserDto registerUser(UserDto userDto);
     
     void changeUserPassword(UserPasswordDto userPassDto);

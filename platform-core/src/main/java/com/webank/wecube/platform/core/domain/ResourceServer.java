@@ -44,7 +44,6 @@ public class ResourceServer {
     @Column(name = "is_allocated")
     private Integer isAllocated;
 
-    @NotBlank
     @Column(name = "purpose")
     private String purpose;
 
