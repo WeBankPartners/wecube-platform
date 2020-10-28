@@ -3,6 +3,10 @@
     <Header>
       <div class="menus">
         <Menu mode="horizontal" theme="dark">
+          <div>
+            <img src="../../assets/logo_WeCube.png" alt="LOGO" @click="goHome" class="img-logo" />
+          </div>
+
           <div v-for="menu in menus" :key="menu.code">
             <MenuItem v-if="menu.submenus.length < 1" :name="menu.title" style="cursor: not-allowed;">
               {{ menu.title }}
@@ -159,6 +163,9 @@ export default {
       } else {
         this.version = window.localStorage.getItem('wecube_version') || ''
       }
+    },
+    goHome () {
+      this.$router.push('/homepage')
     },
     changeDocs (url) {
       window.open(this.$t(url))
@@ -333,6 +340,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.img-logo {
+  height: 20px;
+  margin: 0 4px 6px 0;
+  vertical-align: middle;
+  cursor: pointer;
+}
 .header {
   display: flex;
 
