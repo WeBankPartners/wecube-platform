@@ -101,6 +101,13 @@ public class WorkflowProcessDefinitionController {
         List<Map<String, Object>> result = workflowDataService.getProcessDefinitionRootEntities(procDefId);
         return CommonResponseDto.okayWithData(result);
     }
+    
+    @GetMapping("/process/definitions/process-keys/{proc-def-key}/root-entities")
+    public CommonResponseDto getProcessDefinitionRootEntitiesByProcDefKey(@PathVariable("proc-def-key") String procDefKey) {
+
+        List<Map<String, Object>> result = workflowDataService.getProcessDefinitionRootEntitiesByProcDefKey(procDefKey);
+        return CommonResponseDto.okayWithData(result);
+    }
 
     @DeleteMapping("/process/definitions/{proc-def-id}")
     public CommonResponseDto removeProcessDefinition(@PathVariable("proc-def-id") String procDefId) {
