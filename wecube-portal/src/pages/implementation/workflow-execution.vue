@@ -608,13 +608,39 @@ export default {
         let color = _.isHighlight ? '#5DB400' : 'black'
         // const isRecord = _.refFlowNodeIds.length > 0
         // const shape = isRecord ? 'ellipse' : 'ellipse'
+        let fillcolor = 'white'
+        _.refFlowNodeIds.sort((a, b) => {
+          if (a * 1 < b * 1) {
+            return -1
+          }
+          if (a * 1 > b * 1) {
+            return 1
+          }
+          return 0
+        })
+        let refNodes = []
+        let completedNodes = []
+        _.refFlowNodeIds.forEach(id => {
+          const node = this.flowData.flowNodes.find(_ => _.orderedNo === id)
+          refNodes.push(node)
+        })
+        completedNodes = refNodes.filter(_ => _.status === 'Completed')
+        const completedNodesLen = completedNodes.length
+        const refNodesLen = refNodes.length
+        if (completedNodesLen === refNodesLen && refNodesLen !== 0) {
+          fillcolor = '#5DB400'
+        }
+
+        if (completedNodesLen > 0 && completedNodesLen < refNodesLen) {
+          fillcolor = '#3C83F8'
+        }
         const str = _.displayName || _.dataId
         const refStr = _.refFlowNodeIds.toString().replace(/,/g, '/')
         // const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
-        const firstLabel = str.length > 15 ? `${str.slice(0, 1)}...${str.slice(-14)}` : str
+        const firstLabel = str.length > 30 ? `${str.slice(0, 1)}...${str.slice(-29)}` : str
         // const fontSize = Math.min((58 / len) * 3, 16)
         const label = firstLabel + '\n' + refStr
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="box"]`
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -887,6 +913,7 @@ export default {
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
           this.initFlowGraph(true)
+          this.renderModelGraph()
         }
         if (data.status === 'Completed') {
           this.stop()
@@ -897,7 +924,7 @@ export default {
       let isNew = false
       newData.forEach(_ => {
         const found = old.find(d => d.nodeId === _.nodeId)
-        if (found.status !== _.status) {
+        if (found && found.status !== _.status) {
           isNew = true
         }
       })
