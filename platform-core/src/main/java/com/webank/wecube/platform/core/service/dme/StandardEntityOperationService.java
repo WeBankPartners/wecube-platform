@@ -77,17 +77,22 @@ public class StandardEntityOperationService {
         ctx.setEntityOperationType(EntityOperationType.QUERY);
         return standardEntityQueryExcutor.executeQueryLeafAttributes(ctx);
     }
-
-    public void update(EntityOperationRootCondition condition, Object attrValueToUpdate) {
+    
+    public void update(EntityOperationRootCondition condition, Object attrValueToUpdate, RestTemplate restTemplate) {
         if (log.isInfoEnabled()) {
             log.info("update entity with condition {} and data {}", condition, attrValueToUpdate);
         }
 
-        EntityOperationContext ctx = buildEntityOperationContext(condition, jwtSsoRestTemplate);
+        EntityOperationContext ctx = buildEntityOperationContext(condition, restTemplate);
         ctx.setEntityOperationType(EntityOperationType.UPDATE);
 
         standardEntityQueryExcutor.executeUpdate(ctx, attrValueToUpdate);
 
+        return;
+    }
+
+    public void update(EntityOperationRootCondition condition, Object attrValueToUpdate) {
+        update(condition,attrValueToUpdate, jwtSsoRestTemplate);
         return;
     }
     
