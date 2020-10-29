@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -251,6 +253,23 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
             procDefInfoDtos.add(dto);
 
+        });
+        
+        Collections.sort(procDefInfoDtos, new Comparator<ProcDefInfoDto>(){
+
+            @Override
+            public int compare(ProcDefInfoDto o1, ProcDefInfoDto o2) {
+                String o1Name = o1.getProcDefName();
+                String o2Name = o2.getProcDefName();
+                
+                if(o1Name == null){
+                    return -1;
+                }
+                
+                
+                return o1Name.compareTo(o2Name);
+            }
+            
         });
         return procDefInfoDtos;
     }

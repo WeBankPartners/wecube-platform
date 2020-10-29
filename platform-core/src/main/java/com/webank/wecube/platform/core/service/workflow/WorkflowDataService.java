@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -112,6 +114,64 @@ public class WorkflowDataService{
         }
 
         result.addAllEntityTreeNodes(gNodes);
+
+        return result;
+    }
+    
+    public List<Map<String, Object>> getProcessDefinitionRootEntitiesByProcDefKey(String procDefKey) {
+        if (StringUtils.isBlank(procDefKey)) {
+            throw new WecubeCoreException("3186","Process definition ID cannot be blank.");
+        }
+        
+        List<ProcDefInfoEntity> procDefEntities = procDefInfoRepository
+                .findAllDeployedProcDefsByProcDefKey(procDefKey, ProcDefInfoEntity.DEPLOYED_STATUS);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (procDefEntities == null || procDefEntities.isEmpty()) {
+            return result;
+        }
+        
+        Collections.sort(procDefEntities, new Comparator<ProcDefInfoEntity>() {
+
+            @Override
+            public int compare(ProcDefInfoEntity o1, ProcDefInfoEntity o2) {
+                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() == null) {
+                    return 0;
+                }
+
+                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() != null) {
+                    return -1;
+                }
+
+                if (o1.getProcDefVersion() != null && o2.getProcDefVersion() == null) {
+                    return 1;
+                }
+
+                if (o1.getProcDefVersion() == o2.getProcDefVersion()) {
+                    return 0;
+                }
+
+                return o1.getProcDefVersion() > o2.getProcDefVersion() ? -1 : 1;
+            }
+
+        });
+        
+        ProcDefInfoEntity procDef = procDefEntities.get(0);
+
+        String rootEntityExpr = procDef.getRootEntity();
+        if (StringUtils.isBlank(rootEntityExpr)) {
+            return result;
+        }
+
+
+        List<Map<String, Object>> retRecords = standardEntityOperationService.queryAttributeValuesOfLeafNode(
+                new EntityOperationRootCondition(rootEntityExpr, null), userJwtSsoTokenRestTemplate);
+
+        if (retRecords == null) {
+            return result;
+        }
+
+        result.addAll(retRecords);
 
         return result;
     }
@@ -299,7 +359,7 @@ public class WorkflowDataService{
             return result;
         }
 
-        //TODO #1993
+        //#1993
         TaskNodeDefInfoEntity e = entityOptional.get();
         String nodeType = e.getNodeType();
         
@@ -353,6 +413,8 @@ public class WorkflowDataService{
     
     private List<InterfaceParameterDto> prepareNodeParameters(){
         List<InterfaceParameterDto> predefinedParams = new ArrayList<>();
+        
+        //1
         InterfaceParameterDto procDefName = new InterfaceParameterDto();
         procDefName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procDefName.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_NAME);
@@ -360,6 +422,31 @@ public class WorkflowDataService{
         
         predefinedParams.add(procDefName);
         
+        //2
+        InterfaceParameterDto procDefKey = new InterfaceParameterDto();
+        procDefKey.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procDefKey.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_KEY);
+        procDefKey.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(procDefKey);
+        
+        //3
+        InterfaceParameterDto procInstId = new InterfaceParameterDto();
+        procInstId.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procInstId.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_ID);
+        procInstId.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(procInstId);
+        
+        //4
+        InterfaceParameterDto procInstKey = new InterfaceParameterDto();
+        procInstKey.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
+        procInstKey.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_KEY);
+        procInstKey.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
+        
+        predefinedParams.add(procInstKey);
+        
+        //5
         InterfaceParameterDto procInstName = new InterfaceParameterDto();
         procInstName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         procInstName.setName(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME);
@@ -367,14 +454,14 @@ public class WorkflowDataService{
         
         predefinedParams.add(procInstName);
         
-        
+        //6
         InterfaceParameterDto rootEntityName = new InterfaceParameterDto();
         rootEntityName.setDataType(LocalWorkflowConstants.PLUGIN_DATA_TYPE_STRING);
         rootEntityName.setName(LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_NAME);
         rootEntityName.setType(LocalWorkflowConstants.PLUGIN_PARAM_TYPE_INPUT);
         
         predefinedParams.add(rootEntityName);
-        
+       
         return predefinedParams;
     }
 
