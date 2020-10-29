@@ -67,6 +67,9 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     
     @Autowired
     protected ApplicationProperties applicationProperties;
+    
+    @Autowired
+    protected SimpleEncryptionService simpleEncryptionService;
 
     protected TaskNodeInstInfoEntity findExactTaskNodeInstInfoEntityWithNodeId(
             List<TaskNodeInstInfoEntity> nodeInstEntities, String nodeId) {
@@ -194,6 +197,31 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
         }
 
         return null;
+    }
+    
+    protected String tryEncodeParamDataValue(String rawDataValue){
+        if(StringUtils.isBlank(rawDataValue)){
+            return rawDataValue;
+        }
+        
+        String cipherDataValue = simpleEncryptionService.encodeToAesBase64(rawDataValue);
+        return cipherDataValue;
+    }
+    
+    protected String tryDecodeParamDataValue(String cipherDataValue){
+        if(StringUtils.isBlank(cipherDataValue)){
+            return cipherDataValue;
+        }
+        
+        String rawDataValue = null;
+        try{
+            rawDataValue = simpleEncryptionService.decodeFromAesBase64(cipherDataValue);
+        }catch(Exception e){
+            log.info("errors while decode cipher data value:{},error:{}", cipherDataValue, e.getMessage());
+            rawDataValue = cipherDataValue;
+        }
+        
+        return rawDataValue;
     }
 
 }
