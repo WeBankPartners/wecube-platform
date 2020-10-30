@@ -89,7 +89,6 @@ public class WorkflowProcessDefinitionController {
     public CommonResponseDto getProcessDefinitions(
             @RequestParam(name = "includeDraft", required = false, defaultValue = "1") int includeDraft,
             @RequestParam(name = "permission", required = false, defaultValue = "") String permission) {
-        log.info("currentUser:{}", AuthenticationContextHolder.getCurrentUsername());
         boolean includeDraftProcDef = (includeDraft == 1);
         List<ProcDefInfoDto> result = procDefService.getProcessDefinitions(includeDraftProcDef, permission);
         return CommonResponseDto.okayWithData(result);
@@ -99,6 +98,13 @@ public class WorkflowProcessDefinitionController {
     public CommonResponseDto getProcessDefinitionRootEntities(@PathVariable("proc-def-id") String procDefId) {
 
         List<Map<String, Object>> result = workflowDataService.getProcessDefinitionRootEntities(procDefId);
+        return CommonResponseDto.okayWithData(result);
+    }
+    
+    @GetMapping("/process/definitions/process-keys/{proc-def-key}/root-entities")
+    public CommonResponseDto getProcessDefinitionRootEntitiesByProcDefKey(@PathVariable("proc-def-key") String procDefKey) {
+
+        List<Map<String, Object>> result = workflowDataService.getProcessDefinitionRootEntitiesByProcDefKey(procDefKey);
         return CommonResponseDto.okayWithData(result);
     }
 
@@ -199,7 +205,7 @@ public class WorkflowProcessDefinitionController {
             String jsonData = new String(StringUtilsEx.decodeBase64(filedata), Charset.forName("utf-8"));
             ProcDefInfoExportImportDto importDto = convertImportData(jsonData);
 
-            ProcDefInfoExportImportDto result = procDefMigrationService.importProcessDefinition(importDto);
+            ProcDefInfoDto result = procDefMigrationService.importProcessDefinition(importDto);
             return CommonResponseDto.okayWithData(result);
         } catch (IOException e) {
             log.error("errors while reading upload file", e);

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
@@ -41,6 +42,7 @@ import com.webank.wecube.platform.core.commons.ApplicationProperties.ResourcePro
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.ResourceItem;
 import com.webank.wecube.platform.core.domain.ResourceServer;
+import com.webank.wecube.platform.core.domain.SystemVariable;
 import com.webank.wecube.platform.core.domain.plugin.PluginInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginMysqlInstance;
 import com.webank.wecube.platform.core.domain.plugin.PluginPackage;
@@ -57,6 +59,7 @@ import com.webank.wecube.platform.core.jpa.PluginMysqlInstanceRepository;
 import com.webank.wecube.platform.core.jpa.PluginPackageRepository;
 import com.webank.wecube.platform.core.jpa.ResourceItemRepository;
 import com.webank.wecube.platform.core.jpa.ResourceServerRepository;
+import com.webank.wecube.platform.core.propenc.RsaEncryptor;
 import com.webank.wecube.platform.core.service.CommandService;
 import com.webank.wecube.platform.core.service.ScpService;
 import com.webank.wecube.platform.core.service.SystemVariableService;
@@ -76,6 +79,9 @@ import com.webank.wecube.platform.core.utils.SystemUtils;
 @Service
 public class PluginInstanceService {
     private static final Logger logger = LoggerFactory.getLogger(PluginInstanceService.class);
+    
+    private static final String PLUGIN_PROP_ENC_KEY_FILE_PATH = "/certs/plugin_rsa_key.pub";
+    private static final String SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH = "PLUGIN_PROP_ENC_KEY_SWITCH";
 
     @Autowired
     private PluginProperties pluginProperties;
@@ -577,7 +583,7 @@ public class PluginInstanceService {
 
             envVariablesString = envVariablesString.replace("{{DB_HOST}}", dbInfo.getHost())
                     .replace("{{DB_PORT}}", dbInfo.getPort()).replace("{{DB_SCHEMA}}", dbInfo.getSchema())
-                    .replace("{{DB_USER}}", dbInfo.getUser()).replace("{{DB_PWD}}", password);
+                    .replace("{{DB_USER}}", dbInfo.getUser()).replace("{{DB_PWD}}", tryEncryptPasswordAsPluginEnv(password));
         }
         logger.info("before replace envVariablesString=" + envVariablesString);
         envVariablesString = replaceJwtSigningKey(envVariablesString);
@@ -610,6 +616,74 @@ public class PluginInstanceService {
         if (!response.getStatus().equals(GatewayResponse.getStatusCodeOk())) {
             logger.error("Launch instance has done, but register routing information is failed, please check");
         }
+    }
+    
+    private String tryEncryptPasswordAsPluginEnv(String rawPassword) {
+        if(StringUtils.isBlank(rawPassword)) {
+            return rawPassword;
+        }
+        
+        List<SystemVariable> pluginPropEncKeyFileSysVars = systemVariableService.getGlobalSystemVariableByName(SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
+        String propEncSwitchOn = "on";
+        String propEncSwitchOnConfig = null;
+        if(pluginPropEncKeyFileSysVars != null && !pluginPropEncKeyFileSysVars.isEmpty()) {
+            SystemVariable pluginPropEncKeyFileSysVar = pluginPropEncKeyFileSysVars.get(0);
+            propEncSwitchOnConfig = pluginPropEncKeyFileSysVar.getValue();
+            if(StringUtils.isBlank(propEncSwitchOnConfig)) {
+                propEncSwitchOnConfig = pluginPropEncKeyFileSysVar.getDefaultValue();
+            }
+        }
+        
+        if(!StringUtils.isBlank(propEncSwitchOnConfig)) {
+            propEncSwitchOn = propEncSwitchOnConfig;
+        }
+        
+        if("off".equalsIgnoreCase(propEncSwitchOn)) {
+            logger.info("property encryption was switched off by system variable:{}", SYS_VAR_PLUGIN_PROP_ENC_KEY_SWITCH);
+            return rawPassword;
+        }
+        
+        File rsaPubKeyFile = new File(PLUGIN_PROP_ENC_KEY_FILE_PATH);
+        if(!rsaPubKeyFile.exists()) {
+            logger.info("plugin property encryption not applied as file not exist.Filepath={}", PLUGIN_PROP_ENC_KEY_FILE_PATH);
+            return rawPassword;
+        }
+        
+        String rsaPubKeyAsString = null;
+        try (FileInputStream input = new FileInputStream(rsaPubKeyFile)) {
+            rsaPubKeyAsString = readInputStream(input);
+        } catch (IOException e) {
+            logger.info("errors while reading public key", e);
+        }
+        
+        if(StringUtils.isBlank(rsaPubKeyAsString)) {
+            logger.info("plugin property encryption not applied as key not available.Filepath={}", PLUGIN_PROP_ENC_KEY_FILE_PATH);
+            return rawPassword;
+        }
+        
+        byte[] cipheredPasswordData = RsaEncryptor.encryptByPublicKey(rawPassword.getBytes(Charset.forName(RsaEncryptor.DEF_ENCODING)), rsaPubKeyAsString);
+        String cipheredPassword = RsaEncryptor.encodeBase64String(cipheredPasswordData);
+        return "RSA@"+cipheredPassword;
+    }
+    
+    private String readInputStream(InputStream inputStream) throws IOException {
+
+        if (inputStream == null) {
+            throw new IllegalArgumentException();
+        }
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, RsaEncryptor.DEF_CHARSET));
+        String sLine = null;
+        StringBuilder content = new StringBuilder();
+        while ((sLine = br.readLine()) != null) {
+            if (sLine.startsWith("-")) {
+                continue;
+            }
+
+            content.append(sLine.trim());
+        }
+
+        return content.toString();
     }
 
     private String replaceJwtSigningKey(String envVariablesString) {
