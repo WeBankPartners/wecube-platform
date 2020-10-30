@@ -3,6 +3,10 @@
     <Header>
       <div class="menus">
         <Menu mode="horizontal" theme="dark">
+          <div>
+            <img src="../../assets/logo_WeCube.png" alt="LOGO" @click="goHome" class="img-logo" />
+          </div>
+
           <div v-for="menu in menus" :key="menu.code">
             <MenuItem v-if="menu.submenus.length < 1" :name="menu.title" style="cursor: not-allowed;">
               {{ menu.title }}
@@ -114,7 +118,6 @@ import Vue from 'vue'
 import { getMyMenus, getAllPluginPackageResourceFiles, getApplicationVersion, changePassword } from '@/api/server.js'
 import { getChildRouters } from '../util/router.js'
 import { MENUS } from '../../const/menus.js'
-
 export default {
   data () {
     return {
@@ -159,6 +162,9 @@ export default {
       } else {
         this.version = window.localStorage.getItem('wecube_version') || ''
       }
+    },
+    goHome () {
+      this.$router.push('/homepage')
     },
     changeDocs (url) {
       window.open(this.$t(url))
@@ -270,7 +276,6 @@ export default {
         this.$Notice.info({
           title: this.$t('notification_desc')
         })
-
         const eleContain = document.getElementsByTagName('body')
         let script = {}
         data.forEach(file => {
@@ -333,9 +338,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.img-logo {
+  height: 20px;
+  margin: 0 4px 6px 0;
+  vertical-align: middle;
+  cursor: pointer;
+}
 .header {
   display: flex;
-
   .ivu-layout-header {
     height: 50px;
     line-height: 50px;
@@ -343,24 +353,20 @@ export default {
   a {
     color: white;
   }
-
   .menus {
     display: inline-block;
     .ivu-menu-horizontal {
       height: 50px;
       line-height: 50px;
       display: flex;
-
       .ivu-menu-submenu {
         padding: 0 10px;
         font-size: 15px;
       }
-
       .ivu-menu-item {
         font-size: 15px;
       }
     }
-
     .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu {
       color: #fff;
     }
@@ -372,7 +378,6 @@ export default {
     .ivu-menu-dark.ivu-menu-horizontal .ivu-menu-submenu:hover {
       color: #fff;
     }
-
     .ivu-menu-drop-list {
       .ivu-menu-item-active,
       .ivu-menu-item:hover {
@@ -380,10 +385,8 @@ export default {
       }
     }
   }
-
   .header-right_container {
     float: right;
-
     .language,
     .help,
     .version,
