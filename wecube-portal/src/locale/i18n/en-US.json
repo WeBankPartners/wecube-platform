@@ -303,6 +303,7 @@
   "create_orch": "Create",
   "select_orch": "Orchestrations",
   "target_object": "Target",
+  "workflow_exec_empty_tip": "Please Select Orchestrations And Target!",
   "create_job": "Create Orchestrations Job",
   "no_plugin": "No Services",
   "target_type": "Target Type",
@@ -448,5 +449,6 @@
   "best_practices": "Best Practices",
   "config_permission": "Permission",
   "batch_regist": "Batch Regist",
-  "modal_close": "Close"
+  "modal_close": "Close",
+  "reset_password": "Reset Password"
 }

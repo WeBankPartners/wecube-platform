@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.webank.wecube.platform.core.dto.CommonResponseDto;
 import com.webank.wecube.platform.core.dto.event.OperationEventDto;
+import com.webank.wecube.platform.core.dto.event.OperationEventResultDto;
 import com.webank.wecube.platform.core.service.event.OperationEventManagementService;
 
 @RestController
@@ -27,12 +28,12 @@ public class OperationEventController {
         if (log.isInfoEnabled()) {
             log.info("About reporting operation event:{}", eventDto);
         }
-        operationEventManagementService.reportOperationEvent(eventDto);
+        OperationEventResultDto result = operationEventManagementService.reportOperationEvent(eventDto);
 
         if (log.isInfoEnabled()) {
             log.info("Finished reporting operation event:{}", eventDto);
         }
-        return CommonResponseDto.okay();
+        return CommonResponseDto.okayWithData(result);
     }
 
     @GetMapping("/source-sub-systems/{sub-system-code}/operation-events/{event-seq-no}")
