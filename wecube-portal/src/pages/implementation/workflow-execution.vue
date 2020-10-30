@@ -5,7 +5,14 @@
         <Col span="20">
           <Form v-if="isEnqueryPage" label-position="left">
             <FormItem :label-width="150" :label="$t('orchs')">
-              <Select v-model="selectedFlowInstance" style="width:60%" filterable>
+              <Select
+                v-model="selectedFlowInstance"
+                style="width:60%"
+                class="reset-select"
+                filterable
+                clearable
+                @on-clear="clearHistoryOrch"
+              >
                 <Option
                   v-for="item in allFlowInstances"
                   :value="item.id"
@@ -53,6 +60,8 @@
                     @on-change="orchestrationSelectHandler"
                     @on-open-change="getAllFlow"
                     filterable
+                    clearable
+                    @on-clear="clearFlow"
                   >
                     <Option v-for="item in allFlows" :value="item.procDefId" :key="item.procDefId">{{
                       item.procDefName + ' ' + item.createdTime
@@ -61,7 +70,6 @@
                 </FormItem>
               </Form>
             </div>
-
             <div class="graph-container" id="flow" style="height:90%"></div>
             <Button class="reset-button" size="small" @click="ResetFlow">ResetZoom</Button>
           </Col>
@@ -77,6 +85,8 @@
                     @on-change="onTargetSelectHandler"
                     @on-open-change="getTargetOptions"
                     filterable
+                    clearable
+                    @on-clear="clearTarget"
                   >
                     <Option v-for="item in allTarget" :value="item.id" :key="item.id">{{ item.key_name }}</Option>
                   </Select>
@@ -448,7 +458,12 @@ export default {
         })
       }
     },
-
+    clearFlow () {
+      d3.select('#flow')
+        .selectAll('*')
+        .remove()
+      this.clearTarget()
+    },
     orchestrationSelectHandler () {
       this.currentFlowNodeId = ''
       this.currentModelNodeRefs = []
@@ -467,6 +482,17 @@ export default {
       if (status === 'OK') {
         this.allTarget = data
       }
+    },
+    clearHistoryOrch () {
+      this.stop()
+      this.selectedFlow = ''
+      this.selectedTarget = ''
+      d3.select('#flow')
+        .selectAll('*')
+        .remove()
+      d3.select('#graph')
+        .selectAll('*')
+        .remove()
     },
     queryHandler () {
       this.stop()
@@ -521,7 +547,14 @@ export default {
         this.initFlowGraph()
       })
     },
+    clearTarget () {
+      this.selectedTarget = ''
+      d3.select('#graph')
+        .selectAll('*')
+        .remove()
+    },
     onTargetSelectHandler () {
+      if (!this.selectedTarget) return
       this.currentModelNodeRefs = []
       this.getModelData()
     },
@@ -576,13 +609,39 @@ export default {
         let color = _.isHighlight ? '#5DB400' : 'black'
         // const isRecord = _.refFlowNodeIds.length > 0
         // const shape = isRecord ? 'ellipse' : 'ellipse'
+        let fillcolor = 'white'
+        _.refFlowNodeIds.sort((a, b) => {
+          if (a * 1 < b * 1) {
+            return -1
+          }
+          if (a * 1 > b * 1) {
+            return 1
+          }
+          return 0
+        })
+        let refNodes = []
+        let completedNodes = []
+        _.refFlowNodeIds.forEach(id => {
+          const node = this.flowData.flowNodes.find(_ => _.orderedNo === id)
+          refNodes.push(node)
+        })
+        completedNodes = refNodes.filter(_ => _.status === 'Completed')
+        const completedNodesLen = completedNodes.length
+        const refNodesLen = refNodes.length
+        if (completedNodesLen === refNodesLen && refNodesLen !== 0) {
+          fillcolor = '#5DB400'
+        }
+
+        if (completedNodesLen > 0 && completedNodesLen < refNodesLen) {
+          fillcolor = '#3C83F8'
+        }
         const str = _.displayName || _.dataId
         const refStr = _.refFlowNodeIds.toString().replace(/,/g, '/')
         // const len = refStr.length - _.displayName.length > 0 ? refStr.length : _.displayName.length
-        const firstLabel = str.length > 15 ? `${str.slice(0, 1)}...${str.slice(-14)}` : str
+        const firstLabel = str.length > 30 ? `${str.slice(0, 1)}...${str.slice(-29)}` : str
         // const fontSize = Math.min((58 / len) * 3, 16)
         const label = firstLabel + '\n' + refStr
-        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" style="filled" fillcolor="white" shape="box"]`
+        return `${nodeId} [label="${label}" class="model" id="${nodeId}" color="${color}" fontsize="6" style="filled" fillcolor="${fillcolor}" shape="box"]`
       })
       let genEdge = () => {
         let pathAry = []
@@ -777,6 +836,10 @@ export default {
         this.processInstance()
         this.showExcution = false
       } else {
+        if (!this.selectedTarget || !this.selectedFlow) {
+          this.$Message.warning(this.$t('workflow_exec_empty_tip'))
+          return
+        }
         this.isExecuteActive = true
         const currentTarget = this.allTarget.find(_ => _.id === this.selectedTarget)
         let taskNodeBinds = []
@@ -851,6 +914,7 @@ export default {
           removeEvent('.retry', 'click', this.retryHandler)
           removeEvent('.normal', 'click', this.normalHandler)
           this.initFlowGraph(true)
+          this.renderModelGraph()
         }
         if (data.status === 'Completed') {
           this.stop()
@@ -861,7 +925,7 @@ export default {
       let isNew = false
       newData.forEach(_ => {
         const found = old.find(d => d.nodeId === _.nodeId)
-        if (found.status !== _.status) {
+        if (found && found.status !== _.status) {
           isNew = true
         }
       })
@@ -1086,9 +1150,17 @@ export default {
   }
 }
 </script>
+<style lang="scss">
+.ivu-select-dropdown {
+  max-height: 340px !important;
+}
+</style>
 <style lang="scss" scoped>
 body {
   color: #e5f173; //#15a043;
+}
+.pages /deep/ .ivu-select-dropdown {
+  height: 500px !important;
 }
 .header-icon {
   margin: 3px 40px 0 0 !important;
