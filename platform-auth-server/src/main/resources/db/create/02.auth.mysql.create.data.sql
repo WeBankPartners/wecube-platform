@@ -80,7 +80,7 @@ values('2c9280836f78a84b016f794ff45e0006','system','2020-01-06 13:24:40',NULL,NU
 insert  into `auth_sys_role`(`id`,`created_by`,`created_time`,`updated_by`,`updated_time`,`is_active`,`is_deleted`,`description`,`display_name`,`email_addr`,`name`) 
 values('2c9280836f78a84b016f795068870007','system','2020-01-06 13:25:10',NULL,NULL,b'1',b'0','基础架构运维人员','基础架构运维人员',NULL,'IFA_OPS');
 insert into `auth_sys_role`(`id`, `created_by`, `created_time`, `updated_by`, `updated_time`, `is_active`, `is_deleted`, `description`, `display_name`, `email_addr`, `name`) 
-values ('8ab86ba0723a78fe01723a790ceb0000', 'system', '2020-5-22 11:48:37', NULL, NULL, b'1',b'0', '子系统', '子系统', NULL, 'SUB_SYSTEM');
+values ('8ab86ba0723a78fe01723a790ceb0000', 'system', '2020-5-22 11:48:37', NULL, NULL, b'1',b'0', '用来作为WeCube组件间权限认证', '后台系统', NULL, 'SUB_SYSTEM');
 
 delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28b10001f';
 delete from `auth_sys_role_authority` where `id`='2c9280827019695c017019c28b140021';
