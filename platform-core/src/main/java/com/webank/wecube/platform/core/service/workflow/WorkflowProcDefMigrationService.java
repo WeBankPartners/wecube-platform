@@ -44,7 +44,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
     @Autowired
     private TaskNodeParamRepository taskNodeParamRepo;
     
-    public ProcDefInfoExportImportDto importProcessDefinition(ProcDefInfoExportImportDto importDto) {
+    public ProcDefInfoDto importProcessDefinition(ProcDefInfoExportImportDto importDto) {
         if (importDto == null) {
             throw new WecubeCoreException("3131","Invalid import data.");
         }
@@ -64,7 +64,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         draftEntity.setRootEntity(importDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
 
-        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.save(draftEntity);
+        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.saveAndFlush(draftEntity);
         log.info("process definition saved with id:{}", savedProcDefInfoDraftEntity.getId());
         String currentUsername = AuthenticationContextHolder.getCurrentUsername();
         List<String> roleIds = userManagementService.getRoleIdsByUsername(currentUsername);
@@ -138,7 +138,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
             }
         }
 
-        return result;
+        return doGetProcessDefinition(savedProcDefInfoDraftEntity.getId());
 
     }
 

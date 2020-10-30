@@ -59,8 +59,6 @@ import com.webank.wecube.platform.core.support.plugin.PluginInvocationRestClient
 @Service
 public class PluginInvocationService extends AbstractPluginInvocationService {
 
-    private static final String IS_SENSITIVE_ATTR = "Y";
-
     @Autowired
     private PluginInvocationRestClient pluginInvocationRestClient;
 
@@ -87,6 +85,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
     @Autowired
     private WorkflowProcInstEndEventNotifier workflowProcInstEndEventNotifier;
+    
 
     public void handleProcessInstanceEndEvent(PluginInvocationCommand cmd) {
         if (log.isInfoEnabled()) {
@@ -459,8 +458,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         if (!MAPPING_TYPE_CONTEXT.equals(mappingType)) {
             return;
         }
-        // TODO #1993
-        // FIXME
+        // #1993
         String curTaskNodeDefId = taskNodeDefEntity.getId();
         TaskNodeParamEntity nodeParamEntity = taskNodeParamRepository
                 .findOneByTaskNodeDefIdAndParamName(curTaskNodeDefId, paramName);
@@ -500,14 +498,37 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             String paramName, ProcInstInfoEntity procInstEntity, PluginConfigInterfaceParameter param, String paramType,
             List<Object> objectVals, TaskNodeInstInfoEntity bindNodeInstEntity, String bindParamName,
             String bindParamType) {
-        // TODO
+        // #1993
+        //1
+        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_KEY.equals(bindParamName)){
+            String procDefKey = procInstEntity.getProcDefKey();
+            objectVals.add(procDefKey);
+            return;
+        }
+        
+        //2
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_DEF_NAME.equals(bindParamName)) {
             String procDefName = procInstEntity.getProcDefName();
             objectVals.add(procDefName);
 
             return;
         }
+        
+        //3
+        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_ID.equals(bindParamName)){
+            String procInstId = String.valueOf(procInstEntity.getId());
+            objectVals.add(procInstId);
+            return;
+        }
+        
+        //4
+        if(LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_KEY.equals(bindParamName)){
+            String procInstKey = procInstEntity.getProcInstKey();
+            objectVals.add(procInstKey);
+            return;
+        }
 
+        //5
         if (LocalWorkflowConstants.CONTEXT_NAME_PROC_INST_NAME.equals(bindParamName)) {
             ProcExecBindingEntity procExecBindingEntity = procExecBindingRepository
                     .findProcInstBindings(procInstEntity.getId());
@@ -522,6 +543,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             return;
         }
 
+        //6
         if (LocalWorkflowConstants.CONTEXT_NAME_ROOT_ENTITY_NAME.equals(bindParamName)) {
             //
 
@@ -661,6 +683,10 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         for (TaskNodeExecParamEntity e : execParamEntities) {
+            String paramDataValue = e.getParamDataValue();
+            if(e.getSensitive() != null && e.getSensitive() == true){
+                paramDataValue = tryDecodeParamDataValue(paramDataValue);
+            }
             retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
         }
 
@@ -840,7 +866,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 e.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
                 e.setParamDataType(attr.getType());
                 e.setObjectId(sObjectId);
-                e.setParamDataValue(attr.getExpectedValue() == null ? null : attr.getExpectedValue().toString());
+                e.setParamDataValue(tryCalculateParamDataValue(attr));
                 e.setEntityDataId(entityDataId);
                 e.setEntityTypeId(entityTypeId);
 
@@ -858,6 +884,20 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         return pluginParameters;
     }
+    
+    private String tryCalculateParamDataValue(InputParamAttr attr){
+        if(attr.getExpectedValue() == null){
+            return null;
+        }
+        
+        String dataValue = attr.getExpectedValue().toString();
+        if(attr.isSensitive()){
+            dataValue = tryEncodeParamDataValue(dataValue);
+        }
+        
+        return dataValue;
+    }
+    
 
     private PluginInstance retrieveAvailablePluginInstance(PluginConfigInterface itf) {
         PluginConfig config = itf.getPluginConfig();
@@ -1044,6 +1084,12 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 paramDataType = p.getDataType();
                 isSensitiveData = (IS_SENSITIVE_ATTR.equalsIgnoreCase(p.getSensitiveData()));
             }
+            
+            String paramDataValue = trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE);
+            
+            if(isSensitiveData){
+                paramDataValue = tryEncodeParamDataValue(paramDataValue);
+            }
 
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
@@ -1052,8 +1098,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
             paramEntity.setParamDataType(paramDataType);
-            paramEntity.setParamDataValue(
-                    trimExceedParamValue(asString(entry.getValue(), paramDataType), MAX_PARAM_VAL_SIZE));
+            paramEntity.setParamDataValue(paramDataValue);
             paramEntity.setRequestId(requestId);
             paramEntity.setSensitive(isSensitiveData);
 

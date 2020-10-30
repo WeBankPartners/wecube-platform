@@ -224,6 +224,13 @@ public class AuthServerRestClient extends AbstractAuthServerRestClient {
                 });
         return result;
     }
+    
+    public String resetUserPassword(AsUserPassDto asUserPassDto) {
+        String result = postForObject(clientProperties.getPathUserResetPassword(), asUserPassDto,
+                new ParameterizedTypeReference<AuthServerRestResponseDto<String>>() {
+                });
+        return result;
+    }
 
     @Override
     protected Logger getLogger() {

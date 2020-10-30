@@ -18,6 +18,7 @@ import com.webank.wecube.platform.core.dto.user.RoleDto;
 import com.webank.wecube.platform.core.dto.user.RoleMenuDto;
 import com.webank.wecube.platform.core.dto.user.UserDto;
 import com.webank.wecube.platform.core.dto.user.UserPasswordDto;
+import com.webank.wecube.platform.core.dto.user.UserPasswordResetDto;
 import com.webank.wecube.platform.core.service.user.RoleMenuServiceImpl;
 import com.webank.wecube.platform.core.service.user.UserManagementService;
 
@@ -41,6 +42,13 @@ public class UserManagementController {
     public CommonResponseDto changeUserPassword(@RequestBody UserPasswordDto userPassDto){
         userManagementService.changeUserPassword(userPassDto);
         return CommonResponseDto.okay();
+    }
+    
+    @PostMapping("/users/reset-password")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN')")
+    public CommonResponseDto resetUserPassword(@RequestBody UserPasswordResetDto userPassResetDto){
+        String password = userManagementService.resetUserPassword(userPassResetDto);
+        return CommonResponseDto.okayWithData(password);
     }
 
     @GetMapping("/users/retrieve")

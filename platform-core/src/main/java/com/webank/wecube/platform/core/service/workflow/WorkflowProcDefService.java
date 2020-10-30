@@ -1,6 +1,8 @@
 package com.webank.wecube.platform.core.service.workflow;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -34,9 +36,6 @@ import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.jpa.PluginAuthRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 import com.webank.wecube.platform.core.utils.CollectionUtils;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
@@ -47,15 +46,6 @@ import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 @Service
 public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcDefService.class);
-
-    @Autowired
-    private ProcDefInfoRepository processDefInfoRepo;
-
-    @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepo;
-
-    @Autowired
-    private TaskNodeParamRepository taskNodeParamRepo;
 
     @Autowired
     private WorkflowEngineService workflowEngineService;
@@ -121,7 +111,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return result;
         }
 
-        // TODO #1993
+        //  #1993
         nodeEntities.forEach(e -> {
             if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(e.getNodeType())
                     || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equalsIgnoreCase(e.getNodeType())
@@ -222,49 +212,14 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     }
 
     public ProcDefInfoDto getProcessDefinition(String id) {
-        Optional<ProcDefInfoEntity> procDefEntityOptional = processDefInfoRepo.findById(id);
-        if (!procDefEntityOptional.isPresent()) {
-            log.debug("cannot find process def with id {}", id);
-            return null;
+        if(StringUtils.isBlank(id)) {
+            throw new WecubeCoreException("3207", "Invalid process definition id");
         }
-
-        ProcDefInfoEntity procDefEntity = procDefEntityOptional.get();
-
-        ProcDefInfoDto result = procDefInfoDtoFromEntity(procDefEntity);
-        result.setProcDefData(procDefEntity.getProcDefData());
-
-        List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.findAllByProcDefId(id);
-        for (TaskNodeDefInfoEntity e : taskNodeDefEntities) {
-            TaskNodeDefInfoDto tdto = taskNodeDefInfoDtoFromEntity(e);
-
-            List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo.findAllByProcDefIdAndTaskNodeDefId(id,
-                    e.getId());
-
-            for (TaskNodeParamEntity tnpe : taskNodeParamEntities) {
-                TaskNodeDefParamDto pdto = taskNodeDefParamDtoFromEntity(tnpe);
-
-                tdto.addParamInfos(pdto);
-            }
-
-            result.addTaskNodeInfo(tdto);
-        }
+        ProcDefInfoDto result = doGetProcessDefinition(id);
 
         return result;
     }
-
-    private ProcDefInfoDto procDefInfoDtoFromEntity(ProcDefInfoEntity procDefEntity) {
-        ProcDefInfoDto result = new ProcDefInfoDto();
-        result.setProcDefId(procDefEntity.getId());
-        result.setProcDefKey(procDefEntity.getProcDefKey());
-        result.setProcDefName(procDefEntity.getProcDefName());
-        result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVersion()));
-        result.setRootEntity(procDefEntity.getRootEntity());
-        result.setStatus(procDefEntity.getStatus());
-        // result.setProcDefData(procDefEntity.getProcDefData());
-        result.setCreatedTime(formatDate(procDefEntity.getCreatedTime()));
-
-        return result;
-    }
+    
 
     public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permissionStr) {
         List<String> currentUserRoleNameList = new ArrayList<>(
@@ -298,6 +253,23 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             ProcDefInfoDto dto = procDefInfoDtoFromEntity(e);
             procDefInfoDtos.add(dto);
 
+        });
+        
+        Collections.sort(procDefInfoDtos, new Comparator<ProcDefInfoDto>(){
+
+            @Override
+            public int compare(ProcDefInfoDto o1, ProcDefInfoDto o2) {
+                String o1Name = o1.getProcDefName();
+                String o2Name = o2.getProcDefName();
+                
+                if(o1Name == null){
+                    return -1;
+                }
+                
+                
+                return o1Name.compareTo(o2Name);
+            }
+            
         });
         return procDefInfoDtos;
     }
@@ -392,7 +364,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         TaskNodeDefInfoDto startEventNodeDto = null;
 
-        // TODO #1993
+        // #1993
         for (TaskNodeDefInfoDto nodeDto : procDefDto.getTaskNodeInfos()) {
             String nodeOid = nodeDto.getNodeDefId();
             TaskNodeDefInfoEntity draftNodeEntity = tryFindDraftNodeEntity(nodeOid);
