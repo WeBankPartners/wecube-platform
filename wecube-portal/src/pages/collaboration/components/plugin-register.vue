@@ -67,11 +67,13 @@
             </Col>
             <Col span="12" v-if="hidePanal" offset="0">
               <FormItem :label-width="100" :label="$t('target_type')">
-                <FilterRules
-                  v-model="selectedEntityType"
-                  :disabled="currentPluginObj.status === 'ENABLED'"
-                  :allDataModelsWithAttrs="allEntityType"
-                ></FilterRules>
+                <span @click="getAllDataModels">
+                  <FilterRules
+                    v-model="selectedEntityType"
+                    :disabled="currentPluginObj.status === 'ENABLED'"
+                    :allDataModelsWithAttrs="allEntityType"
+                  ></FilterRules>
+                </span>
               </FormItem>
             </Col>
           </Row>
