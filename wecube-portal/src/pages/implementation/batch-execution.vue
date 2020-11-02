@@ -450,7 +450,6 @@ import {
   dmeAllEntities,
   dmeIntegratedQuery,
   entityView,
-  getFilteredPluginInterfaceList,
   batchExecution,
   getAllCollections,
   deleteCollections,
@@ -459,7 +458,8 @@ import {
   deleteCollectionsRole,
   addCollectionsRole,
   saveBatchExecution,
-  updateCollections
+  updateCollections,
+  getPluginsByTargetEntityFilterRule
 } from '@/api/server.js'
 
 export default {
@@ -1173,10 +1173,37 @@ export default {
       this.pluginId = null
     },
     async getFilteredPluginInterfaceList () {
-      const { status, data } = await getFilteredPluginInterfaceList(this.currentPackageName, this.currentEntityName)
+      let pkg = ''
+      let entity = ''
+      let payload = {}
+      // eslint-disable-next-line no-useless-escape
+      const pathList = this.dataModelExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
+      const last = pathList[pathList.length - 1]
+      const index = pathList[pathList.length - 1].indexOf('{')
+      const isBy = last.indexOf(')')
+      const current = last.split(':')
+      const ruleIndex = current[1].indexOf('{')
+      if (isBy > 0) {
+        entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
+        pkg = current[0].split(')')[1]
+      } else {
+        entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
+        pkg = last.match(/[^>]+(?=:)/)[0]
+      }
+      payload = {
+        pkgName: pkg,
+        entityName: entity,
+        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+      }
+      const { status, data } = await await getPluginsByTargetEntityFilterRule(payload)
       if (status === 'OK') {
         this.filteredPlugins = data
       }
+
+      // const { status, data } = await getFilteredPluginInterfaceList(this.currentPackageName, this.currentEntityName)
+      // if (status === 'OK') {
+      //   this.filteredPlugins = data
+      // }
     },
     async excuteBatchAction () {
       let requestBody = {}
@@ -1338,10 +1365,34 @@ export default {
       this.selectedCollectionId = null
     },
     async changePlugin () {
-      const { status, data } = await getFilteredPluginInterfaceList(
-        this.activeExecuteHistory.requestBody.packageName,
-        this.activeExecuteHistory.requestBody.entityName
-      )
+      let pkg = ''
+      let entity = ''
+      let payload = {}
+      // eslint-disable-next-line no-useless-escape
+      const pathList = this.dataModelExpression.split(/[.~]+(?=[^\}]*(\{|$))/).filter(p => p.length > 1)
+      const last = pathList[pathList.length - 1]
+      const index = pathList[pathList.length - 1].indexOf('{')
+      const isBy = last.indexOf(')')
+      const current = last.split(':')
+      const ruleIndex = current[1].indexOf('{')
+      if (isBy > 0) {
+        entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
+        pkg = current[0].split(')')[1]
+      } else {
+        entity = ruleIndex > 0 ? current[1].slice(0, ruleIndex) : current[1]
+        pkg = last.match(/[^>]+(?=:)/)[0]
+      }
+      payload = {
+        pkgName: pkg,
+        entityName: entity,
+        targetEntityFilterRule: index > 0 ? pathList[pathList.length - 1].slice(index) : ''
+      }
+      const { status, data } = await await getPluginsByTargetEntityFilterRule(payload)
+
+      // const { status, data } = await getFilteredPluginInterfaceList(
+      //   this.activeExecuteHistory.requestBody.packageName,
+      //   this.activeExecuteHistory.requestBody.entityName
+      // )
       if (status === 'OK') {
         this.filteredPlugins = data
         // this.selectedPluginParams = []
