@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -22,7 +21,7 @@ import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
@@ -33,7 +32,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcDefMigrationService.class);
     
     @Autowired
-    private ProcDefInfoRepository processDefInfoRepo;
+    private ProcDefInfoMapper processDefInfoRepo;
 
     @Autowired
     private TaskNodeDefInfoRepository taskNodeDefInfoRepo;
@@ -64,8 +63,8 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         draftEntity.setRootEntity(importDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
 
-        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.saveAndFlush(draftEntity);
-        log.info("process definition saved with id:{}", savedProcDefInfoDraftEntity.getId());
+        processDefInfoRepo.insert(draftEntity);
+        log.info("process definition saved with id:{}", draftEntity.getId());
         String currentUsername = AuthenticationContextHolder.getCurrentUsername();
         List<String> roleIds = userManagementService.getRoleIdsByUsername(currentUsername);
         Map<String, List<String>> roleBinds = new HashMap<>();
@@ -74,7 +73,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         ProcDefInfoDto tmpProcDefInfoDto = new ProcDefInfoDto();
         tmpProcDefInfoDto.setPermissionToRole(roleBinds);
 
-        this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), tmpProcDefInfoDto);
+        this.saveProcRoleBinding(draftEntity.getId(), tmpProcDefInfoDto);
 
         result.setProcDefData(draftEntity.getProcDefData());
         result.setProcDefKey(draftEntity.getProcDefKey());
@@ -138,7 +137,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
             }
         }
 
-        return doGetProcessDefinition(savedProcDefInfoDraftEntity.getId());
+        return doGetProcessDefinition(draftEntity.getId());
 
     }
 
@@ -147,14 +146,12 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
             throw new WecubeCoreException("3132","Process definition id is blank.");
         }
 
-        Optional<ProcDefInfoEntity> procDefOpt = processDefInfoRepo.findById(procDefId);
+        ProcDefInfoEntity procDef = processDefInfoRepo.selectByPrimaryKey(procDefId);
 
-        if (!procDefOpt.isPresent()) {
+        if (procDef == null) {
             log.error("such process definition does not exist:{}", procDefId);
             throw new WecubeCoreException("3133","Such process defintion does not exist.");
         }
-
-        ProcDefInfoEntity procDef = procDefOpt.get();
 
         if (!ProcDefInfoEntity.DEPLOYED_STATUS.equalsIgnoreCase(procDef.getStatus())) {
             log.error("unexpected process definition status,expected {} but {} for {}",
@@ -171,7 +168,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
         result.setProcDefData(procDef.getProcDefData());
         result.setProcDefKey(procDef.getProcDefKey());
         result.setProcDefName(procDef.getProcDefName());
-        result.setProcDefVersion(String.valueOf(procDef.getProcDefVersion()));
+        result.setProcDefVersion(String.valueOf(procDef.getProcDefVer()));
 
         List<TaskNodeDefInfoEntity> taskNodeDefEntities = taskNodeDefInfoRepo.findAllByProcDefId(procDef.getId());
         for (TaskNodeDefInfoEntity nodeEntity : taskNodeDefEntities) {
