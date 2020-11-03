@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webank.wecube.platform.core.jpa.workflow.CoreRuProcExecBindingTmpMapper">
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="bind_type" jdbcType="VARCHAR" property="bindType" />
+    <result column="is_bound" jdbcType="VARCHAR" property="isBound" />
+    <result column="entity_data_id" jdbcType="VARCHAR" property="entityDataId" />
+    <result column="entity_type_id" jdbcType="VARCHAR" property="entityTypeId" />
+    <result column="node_def_id" jdbcType="VARCHAR" property="nodeDefId" />
+    <result column="ordered_no" jdbcType="VARCHAR" property="orderedNo" />
+    <result column="proc_def_id" jdbcType="VARCHAR" property="procDefId" />
+    <result column="proc_session_id" jdbcType="VARCHAR" property="procSessionId" />
+    <result column="entity_data_name" jdbcType="VARCHAR" property="entityDataName" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, created_by, created_time, updated_by, updated_time, bind_type, is_bound, entity_data_id, 
+    entity_type_id, node_def_id, ordered_no, proc_def_id, proc_session_id, entity_data_name
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from core_ru_proc_exec_binding_tmp
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from core_ru_proc_exec_binding_tmp
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    insert into core_ru_proc_exec_binding_tmp (id, created_by, created_time, 
+      updated_by, updated_time, bind_type, 
+      is_bound, entity_data_id, entity_type_id, 
+      node_def_id, ordered_no, proc_def_id, 
+      proc_session_id, entity_data_name)
+    values (#{id,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{bindType,jdbcType=VARCHAR}, 
+      #{isBound,jdbcType=VARCHAR}, #{entityDataId,jdbcType=VARCHAR}, #{entityTypeId,jdbcType=VARCHAR}, 
+      #{nodeDefId,jdbcType=VARCHAR}, #{orderedNo,jdbcType=VARCHAR}, #{procDefId,jdbcType=VARCHAR}, 
+      #{procSessionId,jdbcType=VARCHAR}, #{entityDataName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    insert into core_ru_proc_exec_binding_tmp
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="updatedTime != null">
+        updated_time,
+      </if>
+      <if test="bindType != null">
+        bind_type,
+      </if>
+      <if test="isBound != null">
+        is_bound,
+      </if>
+      <if test="entityDataId != null">
+        entity_data_id,
+      </if>
+      <if test="entityTypeId != null">
+        entity_type_id,
+      </if>
+      <if test="nodeDefId != null">
+        node_def_id,
+      </if>
+      <if test="orderedNo != null">
+        ordered_no,
+      </if>
+      <if test="procDefId != null">
+        proc_def_id,
+      </if>
+      <if test="procSessionId != null">
+        proc_session_id,
+      </if>
+      <if test="entityDataName != null">
+        entity_data_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="bindType != null">
+        #{bindType,jdbcType=VARCHAR},
+      </if>
+      <if test="isBound != null">
+        #{isBound,jdbcType=VARCHAR},
+      </if>
+      <if test="entityDataId != null">
+        #{entityDataId,jdbcType=VARCHAR},
+      </if>
+      <if test="entityTypeId != null">
+        #{entityTypeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeDefId != null">
+        #{nodeDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="orderedNo != null">
+        #{orderedNo,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefId != null">
+        #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procSessionId != null">
+        #{procSessionId,jdbcType=VARCHAR},
+      </if>
+      <if test="entityDataName != null">
+        #{entityDataName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    update core_ru_proc_exec_binding_tmp
+    <set>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="bindType != null">
+        bind_type = #{bindType,jdbcType=VARCHAR},
+      </if>
+      <if test="isBound != null">
+        is_bound = #{isBound,jdbcType=VARCHAR},
+      </if>
+      <if test="entityDataId != null">
+        entity_data_id = #{entityDataId,jdbcType=VARCHAR},
+      </if>
+      <if test="entityTypeId != null">
+        entity_type_id = #{entityTypeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeDefId != null">
+        node_def_id = #{nodeDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="orderedNo != null">
+        ordered_no = #{orderedNo,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefId != null">
+        proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procSessionId != null">
+        proc_session_id = #{procSessionId,jdbcType=VARCHAR},
+      </if>
+      <if test="entityDataName != null">
+        entity_data_name = #{entityDataName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    update core_ru_proc_exec_binding_tmp
+    set created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      bind_type = #{bindType,jdbcType=VARCHAR},
+      is_bound = #{isBound,jdbcType=VARCHAR},
+      entity_data_id = #{entityDataId,jdbcType=VARCHAR},
+      entity_type_id = #{entityTypeId,jdbcType=VARCHAR},
+      node_def_id = #{nodeDefId,jdbcType=VARCHAR},
+      ordered_no = #{orderedNo,jdbcType=VARCHAR},
+      proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      proc_session_id = #{procSessionId,jdbcType=VARCHAR},
+      entity_data_name = #{entityDataName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="bind_type" jdbcType="VARCHAR" property="bindType" />
+    <result column="is_bound" jdbcType="VARCHAR" property="isBound" />
+    <result column="entity_data_id" jdbcType="VARCHAR" property="entityDataId" />
+    <result column="entity_type_id" jdbcType="VARCHAR" property="entityTypeId" />
+    <result column="node_def_id" jdbcType="VARCHAR" property="nodeDefId" />
+    <result column="ordered_no" jdbcType="VARCHAR" property="orderedNo" />
+    <result column="proc_def_id" jdbcType="VARCHAR" property="procDefId" />
+    <result column="proc_session_id" jdbcType="VARCHAR" property="procSessionId" />
+    <result column="entity_data_name" jdbcType="VARCHAR" property="entityDataName" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, created_by, created_time, updated_by, updated_time, bind_type, is_bound, entity_data_id, 
+    entity_type_id, node_def_id, ordered_no, proc_def_id, proc_session_id, entity_data_name
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from core_ru_proc_exec_binding_tmp
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from core_ru_proc_exec_binding_tmp
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    insert into core_ru_proc_exec_binding_tmp (id, created_by, created_time, 
+      updated_by, updated_time, bind_type, 
+      is_bound, entity_data_id, entity_type_id, 
+      node_def_id, ordered_no, proc_def_id, 
+      proc_session_id, entity_data_name)
+    values (#{id,jdbcType=INTEGER}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{bindType,jdbcType=VARCHAR}, 
+      #{isBound,jdbcType=VARCHAR}, #{entityDataId,jdbcType=VARCHAR}, #{entityTypeId,jdbcType=VARCHAR}, 
+      #{nodeDefId,jdbcType=VARCHAR}, #{orderedNo,jdbcType=VARCHAR}, #{procDefId,jdbcType=VARCHAR}, 
+      #{procSessionId,jdbcType=VARCHAR}, #{entityDataName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    insert into core_ru_proc_exec_binding_tmp
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="updatedTime != null">
+        updated_time,
+      </if>
+      <if test="bindType != null">
+        bind_type,
+      </if>
+      <if test="isBound != null">
+        is_bound,
+      </if>
+      <if test="entityDataId != null">
+        entity_data_id,
+      </if>
+      <if test="entityTypeId != null">
+        entity_type_id,
+      </if>
+      <if test="nodeDefId != null">
+        node_def_id,
+      </if>
+      <if test="orderedNo != null">
+        ordered_no,
+      </if>
+      <if test="procDefId != null">
+        proc_def_id,
+      </if>
+      <if test="procSessionId != null">
+        proc_session_id,
+      </if>
+      <if test="entityDataName != null">
+        entity_data_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="bindType != null">
+        #{bindType,jdbcType=VARCHAR},
+      </if>
+      <if test="isBound != null">
+        #{isBound,jdbcType=VARCHAR},
+      </if>
+      <if test="entityDataId != null">
+        #{entityDataId,jdbcType=VARCHAR},
+      </if>
+      <if test="entityTypeId != null">
+        #{entityTypeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeDefId != null">
+        #{nodeDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="orderedNo != null">
+        #{orderedNo,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefId != null">
+        #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procSessionId != null">
+        #{procSessionId,jdbcType=VARCHAR},
+      </if>
+      <if test="entityDataName != null">
+        #{entityDataName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    update core_ru_proc_exec_binding_tmp
+    <set>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="bindType != null">
+        bind_type = #{bindType,jdbcType=VARCHAR},
+      </if>
+      <if test="isBound != null">
+        is_bound = #{isBound,jdbcType=VARCHAR},
+      </if>
+      <if test="entityDataId != null">
+        entity_data_id = #{entityDataId,jdbcType=VARCHAR},
+      </if>
+      <if test="entityTypeId != null">
+        entity_type_id = #{entityTypeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeDefId != null">
+        node_def_id = #{nodeDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="orderedNo != null">
+        ordered_no = #{orderedNo,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefId != null">
+        proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procSessionId != null">
+        proc_session_id = #{procSessionId,jdbcType=VARCHAR},
+      </if>
+      <if test="entityDataName != null">
+        entity_data_name = #{entityDataName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuProcExecBindingTmp">
+    update core_ru_proc_exec_binding_tmp
+    set created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      bind_type = #{bindType,jdbcType=VARCHAR},
+      is_bound = #{isBound,jdbcType=VARCHAR},
+      entity_data_id = #{entityDataId,jdbcType=VARCHAR},
+      entity_type_id = #{entityTypeId,jdbcType=VARCHAR},
+      node_def_id = #{nodeDefId,jdbcType=VARCHAR},
+      ordered_no = #{orderedNo,jdbcType=VARCHAR},
+      proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      proc_session_id = #{procSessionId,jdbcType=VARCHAR},
+      entity_data_name = #{entityDataName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
