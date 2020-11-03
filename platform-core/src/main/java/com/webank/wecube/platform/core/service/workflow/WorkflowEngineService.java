@@ -50,8 +50,8 @@ import com.webank.wecube.platform.workflow.parse.BpmnCustomizationException;
 import com.webank.wecube.platform.workflow.parse.BpmnParseAttachment;
 import com.webank.wecube.platform.workflow.parse.BpmnProcessModelCustomizer;
 import com.webank.wecube.platform.workflow.parse.SubProcessAdditionalInfo;
-import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
-import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusMapper;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 /**
  * 
@@ -88,10 +88,10 @@ public class WorkflowEngineService {
     protected ManagementService managementService;
 
     @Autowired
-    protected ProcessInstanceStatusRepository processInstanceStatusRepository;
+    protected ProcessInstanceStatusMapper processInstanceStatusRepository;
 
     @Autowired
-    protected ServiceNodeStatusRepository serviceNodeStatusRepository;
+    protected ServiceNodeStatusMapper serviceNodeStatusRepository;
 
     @Autowired
     protected TaskService taskService;
@@ -270,8 +270,8 @@ public class WorkflowEngineService {
         String processInstanceId = null;
         String processDefinitionId = null;
         if (TraceStatus.Completed.equals(procInstStatusEntity.getStatus())) {
-            processInstanceId = procInstStatusEntity.getProcInstanceId();
-            processDefinitionId = procInstStatusEntity.getProcDefinitionId();
+            processInstanceId = procInstStatusEntity.getProcInstId();
+            processDefinitionId = procInstStatusEntity.getProcDefId();
         } else {
             ProcessInstance existProcInst = getProcessInstanceByProcInstId(procInstId);
 
@@ -304,7 +304,7 @@ public class WorkflowEngineService {
 
         ProcInstOutline result = new ProcInstOutline();
         result.setId(processInstanceId);
-        result.setProcInstKey(procInstStatusEntity.getProcInstanceBizKey());
+        result.setProcInstKey(procInstStatusEntity.getProcInstKey());
         result.setProcDefKernelId(procDef.getId());
         result.setProcDefKey(procDef.getKey());
         result.setProcDefName(procDef.getName());
