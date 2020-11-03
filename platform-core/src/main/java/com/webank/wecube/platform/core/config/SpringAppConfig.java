@@ -4,6 +4,8 @@ import com.webank.wecube.platform.core.parser.PluginPackageDataModelDtoValidator
 import com.webank.wecube.platform.core.parser.PluginPackageValidator;
 import com.webank.wecube.platform.core.support.RealS3Client;
 import com.webank.wecube.platform.core.support.S3Client;
+
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -37,6 +39,7 @@ import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
 @EnableJpaRepositories(basePackages = { "com.webank.wecube.platform.core" })
 @EnablePlatformWorkflowApplication
 @EnableEncryptableProperties
+@MapperScan(basePackages={"com.webank.wecube.platform.core.jpa"})
 public class SpringAppConfig {
 
     @Autowired
