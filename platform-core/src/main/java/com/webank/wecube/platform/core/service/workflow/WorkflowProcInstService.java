@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.jpa.workflow.GraphNodeRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingTmpRepository;
 import com.webank.wecube.platform.core.jpa.workflow.ProcInstInfoRepository;
@@ -36,7 +36,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private static final Logger log = LoggerFactory.getLogger(WorkflowProcInstService.class);
 
     @Autowired
-    private ProcDefInfoRepository processDefInfoRepository;
+    private ProcDefInfoMapper processDefInfoRepository;
 
     @Autowired
     private ProcInstInfoRepository procInstInfoRepository;
@@ -412,13 +412,12 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         String procDefId = requestDto.getProcDefId();
-        Optional<ProcDefInfoEntity> procDefInfoEntityOpt = processDefInfoRepository.findById(procDefId);
+        ProcDefInfoEntity procDefInfoEntity = processDefInfoRepository.selectByPrimaryKey(procDefId);
 
-        if (!procDefInfoEntityOpt.isPresent()) {
+        if (procDefInfoEntity == null) {
             throw new WecubeCoreException("3149", String.format("Invalid process definition ID:%s", procDefId));
         }
 
-        ProcDefInfoEntity procDefInfoEntity = procDefInfoEntityOpt.get();
         if (!ProcDefInfoEntity.DEPLOYED_STATUS.equals(procDefInfoEntity.getStatus())) {
             log.warn("expected status {} but {} for procDefId {}", ProcDefInfoEntity.DEPLOYED_STATUS,
                     procDefInfoEntity.getStatus(), procDefId);

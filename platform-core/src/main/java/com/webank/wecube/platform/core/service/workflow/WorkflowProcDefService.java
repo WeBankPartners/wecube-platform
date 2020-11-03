@@ -61,14 +61,12 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             throw new WecubeCoreException("3205", "Process definition id is blank.");
         }
 
-        Optional<ProcDefInfoEntity> procDefOpt = processDefInfoRepo.findById(procDefId);
+        ProcDefInfoEntity procDef = processDefInfoRepo.selectByPrimaryKey(procDefId);
 
-        if (!procDefOpt.isPresent()) {
+        if (procDef == null) {
             log.warn("such process definition does not exist:{}", procDefId);
             return;
         }
-
-        ProcDefInfoEntity procDef = procDefOpt.get();
 
         this.processRoleService.checkPermission(procDef.getId(), ProcRoleBindingEntity.permissionEnum.MGMT);
 
@@ -78,7 +76,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             log.info(String.format("Setting process: [%s]'s status to deleted status: [%s]", procDefId,
                     ProcDefInfoEntity.DELETED_STATUS));
             procDef.setStatus(ProcDefInfoEntity.DELETED_STATUS);
-            processDefInfoRepo.saveAndFlush(procDef);
+            processDefInfoRepo.updateByPrimaryKeySelective(procDef);
             return;
         }
         // delete DRAFT_STATUS process with all nodes and params deleted as well
@@ -101,7 +99,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             log.info("process definition with id {} had been deleted successfully.", procDefId);
         }
 
-        processDefInfoRepo.delete(procDef);
+        processDefInfoRepo.deleteByPrimaryKey(procDef.getId());
     }
 
     public List<TaskNodeDefBriefDto> getTaskNodeBriefs(String procDefId) {
@@ -111,7 +109,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return result;
         }
 
-        //  #1993
+        // #1993
         nodeEntities.forEach(e -> {
             if (TaskNodeDefInfoEntity.NODE_TYPE_SUBPROCESS.equalsIgnoreCase(e.getNodeType())
                     || TaskNodeDefInfoEntity.NODE_TYPE_SERVICE_TASK.equalsIgnoreCase(e.getNodeType())
@@ -139,20 +137,18 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             throw new WecubeCoreException("3206", "Process definition ID is blank.");
         }
 
-        Optional<ProcDefInfoEntity> procDefEntityOptional = processDefInfoRepo.findById(procDefId);
-        if (!procDefEntityOptional.isPresent()) {
+        ProcDefInfoEntity procDefEntity = processDefInfoRepo.selectByPrimaryKey(procDefId);
+        if (procDefEntity == null) {
             log.debug("cannot find process def with id {}", procDefId);
             return null;
         }
-
-        ProcDefInfoEntity procDefEntity = procDefEntityOptional.get();
 
         ProcDefOutlineDto result = new ProcDefOutlineDto();
 
         result.setProcDefId(procDefEntity.getId());
         result.setProcDefKey(procDefEntity.getProcDefKey());
         result.setProcDefName(procDefEntity.getProcDefName());
-        result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVersion()));
+        result.setProcDefVersion(String.valueOf(procDefEntity.getProcDefVer()));
         result.setRootEntity(procDefEntity.getRootEntity());
         result.setStatus(procDefEntity.getStatus());
 
@@ -212,14 +208,13 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
     }
 
     public ProcDefInfoDto getProcessDefinition(String id) {
-        if(StringUtils.isBlank(id)) {
+        if (StringUtils.isBlank(id)) {
             throw new WecubeCoreException("3207", "Invalid process definition id");
         }
         ProcDefInfoDto result = doGetProcessDefinition(id);
 
         return result;
     }
-    
 
     public List<ProcDefInfoDto> getProcessDefinitions(boolean includeDraftProcDef, String permissionStr) {
         List<String> currentUserRoleNameList = new ArrayList<>(
@@ -239,13 +234,21 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         List<ProcDefInfoEntity> procDefEntities = new ArrayList<>();
         for (ProcRoleDto procRoleDto : procRoleDtoSet) {
             String procId = procRoleDto.getProcessId();
-            Optional<ProcDefInfoEntity> processFoundById;
-            if (includeDraftProcDef) {
-                processFoundById = processDefInfoRepo.findAllDeployedOrDraftProcDefsByProcId(procId);
-            } else {
-                processFoundById = processDefInfoRepo.findAllDeployedProcDefsByProcId(procId);
+            ProcDefInfoEntity processFoundById = processDefInfoRepo.selectByPrimaryKey(procId);
+            if (processFoundById != null) {
+
+                if (includeDraftProcDef) {
+                    if (ProcDefInfoEntity.DEPLOYED_STATUS.equals(processFoundById.getStatus())
+                            || ProcDefInfoEntity.DRAFT_STATUS.equals(processFoundById.getStatus())) {
+                        procDefEntities.add(processFoundById);
+                    }
+                } else {
+                    if (ProcDefInfoEntity.DEPLOYED_STATUS.equals(processFoundById.getStatus())) {
+                        procDefEntities.add(processFoundById);
+                    }
+                }
+
             }
-            processFoundById.ifPresent(procDefEntities::add);
         }
 
         List<ProcDefInfoDto> procDefInfoDtos = new ArrayList<>();
@@ -254,22 +257,21 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             procDefInfoDtos.add(dto);
 
         });
-        
-        Collections.sort(procDefInfoDtos, new Comparator<ProcDefInfoDto>(){
+
+        Collections.sort(procDefInfoDtos, new Comparator<ProcDefInfoDto>() {
 
             @Override
             public int compare(ProcDefInfoDto o1, ProcDefInfoDto o2) {
                 String o1Name = o1.getProcDefName();
                 String o2Name = o2.getProcDefName();
-                
-                if(o1Name == null){
+
+                if (o1Name == null) {
                     return -1;
                 }
-                
-                
+
                 return o1Name.compareTo(o2Name);
             }
-            
+
         });
         return procDefInfoDtos;
     }
@@ -281,9 +283,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         ProcDefInfoEntity draftEntity = null;
         if (!StringUtils.isBlank(originalId)) {
-            Optional<ProcDefInfoEntity> entityOpt = processDefInfoRepo.findById(originalId);
-            if (entityOpt.isPresent()) {
-                ProcDefInfoEntity entity = entityOpt.get();
+            ProcDefInfoEntity entity = processDefInfoRepo.selectByPrimaryKey(originalId);
+            if (entity != null) {
                 if (ProcDefInfoEntity.DRAFT_STATUS.equals(entity.getStatus())) {
                     draftEntity = entity;
                 }
@@ -297,6 +298,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftEntity = new ProcDefInfoEntity();
             draftEntity.setId(LocalIdGenerator.generateId());
             draftEntity.setStatus(ProcDefInfoEntity.DRAFT_STATUS);
+
+            processDefInfoRepo.insert(draftEntity);
         }
 
         draftEntity.setProcDefData(procDefDto.getProcDefData());
@@ -305,9 +308,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         draftEntity.setRootEntity(procDefDto.getRootEntity());
         draftEntity.setUpdatedTime(currTime);
 
-        ProcDefInfoEntity savedProcDefInfoDraftEntity = processDefInfoRepo.saveAndFlush(draftEntity);
+        processDefInfoRepo.updateByPrimaryKeySelective(draftEntity);
         // Save ProcRoleBindingEntity
-        this.saveProcRoleBinding(savedProcDefInfoDraftEntity.getId(), procDefDto);
+        this.saveProcRoleBinding(draftEntity.getId(), procDefDto);
 
         ProcDefInfoDto procDefResult = new ProcDefInfoDto();
         procDefResult.setProcDefId(draftEntity.getId());
@@ -426,23 +429,23 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             if (startProcFlowNode != null) {
                 TaskNodeDefInfoEntity draftNodeEntity = taskNodeDefInfoRepo.findOneWithProcessIdAndNodeIdAndStatus(
                         draftEntity.getId(), startProcFlowNode.getId(), TaskNodeDefInfoEntity.DRAFT_STATUS);
-                
+
                 if (draftNodeEntity == null) {
                     draftNodeEntity = new TaskNodeDefInfoEntity();
                     draftNodeEntity.setId(LocalIdGenerator.generateId());
                     draftNodeEntity.setStatus(TaskNodeDefInfoEntity.DRAFT_STATUS);
                 }
-                
+
                 draftNodeEntity.setNodeId(startProcFlowNode.getId());
                 draftNodeEntity.setNodeName(startProcFlowNode.getNodeName());
                 draftNodeEntity.setNodeType(startProcFlowNode.getNodeType());
                 draftNodeEntity.setProcDefId(draftEntity.getId());
                 draftNodeEntity.setProcDefKey(draftEntity.getProcDefKey());
-                
+
                 draftNodeEntity.setUpdatedTime(currTime);
-                
+
                 taskNodeDefInfoRepo.saveAndFlush(draftNodeEntity);
-                
+
                 TaskNodeDefInfoDto nodeDtoResult = new TaskNodeDefInfoDto();
                 nodeDtoResult.setNodeDefId(draftNodeEntity.getId());
                 nodeDtoResult.setNodeId(draftNodeEntity.getNodeId());
@@ -575,12 +578,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         ProcDefInfoEntity draftProcDefEntity = null;
         if (!StringUtils.isBlank(originalId)) {
-            Optional<ProcDefInfoEntity> entityOpt = processDefInfoRepo.findById(originalId);
-            if (entityOpt.isPresent()) {
-                ProcDefInfoEntity entity = entityOpt.get();
-                if (ProcDefInfoEntity.DRAFT_STATUS.equals(entity.getStatus())) {
-                    draftProcDefEntity = entity;
-                }
+            ProcDefInfoEntity entity = processDefInfoRepo.selectByPrimaryKey(originalId);
+            if (entity != null && ProcDefInfoEntity.DRAFT_STATUS.equals(entity.getStatus())) {
+                draftProcDefEntity = entity;
             }
         }
 
@@ -592,9 +592,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setStatus(ProcDefInfoEntity.PREDEPLOY_STATUS);
         procDefEntity.setUpdatedTime(currTime);
 
-        ProcDefInfoEntity savedProcDefInfoEntity = processDefInfoRepo.saveAndFlush(procDefEntity);
+        processDefInfoRepo.insert(procDefEntity);
         // Save ProcRoleBindingEntity
-        this.saveProcRoleBinding(savedProcDefInfoEntity.getId(), procDefInfoDto);
+        this.saveProcRoleBinding(procDefEntity.getId(), procDefInfoDto);
 
         processDeployTaskNodeInfos(procDefInfoDto, procDefEntity, currTime);
 
@@ -687,7 +687,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         if (pluginConfig == null) {
             log.warn("Plugin config does not exist for {} {}", nodeDto.getServiceId(), intf.getId());
             throw new WecubeCoreException("3217",
-                    String.format("Plugin config does not exist for interface: %s", nodeDto.getServiceId()), nodeDto.getServiceId());
+                    String.format("Plugin config does not exist for interface: %s", nodeDto.getServiceId()),
+                    nodeDto.getServiceId());
         }
 
         List<PluginAuthEntity> pluginAuthConfigEntities = this.pluginAuthRepository
@@ -764,11 +765,11 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         procDefEntity.setProcDefKernelId(procDef.getId());
         procDefEntity.setProcDefKey(procDef.getKey());
         procDefEntity.setProcDefName(procDef.getName());
-        procDefEntity.setProcDefVersion(procDef.getVersion());
+        procDefEntity.setProcDefVer(procDef.getVersion());
         procDefEntity.setStatus(ProcDefInfoEntity.DEPLOYED_STATUS);
         procDefEntity.setUpdatedTime(now);
 
-        processDefInfoRepo.saveAndFlush(procDefEntity);
+        processDefInfoRepo.updateByPrimaryKeySelective(procDefEntity);
 
         ProcDefOutlineDto result = new ProcDefOutlineDto();
         result.setProcDefId(procDefEntity.getId());
@@ -903,7 +904,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             taskNodeDefInfoRepo.deleteAll(nodeEntities);
         }
 
-        processDefInfoRepo.deleteById(procEntity.getId());
+        processDefInfoRepo.deleteByPrimaryKey(procEntity.getId());
     }
 
 }

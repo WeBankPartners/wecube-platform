@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webank.wecube.platform.core.jpa.workflow.CoreRuTaskNodeExecReqMapper">
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    <id column="req_id" jdbcType="VARCHAR" property="reqId" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="is_completed" jdbcType="BIT" property="isCompleted" />
+    <result column="is_current" jdbcType="BIT" property="isCurrent" />
+    <result column="err_code" jdbcType="VARCHAR" property="errCode" />
+    <result column="err_msg" jdbcType="VARCHAR" property="errMsg" />
+    <result column="node_inst_id" jdbcType="INTEGER" property="nodeInstId" />
+    <result column="req_url" jdbcType="VARCHAR" property="reqUrl" />
+    <result column="execution_id" jdbcType="VARCHAR" property="executionId" />
+    <result column="node_id" jdbcType="VARCHAR" property="nodeId" />
+    <result column="node_name" jdbcType="VARCHAR" property="nodeName" />
+    <result column="proc_def_kernel_id" jdbcType="VARCHAR" property="procDefKernelId" />
+    <result column="proc_def_kernel_key" jdbcType="VARCHAR" property="procDefKernelKey" />
+    <result column="proc_def_ver" jdbcType="INTEGER" property="procDefVer" />
+    <result column="proc_inst_kernel_id" jdbcType="VARCHAR" property="procInstKernelId" />
+    <result column="proc_inst_kernel_key" jdbcType="VARCHAR" property="procInstKernelKey" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    req_id, created_by, created_time, updated_by, updated_time, is_completed, is_current, 
+    err_code, err_msg, node_inst_id, req_url, execution_id, node_id, node_name, proc_def_kernel_id, 
+    proc_def_kernel_key, proc_def_ver, proc_inst_kernel_id, proc_inst_kernel_key
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from core_ru_task_node_exec_req
+    where req_id = #{reqId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from core_ru_task_node_exec_req
+    where req_id = #{reqId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    insert into core_ru_task_node_exec_req (req_id, created_by, created_time, 
+      updated_by, updated_time, is_completed, 
+      is_current, err_code, err_msg, 
+      node_inst_id, req_url, execution_id, 
+      node_id, node_name, proc_def_kernel_id, 
+      proc_def_kernel_key, proc_def_ver, proc_inst_kernel_id, 
+      proc_inst_kernel_key)
+    values (#{reqId,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{isCompleted,jdbcType=BIT}, 
+      #{isCurrent,jdbcType=BIT}, #{errCode,jdbcType=VARCHAR}, #{errMsg,jdbcType=VARCHAR}, 
+      #{nodeInstId,jdbcType=INTEGER}, #{reqUrl,jdbcType=VARCHAR}, #{executionId,jdbcType=VARCHAR}, 
+      #{nodeId,jdbcType=VARCHAR}, #{nodeName,jdbcType=VARCHAR}, #{procDefKernelId,jdbcType=VARCHAR}, 
+      #{procDefKernelKey,jdbcType=VARCHAR}, #{procDefVer,jdbcType=INTEGER}, #{procInstKernelId,jdbcType=VARCHAR}, 
+      #{procInstKernelKey,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    insert into core_ru_task_node_exec_req
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="reqId != null">
+        req_id,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="updatedTime != null">
+        updated_time,
+      </if>
+      <if test="isCompleted != null">
+        is_completed,
+      </if>
+      <if test="isCurrent != null">
+        is_current,
+      </if>
+      <if test="errCode != null">
+        err_code,
+      </if>
+      <if test="errMsg != null">
+        err_msg,
+      </if>
+      <if test="nodeInstId != null">
+        node_inst_id,
+      </if>
+      <if test="reqUrl != null">
+        req_url,
+      </if>
+      <if test="executionId != null">
+        execution_id,
+      </if>
+      <if test="nodeId != null">
+        node_id,
+      </if>
+      <if test="nodeName != null">
+        node_name,
+      </if>
+      <if test="procDefKernelId != null">
+        proc_def_kernel_id,
+      </if>
+      <if test="procDefKernelKey != null">
+        proc_def_kernel_key,
+      </if>
+      <if test="procDefVer != null">
+        proc_def_ver,
+      </if>
+      <if test="procInstKernelId != null">
+        proc_inst_kernel_id,
+      </if>
+      <if test="procInstKernelKey != null">
+        proc_inst_kernel_key,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="reqId != null">
+        #{reqId,jdbcType=VARCHAR},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isCompleted != null">
+        #{isCompleted,jdbcType=BIT},
+      </if>
+      <if test="isCurrent != null">
+        #{isCurrent,jdbcType=BIT},
+      </if>
+      <if test="errCode != null">
+        #{errCode,jdbcType=VARCHAR},
+      </if>
+      <if test="errMsg != null">
+        #{errMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeInstId != null">
+        #{nodeInstId,jdbcType=INTEGER},
+      </if>
+      <if test="reqUrl != null">
+        #{reqUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="executionId != null">
+        #{executionId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeId != null">
+        #{nodeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeName != null">
+        #{nodeName,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKernelId != null">
+        #{procDefKernelId,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKernelKey != null">
+        #{procDefKernelKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefVer != null">
+        #{procDefVer,jdbcType=INTEGER},
+      </if>
+      <if test="procInstKernelId != null">
+        #{procInstKernelId,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstKernelKey != null">
+        #{procInstKernelKey,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    update core_ru_task_node_exec_req
+    <set>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isCompleted != null">
+        is_completed = #{isCompleted,jdbcType=BIT},
+      </if>
+      <if test="isCurrent != null">
+        is_current = #{isCurrent,jdbcType=BIT},
+      </if>
+      <if test="errCode != null">
+        err_code = #{errCode,jdbcType=VARCHAR},
+      </if>
+      <if test="errMsg != null">
+        err_msg = #{errMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeInstId != null">
+        node_inst_id = #{nodeInstId,jdbcType=INTEGER},
+      </if>
+      <if test="reqUrl != null">
+        req_url = #{reqUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="executionId != null">
+        execution_id = #{executionId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeId != null">
+        node_id = #{nodeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeName != null">
+        node_name = #{nodeName,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKernelId != null">
+        proc_def_kernel_id = #{procDefKernelId,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKernelKey != null">
+        proc_def_kernel_key = #{procDefKernelKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefVer != null">
+        proc_def_ver = #{procDefVer,jdbcType=INTEGER},
+      </if>
+      <if test="procInstKernelId != null">
+        proc_inst_kernel_id = #{procInstKernelId,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstKernelKey != null">
+        proc_inst_kernel_key = #{procInstKernelKey,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where req_id = #{reqId,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    update core_ru_task_node_exec_req
+    set created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      is_completed = #{isCompleted,jdbcType=BIT},
+      is_current = #{isCurrent,jdbcType=BIT},
+      err_code = #{errCode,jdbcType=VARCHAR},
+      err_msg = #{errMsg,jdbcType=VARCHAR},
+      node_inst_id = #{nodeInstId,jdbcType=INTEGER},
+      req_url = #{reqUrl,jdbcType=VARCHAR},
+      execution_id = #{executionId,jdbcType=VARCHAR},
+      node_id = #{nodeId,jdbcType=VARCHAR},
+      node_name = #{nodeName,jdbcType=VARCHAR},
+      proc_def_kernel_id = #{procDefKernelId,jdbcType=VARCHAR},
+      proc_def_kernel_key = #{procDefKernelKey,jdbcType=VARCHAR},
+      proc_def_ver = #{procDefVer,jdbcType=INTEGER},
+      proc_inst_kernel_id = #{procInstKernelId,jdbcType=VARCHAR},
+      proc_inst_kernel_key = #{procInstKernelKey,jdbcType=VARCHAR}
+    where req_id = #{reqId,jdbcType=VARCHAR}
+  </update>
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    <id column="req_id" jdbcType="VARCHAR" property="reqId" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="is_completed" jdbcType="BIT" property="isCompleted" />
+    <result column="is_current" jdbcType="BIT" property="isCurrent" />
+    <result column="err_code" jdbcType="VARCHAR" property="errCode" />
+    <result column="err_msg" jdbcType="VARCHAR" property="errMsg" />
+    <result column="node_inst_id" jdbcType="INTEGER" property="nodeInstId" />
+    <result column="req_url" jdbcType="VARCHAR" property="reqUrl" />
+    <result column="execution_id" jdbcType="VARCHAR" property="executionId" />
+    <result column="node_id" jdbcType="VARCHAR" property="nodeId" />
+    <result column="node_name" jdbcType="VARCHAR" property="nodeName" />
+    <result column="proc_def_kernel_id" jdbcType="VARCHAR" property="procDefKernelId" />
+    <result column="proc_def_kernel_key" jdbcType="VARCHAR" property="procDefKernelKey" />
+    <result column="proc_def_ver" jdbcType="INTEGER" property="procDefVer" />
+    <result column="proc_inst_kernel_id" jdbcType="VARCHAR" property="procInstKernelId" />
+    <result column="proc_inst_kernel_key" jdbcType="VARCHAR" property="procInstKernelKey" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    req_id, created_by, created_time, updated_by, updated_time, is_completed, is_current, 
+    err_code, err_msg, node_inst_id, req_url, execution_id, node_id, node_name, proc_def_kernel_id, 
+    proc_def_kernel_key, proc_def_ver, proc_inst_kernel_id, proc_inst_kernel_key
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from core_ru_task_node_exec_req
+    where req_id = #{reqId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from core_ru_task_node_exec_req
+    where req_id = #{reqId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    insert into core_ru_task_node_exec_req (req_id, created_by, created_time, 
+      updated_by, updated_time, is_completed, 
+      is_current, err_code, err_msg, 
+      node_inst_id, req_url, execution_id, 
+      node_id, node_name, proc_def_kernel_id, 
+      proc_def_kernel_key, proc_def_ver, proc_inst_kernel_id, 
+      proc_inst_kernel_key)
+    values (#{reqId,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{isCompleted,jdbcType=BIT}, 
+      #{isCurrent,jdbcType=BIT}, #{errCode,jdbcType=VARCHAR}, #{errMsg,jdbcType=VARCHAR}, 
+      #{nodeInstId,jdbcType=INTEGER}, #{reqUrl,jdbcType=VARCHAR}, #{executionId,jdbcType=VARCHAR}, 
+      #{nodeId,jdbcType=VARCHAR}, #{nodeName,jdbcType=VARCHAR}, #{procDefKernelId,jdbcType=VARCHAR}, 
+      #{procDefKernelKey,jdbcType=VARCHAR}, #{procDefVer,jdbcType=INTEGER}, #{procInstKernelId,jdbcType=VARCHAR}, 
+      #{procInstKernelKey,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    insert into core_ru_task_node_exec_req
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="reqId != null">
+        req_id,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="updatedTime != null">
+        updated_time,
+      </if>
+      <if test="isCompleted != null">
+        is_completed,
+      </if>
+      <if test="isCurrent != null">
+        is_current,
+      </if>
+      <if test="errCode != null">
+        err_code,
+      </if>
+      <if test="errMsg != null">
+        err_msg,
+      </if>
+      <if test="nodeInstId != null">
+        node_inst_id,
+      </if>
+      <if test="reqUrl != null">
+        req_url,
+      </if>
+      <if test="executionId != null">
+        execution_id,
+      </if>
+      <if test="nodeId != null">
+        node_id,
+      </if>
+      <if test="nodeName != null">
+        node_name,
+      </if>
+      <if test="procDefKernelId != null">
+        proc_def_kernel_id,
+      </if>
+      <if test="procDefKernelKey != null">
+        proc_def_kernel_key,
+      </if>
+      <if test="procDefVer != null">
+        proc_def_ver,
+      </if>
+      <if test="procInstKernelId != null">
+        proc_inst_kernel_id,
+      </if>
+      <if test="procInstKernelKey != null">
+        proc_inst_kernel_key,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="reqId != null">
+        #{reqId,jdbcType=VARCHAR},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isCompleted != null">
+        #{isCompleted,jdbcType=BIT},
+      </if>
+      <if test="isCurrent != null">
+        #{isCurrent,jdbcType=BIT},
+      </if>
+      <if test="errCode != null">
+        #{errCode,jdbcType=VARCHAR},
+      </if>
+      <if test="errMsg != null">
+        #{errMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeInstId != null">
+        #{nodeInstId,jdbcType=INTEGER},
+      </if>
+      <if test="reqUrl != null">
+        #{reqUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="executionId != null">
+        #{executionId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeId != null">
+        #{nodeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeName != null">
+        #{nodeName,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKernelId != null">
+        #{procDefKernelId,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKernelKey != null">
+        #{procDefKernelKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefVer != null">
+        #{procDefVer,jdbcType=INTEGER},
+      </if>
+      <if test="procInstKernelId != null">
+        #{procInstKernelId,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstKernelKey != null">
+        #{procInstKernelKey,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    update core_ru_task_node_exec_req
+    <set>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isCompleted != null">
+        is_completed = #{isCompleted,jdbcType=BIT},
+      </if>
+      <if test="isCurrent != null">
+        is_current = #{isCurrent,jdbcType=BIT},
+      </if>
+      <if test="errCode != null">
+        err_code = #{errCode,jdbcType=VARCHAR},
+      </if>
+      <if test="errMsg != null">
+        err_msg = #{errMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeInstId != null">
+        node_inst_id = #{nodeInstId,jdbcType=INTEGER},
+      </if>
+      <if test="reqUrl != null">
+        req_url = #{reqUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="executionId != null">
+        execution_id = #{executionId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeId != null">
+        node_id = #{nodeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeName != null">
+        node_name = #{nodeName,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKernelId != null">
+        proc_def_kernel_id = #{procDefKernelId,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKernelKey != null">
+        proc_def_kernel_key = #{procDefKernelKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefVer != null">
+        proc_def_ver = #{procDefVer,jdbcType=INTEGER},
+      </if>
+      <if test="procInstKernelId != null">
+        proc_inst_kernel_id = #{procInstKernelId,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstKernelKey != null">
+        proc_inst_kernel_key = #{procInstKernelKey,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where req_id = #{reqId,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreRuTaskNodeExecReq">
+    update core_ru_task_node_exec_req
+    set created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      is_completed = #{isCompleted,jdbcType=BIT},
+      is_current = #{isCurrent,jdbcType=BIT},
+      err_code = #{errCode,jdbcType=VARCHAR},
+      err_msg = #{errMsg,jdbcType=VARCHAR},
+      node_inst_id = #{nodeInstId,jdbcType=INTEGER},
+      req_url = #{reqUrl,jdbcType=VARCHAR},
+      execution_id = #{executionId,jdbcType=VARCHAR},
+      node_id = #{nodeId,jdbcType=VARCHAR},
+      node_name = #{nodeName,jdbcType=VARCHAR},
+      proc_def_kernel_id = #{procDefKernelId,jdbcType=VARCHAR},
+      proc_def_kernel_key = #{procDefKernelKey,jdbcType=VARCHAR},
+      proc_def_ver = #{procDefVer,jdbcType=INTEGER},
+      proc_inst_kernel_id = #{procInstKernelId,jdbcType=VARCHAR},
+      proc_inst_kernel_key = #{procInstKernelKey,jdbcType=VARCHAR}
+    where req_id = #{reqId,jdbcType=VARCHAR}
+  </update>
+</mapper>

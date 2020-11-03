@@ -3,10 +3,8 @@ package com.webank.wecube.platform.core.entity.workflow;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
-import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
-
 @MappedSuperclass
-public abstract class BaseStatusFeaturedEntity extends BaseTraceableEntity {
+public abstract class AbstractStatusFeaturedEntity extends AbstractTraceableEntity {
     @Column(name = "ACTIVE")
     private boolean active = true;
     @Column(name = "REV")

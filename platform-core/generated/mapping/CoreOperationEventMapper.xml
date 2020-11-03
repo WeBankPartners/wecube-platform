@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webank.wecube.platform.core.jpa.workflow.CoreOperationEventMapper">
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="event_seq_no" jdbcType="VARCHAR" property="eventSeqNo" />
+    <result column="event_type" jdbcType="VARCHAR" property="eventType" />
+    <result column="is_notified" jdbcType="BIT" property="isNotified" />
+    <result column="notify_endpoint" jdbcType="VARCHAR" property="notifyEndpoint" />
+    <result column="is_notify_required" jdbcType="BIT" property="isNotifyRequired" />
+    <result column="oper_data" jdbcType="VARCHAR" property="operData" />
+    <result column="oper_key" jdbcType="VARCHAR" property="operKey" />
+    <result column="oper_user" jdbcType="VARCHAR" property="operUser" />
+    <result column="priority" jdbcType="INTEGER" property="priority" />
+    <result column="proc_def_id" jdbcType="VARCHAR" property="procDefId" />
+    <result column="proc_inst_id" jdbcType="VARCHAR" property="procInstId" />
+    <result column="rev" jdbcType="INTEGER" property="rev" />
+    <result column="is_sensitive" jdbcType="BIT" property="isSensitive" />
+    <result column="src_sub_system" jdbcType="VARCHAR" property="srcSubSystem" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, created_by, created_time, updated_by, updated_time, end_time, event_seq_no, event_type, 
+    is_notified, notify_endpoint, is_notify_required, oper_data, oper_key, oper_user, 
+    priority, proc_def_id, proc_inst_id, rev, is_sensitive, src_sub_system, start_time, 
+    status
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from core_operation_event
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from core_operation_event
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    insert into core_operation_event (id, created_by, created_time, 
+      updated_by, updated_time, end_time, 
+      event_seq_no, event_type, is_notified, 
+      notify_endpoint, is_notify_required, oper_data, 
+      oper_key, oper_user, priority, 
+      proc_def_id, proc_inst_id, rev, 
+      is_sensitive, src_sub_system, start_time, 
+      status)
+    values (#{id,jdbcType=BIGINT}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, 
+      #{eventSeqNo,jdbcType=VARCHAR}, #{eventType,jdbcType=VARCHAR}, #{isNotified,jdbcType=BIT}, 
+      #{notifyEndpoint,jdbcType=VARCHAR}, #{isNotifyRequired,jdbcType=BIT}, #{operData,jdbcType=VARCHAR}, 
+      #{operKey,jdbcType=VARCHAR}, #{operUser,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, 
+      #{procDefId,jdbcType=VARCHAR}, #{procInstId,jdbcType=VARCHAR}, #{rev,jdbcType=INTEGER}, 
+      #{isSensitive,jdbcType=BIT}, #{srcSubSystem,jdbcType=VARCHAR}, #{startTime,jdbcType=TIMESTAMP}, 
+      #{status,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    insert into core_operation_event
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="updatedTime != null">
+        updated_time,
+      </if>
+      <if test="endTime != null">
+        end_time,
+      </if>
+      <if test="eventSeqNo != null">
+        event_seq_no,
+      </if>
+      <if test="eventType != null">
+        event_type,
+      </if>
+      <if test="isNotified != null">
+        is_notified,
+      </if>
+      <if test="notifyEndpoint != null">
+        notify_endpoint,
+      </if>
+      <if test="isNotifyRequired != null">
+        is_notify_required,
+      </if>
+      <if test="operData != null">
+        oper_data,
+      </if>
+      <if test="operKey != null">
+        oper_key,
+      </if>
+      <if test="operUser != null">
+        oper_user,
+      </if>
+      <if test="priority != null">
+        priority,
+      </if>
+      <if test="procDefId != null">
+        proc_def_id,
+      </if>
+      <if test="procInstId != null">
+        proc_inst_id,
+      </if>
+      <if test="rev != null">
+        rev,
+      </if>
+      <if test="isSensitive != null">
+        is_sensitive,
+      </if>
+      <if test="srcSubSystem != null">
+        src_sub_system,
+      </if>
+      <if test="startTime != null">
+        start_time,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="eventSeqNo != null">
+        #{eventSeqNo,jdbcType=VARCHAR},
+      </if>
+      <if test="eventType != null">
+        #{eventType,jdbcType=VARCHAR},
+      </if>
+      <if test="isNotified != null">
+        #{isNotified,jdbcType=BIT},
+      </if>
+      <if test="notifyEndpoint != null">
+        #{notifyEndpoint,jdbcType=VARCHAR},
+      </if>
+      <if test="isNotifyRequired != null">
+        #{isNotifyRequired,jdbcType=BIT},
+      </if>
+      <if test="operData != null">
+        #{operData,jdbcType=VARCHAR},
+      </if>
+      <if test="operKey != null">
+        #{operKey,jdbcType=VARCHAR},
+      </if>
+      <if test="operUser != null">
+        #{operUser,jdbcType=VARCHAR},
+      </if>
+      <if test="priority != null">
+        #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="procDefId != null">
+        #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstId != null">
+        #{procInstId,jdbcType=VARCHAR},
+      </if>
+      <if test="rev != null">
+        #{rev,jdbcType=INTEGER},
+      </if>
+      <if test="isSensitive != null">
+        #{isSensitive,jdbcType=BIT},
+      </if>
+      <if test="srcSubSystem != null">
+        #{srcSubSystem,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    update core_operation_event
+    <set>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="eventSeqNo != null">
+        event_seq_no = #{eventSeqNo,jdbcType=VARCHAR},
+      </if>
+      <if test="eventType != null">
+        event_type = #{eventType,jdbcType=VARCHAR},
+      </if>
+      <if test="isNotified != null">
+        is_notified = #{isNotified,jdbcType=BIT},
+      </if>
+      <if test="notifyEndpoint != null">
+        notify_endpoint = #{notifyEndpoint,jdbcType=VARCHAR},
+      </if>
+      <if test="isNotifyRequired != null">
+        is_notify_required = #{isNotifyRequired,jdbcType=BIT},
+      </if>
+      <if test="operData != null">
+        oper_data = #{operData,jdbcType=VARCHAR},
+      </if>
+      <if test="operKey != null">
+        oper_key = #{operKey,jdbcType=VARCHAR},
+      </if>
+      <if test="operUser != null">
+        oper_user = #{operUser,jdbcType=VARCHAR},
+      </if>
+      <if test="priority != null">
+        priority = #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="procDefId != null">
+        proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstId != null">
+        proc_inst_id = #{procInstId,jdbcType=VARCHAR},
+      </if>
+      <if test="rev != null">
+        rev = #{rev,jdbcType=INTEGER},
+      </if>
+      <if test="isSensitive != null">
+        is_sensitive = #{isSensitive,jdbcType=BIT},
+      </if>
+      <if test="srcSubSystem != null">
+        src_sub_system = #{srcSubSystem,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    update core_operation_event
+    set created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      end_time = #{endTime,jdbcType=TIMESTAMP},
+      event_seq_no = #{eventSeqNo,jdbcType=VARCHAR},
+      event_type = #{eventType,jdbcType=VARCHAR},
+      is_notified = #{isNotified,jdbcType=BIT},
+      notify_endpoint = #{notifyEndpoint,jdbcType=VARCHAR},
+      is_notify_required = #{isNotifyRequired,jdbcType=BIT},
+      oper_data = #{operData,jdbcType=VARCHAR},
+      oper_key = #{operKey,jdbcType=VARCHAR},
+      oper_user = #{operUser,jdbcType=VARCHAR},
+      priority = #{priority,jdbcType=INTEGER},
+      proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      proc_inst_id = #{procInstId,jdbcType=VARCHAR},
+      rev = #{rev,jdbcType=INTEGER},
+      is_sensitive = #{isSensitive,jdbcType=BIT},
+      src_sub_system = #{srcSubSystem,jdbcType=VARCHAR},
+      start_time = #{startTime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="event_seq_no" jdbcType="VARCHAR" property="eventSeqNo" />
+    <result column="event_type" jdbcType="VARCHAR" property="eventType" />
+    <result column="is_notified" jdbcType="BIT" property="isNotified" />
+    <result column="notify_endpoint" jdbcType="VARCHAR" property="notifyEndpoint" />
+    <result column="is_notify_required" jdbcType="BIT" property="isNotifyRequired" />
+    <result column="oper_data" jdbcType="VARCHAR" property="operData" />
+    <result column="oper_key" jdbcType="VARCHAR" property="operKey" />
+    <result column="oper_user" jdbcType="VARCHAR" property="operUser" />
+    <result column="proc_def_id" jdbcType="VARCHAR" property="procDefId" />
+    <result column="proc_inst_id" jdbcType="VARCHAR" property="procInstId" />
+    <result column="src_sub_system" jdbcType="VARCHAR" property="srcSubSystem" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="priority" jdbcType="INTEGER" property="priority" />
+    <result column="proc_inst_key" jdbcType="VARCHAR" property="procInstKey" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, created_by, created_time, updated_by, updated_time, event_seq_no, event_type, 
+    is_notified, notify_endpoint, is_notify_required, oper_data, oper_key, oper_user, 
+    proc_def_id, proc_inst_id, src_sub_system, status, end_time, priority, proc_inst_key, 
+    start_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from core_operation_event
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from core_operation_event
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    insert into core_operation_event (id, created_by, created_time, 
+      updated_by, updated_time, event_seq_no, 
+      event_type, is_notified, notify_endpoint, 
+      is_notify_required, oper_data, oper_key, 
+      oper_user, proc_def_id, proc_inst_id, 
+      src_sub_system, status, end_time, 
+      priority, proc_inst_key, start_time
+      )
+    values (#{id,jdbcType=BIGINT}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{eventSeqNo,jdbcType=VARCHAR}, 
+      #{eventType,jdbcType=VARCHAR}, #{isNotified,jdbcType=BIT}, #{notifyEndpoint,jdbcType=VARCHAR}, 
+      #{isNotifyRequired,jdbcType=BIT}, #{operData,jdbcType=VARCHAR}, #{operKey,jdbcType=VARCHAR}, 
+      #{operUser,jdbcType=VARCHAR}, #{procDefId,jdbcType=VARCHAR}, #{procInstId,jdbcType=VARCHAR}, 
+      #{srcSubSystem,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{endTime,jdbcType=TIMESTAMP}, 
+      #{priority,jdbcType=INTEGER}, #{procInstKey,jdbcType=VARCHAR}, #{startTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    insert into core_operation_event
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="updatedTime != null">
+        updated_time,
+      </if>
+      <if test="eventSeqNo != null">
+        event_seq_no,
+      </if>
+      <if test="eventType != null">
+        event_type,
+      </if>
+      <if test="isNotified != null">
+        is_notified,
+      </if>
+      <if test="notifyEndpoint != null">
+        notify_endpoint,
+      </if>
+      <if test="isNotifyRequired != null">
+        is_notify_required,
+      </if>
+      <if test="operData != null">
+        oper_data,
+      </if>
+      <if test="operKey != null">
+        oper_key,
+      </if>
+      <if test="operUser != null">
+        oper_user,
+      </if>
+      <if test="procDefId != null">
+        proc_def_id,
+      </if>
+      <if test="procInstId != null">
+        proc_inst_id,
+      </if>
+      <if test="srcSubSystem != null">
+        src_sub_system,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="endTime != null">
+        end_time,
+      </if>
+      <if test="priority != null">
+        priority,
+      </if>
+      <if test="procInstKey != null">
+        proc_inst_key,
+      </if>
+      <if test="startTime != null">
+        start_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="eventSeqNo != null">
+        #{eventSeqNo,jdbcType=VARCHAR},
+      </if>
+      <if test="eventType != null">
+        #{eventType,jdbcType=VARCHAR},
+      </if>
+      <if test="isNotified != null">
+        #{isNotified,jdbcType=BIT},
+      </if>
+      <if test="notifyEndpoint != null">
+        #{notifyEndpoint,jdbcType=VARCHAR},
+      </if>
+      <if test="isNotifyRequired != null">
+        #{isNotifyRequired,jdbcType=BIT},
+      </if>
+      <if test="operData != null">
+        #{operData,jdbcType=VARCHAR},
+      </if>
+      <if test="operKey != null">
+        #{operKey,jdbcType=VARCHAR},
+      </if>
+      <if test="operUser != null">
+        #{operUser,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefId != null">
+        #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstId != null">
+        #{procInstId,jdbcType=VARCHAR},
+      </if>
+      <if test="srcSubSystem != null">
+        #{srcSubSystem,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="endTime != null">
+        #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="priority != null">
+        #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="procInstKey != null">
+        #{procInstKey,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    update core_operation_event
+    <set>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="eventSeqNo != null">
+        event_seq_no = #{eventSeqNo,jdbcType=VARCHAR},
+      </if>
+      <if test="eventType != null">
+        event_type = #{eventType,jdbcType=VARCHAR},
+      </if>
+      <if test="isNotified != null">
+        is_notified = #{isNotified,jdbcType=BIT},
+      </if>
+      <if test="notifyEndpoint != null">
+        notify_endpoint = #{notifyEndpoint,jdbcType=VARCHAR},
+      </if>
+      <if test="isNotifyRequired != null">
+        is_notify_required = #{isNotifyRequired,jdbcType=BIT},
+      </if>
+      <if test="operData != null">
+        oper_data = #{operData,jdbcType=VARCHAR},
+      </if>
+      <if test="operKey != null">
+        oper_key = #{operKey,jdbcType=VARCHAR},
+      </if>
+      <if test="operUser != null">
+        oper_user = #{operUser,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefId != null">
+        proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstId != null">
+        proc_inst_id = #{procInstId,jdbcType=VARCHAR},
+      </if>
+      <if test="srcSubSystem != null">
+        src_sub_system = #{srcSubSystem,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="endTime != null">
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="priority != null">
+        priority = #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="procInstKey != null">
+        proc_inst_key = #{procInstKey,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.core.entity.workflow.CoreOperationEvent">
+    update core_operation_event
+    set created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      event_seq_no = #{eventSeqNo,jdbcType=VARCHAR},
+      event_type = #{eventType,jdbcType=VARCHAR},
+      is_notified = #{isNotified,jdbcType=BIT},
+      notify_endpoint = #{notifyEndpoint,jdbcType=VARCHAR},
+      is_notify_required = #{isNotifyRequired,jdbcType=BIT},
+      oper_data = #{operData,jdbcType=VARCHAR},
+      oper_key = #{operKey,jdbcType=VARCHAR},
+      oper_user = #{operUser,jdbcType=VARCHAR},
+      proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      proc_inst_id = #{procInstId,jdbcType=VARCHAR},
+      src_sub_system = #{srcSubSystem,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      end_time = #{endTime,jdbcType=TIMESTAMP},
+      priority = #{priority,jdbcType=INTEGER},
+      proc_inst_key = #{procInstKey,jdbcType=VARCHAR},
+      start_time = #{startTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
