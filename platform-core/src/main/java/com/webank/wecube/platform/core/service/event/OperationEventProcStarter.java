@@ -20,7 +20,7 @@ import com.webank.wecube.platform.core.entity.event.OperationEventEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.jpa.event.OperationEventRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
@@ -31,7 +31,7 @@ public class OperationEventProcStarter {
     private static final Logger log = LoggerFactory.getLogger(OperationEventProcStarter.class);
 
     @Autowired
-    private ProcDefInfoRepository processDefInfoRepository;
+    private ProcDefInfoMapper processDefInfoRepository;
 
     @Autowired
     private TaskNodeDefInfoRepository taskNodeDefInfoRepository;
@@ -138,23 +138,23 @@ public class OperationEventProcStarter {
 
             @Override
             public int compare(ProcDefInfoEntity o1, ProcDefInfoEntity o2) {
-                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() == null) {
+                if (o1.getProcDefVer() == null && o2.getProcDefVer() == null) {
                     return 0;
                 }
 
-                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() != null) {
+                if (o1.getProcDefVer() == null && o2.getProcDefVer() != null) {
                     return -1;
                 }
 
-                if (o1.getProcDefVersion() != null && o2.getProcDefVersion() == null) {
+                if (o1.getProcDefVer() != null && o2.getProcDefVer() == null) {
                     return 1;
                 }
 
-                if (o1.getProcDefVersion() == o2.getProcDefVersion()) {
+                if (o1.getProcDefVer() == o2.getProcDefVer()) {
                     return 0;
                 }
 
-                return o1.getProcDefVersion() > o2.getProcDefVersion() ? -1 : 1;
+                return o1.getProcDefVer() > o2.getProcDefVer() ? -1 : 1;
             }
 
         });
