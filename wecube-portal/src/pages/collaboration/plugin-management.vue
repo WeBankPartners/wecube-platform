@@ -184,7 +184,7 @@
                         <div v-for="item in availiableHostsWithPort" :key="item.ip + item.port">
                           <div class="instance-item-container" style="border-bottom: 1px solid gray; padding: 10px 0">
                             <div class="instance-item">
-                              <Col span="4">{{ item.ip + ':' + item.port }}</Col>
+                              <Col span="3">{{ item.ip + ':' + item.port }}</Col>
                               <Button
                                 size="small"
                                 type="success"
@@ -202,10 +202,10 @@
                       <div v-else>
                         <div v-for="item in allInstances" :key="item.id">
                           <div class="instance-item-container">
-                            <Col span="4">
+                            <Col span="3">
                               <div class="instance-item">{{ item.displayLabel }}</div>
                             </Col>
-                            <Col span="4" offset="1">
+                            <Col span="5" offset="0">
                               <Button size="small" type="error" @click="removePluginInstance(item.id)">
                                 {{ $t('ternmiante') }}
                               </Button>
