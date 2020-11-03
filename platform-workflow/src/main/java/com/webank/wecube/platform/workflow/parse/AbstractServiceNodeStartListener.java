@@ -7,7 +7,7 @@ import org.camunda.bpm.engine.delegate.DelegateExecution;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
-import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 /**
  * 
@@ -19,8 +19,8 @@ public abstract class AbstractServiceNodeStartListener extends AbstractServiceNo
         String nodeId = execution.getCurrentActivityId();
         String procInstanceBizKey = execution.getProcessBusinessKey();
 
-        ServiceNodeStatusRepository serviceNodeStatusRepository = SpringApplicationContextUtil
-                .getBean(ServiceNodeStatusRepository.class);
+        ServiceNodeStatusMapper serviceNodeStatusRepository = SpringApplicationContextUtil
+                .getBean(ServiceNodeStatusMapper.class);
 
         ServiceNodeStatusEntity entity = serviceNodeStatusRepository
                 .findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
@@ -37,7 +37,7 @@ public abstract class AbstractServiceNodeStartListener extends AbstractServiceNo
         entity.setStatus(TraceStatus.InProgress);
         entity.setStartTime(currTime);
         
-        serviceNodeStatusRepository.saveAndFlush(entity);
+        serviceNodeStatusRepository.updateByPrimaryKeySelective(entity);
         
     }
 }
