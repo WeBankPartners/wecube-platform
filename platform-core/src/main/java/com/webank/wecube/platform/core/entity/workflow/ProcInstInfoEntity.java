@@ -6,7 +6,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "CORE_RU_PROC_INST_INFO")
-public class ProcInstInfoEntity extends BaseInstanceStatusEntity {
+public class ProcInstInfoEntity extends AbstractInstanceStatusEntity {
 
     @Column(name = "PROC_INST_KEY")
     private String procInstKey;
