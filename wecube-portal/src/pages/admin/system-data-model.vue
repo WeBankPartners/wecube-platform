@@ -1,67 +1,50 @@
 <template>
   <div>
-    <!-- <div>111</div> -->
-    <div id="dataModelContainer">
-      <Button class="data-model-reset-button" size="small" @click="ResetModel">ResetZoom</Button>
-      <!-- <div class="loading" v-if="isLoading"> -->
-      <Spin v-if="isLoading" fix size="large">
-        <Icon type="ios-loading" size="54" class="demo-spin-icon-load"></Icon>
-        <!-- <div>Loading</div> -->
-      </Spin>
-      <!-- </div> -->
-      <div v-show="dataModel.dynamic" style="padding-left:3px;margin-bottom: 10px">
-        <Button size="small" shape="circle" type="primary" icon="md-sync" @click="getData(true)">{{
-          $t('get_dynamic_model')
-        }}</Button>
-        <Button
-          :disabled="isApplyBtnDisabled"
-          size="small"
-          shape="circle"
-          type="primary"
-          icon="md-hammer"
-          @click="applyNewDataModel"
-          >{{ $t('apply_data_model') }}</Button
-        >
+    <div class="model-container" id="data-model"></div>
+    <Button class="model-reset-button" @click="ResetModel">ResetZoom</Button>
+    <Drawer width="450" :title="nodeName" :closable="false" v-model="drawerVisible">
+      <div class="attr-container">
+        <div v-for="attr in currentAttrs" :key="attr.name">
+          <Divider orientation="left">{{ attr.name }}</Divider>
+          <Form :label-width="120">
+            <!-- <FormItem prop="propertyName" label="name">
+              <span>{{attr.name}}</span>
+            </FormItem> -->
+            <FormItem prop="propertyName" label="dataType">
+              <span>{{ attr.dataType }}</span>
+            </FormItem>
+            <FormItem prop="propertyName" label="description">
+              <span>{{ attr.description }}</span>
+            </FormItem>
+            <FormItem v-if="attr.dataType === 'ref'" prop="propertyName" label="refEntityName">
+              <span>{{ `[${attr.refPackageName}]${attr.refEntityName}.${attr.refAttributeName}` }}</span>
+            </FormItem>
+          </Form>
+        </div>
       </div>
-      <div v-if="!dataModel.dynamic && dataModel.pluginPackageEntities && dataModel.pluginPackageEntities.length === 0">
-        {{ $t('no_data_model_provided') }}
-      </div>
-      <div class="graph-container" id="data-model-graph"></div>
-    </div>
+    </Drawer>
   </div>
 </template>
 <script>
-import { getPluginPkgDataModel, pullDynamicDataModel, applyNewDataModel } from '@/api/server'
 import * as d3 from 'd3-selection'
 // eslint-disable-next-line no-unused-vars
 import * as d3Graphviz from 'd3-graphviz'
-import { addEvent } from '../../util/event.js'
+import { getAllDataModels } from '@/api/server'
+import { addEvent } from '../util/event.js'
 export default {
-  name: 'data-model',
   data () {
     return {
-      isLoading: false,
       data: [],
-      dataModel: {},
+      allEntityType: [],
       graph: {},
-      isApplyBtnDisabled: true
+      drawerVisible: false,
+      nodeName: '',
+      isHandleNodeClick: false,
+      currentAttrs: []
     }
   },
-  watch: {
-    pkgId: {
-      handler: () => {
-        this.dataModel = {}
-        this.getData(false)
-      }
-    }
-  },
-  props: {
-    pkgId: {
-      required: true
-    }
-  },
-  created () {
-    this.getData(false)
+  mounted () {
+    this.getAllDataModels()
   },
   methods: {
     ResetModel () {
@@ -69,47 +52,38 @@ export default {
         this.graph.graphviz.resetZoom()
       }
     },
-    async getData (ispull) {
-      this.isLoading = true
-      let { status, data } = this.dataModel.dynamic
-        ? await pullDynamicDataModel(this.pkgId)
-        : await getPluginPkgDataModel(this.pkgId)
-      this.isLoading = false
+    async getAllDataModels () {
+      const { data, status } = await getAllDataModels()
       if (status === 'OK') {
-        if (this.dataModel.dynamic) {
-          this.isApplyBtnDisabled = false
-        }
-        this.dataModel = data
-        this.data = data.pluginPackageEntities.map(_ => {
+        this.allEntityType = data.map(_ => {
+          // handle result sort by name
           return {
             ..._,
-            id: '[' + _.packageName + ']' + _.name,
-            tos: _.referenceToEntityList.map(to => {
-              return { ...to, id: '[' + to.packageName + ']' + to.name }
-            }),
-            bys: _.referenceByEntityList.map(by => {
-              return { ...by, id: '[' + by.packageName + ']' + by.name }
+            pluginPackageEntities: _.pluginPackageEntities.sort(function (a, b) {
+              var s = a.name.toLowerCase()
+              var t = b.name.toLowerCase()
+              if (s < t) return -1
+              if (s > t) return 1
             })
           }
+        })
+        data.forEach(i => {
+          i.pluginPackageEntities.forEach(_ => {
+            this.data.push({
+              ..._,
+              id: '[' + _.packageName + ']' + _.name,
+              tos: _.referenceToEntityList.map(to => {
+                return { ...to, id: '[' + to.packageName + ']' + to.name }
+              }),
+              bys: _.referenceByEntityList.map(by => {
+                return { ...by, id: '[' + by.packageName + ']' + by.name }
+              })
+            })
+          })
         })
         this.initGraph()
       }
     },
-    async applyNewDataModel () {
-      this.isLoading = true
-      let { status } = await applyNewDataModel(this.dataModel)
-      this.isLoading = false
-      if (status === 'OK') {
-        if (this.dataModel.dynamic) {
-          this.isApplyBtnDisabled = true
-        }
-        this.$Notice.success({
-          title: 'Success',
-          desc: 'Data model apply successfully'
-        })
-      }
-    },
-
     genDOT () {
       var dots = [
         'digraph  {',
@@ -118,7 +92,7 @@ export default {
         'Edge [fontname=Arial, minlen="1", color="#000", fontsize=10];'
       ]
       let drawConnection = (from, to) => {
-        return `"${from.id}" -> "${to.id}"[edgetooltip="${to.id}" id="edge${from.id}" class="${to.id}" fontsize=8 taillabel="${from.refName}" labeldistance=6 minlen="2"];`
+        return `"${from.id}"->"${to.id}"[edgetooltip="${to.id}" id="edge${from.id}" class="${to.id}" fontsize=8 taillabel="${from.refName}" labeldistance=6 minlen="2"];`
       }
 
       let addNodeAttr = node => {
@@ -171,6 +145,16 @@ export default {
         e.stopPropagation()
       })
       addEvent('.node', 'mouseover', this.handleNodeMouseover)
+      addEvent('.node', 'click', this.handleNodeClick)
+    },
+    handleNodeClick (e) {
+      this.currentAttrs = this.data.find(_ => _.id === this.nodeName).attributes
+      this.drawerVisible = true
+      if (this.isHandleNodeClick) return
+      this.isHandleNodeClick = true
+      setTimeout(() => {
+        this.isHandleNodeClick = false
+      }, 500)
     },
     handleNodeMouseover (e) {
       e.preventDefault()
@@ -236,12 +220,12 @@ export default {
         .attr('stroke-opacity', '1')
     },
     initGraph () {
-      const graphEl = document.getElementById('data-model-graph')
+      const graphEl = document.getElementById('data-model')
       const height = graphEl.offsetHeight
       const width = graphEl.offsetWidth - 20
       const initEvent = () => {
         let graph
-        graph = d3.select(`#data-model-graph`)
+        graph = d3.select(`#data-model`)
         graph.on('dblclick.zoom', null)
         this.graph.graphviz = graph
           .graphviz()
@@ -257,27 +241,21 @@ export default {
   }
 }
 </script>
-<style lang="scss" scoped>
-#dataModelContainer {
+<style lang="scss">
+#data-model {
+  height: calc(100vh - 120px);
+}
+.attr-container {
+  height: calc(100vh - 90px);
   width: 100%;
-  height: calc(100vh - 180px);
   overflow: auto;
-  position: relative;
+  .ivu-form-item {
+    margin-bottom: 0px;
+  }
 }
-#data-model-graph {
-  height: calc(100vh - 220px);
-}
-.demo-spin-icon-load {
-  animation: ani-demo-spin 1s linear infinite;
-}
-.loading {
+.model-reset-button {
   position: absolute;
-  top: 0;
-  left: 0;
-}
-.data-model-reset-button {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 30px;
+  bottom: 30px;
 }
 </style>
