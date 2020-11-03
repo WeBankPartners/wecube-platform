@@ -6,7 +6,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "CORE_RU_TASK_NODE_INST_INFO")
-public class TaskNodeInstInfoEntity extends BaseInstanceStatusEntity {
+public class TaskNodeInstInfoEntity extends AbstractInstanceStatusEntity {
 
     @Column(name = "NODE_DEF_ID")
     private String nodeDefId;
