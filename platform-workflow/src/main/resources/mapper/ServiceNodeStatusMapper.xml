@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper">
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="node_id" jdbcType="VARCHAR" property="nodeId" />
+    <result column="node_inst_id" jdbcType="VARCHAR" property="nodeInstId" />
+    <result column="node_name" jdbcType="VARCHAR" property="nodeName" />
+    <result column="node_type" jdbcType="VARCHAR" property="nodeType" />
+    <result column="proc_inst_key" jdbcType="VARCHAR" property="procInstKey" />
+    <result column="proc_inst_id" jdbcType="VARCHAR" property="procInstId" />
+    <result column="try_times" jdbcType="INTEGER" property="tryTimes" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, created_by, created_time, end_time, start_time, status, updated_by, updated_time, 
+    node_id, node_inst_id, node_name, node_type, proc_inst_key, proc_inst_id, try_times
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from act_ru_srvnode_status
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="findOneByProcInstanceBizKeyAndNodeId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from act_ru_srvnode_status
+    where proc_inst_key = #{procInstKey,jdbcType=VARCHAR}
+    and node_id = #{nodeId,jdbcType=VARCHAR}
+  </select>
+  
+  
+  <select id="findOneByProcInstanceIdAndNodeId" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from act_ru_srvnode_status
+    where proc_inst_key = #{procInstKey,jdbcType=VARCHAR}
+    and node_id = #{nodeId,jdbcType=VARCHAR}
+    and status = #{status,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="findOneByProcInstanceBizKeyAndNodeIdAndStatus" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from act_ru_srvnode_status
+    where proc_inst_key = #{procInstKey,jdbcType=VARCHAR}
+    and node_id = #{nodeId,jdbcType=VARCHAR}
+    and status = #{status,jdbcType=VARCHAR}
+  </select>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from act_ru_srvnode_status
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity">
+    insert into act_ru_srvnode_status (id, created_by, created_time, 
+      end_time, start_time, status, 
+      updated_by, updated_time, node_id, 
+      node_inst_id, node_name, node_type, 
+      proc_inst_key, proc_inst_id, try_times
+      )
+    values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{endTime,jdbcType=TIMESTAMP}, #{startTime,jdbcType=TIMESTAMP}, #{status,jdbcType=VARCHAR}, 
+      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{nodeId,jdbcType=VARCHAR}, 
+      #{nodeInstId,jdbcType=VARCHAR}, #{nodeName,jdbcType=VARCHAR}, #{nodeType,jdbcType=VARCHAR}, 
+      #{procInstKey,jdbcType=VARCHAR}, #{procInstId,jdbcType=VARCHAR}, #{tryTimes,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity">
+    insert into act_ru_srvnode_status
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+      <if test="endTime != null">
+        end_time,
+      </if>
+      <if test="startTime != null">
+        start_time,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="updatedTime != null">
+        updated_time,
+      </if>
+      <if test="nodeId != null">
+        node_id,
+      </if>
+      <if test="nodeInstId != null">
+        node_inst_id,
+      </if>
+      <if test="nodeName != null">
+        node_name,
+      </if>
+      <if test="nodeType != null">
+        node_type,
+      </if>
+      <if test="procInstKey != null">
+        proc_inst_key,
+      </if>
+      <if test="procInstId != null">
+        proc_inst_id,
+      </if>
+      <if test="tryTimes != null">
+        try_times,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="nodeId != null">
+        #{nodeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeInstId != null">
+        #{nodeInstId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeName != null">
+        #{nodeName,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeType != null">
+        #{nodeType,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstKey != null">
+        #{procInstKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstId != null">
+        #{procInstId,jdbcType=VARCHAR},
+      </if>
+      <if test="tryTimes != null">
+        #{tryTimes,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity">
+    update act_ru_srvnode_status
+    <set>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="nodeId != null">
+        node_id = #{nodeId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeInstId != null">
+        node_inst_id = #{nodeInstId,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeName != null">
+        node_name = #{nodeName,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeType != null">
+        node_type = #{nodeType,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstKey != null">
+        proc_inst_key = #{procInstKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstId != null">
+        proc_inst_id = #{procInstId,jdbcType=VARCHAR},
+      </if>
+      <if test="tryTimes != null">
+        try_times = #{tryTimes,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity">
+    update act_ru_srvnode_status
+    set created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      end_time = #{endTime,jdbcType=TIMESTAMP},
+      start_time = #{startTime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=VARCHAR},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      node_id = #{nodeId,jdbcType=VARCHAR},
+      node_inst_id = #{nodeInstId,jdbcType=VARCHAR},
+      node_name = #{nodeName,jdbcType=VARCHAR},
+      node_type = #{nodeType,jdbcType=VARCHAR},
+      proc_inst_key = #{procInstKey,jdbcType=VARCHAR},
+      proc_inst_id = #{procInstId,jdbcType=VARCHAR},
+      try_times = #{tryTimes,jdbcType=INTEGER}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>
