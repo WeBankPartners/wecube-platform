@@ -7,7 +7,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "CORE_RE_TASK_NODE_DEF_INFO")
-public class TaskNodeDefInfoEntity extends BaseStatusFeaturedEntity {
+public class TaskNodeDefInfoEntity extends AbstractStatusFeaturedEntity {
 
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";
