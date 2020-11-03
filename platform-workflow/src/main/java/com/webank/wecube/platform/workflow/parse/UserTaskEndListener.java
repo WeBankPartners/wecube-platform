@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
-import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 /**
  * 
@@ -34,8 +34,8 @@ public class UserTaskEndListener implements ExecutionListener {
     }
 
     protected void logUserTaskEnd(DelegateExecution execution) {
-        ServiceNodeStatusRepository respository = SpringApplicationContextUtil
-                .getBean(ServiceNodeStatusRepository.class);
+        ServiceNodeStatusMapper respository = SpringApplicationContextUtil
+                .getBean(ServiceNodeStatusMapper.class);
         Date currTime = new Date();
         ServiceNodeStatusEntity entity = respository.findOneByProcInstanceBizKeyAndNodeIdAndStatus(
                 execution.getProcessBusinessKey(), execution.getCurrentActivityId(), TraceStatus.InProgress);
@@ -46,7 +46,7 @@ public class UserTaskEndListener implements ExecutionListener {
             entity.setEndTime(currTime);
             entity.setStatus(TraceStatus.Completed);
 
-            respository.saveAndFlush(entity);
+            respository.updateByPrimaryKeySelective(entity);
         } else {
             log.warn("cannot find user task status entity for processInstBizKey={},nodeId={}",
                     execution.getProcessBusinessKey(), execution.getCurrentActivityId());
