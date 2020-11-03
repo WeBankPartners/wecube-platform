@@ -2,17 +2,7 @@ package com.webank.wecube.platform.core.entity.workflow;
 
 import java.util.Date;
 
-public class ProcDefInfoEntity {
-
-    public static final String DRAFT_STATUS = "draft";
-    public static final String DEPLOYED_STATUS = "deployed";
-    public static final String DELETED_STATUS = "deleted";
-    public static final String TEMPLATE_STATUS = "template";
-    public static final String PREDEPLOY_STATUS = "predeploy";
-
-    public static final String PROC_DATA_FORMAT_XML = "xml";
-    public static final String PROC_DATA_FORMAT_JSON = "json";
-
+public class CoreReProcDefInfo {
     private String id;
 
     private String createdBy;
@@ -41,7 +31,7 @@ public class ProcDefInfoEntity {
 
     private String rootEntity;
 
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
 
     private String owner;
 
@@ -54,7 +44,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setId(String id) {
-        this.id = id;
+        this.id = id == null ? null : id.trim();
     }
 
     public String getCreatedBy() {
@@ -62,7 +52,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
+        this.createdBy = createdBy == null ? null : createdBy.trim();
     }
 
     public Date getCreatedTime() {
@@ -78,7 +68,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setUpdatedBy(String updatedBy) {
-        this.updatedBy = updatedBy;
+        this.updatedBy = updatedBy == null ? null : updatedBy.trim();
     }
 
     public Date getUpdatedTime() {
@@ -110,7 +100,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        this.status = status == null ? null : status.trim();
     }
 
     public String getProcDefDataFmt() {
@@ -118,7 +108,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setProcDefDataFmt(String procDefDataFmt) {
-        this.procDefDataFmt = procDefDataFmt;
+        this.procDefDataFmt = procDefDataFmt == null ? null : procDefDataFmt.trim();
     }
 
     public String getProcDefKernelId() {
@@ -126,7 +116,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setProcDefKernelId(String procDefKernelId) {
-        this.procDefKernelId = procDefKernelId;
+        this.procDefKernelId = procDefKernelId == null ? null : procDefKernelId.trim();
     }
 
     public String getProcDefKey() {
@@ -134,7 +124,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setProcDefKey(String procDefKey) {
-        this.procDefKey = procDefKey;
+        this.procDefKey = procDefKey == null ? null : procDefKey.trim();
     }
 
     public String getProcDefName() {
@@ -142,7 +132,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setProcDefName(String procDefName) {
-        this.procDefName = procDefName;
+        this.procDefName = procDefName == null ? null : procDefName.trim();
     }
 
     public Integer getProcDefVer() {
@@ -158,7 +148,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setRootEntity(String rootEntity) {
-        this.rootEntity = rootEntity;
+        this.rootEntity = rootEntity == null ? null : rootEntity.trim();
     }
 
     public Boolean getIsDeleted() {
@@ -174,7 +164,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setOwner(String owner) {
-        this.owner = owner;
+        this.owner = owner == null ? null : owner.trim();
     }
 
     public String getOwnerGrp() {
@@ -182,7 +172,7 @@ public class ProcDefInfoEntity {
     }
 
     public void setOwnerGrp(String ownerGrp) {
-        this.ownerGrp = ownerGrp;
+        this.ownerGrp = ownerGrp == null ? null : ownerGrp.trim();
     }
 
     public String getProcDefData() {
@@ -190,7 +180,6 @@ public class ProcDefInfoEntity {
     }
 
     public void setProcDefData(String procDefData) {
-        this.procDefData = procDefData;
+        this.procDefData = procDefData == null ? null : procDefData.trim();
     }
-
 }
