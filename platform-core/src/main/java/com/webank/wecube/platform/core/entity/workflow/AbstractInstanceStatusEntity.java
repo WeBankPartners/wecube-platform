@@ -5,10 +5,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
-
 @MappedSuperclass
-public abstract class BaseInstanceStatusEntity extends BaseTraceableEntity {
+public abstract class AbstractInstanceStatusEntity extends AbstractTraceableEntity {
     public static final String NOT_STARTED_STATUS = "NotStarted";
     public static final String IN_PROGRESS_STATUS = "InProgress";
     public static final String COMPLETED_STATUS = "Completed";
