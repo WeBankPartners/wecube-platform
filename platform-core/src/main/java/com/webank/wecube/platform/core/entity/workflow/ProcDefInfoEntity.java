@@ -23,7 +23,7 @@ public class ProcDefInfoEntity {
 
     private Date updatedTime;
 
-    private Boolean active;
+    private Boolean active = true;
 
     private Integer rev;
 
