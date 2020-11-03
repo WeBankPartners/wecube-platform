@@ -40,7 +40,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.jpa.workflow.GraphNodeRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoRepository;
+import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingTmpRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
 import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
@@ -81,7 +81,7 @@ public class WorkflowDataService{
     protected ProcExecBindingTmpRepository procExecBindingTmpRepository;
 
     @Autowired
-    protected ProcDefInfoRepository procDefInfoRepository;
+    protected ProcDefInfoMapper procDefInfoRepository;
 
     @Autowired
     protected GraphNodeRepository graphNodeRepository;
@@ -135,23 +135,23 @@ public class WorkflowDataService{
 
             @Override
             public int compare(ProcDefInfoEntity o1, ProcDefInfoEntity o2) {
-                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() == null) {
+                if (o1.getProcDefVer() == null && o2.getProcDefVer() == null) {
                     return 0;
                 }
 
-                if (o1.getProcDefVersion() == null && o2.getProcDefVersion() != null) {
+                if (o1.getProcDefVer() == null && o2.getProcDefVer() != null) {
                     return -1;
                 }
 
-                if (o1.getProcDefVersion() != null && o2.getProcDefVersion() == null) {
+                if (o1.getProcDefVer() != null && o2.getProcDefVer() == null) {
                     return 1;
                 }
 
-                if (o1.getProcDefVersion() == o2.getProcDefVersion()) {
+                if (o1.getProcDefVer() == o2.getProcDefVer()) {
                     return 0;
                 }
 
-                return o1.getProcDefVersion() > o2.getProcDefVersion() ? -1 : 1;
+                return o1.getProcDefVer() > o2.getProcDefVer() ? -1 : 1;
             }
 
         });
@@ -180,12 +180,10 @@ public class WorkflowDataService{
         if (StringUtils.isBlank(procDefId)) {
             throw new WecubeCoreException("3186","Process definition ID cannot be blank.");
         }
-        Optional<ProcDefInfoEntity> procDefInfoEntityOpt = procDefInfoRepository.findById(procDefId);
-        if (!procDefInfoEntityOpt.isPresent()) {
+        ProcDefInfoEntity procDef = procDefInfoRepository.selectByPrimaryKey(procDefId);
+        if (procDef == null) {
             throw new WecubeCoreException("3187",String.format("Cannot find such process definition with ID [%s]" , procDefId), procDefId);
         }
-
-        ProcDefInfoEntity procDef = procDefInfoEntityOpt.get();
 
         List<Map<String, Object>> result = new ArrayList<>();
 
