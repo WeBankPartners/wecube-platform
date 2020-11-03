@@ -17,7 +17,7 @@ import com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity;
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent;
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEventImpl;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
-import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ProcessInstanceStatusMapper;
 
 /**
  * 
@@ -36,8 +36,8 @@ public class ProcessInstanceEndListener implements ExecutionListener {
     @Override
     public void notify(DelegateExecution execution) throws Exception {
 
-        ProcessInstanceStatusRepository processInstanceStatusRepository = SpringApplicationContextUtil
-                .getBean(ProcessInstanceStatusRepository.class);
+        ProcessInstanceStatusMapper processInstanceStatusRepository = SpringApplicationContextUtil
+                .getBean(ProcessInstanceStatusMapper.class);
         ProcessInstanceStatusEntity procInstEntity = processInstanceStatusRepository
                 .findOneByprocInstanceId(execution.getId());
 
@@ -121,24 +121,24 @@ public class ProcessInstanceEndListener implements ExecutionListener {
     }
 
     protected void logProcessInstanceError(ProcessInstanceStatusEntity procInstEntity,
-            ProcessInstanceStatusRepository processInstanceStatusRepository) {
+            ProcessInstanceStatusMapper processInstanceStatusRepository) {
         Date currTime = new Date();
         procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         procInstEntity.setUpdatedTime(currTime);
         procInstEntity.setEndTime(currTime);
         procInstEntity.setStatus(TraceStatus.Faulted);
 
-        processInstanceStatusRepository.saveAndFlush(procInstEntity);
+        processInstanceStatusRepository.updateByPrimaryKeySelective(procInstEntity);
     }
 
     protected void logProcessInstanceSuccess(ProcessInstanceStatusEntity procInstEntity,
-            ProcessInstanceStatusRepository processInstanceStatusRepository) {
+            ProcessInstanceStatusMapper processInstanceStatusRepository) {
         Date currTime = new Date();
         procInstEntity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
         procInstEntity.setUpdatedTime(currTime);
         procInstEntity.setEndTime(currTime);
         procInstEntity.setStatus(TraceStatus.Completed);
 
-        processInstanceStatusRepository.saveAndFlush(procInstEntity);
+        processInstanceStatusRepository.updateByPrimaryKeySelective(procInstEntity);
     }
 }

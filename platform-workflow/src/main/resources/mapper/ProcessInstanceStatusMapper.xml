@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gl.wecube.cds.workflow.repository.ProcessInstanceStatusMapper">
+  <resultMap id="BaseResultMap" type="com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+    <result column="created_time" jdbcType="TIMESTAMP" property="createdTime" />
+    <result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    <result column="start_time" jdbcType="TIMESTAMP" property="startTime" />
+    <result column="status" jdbcType="VARCHAR" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+    <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+    <result column="updated_time" jdbcType="TIMESTAMP" property="updatedTime" />
+    <result column="proc_def_id" jdbcType="VARCHAR" property="procDefId" />
+    <result column="proc_def_key" jdbcType="VARCHAR" property="procDefKey" />
+    <result column="proc_def_name" jdbcType="VARCHAR" property="procDefName" />
+    <result column="proc_inst_key" jdbcType="VARCHAR" property="procInstKey" />
+    <result column="proc_inst_id" jdbcType="VARCHAR" property="procInstId" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, created_by, created_time, end_time, start_time, status, updated_by, updated_time, 
+    proc_def_id, proc_def_key, proc_def_name, proc_inst_key, proc_inst_id
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from act_ru_procinst_status
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  
+  <select id="findOneByprocInstanceId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from act_ru_procinst_status
+    where proc_inst_id = #{procInstId,jdbcType=VARCHAR}
+  </select>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from act_ru_procinst_status
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity">
+    insert into act_ru_procinst_status (id, created_by, created_time, 
+      end_time, start_time, status, 
+      updated_by, updated_time, proc_def_id, 
+      proc_def_key, proc_def_name, proc_inst_key, 
+      proc_inst_id)
+    values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, #{createdTime,jdbcType=TIMESTAMP}, 
+      #{endTime,jdbcType=TIMESTAMP}, #{startTime,jdbcType=TIMESTAMP}, #{status,jdbcType=VARCHAR}, 
+      #{updatedBy,jdbcType=VARCHAR}, #{updatedTime,jdbcType=TIMESTAMP}, #{procDefId,jdbcType=VARCHAR}, 
+      #{procDefKey,jdbcType=VARCHAR}, #{procDefName,jdbcType=VARCHAR}, #{procInstKey,jdbcType=VARCHAR}, 
+      #{procInstId,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity">
+    insert into act_ru_procinst_status
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="createdTime != null">
+        created_time,
+      </if>
+      <if test="endTime != null">
+        end_time,
+      </if>
+      <if test="startTime != null">
+        start_time,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="updatedTime != null">
+        updated_time,
+      </if>
+      <if test="procDefId != null">
+        proc_def_id,
+      </if>
+      <if test="procDefKey != null">
+        proc_def_key,
+      </if>
+      <if test="procDefName != null">
+        proc_def_name,
+      </if>
+      <if test="procInstKey != null">
+        proc_inst_key,
+      </if>
+      <if test="procInstId != null">
+        proc_inst_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="procDefId != null">
+        #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKey != null">
+        #{procDefKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefName != null">
+        #{procDefName,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstKey != null">
+        #{procInstKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstId != null">
+        #{procInstId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity">
+    update act_ru_procinst_status
+    <set>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null">
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null">
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedTime != null">
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="procDefId != null">
+        proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefKey != null">
+        proc_def_key = #{procDefKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procDefName != null">
+        proc_def_name = #{procDefName,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstKey != null">
+        proc_inst_key = #{procInstKey,jdbcType=VARCHAR},
+      </if>
+      <if test="procInstId != null">
+        proc_inst_id = #{procInstId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.webank.wecube.platform.workflow.entity.ProcessInstanceStatusEntity">
+    update act_ru_procinst_status
+    set created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=TIMESTAMP},
+      end_time = #{endTime,jdbcType=TIMESTAMP},
+      start_time = #{startTime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=VARCHAR},
+      updated_by = #{updatedBy,jdbcType=VARCHAR},
+      updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+      proc_def_id = #{procDefId,jdbcType=VARCHAR},
+      proc_def_key = #{procDefKey,jdbcType=VARCHAR},
+      proc_def_name = #{procDefName,jdbcType=VARCHAR},
+      proc_inst_key = #{procInstKey,jdbcType=VARCHAR},
+      proc_inst_id = #{procInstId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

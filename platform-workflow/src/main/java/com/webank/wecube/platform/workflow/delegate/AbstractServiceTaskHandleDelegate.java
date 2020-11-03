@@ -25,7 +25,7 @@ import com.webank.wecube.platform.workflow.model.ServiceInvocationEvent;
 import com.webank.wecube.platform.workflow.model.ServiceInvocationEventImpl;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.parse.SpringApplicationContextUtil;
-import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 public abstract class AbstractServiceTaskHandleDelegate implements JavaDelegate {
     @Override
@@ -69,8 +69,8 @@ public abstract class AbstractServiceTaskHandleDelegate implements JavaDelegate 
 
         String procInstanceBizKey = execution.getProcessBusinessKey();
 
-        ServiceNodeStatusRepository repository = SpringApplicationContextUtil
-                .getBean(ServiceNodeStatusRepository.class);
+        ServiceNodeStatusMapper repository = SpringApplicationContextUtil
+                .getBean(ServiceNodeStatusMapper.class);
 
         ServiceNodeStatusEntity entity = repository.findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
 
@@ -79,7 +79,7 @@ public abstract class AbstractServiceTaskHandleDelegate implements JavaDelegate 
             entity.setStatus(TraceStatus.InProgress);
             entity.setUpdatedTime(new Date());
             entity.setUpdatedBy(WorkflowConstants.DEFAULT_USER);
-            repository.save(entity);
+            repository.updateByPrimaryKeySelective(entity);
         }
 
     }

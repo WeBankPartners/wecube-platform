@@ -45,7 +45,7 @@ camunda:
       resume-previous-by: a value
     history-level: full
     database:
-      schema-update: true
+      schema-update: false
     filter:
       create: All tasks
     job-execution:
@@ -53,6 +53,10 @@ camunda:
     auto-deployment-enabled: true
     generate-unique-process-application-name: true
     generate-unique-process-engine-name: true
+mybatis:
+  config-location: classpath:mybatis-config.xml
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: com.webank.wecube.platform.core.entity
 wecube:
   core:
     db-init-strategy: update

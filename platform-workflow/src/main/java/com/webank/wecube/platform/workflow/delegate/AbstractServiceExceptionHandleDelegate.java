@@ -9,7 +9,7 @@ import com.webank.wecube.platform.workflow.WorkflowConstants;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.model.TraceStatus;
 import com.webank.wecube.platform.workflow.parse.SpringApplicationContextUtil;
-import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusRepository;
+import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 /**
  * 
@@ -30,8 +30,8 @@ public abstract class AbstractServiceExceptionHandleDelegate {
         String nodeId = activityId.substring(idPrefix.length());
         String procInstanceBizKey = execution.getProcessBusinessKey();
 
-        ServiceNodeStatusRepository repository = SpringApplicationContextUtil
-                .getBean(ServiceNodeStatusRepository.class);
+        ServiceNodeStatusMapper repository = SpringApplicationContextUtil
+                .getBean(ServiceNodeStatusMapper.class);
 
         ServiceNodeStatusEntity entity = repository.findOneByProcInstanceBizKeyAndNodeId(procInstanceBizKey, nodeId);
 
@@ -45,7 +45,7 @@ public abstract class AbstractServiceExceptionHandleDelegate {
         entity.setUpdatedTime(new Date());
         entity.setStatus(traceStatus);
 
-        repository.save(entity);
+        repository.updateByPrimaryKeySelective(entity);
     }
 
     protected abstract Logger getLogger();
