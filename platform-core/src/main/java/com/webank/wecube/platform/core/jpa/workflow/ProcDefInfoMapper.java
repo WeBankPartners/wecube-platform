@@ -21,13 +21,8 @@ public interface ProcDefInfoMapper {
 
     int updateByPrimaryKey(ProcDefInfoEntity record);
 
-//    @Query("select t from ProcDefInfoEntity t "
-//            + " where t.active = true and (t.status = 'deployed' or t.status = 'draft')")
     List<ProcDefInfoEntity> findAllDeployedOrDraftProcDefs();
 
-
-//    @Query("select t from ProcDefInfoEntity t " + " where t.procDefName = :procDefName and t.active = true "
-//            + " and t.status = 'deployed' and t.deleted = false ")
     List<ProcDefInfoEntity> findAllDeployedProcDefsByProcDefName(@Param("procDefName") String procDefName);
 
 //    @Query("select t from ProcDefInfoEntity t "

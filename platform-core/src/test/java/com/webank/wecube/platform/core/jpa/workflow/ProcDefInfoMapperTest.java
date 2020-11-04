@@ -1,6 +1,7 @@
 package com.webank.wecube.platform.core.jpa.workflow;
 
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
@@ -22,12 +24,19 @@ public class ProcDefInfoMapperTest {
     
     @Test
     public void testInsert(){
-        String id = "test111";
+        String id = LocalIdGenerator.generateId();
         ProcDefInfoEntity entity = new ProcDefInfoEntity();
         entity.setId(id);
-        entity.setProcDefData("aaaaaa");
+        entity.setProcDefData("proc def data");
         entity.setCreatedTime(new Date());
         entity.setIsDeleted(false);
+        
+        entity.setActive(true);
+        entity.setProcDefVer(8);
+        entity.setRev(1);
+        entity.setProcDefKey("proc def key");
+        entity.setProcDefName("proc-def-name-test");
+        entity.setStatus(ProcDefInfoEntity.DEPLOYED_STATUS);
         
         procDefInfoMapper.insert(entity);
     }
@@ -47,14 +56,24 @@ public class ProcDefInfoMapperTest {
 
     @Test
     public void testFindAllDeployedOrDraftProcDefs() {
+        List<ProcDefInfoEntity> entities = procDefInfoMapper.findAllDeployedOrDraftProcDefs();
+        System.out.println(entities.size());
     }
 
     @Test
     public void testFindAllDeployedProcDefsByProcDefName() {
+        String procDefName = "默认告警处理编排_V0.1";
+        List<ProcDefInfoEntity> entities = procDefInfoMapper.findAllDeployedProcDefsByProcDefName(procDefName);
+        
+        System.out.println(entities.size());
     }
 
     @Test
     public void testFindAllDeployedProcDefsByProcDefKey() {
+        String procDefKey = "wecube1584968688912";
+        String status = ProcDefInfoEntity.DEPLOYED_STATUS;
+        List<ProcDefInfoEntity> entities = procDefInfoMapper.findAllDeployedProcDefsByProcDefKey(procDefKey, status);
+        System.out.println(entities.size());
     }
 
 }
