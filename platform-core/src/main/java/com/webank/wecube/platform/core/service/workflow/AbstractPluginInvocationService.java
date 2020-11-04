@@ -15,7 +15,7 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoRepository;
@@ -54,7 +54,7 @@ public abstract class AbstractPluginInvocationService extends AbstractWorkflowSe
     protected TaskNodeInstInfoRepository taskNodeInstInfoRepository;
 
     @Autowired
-    protected TaskNodeDefInfoRepository taskNodeDefInfoRepository;
+    protected TaskNodeDefInfoMapper taskNodeDefInfoRepository;
 
     @Autowired
     protected TaskNodeExecParamRepository taskNodeExecParamRepository;

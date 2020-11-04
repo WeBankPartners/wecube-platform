@@ -242,7 +242,7 @@ public class PluginInvocationProcessor {
             if (pluginInterfaceInvocationContext.getTaskNodeDefEntity() == null) {
                 return null;
             }
-            String dueDate = pluginInterfaceInvocationContext.getTaskNodeDefEntity().getTimeoutExpression();
+            String dueDate = pluginInterfaceInvocationContext.getTaskNodeDefEntity().getTimeoutExp();
             if (StringUtils.isBlank(dueDate)) {
                 return DEF_DUE_DATE;
             } else {
