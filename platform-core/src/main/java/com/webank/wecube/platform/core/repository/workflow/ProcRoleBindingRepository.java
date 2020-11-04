@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.jpa.workflow;
+package com.webank.wecube.platform.core.repository.workflow;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 
