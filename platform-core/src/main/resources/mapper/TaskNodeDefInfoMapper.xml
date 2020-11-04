@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="created_by" jdbcType="VARCHAR"
+            property="createdBy" />
+        <result column="created_time" jdbcType="TIMESTAMP"
+            property="createdTime" />
+        <result column="updated_by" jdbcType="VARCHAR"
+            property="updatedBy" />
+        <result column="updated_time" jdbcType="TIMESTAMP"
+            property="updatedTime" />
+        <result column="active" jdbcType="BIT" property="active" />
+        <result column="rev" jdbcType="INTEGER" property="rev" />
+        <result column="status" jdbcType="VARCHAR"
+            property="status" />
+        <result column="description" jdbcType="VARCHAR"
+            property="description" />
+        <result column="node_id" jdbcType="VARCHAR"
+            property="nodeId" />
+        <result column="node_name" jdbcType="VARCHAR"
+            property="nodeName" />
+        <result column="node_type" jdbcType="VARCHAR"
+            property="nodeType" />
+        <result column="ordered_no" jdbcType="VARCHAR"
+            property="orderedNo" />
+        <result column="prev_node_ids" jdbcType="VARCHAR"
+            property="prevNodeIds" />
+        <result column="proc_def_id" jdbcType="VARCHAR"
+            property="procDefId" />
+        <result column="proc_def_kernel_id" jdbcType="VARCHAR"
+            property="procDefKernelId" />
+        <result column="proc_def_key" jdbcType="VARCHAR"
+            property="procDefKey" />
+        <result column="proc_def_ver" jdbcType="INTEGER"
+            property="procDefVer" />
+        <result column="routine_exp" jdbcType="VARCHAR"
+            property="routineExp" />
+        <result column="routine_raw" jdbcType="VARCHAR"
+            property="routineRaw" />
+        <result column="service_id" jdbcType="VARCHAR"
+            property="serviceId" />
+        <result column="service_name" jdbcType="VARCHAR"
+            property="serviceName" />
+        <result column="succeed_node_ids" jdbcType="VARCHAR"
+            property="succeedNodeIds" />
+        <result column="timeout_exp" jdbcType="VARCHAR"
+            property="timeoutExp" />
+        <result column="task_category" jdbcType="VARCHAR"
+            property="taskCategory" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, created_by, created_time, updated_by, updated_time, active, rev,
+        status, description,
+        node_id, node_name, node_type, ordered_no, prev_node_ids, proc_def_id,
+        proc_def_kernel_id,
+        proc_def_key, proc_def_ver, routine_exp, routine_raw, service_id, service_name,
+        succeed_node_ids,
+        timeout_exp, task_category
+    </sql>
+    <select id="selectByPrimaryKey"
+        parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_def_info
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey"
+        parameterType="java.lang.String">
+        delete from core_re_task_node_def_info
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
+        insert into core_re_task_node_def_info (id, created_by, created_time,
+        updated_by, updated_time, active,
+        rev, status, description,
+        node_id, node_name, node_type,
+        ordered_no, prev_node_ids, proc_def_id,
+        proc_def_kernel_id, proc_def_key, proc_def_ver,
+        routine_exp, routine_raw, service_id,
+        service_name, succeed_node_ids, timeout_exp,
+        task_category)
+        values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
+        #{createdTime,jdbcType=TIMESTAMP},
+        #{updatedBy,jdbcType=VARCHAR},
+        #{updatedTime,jdbcType=TIMESTAMP}, #{active,jdbcType=BIT},
+        #{rev,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR},
+        #{description,jdbcType=VARCHAR},
+        #{nodeId,jdbcType=VARCHAR}, #{nodeName,jdbcType=VARCHAR}, #{nodeType,jdbcType=VARCHAR},
+        #{orderedNo,jdbcType=VARCHAR}, #{prevNodeIds,jdbcType=VARCHAR},
+        #{procDefId,jdbcType=VARCHAR},
+        #{procDefKernelId,jdbcType=VARCHAR},
+        #{procDefKey,jdbcType=VARCHAR}, #{procDefVer,jdbcType=INTEGER},
+        #{routineExp,jdbcType=VARCHAR}, #{routineRaw,jdbcType=VARCHAR},
+        #{serviceId,jdbcType=VARCHAR},
+        #{serviceName,jdbcType=VARCHAR}, #{succeedNodeIds,jdbcType=VARCHAR}, #{timeoutExp,jdbcType=VARCHAR},
+        #{taskCategory,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
+        insert into core_re_task_node_def_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+            <if test="updatedTime != null">
+                updated_time,
+            </if>
+            <if test="active != null">
+                active,
+            </if>
+            <if test="rev != null">
+                rev,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="description != null">
+                description,
+            </if>
+            <if test="nodeId != null">
+                node_id,
+            </if>
+            <if test="nodeName != null">
+                node_name,
+            </if>
+            <if test="nodeType != null">
+                node_type,
+            </if>
+            <if test="orderedNo != null">
+                ordered_no,
+            </if>
+            <if test="prevNodeIds != null">
+                prev_node_ids,
+            </if>
+            <if test="procDefId != null">
+                proc_def_id,
+            </if>
+            <if test="procDefKernelId != null">
+                proc_def_kernel_id,
+            </if>
+            <if test="procDefKey != null">
+                proc_def_key,
+            </if>
+            <if test="procDefVer != null">
+                proc_def_ver,
+            </if>
+            <if test="routineExp != null">
+                routine_exp,
+            </if>
+            <if test="routineRaw != null">
+                routine_raw,
+            </if>
+            <if test="serviceId != null">
+                service_id,
+            </if>
+            <if test="serviceName != null">
+                service_name,
+            </if>
+            <if test="succeedNodeIds != null">
+                succeed_node_ids,
+            </if>
+            <if test="timeoutExp != null">
+                timeout_exp,
+            </if>
+            <if test="taskCategory != null">
+                task_category,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="createdBy != null">
+                #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="active != null">
+                #{active,jdbcType=BIT},
+            </if>
+            <if test="rev != null">
+                #{rev,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeId != null">
+                #{nodeId,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeName != null">
+                #{nodeName,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeType != null">
+                #{nodeType,jdbcType=VARCHAR},
+            </if>
+            <if test="orderedNo != null">
+                #{orderedNo,jdbcType=VARCHAR},
+            </if>
+            <if test="prevNodeIds != null">
+                #{prevNodeIds,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefId != null">
+                #{procDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefKernelId != null">
+                #{procDefKernelId,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefKey != null">
+                #{procDefKey,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefVer != null">
+                #{procDefVer,jdbcType=INTEGER},
+            </if>
+            <if test="routineExp != null">
+                #{routineExp,jdbcType=VARCHAR},
+            </if>
+            <if test="routineRaw != null">
+                #{routineRaw,jdbcType=VARCHAR},
+            </if>
+            <if test="serviceId != null">
+                #{serviceId,jdbcType=VARCHAR},
+            </if>
+            <if test="serviceName != null">
+                #{serviceName,jdbcType=VARCHAR},
+            </if>
+            <if test="succeedNodeIds != null">
+                #{succeedNodeIds,jdbcType=VARCHAR},
+            </if>
+            <if test="timeoutExp != null">
+                #{timeoutExp,jdbcType=VARCHAR},
+            </if>
+            <if test="taskCategory != null">
+                #{taskCategory,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
+        update core_re_task_node_def_info
+        <set>
+            <if test="createdBy != null">
+                created_by = #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time = #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="active != null">
+                active = #{active,jdbcType=BIT},
+            </if>
+            <if test="rev != null">
+                rev = #{rev,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="description != null">
+                description = #{description,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeId != null">
+                node_id = #{nodeId,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeName != null">
+                node_name = #{nodeName,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeType != null">
+                node_type = #{nodeType,jdbcType=VARCHAR},
+            </if>
+            <if test="orderedNo != null">
+                ordered_no = #{orderedNo,jdbcType=VARCHAR},
+            </if>
+            <if test="prevNodeIds != null">
+                prev_node_ids = #{prevNodeIds,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefId != null">
+                proc_def_id = #{procDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefKernelId != null">
+                proc_def_kernel_id = #{procDefKernelId,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefKey != null">
+                proc_def_key = #{procDefKey,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefVer != null">
+                proc_def_ver = #{procDefVer,jdbcType=INTEGER},
+            </if>
+            <if test="routineExp != null">
+                routine_exp = #{routineExp,jdbcType=VARCHAR},
+            </if>
+            <if test="routineRaw != null">
+                routine_raw = #{routineRaw,jdbcType=VARCHAR},
+            </if>
+            <if test="serviceId != null">
+                service_id = #{serviceId,jdbcType=VARCHAR},
+            </if>
+            <if test="serviceName != null">
+                service_name = #{serviceName,jdbcType=VARCHAR},
+            </if>
+            <if test="succeedNodeIds != null">
+                succeed_node_ids = #{succeedNodeIds,jdbcType=VARCHAR},
+            </if>
+            <if test="timeoutExp != null">
+                timeout_exp = #{timeoutExp,jdbcType=VARCHAR},
+            </if>
+            <if test="taskCategory != null">
+                task_category = #{taskCategory,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity">
+        update core_re_task_node_def_info
+        set created_by = #{createdBy,jdbcType=VARCHAR},
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+        active = #{active,jdbcType=BIT},
+        rev = #{rev,jdbcType=INTEGER},
+        status = #{status,jdbcType=VARCHAR},
+        description = #{description,jdbcType=VARCHAR},
+        node_id = #{nodeId,jdbcType=VARCHAR},
+        node_name = #{nodeName,jdbcType=VARCHAR},
+        node_type = #{nodeType,jdbcType=VARCHAR},
+        ordered_no = #{orderedNo,jdbcType=VARCHAR},
+        prev_node_ids = #{prevNodeIds,jdbcType=VARCHAR},
+        proc_def_id = #{procDefId,jdbcType=VARCHAR},
+        proc_def_kernel_id = #{procDefKernelId,jdbcType=VARCHAR},
+        proc_def_key = #{procDefKey,jdbcType=VARCHAR},
+        proc_def_ver = #{procDefVer,jdbcType=INTEGER},
+        routine_exp = #{routineExp,jdbcType=VARCHAR},
+        routine_raw = #{routineRaw,jdbcType=VARCHAR},
+        service_id = #{serviceId,jdbcType=VARCHAR},
+        service_name = #{serviceName,jdbcType=VARCHAR},
+        succeed_node_ids = #{succeedNodeIds,jdbcType=VARCHAR},
+        timeout_exp = #{timeoutExp,jdbcType=VARCHAR},
+        task_category = #{taskCategory,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="findOneWithProcessIdAndNodeIdAndStatus"
+        parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_def_info
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="findAllByProcDefId"
+        parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_def_info
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="findAllByProcDefIdAndStatus"
+        parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_def_info
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+</mapper>

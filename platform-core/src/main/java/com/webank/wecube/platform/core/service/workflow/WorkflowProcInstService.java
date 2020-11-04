@@ -38,7 +38,7 @@ import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingReposi
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpRepository;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingRepository;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoRepository;
@@ -58,7 +58,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private ProcInstInfoMapper procInstInfoRepository;
 
     @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepository;
+    private TaskNodeDefInfoMapper taskNodeDefInfoRepository;
 
     @Autowired
     private TaskNodeInstInfoRepository taskNodeInstInfoRepository;
@@ -332,10 +332,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nd.setOrderedNo(n.getOrderedNo());
 
             if (nodeDef != null) {
-                nd.setPreviousNodeIds(unmarshalNodeIds(nodeDef.getPreviousNodeIds()));
-                nd.setSucceedingNodeIds(unmarshalNodeIds(nodeDef.getSucceedingNodeIds()));
+                nd.setPreviousNodeIds(unmarshalNodeIds(nodeDef.getPrevNodeIds()));
+                nd.setSucceedingNodeIds(unmarshalNodeIds(nodeDef.getSucceedNodeIds()));
                 nd.setOrderedNo(nodeDef.getOrderedNo());
-                nd.setRoutineExpression(nodeDef.getRoutineExpression());
+                nd.setRoutineExpression(nodeDef.getRoutineExp());
             }
             nd.setProcDefId(n.getProcDefId());
             nd.setProcDefKey(n.getProcDefKey());
@@ -640,8 +640,8 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             nd.setNodeType(nodeDefEntity.getNodeType());
             nd.setOrderedNo(nodeDefEntity.getOrderedNo());
 
-            nd.setPreviousNodeIds(unmarshalNodeIds(nodeDefEntity.getPreviousNodeIds()));
-            nd.setSucceedingNodeIds(unmarshalNodeIds(nodeDefEntity.getSucceedingNodeIds()));
+            nd.setPreviousNodeIds(unmarshalNodeIds(nodeDefEntity.getPrevNodeIds()));
+            nd.setSucceedingNodeIds(unmarshalNodeIds(nodeDefEntity.getSucceedNodeIds()));
             nd.setProcDefId(nodeDefEntity.getProcDefId());
             nd.setProcDefKey(nodeDefEntity.getProcDefKey());
 

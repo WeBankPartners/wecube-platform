@@ -21,7 +21,7 @@ import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.jpa.event.OperationEventRepository;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.service.workflow.WorkflowDataService;
 import com.webank.wecube.platform.core.service.workflow.WorkflowProcInstService;
 
@@ -34,7 +34,7 @@ public class OperationEventProcStarter {
     private ProcDefInfoMapper processDefInfoRepository;
 
     @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepository;
+    private TaskNodeDefInfoMapper taskNodeDefInfoRepository;
     
     @Autowired
     private WorkflowProcInstService workflowProcInstService;

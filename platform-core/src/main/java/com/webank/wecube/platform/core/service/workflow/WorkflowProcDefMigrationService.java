@@ -22,7 +22,7 @@ import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamRepository;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
@@ -35,7 +35,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
     private ProcDefInfoMapper processDefInfoRepo;
 
     @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepo;
+    private TaskNodeDefInfoMapper taskNodeDefInfoRepo;
     
     @Autowired
     private UserManagementServiceImpl userManagementService;
@@ -93,15 +93,15 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
                 draftNodeEntity.setNodeName(nodeDto.getNodeName());
                 draftNodeEntity.setProcDefId(draftEntity.getId());
                 draftNodeEntity.setProcDefKey(draftEntity.getProcDefKey());
-                draftNodeEntity.setRoutineExpression(nodeDto.getRoutineExpression());
+                draftNodeEntity.setRoutineExp(nodeDto.getRoutineExpression());
                 draftNodeEntity.setRoutineRaw(nodeDto.getRoutineRaw());
                 draftNodeEntity.setServiceId(nodeDto.getServiceId());
                 draftNodeEntity.setServiceName(nodeDto.getServiceName());
-                draftNodeEntity.setTimeoutExpression(nodeDto.getTimeoutExpression());
+                draftNodeEntity.setTimeoutExp(nodeDto.getTimeoutExpression());
                 draftNodeEntity.setUpdatedTime(currTime);
                 draftNodeEntity.setTaskCategory(nodeDto.getTaskCategory());
 
-                taskNodeDefInfoRepo.save(draftNodeEntity);
+                taskNodeDefInfoRepo.insert(draftNodeEntity);
 
                 if (nodeDto.getParamInfos() != null && !nodeDto.getParamInfos().isEmpty()) {
                     for (TaskNodeDefParamDto nodeParamDto : nodeDto.getParamInfos()) {
