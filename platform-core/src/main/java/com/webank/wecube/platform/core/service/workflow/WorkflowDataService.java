@@ -42,7 +42,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.GraphNodeRepository;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpRepository;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoRepository;
@@ -60,7 +60,7 @@ public class WorkflowDataService{
     private WorkflowProcDefService workflowProcDefService;
 
     @Autowired
-    private TaskNodeDefInfoRepository taskNodeDefInfoRepository;
+    private TaskNodeDefInfoMapper taskNodeDefInfoRepository;
 
     @Autowired
     private TaskNodeInstInfoRepository taskNodeInstInfoRepository;
@@ -352,13 +352,12 @@ public class WorkflowDataService{
 
     public List<InterfaceParameterDto> getTaskNodeParameters(String procDefId, String nodeDefId) {
         List<InterfaceParameterDto> result = new ArrayList<>();
-        Optional<TaskNodeDefInfoEntity> entityOptional = taskNodeDefInfoRepository.findById(nodeDefId);
-        if (!entityOptional.isPresent()) {
+        TaskNodeDefInfoEntity e = taskNodeDefInfoRepository.selectByPrimaryKey(nodeDefId);
+        if (e == null) {
             return result;
         }
 
         //#1993
-        TaskNodeDefInfoEntity e = entityOptional.get();
         String nodeType = e.getNodeType();
         
         if(TaskNodeDefInfoEntity.NODE_TYPE_START_EVENT.equalsIgnoreCase(nodeType)){
