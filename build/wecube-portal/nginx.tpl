@@ -35,7 +35,7 @@ http {
 	location / {
                 root /root/app;
         }
-	location /docs {
+	location /manual {
 		index index.html;
 		alias /root/wecube-docs/;
         }
