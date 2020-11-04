@@ -15,10 +15,10 @@ import com.webank.wecube.platform.core.commons.WecubeCoreException;
 import com.webank.wecube.platform.core.domain.plugin.PluginConfigInterfaceParameter;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
 import com.webank.wecube.platform.core.service.plugin.PluginConfigService;
 

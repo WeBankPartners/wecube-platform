@@ -1,27 +1,41 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import java.util.Date;
 
-@Entity
-@Table(name = "CORE_RU_PROC_INST_INFO")
-public class ProcInstInfoEntity extends AbstractInstanceStatusEntity {
+public class ProcInstInfoEntity {
+    public static final String NOT_STARTED_STATUS = "NotStarted";
+    public static final String IN_PROGRESS_STATUS = "InProgress";
+    public static final String COMPLETED_STATUS = "Completed";
+    public static final String FAULTED_STATUS = "Faulted";
+    public static final String TIMEOUTED_STATUS = "Timeouted";
 
-    @Column(name = "PROC_INST_KEY")
-    private String procInstKey;
+    private Integer id;
 
-    @Column(name = "PROC_INST_KERNEL_ID")
-    private String procInstKernelId;
+    private String createdBy;
 
-    @Column(name = "PROC_DEF_ID")
+    private Date createdTime;
+
+    private String updatedBy;
+
+    private Date updatedTime;
+
+    private String oper;
+
+    private String operGrp;
+
+    private Integer rev;
+
+    private String status;
+
     private String procDefId;
 
-    @Column(name = "PROC_DEF_KEY")
     private String procDefKey;
 
-    @Column(name = "PROC_DEF_NAME")
     private String procDefName;
+
+    private String procInstKernelId;
+
+    private String procInstKey;
 
     public String getProcInstKey() {
         return procInstKey;
@@ -61,6 +75,78 @@ public class ProcInstInfoEntity extends AbstractInstanceStatusEntity {
 
     public void setProcDefName(String procDefName) {
         this.procDefName = procDefName;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public String getOper() {
+        return oper;
+    }
+
+    public void setOper(String oper) {
+        this.oper = oper;
+    }
+
+    public String getOperGrp() {
+        return operGrp;
+    }
+
+    public void setOperGrp(String operGrp) {
+        this.operGrp = operGrp;
+    }
+
+    public Integer getRev() {
+        return rev;
+    }
+
+    public void setRev(Integer rev) {
+        this.rev = rev;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
 }

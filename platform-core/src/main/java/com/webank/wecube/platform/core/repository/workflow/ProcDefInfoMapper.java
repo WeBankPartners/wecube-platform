@@ -1,4 +1,4 @@
-package com.webank.wecube.platform.core.jpa.workflow;
+package com.webank.wecube.platform.core.repository.workflow;
 
 import java.util.List;
 
@@ -25,8 +25,6 @@ public interface ProcDefInfoMapper {
 
     List<ProcDefInfoEntity> findAllDeployedProcDefsByProcDefName(@Param("procDefName") String procDefName);
 
-//    @Query("select t from ProcDefInfoEntity t "
-//            + " where t.active = true and t.deleted = false and t.procDefKey = :procDefKey and t.status = :status")
     List<ProcDefInfoEntity> findAllDeployedProcDefsByProcDefKey(@Param("procDefKey") String procDefKey,
             @Param("status") String status);
 

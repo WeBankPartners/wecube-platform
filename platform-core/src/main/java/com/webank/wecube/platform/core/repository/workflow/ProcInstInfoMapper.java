@@ -1,14 +1,21 @@
-package com.webank.wecube.platform.core.jpa.workflow;
+package com.webank.wecube.platform.core.repository.workflow;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 
-public interface ProcInstInfoRepository extends JpaRepository<ProcInstInfoEntity, Integer> {
+@Repository
+public interface ProcInstInfoMapper{
+    int deleteByPrimaryKey(Integer id);
+    int insert(ProcInstInfoEntity record);
+    int insertSelective(ProcInstInfoEntity record);
+    ProcInstInfoEntity selectByPrimaryKey(Integer id);
+    int updateByPrimaryKeySelective(ProcInstInfoEntity record);
+    int updateByPrimaryKey(ProcInstInfoEntity record);
     
     @Query("select t from ProcInstInfoEntity t " + " where t.procInstKernelId = :procInstKernelId ")
     ProcInstInfoEntity findOneByProcInstKernelId(@Param("procInstKernelId") String procInstKernelId);

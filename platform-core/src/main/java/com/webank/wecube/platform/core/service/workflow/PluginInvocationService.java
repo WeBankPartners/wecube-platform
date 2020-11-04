@@ -34,15 +34,15 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecParamEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeExecRequestEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
-import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcInstInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeParamRepository;
 import com.webank.wecube.platform.core.model.workflow.InputParamAttr;
 import com.webank.wecube.platform.core.model.workflow.InputParamObject;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationCommand;
 import com.webank.wecube.platform.core.model.workflow.PluginInvocationResult;
 import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamRepository;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
@@ -66,7 +66,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private PluginInvocationProcessor pluginInvocationProcessor;
 
     @Autowired
-    private ProcInstInfoRepository procInstInfoRepository;
+    private ProcInstInfoMapper procInstInfoRepository;
 
     @Autowired
     protected PluginInstanceService pluginInstanceService;
@@ -119,7 +119,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         procInstEntity.setUpdatedTime(currTime);
         procInstEntity.setStatus(ProcInstInfoEntity.COMPLETED_STATUS);
-        procInstInfoRepository.save(procInstEntity);
+        procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
 
         log.debug("updated process instance {} to {}", procInstEntity.getId(), ProcInstInfoEntity.COMPLETED_STATUS);
 
@@ -234,7 +234,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         buildTaskNodeExecRequestEntity(ctx);
         List<Map<String, Object>> pluginParameters = calculateInputParameters(ctx, inputParamObjs, ctx.getRequestId(),
-                procInstEntity.getOperator());
+                procInstEntity.getOper());
 
         PluginInvocationOperation operation = new PluginInvocationOperation() //
                 .withCallback(this::handlePluginInterfaceInvocationResult) //
@@ -537,7 +537,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 rootEntityName = procExecBindingEntity.getEntityDataName();
             }
             String procInstName = procInstEntity.getProcDefName() + " " + rootEntityName + " "
-                    + procInstEntity.getOperator() + " " + formatDate(procInstEntity.getCreatedTime());
+                    + procInstEntity.getOper() + " " + formatDate(procInstEntity.getCreatedTime());
             objectVals.add(procInstName);
 
             return;
@@ -822,7 +822,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                         ProcInstInfoEntity.IN_PROGRESS_STATUS);
             }
 
-            procInstInfoRepository.saveAndFlush(procInstEntity);
+            procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
         }
 
         return procInstEntity;

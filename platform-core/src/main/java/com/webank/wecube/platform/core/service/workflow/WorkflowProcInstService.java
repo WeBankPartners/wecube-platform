@@ -1,12 +1,14 @@
 package com.webank.wecube.platform.core.service.workflow;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import com.webank.wecube.platform.core.dto.workflow.*;
-import com.webank.wecube.platform.core.entity.workflow.*;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.slf4j.Logger;
@@ -16,16 +18,30 @@ import org.springframework.stereotype.Service;
 
 import com.webank.wecube.platform.core.commons.AuthenticationContextHolder;
 import com.webank.wecube.platform.core.commons.WecubeCoreException;
-import com.webank.wecube.platform.core.jpa.workflow.GraphNodeRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcDefInfoMapper;
-import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcExecBindingTmpRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcInstInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.ProcRoleBindingRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeDefInfoRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecParamRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeExecRequestRepository;
-import com.webank.wecube.platform.core.jpa.workflow.TaskNodeInstInfoRepository;
+import com.webank.wecube.platform.core.dto.workflow.ProcInstInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.ProcInstOutlineDto;
+import com.webank.wecube.platform.core.dto.workflow.ProceedProcInstRequestDto;
+import com.webank.wecube.platform.core.dto.workflow.StartProcInstRequestDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeDefObjectBindInfoDto;
+import com.webank.wecube.platform.core.dto.workflow.TaskNodeInstDto;
+import com.webank.wecube.platform.core.entity.workflow.GraphNodeEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcExecBindingTmpEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoQueryEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeInstInfoEntity;
+import com.webank.wecube.platform.core.repository.workflow.GraphNodeRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoRepository;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcFlowNodeInst;
@@ -39,7 +55,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private ProcDefInfoMapper processDefInfoRepository;
 
     @Autowired
-    private ProcInstInfoRepository procInstInfoRepository;
+    private ProcInstInfoMapper procInstInfoRepository;
 
     @Autowired
     private TaskNodeDefInfoRepository taskNodeDefInfoRepository;
@@ -75,13 +91,11 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private EntityManager entityManager;
 
     public List<TaskNodeDefObjectBindInfoDto> getProcessInstanceExecBindings(Integer procInstId) {
-        Optional<ProcInstInfoEntity> procInstEntityOpt = procInstInfoRepository.findById(procInstId);
-        if (!procInstEntityOpt.isPresent()) {
+        ProcInstInfoEntity procInstEntity = procInstInfoRepository.selectByPrimaryKey(procInstId);
+        if (procInstEntity == null) {
             throw new WecubeCoreException("3135", String.format("Such entity with id [%s] does not exist.", procInstId),
                     procInstId);
         }
-
-        ProcInstInfoEntity procInstEntity = procInstEntityOpt.get();
 
         List<ProcExecBindingEntity> bindEntities = procExecBindingRepository
                 .findAllTaskNodeBindingsByProcInstId(procInstEntity.getId());
@@ -123,14 +137,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             throw new WecubeCoreException("3136", "Request is null.");
         }
 
-        Optional<ProcInstInfoEntity> procInstOpt = procInstInfoRepository.findById(request.getProcInstId());
+        ProcInstInfoEntity procInst = procInstInfoRepository.selectByPrimaryKey(request.getProcInstId());
 
-        if (!procInstOpt.isPresent()) {
+        if (procInst == null) {
             log.warn("such process instance does not exist,id={}", request.getProcInstId());
             throw new WecubeCoreException("3137", "Such process instance does not exist.");
         }
 
-        ProcInstInfoEntity procInst = procInstOpt.get();
         refreshProcessInstanceStatus(procInst);
 
         Optional<TaskNodeInstInfoEntity> nodeInstOpt = taskNodeInstInfoRepository.findById(request.getNodeInstId());
@@ -249,12 +262,10 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     }
 
     public ProcInstInfoDto getProcessInstanceById(Integer id) {
-        Optional<ProcInstInfoEntity> procInstEntityOpt = procInstInfoRepository.findById(id);
-        if (!procInstEntityOpt.isPresent()) {
+        ProcInstInfoEntity procInstEntity = procInstInfoRepository.selectByPrimaryKey(id);
+        if (procInstEntity == null) {
             throw new WecubeCoreException("3142", String.format("Such entity with id [%s] does not exist.", id), id);
         }
-
-        ProcInstInfoEntity procInstEntity = procInstEntityOpt.get();
 
         this.checkCurrentUserRole(procInstEntity.getProcDefId());
 
@@ -269,7 +280,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         ProcInstOutline procInstOutline = workflowEngineService.getProcInstOutline(procInstanceKernelId);
         if (procInstEntity.getStatus().equals(procInstOutline.getStatus())) {
             procInstEntity.setStatus(procInstOutline.getStatus());
-            procInstInfoRepository.saveAndFlush(procInstEntity);
+            procInstInfoRepository.updateByPrimaryKeySelective(procInstEntity);
         }
 
         List<TaskNodeInstInfoEntity> nodeInstEntities = taskNodeInstInfoRepository
@@ -295,7 +306,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         }
 
         result.setId(procInstEntity.getId());
-        result.setOperator(procInstEntity.getOperator());
+        result.setOperator(procInstEntity.getOper());
         result.setProcDefId(procInstEntity.getProcDefId());
         result.setProcInstKey(procInstEntity.getProcInstKey());
         result.setProcInstName(procInstEntity.getProcDefName());
@@ -433,13 +444,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         ProcInstInfoEntity procInstInfoEntity = new ProcInstInfoEntity();
         procInstInfoEntity.setStatus(ProcInstInfoEntity.NOT_STARTED_STATUS);
-        procInstInfoEntity.setOperator(AuthenticationContextHolder.getCurrentUsername());
+        procInstInfoEntity.setOper(AuthenticationContextHolder.getCurrentUsername());
         procInstInfoEntity.setProcDefId(procDefId);
         procInstInfoEntity.setProcDefKey(procDefInfoEntity.getProcDefKey());
         procInstInfoEntity.setProcDefName(procDefInfoEntity.getProcDefName());
         procInstInfoEntity.setProcInstKey(procInstKey);
 
-        procInstInfoRepository.saveAndFlush(procInstInfoEntity);
+        procInstInfoRepository.updateByPrimaryKeySelective(procInstInfoEntity);
 
         ProcExecBindingEntity procInstBindEntity = new ProcExecBindingEntity();
         procInstBindEntity.setBindType(ProcExecBindingEntity.BIND_TYPE_PROC_INSTANCE);
@@ -561,15 +572,13 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             String procInstKey) {
         ProcessInstance processInstance = workflowEngineService.startProcessInstance(processDefinitionId, procInstKey);
 
-        Optional<ProcInstInfoEntity> existProcInstInfoEntityOpt = procInstInfoRepository
-                .findById(procInstInfoEntity.getId());
+        ProcInstInfoEntity procEntity = procInstInfoRepository
+                .selectByPrimaryKey(procInstInfoEntity.getId());
 
-        if (!existProcInstInfoEntityOpt.isPresent()) {
+        if (procEntity == null) {
             log.warn("such record does not exist,id={},procInstKey={}", procInstInfoEntity.getId(), procInstKey);
             throw new WecubeCoreException("3152", "Errors while starting process instance.");
         }
-
-        ProcInstInfoEntity procEntity = existProcInstInfoEntityOpt.get();
 
         Date now = new Date();
 
@@ -577,7 +586,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         procEntity.setProcInstKernelId(processInstance.getId());
         procEntity.setStatus(ProcInstInfoEntity.IN_PROGRESS_STATUS);
 
-        procInstInfoRepository.saveAndFlush(procEntity);
+        procInstInfoRepository.updateByPrimaryKeySelective(procEntity);
 
         String entityTypeId = null;
         String entityDataId = null;
@@ -592,7 +601,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         ProcInstInfoDto result = new ProcInstInfoDto();
         result.setId(procEntity.getId());
-        result.setOperator(procEntity.getOperator());
+        result.setOperator(procEntity.getOper());
         result.setProcDefId(procEntity.getProcDefId());
         result.setProcInstKey(procEntity.getProcDefKey());
         result.setStatus(procEntity.getStatus());

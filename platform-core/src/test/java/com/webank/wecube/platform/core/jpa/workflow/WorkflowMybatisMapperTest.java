@@ -10,13 +10,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ProcDefInfoMapperTest {
+public class WorkflowMybatisMapperTest {
     @Autowired
     ProcDefInfoMapper procDefInfoMapper;
     @Autowired
