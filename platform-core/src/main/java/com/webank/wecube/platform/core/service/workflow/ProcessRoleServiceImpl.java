@@ -19,7 +19,7 @@ import com.webank.wecube.platform.core.dto.workflow.ProcRoleDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleOverviewDto;
 import com.webank.wecube.platform.core.dto.workflow.ProcRoleRequestDto;
 import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
-import com.webank.wecube.platform.core.jpa.workflow.ProcRoleBindingRepository;
+import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingRepository;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 
 /**
