@@ -312,7 +312,7 @@
         <include refid="Blob_Column_List" />
         from core_re_proc_def_info
         where
-        active = true
+        active = false
         and
         (
         status = 'deployed'
@@ -333,7 +333,7 @@
         #{procDefName,jdbcType=VARCHAR}
         and active = true
         and status = 'deployed'
-        and deleted = false
+        and is_deleted = false
     </select>
 
     <select id="findAllDeployedProcDefsByProcDefKey"
@@ -345,7 +345,7 @@
         from core_re_proc_def_info
         where proc_def_key = #{procDefKey,jdbcType=VARCHAR}
         and active = true
-        and deleted = false
+        and is_deleted = false
         and status = #{status,jdbcType=VARCHAR}
     </select>
 </mapper>
