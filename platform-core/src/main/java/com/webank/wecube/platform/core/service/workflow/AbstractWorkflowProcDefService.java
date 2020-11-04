@@ -18,7 +18,7 @@ import com.webank.wecube.platform.core.entity.workflow.ProcRoleBindingEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamRepository;
 
 public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
@@ -29,7 +29,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
     protected ProcDefInfoMapper processDefInfoRepo;
 
     @Autowired
-    protected TaskNodeDefInfoRepository taskNodeDefInfoRepo;
+    protected TaskNodeDefInfoMapper taskNodeDefInfoRepo;
 
     @Autowired
     protected TaskNodeParamRepository taskNodeParamRepo;
@@ -136,12 +136,12 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         tdto.setOrderedNo(e.getOrderedNo());
         tdto.setProcDefKey(e.getProcDefKey());
         tdto.setProcDefId(e.getProcDefId());
-        tdto.setRoutineExpression(e.getRoutineExpression());
+        tdto.setRoutineExpression(e.getRoutineExp());
         tdto.setRoutineRaw(e.getRoutineRaw());
         tdto.setServiceId(e.getServiceId());
         tdto.setServiceName(e.getServiceName());
         tdto.setStatus(e.getStatus());
-        tdto.setTimeoutExpression(e.getTimeoutExpression());
+        tdto.setTimeoutExpression(e.getTimeoutExp());
         tdto.setTaskCategory(e.getTaskCategory());
 
         return tdto;
