@@ -372,7 +372,9 @@
         select
         <include refid="Base_Column_List" />
         from core_re_task_node_def_info
-        where id = #{id,jdbcType=VARCHAR}
+        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
+        and node_id = #{nodeId,jdbcType=VARCHAR}
+        and status = #{status,jdbcType=VARCHAR}
     </select>
     
     <select id="findAllByProcDefId"
@@ -380,7 +382,7 @@
         select
         <include refid="Base_Column_List" />
         from core_re_task_node_def_info
-        where id = #{id,jdbcType=VARCHAR}
+        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
     </select>
     
     <select id="findAllByProcDefIdAndStatus"
@@ -388,6 +390,7 @@
         select
         <include refid="Base_Column_List" />
         from core_re_task_node_def_info
-        where id = #{id,jdbcType=VARCHAR}
+        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
+        and status = #{status,jdbcType=VARCHAR}
     </select>
 </mapper>

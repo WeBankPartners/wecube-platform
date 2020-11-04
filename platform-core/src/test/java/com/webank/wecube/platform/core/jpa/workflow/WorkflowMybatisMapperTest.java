@@ -12,8 +12,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
@@ -28,6 +30,28 @@ public class WorkflowMybatisMapperTest {
     
     @Autowired
     ProcInstInfoMapper procInstInfoMapper;
+    @Autowired
+    TaskNodeDefInfoMapper taskNodeDefInfoMapper;
+    
+    @Test
+    public void testSelectTaskNodeById() {
+        String id = "s9j2rMGa2Bz";
+        TaskNodeDefInfoEntity entity = taskNodeDefInfoMapper.selectByPrimaryKey(id);
+        
+        System.out.println(entity.getNodeName());
+    }
+    
+    @Test
+    public void testInsertAutoIncrement() {
+        ProcInstInfoEntity e = new ProcInstInfoEntity();
+        e.setProcDefId("proc-def-id");
+        e.setStatus(ProcInstInfoEntity.NOT_STARTED_STATUS);
+        e.setCreatedTime(new Date());
+        
+        procInstInfoMapper.insert(e);
+        
+        System.out.println(e.getId());
+    }
     
     @Test
     public void testFindByProcDefIdIn() {
