@@ -1,6 +1,5 @@
 package com.webank.wecube.platform.core;
 
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
@@ -9,14 +8,12 @@ import com.webank.wecube.platform.core.config.SpringAppConfig;
 import com.webank.wecube.platform.core.config.SpringWebConfig;
 
 @SpringBootApplication
-@MapperScan(basePackages={"com.webank.wecube.platform.core.jpa", "com.webank.wecube.platform.core.workflow"})
 public class Application extends AbstractAnnotationConfigDispatcherServletInitializer {
 
-	public static void main(String[] args) {
-	    System.setProperty("hibernate.dialect.storage_engine", "innodb");
-		SpringApplication.run(Application.class, args);
-	}
-
+    public static void main(String[] args) {
+        System.setProperty("hibernate.dialect.storage_engine", "innodb");
+        SpringApplication.run(Application.class, args);
+    }
 
     @Override
     protected Class<?>[] getRootConfigClasses() {
@@ -30,7 +27,7 @@ public class Application extends AbstractAnnotationConfigDispatcherServletInitia
 
     @Override
     protected String[] getServletMappings() {
-        return new String[] {"/" };
+        return new String[] { "/" };
     }
 
 }
