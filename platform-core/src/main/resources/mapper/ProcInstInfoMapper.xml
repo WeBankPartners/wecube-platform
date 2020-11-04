@@ -222,26 +222,31 @@
     </update>
     
     <select id="findOneByProcInstKernelId"
-        parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_inst_info
-        where id = #{id,jdbcType=INTEGER}
+        where proc_inst_kernel_id = #{procInstKernelId,jdbcType=VARCHAR}
     </select>
     
     <select id="findByProcDefIdIn"
-        parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        parameterType="list" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_inst_info
-        where id = #{id,jdbcType=INTEGER}
+        <where>
+            proc_def_id in
+            <foreach item="item" collection="list" separator="," open="(" close=")" index="">    
+                #{item, jdbcType=VARCHAR}    
+            </foreach>
+        </where>
     </select>
     
     <select id="findAllByProcDefId"
-        parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from core_ru_proc_inst_info
-        where id = #{id,jdbcType=INTEGER}
+        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
     </select>
 </mapper>
