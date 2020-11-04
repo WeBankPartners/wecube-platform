@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.config;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,6 +36,7 @@ import com.webank.wecube.platform.workflow.EnablePlatformWorkflowApplication;
 @ComponentScan({ "com.webank.wecube.platform.core.service" })
 @EntityScan(basePackages = { "com.webank.wecube.platform.core" })
 @EnableJpaRepositories(basePackages = { "com.webank.wecube.platform.core" })
+@MapperScan(basePackages={"com.webank.wecube.platform.core.repository.workflow"})
 @EnablePlatformWorkflowApplication
 @EnableEncryptableProperties
 public class SpringAppConfig {
