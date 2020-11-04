@@ -1,5 +1,6 @@
 package com.webank.wecube.platform.core.jpa.workflow;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.webank.wecube.platform.core.entity.workflow.ProcDefInfoEntity;
+import com.webank.wecube.platform.core.entity.workflow.ProcInstInfoEntity;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
+import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.entity.ServiceNodeStatusEntity;
 import com.webank.wecube.platform.workflow.repository.ServiceNodeStatusMapper;
@@ -22,6 +25,19 @@ public class WorkflowMybatisMapperTest {
     ProcDefInfoMapper procDefInfoMapper;
     @Autowired
     ServiceNodeStatusMapper serviceNodeStatusMapper;
+    
+    @Autowired
+    ProcInstInfoMapper procInstInfoMapper;
+    
+    @Test
+    public void testFindByProcDefIdIn() {
+        List<String> procDefIds = new ArrayList<>();
+        procDefIds.add("s9oR3S4l2Bq");
+        procDefIds.add("s9oRktFl2Bz");
+        List<ProcInstInfoEntity> entities = procInstInfoMapper.findByProcDefIdIn(procDefIds);
+        
+        System.out.println(entities.size());
+    }
     
     @Test
     public void testInsert(){
