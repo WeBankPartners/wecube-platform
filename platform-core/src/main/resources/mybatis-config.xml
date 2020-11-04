@@ -3,6 +3,7 @@
 <configuration>
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true" />
+        <setting name="logImpl" value="STDOUT_LOGGING" />
     </settings>
     <typeHandlers>
         <typeHandler handler="org.apache.ibatis.type.EnumTypeHandler"
