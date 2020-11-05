@@ -40,9 +40,9 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             throw new WecubeCoreException("3153", "Request id is invalid.");
         }
 
-        if (reqEntity.isCompleted() || !reqEntity.isCurrent()) {
-            log.error("request state is not expected,completed:{},current:{}", reqEntity.isCompleted(),
-                    reqEntity.isCurrent());
+        if (reqEntity.getIsCompleted() || !reqEntity.getIsCurrent()) {
+            log.error("request state is not expected,completed:{},current:{}", reqEntity.getIsCompleted(),
+                    reqEntity.getIsCurrent());
             throw new WecubeCoreException("3154", "Request state is not expected");
         }
 
@@ -76,7 +76,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         PluginInvocationCommand cmd = new PluginInvocationCommand();
         cmd.setProcDefId(e.getProcDefKernelId());
         cmd.setProcDefKey(e.getProcDefKernelKey());
-        cmd.setProcDefVersion(e.getProcDefVersion());
+        cmd.setProcDefVersion(e.getProcDefVer());
         cmd.setProcInstKey(e.getProcInstKernelKey());
         cmd.setProcInstId(e.getProcInstKernelId());
         cmd.setNodeId(e.getNodeId());
@@ -184,11 +184,11 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
 
         requestEntity.setUpdatedTime(now);
-        requestEntity.setErrorCode(errorCode);
-        requestEntity.setErrorMessage(errorMsg);
-        requestEntity.setCompleted(true);
+        requestEntity.setErrCode(errorCode);
+        requestEntity.setErrMsg(errorMsg);
+        requestEntity.setIsCompleted(true);
 
-        taskNodeExecRequestRepository.saveAndFlush(requestEntity);
+        taskNodeExecRequestRepository.updateByPrimaryKeySelective(requestEntity);
 
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         nodeInstEntity.setUpdatedTime(now);
@@ -202,9 +202,9 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         Date now = new Date();
         TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
         requestEntity.setUpdatedTime(now);
-        requestEntity.setCompleted(true);
+        requestEntity.setIsCompleted(true);
 
-        taskNodeExecRequestRepository.saveAndFlush(requestEntity);
+        taskNodeExecRequestRepository.updateByPrimaryKeySelective(requestEntity);
 
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         nodeInstEntity.setUpdatedTime(now);
@@ -306,7 +306,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         String entityTypeId = null;
         String entityDataId = null;
 
-        String requestId = ctx.getTaskNodeExecRequestEntity().getRequestId();
+        String requestId = ctx.getTaskNodeExecRequestEntity().getReqId();
 
         String callbackParameter = (String) outputParameterMap.get(CALLBACK_PARAMETER_KEY);
         TaskNodeExecParamEntity callbackParameterInputEntity = null;
@@ -385,11 +385,11 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         TaskNodeExecRequestEntity requestEntity = ctx.getTaskNodeExecRequestEntity();
 
         requestEntity.setUpdatedTime(now);
-        requestEntity.setErrorCode(errorCode);
-        requestEntity.setErrorMessage(errorMsg);
-        requestEntity.setCompleted(true);
+        requestEntity.setErrCode(errorCode);
+        requestEntity.setErrMsg(errorMsg);
+        requestEntity.setIsCompleted(true);
 
-        taskNodeExecRequestRepository.saveAndFlush(requestEntity);
+        taskNodeExecRequestRepository.updateByPrimaryKeySelective(requestEntity);
 
         TaskNodeInstInfoEntity nodeInstEntity = ctx.getTaskNodeInstEntity();
         nodeInstEntity.setUpdatedTime(now);
