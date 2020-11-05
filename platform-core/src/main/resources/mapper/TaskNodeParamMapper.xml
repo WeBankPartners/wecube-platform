@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+    namespace="com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper">
+    <resultMap id="BaseResultMap"
+        type="com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity">
+        <id column="id" jdbcType="VARCHAR" property="id" />
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy" />
+        <result column="created_time" jdbcType="TIMESTAMP"
+            property="createdTime" />
+        <result column="updated_by" jdbcType="VARCHAR" property="updatedBy" />
+        <result column="updated_time" jdbcType="TIMESTAMP"
+            property="updatedTime" />
+        <result column="active" jdbcType="BIT" property="active" />
+        <result column="rev" jdbcType="INTEGER" property="rev" />
+        <result column="status" jdbcType="VARCHAR" property="status" />
+        <result column="bind_node_id" jdbcType="VARCHAR"
+            property="bindNodeId" />
+        <result column="bind_param_name" jdbcType="VARCHAR"
+            property="bindParamName" />
+        <result column="bind_param_type" jdbcType="VARCHAR"
+            property="bindParamType" />
+        <result column="node_id" jdbcType="VARCHAR" property="nodeId" />
+        <result column="param_name" jdbcType="VARCHAR" property="paramName" />
+        <result column="proc_def_id" jdbcType="VARCHAR" property="procDefId" />
+        <result column="task_node_def_id" jdbcType="VARCHAR"
+            property="taskNodeDefId" />
+        <result column="bind_type" jdbcType="VARCHAR" property="bindType" />
+        <result column="bind_val" jdbcType="VARCHAR" property="bindVal" />
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, created_by, created_time, updated_by, updated_time, active, rev,
+        status, bind_node_id,
+        bind_param_name, bind_param_type, node_id, param_name, proc_def_id, task_node_def_id,
+        bind_type, bind_val
+    </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_param
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from core_re_task_node_param
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity">
+        insert into core_re_task_node_param (id, created_by, created_time,
+        updated_by, updated_time, active,
+        rev, status, bind_node_id,
+        bind_param_name, bind_param_type, node_id,
+        param_name, proc_def_id, task_node_def_id,
+        bind_type, bind_val)
+        values (#{id,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR},
+        #{createdTime,jdbcType=TIMESTAMP},
+        #{updatedBy,jdbcType=VARCHAR},
+        #{updatedTime,jdbcType=TIMESTAMP}, #{active,jdbcType=BIT},
+        #{rev,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR},
+        #{bindNodeId,jdbcType=VARCHAR},
+        #{bindParamName,jdbcType=VARCHAR},
+        #{bindParamType,jdbcType=VARCHAR}, #{nodeId,jdbcType=VARCHAR},
+        #{paramName,jdbcType=VARCHAR}, #{procDefId,jdbcType=VARCHAR},
+        #{taskNodeDefId,jdbcType=VARCHAR},
+        #{bindType,jdbcType=VARCHAR}, #{bindVal,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity">
+        insert into core_re_task_node_param
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="createdTime != null">
+                created_time,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+            <if test="updatedTime != null">
+                updated_time,
+            </if>
+            <if test="active != null">
+                active,
+            </if>
+            <if test="rev != null">
+                rev,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="bindNodeId != null">
+                bind_node_id,
+            </if>
+            <if test="bindParamName != null">
+                bind_param_name,
+            </if>
+            <if test="bindParamType != null">
+                bind_param_type,
+            </if>
+            <if test="nodeId != null">
+                node_id,
+            </if>
+            <if test="paramName != null">
+                param_name,
+            </if>
+            <if test="procDefId != null">
+                proc_def_id,
+            </if>
+            <if test="taskNodeDefId != null">
+                task_node_def_id,
+            </if>
+            <if test="bindType != null">
+                bind_type,
+            </if>
+            <if test="bindVal != null">
+                bind_val,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="createdBy != null">
+                #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="active != null">
+                #{active,jdbcType=BIT},
+            </if>
+            <if test="rev != null">
+                #{rev,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="bindNodeId != null">
+                #{bindNodeId,jdbcType=VARCHAR},
+            </if>
+            <if test="bindParamName != null">
+                #{bindParamName,jdbcType=VARCHAR},
+            </if>
+            <if test="bindParamType != null">
+                #{bindParamType,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeId != null">
+                #{nodeId,jdbcType=VARCHAR},
+            </if>
+            <if test="paramName != null">
+                #{paramName,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefId != null">
+                #{procDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="taskNodeDefId != null">
+                #{taskNodeDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="bindType != null">
+                #{bindType,jdbcType=VARCHAR},
+            </if>
+            <if test="bindVal != null">
+                #{bindVal,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity">
+        update core_re_task_node_param
+        <set>
+            <if test="createdBy != null">
+                created_by = #{createdBy,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time = #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedTime != null">
+                updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="active != null">
+                active = #{active,jdbcType=BIT},
+            </if>
+            <if test="rev != null">
+                rev = #{rev,jdbcType=INTEGER},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="bindNodeId != null">
+                bind_node_id = #{bindNodeId,jdbcType=VARCHAR},
+            </if>
+            <if test="bindParamName != null">
+                bind_param_name = #{bindParamName,jdbcType=VARCHAR},
+            </if>
+            <if test="bindParamType != null">
+                bind_param_type = #{bindParamType,jdbcType=VARCHAR},
+            </if>
+            <if test="nodeId != null">
+                node_id = #{nodeId,jdbcType=VARCHAR},
+            </if>
+            <if test="paramName != null">
+                param_name = #{paramName,jdbcType=VARCHAR},
+            </if>
+            <if test="procDefId != null">
+                proc_def_id = #{procDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="taskNodeDefId != null">
+                task_node_def_id = #{taskNodeDefId,jdbcType=VARCHAR},
+            </if>
+            <if test="bindType != null">
+                bind_type = #{bindType,jdbcType=VARCHAR},
+            </if>
+            <if test="bindVal != null">
+                bind_val = #{bindVal,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey"
+        parameterType="com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity">
+        update core_re_task_node_param
+        set created_by = #{createdBy,jdbcType=VARCHAR},
+        created_time = #{createdTime,jdbcType=TIMESTAMP},
+        updated_by = #{updatedBy,jdbcType=VARCHAR},
+        updated_time = #{updatedTime,jdbcType=TIMESTAMP},
+        active = #{active,jdbcType=BIT},
+        rev = #{rev,jdbcType=INTEGER},
+        status = #{status,jdbcType=VARCHAR},
+        bind_node_id = #{bindNodeId,jdbcType=VARCHAR},
+        bind_param_name = #{bindParamName,jdbcType=VARCHAR},
+        bind_param_type = #{bindParamType,jdbcType=VARCHAR},
+        node_id = #{nodeId,jdbcType=VARCHAR},
+        param_name = #{paramName,jdbcType=VARCHAR},
+        proc_def_id = #{procDefId,jdbcType=VARCHAR},
+        task_node_def_id = #{taskNodeDefId,jdbcType=VARCHAR},
+        bind_type = #{bindType,jdbcType=VARCHAR},
+        bind_val = #{bindVal,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    
+    <select id="findAllByProcDefId" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_param
+        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="findAllByProcDefIdAndStatus"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_param
+        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
+        and status = #{status,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="findAllByProcDefIdAndTaskNodeDefId"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_param
+        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
+        and task_node_def_id = #{taskNodeDefId,jdbcType=VARCHAR}
+    </select>
+    
+    <select id="findAllDraftByProcDefIdAndTaskNodeDefId" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_param
+        where proc_def_id = #{procDefId,jdbcType=VARCHAR}
+        and task_node_def_id = #{taskNodeDefId,jdbcType=VARCHAR}
+        and status = 'draft'
+    </select>
+    
+    <select id="findOneByTaskNodeDefIdAndParamName" parameterType="java.lang.String"
+        resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from core_re_task_node_param
+        where task_node_def_id = #{taskNodeDefId,jdbcType=VARCHAR}
+        and param_name = #{paramName,jdbcType=VARCHAR}
+    </select>
+</mapper>

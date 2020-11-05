@@ -1,42 +1,124 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import java.util.Date;
 
-@Entity
-@Table(name = "CORE_RU_TASK_NODE_INST_INFO")
-public class TaskNodeInstInfoEntity extends AbstractInstanceStatusEntity {
+public class TaskNodeInstInfoEntity {
 
-    @Column(name = "NODE_DEF_ID")
+    public static final String NOT_STARTED_STATUS = "NotStarted";
+    public static final String IN_PROGRESS_STATUS = "InProgress";
+    public static final String COMPLETED_STATUS = "Completed";
+    public static final String FAULTED_STATUS = "Faulted";
+    public static final String TIMEOUTED_STATUS = "Timeouted";
+
+    private Integer id;
+
+    private String createdBy;
+
+    private Date createdTime;
+
+    private String updatedBy;
+
+    private Date updatedTime;
+
+    private String oper;
+
+    private String operGrp;
+
+    private Integer rev;
+
+    private String status;
+
     private String nodeDefId;
 
-    @Column(name = "NODE_ID")
     private String nodeId;
 
-    @Column(name = "NODE_NAME")
     private String nodeName;
 
-    @Column(name = "NODE_TYPE")
     private String nodeType;
 
-    @Column(name = "ORDERED_NO")
     private String orderedNo;
 
-    @Column(name = "PROC_INST_ID")
-    private Integer procInstId;
-
-    @Column(name = "PROC_INST_KEY")
-    private String procInstKey;
-
-    @Column(name = "PROC_DEF_ID")
     private String procDefId;
 
-    @Column(name = "PROC_DEF_KEY")
     private String procDefKey;
-    
-    @Column(name = "ERR_MSG")
-    private String errorMessage;
+
+    private Integer procInstId;
+
+    private String procInstKey;
+
+    private String errMsg;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public String getOper() {
+        return oper;
+    }
+
+    public void setOper(String oper) {
+        this.oper = oper;
+    }
+
+    public String getOperGrp() {
+        return operGrp;
+    }
+
+    public void setOperGrp(String operGrp) {
+        this.operGrp = operGrp;
+    }
+
+    public Integer getRev() {
+        return rev;
+    }
+
+    public void setRev(Integer rev) {
+        this.rev = rev;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public String getNodeDefId() {
         return nodeDefId;
@@ -62,20 +144,20 @@ public class TaskNodeInstInfoEntity extends AbstractInstanceStatusEntity {
         this.nodeName = nodeName;
     }
 
-    public Integer getProcInstId() {
-        return procInstId;
+    public String getNodeType() {
+        return nodeType;
     }
 
-    public void setProcInstId(Integer procInstId) {
-        this.procInstId = procInstId;
+    public void setNodeType(String nodeType) {
+        this.nodeType = nodeType;
     }
 
-    public String getProcInstKey() {
-        return procInstKey;
+    public String getOrderedNo() {
+        return orderedNo;
     }
 
-    public void setProcInstKey(String procInstKey) {
-        this.procInstKey = procInstKey;
+    public void setOrderedNo(String orderedNo) {
+        this.orderedNo = orderedNo;
     }
 
     public String getProcDefId() {
@@ -94,27 +176,28 @@ public class TaskNodeInstInfoEntity extends AbstractInstanceStatusEntity {
         this.procDefKey = procDefKey;
     }
 
-    public String getNodeType() {
-        return nodeType;
+    public Integer getProcInstId() {
+        return procInstId;
     }
 
-    public void setNodeType(String nodeType) {
-        this.nodeType = nodeType;
+    public void setProcInstId(Integer procInstId) {
+        this.procInstId = procInstId;
     }
 
-    public String getOrderedNo() {
-        return orderedNo;
+    public String getProcInstKey() {
+        return procInstKey;
     }
 
-    public void setOrderedNo(String orderedNo) {
-        this.orderedNo = orderedNo;
+    public void setProcInstKey(String procInstKey) {
+        this.procInstKey = procInstKey;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
+    public String getErrMsg() {
+        return errMsg;
     }
 
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
+    public void setErrMsg(String errMsg) {
+        this.errMsg = errMsg;
     }
+
 }

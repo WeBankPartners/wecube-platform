@@ -19,7 +19,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 
 public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
 
@@ -32,7 +32,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
     protected TaskNodeDefInfoMapper taskNodeDefInfoRepo;
 
     @Autowired
-    protected TaskNodeParamRepository taskNodeParamRepo;
+    protected TaskNodeParamMapper taskNodeParamRepo;
     
     @Autowired
     protected ProcessRoleServiceImpl processRoleService;
@@ -156,7 +156,7 @@ public class AbstractWorkflowProcDefService extends AbstractWorkflowService{
         pdto.setBindParamName(tnpe.getBindParamName());
         pdto.setBindParamType(tnpe.getBindParamType());
         pdto.setBindType(tnpe.getBindType());
-        pdto.setBindValue(tnpe.getBindValue());
+        pdto.setBindValue(tnpe.getBindVal());
 
         return pdto;
     }

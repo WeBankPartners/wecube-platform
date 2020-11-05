@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -84,7 +83,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
 
         if (nodeParams != null) {
             for (TaskNodeParamEntity p : nodeParams) {
-                taskNodeParamRepo.delete(p);
+                taskNodeParamRepo.deleteByPrimaryKey(p.getId());
             }
         }
 
@@ -347,7 +346,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         List<TaskNodeParamEntity> taskNodeParamEntities = taskNodeParamRepo
                 .findAllByProcDefIdAndTaskNodeDefId(draftNodeEntity.getProcDefId(), draftNodeEntity.getId());
         for (TaskNodeParamEntity np : taskNodeParamEntities) {
-            taskNodeParamRepo.deleteById(np.getId());
+            taskNodeParamRepo.deleteByPrimaryKey(np.getId());
         }
 
         taskNodeDefInfoRepo.deleteByPrimaryKey(draftNodeEntity.getId());
@@ -479,7 +478,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             return;
         }
         for (TaskNodeParamEntity paramEntity : existParamEntities) {
-            taskNodeParamRepo.delete(paramEntity);
+            taskNodeParamRepo.deleteByPrimaryKey(paramEntity.getId());
         }
     }
 
@@ -494,7 +493,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 continue;
             }
 
-            taskNodeParamRepo.delete(dbParamEntity);
+            taskNodeParamRepo.deleteByPrimaryKey(dbParamEntity.getId());
         }
     }
 
@@ -521,9 +520,8 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             String nodeParamOid = nodeParamDto.getId();
             TaskNodeParamEntity draftNodeParamEntity = null;
             if (!StringUtils.isBlank(nodeParamOid)) {
-                Optional<TaskNodeParamEntity> npEntityOptional = taskNodeParamRepo.findById(nodeParamOid);
-                if (npEntityOptional.isPresent()) {
-                    TaskNodeParamEntity npEntity = npEntityOptional.get();
+                TaskNodeParamEntity npEntity = taskNodeParamRepo.selectByPrimaryKey(nodeParamOid);
+                if (npEntity != null) {
                     if (TaskNodeParamEntity.DRAFT_STATUS.equals(npEntity.getStatus())) {
                         draftNodeParamEntity = npEntity;
                     }
@@ -534,6 +532,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 draftNodeParamEntity = new TaskNodeParamEntity();
                 draftNodeParamEntity.setId(LocalIdGenerator.generateId());
                 draftNodeParamEntity.setStatus(TaskNodeParamEntity.DRAFT_STATUS);
+                taskNodeParamRepo.insert(draftNodeParamEntity);
             }
 
             draftNodeParamEntity.setNodeId(
@@ -546,9 +545,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             draftNodeParamEntity.setTaskNodeDefId(draftNodeEntity.getId());
             draftNodeParamEntity.setUpdatedTime(currTime);
             draftNodeParamEntity.setBindType(nodeParamDto.getBindType());
-            draftNodeParamEntity.setBindValue(nodeParamDto.getBindValue());
+            draftNodeParamEntity.setBindVal(nodeParamDto.getBindValue());
 
-            taskNodeParamRepo.saveAndFlush(draftNodeParamEntity);
+            taskNodeParamRepo.updateByPrimaryKeySelective(draftNodeParamEntity);
 
             reusedDraftParamEntities.add(draftNodeParamEntity);
 
@@ -746,9 +745,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                         paramEntity.setTaskNodeDefId(nodeEntity.getId());
                         paramEntity.setUpdatedTime(currTime);
                         paramEntity.setBindType(paramDto.getBindType());
-                        paramEntity.setBindValue(paramDto.getBindValue());
+                        paramEntity.setBindVal(paramDto.getBindValue());
 
-                        taskNodeParamRepo.saveAndFlush(paramEntity);
+                        taskNodeParamRepo.insert(paramEntity);
                     }
                 }
             }
@@ -841,7 +840,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
             nodeParamEntities.forEach(n -> {
                 n.setUpdatedTime(now);
                 n.setStatus(TaskNodeParamEntity.DEPLOYED_STATUS);
-                taskNodeParamRepo.saveAndFlush(n);
+                taskNodeParamRepo.updateByPrimaryKeySelective(n);
             });
         }
 
@@ -851,7 +850,7 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
                 .findAllByProcDefIdAndStatus(procDefEntity.getId(), TaskNodeParamEntity.PREDEPLOY_STATUS);
 
         nodeParamEntitiesToRemove.forEach(m -> {
-            taskNodeParamRepo.delete(m);
+            taskNodeParamRepo.deleteByPrimaryKey(m.getId());
         });
 
         nodeEntitiesToRemove.forEach(m -> {
@@ -898,7 +897,9 @@ public class WorkflowProcDefService extends AbstractWorkflowProcDefService {
         List<TaskNodeDefInfoEntity> nodeEntities = taskNodeDefInfoRepo.findAllByProcDefId(procEntity.getId());
 
         if (nodeParamEntities != null && !nodeParamEntities.isEmpty()) {
-            taskNodeParamRepo.deleteAll(nodeParamEntities);
+            for(TaskNodeParamEntity nodeParamEntity : nodeParamEntities){
+                taskNodeParamRepo.deleteByPrimaryKey(nodeParamEntity.getId());
+            }
         }
 
         if (nodeEntities != null && !nodeEntities.isEmpty()) {

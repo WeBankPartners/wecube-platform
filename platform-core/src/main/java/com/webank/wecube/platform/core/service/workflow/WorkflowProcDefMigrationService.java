@@ -23,7 +23,7 @@ import com.webank.wecube.platform.core.entity.workflow.TaskNodeDefInfoEntity;
 import com.webank.wecube.platform.core.entity.workflow.TaskNodeParamEntity;
 import com.webank.wecube.platform.core.repository.workflow.ProcDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 
@@ -41,7 +41,7 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
     private UserManagementServiceImpl userManagementService;
     
     @Autowired
-    private TaskNodeParamRepository taskNodeParamRepo;
+    private TaskNodeParamMapper taskNodeParamRepo;
     
     public ProcDefInfoDto importProcessDefinition(ProcDefInfoExportImportDto importDto) {
         if (importDto == null) {
@@ -119,9 +119,9 @@ public class WorkflowProcDefMigrationService extends AbstractWorkflowProcDefServ
                         draftNodeParamEntity.setTaskNodeDefId(draftNodeEntity.getId());
                         draftNodeParamEntity.setUpdatedTime(currTime);
                         draftNodeParamEntity.setBindType(nodeParamDto.getBindType());
-                        draftNodeParamEntity.setBindValue(nodeParamDto.getBindValue());
+                        draftNodeParamEntity.setBindVal(nodeParamDto.getBindValue());
 
-                        taskNodeParamRepo.save(draftNodeParamEntity);
+                        taskNodeParamRepo.insert(draftNodeParamEntity);
 
                     }
                 }

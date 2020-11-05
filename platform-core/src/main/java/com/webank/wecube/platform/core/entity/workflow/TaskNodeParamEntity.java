@@ -1,52 +1,49 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import java.util.Date;
 
-@Entity
-@Table(name = "CORE_RE_TASK_NODE_PARAM")
-public class TaskNodeParamEntity extends AbstractStatusFeaturedEntity {
+public class TaskNodeParamEntity {
 
     public static final String DRAFT_STATUS = "draft";
     public static final String DEPLOYED_STATUS = "deployed";
     public static final String PREDEPLOY_STATUS = "predeploy";
-    
+
     public static final String BIND_TYPE_CONTEXT = "context";
     public static final String BIND_TYPE_CONSTANT = "constant";
-    
 
-    @Id
-    @Column(name = "ID")
     private String id;
 
-    @Column(name = "PROC_DEF_ID")
-    private String procDefId;
+    private String createdBy;
 
-    @Column(name = "NODE_ID")
-    private String nodeId;
+    private Date createdTime;
 
-    @Column(name = "TASK_NODE_DEF_ID")
-    private String taskNodeDefId;
+    private String updatedBy;
 
-    @Column(name = "PARAM_NAME")
-    private String paramName;
+    private Date updatedTime;
 
-    @Column(name = "BIND_NODE_ID")
+    private Boolean active;
+
+    private Integer rev;
+
+    private String status;
+
     private String bindNodeId;
 
-    @Column(name = "BIND_PARAM_TYPE")
-    private String bindParamType; // Input, Output
-
-    @Column(name = "BIND_PARAM_NAME")
     private String bindParamName;
-    
-    @Column(name = "BIND_TYPE")
+
+    private String bindParamType;
+
+    private String nodeId;
+
+    private String paramName;
+
+    private String procDefId;
+
+    private String taskNodeDefId;
+
     private String bindType;
-    
-    @Column(name = "BIND_VAL")
-    private String bindValue;
+
+    private String bindVal;
 
     public String getId() {
         return id;
@@ -56,12 +53,84 @@ public class TaskNodeParamEntity extends AbstractStatusFeaturedEntity {
         this.id = id;
     }
 
-    public String getProcDefId() {
-        return procDefId;
+    public String getCreatedBy() {
+        return createdBy;
     }
 
-    public void setProcDefId(String procDefId) {
-        this.procDefId = procDefId;
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public Date getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Integer getRev() {
+        return rev;
+    }
+
+    public void setRev(Integer rev) {
+        this.rev = rev;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getBindNodeId() {
+        return bindNodeId;
+    }
+
+    public void setBindNodeId(String bindNodeId) {
+        this.bindNodeId = bindNodeId;
+    }
+
+    public String getBindParamName() {
+        return bindParamName;
+    }
+
+    public void setBindParamName(String bindParamName) {
+        this.bindParamName = bindParamName;
+    }
+
+    public String getBindParamType() {
+        return bindParamType;
+    }
+
+    public void setBindParamType(String bindParamType) {
+        this.bindParamType = bindParamType;
     }
 
     public String getNodeId() {
@@ -80,28 +149,12 @@ public class TaskNodeParamEntity extends AbstractStatusFeaturedEntity {
         this.paramName = paramName;
     }
 
-    public String getBindNodeId() {
-        return bindNodeId;
+    public String getProcDefId() {
+        return procDefId;
     }
 
-    public void setBindNodeId(String bindNodeId) {
-        this.bindNodeId = bindNodeId;
-    }
-
-    public String getBindParamType() {
-        return bindParamType;
-    }
-
-    public void setBindParamType(String bindParamType) {
-        this.bindParamType = bindParamType;
-    }
-
-    public String getBindParamName() {
-        return bindParamName;
-    }
-
-    public void setBindParamName(String bindParamName) {
-        this.bindParamName = bindParamName;
+    public void setProcDefId(String procDefId) {
+        this.procDefId = procDefId;
     }
 
     public String getTaskNodeDefId() {
@@ -120,11 +173,12 @@ public class TaskNodeParamEntity extends AbstractStatusFeaturedEntity {
         this.bindType = bindType;
     }
 
-    public String getBindValue() {
-        return bindValue;
+    public String getBindVal() {
+        return bindVal;
     }
 
-    public void setBindValue(String bindValue) {
-        this.bindValue = bindValue;
+    public void setBindVal(String bindVal) {
+        this.bindVal = bindVal;
     }
+
 }

@@ -42,7 +42,7 @@ import com.webank.wecube.platform.core.model.workflow.WorkflowNotifyEvent;
 import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingRepository;
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeParamMapper;
 import com.webank.wecube.platform.core.service.SystemVariableService;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.plugin.PluginInstanceService;
@@ -78,7 +78,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
     private SystemVariableService systemVariableService;
 
     @Autowired
-    private TaskNodeParamRepository taskNodeParamRepository;
+    private TaskNodeParamMapper taskNodeParamRepository;
 
     @Autowired
     private TaskNodeExecRequestRepository taskNodeExecRequestRepository;
@@ -136,7 +136,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                 n.setUpdatedTime(currTime);
                 n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
 
-                taskNodeInstInfoRepository.saveAndFlush(n);
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(n);
 
                 log.debug("updated node {} to {}", n.getId(), TaskNodeInstInfoEntity.COMPLETED_STATUS);
             }
@@ -160,7 +160,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
                     prevNodeInst.setUpdatedTime(new Date());
                     prevNodeInst.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
 
-                    taskNodeInstInfoRepository.saveAndFlush(prevNodeInst);
+                    taskNodeInstInfoRepository.updateByPrimaryKeySelective(prevNodeInst);
                 }
             }
         }
@@ -196,15 +196,14 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
         log.debug("mark task node instance {} as {}", taskNodeInstEntity.getId(),
                 TaskNodeInstInfoEntity.FAULTED_STATUS);
-        Optional<TaskNodeInstInfoEntity> taskNodeInstEntityOpt = taskNodeInstInfoRepository
-                .findById(taskNodeInstEntity.getId());
+        TaskNodeInstInfoEntity toUpdateTaskNodeInstInfoEntity = taskNodeInstInfoRepository
+                .selectByPrimaryKey(taskNodeInstEntity.getId());
 
-        TaskNodeInstInfoEntity toUpdateTaskNodeInstInfoEntity = taskNodeInstEntityOpt.get();
         toUpdateTaskNodeInstInfoEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
         toUpdateTaskNodeInstInfoEntity.setUpdatedTime(new Date());
-        toUpdateTaskNodeInstInfoEntity.setErrorMessage(trimWithMaxLength(e == null ? "errors" : e.getMessage()));
+        toUpdateTaskNodeInstInfoEntity.setErrMsg(trimWithMaxLength(e == null ? "errors" : e.getMessage()));
 
-        taskNodeInstInfoRepository.saveAndFlush(toUpdateTaskNodeInstInfoEntity);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(toUpdateTaskNodeInstInfoEntity);
     }
 
     protected void doInvokePluginInterface(ProcInstInfoEntity procInstEntity, TaskNodeInstInfoEntity taskNodeInstEntity,
@@ -650,7 +649,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             Object val = null;
 
             if (MAPPING_TYPE_CONSTANT.equalsIgnoreCase(nodeParamEntity.getBindType())) {
-                val = nodeParamEntity.getBindValue();
+                val = nodeParamEntity.getBindVal();
             }
 
             if (val != null) {
@@ -752,8 +751,8 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         taskNodeInstEntity.setUpdatedTime(currTime);
-        taskNodeInstEntity.setErrorMessage(EMPTY_ERROR_MSG);
-        taskNodeInstEntity = taskNodeInstInfoRepository.saveAndFlush(taskNodeInstEntity);
+        taskNodeInstEntity.setErrMsg(EMPTY_ERROR_MSG);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstEntity);
 
         List<TaskNodeExecRequestEntity> formerRequestEntities = taskNodeExecRequestRepository
                 .findCurrentEntityByNodeInstId(taskNodeInstEntity.getId());
@@ -1177,9 +1176,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         nodeInstEntity.setUpdatedTime(now);
         nodeInstEntity.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-        nodeInstEntity.setErrorMessage(EMPTY_ERROR_MSG);
+        nodeInstEntity.setErrMsg(EMPTY_ERROR_MSG);
 
-        taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
     }
 
     private void handlePluginInterfaceInvocationFailure(PluginInterfaceInvocationResult pluginInvocationResult,
@@ -1199,9 +1198,9 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         nodeInstEntity.setUpdatedTime(now);
         nodeInstEntity.setStatus(TaskNodeInstInfoEntity.FAULTED_STATUS);
-        nodeInstEntity.setErrorMessage(errorMsg);
+        nodeInstEntity.setErrMsg(errorMsg);
 
-        taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
 
     }
 
