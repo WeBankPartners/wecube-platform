@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -45,7 +44,7 @@ import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpRep
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
 import com.webank.wecube.platform.core.service.dme.EntityOperationRootCondition;
 import com.webank.wecube.platform.core.service.dme.EntityTreeNodesOverview;
 import com.webank.wecube.platform.core.service.dme.StandardEntityOperationService;
@@ -63,7 +62,7 @@ public class WorkflowDataService{
     private TaskNodeDefInfoMapper taskNodeDefInfoRepository;
 
     @Autowired
-    private TaskNodeInstInfoRepository taskNodeInstInfoRepository;
+    private TaskNodeInstInfoMapper taskNodeInstInfoRepository;
 
     @Autowired
     private StandardEntityOperationService standardEntityOperationService;
@@ -309,12 +308,10 @@ public class WorkflowDataService{
     }
 
     public TaskNodeExecContextDto getTaskNodeContextInfo(Integer procInstId, Integer nodeInstId) {
-        Optional<TaskNodeInstInfoEntity> nodeEntityOpt = taskNodeInstInfoRepository.findById(nodeInstId);
-        if (!nodeEntityOpt.isPresent()) {
+        TaskNodeInstInfoEntity nodeEntity = taskNodeInstInfoRepository.selectByPrimaryKey(nodeInstId);
+        if (nodeEntity == null) {
             throw new WecubeCoreException("3188",String.format("Invalid node instance id: %s" , nodeInstId), nodeInstId);
         }
-
-        TaskNodeInstInfoEntity nodeEntity = nodeEntityOpt.get();
 
         TaskNodeExecContextDto result = new TaskNodeExecContextDto();
         result.setNodeDefId(nodeEntity.getNodeDefId());
@@ -322,7 +319,7 @@ public class WorkflowDataService{
         result.setNodeInstId(nodeEntity.getId());
         result.setNodeName(nodeEntity.getNodeName());
         result.setNodeType(nodeEntity.getNodeType());
-        result.setErrorMessage(nodeEntity.getErrorMessage());
+        result.setErrorMessage(nodeEntity.getErrMsg());
 
         List<TaskNodeExecRequestEntity> requestEntities = taskNodeExecRequestRepository
                 .findCurrentEntityByNodeInstId(nodeEntity.getId());
