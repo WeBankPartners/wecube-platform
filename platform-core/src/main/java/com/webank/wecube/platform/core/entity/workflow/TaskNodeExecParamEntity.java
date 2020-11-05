@@ -1,9 +1,8 @@
 package com.webank.wecube.platform.core.entity.workflow;
 
-import javax.persistence.Column;
+import java.util.Date;
+
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 import com.webank.wecube.platform.core.entity.BaseTraceableEntity;
@@ -20,37 +19,35 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
 
     public static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmssSSSZ";
 
-    @Id
-    @Column(name = "ID")
-    @GeneratedValue
     private Integer id;
 
-    @Column(name = "REQ_ID")
-    private String requestId;
+    private String createdBy;
 
-    @Column(name = "OBJ_ID")
-    private String objectId;
+    private Date createdTime;
 
-    @Column(name = "ENTITY_TYPE_ID")
-    private String entityTypeId;
+    private String updatedBy;
 
-    @Column(name = "ENTITY_DATA_ID")
-    private String entityDataId;
+    private Date updatedTime;
 
-    @Column(name = "PARAM_TYPE")
-    private String paramType;
+    private String objId;
 
-    @Column(name = "PARAM_NAME")
+    private String paramDataType;
+
+    private String paramDataValue;
+
     private String paramName;
 
-    @Column(name = "PARAM_DATA_TYPE")
-    private String paramDataType; // int,string,boolean
+    private String paramType;
 
-    @Column(name = "PARAM_DATA_VALUE", columnDefinition = "text")
-    private String paramDataValue;
-    
-    @Column(name = "IS_SENSITIVE")
-    private Boolean sensitive;
+    private String reqId;
+
+    private String rootEntityId;
+
+    private String entityDataId;
+
+    private String entityTypeId;
+
+    private Boolean isSensitive;
 
     public Integer getId() {
         return id;
@@ -60,36 +57,44 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
         this.id = id;
     }
 
-    public String getRequestId() {
-        return requestId;
+    public String getCreatedBy() {
+        return createdBy;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
-    public String getObjectId() {
-        return objectId;
+    public Date getCreatedTime() {
+        return createdTime;
     }
 
-    public void setObjectId(String objectId) {
-        this.objectId = objectId;
+    public void setCreatedTime(Date createdTime) {
+        this.createdTime = createdTime;
     }
 
-    public String getParamType() {
-        return paramType;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setParamType(String paramType) {
-        this.paramType = paramType;
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 
-    public String getParamName() {
-        return paramName;
+    public Date getUpdatedTime() {
+        return updatedTime;
     }
 
-    public void setParamName(String paramName) {
-        this.paramName = paramName;
+    public void setUpdatedTime(Date updatedTime) {
+        this.updatedTime = updatedTime;
+    }
+
+    public String getObjId() {
+        return objId;
+    }
+
+    public void setObjId(String objId) {
+        this.objId = objId;
     }
 
     public String getParamDataType() {
@@ -108,12 +113,36 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
         this.paramDataValue = paramDataValue;
     }
 
-    public String getEntityTypeId() {
-        return entityTypeId;
+    public String getParamName() {
+        return paramName;
     }
 
-    public void setEntityTypeId(String entityTypeId) {
-        this.entityTypeId = entityTypeId;
+    public void setParamName(String paramName) {
+        this.paramName = paramName;
+    }
+
+    public String getParamType() {
+        return paramType;
+    }
+
+    public void setParamType(String paramType) {
+        this.paramType = paramType;
+    }
+
+    public String getReqId() {
+        return reqId;
+    }
+
+    public void setReqId(String reqId) {
+        this.reqId = reqId;
+    }
+
+    public String getRootEntityId() {
+        return rootEntityId;
+    }
+
+    public void setRootEntityId(String rootEntityId) {
+        this.rootEntityId = rootEntityId;
     }
 
     public String getEntityDataId() {
@@ -124,11 +153,20 @@ public class TaskNodeExecParamEntity extends BaseTraceableEntity {
         this.entityDataId = entityDataId;
     }
 
-    public Boolean getSensitive() {
-        return sensitive;
+    public String getEntityTypeId() {
+        return entityTypeId;
     }
 
-    public void setSensitive(Boolean sensitive) {
-        this.sensitive = sensitive;
+    public void setEntityTypeId(String entityTypeId) {
+        this.entityTypeId = entityTypeId;
     }
+
+    public Boolean getIsSensitive() {
+        return isSensitive;
+    }
+
+    public void setIsSensitive(Boolean isSensitive) {
+        this.isSensitive = isSensitive;
+    }
+
 }

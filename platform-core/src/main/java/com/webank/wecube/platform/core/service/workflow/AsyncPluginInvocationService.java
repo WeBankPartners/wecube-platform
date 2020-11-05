@@ -320,7 +320,7 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
         }
 
         if (callbackParameterInputEntity != null) {
-            objectId = callbackParameterInputEntity.getObjectId();
+            objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
         }
@@ -349,14 +349,14 @@ public class AsyncPluginInvocationService extends AbstractPluginInvocationServic
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
-            paramEntity.setObjectId(objectId);
+            paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
             paramEntity.setParamDataType(paramDataType);
             paramEntity.setParamDataValue(paramDataValue);
-            paramEntity.setRequestId(requestId);
+            paramEntity.setReqId(requestId);
 
-            taskNodeExecParamRepository.saveAndFlush(paramEntity);
+            taskNodeExecParamRepository.insert(paramEntity);
         }
     }
 

@@ -21,7 +21,17 @@ public interface TaskNodeExecRequestMapper {
 
     int updateByPrimaryKey(TaskNodeExecRequestEntity record);
 
+    /**
+     * 
+     * @param requestId
+     * @return
+     */
     TaskNodeExecRequestEntity findOneByRequestId(@Param("requestId") String requestId);
 
+    /**
+     * 
+     * @param nodeInstId
+     * @return
+     */
     List<TaskNodeExecRequestEntity> findCurrentEntityByNodeInstId(@Param("nodeInstId") Integer nodeInstId);
 }

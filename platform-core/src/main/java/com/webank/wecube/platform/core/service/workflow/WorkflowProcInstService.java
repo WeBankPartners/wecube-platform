@@ -38,7 +38,7 @@ import com.webank.wecube.platform.core.repository.workflow.ProcExecBindingTmpMap
 import com.webank.wecube.platform.core.repository.workflow.ProcInstInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
@@ -69,7 +69,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private WorkflowEngineService workflowEngineService;
 
     @Autowired
-    protected TaskNodeExecParamRepository taskNodeExecParamRepository;
+    protected TaskNodeExecParamMapper taskNodeExecParamRepository;
 
     @Autowired
     protected TaskNodeExecRequestMapper taskNodeExecRequestRepository;

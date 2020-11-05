@@ -682,7 +682,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
 
         for (TaskNodeExecParamEntity e : execParamEntities) {
             String paramDataValue = e.getParamDataValue();
-            if(e.getSensitive() != null && e.getSensitive() == true){
+            if(e.getIsSensitive() != null && e.getIsSensitive() == true){
                 paramDataValue = tryDecodeParamDataValue(paramDataValue);
             }
             retDataValues.add(fromString(e.getParamDataValue(), e.getParamDataType()));
@@ -844,33 +844,33 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             Map<String, Object> inputMap = new HashMap<String, Object>();
             inputMap.put(CALLBACK_PARAMETER_KEY, entityDataId);
             TaskNodeExecParamEntity p = new TaskNodeExecParamEntity();
-            p.setRequestId(requestId);
+            p.setReqId(requestId);
             p.setParamName(CALLBACK_PARAMETER_KEY);
             p.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
             p.setParamDataType(DATA_TYPE_STRING);
-            p.setObjectId(sObjectId);
+            p.setObjId(sObjectId);
             p.setParamDataValue(entityDataId);
             p.setEntityDataId(entityDataId);
             p.setEntityTypeId(entityTypeId);
 
-            taskNodeExecParamRepository.saveAndFlush(p);
+            taskNodeExecParamRepository.insert(p);
 
             inputMap.put(INPUT_PARAMETER_KEY_OPERATOR, operator);
 
             for (InputParamAttr attr : ipo.getAttrs()) {
                 TaskNodeExecParamEntity e = new TaskNodeExecParamEntity();
-                e.setRequestId(requestId);
+                e.setReqId(requestId);
                 e.setParamName(attr.getName());
                 e.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_REQUEST);
                 e.setParamDataType(attr.getType());
-                e.setObjectId(sObjectId);
+                e.setObjId(sObjectId);
                 e.setParamDataValue(tryCalculateParamDataValue(attr));
                 e.setEntityDataId(entityDataId);
                 e.setEntityTypeId(entityTypeId);
 
-                e.setSensitive(attr.isSensitive());
+                e.setIsSensitive(attr.isSensitive());
 
-                taskNodeExecParamRepository.saveAndFlush(e);
+                taskNodeExecParamRepository.insert(e);
 
                 inputMap.put(attr.getName(), attr.getExpectedValue());
             }
@@ -1062,7 +1062,7 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
         }
 
         if (callbackParameterInputEntity != null) {
-            objectId = callbackParameterInputEntity.getObjectId();
+            objectId = callbackParameterInputEntity.getObjId();
             entityTypeId = callbackParameterInputEntity.getEntityTypeId();
             entityDataId = callbackParameterInputEntity.getEntityDataId();
         }
@@ -1092,15 +1092,15 @@ public class PluginInvocationService extends AbstractPluginInvocationService {
             TaskNodeExecParamEntity paramEntity = new TaskNodeExecParamEntity();
             paramEntity.setEntityTypeId(entityTypeId);
             paramEntity.setEntityDataId(entityDataId);
-            paramEntity.setObjectId(objectId);
+            paramEntity.setObjId(objectId);
             paramEntity.setParamType(TaskNodeExecParamEntity.PARAM_TYPE_RESPONSE);
             paramEntity.setParamName(entry.getKey());
             paramEntity.setParamDataType(paramDataType);
             paramEntity.setParamDataValue(paramDataValue);
-            paramEntity.setRequestId(requestId);
-            paramEntity.setSensitive(isSensitiveData);
+            paramEntity.setReqId(requestId);
+            paramEntity.setIsSensitive(isSensitiveData);
 
-            taskNodeExecParamRepository.saveAndFlush(paramEntity);
+            taskNodeExecParamRepository.insert(paramEntity);
         }
     }
 
