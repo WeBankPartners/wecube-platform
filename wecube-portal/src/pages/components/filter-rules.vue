@@ -1,5 +1,5 @@
 <template>
-  <div class="filter_rules_contain" ref="filter_rules_contain">
+  <div class="filter_rules_contain" :class="disabled ? 'disabled-filter' : ''" ref="filter_rules_contain">
     <Poptip v-model="poptipVisable" placement="bottom">
       <div ref="wecube_cmdb_attr" class="filter_rules_path_contains">
         <span
@@ -11,6 +11,7 @@
           >{{ path.pathExp.replace(/@@[0-9A-Za-z_]*@@/g, '') }}</span
         >
         <Button
+          :class="disabled ? 'disabled-filter' : ''"
           v-if="pathList.length > 0"
           type="dashed"
           icon="md-copy"
@@ -534,6 +535,12 @@ export default {
   border-radius: 4px;
   margin-bottom: 10px;
   outline: none;
+}
+.disabled-filter {
+  background-color: #f3f3f3 !important;
+  span {
+    color: #cccccc !important;
+  }
 }
 .filter_rules_path_options {
   width: 100%;
