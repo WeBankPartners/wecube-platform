@@ -3,7 +3,6 @@ package com.webank.wecube.platform.core.service.workflow;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
@@ -41,7 +40,7 @@ import com.webank.wecube.platform.core.repository.workflow.ProcRoleBindingReposi
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeDefInfoMapper;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecParamRepository;
 import com.webank.wecube.platform.core.repository.workflow.TaskNodeExecRequestRepository;
-import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoRepository;
+import com.webank.wecube.platform.core.repository.workflow.TaskNodeInstInfoMapper;
 import com.webank.wecube.platform.core.service.user.UserManagementServiceImpl;
 import com.webank.wecube.platform.workflow.commons.LocalIdGenerator;
 import com.webank.wecube.platform.workflow.model.ProcFlowNodeInst;
@@ -61,7 +60,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
     private TaskNodeDefInfoMapper taskNodeDefInfoRepository;
 
     @Autowired
-    private TaskNodeInstInfoRepository taskNodeInstInfoRepository;
+    private TaskNodeInstInfoMapper taskNodeInstInfoRepository;
 
     @Autowired
     private ProcExecBindingRepository procExecBindingRepository;
@@ -146,14 +145,12 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
 
         refreshProcessInstanceStatus(procInst);
 
-        Optional<TaskNodeInstInfoEntity> nodeInstOpt = taskNodeInstInfoRepository.findById(request.getNodeInstId());
-        if (!nodeInstOpt.isPresent()) {
+        TaskNodeInstInfoEntity nodeInst = taskNodeInstInfoRepository.selectByPrimaryKey(request.getNodeInstId());
+        if (nodeInst == null) {
             log.warn("such task node instance does not exist,process id :{}, task node id:{}", request.getProcInstId(),
                     request.getNodeInstId());
             throw new WecubeCoreException("3138", "Such task node instance does not exist.");
         }
-
-        TaskNodeInstInfoEntity nodeInst = nodeInstOpt.get();
 
         if (!procInst.getId().equals(nodeInst.getProcInstId())) {
             log.warn("Illegal task node id:{}", nodeInst.getProcInstId());
@@ -180,7 +177,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             if (!nodeStatus.equals(nodeInst.getStatus())) {
                 nodeInst.setUpdatedTime(new Date());
                 nodeInst.setStatus(nodeStatus);
-                taskNodeInstInfoRepository.saveAndFlush(nodeInst);
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInst);
             }
         }
     }
@@ -200,7 +197,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             if (!nodeStatus.equals(nie.getStatus())) {
                 nie.setStatus(nodeStatus);
                 nie.setUpdatedTime(currTime);
-                taskNodeInstInfoRepository.saveAndFlush(nie);
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(nie);
             }
         }
     }
@@ -290,7 +287,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
             if (pfni != null && (pfni.getStatus() != null) && (!pfni.getStatus().equals(nodeInstEntity.getStatus()))) {
                 nodeInstEntity.setStatus(pfni.getStatus());
                 nodeInstEntity.setUpdatedTime(new Date());
-                taskNodeInstInfoRepository.saveAndFlush(nodeInstEntity);
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(nodeInstEntity);
             }
         }
 
@@ -525,7 +522,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         taskNodeInstInfoEntity.setNodeDefId(taskNodeDefInfoEntity.getId());
         taskNodeInstInfoEntity.setNodeId(taskNodeDefInfoEntity.getNodeId());
         taskNodeInstInfoEntity.setNodeName(taskNodeDefInfoEntity.getNodeName());
-        taskNodeInstInfoEntity.setOperator(AuthenticationContextHolder.getCurrentUsername());
+        taskNodeInstInfoEntity.setOper(AuthenticationContextHolder.getCurrentUsername());
         taskNodeInstInfoEntity.setProcDefId(taskNodeDefInfoEntity.getProcDefId());
         taskNodeInstInfoEntity.setProcDefKey(taskNodeDefInfoEntity.getProcDefKey());
         taskNodeInstInfoEntity.setProcInstId(procInstInfoEntity.getId());
@@ -533,7 +530,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
         taskNodeInstInfoEntity.setNodeType(taskNodeDefInfoEntity.getNodeType());
         taskNodeInstInfoEntity.setOrderedNo(taskNodeDefInfoEntity.getOrderedNo());
 
-        taskNodeInstInfoRepository.saveAndFlush(taskNodeInstInfoEntity);
+        taskNodeInstInfoRepository.updateByPrimaryKeySelective(taskNodeInstInfoEntity);
 
         return taskNodeInstInfoEntity;
     }
@@ -616,7 +613,7 @@ public class WorkflowProcInstService extends AbstractWorkflowService {
                 n.setUpdatedBy(AuthenticationContextHolder.getCurrentUsername());
                 n.setUpdatedTime(now);
                 n.setStatus(TaskNodeInstInfoEntity.COMPLETED_STATUS);
-                taskNodeInstInfoRepository.saveAndFlush(n);
+                taskNodeInstInfoRepository.updateByPrimaryKeySelective(n);
             }
         }
 
